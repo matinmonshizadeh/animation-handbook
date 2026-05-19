@@ -196,5 +196,65 @@
 
 </div>
 
+<script>
+  const DEFAULTS = [0.10, 0.30, 0.60, 1.00];
+  const LAYERS   = DEFAULTS.map((s, i) => ({
+    el: document.getElementById('l' + (i + 1)),
+    speed: s,
+  }));
+  const stage    = document.getElementById('stage');
+  const progEl   = document.getElementById('progress');
+  const OFFS     = [1,2,3,4].map(i => document.getElementById('off' + i));
+  const SLIDERS  = [1,2,3,4].map(i => document.getElementById('s' + i));
+  const SVALS    = [1,2,3,4].map(i => document.getElementById('sv' + i));
+  const tog      = document.getElementById('tog');
+  const resetBtn = document.getElementById('resetBtn');
+  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let ticking    = false;
+
+  function update() {
+    const st  = stage.scrollTop;
+    const max = stage.scrollHeight - stage.clientHeight;
+    progEl.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
+    LAYERS.forEach((L, i) => {
+      const off = Math.round(st * L.speed);
+      L.el.style.transform = `translate3d(0,${off}px,0)`;
+      OFFS[i].textContent  = off + 'px';
+    });
+    ticking = false;
+  }
+
+  stage.addEventListener('scroll', () => {
+    if (noMotion) return;
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+
+  SLIDERS.forEach((sl, i) => {
+    sl.addEventListener('input', () => {
+      if (!tog.checked) LAYERS[i].speed = sl.value / 100;
+      SVALS[i].textContent = sl.value + '%';
+      update();
+    });
+  });
+
+  tog.addEventListener('change', () => {
+    LAYERS.forEach((L, i) => {
+      L.speed = tog.checked ? 1.0 : SLIDERS[i].value / 100;
+    });
+    update();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    tog.checked = false;
+    DEFAULTS.forEach((d, i) => {
+      LAYERS[i].speed      = d;
+      SLIDERS[i].value     = d * 100;
+      SVALS[i].textContent = Math.round(d * 100) + '%';
+    });
+    update();
+  });
+
+  update();
+</script>
 </body>
 </html>
