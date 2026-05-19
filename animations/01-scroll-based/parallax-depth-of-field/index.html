@@ -158,9 +158,9 @@
 <aside class="sidebar">
   <div class="s-label">Focal Plane</div>
   <div class="slider-wrap">
-    <span class="tick">far</span>
-    <input type="range" class="focal-slider" id="focalSlider" min="0" max="100" value="0">
     <span class="tick">near</span>
+    <input type="range" class="focal-slider" id="focalSlider" min="0" max="100" value="0">
+    <span class="tick">far</span>
   </div>
   <div class="divider"></div>
   <div class="s-label">Blur</div>
@@ -189,6 +189,8 @@
     document.getElementById('row-l1'),
   ];
   const slider  = document.getElementById('focalSlider');
+  const stage   = document.querySelector('.scroll-stage');
+  const VALUES  = ROWS.map(r => r.querySelector('.val'));
   const MAX_BLUR   = 14;
   const MAX_OFFSET = 120;
   let manualOverride = false;
@@ -202,15 +204,14 @@
       const offset = layer.speed * f * MAX_OFFSET;
       layer.el.style.filter    = `blur(${blur}px)`;
       layer.el.style.transform = `translateY(${offset}px)`;
-      ROWS[i].querySelector('.val').textContent = `${blur}px`;
+      VALUES[i].textContent = `${blur}px`;
     });
     ROWS.forEach((r, i) => r.classList.toggle('focused', i === closestIdx));
   }
 
   function onScroll() {
     if (manualOverride) return;
-    const stage = document.querySelector('.scroll-stage');
-    const max   = stage.offsetHeight - window.innerHeight;
+    const max = stage.offsetHeight - window.innerHeight;
     const f     = Math.min(1, Math.max(0, window.scrollY / max));
     slider.value = f * 100;
     applyFrame(f);
