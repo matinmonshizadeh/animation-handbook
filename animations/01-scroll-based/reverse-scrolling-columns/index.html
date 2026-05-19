@@ -148,5 +148,130 @@
 
 </div>
 
+<script>
+  const CARDS = [
+    {s:'grid',    l:'Project Alpha',  m:'Design · 2024',   a:'#58a6ff'},
+    {s:'circle',  l:'Studio Work',    m:'Motion · 2023',   a:'#bf91f3'},
+    {s:'tri',     l:'Concept 03',     m:'Dev · 2024',      a:'#3fb950'},
+    {s:'diamond', l:'Brand Atlas',    m:'Identity · 2023', a:'#f78166'},
+    {s:'cross',   l:'Interface V2',   m:'UX · 2024',       a:'#ffa657'},
+    {s:'arc',     l:'Motion Reel',    m:'Video · 2022',    a:'#79c0ff'},
+    {s:'zz',      l:'Type Study',     m:'Type · 2023',     a:'#d2a8ff'},
+    {s:'dot',     l:'Data Viz',       m:'Research · 2024', a:'#56d364'},
+    {s:'lines',   l:'Scroll Kit',     m:'Library · 2023',  a:'#58a6ff'},
+    {s:'hex',     l:'Space UI',       m:'Design · 2024',   a:'#bf91f3'},
+    {s:'wave',    l:'Sound Tools',    m:'Audio · 2023',    a:'#3fb950'},
+    {s:'ring',    l:'Orbit System',   m:'Motion · 2024',   a:'#f78166'},
+  ];
+  const SVG = {
+    grid:   '<rect x="2" y="2" width="4" height="4" rx="1" fill="currentColor"/><rect x="8" y="2" width="4" height="4" rx="1" fill="currentColor" opacity=".45"/><rect x="2" y="8" width="4" height="4" rx="1" fill="currentColor" opacity=".45"/><rect x="8" y="8" width="4" height="4" rx="1" fill="currentColor"/>',
+    circle: '<circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/>',
+    tri:    '<polygon points="7,2 12,11 2,11" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    diamond:'<polygon points="7,1 13,7 7,13 1,7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    cross:  '<line x1="7" y1="2" x2="7" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1.5"/>',
+    arc:    '<path d="M3 10 Q7 2 11 10" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    zz:     '<polyline points="2,10 5,4 8,10 11,4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    dot:    '<circle cx="7" cy="7" r="2.5" fill="currentColor"/><circle cx="3" cy="11" r="1.5" fill="currentColor" opacity=".5"/><circle cx="11" cy="11" r="1.5" fill="currentColor" opacity=".5"/>',
+    lines:  '<line x1="2" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="1.5"/>',
+    hex:    '<polygon points="7,1 12,4 12,10 7,13 2,10 2,4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    wave:   '<path d="M2 7 C4 4 6 10 8 7 S12 4 12 7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    ring:   '<circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="7" cy="7" r="2" fill="currentColor" opacity=".35"/>',
+  };
+
+  function makeSet() {
+    const div = document.createElement('div');
+    div.className = 'card-set';
+    div.innerHTML = CARDS.map(c =>
+      `<div class="card">` +
+      `<div class="icon-box" style="background:${c.a}22;color:${c.a}">` +
+      `<svg width="14" height="14" viewBox="0 0 14 14">${SVG[c.s]}</svg></div>` +
+      `<div><div class="card-label">${c.l}</div>` +
+      `<div class="card-meta">${c.m}</div></div></div>`
+    ).join('');
+    return div;
+  }
+
+  const leftInner   = document.getElementById('inner-left');
+  const centerInner = document.getElementById('inner-center');
+  const rightInner  = document.getElementById('inner-right');
+
+  [leftInner, centerInner, rightInner].forEach(el => {
+    el.appendChild(makeSet());
+    el.appendChild(makeSet());
+  });
+
+  // Measure loop period AFTER DOM insertion — height of one card-set plus the 8px col-inner gap
+  const singleSetH = leftInner.children[0].offsetHeight + 8;
+
+  // Center column: pre-offset so set A is above the viewport; set B starts visible
+  centerInner.style.marginTop = `-${singleSetH}px`;
+
+  const stage    = document.getElementById('stage');
+  const progEl   = document.getElementById('progress');
+  const offLeft  = document.getElementById('off-left');
+  const offCtr   = document.getElementById('off-center');
+  const offRight = document.getElementById('off-right');
+  const slider   = document.getElementById('mult-slider');
+  const multVal  = document.getElementById('mult-val');
+  const matchTog = document.getElementById('match-tog');
+  const resetBtn = document.getElementById('reset-btn');
+  const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let mult       = -1.0;
+  let ticking    = false;
+
+  function fmt(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '×'; }
+
+  function update() {
+    if (motionMQ.matches) return;
+    const st  = stage.scrollTop;
+    const max = stage.scrollHeight - stage.clientHeight;
+    progEl.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
+
+    // Center: always scrolls down; margin-top=-singleSetH makes it loop from above
+    const cOff = st % singleSetH;
+    centerInner.style.transform = `translate3d(0,${cOff}px,0)`;
+    offCtr.textContent = Math.round(cOff) + 'px';
+
+    // Sides: magnitude = speed, sign = direction (negative = up = reverse)
+    const sideRaw = st * Math.abs(mult);
+    const sideOff = sideRaw % singleSetH;
+    const sideY   = mult >= 0 ? sideOff : -sideOff;
+    leftInner.style.transform  = `translate3d(0,${sideY}px,0)`;
+    rightInner.style.transform = `translate3d(0,${sideY}px,0)`;
+    offLeft.textContent  = Math.round(sideY) + 'px';
+    offRight.textContent = Math.round(sideY) + 'px';
+
+    ticking = false;
+  }
+
+  stage.addEventListener('scroll', () => {
+    if (motionMQ.matches) return;
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+
+  slider.addEventListener('input', () => {
+    if (matchTog.checked) return;
+    mult = slider.value / 100;
+    multVal.textContent = fmt(mult);
+    update();
+  });
+
+  matchTog.addEventListener('change', () => {
+    mult = matchTog.checked ? 1.0 : slider.value / 100;
+    multVal.textContent = fmt(mult);
+    update();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    matchTog.checked    = false;
+    slider.value        = -100;
+    mult                = -1.0;
+    multVal.textContent = '−1.0×';
+    stage.scrollTop     = 0;
+    update();
+  });
+
+  update();
+</script>
 </body>
 </html>
