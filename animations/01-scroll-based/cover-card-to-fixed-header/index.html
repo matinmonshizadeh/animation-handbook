@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cover Card to Fixed Header</title>
+  <style>
+    :root{
+      --bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;
+      --ui-accent:#3fb950;--ui-text:#c9d1d9;--ui-muted:#8b949e;
+      --cover-full:530px;--cover-min:56px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;
+         padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+
+    .stage{
+      flex:1;min-width:0;height:620px;
+      overflow-y:scroll;scrollbar-width:none;
+      border:1px solid var(--ui-border);border-radius:8px;
+    }
+    .stage::-webkit-scrollbar{display:none}
+    .scene{min-height:2500px}
+
+    .cover{
+      position:sticky;top:0;z-index:10;
+      height:var(--cover-full);overflow:hidden;
+      background:#050e08;
+    }
+    .cover-bg{
+      position:absolute;inset:0;
+      background:linear-gradient(150deg,#050e08,#0c2820,#060a10);
+      will-change:opacity,filter;
+    }
+    .cover-code{
+      position:absolute;top:14px;left:16px;
+      font-size:9px;color:#1a4a30;line-height:1.7;
+      pointer-events:none;user-select:none;
+    }
+    .cover-inner{
+      position:relative;z-index:1;
+      display:flex;flex-direction:column;
+      height:100%;padding:0 24px 20px;
+    }
+    .cover-spacer{flex:1}
+    .cover-meta{
+      font-size:10px;color:#3d7a52;
+      letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;
+    }
+    .cover-title{
+      font-size:26px;color:#d1f7d6;line-height:1.2;
+      letter-spacing:-.5px;margin-bottom:8px;
+      will-change:font-size;
+    }
+    .cover-sub{
+      font-size:12px;color:#3d7a52;line-height:1.5;margin-bottom:14px;
+    }
+    .cover-author{display:flex;align-items:center;gap:8px}
+    .avatar{
+      width:24px;height:24px;border-radius:50%;flex-shrink:0;
+      background:linear-gradient(135deg,#3fb950,#56d364);
+    }
+    .author-name{font-size:10px;color:#3d7a52}
+    .header-chip{
+      position:absolute;top:14px;right:16px;
+      display:flex;align-items:center;gap:6px;opacity:0;
+    }
+    .avatar-sm{
+      width:16px;height:16px;border-radius:50%;flex-shrink:0;
+      background:linear-gradient(135deg,#3fb950,#56d364);
+    }
+    .chip-name{font-size:10px;color:#d1f7d6}
+
+    .article-body{padding:28px 24px;max-width:600px}
+    .article-body h2{
+      font-size:11px;color:var(--ui-accent);letter-spacing:1px;
+      text-transform:uppercase;margin:28px 0 10px;
+    }
+    .article-body p{
+      font-size:12px;color:var(--ui-muted);line-height:1.75;margin-bottom:14px;
+    }
+    .article-body blockquote{
+      border-left:2px solid var(--ui-accent);padding:8px 16px;margin:18px 0;
+      font-size:13px;color:var(--ui-text);font-style:italic;
+    }
+
+    aside{
+      width:clamp(200px,22vw,240px);flex-shrink:0;
+      background:var(--ui-bg);border:1px solid var(--ui-border);
+      border-radius:8px;padding:16px;
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .note{
+      font-size:10px;color:var(--ui-muted);line-height:1.6;
+      border-left:2px solid var(--ui-accent);padding-left:8px;
+    }
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .row{display:flex;justify-content:space-between;font-size:10px}
+    .row .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .tbl .row{font-size:10px;color:var(--ui-muted)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button{
+      background:transparent;border:1px solid var(--ui-border);
+      color:var(--ui-text);font-family:monospace;font-size:10px;
+      padding:17px 8px;border-radius:4px;cursor:pointer;width:100%;
+    }
+    button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
+
+    @media(max-width:600px){
+      .layout{flex-direction:column}
+      aside{width:100%}
+      .stage{height:520px}
+      :root{--cover-full:480px;--cover-min:64px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .cover,.cover-title,.cover-bg,.header-chip{will-change:auto}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Cover Card to Fixed Header</h1>
+  <p>A full-page hero cover morphs into a compact fixed header as you scroll — every property scrubbed to a single 0→1 progress value.</p>
+</header>
+
+<div class="layout">
+
+  <div class="stage" id="stage">
+    <div class="scene">
+
+      <div class="cover" id="cover">
+        <div class="cover-bg" id="cover-bg"></div>
+        <div class="cover-code" aria-hidden="true">
+          const p = scrollY / RANGE;<br>
+          const e = easeOutCubic(p);<br>
+          height = lerp(530, 56, e);
+        </div>
+        <div class="cover-inner">
+          <div class="cover-spacer"></div>
+          <div class="cover-meta" id="cover-meta">Article · 8 min read</div>
+          <h1 class="cover-title" id="cover-title">The Architecture<br>of Scroll Motion</h1>
+          <p class="cover-sub" id="cover-sub">How browsers render scroll-driven animations at 60fps</p>
+          <div class="cover-author" id="cover-author">
+            <div class="avatar"></div>
+            <span class="author-name">Matin M. · May 2026</span>
+          </div>
+        </div>
+        <div class="header-chip" id="header-chip">
+          <div class="avatar-sm"></div>
+          <span class="chip-name">Matin M.</span>
+        </div>
+      </div>
+
+      <article class="article-body">
+        <h2>Parsing the Render Pipeline</h2>
+        <p>Every modern browser separates rendering into distinct phases: style
+        recalculation, layout, paint, and composite. Scroll-driven animations that
+        stay on the compositor thread — using only transform and opacity — bypass
+        the first three phases entirely, enabling smooth motion regardless of
+        main-thread load.</p>
+        <p>The performance boundary is predictable. Any property that triggers
+        layout — height, padding, margin, width — forces the browser to
+        recalculate the geometry of every affected element before painting. A
+        scroll handler that reads offsetTop and writes height on every event is
+        a classic layout-thrash pattern.</p>
+        <blockquote>"The fastest animation is one the compositor can run
+        without consulting the main thread."</blockquote>
+        <h2>The Single-Progress Model</h2>
+        <p>This demo maps all visual changes to one value: p ∈ [0, 1]. That
+        number drives height, font size, opacity, blur, and border
+        simultaneously. When every property shares the same source of truth,
+        intermediate states are always consistent — no awkward frames where the
+        title has shrunk but the background remains fully visible.</p>
+        <p>Easing the progress value once (easeOutCubic) rather than easing
+        each property separately keeps multi-property interpolation coherent.
+        All elements decelerate together, which reads as intentional rather
+        than coincidental.</p>
+        <p>Adjusting the transition range slider shows how the same logic
+        produces very different feels. At 150px the morph is punchy. At 600px
+        it becomes cinematic — the user invests real scroll before the header
+        locks in.</p>
+      </article>
+
+    </div>
+  </div>
+
+  <aside>
+    <p class="note">This pattern is the foundation of every good article header on the modern web — Medium, Substack, NYT, Stripe blog. The trick is scrubbing every property to a single 0→1 progress value so intermediate states all look intentional.</p>
+
+    <div>
+      <div class="lbl">Progress</div>
+      <div class="tbl">
+        <div class="row"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
+        <div class="row"><span>Collapse</span><span class="v" id="collapse-prog">0%</span></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div>
+      <div class="lbl" id="col-lbl">Collapse Override</div>
+      <div class="sr">
+        <input type="range" id="collapse-slider" aria-labelledby="col-lbl"
+               min="0" max="100" value="0">
+        <span class="sv" id="col-val">0%</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="lbl" id="range-lbl">Transition Range</div>
+      <div class="sr">
+        <input type="range" id="range-slider" aria-labelledby="range-lbl"
+               min="150" max="600" step="10" value="320">
+        <span class="sv" id="range-val">320px</span>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <label class="tog" for="binary-tog">
+      <input type="checkbox" id="binary-tog">
+      <span>Binary (snap at midpoint)</span>
+    </label>
+
+    <button id="reset-btn">Reset scroll</button>
+  </aside>
+
+</div>
+
+</body>
+</html>
