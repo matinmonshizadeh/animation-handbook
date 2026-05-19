@@ -18,12 +18,12 @@
 
     header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 16px 24px;
+      padding: clamp(10px, 2vh, 16px) clamp(12px, 3vw, 24px);
       background: linear-gradient(to bottom, rgba(6,10,16,.9), transparent);
       pointer-events: none;
     }
-    header h1 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
-    header p  { font-size: 11px; color: var(--ui-muted); margin-top: 4px; }
+    header h1 { font-size: clamp(11px, 1.5vw, 14px); letter-spacing: 2px; text-transform: uppercase; }
+    header p  { font-size: clamp(10px, 1.2vw, 12px); color: var(--ui-muted); margin-top: 4px; }
 
     .scroll-stage    { height: 500vh; position: relative; }
     .sticky-viewport { position: sticky; top: 0; height: 100vh; overflow: hidden; }
@@ -36,7 +36,7 @@
     /* ── Sidebar ── */
     .sidebar {
       position: fixed; right: 0; top: 50%; transform: translateY(-50%);
-      width: 112px; z-index: 200;
+      width: clamp(90px, 11vw, 120px); z-index: 200;
       background: var(--ui-bg); border: 1px solid var(--ui-border);
       border-right: none; border-radius: 8px 0 0 8px;
       padding: 16px 12px;
@@ -53,8 +53,13 @@
     input[type=range].focal-slider {
       writing-mode: vertical-lr; direction: rtl;
       -webkit-appearance: slider-vertical; appearance: slider-vertical;
-      width: 28px; height: 96px; cursor: pointer;
+      width: 44px; height: 96px; cursor: pointer;
       accent-color: var(--ui-accent);
+    }
+
+    /* ── Tablet ── */
+    @media (min-width: 601px) and (max-width: 1024px) {
+      input[type=range].focal-slider { height: 120px; }
     }
     .divider { height: 1px; background: var(--ui-border); }
     .readout { display: flex; flex-direction: column; gap: 3px; }
@@ -77,10 +82,15 @@
       input[type=range].focal-slider {
         writing-mode: horizontal-tb; direction: ltr;
         -webkit-appearance: auto; appearance: auto;
-        width: 110px; height: auto;
+        width: 110px; min-height: 44px;
       }
       .tick { display: none; }
       .readout { flex-direction: row; gap: 8px; }
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .layer { will-change: auto; }
     }
   </style>
 </head>
@@ -191,11 +201,14 @@
   const slider  = document.getElementById('focalSlider');
   const stage   = document.querySelector('.scroll-stage');
   const VALUES  = ROWS.map(r => r.querySelector('.val'));
-  const MAX_BLUR   = 14;
-  const MAX_OFFSET = 120;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile  = window.innerWidth <= 600;
+  const MAX_BLUR   = isMobile ? 8 : 14;
+  const MAX_OFFSET = isMobile ? 60 : 120;
   let manualOverride = false;
 
   function applyFrame(f) {
+    if (reducedMotion) return;
     let closestIdx = 0, closestDist = Infinity;
     LAYERS.forEach((layer, i) => {
       const dist = Math.abs(layer.depth - f);
