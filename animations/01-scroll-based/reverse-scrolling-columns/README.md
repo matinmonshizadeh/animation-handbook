@@ -15,7 +15,7 @@ explicit and exaggerated.
 
 - Hero layouts where bold visual contrast sets the editorial tone
 - Portfolio or agency showcases that need motion without heavy assets
-- Scrolljacking-free scroll-driven features (the stage drives its own scroll)
+- Scroll-driven features where the page scroll remains native and a contained stage drives the effect
 - Anywhere opposing motion is used intentionally to create visual tension
 
 ## How it works
@@ -29,9 +29,9 @@ Each column contains two identical card sets stacked vertically. A single
 const cOff = scrollTop % singleSetH;
 centerInner.style.transform = `translate3d(0, ${cOff}px, 0)`;
 
-// Side columns — scroll up at the multiplier's magnitude
+// Side columns — negative mult reverses direction; magnitude sets speed
 const sideOff = (scrollTop * Math.abs(mult)) % singleSetH;
-const sideY   = mult >= 0 ? sideOff : -sideOff;
+const sideY   = mult >= 0 ? sideOff : -sideOff; // positive = down, negative = up
 sideInner.style.transform = `translate3d(0, ${sideY}px, 0)`;
 ```
 
@@ -47,7 +47,7 @@ exactly with where the first set started.
 | `mult` | −1.0 | Side-column direction and speed; negative = reverse |
 | `singleSetH` | measured | Height of one card set; determines loop period |
 | Card count | 12 | More cards = longer loop period |
-| Scene height | 2000px | Total scroll travel (max scroll ≈ 1380px) |
+| Scene height | 2000px | Total scroll travel (max scroll = scene − viewport height) |
 
 ## Production notes
 
@@ -57,8 +57,8 @@ exactly with where the first set started.
 - **Vestibular risk at high speed.** Opposing motion is a known vestibular
   trigger. In production, keep `|mult|` between 0.3 and 1.0; avoid values
   above 1.5. Always respect `prefers-reduced-motion` by setting `mult = 0`
-  (side columns freeze) — opposing motion is specifically listed in WCAG 2.3
-  as a hazard for motion-sensitive users.
+  (side columns freeze) — opposing motion is addressed in WCAG 2.1
+  SC 2.3.3 (Animation from Interactions, Level AAA) as a vestibular hazard.
 - **Library equivalents.** GSAP ScrollTrigger can drive column transforms
   with `scrub: true` and custom callbacks per column. Locomotive Scroll
   exposes per-element `data-scroll-speed` attributes that accept negative
