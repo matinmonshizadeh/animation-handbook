@@ -55,12 +55,12 @@
     .sr .sv{width:32px;text-align:right;color:var(--ui-text)}
     .div{height:1px;background:var(--ui-border)}
     .sliders.locked{opacity:.4;pointer-events:none}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button{
       background:transparent;border:1px solid var(--ui-border);
       color:var(--ui-text);font-family:monospace;font-size:10px;
-      padding:12px 8px;border-radius:4px;cursor:pointer;width:100%;
+      padding:17px 8px;border-radius:4px;cursor:pointer;width:100%;
     }
     button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
 
@@ -210,15 +210,18 @@
   const SVALS    = [1,2,3,4].map(i => document.getElementById('sv' + i));
   const tog      = document.getElementById('tog');
   const resetBtn = document.getElementById('resetBtn');
-  const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let ticking    = false;
+  const motionMQ    = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const MAX_PARALLAX = 150; // max px travel at speed=1.0 over full scroll range
+  let ticking       = false;
 
   function update() {
-    const st  = stage.scrollTop;
-    const max = stage.scrollHeight - stage.clientHeight;
-    progEl.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
+    if (motionMQ.matches) return;
+    const st       = stage.scrollTop;
+    const max      = stage.scrollHeight - stage.clientHeight;
+    const progress = max > 0 ? st / max : 0;
+    progEl.textContent = Math.round(progress * 100) + '%';
     LAYERS.forEach((L, i) => {
-      const off = Math.round(st * L.speed);
+      const off = Math.round(progress * MAX_PARALLAX * L.speed);
       L.el.style.transform = `translate3d(0,${off}px,0)`;
       OFFS[i].textContent  = off + 'px';
     });
@@ -249,6 +252,7 @@
 
   resetBtn.addEventListener('click', () => {
     tog.checked = false;
+    slidersEl.classList.remove('locked');
     DEFAULTS.forEach((d, i) => {
       LAYERS[i].speed      = d;
       SLIDERS[i].value     = d * 100;
