@@ -60,4 +60,5 @@ Layers closer to the viewer travel farther, reinforcing the sense of depth.
 
 ## See also
 
-- *(more scroll-based entries coming)*
+- [Parallax Scrolling](../parallax-scrolling/) — four SVG layers at different scroll speeds
+  with adjustable multipliers; the speed-ratio concept without the blur.
