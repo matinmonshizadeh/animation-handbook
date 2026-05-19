@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reverse-Scrolling Columns</title>
+  <style>
+    :root{
+      --bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;
+      --ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;
+      --card-bg:#161b22;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;
+         padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+
+    .stage{
+      flex:1;min-width:0;height:620px;
+      overflow-y:scroll;scrollbar-width:none;
+      border:1px solid var(--ui-border);border-radius:8px;
+    }
+    .stage::-webkit-scrollbar{display:none}
+    .scene{height:2000px}
+    .columns{
+      position:sticky;top:0;height:620px;
+      display:flex;gap:8px;overflow:hidden;padding:8px;
+    }
+    .col{flex:1;overflow:hidden}
+    .col-inner{display:flex;flex-direction:column;gap:8px;will-change:transform}
+    .card-set{display:flex;flex-direction:column;gap:8px}
+
+    .card{
+      background:var(--card-bg);border:1px solid var(--ui-border);
+      border-radius:6px;padding:10px 12px;
+      display:flex;align-items:center;gap:10px;flex-shrink:0;
+    }
+    .icon-box{
+      width:28px;height:28px;border-radius:4px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .card-label{font-size:11px;color:var(--ui-text);letter-spacing:.3px}
+    .card-meta{font-size:9px;color:var(--ui-muted);margin-top:2px}
+
+    aside{
+      width:clamp(200px,22vw,240px);flex-shrink:0;
+      background:var(--ui-bg);border:1px solid var(--ui-border);
+      border-radius:8px;padding:16px;
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .note{
+      font-size:10px;color:var(--ui-muted);line-height:1.6;
+      border-left:2px solid var(--ui-accent);padding-left:8px;
+    }
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .row{display:flex;justify-content:space-between;font-size:10px}
+    .row .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .tbl .row{font-size:10px;color:var(--ui-muted)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:40px;text-align:right;color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button{
+      background:transparent;border:1px solid var(--ui-border);
+      color:var(--ui-text);font-family:monospace;font-size:10px;
+      padding:17px 8px;border-radius:4px;cursor:pointer;width:100%;
+    }
+    button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
+
+    @media(max-width:600px){
+      .layout{flex-direction:column}
+      aside{width:100%}
+      .stage{height:480px}
+      .columns{height:480px}
+      .col-right{display:none}
+    }
+    @media(prefers-reduced-motion:reduce){.col-inner{will-change:auto}}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Reverse-Scrolling Columns</h1>
+  <p>A center column that scrolls normally while two flanking columns scroll in the opposite direction.</p>
+</header>
+
+<div class="layout">
+
+  <div class="stage" id="stage">
+    <div class="scene">
+      <div class="columns">
+        <div class="col">
+          <div class="col-inner" id="inner-left"></div>
+        </div>
+        <div class="col">
+          <div class="col-inner" id="inner-center"></div>
+        </div>
+        <div class="col col-right">
+          <div class="col-inner" id="inner-right"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <p class="note">The illusion of the side columns 'flowing the other way' is purely visual — they scroll at the same speed as your input, just in the opposite direction. Setting the multiplier to +1.0× makes them move with you and the effect disappears.</p>
+
+    <div>
+      <div class="lbl">Scroll Progress</div>
+      <div class="row"><span>Progress</span><span class="v" id="progress">0%</span></div>
+    </div>
+
+    <div>
+      <div class="lbl">Column Offsets</div>
+      <div class="tbl">
+        <div class="row"><span>Left</span><span class="v" id="off-left">0px</span></div>
+        <div class="row"><span>Center</span><span class="v" id="off-center">0px</span></div>
+        <div class="row"><span>Right</span><span class="v" id="off-right">0px</span></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div>
+      <div class="lbl">Speed Multiplier</div>
+      <div class="sr">
+        <input type="range" id="mult-slider" min="-200" max="200" step="10" value="-100">
+        <span class="sv" id="mult-val">−1.0×</span>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <label class="tog" for="match-tog">
+      <input type="checkbox" id="match-tog">
+      <span>Match direction (+1.0×)</span>
+    </label>
+
+    <button id="reset-btn">Reset</button>
+  </aside>
+
+</div>
+
+</body>
+</html>
