@@ -54,6 +54,7 @@
     .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
     .sr .sv{width:32px;text-align:right;color:var(--ui-text)}
     .div{height:1px;background:var(--ui-border)}
+    .sliders.locked{opacity:.4;pointer-events:none}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button{
@@ -209,7 +210,7 @@
   const SVALS    = [1,2,3,4].map(i => document.getElementById('sv' + i));
   const tog      = document.getElementById('tog');
   const resetBtn = document.getElementById('resetBtn');
-  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   let ticking    = false;
 
   function update() {
@@ -225,7 +226,7 @@
   }
 
   stage.addEventListener('scroll', () => {
-    if (noMotion) return;
+    if (motionMQ.matches) return;
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
 
@@ -237,10 +238,12 @@
     });
   });
 
+  const slidersEl = document.querySelector('.sliders');
   tog.addEventListener('change', () => {
     LAYERS.forEach((L, i) => {
       L.speed = tog.checked ? 1.0 : SLIDERS[i].value / 100;
     });
+    slidersEl.classList.toggle('locked', tog.checked);
     update();
   });
 
