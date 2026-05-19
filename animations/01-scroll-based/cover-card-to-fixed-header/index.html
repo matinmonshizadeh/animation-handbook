@@ -27,11 +27,7 @@
     .stage::-webkit-scrollbar{display:none}
     .scene{min-height:2500px;position:relative}
 
-    .cover{
-      position:sticky;top:0;z-index:10;
-      height:var(--cover-full);overflow:hidden;
-      background:#050e08;
-    }
+    .cover{position:sticky;top:0;z-index:10;height:var(--cover-full);overflow:hidden;background:#050e08}
     .cover-bg{
       position:absolute;inset:0;
       background:linear-gradient(150deg,#050e08,#0c2820,#060a10);
@@ -42,20 +38,10 @@
       font-size:9px;color:#1a4a30;line-height:1.7;
       pointer-events:none;user-select:none;
     }
-    .cover-inner{
-      position:relative;z-index:1;
-      display:flex;flex-direction:column;
-      height:100%;padding:0 24px 20px;
-    }
+    .cover-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:0 24px 20px}
     .cover-spacer{flex:1}
-    .cover-meta{
-      font-size:10px;color:#3d7a52;
-      letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;
-    }
-    .cover-title{
-      font-size:clamp(18px,4vw,26px);color:#d1f7d6;line-height:1.2;
-      letter-spacing:-.5px;margin-bottom:8px;
-    }
+    .cover-meta{font-size:10px;color:#3d7a52;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+    .cover-title{font-size:clamp(18px,4vw,26px);color:#d1f7d6;line-height:1.2;letter-spacing:-.5px;margin-bottom:8px}
     .cover-sub{
       font-size:12px;color:#3d7a52;line-height:1.5;margin-bottom:14px;
     }
@@ -163,33 +149,12 @@
       </div>
 
       <article class="article-body">
-        <h2>Parsing the Render Pipeline</h2>
-        <p>Every modern browser separates rendering into distinct phases: style
-        recalculation, layout, paint, and composite. Scroll-driven animations that
-        stay on the compositor thread — using only transform and opacity — bypass
-        the first three phases entirely, enabling smooth motion regardless of
-        main-thread load.</p>
-        <p>The performance boundary is predictable. Any property that triggers
-        layout — height, padding, margin, width — forces the browser to
-        recalculate the geometry of every affected element before painting. A
-        scroll handler that reads offsetTop and writes height on every event is
-        a classic layout-thrash pattern.</p>
-        <blockquote>"The fastest animation is one the compositor can run
-        without consulting the main thread."</blockquote>
-        <h2>The Single-Progress Model</h2>
-        <p>This demo maps all visual changes to one value: p ∈ [0, 1]. That
-        number drives height, font size, opacity, blur, and border
-        simultaneously. When every property shares the same source of truth,
-        intermediate states are always consistent — no awkward frames where the
-        title has shrunk but the background remains fully visible.</p>
-        <p>Easing the progress value once (easeOutCubic) rather than easing
-        each property separately keeps multi-property interpolation coherent.
-        All elements decelerate together, which reads as intentional rather
-        than coincidental.</p>
-        <p>Adjusting the transition range slider shows how the same logic
-        produces very different feels. At 150px the morph is punchy. At 600px
-        it becomes cinematic — the user invests real scroll before the header
-        locks in.</p>
+        <h2>Render Pipeline</h2>
+        <p>Compositor-only properties (transform, opacity) bypass layout and paint entirely. Animating height forces layout on every frame — the production alternative is clip-path or scaleY on a fixed-height container.</p>
+        <blockquote>"The fastest animation is one the compositor runs without consulting the main thread."</blockquote>
+        <h2>Single-Progress Model</h2>
+        <p>One value p ∈ [0, 1] drives all eight properties simultaneously. When everything shares the same source of truth, every intermediate scroll position has a consistent, intentional appearance.</p>
+        <p>Easing p once (easeOutCubic) rather than each property separately keeps multi-property deceleration coherent. Use the transition range slider to feel how the same logic produces very different pacing.</p>
       </article>
 
     </div>
@@ -207,32 +172,16 @@
     </div>
 
     <div class="div"></div>
-
     <div>
       <div class="lbl" id="col-lbl">Collapse Override</div>
-      <div class="sr">
-        <input type="range" id="collapse-slider" aria-labelledby="col-lbl"
-               min="0" max="100" value="0">
-        <span class="sv" id="col-val">0%</span>
-      </div>
+      <div class="sr"><input type="range" id="collapse-slider" aria-labelledby="col-lbl" min="0" max="100" value="0"><span class="sv" id="col-val">0%</span></div>
     </div>
-
     <div>
       <div class="lbl" id="range-lbl">Transition Range</div>
-      <div class="sr">
-        <input type="range" id="range-slider" aria-labelledby="range-lbl"
-               min="150" max="600" step="10" value="320">
-        <span class="sv" id="range-val">320px</span>
-      </div>
+      <div class="sr"><input type="range" id="range-slider" aria-labelledby="range-lbl" min="150" max="600" step="10" value="320"><span class="sv" id="range-val">320px</span></div>
     </div>
-
     <div class="div"></div>
-
-    <label class="tog" for="binary-tog">
-      <input type="checkbox" id="binary-tog">
-      <span>Binary (snap at midpoint)</span>
-    </label>
-
+    <label class="tog" for="binary-tog"><input type="checkbox" id="binary-tog"><span>Binary (snap at midpoint)</span></label>
     <button id="reset-btn">Reset scroll</button>
   </aside>
 
