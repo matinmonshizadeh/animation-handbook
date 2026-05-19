@@ -60,8 +60,7 @@ Layers closer to the viewer travel farther, reinforcing the sense of depth.
 
 ## See also
 
-- [Parallax Scrolling](../parallax-scrolling/) — the same depth
-  technique with blur applied per layer based on focal-plane distance rather
-  than translation speed.
+- [Parallax Scrolling](../parallax-scrolling/) — four SVG layers at different scroll speeds;
+  the speed-ratio depth concept without the focal-plane blur.
 - [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — takes speed-ratio
   depth further by making columns scroll in opposite directions.
