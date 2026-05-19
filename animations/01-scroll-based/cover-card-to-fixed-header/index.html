@@ -238,5 +238,109 @@
 
 </div>
 
+<script>
+  const cover        = document.getElementById('cover');
+  const coverBg      = document.getElementById('cover-bg');
+  const coverMeta    = document.getElementById('cover-meta');
+  const coverTitle   = document.getElementById('cover-title');
+  const coverSub     = document.getElementById('cover-sub');
+  const coverAuthor  = document.getElementById('cover-author');
+  const headerChip   = document.getElementById('header-chip');
+  const stage        = document.getElementById('stage');
+  const scrollProg   = document.getElementById('scroll-prog');
+  const collapseProg = document.getElementById('collapse-prog');
+  const colSlider    = document.getElementById('collapse-slider');
+  const colVal       = document.getElementById('col-val');
+  const rangeSlider  = document.getElementById('range-slider');
+  const rangeVal     = document.getElementById('range-val');
+  const binaryTog    = document.getElementById('binary-tog');
+  const resetBtn     = document.getElementById('reset-btn');
+  const motionMQ     = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Read heights from CSS variables at startup (respects mobile media query overrides)
+  const cs   = getComputedStyle(document.documentElement);
+  const FULL = parseFloat(cs.getPropertyValue('--cover-full')) || 530;
+  const MIN  = parseFloat(cs.getPropertyValue('--cover-min'))  || 56;
+
+  let RANGE  = 320;
+  let manual = false;
+  let ticking = false;
+
+  function lerp(a, b, t)    { return a + (b - a) * t; }
+  function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
+  function ease(t)          { return 1 - Math.pow(1 - t, 3); } // easeOutCubic
+
+  function apply(rawE) {
+    // Under reduced motion: instant snap — no scrubbed morph
+    const e = motionMQ.matches ? (rawE > 0.5 ? 1 : 0) : rawE;
+
+    cover.style.height        = lerp(FULL, MIN, e)  + 'px';
+    coverBg.style.opacity     = lerp(1, 0.12, e);
+    coverBg.style.filter      = `blur(${lerp(0, 6, e)}px)`;
+    coverTitle.style.fontSize = lerp(26, 13, e)     + 'px';
+
+    const fadeEarly           = 1 - clamp(e * 3, 0, 1);
+    coverMeta.style.opacity   = fadeEarly;
+    coverSub.style.opacity    = fadeEarly;
+    coverAuthor.style.opacity = 1 - clamp(e * 2, 0, 1);
+    headerChip.style.opacity  = clamp((e - 0.5) * 2, 0, 1);
+
+    cover.style.boxShadow     = `0 1px 0 rgba(63,185,80,${lerp(0, 0.2, e)})`;
+    collapseProg.textContent  = Math.round(e * 100) + '%';
+  }
+
+  function computeE(scrollTop) {
+    const p = clamp(scrollTop / RANGE, 0, 1);
+    return binaryTog.checked ? (p > 0.5 ? 1 : 0) : ease(p);
+  }
+
+  function update() {
+    const st  = stage.scrollTop;
+    const max = stage.scrollHeight - stage.clientHeight;
+    scrollProg.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
+    if (!manual) {
+      const e = computeE(st);
+      colSlider.value    = Math.round(e * 100);
+      colVal.textContent = Math.round(e * 100) + '%';
+      apply(e);
+    }
+    ticking = false;
+  }
+
+  stage.addEventListener('scroll', () => {
+    manual = false;
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+
+  colSlider.addEventListener('input', () => {
+    manual = true;
+    const p    = colSlider.value / 100;
+    const rawE = ease(p);
+    colVal.textContent        = colSlider.value + '%';
+    collapseProg.textContent  = Math.round(rawE * 100) + '%';
+    apply(rawE);
+  });
+
+  rangeSlider.addEventListener('input', () => {
+    RANGE = parseInt(rangeSlider.value);
+    rangeVal.textContent = RANGE + 'px';
+    if (!manual) update();
+  });
+
+  binaryTog.addEventListener('change', () => {
+    if (manual) apply(ease(colSlider.value / 100));
+    else        update();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    manual             = false;
+    stage.scrollTop    = 0;
+    colSlider.value    = 0;
+    colVal.textContent = '0%';
+    apply(0);
+  });
+
+  apply(0);
+</script>
 </body>
 </html>
