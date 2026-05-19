@@ -64,3 +64,5 @@ ratio between speeds determines how convincing the illusion is.
 - [Parallax Depth-of-Field](../parallax-depth-of-field/) — the same depth
   technique with blur applied per layer based on focal-plane distance rather
   than translation speed.
+- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — takes speed-ratio
+  depth further by making columns scroll in opposite directions.
