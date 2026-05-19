@@ -173,5 +173,60 @@
   </div>
 </aside>
 
+<script>
+  const LAYERS = [
+    { el: document.getElementById('l5'), depth: 0.0, speed: 0.00 },
+    { el: document.getElementById('l4'), depth: 0.2, speed: 0.10 },
+    { el: document.getElementById('l3'), depth: 0.4, speed: 0.25 },
+    { el: document.getElementById('l2'), depth: 0.7, speed: 0.45 },
+    { el: document.getElementById('l1'), depth: 1.0, speed: 0.70 },
+  ];
+  const ROWS = [
+    document.getElementById('row-l5'),
+    document.getElementById('row-l4'),
+    document.getElementById('row-l3'),
+    document.getElementById('row-l2'),
+    document.getElementById('row-l1'),
+  ];
+  const slider  = document.getElementById('focalSlider');
+  const MAX_BLUR   = 14;
+  const MAX_OFFSET = 120;
+  let manualOverride = false;
+
+  function applyFrame(f) {
+    let closestIdx = 0, closestDist = Infinity;
+    LAYERS.forEach((layer, i) => {
+      const dist = Math.abs(layer.depth - f);
+      if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+      const blur   = Math.round(MAX_BLUR * dist * 10) / 10;
+      const offset = layer.speed * f * MAX_OFFSET;
+      layer.el.style.filter    = `blur(${blur}px)`;
+      layer.el.style.transform = `translateY(${offset}px)`;
+      ROWS[i].querySelector('.val').textContent = `${blur}px`;
+    });
+    ROWS.forEach((r, i) => r.classList.toggle('focused', i === closestIdx));
+  }
+
+  function onScroll() {
+    if (manualOverride) return;
+    const stage = document.querySelector('.scroll-stage');
+    const max   = stage.offsetHeight - window.innerHeight;
+    const f     = Math.min(1, Math.max(0, window.scrollY / max));
+    slider.value = f * 100;
+    applyFrame(f);
+  }
+
+  slider.addEventListener('input', () => {
+    manualOverride = true;
+    applyFrame(slider.value / 100);
+  });
+
+  window.addEventListener('scroll', () => {
+    manualOverride = false;
+    onScroll();
+  }, { passive: true });
+
+  applyFrame(0);
+</script>
 </body>
 </html>
