@@ -10,3 +10,5 @@ Techniques driven by scroll position.
   create a 3D depth illusion; adjustable speed multipliers show how ratios make or break the effect.
 - [Reverse-Scrolling Columns](reverse-scrolling-columns/) — center column scrolls normally
   while two flanking columns scroll in reverse, all three looping infinitely.
+- [Cover Card to Fixed Header](cover-card-to-fixed-header/) — a hero cover card scrubs
+  into a compact fixed header; every visual property driven by a single 0→1 progress value.
