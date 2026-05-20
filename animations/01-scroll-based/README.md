@@ -12,3 +12,5 @@ Techniques driven by scroll position.
   while two flanking columns scroll in reverse, all three looping infinitely.
 - [Cover Card to Fixed Header](cover-card-to-fixed-header/) — a hero cover card scrubs
   into a compact fixed header; every visual property driven by a single 0→1 progress value.
+- [Fly-in Fly-out Contact List](fly-in-fly-out-contact-list/) — rows translate and fade
+  as they enter and exit the scroll viewport; effect scrubbed continuously to scroll position.
