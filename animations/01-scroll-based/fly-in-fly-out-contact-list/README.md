@@ -46,7 +46,7 @@ if (pos < Z) {             // exit zone (top)
 } // else: active zone — opacity=1, ty=0, scale=1
 ```
 
-An `IntersectionObserver` with `rootMargin: '25% 0px'` maintains a Set of
+An `IntersectionObserver` with `rootMargin: '50% 0px'` maintains a Set of
 rows currently in or near the viewport. The rAF callback iterates only that
 Set — never all 15 rows unconditionally.
 
