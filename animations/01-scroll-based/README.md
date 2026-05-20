@@ -14,3 +14,13 @@ Techniques driven by scroll position.
   into a compact fixed header; every visual property driven by a single 0→1 progress value.
 - [Fly-in Fly-out Contact List](fly-in-fly-out-contact-list/) — rows translate and fade
   as they enter and exit the scroll viewport; effect scrubbed continuously to scroll position.
+- [Stacking Cards](stacking-cards/) — cards stack visually as they overlap; position: sticky
+  does the work, scroll drives optional depth cues via scale and brightness.
+- [ScrollTrigger Animation](scroll-trigger/) — demonstrates the onEnter/onLeave/onEnterBack/
+  onLeaveBack lifecycle using IntersectionObserver and vanilla scroll events.
+- [Scrub Animation](scrub-animation/) — a camera lens disassembles in five stages as you scroll;
+  every transform is welded to scroll position with no autoplay.
+- [Pin Animation](pin-animation/) — a phone mockup and feature copy pin to the viewport via
+  CSS sticky while four features swap in sequence during the scroll.
+- [Snap Scrolling](snap-scrolling/) — CSS scroll-snap-type creates a paginated, magnetic feel;
+  switch between mandatory, proximity, and none to feel the difference.
