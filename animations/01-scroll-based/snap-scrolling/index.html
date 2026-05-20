@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snap Scrolling</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0;position:relative}
+    .stage{height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+    .stage::-webkit-scrollbar{display:none}
+    .section{height:620px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;position:relative}
+    .sec-num{font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+    .sec-title{font-size:clamp(20px,3vw,30px);font-weight:bold;margin-bottom:14px;line-height:1.2}
+    .sec-sub{font-size:13px;opacity:.65;max-width:360px;line-height:1.65}
+    .stats{display:flex;gap:24px;margin-top:20px}
+    .stat{text-align:center}
+    .stat-val{font-size:22px;font-weight:bold;color:var(--ui-accent)}
+    .stat-label{font-size:10px;color:var(--ui-muted);margin-top:3px}
+    .pull-quote{font-style:italic;font-size:clamp(16px,2.5vw,22px);line-height:1.5;max-width:420px;margin-bottom:12px}
+    .quote-attr{font-size:11px;opacity:.5}
+    .snap-dots{position:absolute;right:-28px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--ui-muted);cursor:pointer;transition:background .2s,transform .2s}
+    .dot.active{background:var(--ui-accent);transform:scale(1.4)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .div{height:1px;background:var(--ui-border)}
+    .mode-btns{display:flex;flex-direction:column;gap:4px}
+    .mode-btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:10px 8px;border-radius:4px;cursor:pointer;text-align:left;min-height:44px}
+    .mode-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .jump-btns{display:flex;flex-direction:column;gap:4px}
+    .jump-btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px;border-radius:4px;cursor:pointer;min-height:36px}
+    @media(hover:hover){.mode-btn:hover,.jump-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.section{height:480px}.snap-dots{right:8px;position:fixed;top:auto;transform:none;bottom:120px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Snap Scrolling</h1>
+  <p>Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage"></div>
+    <div class="snap-dots" id="snap-dots"></div>
+  </div>
+  <aside>
+    <p class="note">Snap scrolling is native CSS — three lines and zero JavaScript do the magnetism. 'mandatory' forces a snap on every scroll. 'proximity' only snaps when close to a point. 'none' disables it. Switch modes and feel the difference.</p>
+    <div><div class="lbl">Current section</div>
+      <div class="tbl">
+        <div class="kv"><span>Position</span><span class="v" id="sec-pos">01 / 05</span></div>
+        <div class="kv"><span>Title</span><span class="v" id="sec-title-el" style="text-align:right;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pages, not pixels</span></div>
+        <div class="kv"><span>Status</span><span class="v" id="status">locked on snap point</span></div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl">Snap mode</div>
+      <div class="mode-btns" id="mode-btns">
+        <button class="mode-btn active" data-mode="y mandatory">y mandatory</button>
+        <button class="mode-btn" data-mode="y proximity">y proximity</button>
+        <button class="mode-btn" data-mode="none">none</button>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl">Jump to section</div>
+      <div class="jump-btns" id="jump-btns"></div>
+    </div>
+  </aside>
+</div>
+<script>
+  const SECTIONS=[
+    {num:'01',title:'Pages, not pixels',     bg:'linear-gradient(160deg,#050e08,#0c2820)',accent:'#3fb950',type:'hero',   sub:'Snap scrolling divides continuous scroll into deliberate stops. Each section is a destination.'},
+    {num:'02',title:'Magnetic edges',         bg:'linear-gradient(160deg,#060a10,#0a1628)',accent:'#58a6ff',type:'default',sub:'The browser engine pulls the viewport to the nearest snap point on scroll-end.'},
+    {num:'03',title:'Pagination feel',        bg:'linear-gradient(160deg,#0a0610,#1a0c28)',accent:'#bf91f3',type:'stats',  sub:'Design for sections, not infinite scroll. Each stop is a chapter.'},
+    {num:'04',title:'"The feeling of deliberate motion is hard to achieve with code alone."',bg:'linear-gradient(160deg,#100806,#281808)',accent:'#ffa657',type:'quote',sub:'— on scroll design'},
+    {num:'05',title:"That's the whole trick", bg:'linear-gradient(160deg,#060810,#0c1020)',accent:'#79c0ff',type:'default',sub:'Three CSS properties. Zero JavaScript. Instant section-based UX.'},
+  ];
+  const stage=document.getElementById('stage'),snapDots=document.getElementById('snap-dots');
+  SECTIONS.forEach((s,i)=>{
+    const sec=document.createElement('div');sec.className='section';sec.style.background=s.bg;
+    let inner=`<div class="sec-num" style="color:${s.accent}">${s.num} / 05</div>`;
+    if(s.type==='quote'){
+      inner+=`<div class="pull-quote" style="color:${s.accent}">${s.title}</div><div class="quote-attr">${s.sub}</div>`;
+    } else {
+      inner+=`<div class="sec-title">${s.title}</div><div class="sec-sub">${s.sub}</div>`;
+      if(s.type==='stats') inner+=`<div class="stats"><div class="stat"><div class="stat-val" style="color:${s.accent}">5</div><div class="stat-label">Snap points</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">3</div><div class="stat-label">Lines of CSS</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">0</div><div class="stat-label">JS needed</div></div></div>`;
+    }
+    sec.innerHTML=inner;stage.appendChild(sec);
+    const dot=document.createElement('div');dot.className='dot'+(i===0?' active':'');
+    dot.addEventListener('click',()=>stage.scrollTo({top:i*620,behavior:'smooth'}));
+    snapDots.appendChild(dot);
+  });
+  const jumpBtns=document.getElementById('jump-btns');
+  SECTIONS.forEach((s,i)=>{
+    const btn=document.createElement('button');btn.className='jump-btn';
+    btn.textContent=`${s.num} · ${s.title.slice(0,20)}${s.title.length>20?'…':''}`;
+    btn.addEventListener('click',()=>stage.scrollTo({top:i*620,behavior:'smooth'}));
+    jumpBtns.appendChild(btn);
+  });
+  document.querySelectorAll('.mode-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      stage.style.scrollSnapType=btn.dataset.mode==='none'?'none':btn.dataset.mode;
+      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  const secPos=document.getElementById('sec-pos'),secTitleEl=document.getElementById('sec-title-el'),statusEl=document.getElementById('status');
+  const dots=snapDots.querySelectorAll('.dot');
+  function getStatus(st){const snap=Math.round(st/620)*620;if(Math.abs(st-snap)<2)return'locked on snap point';if(Math.abs(st-snap)<60)return'snapping…';return'scrolling freely'}
+  stage.addEventListener('scroll',()=>{
+    const st=stage.scrollTop,idx=Math.min(Math.round(st/620),4);
+    secPos.textContent=SECTIONS[idx].num+' / 05';
+    secTitleEl.textContent=SECTIONS[idx].title.length>22?SECTIONS[idx].title.slice(0,22)+'…':SECTIONS[idx].title;
+    statusEl.textContent=getStatus(st);
+    dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+  },{passive:true});
+</script>
+</body>
+</html>

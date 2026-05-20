@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pin Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    /* Intro */
+    .intro{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-bottom:1px solid var(--ui-border)}
+    .intro h2{font-size:clamp(20px,3vw,28px);margin-bottom:12px}
+    .intro p{font-size:13px;color:var(--ui-muted);max-width:340px;line-height:1.65}
+    /* Pin section */
+    .pin-section{height:1860px;position:relative}
+    .pin-inner{position:sticky;top:0;height:620px;display:flex;align-items:center;justify-content:center;gap:32px;padding:32px}
+    .phone-wrap{flex-shrink:0}
+    .copy-panel{flex:1;max-width:260px}
+    .feat-num{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
+    .feat-title{font-size:clamp(18px,2.5vw,24px);font-weight:bold;margin-bottom:12px;line-height:1.2}
+    .feat-desc{font-size:12px;color:var(--ui-muted);line-height:1.7}
+    /* Outro */
+    .outro{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-top:1px solid var(--ui-border)}
+    .outro h2{font-size:clamp(18px,2.5vw,24px);margin-bottom:10px}
+    .outro p{font-size:13px;color:var(--ui-muted);max-width:300px;line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .div{height:1px;background:var(--ui-border)}
+    .feat-bar{display:flex;gap:4px;height:4px}
+    .feat-seg{flex:1;background:var(--ui-border);border-radius:2px;transition:background .3s}
+    .feat-seg.active{background:var(--ui-accent)}
+    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.intro,.outro{height:480px}.pin-inner{flex-direction:column;gap:16px}.phone-wrap svg{transform:scale(.8)}}
+    @media(prefers-reduced-motion:reduce){.feat-seg{transition:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Pin Animation</h1>
+  <p>Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="intro">
+      <h2>Scroll to begin</h2>
+      <p>The phone mockup and feature copy below will pin to the viewport as you scroll through the section. CSS handles the pinning entirely.</p>
+    </div>
+    <div class="pin-section" id="pin-section">
+      <div class="pin-inner">
+        <div class="phone-wrap">
+          <svg width="110" height="200" viewBox="0 0 110 200">
+            <rect x="2" y="2" width="106" height="196" rx="16" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
+            <rect id="phone-screen" x="9" y="18" width="92" height="152" rx="8" fill="#0d2b3e"/>
+            <text id="phone-num" x="55" y="98" text-anchor="middle" font-family="monospace" font-size="28" font-weight="bold" fill="#58a6ff" opacity="0.5">01</text>
+            <text id="phone-icon" x="55" y="118" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9" opacity="0.5">Instant Wake</text>
+            <rect x="38" y="183" width="34" height="4" rx="2" fill="#3a3a5a"/>
+          </svg>
+        </div>
+        <div class="copy-panel">
+          <div class="feat-num" id="feat-num">01 / 04</div>
+          <div class="feat-title" id="feat-title">Instant Wake</div>
+          <div class="feat-desc" id="feat-desc">The display responds in under 1ms. Always on, never waiting. The sensor layer never sleeps.</div>
+        </div>
+      </div>
+    </div>
+    <div class="outro">
+      <h2>Pin released</h2>
+      <p>Scroll continues normally. The phone and copy are back in the document flow — the pinned journey is complete.</p>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Pinning makes an element stop scrolling with the page for a defined distance. The trick: the PARENT section must be taller than the viewport — the 'extra' height is the scroll distance during which the child stays pinned. CSS position: sticky handles this natively.</p>
+    <div><div class="lbl">Scroll state</div>
+      <div class="tbl">
+        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
+        <div class="kv"><span>Lifecycle</span><span class="v" id="lifecycle">before pin</span></div>
+        <div class="kv"><span>Feature</span><span class="v" id="feat-ind">01 · Instant Wake</span></div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl">Feature progress</div>
+      <div class="feat-bar" id="feat-bar">
+        <div class="feat-seg active"></div><div class="feat-seg"></div><div class="feat-seg"></div><div class="feat-seg"></div>
+      </div>
+    </div>
+    <button id="reset-btn">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const FEATURES=[
+    {num:'01',title:'Instant Wake',              desc:'The display responds in under 1ms. Always on, never waiting. The sensor layer never sleeps.',              color:'#0d2b3e',tcolor:'#58a6ff'},
+    {num:'02',title:'Computational Photography', desc:'Every frame processed by neural hardware in real time. Night mode renders before you lift the shutter.',   color:'#1e3a1e',tcolor:'#3fb950'},
+    {num:'03',title:'On-Device Privacy',         desc:'Face recognition, transcription, translation — all local. No data leaves the device.',                     color:'#2d1b3d',tcolor:'#bf91f3'},
+    {num:'04',title:'New Silicon Engine',        desc:'Unified memory architecture. The gap between laptop and phone performance has effectively closed.',         color:'#3d2000',tcolor:'#ffa657'},
+  ];
+  const stage=document.getElementById('stage'),pinSec=document.getElementById('pin-section');
+  const scrollProg=document.getElementById('scroll-prog'),lifecycleEl=document.getElementById('lifecycle');
+  const featNum=document.getElementById('feat-num'),featTitle=document.getElementById('feat-title'),featDesc=document.getElementById('feat-desc');
+  const featInd=document.getElementById('feat-ind'),featBar=document.getElementById('feat-bar');
+  const phoneScreen=document.getElementById('phone-screen'),phoneNum=document.getElementById('phone-num'),phoneIcon=document.getElementById('phone-icon');
+  const segs=[...featBar.children];
+  let ticking=false,lastFi=-1;
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const ps=pinSec.offsetTop,ph=1860,vh=620;
+    let lifecycle='before pin',fi=0;
+    if(st>=ps&&st<ps+ph-vh){lifecycle='pinned · in section';const p=clamp((st-ps)/(ph-vh),0,1);fi=Math.min(3,Math.floor(p*4))}
+    else if(st>=ps+ph-vh){lifecycle='after release';fi=3}
+    lifecycleEl.textContent=lifecycle;
+    if(fi!==lastFi){
+      const f=FEATURES[fi];
+      featNum.textContent=`${f.num} / 04`;featTitle.textContent=f.title;featDesc.textContent=f.desc;
+      featInd.textContent=`${f.num} · ${f.title}`;
+      phoneScreen.setAttribute('fill',f.color);phoneNum.setAttribute('fill',f.tcolor);phoneNum.textContent=f.num;
+      phoneIcon.textContent=f.title.slice(0,16);phoneIcon.setAttribute('fill',f.tcolor);
+      segs.forEach((s,i)=>s.classList.toggle('active',i===fi));lastFi=fi;
+    }
+    ticking=false;
+  }
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

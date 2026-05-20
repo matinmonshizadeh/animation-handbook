@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScrollTrigger Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .zone{min-height:550px;padding:32px 24px;border-top:1px dashed;border-bottom:1px dashed;position:relative;display:flex;flex-direction:column;justify-content:center}
+    .zone-tag{position:absolute;top:10px;left:12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;opacity:.8}
+    .z1{background:rgba(88,166,255,.06);border-color:rgba(88,166,255,.25)}
+    .z2{background:rgba(191,145,243,.06);border-color:rgba(191,145,243,.25)}
+    .z3{background:rgba(63,185,80,.06);border-color:rgba(63,185,80,.25)}
+    .z4{background:rgba(248,81,73,.06);border-color:rgba(248,81,73,.25)}
+    .z1 .zone-tag{background:rgba(88,166,255,.15);color:#58a6ff}
+    .z2 .zone-tag{background:rgba(191,145,243,.15);color:#bf91f3}
+    .z3 .zone-tag{background:rgba(63,185,80,.15);color:#3fb950}
+    .z4 .zone-tag{background:rgba(248,81,73,.15);color:#f85149}
+    /* Zone 1 */
+    .reveal-content{opacity:0;transform:translateY(30px);transition:opacity .5s,transform .5s}
+    .reveal-content.active{opacity:1;transform:none}
+    @media(prefers-reduced-motion:reduce){.reveal-content{transition:none}}
+    .reveal-title{font-size:clamp(18px,3vw,26px);font-weight:bold;margin-bottom:8px}
+    .reveal-sub{font-size:13px;color:var(--ui-muted);line-height:1.6}
+    /* Zone 2 */
+    .swatch{width:90px;height:90px;border-radius:12px;background:var(--ui-accent);will-change:transform,filter;margin:24px auto}
+    /* Zone 3 */
+    .pin-card{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px;max-width:340px;margin:0 auto}
+    .pin-step{font-size:12px;color:var(--ui-accent);margin-bottom:6px}
+    .pin-title{font-size:16px;font-weight:bold}
+    .pin-body{font-size:12px;color:var(--ui-muted);margin-top:8px;line-height:1.6}
+    /* Zone 4 */
+    .snap-dots-z4{display:flex;gap:14px;justify-content:center;margin:20px 0}
+    .snap-dot{width:10px;height:10px;border-radius:50%;background:var(--ui-border);transition:background .2s,transform .2s}
+    .snap-dot.lit{transform:scale(1.5)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .pills{display:flex;flex-direction:column;gap:3px}
+    .pill{font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid var(--ui-border);color:var(--ui-muted)}
+    .pill.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .pill.past{border-color:var(--ui-border);color:var(--ui-muted);opacity:.45}
+    .div{height:1px;background:var(--ui-border)}
+    .cb-log{display:flex;flex-direction:column;gap:2px;font-size:9px;color:var(--ui-muted);font-family:monospace;min-height:70px}
+    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>ScrollTrigger Animation</h1>
+  <p>Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="zone z1" id="zone1">
+      <span class="zone-tag">Fade on Enter</span>
+      <div class="reveal-content" id="reveal">
+        <div class="reveal-title">Enter to Reveal</div>
+        <div class="reveal-sub">This content fades in when the zone enters the viewport, and resets when it leaves. That is the onEnter / onLeave lifecycle in action.</div>
+      </div>
+    </div>
+    <div class="zone z2" id="zone2">
+      <span class="zone-tag">Scrub</span>
+      <div style="text-align:center">
+        <div style="font-size:12px;color:var(--ui-muted);margin-bottom:4px">Scroll position drives rotation, scale, and hue</div>
+        <div class="swatch" id="swatch"></div>
+        <div style="font-size:11px;color:var(--ui-muted)" id="scrub-val">progress: 0%</div>
+      </div>
+    </div>
+    <div class="zone z3" id="zone3">
+      <span class="zone-tag">Pin + Scrub</span>
+      <div class="pin-card" id="pin-card">
+        <div class="pin-step" id="pin-step">Step 1 of 3</div>
+        <div class="pin-title" id="pin-title">Initialize</div>
+        <div class="pin-body" id="pin-body">The trigger fires. The animation begins. State is set.</div>
+      </div>
+    </div>
+    <div class="zone z4" id="zone4">
+      <span class="zone-tag">Snap</span>
+      <div style="text-align:center">
+        <div style="font-size:12px;color:var(--ui-muted);margin-bottom:4px">Scroll to light up snap points</div>
+        <div class="snap-dots-z4" id="snap-dots-z4">
+          <div class="snap-dot" style="--c:#f85149"></div>
+          <div class="snap-dot" style="--c:#f85149"></div>
+          <div class="snap-dot" style="--c:#f85149"></div>
+          <div class="snap-dot" style="--c:#f85149"></div>
+          <div class="snap-dot" style="--c:#f85149"></div>
+        </div>
+        <div style="font-size:11px;color:var(--ui-muted)" id="snap-val">0 / 5 lit</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">ScrollTrigger isn't an animation type — it's the MECHANISM that fires animations at the right scroll position. The four zones below show its core behaviors. In production, GSAP's ScrollTrigger plugin handles all of this.</p>
+    <div><div class="lbl">Scroll progress</div>
+      <div class="kv"><span>Overall</span><span class="v" id="scroll-prog">0%</span></div>
+    </div>
+    <div><div class="lbl">Zone status</div>
+      <div class="pills">
+        <div class="pill" id="pill1">Zone 1 · Fade on Enter · idle</div>
+        <div class="pill" id="pill2">Zone 2 · Scrub · idle</div>
+        <div class="pill" id="pill3">Zone 3 · Pin + Scrub · idle</div>
+        <div class="pill" id="pill4">Zone 4 · Snap · idle</div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl">Callback log</div><div class="cb-log" id="cb-log"><span style="color:var(--ui-border)">— no events yet —</span></div></div>
+    <button id="reset-btn">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage'),scrollProg=document.getElementById('scroll-prog');
+  const zone1=document.getElementById('zone1'),zone2=document.getElementById('zone2');
+  const zone3=document.getElementById('zone3'),zone4=document.getElementById('zone4');
+  const reveal=document.getElementById('reveal'),swatch=document.getElementById('swatch');
+  const scrubVal=document.getElementById('scrub-val');
+  const pinStep=document.getElementById('pin-step'),pinTitle=document.getElementById('pin-title'),pinBody=document.getElementById('pin-body');
+  const snapDots4=[...document.getElementById('snap-dots-z4').children],snapVal=document.getElementById('snap-val');
+  const pills=[document.getElementById('pill1'),document.getElementById('pill2'),document.getElementById('pill3'),document.getElementById('pill4')];
+  const cbLog=document.getElementById('cb-log');
+  const PIN_STEPS=[['Step 1 of 3','Initialize','The trigger fires. The animation begins. State is set.'],['Step 2 of 3','Process','Scroll-linked progress drives every value. Each pixel is intentional.'],['Step 3 of 3','Complete','The trigger fires onLeave. State is captured. Callback logged.']];
+  let ticking=false,prevState=[null,null,null,null],cbEvents=[];
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  function zoneProgress(zone){const vt=stage.scrollTop,vb=vt+stage.clientHeight,zt=zone.offsetTop,zb=zt+zone.offsetHeight;if(vb<=zt||vt>=zb)return null;return clamp((vt-zt)/(zone.offsetHeight-stage.clientHeight),0,1)}
+  function zoneState(zone){const vt=stage.scrollTop,vb=vt+stage.clientHeight,zt=zone.offsetTop,zb=zt+zone.offsetHeight;if(vb<=zt)return'idle';if(vt>=zb)return'past';return'active'}
+  function logEvent(msg){cbEvents=[msg,...cbEvents].slice(0,5);cbLog.innerHTML=cbEvents.map(e=>`<span>${e}</span>`).join('')}
+  const NAMES=['Fade on Enter','Scrub','Pin + Scrub','Snap'];
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const states=[zoneState(zone1),zoneState(zone2),zoneState(zone3),zoneState(zone4)];
+    states.forEach((s,i)=>{
+      pills[i].textContent=`Zone ${i+1} · ${NAMES[i]} · ${s}`;
+      pills[i].className='pill'+(s==='active'?' active':s==='past'?' past':'');
+      if(s!==prevState[i]){
+        const ev=s==='active'?(prevState[i]==='idle'?'onEnter':'onEnterBack'):(s==='past'?'onLeave':'onLeaveBack');
+        logEvent(`${s==='active'?'→':'←'} zone ${i+1} · ${ev}`);
+        prevState[i]=s;
+      }
+    });
+    // Zone 1
+    reveal.classList.toggle('active',states[0]==='active');
+    // Zone 2
+    if(states[1]==='active'){
+      const p=clamp((st-zone2.offsetTop)/(zone2.offsetHeight-stage.clientHeight*.5),0,1);
+      swatch.style.transform=`rotate(${lerp(0,180,p)}deg) scale(${lerp(1,1.3,p)})`;
+      swatch.style.filter=`hue-rotate(${lerp(0,120,p)}deg)`;
+      scrubVal.textContent=`progress: ${Math.round(p*100)}%`;
+    }
+    // Zone 3
+    if(states[2]==='active'){
+      const p=clamp((st-zone3.offsetTop)/(zone3.offsetHeight-stage.clientHeight*.5),0,1);
+      const si=Math.min(2,Math.floor(p*3));
+      pinStep.textContent=PIN_STEPS[si][0];pinTitle.textContent=PIN_STEPS[si][1];pinBody.textContent=PIN_STEPS[si][2];
+    }
+    // Zone 4
+    if(states[3]==='active'||states[3]==='past'){
+      const p=clamp((st-zone4.offsetTop)/(zone4.offsetHeight),0,1);
+      const lit=Math.round(p*5);
+      snapDots4.forEach((d,i)=>{d.classList.toggle('lit',i<lit);d.style.background=i<lit?'#f85149':'var(--ui-border)'});
+      snapVal.textContent=`${lit} / 5 lit`;
+    }
+    ticking=false;
+  }
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

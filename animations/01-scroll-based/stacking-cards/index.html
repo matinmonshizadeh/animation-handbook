@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stacking Cards</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .stack{height:3000px}
+    .card{position:sticky;top:0;height:600px;overflow:hidden;border-radius:8px;padding:32px;display:flex;flex-direction:column;justify-content:flex-end;will-change:transform,filter}
+    .card-num{font-size:72px;font-weight:bold;opacity:.18;line-height:1;margin-bottom:8px}
+    .card-title{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:6px}
+    .card-sub{font-size:13px;opacity:.65;margin-bottom:14px}
+    .card-body{font-size:12px;opacity:.55;max-width:380px;line-height:1.65}
+    .depth-badge{position:absolute;top:14px;right:14px;font-size:9px;background:rgba(0,0,0,.5);padding:3px 9px;border-radius:10px;display:none}
+    .depth-badge.on{display:block}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:34px;text-align:right;color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}}
+    @media(prefers-reduced-motion:reduce){.card{will-change:auto}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Stacking Cards</h1>
+  <p>Cards stack as they overlap — position: sticky does the work, scroll drives the depth cues.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage"><div class="stack" id="stack"></div></div>
+  <aside>
+    <p class="note">This entire effect is built on position: sticky. The CSS does most of the work — JavaScript only adds the depth cues. Try setting all sliders to their max (1.00 / 1.0) to see the pure CSS-only version, then bring them down to feel how depth cues add physicality.</p>
+    <div><div class="lbl">Stack status</div>
+      <div class="tbl">
+        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
+        <div class="kv"><span>Topmost card</span><span class="v" id="topmost">01</span></div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl" id="scale-lbl">Scale floor</div>
+      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="85" max="100" value="94"><span class="sv" id="scale-val">0.94</span></div>
+    </div>
+    <div><div class="lbl" id="bright-lbl">Brightness floor</div>
+      <div class="sr"><input type="range" id="bright-sl" aria-labelledby="bright-lbl" min="60" max="100" value="85"><span class="sv" id="bright-val">0.85</span></div>
+    </div>
+    <div class="div"></div>
+    <label class="tog" for="depth-tog"><input type="checkbox" id="depth-tog"><span>Show stack depth</span></label>
+    <button id="reset-btn">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const CARDS=[
+    {num:'01',title:'The Foundation',   sub:'Where everything begins',     body:'Every scroll-driven animation starts with a structural decision. Position: sticky provides the base stacking without any JavaScript.',              bg:'linear-gradient(135deg,#0d2b3e,#1a3a5c)'},
+    {num:'02',title:'Layer by Layer',   sub:'Building depth through CSS',   body:'Each card occupies one viewport height. As the next card scrolls up, the previous stays beneath — the stacking itself needs no JavaScript.',       bg:'linear-gradient(135deg,#2d1b3d,#3d2a5c)'},
+    {num:'03',title:'Depth Perception', sub:'Visual cues add physicality',  body:'Scale and brightness reduction on buried cards simulate depth. The eye reads smaller and darker as farther away.',                                  bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)'},
+    {num:'04',title:'The Scroll Loop',  sub:'rAF keeps it smooth',          body:"A requestAnimationFrame callback computes each card's depth on scroll. Only transform and filter change — the compositor handles everything.",       bg:'linear-gradient(135deg,#3d2000,#5c3400)'},
+    {num:'05',title:'The Full Stack',   sub:'CSS and JS in balance',        body:'You are looking at all five cards now. This one is topmost — full scale, full brightness. The four below are quietly buried, waiting.',             bg:'linear-gradient(135deg,#1a3a3a,#2a5c5c)'},
+  ];
+  const stack=document.getElementById('stack');
+  const cards=CARDS.map((c,i)=>{
+    const el=document.createElement('div');
+    el.className='card';el.style.cssText=`background:${c.bg};z-index:${i+1}`;
+    el.innerHTML=`<div class="depth-badge" id="db${i}">depth 0</div><div class="card-num">${c.num}</div><div class="card-title">${c.title}</div><div class="card-sub">${c.sub}</div><div class="card-body">${c.body}</div>`;
+    stack.appendChild(el);return el;
+  });
+  const stage=document.getElementById('stage'),scrollProg=document.getElementById('scroll-prog'),topmostEl=document.getElementById('topmost');
+  const scaleSl=document.getElementById('scale-sl'),scaleVal=document.getElementById('scale-val');
+  const brightSl=document.getElementById('bright-sl'),brightVal=document.getElementById('bright-val');
+  const depthTog=document.getElementById('depth-tog'),resetBtn=document.getElementById('reset-btn');
+  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let ticking=false;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const top=Math.min(Math.floor(st/600),4),SF=scaleSl.value/100,BF=brightSl.value/100;
+    cards.forEach((el,i)=>{
+      const depth=Math.max(0,top-i),t=depth/4;
+      const sc=motionMQ.matches?1:lerp(1,SF,t),br=motionMQ.matches?1:lerp(1,BF,t),ty=motionMQ.matches?0:depth*5;
+      el.style.transform=`translateY(${ty}px) scale(${sc.toFixed(3)})`;
+      el.style.filter=`brightness(${br.toFixed(3)})`;
+      const db=document.getElementById('db'+i);
+      db.textContent=`depth ${depth}`;db.classList.toggle('on',depthTog.checked);
+    });
+    topmostEl.textContent=CARDS[top].num;ticking=false;
+  }
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  scaleSl.addEventListener('input',()=>{scaleVal.textContent=(scaleSl.value/100).toFixed(2);update()});
+  brightSl.addEventListener('input',()=>{brightVal.textContent=(brightSl.value/100).toFixed(2);update()});
+  depthTog.addEventListener('change',update);
+  resetBtn.addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

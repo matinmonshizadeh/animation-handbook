@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrub Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .scroll-space{height:1500px}
+    .scene{position:sticky;top:0;height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+    svg#lens{overflow:visible}
+    .caption{margin-top:24px;font-size:11px;color:var(--ui-muted);letter-spacing:1px;text-align:center;min-height:20px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .div{height:1px;background:var(--ui-border)}
+    .timeline{position:relative;height:20px;background:var(--ui-border);border-radius:10px;margin-top:4px;overflow:hidden}
+    .tl-fill{height:100%;background:var(--ui-accent);border-radius:10px;width:0%;transition:none}
+    .tl-ticks{position:absolute;top:0;left:0;right:0;bottom:0;display:flex}
+    .tl-tick{flex:1;border-right:1px solid rgba(255,255,255,.12)}
+    .jump-btns{display:flex;gap:6px}
+    .jump-btn{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:10px 4px;border-radius:4px;cursor:pointer;min-height:44px}
+    @media(hover:hover){.jump-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.scene{height:480px}}
+    @media(prefers-reduced-motion:reduce){.tl-fill{transition:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scrub Animation</h1>
+  <p>Timeline linked to scroll position — scrub backward and the animation reverses perfectly.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="scroll-space">
+      <div class="scene">
+        <svg id="lens" width="220" height="220" viewBox="-110 -110 220 220">
+          <!-- Lens body (main barrel) -->
+          <g id="lens-body">
+            <circle r="98" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
+            <circle r="82" fill="#111120" stroke="#2a2a4a" stroke-width="1"/>
+          </g>
+          <!-- Hood (outer rim) -->
+          <g id="lens-hood">
+            <circle r="105" fill="none" stroke="#4a4a6a" stroke-width="8" stroke-dasharray="12 4"/>
+            <circle r="99" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.4"/>
+          </g>
+          <!-- Iris aperture blades -->
+          <g id="iris">
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(0)  translate(0,-38)"/>
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(60) translate(0,-38)"/>
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(120) translate(0,-38)"/>
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(180) translate(0,-38)"/>
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(240) translate(0,-38)"/>
+            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(300) translate(0,-38)"/>
+          </g>
+          <!-- Front glass element -->
+          <g id="lens-glass">
+            <circle r="56" fill="#0d2040" stroke="#58a6ff" stroke-width="1.5" opacity="0.9"/>
+            <circle r="44" fill="#091828" stroke="#3a6a9a" stroke-width="1"/>
+            <circle r="28" fill="#060e18" stroke="#2a4a6a" stroke-width="1"/>
+            <ellipse cx="-12" cy="-12" rx="8" ry="5" fill="rgba(88,166,255,0.08)" transform="rotate(-20,-12,-12)"/>
+          </g>
+          <!-- Core / sensor -->
+          <g id="lens-core">
+            <circle r="14" fill="#58a6ff" opacity="0.15"/>
+            <circle r="9" fill="#58a6ff" opacity="0.3"/>
+            <circle r="5" fill="#58a6ff" opacity="0.6"/>
+          </g>
+        </svg>
+        <div class="caption" id="caption">01 · Assembled</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Scrub is not a 'play' — it's a 'position'. The animation has no duration, no autoplay. Scroll IS the seek bar. Try scrolling halfway down, then back up — the parts reassemble perfectly.</p>
+    <div><div class="lbl">Playback</div>
+      <div class="tbl">
+        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
+        <div class="kv"><span>Stage</span><span class="v" id="stage-label">01 · Assembled</span></div>
+        <div class="kv"><span>Direction</span><span class="v" id="direction">·</span></div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl">Timeline</div>
+      <div class="timeline"><div class="tl-fill" id="tl-fill"></div><div class="tl-ticks"><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div></div></div>
+    </div>
+    <div><div class="lbl">Jump to</div>
+      <div class="jump-btns">
+        <button class="jump-btn" id="j-start">Start</button>
+        <button class="jump-btn" id="j-mid">Middle</button>
+        <button class="jump-btn" id="j-end">End</button>
+      </div>
+    </div>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const hood=document.getElementById('lens-hood'),iris=document.getElementById('iris');
+  const glass=document.getElementById('lens-glass'),body_=document.getElementById('lens-body');
+  const core=document.getElementById('lens-core'),caption=document.getElementById('caption');
+  const scrollProg=document.getElementById('scroll-prog'),stageLabel=document.getElementById('stage-label');
+  const dirEl=document.getElementById('direction'),tlFill=document.getElementById('tl-fill');
+  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let ticking=false,lastSt=0;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const ease=(t)=>t;
+  const CAPTIONS=['01 · Assembled','01 · Hood lifts','02 · Glass forward','03 · Iris opens','04 · Body separates','05 · Core exposed'];
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    const p=max>0?st/max:0;
+    scrollProg.textContent=Math.round(p*100)+'%';
+    tlFill.style.width=Math.round(p*100)+'%';
+    const ci=Math.round(p*5);stageLabel.textContent=CAPTIONS[ci];caption.textContent=CAPTIONS[ci];
+    dirEl.textContent=st>lastSt?'→ forward':st<lastSt?'← reverse':'· paused';lastSt=st;
+    if(motionMQ.matches){ticking=false;return}
+    // Stage 1 (0–18%): hood lifts
+    const t1=clamp(p/0.18,0,1);
+    hood.style.transform=`translateY(${lerp(0,-70,t1)}px)`;
+    hood.style.opacity=lerp(1,0,t1);
+    // Stage 2 (18–36%): glass forward
+    const t2=clamp((p-0.18)/0.18,0,1);
+    glass.style.transform=`translateY(${lerp(0,-45,t2)}px) scale(${lerp(1,1.15,t2)})`;
+    // Stage 3 (36–54%): iris rotates
+    const t3=clamp((p-0.36)/0.18,0,1);
+    iris.style.transform=`rotate(${lerp(0,90,t3)}deg)`;
+    // Stage 4 (54–72%): body separates
+    const t4=clamp((p-0.54)/0.18,0,1);
+    body_.style.transform=`translateX(${lerp(0,-65,t4)}px)`;body_.style.opacity=lerp(1,0.5,t4);
+    // Stage 5 (72–90%): core exposed
+    const t5=clamp((p-0.72)/0.18,0,1);
+    core.style.transform=`scale(${lerp(1,2,t5)})`;core.style.filter=`brightness(${lerp(1,2.5,t5)})`;
+    ticking=false;
+  }
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('j-start').addEventListener('click',()=>stage.scrollTo({top:0,behavior:'smooth'}));
+  document.getElementById('j-mid').addEventListener('click',()=>stage.scrollTo({top:(stage.scrollHeight-stage.clientHeight)/2,behavior:'smooth'}));
+  document.getElementById('j-end').addEventListener('click',()=>stage.scrollTo({top:stage.scrollHeight-stage.clientHeight,behavior:'smooth'}));
+  update();
+</script>
+</body>
+</html>
