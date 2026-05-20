@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counter Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:600px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .spacer{height:220px;display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.25;letter-spacing:2px}
+    #stats{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2vw,16px);padding:clamp(16px,3vw,32px)}
+    .tile{background:#0d1117;border:1px solid #21262d;border-radius:12px;padding:clamp(18px,3vw,28px);display:flex;flex-direction:column;gap:8px}
+    .tile-icon{font-size:22px;opacity:.6}
+    .tile-num{font-size:clamp(28px,4.5vw,44px);font-weight:bold;font-variant-numeric:tabular-nums;line-height:1;color:var(--ui-accent)}
+    .tile-label{font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1.5px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:460px}#stats{grid-template-columns:1fr 1fr}}
+    @media(prefers-reduced-motion:reduce){.tile-num{transition:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Counter Animation</h1>
+  <p>Numbers count from 0 to target on scroll entry, with easing and per-format rendering every frame.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="spacer">scroll down to trigger ↓</div>
+    <div id="stats">
+      <div class="tile"><div class="tile-icon">◉</div><div class="tile-num" id="cn0">0</div><div class="tile-label">active users</div></div>
+      <div class="tile"><div class="tile-icon">◈</div><div class="tile-num" id="cn1">0.0%</div><div class="tile-label">uptime</div></div>
+      <div class="tile"><div class="tile-icon">◆</div><div class="tile-num" id="cn2">$0</div><div class="tile-label">revenue</div></div>
+      <div class="tile"><div class="tile-icon">◇</div><div class="tile-num" id="cn3">0 yrs</div><div class="tile-label">experience</div></div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+  <aside>
+    <p class="note">Counters need easing — linear count-ups feel mechanical. easeOutExpo makes numbers settle into place. Format the value every frame, not just at the end.</p>
+    <div><div class="lbl" id="thr-lbl">Trigger threshold</div>
+      <div class="sr"><input type="range" id="thr-sl" aria-labelledby="thr-lbl" min="10" max="90" value="60" step="5"><span class="sv" id="thr-val">60%</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="500" max="3000" value="1800" step="100"><span class="sv" id="dur-val">1.8s</span></div>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Easing</div>
+    <div class="seg" id="ease-seg">
+      <button data-e="linear">Linear</button>
+      <button data-e="outCubic" class="on">Cubic</button>
+      <button data-e="outExpo">Expo</button>
+      <button data-e="outBack">Back</button>
+    </div>
+    <div class="div"></div>
+    <label class="tog" for="stagger-tog"><input type="checkbox" id="stagger-tog" checked><span>Stagger counters</span></label>
+    <div class="div"></div>
+    <div class="lbl">Live values</div>
+    <div class="kv"><span>Users</span><span class="v" id="lv0">0</span></div>
+    <div class="kv"><span>Uptime</span><span class="v" id="lv1">0.0%</span></div>
+    <div class="kv"><span>Revenue</span><span class="v" id="lv2">$0</span></div>
+    <div class="kv"><span>Experience</span><span class="v" id="lv3">0 yrs</span></div>
+    <div class="div"></div>
+    <button class="rst" id="replay">Replay counters</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const thrSl=document.getElementById('thr-sl'),thrVal=document.getElementById('thr-val');
+  const durSl=document.getElementById('dur-sl'),durVal=document.getElementById('dur-val');
+  const staggerTog=document.getElementById('stagger-tog');
+  const TARGETS=[12847,98.4,2400000,8];
+  const FORMATS=[
+    v=>Math.round(v).toLocaleString(),
+    v=>v.toFixed(1)+'%',
+    v=>{if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';return'$'+Math.round(v).toLocaleString()},
+    v=>Math.floor(v)+' yrs'
+  ];
+  const EASE={
+    linear:t=>t,
+    outCubic:t=>1-(1-t)**3,
+    outExpo:t=>t===1?1:1-Math.pow(2,-10*t),
+    outBack:t=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2)}
+  };
+  let duration=1800,easing='outCubic',observer,running=false;
+
+  const cnEls=TARGETS.map((_,i)=>document.getElementById('cn'+i));
+  const lvEls=TARGETS.map((_,i)=>document.getElementById('lv'+i));
+
+  function animateCounters(motionOk){
+    if(running)return;running=true;
+    const start=performance.now();
+    const delays=staggerTog.checked?TARGETS.map((_,i)=>i*200):[0,0,0,0];
+    const ef=EASE[easing]||EASE.outCubic;
+    function frame(now){
+      let anyActive=false;
+      TARGETS.forEach((target,i)=>{
+        const elapsed=now-start-delays[i];
+        if(elapsed<0){anyActive=true;return;}
+        const t=motionOk?Math.min(elapsed/duration,1):1;
+        const v=target*ef(t);
+        const str=FORMATS[i](v);
+        cnEls[i].textContent=str;lvEls[i].textContent=str;
+        if(t<1)anyActive=true;
+      });
+      if(anyActive)requestAnimationFrame(frame);else running=false;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function buildObserver(){
+    if(observer)observer.disconnect();
+    const margin=-(100-+thrSl.value);
+    const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    observer=new IntersectionObserver(([e])=>{
+      if(e.isIntersecting&&!running)animateCounters(motionOk);
+    },{root:stage,rootMargin:`0px 0px ${margin}% 0px`,threshold:0});
+    observer.observe(document.getElementById('stats'));
+  }
+
+  thrSl.addEventListener('input',()=>{thrVal.textContent=thrSl.value+'%';buildObserver()});
+  durSl.addEventListener('input',()=>{duration=+durSl.value;durVal.textContent=(duration/1000).toFixed(1)+'s'});
+  document.querySelectorAll('#ease-seg button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#ease-seg button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');easing=b.dataset.e;
+    });
+  });
+  document.getElementById('replay').addEventListener('click',()=>{
+    running=false;cnEls.forEach((el,i)=>{el.textContent=FORMATS[i](0);lvEls[i].textContent=FORMATS[i](0)});
+    const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    setTimeout(()=>animateCounters(motionOk),50);
+  });
+  buildObserver();
+</script>
+</body>
+</html>

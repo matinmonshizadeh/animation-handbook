@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Bar</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:600px;--bar-color:#58a6ff;--bar-thick:3px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0;position:relative;overflow:hidden;border-radius:8px}
+    .stage{width:100%;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    /* Top bar */
+    #top-bar{position:absolute;top:0;left:0;right:0;height:var(--bar-thick);background:var(--bar-color);transform-origin:left;transform:scaleX(0);z-index:10;display:none;border-radius:0}
+    /* Side rail */
+    #side-rail{position:absolute;top:0;right:0;bottom:0;width:var(--bar-thick);z-index:10;display:none;overflow:hidden}
+    #side-fill{position:absolute;top:0;left:0;right:0;background:var(--bar-color);height:0%}
+    /* Circular */
+    #circ{position:absolute;top:8px;right:8px;z-index:10;display:none}
+    .circ-bg{fill:none;stroke:#21262d;stroke-width:3}
+    .circ-fg{fill:none;stroke:var(--bar-color);stroke-width:3;stroke-linecap:round;stroke-dasharray:100.53;stroke-dashoffset:100.53;transform:rotate(-90deg);transform-origin:50% 50%}
+    .circ-text{font-size:5px;fill:var(--ui-text);text-anchor:middle;dominant-baseline:central;font-family:monospace}
+    /* Article */
+    .article{padding:clamp(20px,4vw,40px);max-width:600px}
+    .art-title{font-size:clamp(20px,3vw,28px);font-weight:bold;line-height:1.2;margin-bottom:8px}
+    .art-byline{font-size:10px;opacity:.4;margin-bottom:28px;text-transform:uppercase;letter-spacing:1px}
+    .art-body{font-size:13px;line-height:1.85;opacity:.7;margin-bottom:18px}
+    .art-pull{border-left:3px solid var(--bar-color);padding-left:16px;font-size:15px;line-height:1.6;margin:24px 0;opacity:.8}
+    .art-h2{font-size:clamp(16px,2vw,20px);font-weight:bold;margin:28px 0 12px;opacity:.9}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:34px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .swatches{display:flex;gap:6px}
+    .swatch{width:28px;height:28px;border-radius:4px;cursor:pointer;border:2px solid transparent}
+    .swatch.on{border-color:#fff}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:460px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Progress Bar</h1>
+  <p>Reading progress across three indicator styles — top bar, circular ring, and side rail.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div id="top-bar"></div>
+    <div id="side-rail"><div id="side-fill"></div></div>
+    <svg id="circ" width="40" height="40" viewBox="0 0 36 36">
+      <circle class="circ-bg" cx="18" cy="18" r="16"/>
+      <circle class="circ-fg" id="circ-fg" cx="18" cy="18" r="16"/>
+      <text class="circ-text" id="circ-txt" x="18" y="18">0%</text>
+    </svg>
+    <div class="stage" id="stage">
+      <div class="article" id="article"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The formula is constant: scrollTop / (scrollHeight − clientHeight). The design choice is WHERE you place the indicator — top bars are loudest, side rails most editorial.</p>
+    <div class="lbl">Progress</div>
+    <div class="kv"><span>Read</span><span class="v" id="prog-pct">0%</span></div>
+    <div class="kv"><span>Reading time</span><span class="v" id="read-time">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Indicator style</div>
+    <div class="seg" id="style-seg">
+      <button data-s="top" class="on">Top bar</button>
+      <button data-s="circ">Circle</button>
+      <button data-s="rail">Side rail</button>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Bar color</div>
+    <div class="swatches" id="swatches">
+      <div class="swatch on" data-c="#58a6ff" style="background:#58a6ff"></div>
+      <div class="swatch" data-c="#56d364" style="background:#56d364"></div>
+      <div class="swatch" data-c="#ffa657" style="background:#ffa657"></div>
+      <div class="swatch" data-c="#d2a8ff" style="background:#d2a8ff"></div>
+    </div>
+    <div><div class="lbl" id="thick-lbl">Bar thickness</div>
+      <div class="sr"><input type="range" id="thick-sl" aria-labelledby="thick-lbl" min="2" max="8" value="3"><span class="sv" id="thick-val">3px</span></div>
+    </div>
+    <div class="div"></div>
+    <button class="rst" id="rst">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage'),topBar=document.getElementById('top-bar');
+  const sideFill=document.getElementById('side-fill'),circFg=document.getElementById('circ-fg');
+  const circTxt=document.getElementById('circ-txt'),progPct=document.getElementById('prog-pct');
+  let style='top',ticking=false;
+
+  const PARAS=[
+    "The browser's scroll events fire dozens of times per second. Naively attaching a progress bar update directly to the scroll handler means dozens of style recalculations per second — a guaranteed frame-rate killer. The fix is a single requestAnimationFrame dirty flag, and it's two lines of code.",
+    "Most progress bar implementations compute progress as scrollTop divided by the difference between scrollHeight and clientHeight. This ratio lands precisely on 1.0 when the last pixel of content is visible — not when you've scrolled past a fake scroll container, but when the actual reading distance is exhausted.",
+    "The top-of-page bar is the loudest choice. It occupies the most visually prominent real estate and signals 'this is long content' to any reader. Editorial sites often prefer the side rail — it communicates the same information without interrupting the reading axis. Either choice is defensible; the question is how much attention you want to draw to the indicator itself.",
+    "The circular indicator places progress in a compact corner element. SVG stroke-dashoffset drives the fill: the dasharray equals the circle circumference (2πr), and subtracting progress × circumference from that value animates the ring. It is the same arithmetic as a pie chart, expressed as an outline rather than a filled sector.",
+    "Bar thickness is a design signal. A 2px rule is almost subliminal — it says 'I am here if you want me.' A 6–8px bar is assertive. Neither is wrong; the choice depends on how prominently the site wants to communicate document length. Reading progress indicators on news sites tend toward thin; documentation sites often use bolder fills because the reader actively wants to track position.",
+    "Performance is the invisible constraint. A progress bar that causes layout recalculation on every scroll event will degrade the reading experience on mobile. The requestAnimationFrame dirty-flag pattern — set a boolean on scroll, clear it in the rAF callback — reduces DOM writes to one per frame regardless of how fast the user scrolls.",
+  ];
+  const article=document.getElementById('article');
+  article.innerHTML=`<div class="art-title">The Anatomy of a Reading Progress Bar</div>
+    <div class="art-byline">Animation Atlas · Reference</div>
+    <div class="art-body">${PARAS[0]}</div>
+    <div class="art-pull">"Two lines of JavaScript, a transform, and a single CSS custom property — that is the entire implementation."</div>
+    <div class="art-body">${PARAS[1]}</div>
+    <div class="art-h2">Placement and Visual Weight</div>
+    <div class="art-body">${PARAS[2]}</div>
+    <div class="art-body">${PARAS[3]}</div>
+    <div class="art-h2">Thickness as a Design Choice</div>
+    <div class="art-body">${PARAS[4]}</div>
+    <div class="art-h2">Performance</div>
+    <div class="art-body">${PARAS[5]}</div>`;
+
+  const CIRC=100.53;
+  document.getElementById('read-time').textContent=
+    Math.ceil(article.innerText.split(/\s+/).length/250)+' min read';
+
+  function setStyle(s){
+    style=s;
+    topBar.style.display=s==='top'?'block':'none';
+    document.getElementById('circ').style.display=s==='circ'?'block':'none';
+    document.getElementById('side-rail').style.display=s==='rail'?'block':'none';
+  }
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    const p=max>0?st/max:0;
+    const pct=Math.round(p*100);
+    progPct.textContent=pct+'%';
+    topBar.style.transform=`scaleX(${p})`;
+    sideFill.style.height=pct+'%';
+    circFg.style.strokeDashoffset=CIRC-(p*CIRC);
+    circTxt.textContent=pct+'%';
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+
+  document.querySelectorAll('#style-seg button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#style-seg button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');setStyle(b.dataset.s);
+    });
+  });
+  document.querySelectorAll('.swatch').forEach(s=>{
+    s.addEventListener('click',()=>{
+      document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('on'));
+      s.classList.add('on');
+      const c=s.dataset.c;
+      document.documentElement.style.setProperty('--bar-color',c);
+    });
+  });
+  const thickSl=document.getElementById('thick-sl'),thickVal=document.getElementById('thick-val');
+  thickSl.addEventListener('input',()=>{
+    const v=thickSl.value+'px';thickVal.textContent=v;
+    document.documentElement.style.setProperty('--bar-thick',v);
+    circFg.setAttribute('stroke-width',thickSl.value);
+    document.querySelector('.circ-bg').setAttribute('stroke-width',thickSl.value);
+  });
+  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  setStyle('top');update();
+</script>
+</body>
+</html>

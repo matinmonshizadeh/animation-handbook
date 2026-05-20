@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Section Wipe</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:600px;--scale-floor:0.96;--wipe-range:1.0}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    /* Each section is sticky + full stage height + ascending z-index */
+    .section{position:sticky;top:0;height:var(--stage-h);overflow:hidden}
+    .sec-content{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,56px);transform-origin:center center;will-change:transform}
+    .sec-num{font-size:clamp(70px,12vw,120px);font-weight:bold;opacity:.1;line-height:1;margin-bottom:12px}
+    .sec-title{font-size:clamp(22px,3.5vw,38px);font-weight:bold;margin-bottom:16px;line-height:1.2}
+    .sec-body{font-size:clamp(12px,1.4vw,14px);opacity:.65;line-height:1.7;max-width:480px}
+    /* Spacer after all sections — provides scroll exit */
+    .end-spacer{height:calc(var(--stage-h) * 0.8);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.25;letter-spacing:2px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:460px}}
+    @media(prefers-reduced-motion:reduce){.sec-content{will-change:auto}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Section Wipe</h1>
+  <p>Stacked sticky sections with ascending z-index — the next section rises over the current one as you scroll.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="section" id="s0" style="z-index:1">
+      <div class="sec-content" id="sc0" style="background:linear-gradient(135deg,#0d2b3e,#1a3a5c)">
+        <div class="sec-num">01</div>
+        <div class="sec-title" style="color:#79c0ff">Position, Not JavaScript</div>
+        <div class="sec-body">Section wipe is entirely structural. Each section is sticky at top:0. The next section has a higher z-index and rises naturally as the user scrolls past the first section's height. No animation code for the wipe itself.</div>
+      </div>
+    </div>
+    <div class="section" id="s1" style="z-index:2">
+      <div class="sec-content" id="sc1" style="background:linear-gradient(135deg,#2d1b3d,#3d2a5c)">
+        <div class="sec-num">02</div>
+        <div class="sec-title" style="color:#d2a8ff">The Receding Layer</div>
+        <div class="sec-body">The only JavaScript-driven effect is the scale-down on the section being covered. As section 3 rises over this one, scale compresses from 1.0 toward the scale floor — making it feel like it's sliding behind the incoming section.</div>
+      </div>
+    </div>
+    <div class="section" id="s2" style="z-index:3">
+      <div class="sec-content" id="sc2" style="background:linear-gradient(135deg,#1e3a1e,#2d5c2d)">
+        <div class="sec-num">03</div>
+        <div class="sec-title" style="color:#56d364">Scrubbed Coverage</div>
+        <div class="sec-body">The scale animates proportionally to how much of the viewport the next section has covered. Mid-scroll, the transition is frozen at an intermediate value — no snap, no jump. Drag the scroll bar slowly to inspect the overlap.</div>
+      </div>
+    </div>
+    <div class="section" id="s3" style="z-index:4">
+      <div class="sec-content" id="sc3" style="background:linear-gradient(135deg,#3d2000,#5c3400)">
+        <div class="sec-num">04</div>
+        <div class="sec-title" style="color:#ffa657">Final Section</div>
+        <div class="sec-body">This section never recedes — it's the topmost layer. GSAP ScrollTrigger can implement this same pattern with scrub:true on a scale tween, adding the ease that CSS alone can't provide here.</div>
+      </div>
+    </div>
+    <div class="end-spacer">end of stack</div>
+  </div>
+  <aside>
+    <p class="note">Section wipe = stacked sticky elements with ascending z-index. The next section rises over the current one naturally. Scale-down on outgoing sections is the only JS addition.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Scroll</span><span class="v" id="sc-pct">0%</span></div>
+    <div class="kv"><span>Top section</span><span class="v" id="top-sec">01</span></div>
+    <div class="div"></div>
+    <div><div class="lbl" id="scale-lbl">Scale floor</div>
+      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="85" max="100" value="96" step="1"><span class="sv" id="scale-val">0.96</span></div>
+    </div>
+    <div><div class="lbl" id="wipe-lbl">Wipe range</div>
+      <div class="sr"><input type="range" id="wipe-sl" aria-labelledby="wipe-lbl" min="20" max="100" value="100" step="5"><span class="sv" id="wipe-val">100%</span></div>
+    </div>
+    <div class="div"></div>
+    <button class="rst" id="rst">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const scPct=document.getElementById('sc-pct'),topSec=document.getElementById('top-sec');
+  const scaleSl=document.getElementById('scale-sl'),scaleVal=document.getElementById('scale-val');
+  const wipeSl=document.getElementById('wipe-sl'),wipeVal=document.getElementById('wipe-val');
+  const sections=[...document.querySelectorAll('.section')];
+  const contents=sections.map(s=>s.querySelector('.sec-content'));
+  let scaleFloor=0.96,wipeRange=1.0,ticking=false;
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b),lerp=(a,b,t)=>a+(b-a)*t;
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight,sr=stage.getBoundingClientRect();
+    scPct.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    let top=0;
+    sections.forEach((s,i)=>{
+      const r=s.querySelector('.sec-content').getBoundingClientRect();
+      if(r.top<=sr.top+2)top=i;
+    });
+    topSec.textContent=String(top+1).padStart(2,'0');
+    if(!motionOk){ticking=false;return;}
+    sections.forEach((s,i)=>{
+      if(i===sections.length-1)return;
+      const nextR=sections[i+1].getBoundingClientRect();
+      const coverage=sr.height-(nextR.top-sr.top);
+      const t=clamp(coverage/(sr.height*wipeRange),0,1);
+      contents[i].style.transform=`scale(${lerp(1,scaleFloor,t).toFixed(4)})`;
+    });
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  scaleSl.addEventListener('input',()=>{scaleFloor=scaleSl.value/100;scaleVal.textContent=scaleFloor.toFixed(2);update()});
+  wipeSl.addEventListener('input',()=>{wipeRange=wipeSl.value/100;wipeVal.textContent=wipeSl.value+'%';update()});
+  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

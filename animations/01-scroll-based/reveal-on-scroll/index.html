@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reveal on Scroll</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:600px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0;position:relative}
+    .stage{width:100%;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;position:relative}
+    .stage::-webkit-scrollbar{display:none}
+    #trigger-line{position:absolute;left:0;right:0;height:1px;background:none;border-top:2px dashed var(--ui-accent);pointer-events:none;z-index:10;opacity:.7}
+    #trigger-label{position:absolute;right:8px;top:-18px;font-size:9px;color:var(--ui-accent);letter-spacing:1px;opacity:.7}
+    .cards-list{padding:40px 24px;display:flex;flex-direction:column;gap:18px;padding-bottom:200px}
+    .card{background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:22px 24px;transition:border-color .3s}
+    .card.revealed{border-color:#21262d}
+    .card-tag{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:8px;opacity:.7}
+    .card-title{font-size:clamp(14px,1.8vw,17px);font-weight:bold;margin-bottom:6px}
+    .card-body{font-size:11px;opacity:.5;line-height:1.6}
+    /* Pre-reveal states */
+    .card[data-fx="fade"]{opacity:0;transition:opacity .6s ease}
+    .card[data-fx="slide-up"]{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+    .card[data-fx="slide-left"]{opacity:0;transform:translateX(-44px);transition:opacity .6s ease,transform .6s ease}
+    .card[data-fx="scale"]{opacity:0;transform:scale(.86);transition:opacity .6s ease,transform .6s ease}
+    .card[data-fx="blur"]{opacity:0;filter:blur(12px);transition:opacity .6s ease,filter .6s ease}
+    .card[data-fx="mask"]{clip-path:inset(0 100% 0 0);transition:clip-path .7s ease}
+    .card[data-fx="stagger"]{opacity:1}
+    .card[data-fx="stagger"] .stagger-child{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+    /* Revealed states */
+    .card.revealed[data-fx="fade"]{opacity:1}
+    .card.revealed[data-fx="slide-up"]{opacity:1;transform:translateY(0)}
+    .card.revealed[data-fx="slide-left"]{opacity:1;transform:translateX(0)}
+    .card.revealed[data-fx="scale"]{opacity:1;transform:scale(1)}
+    .card.revealed[data-fx="blur"]{opacity:1;filter:blur(0)}
+    .card.revealed[data-fx="mask"]{clip-path:inset(0 0% 0 0)}
+    .card.revealed[data-fx="stagger"] .stagger-child{opacity:1;transform:translateY(0)}
+    .stagger-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .stagger-chip{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:6px 12px;font-size:10px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-size:10px}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:34px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .code-block{background:#0d1117;border:1px solid #21262d;border-radius:4px;padding:8px;font-size:9px;color:#56d364;line-height:1.6;overflow-x:auto}
+    .log{display:flex;flex-direction:column;gap:2px;max-height:80px;overflow:hidden}
+    .log-row{font-size:9px;opacity:.6}
+    .state-list{display:flex;flex-direction:column;gap:2px}
+    .state-row{display:flex;justify-content:space-between;font-size:9px;color:var(--ui-muted)}
+    .state-row .state-v{color:var(--ui-text)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.card,.card .stagger-child{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Reveal on Scroll</h1>
+  <p>7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div id="trigger-line"><div id="trigger-label">trigger</div></div>
+      <div class="cards-list" id="cards-list"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">IntersectionObserver fires at the compositor level — no JS per scroll frame. rootMargin shifts the viewport boundary to match the trigger line position.</p>
+    <div><div class="lbl" id="thr-lbl">Trigger position</div>
+      <div class="sr"><input type="range" id="thr-sl" aria-labelledby="thr-lbl" min="30" max="90" value="70" step="5"><span class="sv" id="thr-val">70%</span></div>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Observer config</div>
+    <div class="code-block" id="obs-code"></div>
+    <div class="div"></div>
+    <label class="tog" for="repeat-tog"><input type="checkbox" id="repeat-tog"><span>Repeat on re-enter</span></label>
+    <div class="div"></div>
+    <div class="lbl">Event log</div>
+    <div class="log" id="event-log"></div>
+    <div class="div"></div>
+    <div class="lbl">Card states</div>
+    <div class="state-list" id="state-list"></div>
+    <div class="div"></div>
+    <button class="rst" id="reset-btn">Reset all cards</button>
+  </aside>
+</div>
+<script>
+  const CARDS=[
+    {fx:'fade',      title:'Fade',         body:'opacity 0 → 1',                                    tag:'Technique 01'},
+    {fx:'slide-up',  title:'Slide Up',     body:'translateY 28px → 0 + fade',                      tag:'Technique 02'},
+    {fx:'slide-left',title:'Slide from Left',body:'translateX −44px → 0 + fade',                   tag:'Technique 03'},
+    {fx:'scale',     title:'Scale In',     body:'scale 0.86 → 1 + fade',                           tag:'Technique 04'},
+    {fx:'blur',      title:'Blur In',      body:'filter blur 12px → 0 + fade',                     tag:'Technique 05'},
+    {fx:'mask',      title:'Mask Reveal',  body:'clip-path inset(0 100% 0 0) → inset(0 0% 0 0)',  tag:'Technique 06'},
+    {fx:'stagger',   title:'Stagger Group','body':'4 children with cascading 80ms delays',           tag:'Technique 07'},
+  ];
+  const stage=document.getElementById('stage');
+  const thrSl=document.getElementById('thr-sl'),thrVal=document.getElementById('thr-val');
+  const repeatTog=document.getElementById('repeat-tog'),obsCode=document.getElementById('obs-code');
+  const eventLog=document.getElementById('event-log'),stateList=document.getElementById('state-list');
+  const triggerLine=document.getElementById('trigger-line');
+  let observer,threshold=70,events=[];
+
+  // Build cards
+  const cardEls=CARDS.map((c,i)=>{
+    const el=document.createElement('div');
+    el.className='card';el.dataset.fx=c.fx;el.dataset.i=i;
+    let inner=`<div class="card-tag" style="color:var(--ui-accent)">${c.tag} · ${c.fx}</div>
+      <div class="card-title">${c.title}</div>`;
+    if(c.fx==='stagger'){
+      inner+=`<div class="stagger-row">${['Alpha','Beta','Gamma','Delta'].map(n=>`<div class="stagger-chip stagger-child">${n}</div>`).join('')}</div>`;
+    }else{inner+=`<div class="card-body">${c.body}</div>`;}
+    el.innerHTML=inner;
+    document.getElementById('cards-list').appendChild(el);
+    // State row in panel
+    const sr=document.createElement('div');sr.className='state-row';sr.id='sr-'+i;
+    sr.innerHTML=`<span>${c.fx}</span><span class="state-v" id="sv-${i}">idle</span>`;
+    stateList.appendChild(sr);
+    return el;
+  });
+
+  function buildObserver(){
+    if(observer)observer.disconnect();
+    const margin=-(100-threshold);
+    obsCode.textContent=`new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "0px 0px ${margin}% 0px",\n  threshold: 0\n})`;
+    observer=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        const i=+e.target.dataset.i,fx=e.target.dataset.fx;
+        if(e.isIntersecting){
+          reveal(e.target,fx,i);
+          logEvent(`→ enter: ${fx}`);
+          if(!repeatTog.checked)observer.unobserve(e.target);
+        }else if(repeatTog.checked){
+          hide(e.target,fx,i);
+          logEvent(`← leave: ${fx}`);
+        }
+      });
+    },{root:stage,rootMargin:`0px 0px ${margin}% 0px`,threshold:0});
+    cardEls.forEach(el=>observer.observe(el));
+  }
+
+  function reveal(el,fx,i){
+    el.classList.add('revealed');
+    document.getElementById('sv-'+i).textContent='revealed';
+    if(fx==='stagger'){
+      el.querySelectorAll('.stagger-child').forEach((c,j)=>{
+        setTimeout(()=>{c.style.opacity='1';c.style.transform='translateY(0)';},j*80);
+      });
+    }
+  }
+  function hide(el,fx,i){
+    el.classList.remove('revealed');
+    document.getElementById('sv-'+i).textContent='idle';
+    if(fx==='stagger'){
+      el.querySelectorAll('.stagger-child').forEach(c=>{c.style.opacity='';c.style.transform='';});
+    }
+  }
+  function logEvent(msg){
+    events.unshift(msg);if(events.length>5)events.pop();
+    eventLog.innerHTML=events.map(e=>`<div class="log-row">${e}</div>`).join('');
+  }
+  function updateLine(){
+    triggerLine.style.top=(threshold/100*stage.clientHeight)+'px';
+    thrVal.textContent=threshold+'%';
+    obsCode.textContent=`new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "0px 0px ${-(100-threshold)}% 0px",\n  threshold: 0\n})`;
+  }
+
+  thrSl.addEventListener('input',()=>{threshold=+thrSl.value;updateLine();buildObserver()});
+  repeatTog.addEventListener('change',buildObserver);
+  document.getElementById('reset-btn').addEventListener('click',()=>{
+    cardEls.forEach((el,i)=>{hide(el,el.dataset.fx,i)});
+    stage.scrollTop=0;events=[];eventLog.innerHTML='';
+    setTimeout(buildObserver,50);
+  });
+
+  stage.addEventListener('scroll',updateLine,{passive:true});
+  updateLine();buildObserver();
+</script>
+</body>
+</html>

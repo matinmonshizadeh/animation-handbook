@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scrollytelling</title>
+  <style>
+    :root{--bg:#020b14;--ui-bg:#031018;--ui-border:#0a2030;--ui-accent:#00c8ff;--ui-text:#b0d4e8;--ui-muted:#4a7090;--stage-h:640px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;display:flex}
+    .stage::-webkit-scrollbar{display:none}
+    .vis{position:sticky;top:0;width:45%;height:var(--stage-h);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;overflow:hidden}
+    .chapters{flex:1;padding:20px 28px}
+    .ch{min-height:calc(var(--stage-h) * 0.9);display:flex;flex-direction:column;justify-content:center;padding:40px 0;border-bottom:1px solid #0a2030}
+    .ch:last-child{border-bottom:none}
+    .ch-eye{font-size:10px;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;opacity:.6}
+    .ch-head{font-size:clamp(18px,2.6vw,26px);font-weight:bold;line-height:1.2;margin-bottom:14px}
+    .ch-body{font-size:12px;line-height:1.7;opacity:.65;max-width:300px;margin-bottom:12px}
+    .ch-fact{border-left:3px solid var(--ui-accent);padding-left:12px;font-size:10px;opacity:.5;font-style:italic;line-height:1.6}
+    #porthole{width:min(220px,85%);aspect-ratio:1;border-radius:50%;border:4px solid #00c8ff;overflow:hidden;flex-shrink:0;position:relative}
+    #ph-bg{position:absolute;inset:0;transition:background 1.2s ease}
+    #ph-shimmer{position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,transparent 50%)}
+    #depth-num{font-size:clamp(26px,3.5vw,42px);font-weight:bold;letter-spacing:2px;font-variant-numeric:tabular-nums;text-align:center}
+    #depth-lbl{font-size:10px;opacity:.4;letter-spacing:3px;text-transform:uppercase;text-align:center}
+    aside{width:clamp(180px,20vw,220px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:9px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .jlist{display:flex;flex-direction:column;gap:3px}
+    .jbtn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:6px 8px;border-radius:4px;cursor:pointer;text-align:left;min-height:36px;width:100%}
+    .jbtn.on{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.jbtn:hover{border-color:var(--ui-accent)}}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){
+      .layout{flex-direction:column}aside{width:100%}:root{--stage-h:560px}
+      .stage{flex-direction:column}.vis{position:sticky;top:0;width:100%;height:200px;flex-direction:row;gap:16px;z-index:2}
+      #porthole{width:140px}.chapters{padding:12px 16px}
+    }
+    @media(prefers-reduced-motion:reduce){#ph-bg{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scrollytelling</h1>
+  <p>Fractional chapter progress drives depth readout and ocean-layer crossfades continuously, not in steps.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="vis" id="vis">
+      <div id="porthole"><div id="ph-bg"></div><div id="ph-shimmer"></div></div>
+      <div><div id="depth-num">0</div><div id="depth-lbl">metres depth</div></div>
+    </div>
+    <div class="chapters" id="chapters"></div>
+  </div>
+  <aside>
+    <p class="note">Scrollytelling synchronizes multiple media types to a single scroll input. Fractional progress drives smooth transitions — the reader experiences a continuous journey, not a slideshow.</p>
+    <div class="lbl">Position</div>
+    <div class="kv"><span>Scroll</span><span class="v" id="sc-pct">0%</span></div>
+    <div class="kv"><span>Chapter</span><span class="v" id="sc-ch">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Jump to chapter</div>
+    <div class="jlist" id="jlist"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst">Return to surface</button>
+  </aside>
+</div>
+<script>
+  const CHS=[
+    {depth:0,    head:'The Surface',       eye:'01 · 0 m',         bg:'#1a4a8c',ac:'#40d8ff',
+     body:'Sunlight refracts through wave patterns, scattering blue and gold. This threshold separates two entirely different worlds.',
+     fact:'Light penetrates here at full intensity — photosynthesis sustains nearly all ocean life above this line.'},
+    {depth:200,  head:'The Sunlit Zone',    eye:'02 · 0–200 m',     bg:'#0d2e5c',ac:'#00aadd',
+     body:'The euphotic zone receives enough light for photosynthesis. Plankton, sardines, and sea turtles move through filtered, shifting blue.',
+     fact:'95% of all commercial fish species live in this zone. Below this depth, no plant can survive.'},
+    {depth:1000, head:'The Twilight Zone',  eye:'03 · 200–1000 m',  bg:'#050e20',ac:'#006688',
+     body:'Bioluminescent flashes replace sunlight. Creatures have evolved enormous eyes. Pressure climbs to 100 atmospheres.',
+     fact:'The mesopelagic zone holds more fish biomass than all surface fisheries combined — almost entirely uncounted.'},
+    {depth:4000, head:'The Midnight Zone',  eye:'04 · 1000–4000 m', bg:'#020810',ac:'#003d55',
+     body:'Total darkness. 2–4°C. Marine snow drifts down from the sunlit world above — the only food source for creatures that have never seen light.',
+     fact:'This zone covers more Earth surface area than any other habitat, and remains largely unexplored.'},
+    {depth:6000, head:'The Abyssal Plain',  eye:'05 · 4000–6000 m', bg:'#010508',ac:'#001f30',
+     body:'Sediment plains stretch thousands of kilometres. Pressure exceeds 600 atmospheres. Sea cucumbers and snailfish move through crushing cold.',
+     fact:'Manganese nodules blanket the abyss — each the size of a potato, formed over millions of years.'},
+    {depth:10935,head:'The Hadal Zone',     eye:'06 · 6000–11000 m',bg:'#010204',ac:'#000e18',
+     body:'Challenger Deep. Three vessels have ever visited. More humans have walked on the Moon. The snailfish survives here — the deepest vertebrate on Earth.',
+     fact:'1,100 atmospheres of pressure. Equivalent to 50 jumbo jets stacked on your thumbnail.'},
+  ];
+  const stage=document.getElementById('stage'),chs=document.getElementById('chapters');
+  const phBg=document.getElementById('ph-bg'),porthole=document.getElementById('porthole');
+  const depNum=document.getElementById('depth-num'),vis=document.getElementById('vis');
+  let ticking=false;
+
+  function lerpCol(h1,h2,t){
+    const p=s=>[parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];
+    const a=p(h1),b=p(h2);
+    return`#${[0,1,2].map(i=>Math.round(a[i]+(b[i]-a[i])*t).toString(16).padStart(2,'0')).join('')}`;
+  }
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b),lerp=(a,b,t)=>a+(b-a)*t;
+
+  CHS.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='ch';
+    d.innerHTML=`<div class="ch-eye" style="color:${c.ac}">${c.eye}</div>
+      <div class="ch-head">${c.head}</div><div class="ch-body">${c.body}</div>
+      <div class="ch-fact">${c.fact}</div>`;
+    chs.appendChild(d);
+    const b=document.createElement('button');b.className='jbtn';b.textContent=c.eye;
+    b.addEventListener('click',()=>stage.scrollTo({top:chs.children[i].offsetTop,behavior:'smooth'}));
+    document.getElementById('jlist').appendChild(b);
+  });
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    document.getElementById('sc-pct').textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const els=[...chs.children],N=els.length,sr=stage.getBoundingClientRect();
+    let frac=0;
+    for(let i=N-1;i>=0;i--){
+      const r=els[i].getBoundingClientRect();
+      const rel=r.top-sr.top;
+      if(rel<=sr.height*0.42){frac=clamp(i+(-rel/r.height),i,i+1);break;}
+      if(i===0)frac=0;
+    }
+    frac=clamp(frac,0,N-0.001);
+    const ci=Math.floor(frac),cf=frac-ci;
+    const c=CHS[ci],cn=CHS[Math.min(ci+1,N-1)];
+    const col=lerpCol(c.ac,cn.ac,cf);
+    depNum.textContent=Math.round(lerp(c.depth,cn.depth,cf)).toLocaleString();
+    depNum.style.color=col;
+    phBg.style.background=`radial-gradient(circle at 50% 40%,${lerpCol(c.bg,cn.bg,cf)},#000 80%)`;
+    porthole.style.borderColor=col;
+    document.getElementById('sc-ch').textContent=c.eye;
+    document.querySelectorAll('.jbtn').forEach((b,i)=>b.classList.toggle('on',i===ci));
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

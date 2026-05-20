@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizontal Scroll</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--panels:5}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    /* Intro / outro spacers */
+    .spacer{height:calc(var(--stage-h) * 0.6);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.3;letter-spacing:2px}
+    /* The pin section — tall to provide scroll budget */
+    #pin-section{height:calc(var(--stage-h) * var(--panels));position:relative}
+    /* Sticky inner */
+    #pin-inner{position:sticky;top:0;height:var(--stage-h);overflow:hidden}
+    /* Horizontal track */
+    #h-track{display:flex;height:100%;will-change:transform;width:calc(var(--panels) * 100%)}
+    .panel{flex:0 0 calc(100% / var(--panels));height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,60px)}
+    .panel-num{font-size:clamp(60px,10vw,100px);font-weight:bold;opacity:.1;line-height:1;margin-bottom:12px}
+    .panel-title{font-size:clamp(22px,3.5vw,36px);font-weight:bold;margin-bottom:14px}
+    .panel-body{font-size:clamp(12px,1.4vw,14px);opacity:.6;line-height:1.7;max-width:480px}
+    .panel-tag{font-size:10px;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;opacity:.5}
+    /* Panel progress dots */
+    #panel-dots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:none}
+    .dot{width:6px;height:6px;border-radius:50%;background:#21262d;transition:background .3s,transform .3s}
+    .dot.on{background:var(--ui-accent);transform:scale(1.3)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .jlist{display:flex;flex-direction:column;gap:3px}
+    .jbtn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:7px 8px;border-radius:4px;cursor:pointer;text-align:left;width:100%;min-height:36px}
+    .jbtn.on{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.jbtn:hover{border-color:var(--ui-accent)}}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.panel{padding:24px}}
+    @media(prefers-reduced-motion:reduce){#h-track{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Horizontal Scroll</h1>
+  <p>Vertical scroll translates a horizontal track — a pin section provides the scroll budget.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="spacer">↓ scroll to enter</div>
+    <div id="pin-section">
+      <div id="pin-inner">
+        <div id="h-track"></div>
+        <div id="panel-dots"></div>
+      </div>
+    </div>
+    <div class="spacer">↓ released</div>
+  </div>
+  <aside>
+    <p class="note">A tall section provides the scroll budget. translateX = −progress × (trackWidth − stageWidth). Two formulas — pin distance and horizontal offset — do all the work.</p>
+    <div class="lbl">Progress</div>
+    <div class="kv"><span>Overall scroll</span><span class="v" id="sc-pct">0%</span></div>
+    <div class="kv"><span>Track progress</span><span class="v" id="tr-pct">0%</span></div>
+    <div class="kv"><span>Panel</span><span class="v" id="panel-id">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Jump to panel</div>
+    <div class="jlist" id="jlist"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const PANELS=[
+    {title:'Pin & Translate',   body:'The outer container is taller than the viewport. The inner container sticks. Translating the horizontal track converts vertical scroll into horizontal motion.',bg:'linear-gradient(135deg,#0d2b3e,#1a3a5c)',ac:'#79c0ff'},
+    {title:'One Scroll Input',  body:'A single scrollTop value drives everything. No separate horizontal scroll container, no wheel hijacking. The user\'s native scroll behaviour is preserved.',        bg:'linear-gradient(135deg,#2d1b3d,#3d2a5c)',ac:'#d2a8ff'},
+    {title:'Panel Jump Links',  body:'Clicking a panel in the sidebar computes the scroll position that centers it: panelIndex × scrollBudget / (panels − 1). Smooth scroll does the rest.',          bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',ac:'#56d364'},
+    {title:'Exit Detection',    body:'Panel index = Math.round(trackProgress × (panels − 1)). As the track progress crosses 0.5, 1.5, 2.5... panel transitions fire without any event listener.',  bg:'linear-gradient(135deg,#3d2000,#5c3400)',ac:'#ffa657'},
+    {title:'Momentum & Snapping',body:'GSAP ScrollTrigger adds optional snapping to the nearest panel. Lenis and Locomotive Scroll provide momentum-based easing for a physical feel.',             bg:'linear-gradient(135deg,#1a3a3a,#2a5c5c)',ac:'#58a6ff'},
+  ];
+  const stage=document.getElementById('stage'),track=document.getElementById('h-track');
+  const scPct=document.getElementById('sc-pct'),trPct=document.getElementById('tr-pct'),panelId=document.getElementById('panel-id');
+  const dotsEl=document.getElementById('panel-dots'),jlist=document.getElementById('jlist');
+  let ticking=false;
+
+  PANELS.forEach((p,i)=>{
+    const el=document.createElement('div');el.className='panel';
+    el.style.background=p.bg;
+    el.innerHTML=`<div class="panel-num">0${i+1}</div>
+      <div class="panel-tag" style="color:${p.ac}">Panel ${String(i+1).padStart(2,'0')}</div>
+      <div class="panel-title" style="color:${p.ac}">${p.title}</div>
+      <div class="panel-body">${p.body}</div>`;
+    track.appendChild(el);
+    const dot=document.createElement('div');dot.className='dot';dotsEl.appendChild(dot);
+    const btn=document.createElement('button');btn.className='jbtn';
+    btn.textContent=`0${i+1} ${p.title}`;
+    btn.addEventListener('click',()=>{
+      const pin=document.getElementById('pin-section');
+      const budget=pin.offsetHeight-stage.clientHeight;
+      stage.scrollTo({top:pin.offsetTop+Math.round(i/(PANELS.length-1)*budget),behavior:'smooth'});
+    });
+    jlist.appendChild(btn);
+  });
+
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
+    scPct.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const pin=document.getElementById('pin-section');
+    const budget=pin.offsetHeight-stage.clientHeight;
+    const progress=clamp((st-pin.offsetTop)/budget,0,1);
+    const maxShift=track.offsetWidth-stage.clientWidth;
+    track.style.transform=`translateX(${(-progress*maxShift).toFixed(2)}px)`;
+    trPct.textContent=Math.round(progress*100)+'%';
+    const panel=Math.min(Math.round(progress*(PANELS.length-1)),PANELS.length-1);
+    panelId.textContent=`0${panel+1} — ${PANELS[panel].title}`;
+    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===panel));
+    document.querySelectorAll('.jbtn').forEach((b,i)=>b.classList.toggle('on',i===panel));
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

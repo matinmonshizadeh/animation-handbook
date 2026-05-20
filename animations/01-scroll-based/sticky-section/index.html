@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sticky Section</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .spacer{height:var(--stage-h);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.25;letter-spacing:2px;text-align:center;padding:20px}
+    /* Sticky section — 4× stage height for scroll budget */
+    #sticky-wrap{height:calc(var(--stage-h) * 4);position:relative}
+    #sticky-inner{position:sticky;top:0;height:var(--stage-h);overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0}
+    /* States */
+    .state{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,4vw,48px);opacity:0;pointer-events:none;transition:opacity .5s ease}
+    .state.visible{opacity:1;pointer-events:auto}
+    .state-eye{font-size:10px;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;opacity:.6}
+    .state-head{font-size:clamp(20px,3vw,32px);font-weight:bold;line-height:1.2;margin-bottom:16px}
+    .state-body{font-size:12px;opacity:.6;line-height:1.7;max-width:340px}
+    .state-cta{margin-top:20px;align-self:flex-start;border:1px solid var(--ui-accent);color:var(--ui-accent);font-family:monospace;font-size:10px;padding:10px 16px;border-radius:4px;letter-spacing:1px}
+    /* Visual column */
+    #vis-col{position:sticky;top:0;height:var(--stage-h);background:#0d1117;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .illus{position:absolute;width:min(280px,80%);aspect-ratio:1;opacity:0;transition:opacity .6s ease;display:flex;align-items:center;justify-content:center}
+    .illus.visible{opacity:1}
+    /* Text column */
+    #text-col{position:relative;height:var(--stage-h);background:#060a10}
+    /* Progress bar */
+    #seg-bar{display:flex;gap:3px;margin-top:8px}
+    .seg-fill{flex:1;height:4px;border-radius:2px;background:#21262d;overflow:hidden}
+    .seg-inner{height:100%;background:var(--ui-accent);width:0%;transition:width .1s}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}#sticky-inner{grid-template-columns:1fr}#vis-col{display:none}}
+    @media(prefers-reduced-motion:reduce){.state,.illus{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Sticky Section</h1>
+  <p>The whole section pins to the viewport while its interior morphs through 4 states — scrubbed to scroll position.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="spacer">Scroll down to enter the sticky section ↓</div>
+    <div id="sticky-wrap">
+      <div id="sticky-inner">
+        <div id="text-col">
+          <div class="state" id="s0">
+            <div class="state-eye" style="color:#79c0ff">State 01 · Foundation</div>
+            <div class="state-head">Everything starts with structure.</div>
+            <div class="state-body">Before any animation, there is layout. CSS sticky positioning transforms a single section into an extended viewport experience without JavaScript pinning.</div>
+          </div>
+          <div class="state" id="s1">
+            <div class="state-eye" style="color:#56d364">State 02 · Transition</div>
+            <div class="state-head">Scroll becomes the timeline.</div>
+            <div class="state-body">Progress through the sticky section is computed as a 0–1 value. Each state occupies 25% of that range. State boundaries are thresholds, not events.</div>
+          </div>
+          <div class="state" id="s2">
+            <div class="state-eye" style="color:#ffa657">State 03 · Interpolation</div>
+            <div class="state-head">Between states, values blend.</div>
+            <div class="state-body">Crossfades between opacity values, illustration swaps, and text transitions happen in the fractional space between integer state indices — smooth, not stepped.</div>
+          </div>
+          <div class="state" id="s3">
+            <div class="state-eye" style="color:#d2a8ff">State 04 · Release</div>
+            <div class="state-head">When the budget runs out, scroll continues.</div>
+            <div class="state-body">The sticky wrapper ends and the section scrolls away. Content after it resumes normal flow. The pin is defined entirely by the wrapper's height.</div>
+            <div class="state-cta">Continue scrolling →</div>
+          </div>
+        </div>
+        <div id="vis-col">
+          <div class="illus" id="il0">
+            <svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+              <rect x="30" y="30" width="140" height="140" rx="12" fill="none" stroke="#79c0ff" stroke-width="2" opacity=".4"/>
+              <rect x="55" y="55" width="90" height="90" rx="8" fill="none" stroke="#79c0ff" stroke-width="2" opacity=".6"/>
+              <rect x="80" y="80" width="40" height="40" rx="4" fill="#79c0ff" opacity=".3"/>
+              <circle cx="100" cy="100" r="8" fill="#79c0ff"/>
+            </svg>
+          </div>
+          <div class="illus" id="il1">
+            <svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+              <line x1="100" y1="20" x2="100" y2="180" stroke="#56d364" stroke-width="2" opacity=".4"/>
+              <line x1="20" y1="100" x2="180" y2="100" stroke="#56d364" stroke-width="2" opacity=".4"/>
+              <circle cx="100" cy="40" r="12" fill="#56d364" opacity=".6"/>
+              <circle cx="160" cy="100" r="12" fill="#56d364" opacity=".5"/>
+              <circle cx="100" cy="160" r="12" fill="#56d364" opacity=".4"/>
+              <circle cx="40" cy="100" r="12" fill="#56d364" opacity=".3"/>
+              <circle cx="100" cy="100" r="6" fill="#56d364"/>
+            </svg>
+          </div>
+          <div class="illus" id="il2">
+            <svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="100,20 180,170 20,170" fill="none" stroke="#ffa657" stroke-width="2" opacity=".5"/>
+              <polygon points="100,55 155,155 45,155" fill="none" stroke="#ffa657" stroke-width="2" opacity=".5"/>
+              <polygon points="100,90 130,140 70,140" fill="#ffa657" opacity=".2"/>
+              <circle cx="100" cy="110" r="6" fill="#ffa657"/>
+            </svg>
+          </div>
+          <div class="illus" id="il3">
+            <svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="100" cy="100" r="70" fill="none" stroke="#d2a8ff" stroke-width="2" opacity=".3"/>
+              <circle cx="100" cy="100" r="50" fill="none" stroke="#d2a8ff" stroke-width="2" opacity=".4"/>
+              <circle cx="100" cy="100" r="30" fill="none" stroke="#d2a8ff" stroke-width="2" opacity=".6"/>
+              <circle cx="100" cy="100" r="8" fill="#d2a8ff" opacity=".8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer">Released — normal scroll resumes ↓</div>
+  </div>
+  <aside>
+    <p class="note">Sticky section pins the whole section, not a single element. Contents morph through states. Distinct from pin-animation, which pins one element while siblings scroll past.</p>
+    <div class="lbl">Scroll state</div>
+    <div class="kv"><span>Overall</span><span class="v" id="ov-pct">0%</span></div>
+    <div class="kv"><span>Lifecycle</span><span class="v" id="lifecycle">approaching</span></div>
+    <div class="kv"><span>State</span><span class="v" id="state-id">—</span></div>
+    <div class="kv"><span>Internal</span><span class="v" id="int-pct">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">State segments</div>
+    <div id="seg-bar">
+      <div class="seg-fill"><div class="seg-inner" id="sg0"></div></div>
+      <div class="seg-fill"><div class="seg-inner" id="sg1"></div></div>
+      <div class="seg-fill"><div class="seg-inner" id="sg2"></div></div>
+      <div class="seg-fill"><div class="seg-inner" id="sg3"></div></div>
+    </div>
+    <div class="div"></div>
+    <button class="rst" id="rst">Reset scroll</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage'),wrap=document.getElementById('sticky-wrap');
+  const states=[...document.querySelectorAll('.state')],illus=[...document.querySelectorAll('.illus')];
+  const lifecycle=document.getElementById('lifecycle'),stateId=document.getElementById('state-id');
+  const intPct=document.getElementById('int-pct'),ovPct=document.getElementById('ov-pct');
+  const STATE_NAMES=['Foundation','Transition','Interpolation','Release'];
+  let ticking=false;
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight,stageH=stage.clientHeight;
+    ovPct.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const pinStart=wrap.offsetTop,pinH=wrap.offsetHeight;
+    const p=clamp((st-pinStart)/(pinH-stageH),0,1);
+    const before=st<pinStart,after=st>pinStart+pinH-stageH;
+    lifecycle.textContent=before?'approaching':after?'released':`stuck · ${Math.round(p*100)}%`;
+    intPct.textContent=before||after?'—':Math.round(p*100)+'%';
+    const si=Math.min(Math.floor(p*4),3),sf=p*4-si;
+    stateId.textContent=before||after?'—':`0${si+1} · ${STATE_NAMES[si]}`;
+    states.forEach((s,i)=>s.classList.toggle('visible',i===si));
+    illus.forEach((il,i)=>il.classList.toggle('visible',i===si));
+    for(let i=0;i<4;i++){
+      const bar=document.getElementById('sg'+i);
+      if(i<si)bar.style.width='100%';
+      else if(i===si)bar.style.width=Math.round(sf*100)+'%';
+      else bar.style.width='0%';
+    }
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  update();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stagger Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    .section{padding:40px 24px;border-bottom:1px solid var(--ui-border)}
+    .section:last-child{padding-bottom:80px;border:none}
+    .sec-head{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:20px;opacity:.7}
+    /* Grid */
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .grid-cell{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:14px 10px;font-size:10px;text-align:center;position:relative}
+    .delay-badge{position:absolute;top:4px;right:5px;font-size:8px;color:var(--ui-accent);opacity:.5}
+    /* List */
+    .list-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0d1117}
+    .list-row:last-child{border:none}
+    .avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--ui-accent)}
+    .list-label{flex:1;font-size:11px}
+    .list-meta{font-size:10px;opacity:.4}
+    /* Chips */
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{background:#0d1117;border:1px solid #21262d;border-radius:20px;padding:6px 14px;font-size:10px}
+    /* Stagger states */
+    .item{opacity:0;transform:translateY(20px);transition:opacity .4s ease,transform .4s ease}
+    .item.in{opacity:1;transform:translateY(0)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+    .mdot{width:100%;aspect-ratio:1;border-radius:3px;background:#21262d;display:flex;align-items:center;justify-content:center;font-size:8px;color:#8b949e;transition:background .1s}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(prefers-reduced-motion:reduce){.item{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Stagger Reveal</h1>
+  <p>Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="section" id="sec-grid">
+      <div class="sec-head">01 · Card Grid (4 × 3)</div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <div class="section" id="sec-list">
+      <div class="sec-head">02 · List Rows</div>
+      <div id="list"></div>
+    </div>
+    <div class="section" id="sec-chips">
+      <div class="sec-head">03 · Tag Chips</div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">40–60ms is the sweet spot. Below 30ms the eye can't separate items. Above 100ms it feels sluggish. Cap total stagger time at ~600ms on long lists.</p>
+    <div><div class="lbl" id="delay-lbl">Stagger delay</div>
+      <div class="sr"><input type="range" id="delay-sl" aria-labelledby="delay-lbl" min="0" max="150" value="50" step="10"><span class="sv" id="delay-val">50ms</span></div>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Cascade direction</div>
+    <div class="seg" id="dir-seg">
+      <button data-d="forward" class="on">→ Forward</button>
+      <button data-d="reverse">← Reverse</button>
+      <button data-d="center">↔ Center</button>
+      <button data-d="random">⁂ Random</button>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Preview matrix (grid)</div>
+    <div class="matrix" id="matrix"></div>
+    <div class="div"></div>
+    <button class="rst" id="replay-btn">Replay all groups</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const delaySl=document.getElementById('delay-sl'),delayVal=document.getElementById('delay-val');
+  const matrix=document.getElementById('matrix');
+  let staggerMs=50,direction='forward',observers=[];
+
+  const GRID_ITEMS=['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu'];
+  const LIST_ITEMS=[
+    {name:'Ada Lovelace',meta:'Algorithmics','color':'#79c0ff'},
+    {name:'Grace Hopper',meta:'Compilation','color':'#56d364'},
+    {name:'Alan Turing',meta:'Computation','color':'#d2a8ff'},
+    {name:'Claude Shannon',meta:'Information theory','color':'#ffa657'},
+    {name:'Tim Berners-Lee',meta:'WWW Protocol','color':'#58a6ff'},
+    {name:'Margaret Hamilton',meta:'Software engineering','color':'#f78166'},
+  ];
+  const CHIPS=['CSS Grid','Flexbox','Sticky','IntersectionObserver','clip-path','rAF','View Transitions','WAAPI'];
+
+  function buildGrid(){
+    const g=document.getElementById('grid');g.innerHTML='';
+    return GRID_ITEMS.map((t,i)=>{
+      const el=document.createElement('div');el.className='grid-cell item';
+      el.innerHTML=`<div class="delay-badge" id="db${i}">0ms</div>${t}`;
+      g.appendChild(el);return el;
+    });
+  }
+  function buildList(){
+    const l=document.getElementById('list');l.innerHTML='';
+    return LIST_ITEMS.map((d,i)=>{
+      const el=document.createElement('div');el.className='list-row item';
+      el.innerHTML=`<div class="avatar" style="background:${d.color}"></div>
+        <div class="list-label">${d.name}</div><div class="list-meta">${d.meta}</div>`;
+      l.appendChild(el);return el;
+    });
+  }
+  function buildChips(){
+    const c=document.getElementById('chips');c.innerHTML='';
+    return CHIPS.map((t,i)=>{
+      const el=document.createElement('div');el.className='chip item';el.textContent=t;
+      c.appendChild(el);return el;
+    });
+  }
+
+  function getOrder(n){
+    if(direction==='forward')return Array.from({length:n},(_,i)=>i);
+    if(direction==='reverse')return Array.from({length:n},(_,i)=>n-1-i);
+    if(direction==='center'){const c=Math.floor(n/2);return Array.from({length:n},(_,i)=>Math.abs(i-c));}
+    const a=Array.from({length:n},(_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
+  }
+
+  function staggerIn(items,updateBadges){
+    const order=getOrder(items.length);
+    items.forEach((el,i)=>{
+      const d=order[i]*staggerMs;
+      if(updateBadges){const b=el.querySelector('.delay-badge');if(b)b.textContent=d+'ms';}
+      setTimeout(()=>el.classList.add('in'),d);
+    });
+  }
+  function staggerOut(items){items.forEach(el=>{el.classList.remove('in');});}
+
+  function updateMatrix(){
+    const order=getOrder(12);const max=Math.max(...order)||1;
+    [...matrix.children].forEach((d,i)=>{
+      const norm=order[i]/max;
+      d.style.background=`rgba(88,166,255,${0.15+norm*0.8})`;
+      d.textContent=order[i]+1;
+    });
+  }
+
+  let gridItems=buildGrid(),listItems=buildList(),chipItems=buildChips();
+  // Build matrix dots
+  for(let i=0;i<12;i++){const d=document.createElement('div');d.className='mdot';matrix.appendChild(d);}
+  updateMatrix();
+
+  function attachObservers(){
+    observers.forEach(o=>o.disconnect());observers=[];
+    [[document.getElementById('sec-grid'),gridItems,true],
+     [document.getElementById('sec-list'),listItems,false],
+     [document.getElementById('sec-chips'),chipItems,false]].forEach(([sec,items,badges])=>{
+      const o=new IntersectionObserver(([e])=>{if(e.isIntersecting)staggerIn(items,badges)},{root:stage,threshold:.05});
+      o.observe(sec);observers.push(o);
+    });
+  }
+  attachObservers();
+
+  delaySl.addEventListener('input',()=>{staggerMs=+delaySl.value;delayVal.textContent=staggerMs+'ms';updateMatrix();});
+  document.querySelectorAll('#dir-seg button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');direction=b.dataset.d;updateMatrix();
+    });
+  });
+  document.getElementById('replay-btn').addEventListener('click',()=>{
+    gridItems=buildGrid();listItems=buildList();chipItems=buildChips();
+    stage.scrollTop=0;
+    observers.forEach(o=>o.disconnect());observers=[];
+    setTimeout(()=>{
+      attachObservers();
+      setTimeout(()=>staggerIn(gridItems,true),100);
+    },50);
+  });
+</script>
+</body>
+</html>
