@@ -5,23 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stacking Cards</title>
   <style>
-    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e}
+    :root{--bg:#2a1520;--ui-bg:#1f0f18;--ui-border:#3d2030;--ui-accent:#f0a060;--ui-text:#e8d5c0;--ui-muted:#8a7070;--scale-step:0.10;--peek:14px;--stage-h:620px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
     header{margin-bottom:20px}
     header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    /* stage: the ONLY scroll container. no overflow on any descendant above .card */
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;background:var(--bg)}
     .stage::-webkit-scrollbar{display:none}
-    .stack{height:3000px}
-    .card{position:sticky;top:0;height:600px;overflow:hidden;border-radius:8px;padding:32px;display:flex;flex-direction:column;justify-content:flex-end;will-change:transform,filter}
-    .card-num{font-size:72px;font-weight:bold;opacity:.18;line-height:1;margin-bottom:8px}
-    .card-title{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:6px}
-    .card-sub{font-size:13px;opacity:.65;margin-bottom:14px}
-    .card-body{font-size:12px;opacity:.55;max-width:380px;line-height:1.65}
-    .depth-badge{position:absolute;top:14px;right:14px;font-size:9px;background:rgba(0,0,0,.5);padding:3px 9px;border-radius:10px;display:none}
-    .depth-badge.on{display:block}
+    .spacer{height:500px}
+    #cards{--numcards:5;view-timeline-name:--cards-timeline;view-timeline-axis:block}
+    /* sticky is on .card — the outer wrapper — NOT on .card__content */
+    .card{
+      --index0:calc(var(--index) - 1);
+      --reverse-index:calc(var(--numcards) - var(--index0));
+      position:sticky;
+      top:0;
+      /* padding-top staggers each card's content lower, making previous cards peek above */
+      padding-top:calc(var(--index0) * var(--peek));
+      z-index:var(--index);
+    }
+    .card__content{
+      height:calc(var(--stage-h) - 80px);
+      border-radius:16px;overflow:hidden;
+      display:grid;grid-template-columns:55fr 45fr;
+      box-shadow:0 16px 56px rgba(0,0,0,.65);
+      background:#fff;color:#1a1a1a;
+      /* scale collapses downward from the top edge, keeping peek tabs visible */
+      transform-origin:50% 0%;
+      position:relative;
+    }
+    @keyframes card-scale{
+      to{transform:scale(calc(1 + var(--scale-step) - var(--scale-step) * var(--reverse-index)))}
+    }
+    @supports(animation-timeline:scroll()){
+      #cards:not(.js-fallback) .card__content{
+        --start-range:calc(var(--index0) / var(--numcards) * 100%);
+        --end-range:calc(var(--index) / var(--numcards) * 100%);
+        animation:linear card-scale both;
+        animation-timeline:--cards-timeline;
+        animation-range:exit-crossing var(--start-range) exit-crossing var(--end-range);
+      }
+    }
+    .card__text{padding:clamp(18px,3vw,32px);display:flex;flex-direction:column;justify-content:center;gap:10px}
+    .card-num{font-size:52px;font-weight:bold;opacity:.1;line-height:1;font-family:serif}
+    .card-title{font-size:clamp(16px,2.2vw,22px);font-weight:bold;font-family:serif;color:#111;line-height:1.2}
+    .card-sub{font-size:10px;opacity:.45;text-transform:uppercase;letter-spacing:1.5px}
+    .card-body{font-size:12px;opacity:.55;line-height:1.65;max-width:320px}
+    .card-btn{align-self:flex-start;border:1px solid var(--ac,#888);color:var(--ac,#888);font-family:monospace;font-size:10px;padding:8px 14px;border-radius:4px;letter-spacing:1px;margin-top:4px}
+    .card__visual{overflow:hidden}
+    .debug-badge{position:absolute;top:8px;right:8px;font-size:8px;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:6px;display:none;line-height:1.6;z-index:10}
+    .debug-badge.on{display:block}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -34,21 +70,29 @@
     .div{height:1px;background:var(--ui-border)}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}}
-    @media(prefers-reduced-motion:reduce){.card{will-change:auto}}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){
+      .layout{flex-direction:column}aside{width:100%}
+      :root{--stage-h:480px}
+      .card__content{grid-template-columns:1fr;grid-template-rows:1fr 140px}
+    }
+    @media(prefers-reduced-motion:reduce){.card__content{animation:none!important}}
   </style>
 </head>
 <body>
 <header>
   <h1>Stacking Cards</h1>
-  <p>Cards stack as they overlap — position: sticky does the work, scroll drives the depth cues.</p>
+  <p>CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.</p>
 </header>
 <div class="layout">
-  <div class="stage" id="stage"><div class="stack" id="stack"></div></div>
+  <div class="stage" id="stage">
+    <div class="spacer"></div>
+    <div id="cards"></div>
+    <div class="spacer"></div>
+  </div>
   <aside>
-    <p class="note">This entire effect is built on position: sticky. The CSS does most of the work — JavaScript only adds the depth cues. Try setting all sliders to their max (1.00 / 1.0) to see the pure CSS-only version, then bring them down to feel how depth cues add physicality.</p>
+    <p class="note">Sticky is on .card (not .card__content). padding-top per index peeks earlier cards above later ones. transform-origin:50% 0% collapses scale downward so peek tabs stay visible.</p>
     <div><div class="lbl">Stack status</div>
       <div class="tbl">
         <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
@@ -56,59 +100,103 @@
       </div>
     </div>
     <div class="div"></div>
-    <div><div class="lbl" id="scale-lbl">Scale floor</div>
-      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="85" max="100" value="94"><span class="sv" id="scale-val">0.94</span></div>
+    <div><div class="lbl" id="scale-lbl">Scale step</div>
+      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="5" max="20" value="10"><span class="sv" id="scale-val">0.10</span></div>
     </div>
-    <div><div class="lbl" id="bright-lbl">Brightness floor</div>
-      <div class="sr"><input type="range" id="bright-sl" aria-labelledby="bright-lbl" min="60" max="100" value="85"><span class="sv" id="bright-val">0.85</span></div>
+    <div><div class="lbl" id="peek-lbl">Peek offset</div>
+      <div class="sr"><input type="range" id="peek-sl" aria-labelledby="peek-lbl" min="0" max="30" value="14"><span class="sv" id="peek-val">14px</span></div>
+    </div>
+    <div><div class="lbl" id="cards-lbl">Card count</div>
+      <div class="sr"><input type="range" id="cards-sl" aria-labelledby="cards-lbl" min="3" max="7" value="5" step="1"><span class="sv" id="cards-val">5</span></div>
     </div>
     <div class="div"></div>
-    <label class="tog" for="depth-tog"><input type="checkbox" id="depth-tog"><span>Show stack depth</span></label>
-    <button id="reset-btn">Reset scroll</button>
+    <label class="tog" for="debug-tog"><input type="checkbox" id="debug-tog"><span>Show indices</span></label>
+    <label class="tog" for="js-tog"><input type="checkbox" id="js-tog"><span>JS fallback</span></label>
+    <button class="rst" id="reset-btn">Reset scroll</button>
   </aside>
 </div>
 <script>
-  const CARDS=[
-    {num:'01',title:'The Foundation',   sub:'Where everything begins',     body:'Every scroll-driven animation starts with a structural decision. Position: sticky provides the base stacking without any JavaScript.',              bg:'linear-gradient(135deg,#0d2b3e,#1a3a5c)'},
-    {num:'02',title:'Layer by Layer',   sub:'Building depth through CSS',   body:'Each card occupies one viewport height. As the next card scrolls up, the previous stays beneath — the stacking itself needs no JavaScript.',       bg:'linear-gradient(135deg,#2d1b3d,#3d2a5c)'},
-    {num:'03',title:'Depth Perception', sub:'Visual cues add physicality',  body:'Scale and brightness reduction on buried cards simulate depth. The eye reads smaller and darker as farther away.',                                  bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)'},
-    {num:'04',title:'The Scroll Loop',  sub:'rAF keeps it smooth',          body:"A requestAnimationFrame callback computes each card's depth on scroll. Only transform and filter change — the compositor handles everything.",       bg:'linear-gradient(135deg,#3d2000,#5c3400)'},
-    {num:'05',title:'The Full Stack',   sub:'CSS and JS in balance',        body:'You are looking at all five cards now. This one is topmost — full scale, full brightness. The four below are quietly buried, waiting.',             bg:'linear-gradient(135deg,#1a3a3a,#2a5c5c)'},
+  const ALL_CARDS=[
+    {num:'01',title:'Sticky Without Pinning', sub:'Position mechanics', body:'Each .card sticks at top:0. The stack emerges from sticky alone — no JavaScript pinning.',                                              ac:'#c07030',vis:'linear-gradient(135deg,#f5ede0,#e8d0a8)'},
+    {num:'02',title:'Peek via Padding',       sub:'Index-based offset',  body:'padding-top: index × peek pushes each card\'s content lower. Card 1 has none; each later card reveals the previous card\'s top edge.', ac:'#3a8a60',vis:'linear-gradient(135deg,#d4ede2,#a8d8bc)'},
+    {num:'03',title:'Exit-Crossing Range',    sub:'Timeline math',       body:'The scroll timeline covers the full exit phase. Card i animates over its slice [i/N, (i+1)/N], so each card scales in sequence.',        ac:'#3a70a8',vis:'linear-gradient(135deg,#ccdff0,#a0c4e4)'},
+    {num:'04',title:'Scale From the Top',     sub:'Transform origin',    body:'transform-origin: 50% 0% anchors scale to the top edge. Cards shrink downward, keeping their peek tab flush and visible.',               ac:'#9a7820',vis:'linear-gradient(135deg,#f0e8c0,#e0d098)'},
+    {num:'05',title:'Reverse-Index Formula',  sub:'Depth math',          body:'The topmost card (reverse-index 1) ends at scale 1.0. Buried cards have larger reverse-indices and compress proportionally more.',       ac:'#5a8a38',vis:'linear-gradient(135deg,#d4e8c0,#b0d490)'},
+    {num:'06',title:'Progressive Fallback',   sub:'Any browser',         body:'An rAF handler mirrors the CSS exit-crossing math exactly. The same peek offsets and scale formula produce an identical result.',        ac:'#8a3a68',vis:'linear-gradient(135deg,#f0d0e4,#e0a8c8)'},
+    {num:'07',title:'Open Standard',          sub:'W3C Working Group',   body:'CSS Scroll-Driven Animations is a W3C spec. As browser support grows, the JavaScript fallback becomes unnecessary.',                    ac:'#3a5aa0',vis:'linear-gradient(135deg,#ccd4f0,#a0b0e8)'},
   ];
-  const stack=document.getElementById('stack');
-  const cards=CARDS.map((c,i)=>{
-    const el=document.createElement('div');
-    el.className='card';el.style.cssText=`background:${c.bg};z-index:${i+1}`;
-    el.innerHTML=`<div class="depth-badge" id="db${i}">depth 0</div><div class="card-num">${c.num}</div><div class="card-title">${c.title}</div><div class="card-sub">${c.sub}</div><div class="card-body">${c.body}</div>`;
-    stack.appendChild(el);return el;
-  });
-  const stage=document.getElementById('stage'),scrollProg=document.getElementById('scroll-prog'),topmostEl=document.getElementById('topmost');
-  const scaleSl=document.getElementById('scale-sl'),scaleVal=document.getElementById('scale-val');
-  const brightSl=document.getElementById('bright-sl'),brightVal=document.getElementById('bright-val');
-  const depthTog=document.getElementById('depth-tog'),resetBtn=document.getElementById('reset-btn');
-  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let ticking=false;
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
-    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const top=Math.min(Math.floor(st/600),4),SF=scaleSl.value/100,BF=brightSl.value/100;
-    cards.forEach((el,i)=>{
-      const depth=Math.max(0,top-i),t=depth/4;
-      const sc=motionMQ.matches?1:lerp(1,SF,t),br=motionMQ.matches?1:lerp(1,BF,t),ty=motionMQ.matches?0:depth*5;
-      el.style.transform=`translateY(${ty}px) scale(${sc.toFixed(3)})`;
-      el.style.filter=`brightness(${br.toFixed(3)})`;
-      const db=document.getElementById('db'+i);
-      db.textContent=`depth ${depth}`;db.classList.toggle('on',depthTog.checked);
+  const stage=document.getElementById('stage'),cardsEl=document.getElementById('cards');
+  const scrollProg=document.getElementById('scroll-prog'),topmostEl=document.getElementById('topmost');
+  const scaleSl=document.getElementById('scale-sl'),scaleValEl=document.getElementById('scale-val');
+  const peekSl=document.getElementById('peek-sl'),peekValEl=document.getElementById('peek-val');
+  const cardsSl=document.getElementById('cards-sl'),cardsValEl=document.getElementById('cards-val');
+  const debugTog=document.getElementById('debug-tog'),jsTog=document.getElementById('js-tog');
+  const supportsSDCA=CSS.supports('animation-timeline','scroll()');
+  let numCards=5,scaleStep=0.10,peekPx=14,useJsFallback=!supportsSDCA,ticking=false,currentCards=[];
+  if(!supportsSDCA){jsTog.checked=true}
+
+  function buildCards(){
+    cardsEl.innerHTML='';cardsEl.style.setProperty('--numcards',numCards);currentCards=[];
+    ALL_CARDS.slice(0,numCards).forEach((d,i)=>{
+      const el=document.createElement('div');
+      el.className='card';el.style.setProperty('--index',i+1);
+      const ri=numCards-i;
+      el.innerHTML=`<div class="card__content" style="--ac:${d.ac}">
+        <div class="debug-badge${debugTog.checked?' on':''}">i:${i+1} ri:${ri} ${Math.round(i/numCards*100)}%–${Math.round((i+1)/numCards*100)}%</div>
+        <div class="card__text">
+          <div class="card-num">${d.num}</div>
+          <div class="card-title">${d.title}</div>
+          <div class="card-sub">${d.sub}</div>
+          <div class="card-body">${d.body}</div>
+          <div class="card-btn">Read more →</div>
+        </div>
+        <div class="card__visual" style="background:${d.vis}"></div></div>`;
+      cardsEl.appendChild(el);currentCards.push(el);
     });
-    topmostEl.textContent=CARDS[top].num;ticking=false;
+    cardsEl.classList.toggle('js-fallback',useJsFallback);
+    requestAnimationFrame(update);
   }
+
+  const lerp=(a,b,t)=>a+(b-a)*t,clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+
+  function update(){
+    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight,stageH=stage.clientHeight;
+    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
+    const cardsTop=cardsEl.offsetTop;
+    let top=0;
+    currentCards.forEach((c,i)=>{if(st>=cardsTop+c.offsetTop-stageH*0.4)top=i});
+    topmostEl.textContent=ALL_CARDS[top].num;
+    if(useJsFallback){
+      const cardsH=cardsEl.offsetHeight,N=currentCards.length;
+      const exitProgress=clamp((st-(cardsTop+cardsH-stageH))/cardsH,0,1);
+      currentCards.forEach((c,i)=>{
+        const ri=N-i,t=clamp((exitProgress-i/N)/((i+1)/N-i/N),0,1);
+        c.querySelector('.card__content').style.transform=`scale(${lerp(1,1+scaleStep-scaleStep*ri,t).toFixed(4)})`;
+      });
+    }
+    ticking=false;
+  }
+
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  scaleSl.addEventListener('input',()=>{scaleVal.textContent=(scaleSl.value/100).toFixed(2);update()});
-  brightSl.addEventListener('input',()=>{brightVal.textContent=(brightSl.value/100).toFixed(2);update()});
-  depthTog.addEventListener('change',update);
-  resetBtn.addEventListener('click',()=>{stage.scrollTop=0;update()});
-  update();
+  scaleSl.addEventListener('input',()=>{
+    scaleStep=scaleSl.value/100;scaleValEl.textContent=scaleStep.toFixed(2);
+    document.documentElement.style.setProperty('--scale-step',scaleStep);update();
+  });
+  peekSl.addEventListener('input',()=>{
+    peekPx=+peekSl.value;peekValEl.textContent=peekPx+'px';
+    document.documentElement.style.setProperty('--peek',peekPx+'px');update();
+  });
+  cardsSl.addEventListener('input',()=>{numCards=+cardsSl.value;cardsValEl.textContent=numCards;buildCards()});
+  debugTog.addEventListener('change',()=>document.querySelectorAll('.debug-badge').forEach(b=>b.classList.toggle('on',debugTog.checked)));
+  jsTog.addEventListener('change',()=>{
+    useJsFallback=jsTog.checked||!supportsSDCA;
+    cardsEl.classList.toggle('js-fallback',useJsFallback);
+    if(!useJsFallback)currentCards.forEach(c=>c.querySelector('.card__content').style.removeProperty('transform'));
+    update();
+  });
+  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  document.documentElement.style.setProperty('--scale-step',scaleStep);
+  buildCards();
 </script>
 </body>
 </html>

@@ -1,61 +1,5 @@
 # Animation Atlas — Claude Code Instructions
 
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
 ## Project purpose
 A visual reference of web animation techniques. Each animation has its own
 folder with a self-contained HTML demo and a short README explaining the
@@ -133,3 +77,54 @@ inside an entry's "Production notes" section, never as their own entry.
 - Backend code, databases, APIs.
 - Anything requiring a server beyond a static file server.
 - React/Vue/Svelte components — this is framework-agnostic by design.
+
+## Responsiveness requirements (mandatory)
+
+Every demo must be fully responsive across mobile, tablet, and desktop.
+This is non-negotiable — a demo that breaks on phones fails the quality bar.
+
+### Breakpoints
+- **Mobile:** ≤ 600px viewport width
+- **Tablet:** 601px – 1024px
+- **Desktop:** ≥ 1025px
+
+### Layout rules
+- Use CSS Grid or Flexbox for all layouts. No fixed pixel widths on
+  containers — always use `%`, `fr`, `minmax()`, or `clamp()`.
+- Side panels (controls, info, legends) **stack below the main stage**
+  on mobile, never beside it.
+- The animation stage itself must scale fluidly. Use `aspect-ratio`,
+  `min-height`, or viewport units (`vh`, `dvh`) rather than fixed heights.
+- Typography must scale: use `clamp()` for headings
+  (e.g. `font-size: clamp(18px, 4vw, 28px)`).
+- Padding and gaps should shrink on mobile — use `clamp()` or media
+  queries to prevent cramped layouts.
+
+### Touch and input rules
+- All interactive controls (sliders, buttons, toggles) must be at least
+  **44×44px** on mobile (Apple/WCAG touch target minimum).
+- Replace hover-only interactions with tap-equivalent behavior on touch
+  devices. Use `@media (hover: hover)` to gate hover effects.
+- Scroll-driven demos must work with touch scroll, not just mouse wheel.
+- Drag interactions must use Pointer Events (`pointerdown` / `pointermove`
+  / `pointerup`), not mouse events, so they work on touch.
+
+### Performance on mobile
+- Demos must run at 60fps on a mid-range mobile device. If an effect is
+  too heavy (heavy blur, many particles, complex shaders), provide a
+  reduced-quality fallback on mobile.
+- Use `transform` and `opacity` for animations — never animate `width`,
+  `height`, `top`, `left`, or `box-shadow` directly.
+- Respect `@media (prefers-reduced-motion: reduce)` — disable or simplify
+  animations for users who request it.
+
+### Testing checklist (Claude Code should self-verify before declaring done)
+Before finishing any animation, mentally walk through:
+- [ ] Does the layout reflow cleanly at 375px width (iPhone SE)?
+- [ ] Are all touch targets ≥ 44px?
+- [ ] Does it work with touch scroll / drag, not just mouse?
+- [ ] Does text remain readable (no overlap, no overflow) at every size?
+- [ ] Is the side panel stacked below the stage on mobile?
+- [ ] Does it respect prefers-reduced-motion?
+
+If any answer is no, the demo is not complete.
