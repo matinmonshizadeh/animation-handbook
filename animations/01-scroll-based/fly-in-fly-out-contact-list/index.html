@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fly-in Fly-out Contact List</title>
+  <style>
+    :root{
+      --bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;
+      --ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;
+      --row-bg:#161b22;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;
+         padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+
+    .stage{
+      flex:1;min-width:0;height:620px;
+      overflow-y:scroll;scrollbar-width:none;
+      border:1px solid var(--ui-border);border-radius:8px;
+      position:relative;
+    }
+    .stage::-webkit-scrollbar{display:none}
+
+    .contact-list{padding:12px;display:flex;flex-direction:column;gap:6px;position:relative}
+
+    .row{
+      background:var(--row-bg);border:1px solid var(--ui-border);
+      border-radius:8px;padding:10px 12px;
+      display:flex;align-items:center;gap:10px;
+      min-height:56px;will-change:transform,opacity;
+    }
+    .avatar{
+      width:36px;height:36px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:bold;color:var(--ui-text);
+    }
+    .row-info{flex:1;min-width:0}
+    .row-name{font-size:12px;color:#e6edf3}
+    .row-sub{font-size:10px;color:var(--ui-muted);margin-top:2px}
+    .row-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+    .dot{width:7px;height:7px;border-radius:50%}
+    .dot.online{background:#3fb950}
+    .dot.offline{background:var(--ui-muted)}
+    .badge{background:#0d2840;color:#58a6ff;font-size:9px;padding:1px 5px;border-radius:8px}
+    .meta-time{font-size:8px;color:var(--ui-muted)}
+
+    .zone-overlay{
+      position:sticky;top:0;height:0;overflow:visible;
+      pointer-events:none;display:none;z-index:5;
+    }
+    .zone-overlay.visible{display:block}
+    .zone-band{position:absolute;left:0;right:0}
+    .zone-exit{background:rgba(248,81,73,.1);top:0}
+    .zone-entry{background:rgba(63,185,80,.1)}
+    .zone-label{font-size:8px;color:var(--ui-muted);padding:2px 6px;display:block}
+
+    aside{
+      width:clamp(200px,22vw,240px);flex-shrink:0;
+      background:var(--ui-bg);border:1px solid var(--ui-border);
+      border-radius:8px;padding:16px;
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;
+          border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:34px;text-align:right;color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .modes{display:flex;flex-direction:column;gap:2px}
+    .mode-opt{display:flex;align-items:center;gap:6px;font-size:10px;cursor:pointer;min-height:36px}
+    .mode-opt input{accent-color:var(--ui-accent);width:14px;height:14px;flex-shrink:0}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button{
+      background:transparent;border:1px solid var(--ui-border);
+      color:var(--ui-text);font-family:monospace;font-size:10px;
+      padding:17px 8px;border-radius:4px;cursor:pointer;width:100%;
+    }
+    button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
+
+    @media(max-width:600px){
+      .layout{flex-direction:column}
+      aside{width:100%}
+      .stage{height:480px}
+      .avatar{width:32px;height:32px;font-size:10px}
+    }
+    @media(prefers-reduced-motion:reduce){.row{will-change:auto}}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Fly-in Fly-out Contact List</h1>
+  <p>Rows translate and fade as they enter and exit the scroll viewport — effect scrubbed continuously to scroll position.</p>
+</header>
+
+<div class="layout">
+
+  <div class="stage" id="stage">
+    <div class="contact-list" id="contact-list">
+      <div class="zone-overlay" id="zone-overlay">
+        <div class="zone-band zone-exit" id="zone-exit">
+          <span class="zone-label">↑ exit zone</span>
+        </div>
+        <div class="zone-band zone-entry" id="zone-entry">
+          <span class="zone-label" style="position:absolute;bottom:2px">↓ entry zone</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <p class="note">The combination of fade + translate + scale is what gives this effect its 'flying' quality. Each property alone feels mechanical. Together they read as smooth, physical motion.</p>
+
+    <div>
+      <div class="lbl">Viewport</div>
+      <div class="tbl">
+        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
+        <div class="kv"><span>Visible rows</span><span class="v" id="visible-count">0</span></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div>
+      <div class="lbl" id="dist-lbl">Translate Distance</div>
+      <div class="sr"><input type="range" id="dist-sl" aria-labelledby="dist-lbl" min="0" max="80" value="40"><span class="sv" id="dist-val">40px</span></div>
+    </div>
+    <div>
+      <div class="lbl" id="scale-lbl">Scale Delta</div>
+      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="80" max="100" value="94"><span class="sv" id="scale-val">0.94</span></div>
+    </div>
+    <div>
+      <div class="lbl" id="zone-lbl">Zone Size</div>
+      <div class="sr"><input type="range" id="zone-sl" aria-labelledby="zone-lbl" min="10" max="40" value="25"><span class="sv" id="zone-val">25%</span></div>
+    </div>
+
+    <div class="div"></div>
+
+    <div>
+      <div class="lbl">Effect Mode</div>
+      <div class="modes">
+        <label class="mode-opt"><input type="radio" name="mode" value="all" checked><span>All combined</span></label>
+        <label class="mode-opt"><input type="radio" name="mode" value="translate"><span>Translate only</span></label>
+        <label class="mode-opt"><input type="radio" name="mode" value="fade"><span>Fade only</span></label>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <label class="tog" for="preview-tog">
+      <input type="checkbox" id="preview-tog">
+      <span>Preview zones</span>
+    </label>
+
+    <button id="reset-btn">Reset</button>
+  </aside>
+
+</div>
+
+</body>
+</html>
