@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebGL Shader Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .overlay{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+    .fps-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
+    .shader-name{font-size:9px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.4);padding:3px 10px;border-radius:4px;letter-spacing:1px;text-transform:uppercase}
+    .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(6,10,16,.9);border-top:1px solid var(--ui-border);padding:12px;font-size:9px;color:var(--ui-muted);font-family:monospace;line-height:1.5;max-height:200px;overflow-y:auto;display:none;white-space:pre-wrap;word-break:break-all}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>WebGL Shader Animation</h1>
+  <p>Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="overlay">
+      <div class="fps-badge" id="fps">— fps</div>
+      <div class="shader-name" id="shader-name">Plasma</div>
+    </div>
+    <div class="src-panel" id="src-panel"></div>
+  </div>
+  <aside>
+    <p class="note">Fragment shaders run once per pixel on the GPU. The boilerplate (vertex shader, quad geometry, uniforms) stays identical — only the fragment shader changes per preset.</p>
+    <div class="lbl">Shader Preset</div>
+    <select id="preset-sel">
+      <option value="0" selected>Plasma</option>
+      <option value="1">Wave Distortion</option>
+      <option value="2">Voronoi</option>
+      <option value="3">Kaleidoscope</option>
+    </select>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="30" value="10" step="1"><span class="sv" id="spd-v">1.0</span></div>
+    <div class="lbl">Hue Shift</div>
+    <div class="sr"><input type="range" id="hue-sl" min="0" max="360" value="0" step="5"><span class="sv" id="hue-v">0°</span></div>
+    <label class="tog"><input type="checkbox" id="mouse-tog"><span>Mouse interaction</span></label>
+    <label class="tog"><input type="checkbox" id="src-tog"><span>View shader source</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
+
+const SHADERS=[
+  // 0: Plasma
+  {name:'Plasma',src:`precision mediump float;
+uniform vec2 R;uniform float T,H;
+vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/R*2.-1.;uv.x*=R.x/R.y;
+  float v=sin(uv.x*5.+T)+sin(uv.y*5.+T*.7)+sin((uv.x+uv.y)*5.+T*.5)+sin(sqrt(uv.x*uv.x+uv.y*uv.y)*6.);
+  float hue=fract(v*.25+T*.05+H/360.);
+  gl_FragColor=vec4(hsv(hue,.9,.95),1.);
+}`},
+  // 1: Wave distortion
+  {name:'Wave Distortion',src:`precision mediump float;
+uniform vec2 R;uniform float T,H;
+vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/R;
+  float wave=sin(uv.y*12.+T*2.)*.04+sin(uv.x*8.-T*1.5)*.03;
+  vec2 d=uv+vec2(wave,wave*1.3);
+  float stripe=sin(d.x*20.+T)*sin(d.y*20.-T*.6);
+  float hue=fract(stripe*.3+H/360.+T*.02);
+  gl_FragColor=vec4(hsv(hue,.85,.9),1.);
+}`},
+  // 2: Voronoi
+  {name:'Voronoi',src:`precision mediump float;
+uniform vec2 R;uniform float T,H;
+vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
+float rand(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/R*4.;
+  vec2 i=floor(uv),f=fract(uv);
+  float md=8.,mi=0.;
+  for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
+    vec2 n=vec2(float(x),float(y));
+    vec2 pt=n+vec2(rand(i+n+T*.01),rand(i+n+vec2(3.7,1.5)+T*.013));
+    float d=length(pt-f);if(d<md){md=d;mi=rand(i+n);}
+  }
+  float edge=smoothstep(.02,.06,md);
+  float hue=fract(mi+H/360.+T*.03);
+  gl_FragColor=vec4(hsv(hue,.8,.8)*edge+vec3(.05)*(1.-edge),1.);
+}`},
+  // 3: Kaleidoscope
+  {name:'Kaleidoscope',src:`precision mediump float;
+uniform vec2 R;uniform float T,H;uniform vec2 M;uniform bool uMouse;
+vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
+void main(){
+  vec2 uv=(gl_FragCoord.xy-.5*R)/min(R.x,R.y);
+  float a=atan(uv.y,uv.x),r=length(uv);
+  float segs=uMouse?max(3.,M.x*12.):8.;
+  a=abs(mod(a,2.*3.14159/segs)-3.14159/segs);
+  uv=vec2(cos(a),sin(a))*r;
+  float v=sin(uv.x*8.+T)*sin(uv.y*8.-T*.7)+sin(r*10.-T*1.5)*.5;
+  float hue=fract(v*.3+H/360.+T*.04);
+  gl_FragColor=vec4(hsv(hue,.9,.9),1.);
+}`},
+];
+
+const stage=document.getElementById('stage');const cvs=document.getElementById('cvs');
+const fpsEl=document.getElementById('fps');const shaderName=document.getElementById('shader-name');
+const srcPanel=document.getElementById('src-panel');
+let W,H,gl,prog=null,raf=null,paused=false,lastT=0,startT=0;
+let PRESET=0,SPD=1,HUE=0,MOUSE_UV=[.5,.5],MOUSE_ON=false;
+
+function mkProg(fs){
+  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+  const p=gl.createProgram();
+  gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));
+  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);return p;
+}
+
+function init(){
+  gl=cvs.getContext('webgl');if(!gl)return false;
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  switchShader(0);return true;
+}
+
+function switchShader(idx){
+  PRESET=idx;
+  if(prog)gl.deleteProgram(prog);
+  prog=mkProg(SHADERS[idx].src);
+  const a=gl.getAttribLocation(prog,'a');
+  gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+  shaderName.textContent=SHADERS[idx].name;
+  if(document.getElementById('src-tog').checked)srcPanel.textContent=SHADERS[idx].src;
+}
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
+
+function render(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(render);
+  const dt=ts-lastT;if(dt<16)return;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  const t=(ts-startT)/1000*SPD;
+  gl.useProgram(prog);
+  const u=n=>gl.getUniformLocation(prog,n);
+  gl.uniform2f(u('R'),W,H);gl.uniform1f(u('T'),t);gl.uniform1f(u('H'),HUE);
+  if(MOUSE_ON){gl.uniform2f(u('M'),MOUSE_UV[0],MOUSE_UV[1]);gl.uniform1i(u('uMouse'),1);}
+  else gl.uniform1i(u('uMouse'),0);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+
+if(init()){
+  resize();startT=lastT=performance.now();raf=requestAnimationFrame(render);
+  stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];});
+  window.addEventListener('resize',resize);
+}
+
+document.getElementById('preset-sel').addEventListener('change',e=>{switchShader(+e.target.value);});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('hue-sl').addEventListener('input',e=>{HUE=+e.target.value;document.getElementById('hue-v').textContent=HUE+'°';});
+document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE_ON=e.target.checked;});
+document.getElementById('src-tog').addEventListener('change',e=>{
+  srcPanel.style.display=e.target.checked?'block':'none';
+  if(e.target.checked)srcPanel.textContent=SHADERS[PRESET].src;
+});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
+});
+</script>
+</body>
+</html>

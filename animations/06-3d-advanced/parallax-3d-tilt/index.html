@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallax 3D Tilt</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--perspective:1000px;--max-tilt:15;--reset-dur:400ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#060a10;display:flex;align-items:center;justify-content:center;perspective:var(--perspective)}
+    /* Card */
+    .tilt-card{
+      width:clamp(240px,40%,340px);height:clamp(240px,40%,320px);
+      border-radius:16px;position:relative;overflow:hidden;
+      background:linear-gradient(135deg,#0d2040,#1a3060);
+      border:1px solid rgba(255,255,255,.15);
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
+      transform-style:preserve-3d;
+      transform:perspective(var(--perspective)) rotateX(0deg) rotateY(0deg) scale(1);
+      transition:transform var(--reset-dur) ease,box-shadow var(--reset-dur) ease;
+      cursor:pointer;
+      will-change:transform
+    }
+    .tilt-card.active{transition:none}
+    .card-shine{
+      position:absolute;inset:0;border-radius:16px;
+      background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.15) 0%, transparent 70%);
+      opacity:0;pointer-events:none;transition:opacity .3s
+    }
+    .card-content{position:relative;z-index:1;height:100%;padding:28px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
+    .card-over{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+    .card-h{font-family:Georgia,serif;font-size:clamp(18px,2.5vw,26px);color:#fff;line-height:1.2;font-style:italic}
+    .card-sub{font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;max-width:240px}
+    .card-tag{font-size:10px;color:var(--ui-accent);margin-top:4px;letter-spacing:1px}
+    /* Depth layers for extra parallax within card */
+    .float-orb{position:absolute;border-radius:50%;pointer-events:none;will-change:transform}
+    .orb1{width:120px;height:120px;background:rgba(88,166,255,.3);top:-30px;right:-20px;filter:blur(20px);transform:translateZ(20px)}
+    .orb2{width:80px;height:80px;background:rgba(210,168,255,.25);bottom:20px;right:30px;filter:blur(12px);transform:translateZ(30px)}
+    /* Readout */
+    .readout{position:absolute;bottom:12px;left:12px;font-size:9px;color:rgba(255,255,255,.3);z-index:5;pointer-events:none}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px;padding:32px 16px}}
+    @media(prefers-reduced-motion:reduce){.tilt-card{transition:none!important;transform:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Parallax 3D Tilt</h1>
+  <p>CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="tilt-card" id="card">
+      <div class="card-shine" id="shine"></div>
+      <div class="float-orb orb1" id="orb1"></div>
+      <div class="float-orb orb2" id="orb2"></div>
+      <div class="card-content">
+        <div class="card-over">Feature card</div>
+        <div class="card-h">Three-dimensional perspective</div>
+        <div class="card-sub">Mouse position maps to rotateX and rotateY. The highlight follows the virtual light source.</div>
+        <div class="card-tag">Move mouse over card →</div>
+      </div>
+      <div class="readout" id="readout">rotX: 0° rotY: 0°</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">perspective must be on the PARENT — not the tilting card. The card's rotateX/Y are normalized to ±maxAngle from cursor position relative to card center.</p>
+    <div class="lbl">Max Tilt Angle</div>
+    <div class="sr"><input type="range" id="tilt-sl" min="3" max="30" value="15" step="1"><span class="sv" id="tilt-v">15°</span></div>
+    <div class="lbl">Perspective</div>
+    <div class="sr"><input type="range" id="persp-sl" min="400" max="1500" value="1000" step="50"><span class="sv" id="persp-v">1000px</span></div>
+    <div class="lbl">Reset Duration</div>
+    <div class="sr"><input type="range" id="rst-sl" min="100" max="1000" value="400" step="50"><span class="sv" id="rst-v">400ms</span></div>
+    <label class="tog"><input type="checkbox" id="shine-tog" checked><span>Shine highlight</span></label>
+    <label class="tog"><input type="checkbox" id="invert-tog"><span>Invert tilt</span></label>
+    <label class="tog"><input type="checkbox" id="scale-tog" checked><span>Subtle scale on hover</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>RotateX</span><span class="v" id="rx-v">0°</span></div>
+    <div class="kv"><span>RotateY</span><span class="v" id="ry-v">0°</span></div>
+  </aside>
+</div>
+<script>
+  const card=document.getElementById('card');
+  const shine=document.getElementById('shine');
+  const orb1=document.getElementById('orb1');
+  const orb2=document.getElementById('orb2');
+  const readout=document.getElementById('readout');
+  const rxV=document.getElementById('rx-v');
+  const ryV=document.getElementById('ry-v');
+  let maxTilt=15,invert=false,shineOn=true,scaleOn=true;
+
+  function onMove(e){
+    const r=card.getBoundingClientRect();
+    const src=e.touches?e.touches[0]:e;
+    const x=(src.clientX-r.left)/r.width-.5;   // -0.5 to 0.5
+    const y=(src.clientY-r.top)/r.height-.5;
+    const inv=invert?-1:1;
+    const rx=(-y*maxTilt*inv).toFixed(1);
+    const ry=(x*maxTilt*inv).toFixed(1);
+    card.classList.add('active');
+    const scale=scaleOn?'scale(1.04)':'scale(1)';
+    card.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) ${scale}`;
+    card.style.boxShadow=`${-ry*.5}px ${rx*.5}px 40px rgba(0,0,0,.7)`;
+    if(shineOn){
+      shine.style.opacity='1';
+      shine.style.background=`radial-gradient(circle at ${(x+.5)*100}% ${(y+.5)*100}%,rgba(255,255,255,.18) 0%,transparent 65%)`;
+    }
+    // Subtle inner parallax
+    orb1.style.transform=`translateZ(20px) translate(${-ry*.3}px,${rx*.3}px)`;
+    orb2.style.transform=`translateZ(30px) translate(${-ry*.5}px,${rx*.5}px)`;
+    rxV.textContent=rx+'°'; ryV.textContent=ry+'°';
+    readout.textContent=`rotX:${rx}° rotY:${ry}°`;
+  }
+
+  function onLeave(){
+    card.classList.remove('active');
+    card.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';
+    card.style.boxShadow='';
+    shine.style.opacity='0';
+    orb1.style.transform='translateZ(20px)';
+    orb2.style.transform='translateZ(30px)';
+    rxV.textContent='0°'; ryV.textContent='0°';
+    readout.textContent='rotX: 0° rotY: 0°';
+  }
+
+  card.addEventListener('mousemove',onMove);
+  card.addEventListener('mouseleave',onLeave);
+  card.addEventListener('touchmove',e=>{e.preventDefault();onMove(e);},{passive:false});
+  card.addEventListener('touchend',onLeave);
+
+  document.getElementById('tilt-sl').addEventListener('input',e=>{maxTilt=+e.target.value;document.getElementById('tilt-v').textContent=maxTilt+'°'});
+  document.getElementById('persp-sl').addEventListener('input',e=>{
+    document.getElementById('persp-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--perspective',e.target.value+'px');
+  });
+  document.getElementById('rst-sl').addEventListener('input',e=>{
+    document.getElementById('rst-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--reset-dur',e.target.value+'ms');
+  });
+  document.getElementById('shine-tog').addEventListener('change',e=>{shineOn=e.target.checked;if(!shineOn)shine.style.opacity='0'});
+  document.getElementById('invert-tog').addEventListener('change',e=>{invert=e.target.checked});
+  document.getElementById('scale-tog').addEventListener('change',e=>{scaleOn=e.target.checked});
+</script>
+</body>
+</html>

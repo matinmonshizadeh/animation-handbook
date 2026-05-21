@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll-Driven 3D Rotation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;overflow-y:auto;overflow-x:hidden;position:relative;scroll-behavior:auto}
+    /* Scroll container: 4× stage height gives scroll budget */
+    .scroll-content{height:calc(var(--stage-h)*4);position:relative}
+    .sticky-wrap{position:sticky;top:0;height:var(--stage-h);display:flex;align-items:stretch}
+    /* 3D display */
+    .obj-panel{flex:1;display:flex;align-items:center;justify-content:center;perspective:600px}
+    .obj-wrap{transform-style:preserve-3d;will-change:transform;transition:transform 0ms linear}
+    /* CSS cube */
+    .cube{width:120px;height:120px;position:relative;transform-style:preserve-3d}
+    .face{position:absolute;width:120px;height:120px;border:2px solid rgba(88,166,255,.5);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(88,166,255,.7);letter-spacing:1px}
+    .face.front{background:rgba(88,166,255,.08);transform:translateZ(60px)}
+    .face.back{background:rgba(88,166,255,.06);transform:rotateY(180deg) translateZ(60px)}
+    .face.left{background:rgba(88,166,255,.04);transform:rotateY(-90deg) translateZ(60px)}
+    .face.right{background:rgba(88,166,255,.04);transform:rotateY(90deg) translateZ(60px)}
+    .face.top{background:rgba(88,166,255,.03);transform:rotateX(90deg) translateZ(60px)}
+    .face.bottom{background:rgba(88,166,255,.03);transform:rotateX(-90deg) translateZ(60px)}
+    /* Info panel */
+    .info-panel{width:clamp(140px,30%,200px);display:flex;flex-direction:column;justify-content:center;gap:16px;padding:24px;border-left:1px solid var(--ui-border)}
+    .stage-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);opacity:.6}
+    .stage-val{font-size:clamp(16px,2.5vw,22px);font-weight:bold;color:#fff;font-variant-numeric:tabular-nums}
+    .stage-desc{font-size:10px;color:var(--ui-muted);line-height:1.5}
+    .chapter-dot{width:6px;height:6px;border-radius:50%;background:var(--ui-border);display:inline-block;margin-right:4px;transition:background .3s}
+    .chapter-dot.active{background:var(--ui-accent)}
+    /* Progress bar at top */
+    .prog-bar{position:absolute;top:0;left:0;right:0;height:2px;background:var(--ui-border);z-index:2}
+    .prog-fill{height:100%;background:var(--ui-accent);width:0%;transition:width 50ms linear}
+    /* Side panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.info-panel{width:120px;padding:12px}}
+    @media(prefers-reduced-motion:reduce){.obj-wrap{transition:none!important}.prog-fill{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scroll-Driven 3D Rotation</h1>
+  <p>Scroll progress choreographs 3D rotation through four stages — the Apple product-page pattern.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="scroll-content">
+      <div class="sticky-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="obj-panel">
+          <div class="obj-wrap" id="obj-wrap">
+            <div class="cube">
+              <div class="face front">FRONT</div>
+              <div class="face back">BACK</div>
+              <div class="face left">LEFT</div>
+              <div class="face right">RIGHT</div>
+              <div class="face top">TOP</div>
+              <div class="face bottom">BOT</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-panel" id="info-panel">
+          <div>
+            <div class="stage-label">Progress</div>
+            <div class="stage-val" id="prog-val">0%</div>
+          </div>
+          <div>
+            <div class="stage-label">Chapter</div>
+            <div id="chapter-dots">
+              <span class="chapter-dot active"></span>
+              <span class="chapter-dot"></span>
+              <span class="chapter-dot"></span>
+              <span class="chapter-dot"></span>
+            </div>
+          </div>
+          <div>
+            <div class="stage-label">Stage</div>
+            <div class="stage-val" id="stage-name" style="font-size:clamp(12px,1.5vw,15px)">Start</div>
+          </div>
+          <div class="stage-desc" id="stage-desc">Scroll to animate the object through four states.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Pin (sticky) + scrub (scroll-progress) + 3D transforms = the Apple product reveal. Scroll budget is 3× stage height, giving time to read each stage.</p>
+    <div class="lbl">Scroll Progress</div>
+    <div class="sr" style="pointer-events:none"><input type="range" id="prog-sl" min="0" max="100" value="0" step="1" style="pointer-events:none"><span class="sv" id="prog-sl-v">0%</span></div>
+    <div class="lbl">Rotation Multiplier</div>
+    <div class="sr"><input type="range" id="mult-sl" min="5" max="30" value="10" step="1"><span class="sv" id="mult-v">1×</span></div>
+    <label class="tog"><input type="checkbox" id="smooth-tog" checked><span>Smooth scrub (lerp)</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Rotation X</span><span class="v" id="rx-v">0°</span></div>
+    <div class="kv"><span>Rotation Y</span><span class="v" id="ry-v">0°</span></div>
+    <div class="kv"><span>Scale</span><span class="v" id="sc-v">1.0</span></div>
+    <div class="div"></div>
+    <button class="rst" id="reset-btn">↺ Reset scroll</button>
+  </aside>
+</div>
+<script>
+const stageEl=document.getElementById('stage');
+const objWrap=document.getElementById('obj-wrap');
+const progFill=document.getElementById('prog-fill');
+const progVal=document.getElementById('prog-val');
+const stageName=document.getElementById('stage-name');
+const stageDesc=document.getElementById('stage-desc');
+const dots=[...document.querySelectorAll('.chapter-dot')];
+let currRx=0,currRy=0,currSc=1,raf=null,mult=10;
+
+const CHAPTERS=[
+  {name:'Orbit Y',desc:'Rotating 90° around the Y axis.',rx:0,ry:0,sc:1},
+  {name:'Tilt X',desc:'Tilting 30° forward on the X axis.',rx:-30,ry:90,sc:1},
+  {name:'Scale Up',desc:'Growing 1.4× while tilted.',rx:-30,ry:90,sc:1.4},
+  {name:'Back Face',desc:'Completing −180° Y rotation to show the back.',rx:0,ry:-180,sc:1},
+];
+
+function lerp(a,b,t){return a+(b-a)*t}
+
+function applyRotation(p){
+  const ch=Math.floor(p*4);const cp=Math.min(ch,3);const t=p*4-cp;
+  const c0=CHAPTERS[Math.max(cp-1,0)];const c1=CHAPTERS[Math.min(cp,3)];
+  let rx=lerp(c0.rx,c1.rx,t),ry=lerp(c0.ry,c1.ry,t),sc=lerp(c0.sc,c1.sc,t);
+  const smooth=document.getElementById('smooth-tog').checked;
+  if(smooth){currRx=lerp(currRx,rx,.1);currRy=lerp(currRy,ry,.1);currSc=lerp(currSc,sc,.1);}
+  else{currRx=rx;currRy=ry;currSc=sc;}
+  objWrap.style.transform=`rotateX(${currRx.toFixed(1)}deg) rotateY(${currRy.toFixed(1)}deg) scale(${currSc.toFixed(3)})`;
+  document.getElementById('rx-v').textContent=currRx.toFixed(0)+'°';
+  document.getElementById('ry-v').textContent=currRy.toFixed(0)+'°';
+  document.getElementById('sc-v').textContent=currSc.toFixed(2);
+
+  const chIdx=Math.min(Math.floor(p*4),3);
+  dots.forEach((d,i)=>d.classList.toggle('active',i===chIdx));
+  stageName.textContent=CHAPTERS[chIdx].name;
+  stageDesc.textContent=CHAPTERS[chIdx].desc;
+}
+
+function onScroll(){
+  const {scrollTop,scrollHeight,clientHeight}=stageEl;
+  const max=scrollHeight-clientHeight;
+  const p=max>0?scrollTop/max:0;
+  progFill.style.width=(p*100).toFixed(1)+'%';
+  progVal.textContent=Math.round(p*100)+'%';
+  document.getElementById('prog-sl').value=Math.round(p*100);
+  document.getElementById('prog-sl-v').textContent=Math.round(p*100)+'%';
+  applyRotation(p);
+}
+
+stageEl.addEventListener('scroll',onScroll,{passive:true});
+document.getElementById('mult-sl').addEventListener('input',e=>{
+  mult=+e.target.value;document.getElementById('mult-v').textContent=(mult/10).toFixed(1)+'×';
+});
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  stageEl.scrollTop=0;currRx=currRy=0;currSc=1;applyRotation(0);
+});
+</script>
+</body>
+</html>

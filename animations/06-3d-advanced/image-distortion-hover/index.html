@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Distortion on Hover</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;pointer-events:none}
+    .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(6,10,16,.92);border-top:1px solid var(--ui-border);padding:12px;font-size:9px;color:var(--ui-muted);font-family:monospace;line-height:1.5;max-height:180px;overflow-y:auto;display:none;white-space:pre-wrap}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Image Distortion on Hover</h1>
+  <p>Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+    <div class="src-panel" id="src-panel"></div>
+  </div>
+  <aside>
+    <p class="note">The shader samples the pattern at distorted UVs — the texture itself never changes. Production: replace the procedural pattern with a texture sampler for real images.</p>
+    <div class="lbl">Distortion Type</div>
+    <select id="type-sel">
+      <option value="0" selected>Ripple (wave)</option>
+      <option value="1">Push (radial)</option>
+      <option value="2">Liquid (turbulence)</option>
+      <option value="3">Pixelate</option>
+    </select>
+    <div class="lbl">Strength</div>
+    <div class="sr"><input type="range" id="str-sl" min="1" max="20" value="8" step="1"><span class="sv" id="str-v">8</span></div>
+    <div class="lbl">Radius</div>
+    <div class="sr"><input type="range" id="rad-sl" min="5" max="50" value="25" step="1"><span class="sv" id="rad-v">0.25</span></div>
+    <div class="lbl">Decay Speed</div>
+    <div class="sr"><input type="range" id="dec-sl" min="1" max="20" value="5" step="1"><span class="sv" id="dec-v">0.5</span></div>
+    <label class="tog"><input type="checkbox" id="ripple-tog" checked><span>Animate ripple over time</span></label>
+    <label class="tog"><input type="checkbox" id="src-tog"><span>View shader source</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
+const FS=`
+precision mediump float;
+uniform vec2 uRes,uMouse;uniform float uT,uStr,uRad,uPhase;uniform int uType;uniform bool uAnimate;
+
+vec3 pat(vec2 uv){
+  float s=sin(uv.x*8.+uT*.4)*sin(uv.y*8.+uT*.3);
+  float t=cos(uv.x*5.-uT*.2)*cos(uv.y*6.+uT*.25);
+  float mix1=(s+t)*.5+.5;
+  vec3 a=vec3(.18,.3,.6),b=vec3(.6,.2,.7),c=vec3(.1,.5,.4);
+  return mix(mix(a,b,mix1),c,sin(uv.x*3.+uv.y*2.+uT*.15)*.5+.5);
+}
+
+void main(){
+  vec2 uv=gl_FragCoord.xy/uRes;
+  vec2 muv=uMouse/uRes;muv.y=1.-muv.y;
+  float ar=uRes.x/uRes.y;
+  vec2 dir=uv-muv;dir.x*=ar;
+  float dist=length(dir);
+  float r=uRad;
+  float falloff=smoothstep(r,0.,dist);
+  vec2 duv=uv;
+  float str=uStr*.005;
+  if(uType==0){
+    float phase=uAnimate?uPhase:uPhase*0.;
+    float wave=sin(dist/r*12.-phase)*falloff*str;
+    if(dist>0.)duv+=normalize(vec2(dir.x/ar,dir.y))*wave;
+  }else if(uType==1){
+    if(dist>0.)duv+=normalize(vec2(dir.x/ar,dir.y))*falloff*str*1.6;
+  }else if(uType==2){
+    vec2 off=vec2(sin(dist*15.+uPhase)*cos(uv.y*10.+uPhase*.8),cos(dist*15.-uPhase)*sin(uv.x*10.+uPhase*.6));
+    duv+=off*falloff*str*.6;
+  }else{
+    float px=mix(.002,.04,1.-falloff*(uStr/20.));
+    duv=floor(uv/px)*px;
+  }
+  gl_FragColor=vec4(pat(duv),1.);
+}`;
+
+const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
+const fpsEl=document.getElementById('fps'),srcPanel=document.getElementById('src-panel');
+let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0;
+let TYPE=0,STR=8,RAD=0.25,DECAY=0.5,ANIMATE=true;
+let mouseX=-999,mouseY=-999,phase=0;
+
+function init(){
+  gl=cvs.getContext('webgl');if(!gl)return false;
+  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+  prog=gl.createProgram();
+  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const a=gl.getAttribLocation(prog,'a');
+  gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+  return true;
+}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
+function u(n){return gl.getUniformLocation(prog,n);}
+
+function render(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(render);
+  const dt=ts-lastT;if(dt<16)return;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  phase+=(ts-startT)/1000*.003;startT=ts;
+  gl.useProgram(prog);
+  gl.uniform2f(u('uRes'),W,H);
+  gl.uniform2f(u('uMouse'),mouseX,mouseY);
+  gl.uniform1f(u('uT'),(ts-startT)/1000);
+  gl.uniform1f(u('uStr'),STR);
+  gl.uniform1f(u('uRad'),RAD);
+  gl.uniform1f(u('uPhase'),phase*10);
+  gl.uniform1i(u('uType'),TYPE);
+  gl.uniform1i(u('uAnimate'),ANIMATE?1:0);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  if(mouseX<0)phase*=Math.max(0,1-DECAY*.016);
+}
+
+if(init()){
+  resize();startT=performance.now();lastT=startT;
+  raf=requestAnimationFrame(render);
+  stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();mouseX=e.clientX-r.left;mouseY=e.clientY-r.top;phase=0;});
+  stage.addEventListener('mouseleave',()=>{mouseX=mouseY=-999;});
+  stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();mouseX=e.touches[0].clientX-r.left;mouseY=e.touches[0].clientY-r.top;},{passive:true});
+  window.addEventListener('resize',resize);
+  srcPanel.textContent=FS;
+}
+
+document.getElementById('type-sel').addEventListener('change',e=>{TYPE=+e.target.value;});
+document.getElementById('str-sl').addEventListener('input',e=>{STR=+e.target.value;document.getElementById('str-v').textContent=STR;});
+document.getElementById('rad-sl').addEventListener('input',e=>{RAD=e.target.value/100;document.getElementById('rad-v').textContent=RAD.toFixed(2);});
+document.getElementById('dec-sl').addEventListener('input',e=>{DECAY=e.target.value/10;document.getElementById('dec-v').textContent=DECAY.toFixed(1);});
+document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.target.checked;});
+document.getElementById('src-tog').addEventListener('change',e=>{srcPanel.style.display=e.target.checked?'block':'none';});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused&&gl){lastT=performance.now();startT=lastT;raf=requestAnimationFrame(render);}
+});
+</script>
+</body>
+</html>

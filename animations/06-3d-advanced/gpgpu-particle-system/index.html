@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPGPU Particle System</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none;flex-wrap:wrap;gap:4px}
+    .badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
+    .no-wgl2{position:absolute;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;color:var(--ui-muted);font-size:12px;text-align:center;padding:24px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>GPGPU Particle System</h1>
+  <p>65k+ particle positions stored in a texture — physics computed by a fragment shader each frame (texture ping-pong).</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="hud">
+      <div class="badge" id="fps">— fps</div>
+      <div class="badge" id="count-badge">65536 particles</div>
+      <div class="badge" id="behavior-badge">Flow Field</div>
+    </div>
+    <div class="no-wgl2" id="no-wgl2">WebGL2 required for GPGPU texture ping-pong.<br>Try Chrome, Firefox, or Safari 15+.</div>
+  </div>
+  <aside>
+    <p class="note">GPGPU = compute on GPU. Particle data lives in textures — each RGBA32F pixel is one particle's (x, y, vx, vy). A physics shader writes new positions every frame without touching the CPU.</p>
+    <div class="lbl">Particle Count</div>
+    <select id="count-sel">
+      <option value="128">16 384 (16k)</option>
+      <option value="256" selected>65 536 (64k)</option>
+      <option value="320">102 400 (100k) ⚠</option>
+    </select>
+    <div class="lbl">Behavior</div>
+    <select id="behav-sel">
+      <option value="0" selected>Flow Field</option>
+      <option value="1">Vortex</option>
+      <option value="2">Attractor</option>
+      <option value="3">Explosion / Orbit</option>
+    </select>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="6" step="1"><span class="sv" id="spd-v">0.6</span></div>
+    <div class="lbl">Color Mode</div>
+    <select id="col-sel">
+      <option value="0" selected>Solid accent</option>
+      <option value="1">By velocity</option>
+      <option value="2">By age</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="trail-tog"><span>Motion trails</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Texture size</span><span class="v" id="tex-size">256 × 256</span></div>
+    <div class="kv"><span>Physics pass</span><span class="v">1 fragment shader</span></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+// Physics shader (WebGL2 GLSL ES 3.00)
+const PHYSICS_VS=`#version 300 es
+in vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
+
+const PHYSICS_FS=`#version 300 es
+precision highp float;
+uniform sampler2D uPos;uniform float uT,uSpd;uniform int uBehavior;
+out vec4 outCol;
+float hash(float n){return fract(sin(n)*43758.5);}
+void main(){
+  ivec2 co=ivec2(gl_FragCoord.xy);
+  vec4 p=texelFetch(uPos,co,0);
+  float x=p.x,y=p.y,vx=p.z,vy=p.w;
+  float age=fract(p.w*0.01+uT*0.001); // reuse w channel for age
+  float spd=uSpd*.0002;
+  if(uBehavior==0){// flow field
+    float angle=sin(x*2.+uT*.3)*cos(y*2.+uT*.2)+atan(y,x)*.5;
+    vx+=cos(angle)*spd;vy+=sin(angle)*spd;
+  }else if(uBehavior==1){// vortex
+    float len=length(vec2(x,y))+.01;
+    vx+=(-y/len)*spd*2.;vy+=(x/len)*spd*2.;
+    vx-=x*.0005;vy-=y*.0005;// inward pull
+  }else if(uBehavior==2){// attractor
+    vec2 to=-normalize(vec2(x,y));
+    float d=length(vec2(x,y));
+    vx+=to.x*spd*3./(d+.1);vy+=to.y*spd*3./(d+.1);
+  }else{// orbit with explosion
+    float ang=atan(y,x)+uT*.2;float r=length(vec2(x,y));
+    vx+=cos(ang)*spd-.003*x;vy+=sin(ang)*spd-.003*y;
+  }
+  vx*=.985;vy*=.985;// damping
+  x+=vx;y+=vy;
+  // wrap
+  x=x>1.2?-1.2:x<-1.2?1.2:x;
+  y=y>1.2?-1.2:y<-1.2?1.2:y;
+  outCol=vec4(x,y,vx,vy);
+}`;
+
+// Render shader reads position texture in vertex stage
+const RENDER_VS=`#version 300 es
+precision highp float;
+in float aIdx;
+uniform sampler2D uPos;uniform vec2 uTexSz;
+uniform int uColorMode;uniform float uT;
+out vec4 vCol;
+void main(){
+  int idx=int(aIdx);
+  int tx=int(mod(aIdx,uTexSz.x));
+  int ty=idx/int(uTexSz.x);
+  vec4 p=texelFetch(uPos,ivec2(tx,ty),0);
+  gl_Position=vec4(p.xy,0.,1.);
+  gl_PointSize=1.5;
+  float spd=length(p.zw)*200.;
+  if(uColorMode==0)vCol=vec4(.35,.65,1.,.6);
+  else if(uColorMode==1)vCol=vec4(spd*.8,spd*.4,1.-spd*.4,.7);
+  else{float age=fract(float(idx)*.00131+uT*.05);vCol=vec4(age,.5,1.-age,.6);}
+}`;
+const RENDER_FS=`#version 300 es
+precision mediump float;in vec4 vCol;out vec4 fragColor;
+void main(){fragColor=vCol;}`;
+
+const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
+const fpsEl=document.getElementById('fps'),countBadge=document.getElementById('count-badge');
+const behavBadge=document.getElementById('behavior-badge'),texSizeEl=document.getElementById('tex-size');
+const noWgl2=document.getElementById('no-wgl2');
+const BEHAV_NAMES=['Flow Field','Vortex','Attractor','Orbit'];
+let W,H,gl,physicsProg,renderProg,fbo0,fbo1,tex0,tex1,raf=null;
+let paused=false,lastT=0,startT=0,TEX_N=256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
+let idxBuf=null,particleCount=0;
+
+function mk(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;}
+function mkProg(vs,fs){const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,vs));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(p));return p;}
+
+function initTex(n){
+  const data=new Float32Array(n*n*4);
+  for(let i=0;i<n*n;i++){
+    const angle=Math.random()*Math.PI*2;const r=Math.random()*.9+.1;
+    data[i*4]=(Math.random()-.5)*2*r;data[i*4+1]=(Math.random()-.5)*2*r;
+    data[i*4+2]=Math.cos(angle)*.004;data[i*4+3]=Math.sin(angle)*.004;
+  }
+  function makeTex(d){
+    const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,n,n,0,gl.RGBA,gl.FLOAT,d);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    return t;
+  }
+  tex0=makeTex(data);tex1=makeTex(null);
+  function makeFbo(t){const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);return f;}
+  fbo0=makeFbo(tex0);fbo1=makeFbo(tex1);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  particleCount=n*n;
+  const idx=new Float32Array(particleCount);for(let i=0;i<particleCount;i++)idx[i]=i;
+  if(idxBuf)gl.deleteBuffer(idxBuf);
+  idxBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,idxBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,idx,gl.STATIC_DRAW);
+  countBadge.textContent=particleCount.toLocaleString()+' particles';
+  texSizeEl.textContent=n+' × '+n;
+}
+
+function init(){
+  gl=cvs.getContext('webgl2');
+  if(!gl){noWgl2.style.display='flex';return false;}
+  physicsProg=mkProg(PHYSICS_VS,PHYSICS_FS);
+  renderProg=mkProg(RENDER_VS,RENDER_FS);
+  // Quad for physics pass
+  const qBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
+  initTex(TEX_N);
+  return true;
+}
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+
+function render(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(render);
+  const dt=ts-lastT;if(dt<12)return;
+  fpsEl.textContent=Math.round(1000/(dt||12))+' fps';lastT=ts;
+  const t=(ts-startT)/1000;
+
+  // ── Physics pass (render to texture) ──
+  gl.useProgram(physicsProg);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo1);
+  gl.viewport(0,0,TEX_N,TEX_N);
+  // Bind quad
+  const quad=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quad);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.DYNAMIC_DRAW);
+  const pa=gl.getAttribLocation(physicsProg,'a');gl.enableVertexAttribArray(pa);gl.vertexAttribPointer(pa,2,gl.FLOAT,false,0,0);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex0);
+  gl.uniform1i(gl.getUniformLocation(physicsProg,'uPos'),0);
+  gl.uniform1f(gl.getUniformLocation(physicsProg,'uT'),t);
+  gl.uniform1f(gl.getUniformLocation(physicsProg,'uSpd'),SPD);
+  gl.uniform1i(gl.getUniformLocation(physicsProg,'uBehavior'),BEHAVIOR);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.deleteBuffer(quad);
+
+  // Swap textures
+  [tex0,tex1]=[tex1,tex0];[fbo0,fbo1]=[fbo1,fbo0];
+
+  // ── Render pass (draw points) ──
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.viewport(0,0,W,H);
+  if(TRAILS){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0.024,0.039,0.063,0.1);gl.clear(gl.COLOR_BUFFER_BIT);}
+  else{gl.clearColor(0.024,0.039,0.063,1);gl.clear(gl.COLOR_BUFFER_BIT);}
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+  gl.useProgram(renderProg);
+  gl.bindBuffer(gl.ARRAY_BUFFER,idxBuf);
+  const ra=gl.getAttribLocation(renderProg,'aIdx');gl.enableVertexAttribArray(ra);gl.vertexAttribPointer(ra,1,gl.FLOAT,false,0,0);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex0);
+  gl.uniform1i(gl.getUniformLocation(renderProg,'uPos'),0);
+  gl.uniform2f(gl.getUniformLocation(renderProg,'uTexSz'),TEX_N,TEX_N);
+  gl.uniform1i(gl.getUniformLocation(renderProg,'uColorMode'),COLOR_MODE);
+  gl.uniform1f(gl.getUniformLocation(renderProg,'uT'),t);
+  gl.drawArrays(gl.POINTS,0,particleCount);
+  gl.disable(gl.BLEND);
+}
+
+if(init()){
+  resize();startT=performance.now();lastT=startT;
+  raf=requestAnimationFrame(render);
+  window.addEventListener('resize',resize);
+}
+
+document.getElementById('count-sel').addEventListener('change',e=>{TEX_N=+e.target.value;if(gl)initTex(TEX_N);});
+document.getElementById('behav-sel').addEventListener('change',e=>{BEHAVIOR=+e.target.value;behavBadge.textContent=BEHAV_NAMES[BEHAVIOR];});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('col-sel').addEventListener('change',e=>{COLOR_MODE=+e.target.value;});
+document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
+});
+</script>
+</body>
+</html>

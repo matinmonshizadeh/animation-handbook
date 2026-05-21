@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Particle Effect</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:var(--ui-muted);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Canvas Particle Effect</h1>
+  <p>500 particles drifting with O(n²) proximity connections — mouse repels or attracts within a configurable radius.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">Canvas is right for 50+ particles — DOM bogs down at that scale. O(n²) distance checks are fine below 500 particles; above that, use spatial partitioning (quadtree).</p>
+    <div class="lbl">Particle Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="50" max="1500" value="400" step="50"><span class="sv" id="count-v">400</span></div>
+    <div class="lbl">Connect Distance</div>
+    <div class="sr"><input type="range" id="dist-sl" min="40" max="200" value="100" step="10"><span class="sv" id="dist-v">100px</span></div>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="30" value="8" step="1"><span class="sv" id="spd-v">0.8</span></div>
+    <div class="lbl">Mouse Force (repel ← 0 → attract)</div>
+    <div class="sr"><input type="range" id="force-sl" min="-10" max="10" value="-5" step="1"><span class="sv" id="force-v">-0.5</span></div>
+    <div class="lbl">Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Particle color">
+    <label class="tog"><input type="checkbox" id="conn-tog" checked><span>Show connections</span></label>
+    <label class="tog"><input type="checkbox" id="trail-tog"><span>Particle trails</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Particles</span><span class="v" id="p-count">400</span></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+const fpsEl=document.getElementById('fps');
+let W,H,particles=[],mouse={x:-999,y:-999};
+let paused=false,raf=null,lastT=0,fps=0;
+let COUNT=400,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
+let CONNECTIONS=true,TRAILS=false;
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+
+class P{
+  constructor(){this.reset();}
+  reset(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    const a=Math.random()*Math.PI*2;const s=(.2+Math.random()*.8)*SPD;
+    this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;
+    this.r=Math.random()*1.5+.5;this.op=.3+Math.random()*.7;
+  }
+  update(){
+    const dx=this.x-mouse.x,dy=this.y-mouse.y;
+    const d2=dx*dx+dy*dy;
+    if(d2<14400&&d2>1){const d=Math.sqrt(d2);this.vx+=FORCE*(dx/d)/d*.8;this.vy+=FORCE*(dy/d)/d*.8;}
+    const maxV=SPD*2;const sp=Math.sqrt(this.vx*this.vx+this.vy*this.vy);
+    if(sp>maxV){this.vx=this.vx/sp*maxV;this.vy=this.vy/sp*maxV;}
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<0){this.x=0;this.vx*=-1;}if(this.x>W){this.x=W;this.vx*=-1;}
+    if(this.y<0){this.y=0;this.vy*=-1;}if(this.y>H){this.y=H;this.vy*=-1;}
+  }
+}
+
+function spawn(){
+  particles=[];
+  for(let i=0;i<COUNT;i++)particles.push(new P());
+}
+
+function loop(t){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=t-lastT;if(dt<16){return;}lastT=t;
+  fps=Math.round(1000/(dt||16));fpsEl.textContent=fps+' fps';
+
+  if(TRAILS){ctx.fillStyle='rgba(6,10,16,.15)';ctx.fillRect(0,0,W,H);}
+  else{ctx.clearRect(0,0,W,H);}
+
+  const hex=COLOR,r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const d2max=DIST*DIST;
+
+  particles.forEach(p=>p.update());
+
+  // Connections
+  if(CONNECTIONS){
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const d2=dx*dx+dy*dy;
+        if(d2<d2max){
+          const op=(1-d2/d2max)*0.4;
+          ctx.strokeStyle=`rgba(${r},${g},${b},${op})`;
+          ctx.lineWidth=.5;
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Dots
+  particles.forEach(p=>{
+    ctx.fillStyle=`rgba(${r},${g},${b},${p.op})`;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+  });
+}
+
+function start(){if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
+
+resize();spawn();start();
+
+stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
+stage.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999;});
+stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();mouse.x=e.touches[0].clientX-r.left;mouse.y=e.touches[0].clientY-r.top;},{passive:true});
+window.addEventListener('resize',()=>{resize();spawn();});
+
+document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;document.getElementById('p-count').textContent=COUNT;spawn();});
+document.getElementById('dist-sl').addEventListener('input',e=>{DIST=+e.target.value;document.getElementById('dist-v').textContent=DIST+'px';});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('force-sl').addEventListener('input',e=>{FORCE=e.target.value/10;document.getElementById('force-v').textContent=FORCE.toFixed(1);});
+document.getElementById('color-pick').addEventListener('input',e=>{COLOR=e.target.value;});
+document.getElementById('conn-tog').addEventListener('change',e=>{CONNECTIONS=e.target.checked;});
+document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused)start();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Model Orbit</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
+    .fps-badge,.obj-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>3D Model Orbit</h1>
+  <p>Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="hud">
+      <div class="fps-badge" id="fps">— fps</div>
+      <div class="obj-badge" id="obj-badge">Cube</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">3D rendering needs: vertex buffer, shader program, model-view-projection matrix, render loop. Three.js hides this behind a clean API. This demo exposes the raw machinery.</p>
+    <div class="lbl">Mode</div>
+    <select id="mode-sel"><option value="orbit" selected>Auto-orbit</option><option value="mouse">Mouse-follow</option></select>
+    <div class="lbl">Object</div>
+    <select id="obj-sel"><option value="cube" selected>Cube</option><option value="sphere">Sphere</option><option value="torus">Torus</option><option value="tetra">Tetrahedron</option></select>
+    <div class="lbl">Spin X / Y</div>
+    <div class="sr"><input type="range" id="sx-sl" min="0" max="30" value="2" step="1"><span class="sv" id="sx-v">0.2</span></div>
+    <div class="sr"><input type="range" id="sy-sl" min="0" max="30" value="8" step="1"><span class="sv" id="sy-v">0.8</span></div>
+    <div class="lbl">Camera Distance</div>
+    <div class="sr"><input type="range" id="cam-sl" min="15" max="60" value="30" step="1"><span class="sv" id="cam-v">3.0</span></div>
+    <div class="lbl">Object Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Object color">
+    <label class="tog"><input type="checkbox" id="wire-tog"><span>Wireframe</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+// ─── Shaders ───────────────────────────────────────────────────────────────
+const VS=`
+attribute vec3 aPos,aNorm;
+uniform mat4 uMVP,uM;
+varying vec3 vN,vP;
+void main(){
+  gl_Position=uMVP*vec4(aPos,1.);
+  vP=(uM*vec4(aPos,1.)).xyz;
+  vN=normalize(mat3(uM[0].xyz,uM[1].xyz,uM[2].xyz)*aNorm);
+}`;
+const FS=`
+precision mediump float;
+varying vec3 vN,vP;
+uniform vec3 uCol,uLight;
+uniform bool uWire;
+void main(){
+  if(uWire){gl_FragColor=vec4(uCol,1.);return;}
+  vec3 L=normalize(uLight-vP),V=normalize(vec3(0.,0.,4.)-vP);
+  float d=max(dot(vN,L),0.),s=pow(max(dot(reflect(-L,vN),V),0.),48.);
+  gl_FragColor=vec4(.15*uCol+d*uCol+.7*s*vec3(1.),1.);
+}`;
+
+// ─── Mat4 helpers (column-major) ───────────────────────────────────────────
+const I=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+function mul(a,b){
+  const o=new Float32Array(16);
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[i+k*4]*b[k+j*4];o[i+j*4]=s;}
+  return o;
+}
+function persp(fov,ar,n,f){
+  const t=1/Math.tan(fov/2),nf=1/(n-f);
+  return new Float32Array([t/ar,0,0,0,0,t,0,0,0,0,(f+n)*nf,-1,0,0,2*f*n*nf,0]);
+}
+function trans(x,y,z){const m=I();m[12]=x;m[13]=y;m[14]=z;return m;}
+function rotX(a){const c=Math.cos(a),s=Math.sin(a),m=I();m[5]=c;m[9]=-s;m[6]=s;m[10]=c;return m;}
+function rotY(a){const c=Math.cos(a),s=Math.sin(a),m=I();m[0]=c;m[8]=s;m[2]=-s;m[10]=c;return m;}
+
+// ─── Geometry ──────────────────────────────────────────────────────────────
+function makeCube(){
+  const h=.55;
+  const faces=[[0,0,1],[0,0,-1],[1,0,0],[-1,0,0],[0,1,0],[0,-1,0]];
+  const axes=[[1,0,0],[0,1,0]];
+  const pos=[],nrm=[],idx=[];
+  faces.forEach(([nx,ny,nz],fi)=>{
+    const fwd=[nx,ny,nz];
+    const up=Math.abs(ny)<.5?[0,1,0]:[1,0,0];
+    const r=[fwd[1]*up[2]-fwd[2]*up[1],fwd[2]*up[0]-fwd[0]*up[2],fwd[0]*up[1]-fwd[1]*up[0]];
+    const u2=[fwd[1]*r[2]-fwd[2]*r[1],fwd[2]*r[0]-fwd[0]*r[2],fwd[0]*r[1]-fwd[1]*r[0]];
+    const c=[fwd[0]*h,fwd[1]*h,fwd[2]*h];
+    [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([s,t])=>{
+      pos.push(c[0]+r[0]*s*h+u2[0]*t*h,c[1]+r[1]*s*h+u2[1]*t*h,c[2]+r[2]*s*h+u2[2]*t*h);
+      nrm.push(nx,ny,nz);
+    });
+    const o=fi*4;idx.push(o,o+1,o+2,o,o+2,o+3);
+  });
+  return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),idx:new Uint16Array(idx)};
+}
+
+function makeSphere(st=16,sl=24){
+  const pos=[],nrm=[],idx=[];
+  for(let i=0;i<=st;i++){const phi=Math.PI*i/st-Math.PI/2;
+    for(let j=0;j<=sl;j++){const th=2*Math.PI*j/sl;
+      const x=Math.cos(phi)*Math.cos(th),y=Math.sin(phi),z=Math.cos(phi)*Math.sin(th);
+      pos.push(x*.6,y*.6,z*.6);nrm.push(x,y,z);}}
+  for(let i=0;i<st;i++)for(let j=0;j<sl;j++){
+    const a=i*(sl+1)+j,b=a+sl+1;
+    idx.push(a,b,a+1,b,b+1,a+1);}
+  return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),idx:new Uint16Array(idx)};
+}
+
+function makeTorus(R=.4,r=.16,ri=32,ro=20){
+  const pos=[],nrm=[],idx=[];
+  for(let i=0;i<=ro;i++){const u=2*Math.PI*i/ro;const cu=Math.cos(u),su=Math.sin(u);
+    for(let j=0;j<=ri;j++){const v=2*Math.PI*j/ri;const cv=Math.cos(v),sv=Math.sin(v);
+      pos.push((R+r*cv)*cu,r*sv,(R+r*cv)*su);nrm.push(cv*cu,sv,cv*su);}}
+  for(let i=0;i<ro;i++)for(let j=0;j<ri;j++){
+    const a=i*(ri+1)+j,b=a+ri+1;idx.push(a,b,a+1,b,b+1,a+1);}
+  return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),idx:new Uint16Array(idx)};
+}
+
+function makeTetra(){
+  const s2=Math.sqrt(2),s6=Math.sqrt(6),s=.65;
+  const v=[[0,s,0],[2*s2/3*s,-s/3,0],[-s2/3*s,-s/3,s6/3*s],[-s2/3*s,-s/3,-s6/3*s]];
+  const faces=[[0,2,1],[0,1,3],[0,3,2],[1,2,3]];
+  const pos=[],nrm=[],idx=[];
+  faces.forEach(([a,b,c],fi)=>{
+    const va=v[a],vb=v[b],vc=v[c];
+    const ab=[vb[0]-va[0],vb[1]-va[1],vb[2]-va[2]];
+    const ac=[vc[0]-va[0],vc[1]-va[1],vc[2]-va[2]];
+    const nx=ab[1]*ac[2]-ab[2]*ac[1],ny=ab[2]*ac[0]-ab[0]*ac[2],nz=ab[0]*ac[1]-ab[1]*ac[0];
+    const nl=Math.sqrt(nx*nx+ny*ny+nz*nz);
+    [va,vb,vc].forEach(p=>{pos.push(...p);nrm.push(nx/nl,ny/nl,nz/nl);});
+    const o=fi*3;idx.push(o,o+1,o+2);
+  });
+  return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),idx:new Uint16Array(idx)};
+}
+
+// ─── WebGL setup ───────────────────────────────────────────────────────────
+const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
+const fpsEl=document.getElementById('fps'),objBadge=document.getElementById('obj-badge');
+let W,H,gl,prog,posBuf,nrmBuf,idxBuf,idxCount;
+let raf=null,paused=false,lastT=0,rx=.3,ry=0;
+let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
+let mouseNX=0,mouseNY=0;
+const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+function init(){
+  gl=cvs.getContext('webgl');if(!gl)return;
+  prog=gl.createProgram();
+  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  gl.enable(gl.DEPTH_TEST);gl.clearColor(.024,.039,.063,1);
+  posBuf=gl.createBuffer();nrmBuf=gl.createBuffer();idxBuf=gl.createBuffer();
+  loadGeometry('cube');
+}
+
+function loadGeometry(name){
+  const geo={cube:makeCube,sphere:makeSphere,torus:makeTorus,tetra:makeTetra}[name]();
+  gl.bindBuffer(gl.ARRAY_BUFFER,posBuf);gl.bufferData(gl.ARRAY_BUFFER,geo.pos,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER,nrmBuf);gl.bufferData(gl.ARRAY_BUFFER,geo.nrm,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,geo.idx,gl.STATIC_DRAW);
+  idxCount=geo.idx.length;
+  objBadge.textContent=name.charAt(0).toUpperCase()+name.slice(1);
+}
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
+
+function setAttr(name,buf,size){
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  const loc=gl.getAttribLocation(prog,name);
+  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);
+}
+function u(n){return gl.getUniformLocation(prog,n);}
+
+function render(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(render);
+  const dt=ts-lastT;if(dt<16)return;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  if(MODE==='orbit'){ry+=SY*.01;rx+=SX*.01*(Math.sin(ts*.0003)*.5+.5);}
+  else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(prog);
+  setAttr('aPos',posBuf,3);setAttr('aNorm',nrmBuf,3);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);
+  const P=persp(Math.PI/4,W/H,.1,20);
+  const T=trans(0,0,-DIST);
+  const M=mul(mul(T,rotY(ry)),rotX(rx));
+  const MVP=mul(P,M);
+  gl.uniformMatrix4fv(u('uMVP'),false,MVP);
+  gl.uniformMatrix4fv(u('uM'),false,M);
+  gl.uniform3fv(u('uCol'),COLOR);
+  gl.uniform3f(u('uLight'),2,3,4);
+  gl.uniform1i(u('uWire'),WIRE?1:0);
+  if(WIRE){
+    // Draw wireframe by drawing lines — use LINE_STRIP approximation
+    gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);
+  }else{
+    gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);
+  }
+}
+
+init();resize();
+if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
+
+stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;});
+stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();mouseNX=(e.touches[0].clientX-r.left)/r.width*2-1;mouseNY=(e.touches[0].clientY-r.top)/r.height*2-1;},{passive:true});
+window.addEventListener('resize',resize);
+
+document.getElementById('mode-sel').addEventListener('change',e=>MODE=e.target.value);
+document.getElementById('obj-sel').addEventListener('change',e=>{loadGeometry(e.target.value);rx=0;ry=0;});
+document.getElementById('sx-sl').addEventListener('input',e=>{SX=e.target.value/10;document.getElementById('sx-v').textContent=SX.toFixed(1);});
+document.getElementById('sy-sl').addEventListener('input',e=>{SY=e.target.value/10;document.getElementById('sy-v').textContent=SY.toFixed(1);});
+document.getElementById('cam-sl').addEventListener('input',e=>{DIST=e.target.value/10;document.getElementById('cam-v').textContent=DIST.toFixed(1);});
+document.getElementById('color-pick').addEventListener('input',e=>{const h=e.target.value;COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];});
+document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
+});
+</script>
+</body>
+</html>

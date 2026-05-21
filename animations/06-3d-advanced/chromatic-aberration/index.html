@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromatic Aberration</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--ca-amt:4px;--ca-angle:30deg;--ca-blur:0px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+    /* The CA wrapper */
+    .ca-wrap{position:relative;display:inline-block;-webkit-user-select:none;user-select:none}
+    /* Three stacked layers */
+    .ca-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;mix-blend-mode:screen;pointer-events:none}
+    .ca-layer.base{position:relative;mix-blend-mode:normal}
+    .ca-text{
+      font-family:Georgia,'Times New Roman',serif;
+      font-size:clamp(52px,9vw,100px);
+      font-style:italic;
+      line-height:1;
+      letter-spacing:-0.02em;
+      font-weight:bold;
+      -webkit-user-select:none;user-select:none
+    }
+    .ca-r .ca-text{color:#ff2020;filter:blur(var(--ca-blur))}
+    .ca-g .ca-text{color:#20ff20}
+    .ca-b .ca-text{color:#2060ff;filter:blur(var(--ca-blur))}
+    /* Base layer invisible — just for spacing */
+    .ca-layer.base .ca-text{color:transparent;-webkit-text-stroke:0}
+    /* Animation modes */
+    .ca-wrap.pulse .ca-r{animation:ca-pulse-r 2s ease-in-out infinite}
+    .ca-wrap.pulse .ca-b{animation:ca-pulse-b 2s ease-in-out infinite}
+    .ca-wrap.glitch .ca-r{animation:ca-glitch-r 4s step-end infinite}
+    .ca-wrap.glitch .ca-b{animation:ca-glitch-b 4s step-end infinite}
+    @keyframes ca-pulse-r{0%,100%{transform:var(--r-t)}50%{transform:translate(calc(var(--ca-amt)*1.8),0) translate(calc(cos(var(--ca-angle))*1px),calc(sin(var(--ca-angle))*1px))}}
+    @keyframes ca-pulse-b{0%,100%{transform:var(--b-t)}50%{transform:translate(calc(var(--ca-amt)*-1.8),0)}}
+    @keyframes ca-glitch-r{
+      0%,80%,100%{transform:var(--r-t)}
+      82%{transform:translate(calc(var(--ca-amt)*3),calc(var(--ca-amt)*-1))}
+      84%{transform:var(--r-t)}
+      86%{transform:translate(calc(var(--ca-amt)*-2),calc(var(--ca-amt)))}
+      88%{transform:var(--r-t)}
+    }
+    @keyframes ca-glitch-b{
+      0%,80%,100%{transform:var(--b-t)}
+      82%{transform:translate(calc(var(--ca-amt)*-3),calc(var(--ca-amt)))}
+      84%{transform:var(--b-t)}
+      86%{transform:translate(calc(var(--ca-amt)*2),calc(var(--ca-amt)*-1))}
+      88%{transform:var(--b-t)}
+    }
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
+    @media(prefers-reduced-motion:reduce){.ca-r,.ca-b{animation:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Chromatic Aberration</h1>
+  <p>RGB channels offset in opposite directions — three screened layers faking lens color fringing.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="ca-wrap" id="ca-wrap">
+      <div class="ca-layer base"><div class="ca-text" id="ca-base-text">PRISM</div></div>
+      <div class="ca-layer ca-r" id="ca-r"><div class="ca-text" id="ca-r-text">PRISM</div></div>
+      <div class="ca-layer ca-g" id="ca-g"><div class="ca-text" id="ca-g-text">PRISM</div></div>
+      <div class="ca-layer ca-b" id="ca-b"><div class="ca-text" id="ca-b-text">PRISM</div></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Three mix-blend-mode: screen layers — red, green, blue — offset in opposite directions. Lens aberration comes from different wavelengths refracting at slightly different angles.</p>
+    <div class="lbl">Intensity</div>
+    <div class="sr"><input type="range" id="amt-sl" min="0" max="20" value="4" step="1"><span class="sv" id="amt-v">4px</span></div>
+    <div class="lbl">Direction Angle</div>
+    <div class="sr"><input type="range" id="angle-sl" min="0" max="360" value="30" step="5"><span class="sv" id="angle-v">30°</span></div>
+    <div class="lbl">Channel Blur</div>
+    <div class="sr"><input type="range" id="blur-sl" min="0" max="4" value="0" step="0.5"><span class="sv" id="blur-v">0px</span></div>
+    <div class="lbl">Animation Mode</div>
+    <select id="mode-sel">
+      <option value="static" selected>Static</option>
+      <option value="pulse">Pulse</option>
+      <option value="glitch">Glitch</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="blur-tog"><span>Blur offset channels</span></label>
+    <div class="div"></div>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="PRISM">
+  </aside>
+</div>
+<script>
+  let amt=4,angle=30;
+  const wrap=document.getElementById('ca-wrap');
+  const rLayer=document.getElementById('ca-r');
+  const bLayer=document.getElementById('ca-b');
+
+  function applyOffset(){
+    const rad=angle*Math.PI/180;
+    const dx=(Math.cos(rad)*amt).toFixed(1);
+    const dy=(Math.sin(rad)*amt).toFixed(1);
+    rLayer.style.transform=`translate(${dx}px,${dy}px)`;
+    bLayer.style.transform=`translate(${-dx}px,${-dy}px)`;
+    document.documentElement.style.setProperty('--r-t',`translate(${dx}px,${dy}px)`);
+    document.documentElement.style.setProperty('--b-t',`translate(${-dx}px,${-dy}px)`);
+  }
+
+  function setText(t){
+    ['ca-base-text','ca-r-text','ca-g-text','ca-b-text'].forEach(id=>{
+      document.getElementById(id).textContent=t||'PRISM';
+    });
+  }
+
+  document.getElementById('amt-sl').addEventListener('input',e=>{
+    amt=+e.target.value;document.getElementById('amt-v').textContent=amt+'px';applyOffset();
+  });
+  document.getElementById('angle-sl').addEventListener('input',e=>{
+    angle=+e.target.value;document.getElementById('angle-v').textContent=angle+'°';applyOffset();
+  });
+  document.getElementById('blur-sl').addEventListener('input',e=>{
+    const v=e.target.value;document.getElementById('blur-v').textContent=v+'px';
+    document.documentElement.style.setProperty('--ca-blur',v+'px');
+  });
+  document.getElementById('mode-sel').addEventListener('change',e=>{
+    wrap.classList.remove('pulse','glitch');
+    if(e.target.value!=='static')wrap.classList.add(e.target.value);
+    applyOffset();
+  });
+  document.getElementById('blur-tog').addEventListener('change',e=>{
+    const v=e.target.checked?'1px':'0px';
+    document.documentElement.style.setProperty('--ca-blur',v);
+  });
+  document.getElementById('text-inp').addEventListener('input',e=>setText(e.target.value));
+
+  applyOffset();
+</script>
+</body>
+</html>

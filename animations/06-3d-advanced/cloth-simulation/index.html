@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloth / Soft-Body Simulation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:400px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Cloth / Soft-Body Simulation</h1>
+  <p>Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">Verlet integration: velocity is implicit (current − previous). Distance constraints pull connected vertices toward their rest length. Solving constraints multiple times per frame increases stiffness.</p>
+    <div class="lbl">Resolution</div>
+    <select id="res-sel">
+      <option value="16">16 × 12 (fast)</option>
+      <option value="24" selected>24 × 18 (balanced)</option>
+      <option value="40">40 × 30 (detailed)</option>
+    </select>
+    <div class="lbl">Gravity</div>
+    <div class="sr"><input type="range" id="grav-sl" min="1" max="30" value="12" step="1"><span class="sv" id="grav-v">0.12</span></div>
+    <div class="lbl">Wind Strength</div>
+    <div class="sr"><input type="range" id="wind-sl" min="0" max="20" value="5" step="1"><span class="sv" id="wind-v">0.5</span></div>
+    <div class="lbl">Stiffness (iterations)</div>
+    <div class="sr"><input type="range" id="stiff-sl" min="1" max="8" value="4" step="1"><span class="sv" id="stiff-v">4</span></div>
+    <div class="lbl">Pin Mode</div>
+    <select id="pin-sel">
+      <option value="top-corners" selected>Top corners</option>
+      <option value="top-edge">Top edge</option>
+      <option value="single">Single corner</option>
+      <option value="none">Unpinned (free fall)</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="verts-tog"><span>Show vertices</span></label>
+    <label class="tog"><input type="checkbox" id="cons-tog"><span>Show constraints</span></label>
+    <div class="div"></div>
+    <button class="rst" id="reset-btn">↺ Reset cloth</button>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
+let W,H,paused=false,raf=null,lastT=0;
+let COLS=24,ROWS=18,GRAVITY=0.12,WIND=0.5,ITERS=4,PIN_MODE='top-corners';
+let SHOW_VERTS=false,SHOW_CONS=false;
+let pts=[],prev=[],pinned=[],constraints=[];
+let dragIdx=-1,dragMouse={x:0,y:0};
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+
+function initCloth(){
+  const w=W*.8,h=H*.65;
+  const ox=W*.1,oy=H*.1;
+  const sw=w/COLS,sh=h/ROWS;
+  pts=[];prev=[];pinned=[];constraints=[];
+  for(let r=0;r<=ROWS;r++){
+    for(let c=0;c<=COLS;c++){
+      pts.push([ox+c*sw,oy+r*sh]);
+      prev.push([ox+c*sw,oy+r*sh]);
+      pinned.push(false);
+    }
+  }
+  // Apply pins
+  const n=(r,c)=>r*(COLS+1)+c;
+  if(PIN_MODE==='top-corners'){pinned[n(0,0)]=true;pinned[n(0,COLS)]=true;}
+  else if(PIN_MODE==='top-edge'){for(let c=0;c<=COLS;c++)pinned[n(0,c)]=true;}
+  else if(PIN_MODE==='single'){pinned[n(0,0)]=true;}
+  // Structural constraints (horizontal + vertical)
+  for(let r=0;r<=ROWS;r++){for(let c=0;c<=COLS;c++){
+    if(c<COLS){const rest=Math.hypot(pts[n(r,c+1)][0]-pts[n(r,c)][0],pts[n(r,c+1)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r,c+1),rest]);}
+    if(r<ROWS){const rest=Math.hypot(pts[n(r+1,c)][0]-pts[n(r,c)][0],pts[n(r+1,c)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r+1,c),rest]);}
+  }}
+}
+
+function update(){
+  const windX=WIND*(Math.sin(Date.now()*.0005)+.3)*.8;
+  // Verlet integrate
+  for(let i=0;i<pts.length;i++){
+    if(pinned[i])continue;
+    const vx=pts[i][0]-prev[i][0],vy=pts[i][1]-prev[i][1];
+    prev[i]=[...pts[i]];
+    pts[i][0]+=vx+windX*.04;
+    pts[i][1]+=vy+GRAVITY*.08;
+    // Bounds
+    if(pts[i][0]<0){pts[i][0]=0;prev[i][0]=pts[i][0]+vx*.5;}
+    if(pts[i][0]>W){pts[i][0]=W;prev[i][0]=pts[i][0]+vx*.5;}
+    if(pts[i][1]>H){pts[i][1]=H;prev[i][1]=pts[i][1]+vy*.5;}
+  }
+  // Drag
+  if(dragIdx>=0&&!pinned[dragIdx]){pts[dragIdx]=[dragMouse.x,dragMouse.y];prev[dragIdx]=[dragMouse.x,dragMouse.y];}
+  // Solve constraints
+  for(let it=0;it<ITERS;it++){
+    for(const[a,b,rest]of constraints){
+      const dx=pts[b][0]-pts[a][0],dy=pts[b][1]-pts[a][1];
+      const dist=Math.sqrt(dx*dx+dy*dy)||.001;
+      const diff=(dist-rest)/dist*.5;
+      if(!pinned[a]){pts[a][0]+=dx*diff;pts[a][1]+=dy*diff;}
+      if(!pinned[b]){pts[b][0]-=dx*diff;pts[b][1]-=dy*diff;}
+    }
+  }
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const n=(r,c)=>r*(COLS+1)+c;
+  // Fill cloth triangles
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const a=pts[n(r,c)],b=pts[n(r,c+1)],cc=pts[n(r+1,c)],d=pts[n(r+1,c+1)];
+      const hue=(c/COLS*40+r/ROWS*20);
+      ctx.fillStyle=`hsla(${200+hue},60%,${30+r/ROWS*20}%,0.85)`;
+      ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(d[0],d[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();
+    }
+  }
+  // Mesh edges
+  ctx.strokeStyle='rgba(88,166,255,.12)';ctx.lineWidth=.5;
+  if(SHOW_CONS){
+    for(const[a,b]of constraints){
+      ctx.beginPath();ctx.moveTo(pts[a][0],pts[a][1]);ctx.lineTo(pts[b][0],pts[b][1]);ctx.stroke();
+    }
+  }else{
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.beginPath();ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);ctx.stroke();}
+    for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);ctx.stroke();}
+  }
+  // Vertices
+  if(SHOW_VERTS){
+    pts.forEach((p,i)=>{
+      ctx.fillStyle=pinned[i]?'#f85149':'rgba(88,166,255,.7)';
+      ctx.beginPath();ctx.arc(p[0],p[1],pinned[i]?4:2,0,Math.PI*2);ctx.fill();
+    });
+  }
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  update();draw();
+}
+
+function start(){resize();initCloth();if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
+start();
+
+// Drag interaction
+function getClosestVertex(x,y,maxDist=30){
+  let best=-1,bd=Infinity;
+  pts.forEach((p,i)=>{const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd&&d<maxDist){bd=d;best=i;}});
+  return best;
+}
+stage.addEventListener('mousedown',e=>{const r=cvs.getBoundingClientRect();dragIdx=getClosestVertex(e.clientX-r.left,e.clientY-r.top);dragMouse={x:e.clientX-r.left,y:e.clientY-r.top};});
+stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();dragMouse={x:e.clientX-r.left,y:e.clientY-r.top};});
+stage.addEventListener('mouseup',()=>dragIdx=-1);
+stage.addEventListener('touchstart',e=>{const r=cvs.getBoundingClientRect();dragIdx=getClosestVertex(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:true});
+stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();dragMouse={x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};},{passive:true});
+stage.addEventListener('touchend',()=>dragIdx=-1);
+
+document.getElementById('res-sel').addEventListener('change',e=>{COLS=+e.target.value;ROWS=Math.round(COLS*.75);start();});
+document.getElementById('grav-sl').addEventListener('input',e=>{GRAVITY=e.target.value/100;document.getElementById('grav-v').textContent=GRAVITY.toFixed(2);});
+document.getElementById('wind-sl').addEventListener('input',e=>{WIND=e.target.value/10;document.getElementById('wind-v').textContent=WIND.toFixed(1);});
+document.getElementById('stiff-sl').addEventListener('input',e=>{ITERS=+e.target.value;document.getElementById('stiff-v').textContent=ITERS;});
+document.getElementById('pin-sel').addEventListener('change',e=>{PIN_MODE=e.target.value;initCloth();});
+document.getElementById('verts-tog').addEventListener('change',e=>{SHOW_VERTS=e.target.checked;});
+document.getElementById('cons-tog').addEventListener('change',e=>{SHOW_CONS=e.target.checked;});
+document.getElementById('reset-btn').addEventListener('click',()=>initCloth());
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+window.addEventListener('resize',()=>{resize();initCloth();});
+</script>
+</body>
+</html>
