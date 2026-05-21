@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elastic Transition</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .page-area{flex:1;position:relative;overflow:hidden}
+    .page{position:absolute;inset:0;pointer-events:none}
+    .page.active{pointer-events:auto}
+    .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.4}
+    .ph{font-size:clamp(22px,3.5vw,36px);font-weight:bold;line-height:1.15}
+    .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:320px}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+    .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:18px 12px;font-size:11px}
+    .pstat{display:flex;gap:20px;margin-top:4px}
+    .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:var(--ui-accent)}
+    .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
+    canvas#spring-graph{background:#0a0f14;border:1px solid var(--ui-border);border-radius:4px;width:100%;height:60px;display:block}
+    .seg{display:flex;gap:3px}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .log{display:flex;flex-direction:column;gap:2px}
+    .log-row{font-size:9px;color:var(--ui-muted)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.page{transition:none!important;animation:none!important}}
+  </style>
+  <style id="kf-style"></style>
+</head>
+<body>
+<header>
+  <h1>Elastic Transition</h1>
+  <p>Spring physics cause overshoot and oscillation before settling — CSS keyframes or live JS simulation.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <nav class="mini-nav" id="nav"></nav>
+    <div class="page-area" id="page-area"></div>
+  </div>
+  <aside>
+    <p class="note">True spring physics (JS) adapts to interruptions. CSS keyframes are pre-baked but cheaper. Both produce overshoot and settle — the visual feel of weight.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
+    <div class="div"></div>
+    <div class="lbl">Mode</div>
+    <div class="seg" id="mode-seg">
+      <button data-m="css" class="on">CSS keyframes</button>
+      <button data-m="spring">JS spring</button>
+    </div>
+    <div id="css-opts">
+      <div><div class="lbl" id="ov-lbl">Overshoot intensity</div>
+        <div class="sr"><input type="range" id="ov-sl" aria-labelledby="ov-lbl" min="0" max="100" value="60" step="5"><span class="sv" id="ov-v">60%</span></div>
+      </div>
+      <div><div class="lbl" id="dur-lbl">Duration</div>
+        <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="200" max="2000" value="900" step="50"><span class="sv" id="dur-v">900ms</span></div>
+      </div>
+    </div>
+    <div id="spring-opts" style="display:none;flex-direction:column;gap:10px">
+      <div><div class="lbl" id="stiff-lbl">Stiffness</div>
+        <div class="sr"><input type="range" id="stiff-sl" aria-labelledby="stiff-lbl" min="50" max="500" value="180" step="10"><span class="sv" id="stiff-v">180</span></div>
+      </div>
+      <div><div class="lbl" id="damp-lbl">Damping</div>
+        <div class="sr"><input type="range" id="damp-sl" aria-labelledby="damp-lbl" min="5" max="50" value="20" step="1"><span class="sv" id="damp-v">20</span></div>
+      </div>
+      <div class="lbl">Spring graph</div>
+      <canvas id="spring-graph" height="60"></canvas>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">History</div>
+    <div class="log" id="trans-log"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">← Return to Home</button>
+  </aside>
+</div>
+<script>
+  const PAGES=[
+    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><h2 class="ph">Design without compromise.</h2><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
+    {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><h2 class="ph">The Portfolio</h2><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><h2 class="ph">Built on conviction.</h2><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+  ];
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area');
+  const curPage=document.getElementById('cur-page'),logEl=document.getElementById('trans-log');
+  const ovSl=document.getElementById('ov-sl'),ovV=document.getElementById('ov-v');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const stiffSl=document.getElementById('stiff-sl'),stiffV=document.getElementById('stiff-v');
+  const dampSl=document.getElementById('damp-sl'),dampV=document.getElementById('damp-v');
+  const kfStyle=document.getElementById('kf-style');
+  const canvas=document.getElementById('spring-graph');
+  let current=0,animating=false,mode='css',dur=900,overshoot=60,stiffness=180,damping=20,history=[];
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  PAGES.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;d.style.opacity=i===0?'1':'0';area.appendChild(d);
+    const b=document.createElement('button');b.className='nav-btn'+(i===0?' active':'');b.textContent=p.name;b.addEventListener('click',()=>navigate(i));nav.appendChild(b);
+  });
+
+  function updateNav(n){document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===n));curPage.textContent=PAGES[n].name}
+  function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
+
+  function buildKF(ov){
+    const t=ov/100,os=1+t*0.15,un=1-t*0.06;
+    kfStyle.textContent=`@keyframes elastic-in{
+      0%{transform:translateX(100%);opacity:0}
+      5%{opacity:1}
+      55%{transform:translateX(${-os*8}%)}
+      75%{transform:translateX(${un*2}%)}
+      88%{transform:translateX(-1%)}
+      100%{transform:translateX(0);opacity:1}
+    }
+    @keyframes elastic-out{
+      0%{transform:translateX(0);opacity:1}
+      40%{transform:translateX(${os*5}%)}
+      100%{transform:translateX(-100%);opacity:0}
+    }`;
+  }
+
+  function navigate(next){
+    if(next===current||animating)return;
+    const prev=current;current=next;updateNav(next);addLog(prev,next);
+    if(!motionOk){document.querySelectorAll('.page').forEach((el,i)=>{el.style.opacity=i===next?'1':'0';el.classList.toggle('active',i===next)});return;}
+    animating=true;
+    mode==='css'?doCSS(prev,next):doSpring(prev,next);
+  }
+
+  function doCSS(prev,next){
+    buildKF(overshoot);
+    const o=document.getElementById('p'+prev),n=document.getElementById('p'+next);
+    o.style.animation=`elastic-out ${dur}ms ease forwards`;
+    n.style.opacity='0';n.style.transform='translateX(100%)';n.style.animation='none';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      n.classList.add('active');n.style.animation=`elastic-in ${dur}ms ease forwards`;
+      setTimeout(()=>{
+        o.classList.remove('active');o.style.cssText='';o.style.background=PAGES[prev].bg;o.style.opacity='0';
+        n.style.cssText='';n.style.background=PAGES[next].bg;n.style.opacity='1';animating=false;
+      },dur+50);
+    }));
+  }
+
+  function doSpring(prev,next){
+    const o=document.getElementById('p'+prev),n=document.getElementById('p'+next);
+    // Slide out current page simply
+    o.style.transition=`transform 300ms ease-in, opacity 300ms ease-in`;
+    o.style.transform='translateX(-40%)';o.style.opacity='0';
+    // Spring in new page from right
+    let pos=-100,vel=0,target=0;
+    n.style.opacity='1';n.style.transform=`translateX(${pos}%)`;n.classList.add('active');
+    const positions=[];
+    let rafId,lastTime=null;
+    function tick(now){
+      if(!lastTime)lastTime=now;
+      const dt=Math.min((now-lastTime)/1000,0.05);lastTime=now;
+      const f=-stiffness*(pos-target)-damping*vel;
+      vel+=f*dt;pos+=vel*dt;
+      positions.push(pos);
+      n.style.transform=`translateX(${pos.toFixed(2)}%)`;
+      if(Math.abs(pos-target)<0.5&&Math.abs(vel)<0.5){
+        n.style.transform='';drawGraph(positions);
+        o.classList.remove('active');o.style.cssText='';o.style.background=PAGES[prev].bg;o.style.opacity='0';
+        n.style.cssText='';n.style.background=PAGES[next].bg;n.style.opacity='1';animating=false;
+      }else rafId=requestAnimationFrame(tick);
+    }
+    setTimeout(()=>{lastTime=null;rafId=requestAnimationFrame(tick)},100);
+  }
+
+  function drawGraph(positions){
+    const ctx=canvas.getContext('2d');const w=canvas.offsetWidth||200,h=60;
+    canvas.width=w;canvas.height=h;
+    ctx.fillStyle='#0a0f14';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#21262d';ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+    ctx.strokeStyle='#58a6ff';ctx.beginPath();
+    const min=Math.min(...positions),max=Math.max(...positions),range=max-min||1;
+    positions.forEach((p,i)=>{
+      const x=i/positions.length*w,y=h-((p-min)/range*(h-8)+4);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+
+  document.querySelectorAll('#mode-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#mode-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    mode=b.dataset.m;
+    document.getElementById('css-opts').style.display=mode==='css'?'flex':'none';
+    document.getElementById('css-opts').style.flexDirection='column';document.getElementById('css-opts').style.gap='10px';
+    document.getElementById('spring-opts').style.display=mode==='spring'?'flex':'none';
+  }));
+  ovSl.addEventListener('input',()=>{overshoot=+ovSl.value;ovV.textContent=overshoot+'%'});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
+  stiffSl.addEventListener('input',()=>{stiffness=+stiffSl.value;stiffV.textContent=stiffness});
+  dampSl.addEventListener('input',()=>{damping=+dampSl.value;dampV.textContent=damping});
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
+    document.querySelectorAll('.page').forEach((el,i)=>{el.classList.toggle('active',i===0);el.style.cssText='';el.style.background=PAGES[i].bg;el.style.opacity=i===0?'1':'0'});animating=false;
+  });
+  buildKF(60);
+</script>
+</body>
+</html>

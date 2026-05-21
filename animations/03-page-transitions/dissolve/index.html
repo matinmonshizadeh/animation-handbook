@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dissolve Transition</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .page-area{flex:1;position:relative;overflow:hidden}
+    .page{position:absolute;inset:0;pointer-events:none}
+    .page.active{pointer-events:auto}
+    .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.4}
+    .ph{font-size:clamp(22px,3.5vw,36px);font-weight:bold;line-height:1.15}
+    .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:320px}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+    .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:18px 12px;font-size:11px}
+    .pstat{display:flex;gap:20px;margin-top:4px}
+    .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:var(--ui-accent)}
+    .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
+    /* Dissolve tile overlay */
+    #dissolve-overlay{position:absolute;inset:0;display:grid;z-index:10;pointer-events:none}
+    .dtile{background:var(--tile-bg,#060a10);opacity:0}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .log{display:flex;flex-direction:column;gap:2px}
+    .log-row{font-size:9px;color:var(--ui-muted)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.page{transition:opacity 300ms linear}.dtile{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Dissolve Transition</h1>
+  <p>Random tiles fade at staggered delays — a non-uniform wipe that reads as dissolving rather than fading.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <nav class="mini-nav" id="nav"></nav>
+    <div class="page-area" id="page-area">
+      <div id="dissolve-overlay"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Dissolve is a non-uniform fade. Random regions disappear at different times based on a noise pattern. This demo uses CSS transition-delay per tile for a lightweight implementation.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
+    <div class="div"></div>
+    <div class="lbl">Dissolve style</div>
+    <select id="style-sel">
+      <option value="random" selected>Pixel noise (random)</option>
+      <option value="diagonal">Diagonal sweep</option>
+      <option value="radial">Radial wipe</option>
+    </select>
+    <div><div class="lbl" id="gran-lbl">Granularity (tiles)</div>
+      <div class="sr"><input type="range" id="gran-sl" aria-labelledby="gran-lbl" min="4" max="16" value="8" step="2"><span class="sv" id="gran-v">8×8</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="200" max="2000" value="800" step="50"><span class="sv" id="dur-v">800ms</span></div>
+    </div>
+    <label class="tog" for="bi-tog"><input type="checkbox" id="bi-tog"><span>Dissolve in + out (both stages)</span></label>
+    <label class="tog" for="mask-tog"><input type="checkbox" id="mask-tog"><span>Show tile mask</span></label>
+    <div class="div"></div>
+    <div class="lbl">History</div>
+    <div class="log" id="trans-log"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">← Return to Home</button>
+  </aside>
+</div>
+<script>
+  const PAGES=[
+    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><h2 class="ph">Design without compromise.</h2><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
+    {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><h2 class="ph">The Portfolio</h2><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><h2 class="ph">Built on conviction.</h2><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+  ];
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area');
+  const overlay=document.getElementById('dissolve-overlay');
+  const curPage=document.getElementById('cur-page'),logEl=document.getElementById('trans-log');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const granSl=document.getElementById('gran-sl'),granV=document.getElementById('gran-v');
+  const styleSel=document.getElementById('style-sel'),biTog=document.getElementById('bi-tog'),maskTog=document.getElementById('mask-tog');
+  let current=0,animating=false,dur=800,gran=8,history=[];
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  PAGES.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;d.style.opacity=i===0?'1':'0';area.insertBefore(d,overlay);
+    const b=document.createElement('button');b.className='nav-btn'+(i===0?' active':'');b.textContent=p.name;b.addEventListener('click',()=>navigate(i));nav.appendChild(b);
+  });
+
+  function updateNav(n){document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===n));curPage.textContent=PAGES[n].name}
+  function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
+
+  function getDelays(n,style){
+    const total=n*n;
+    if(style==='random'){
+      const order=Array.from({length:total},(_,i)=>i).sort(()=>Math.random()-0.5);
+      return order.map((_,i)=>order.indexOf(i)/total);
+    }
+    if(style==='diagonal'){
+      return Array.from({length:total},(_,i)=>{const r=Math.floor(i/n),c=i%n;return(r+c)/(2*(n-1))});
+    }
+    // radial from center
+    return Array.from({length:total},(_,i)=>{
+      const r=Math.floor(i/n)-n/2,c=i%n-n/2;
+      const d=Math.sqrt(r*r+c*c)/Math.sqrt(2)*n/2;return d/(n*0.8);
+    });
+  }
+
+  function buildTiles(n,bg,tileDur){
+    overlay.innerHTML='';
+    overlay.style.gridTemplateColumns=`repeat(${n},1fr)`;
+    const delays=getDelays(n,styleSel.value);
+    const showMask=maskTog.checked;
+    Array.from({length:n*n},(_,i)=>{
+      const t=document.createElement('div');t.className='dtile';
+      t.style.cssText=`background:${bg};opacity:0;transition:opacity ${Math.round(tileDur*0.6)}ms ease ${Math.round(delays[i]*tileDur*0.7)}ms${showMask?';outline:1px solid rgba(255,100,100,.2)':''}`;
+      overlay.appendChild(t);
+    });
+    return delays;
+  }
+
+  function navigate(next){
+    if(next===current||animating)return;
+    const prev=current;current=next;updateNav(next);addLog(prev,next);
+    if(!motionOk){document.querySelectorAll('.page').forEach((el,i)=>{el.style.opacity=i===next?'1':'0';el.classList.toggle('active',i===next)});return;}
+    animating=true;doDissolve(prev,next);
+  }
+
+  function doDissolve(prev,next){
+    const o=document.getElementById('p'+prev),n=document.getElementById('p'+next);
+    const bg=getComputedStyle(o).background||'#060a10';
+    buildTiles(gran,bg,dur);
+    // Tiles appear over old page (dissolving it)
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      overlay.querySelectorAll('.dtile').forEach(t=>{t.style.opacity='1'});
+      const swapAt=Math.round(dur*0.6);
+      setTimeout(()=>{
+        o.classList.remove('active');o.style.opacity='0';
+        n.classList.add('active');n.style.opacity='1';
+        if(biTog.checked){
+          // Dissolve in: tiles fade back out
+          const tiles=[...overlay.querySelectorAll('.dtile')];
+          const delays=getDelays(gran,styleSel.value);
+          tiles.forEach((t,i)=>{t.style.transition=`opacity ${Math.round(dur*0.5)}ms ease ${Math.round(delays[i]*dur*0.6)}ms`;t.style.opacity='0'});
+          setTimeout(()=>{overlay.innerHTML='';animating=false},dur+50);
+        }else{
+          overlay.innerHTML='';animating=false;
+        }
+      },swapAt);
+    }));
+  }
+
+  granSl.addEventListener('input',()=>{gran=+granSl.value;granV.textContent=`${gran}×${gran}`});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
+    overlay.innerHTML='';document.querySelectorAll('.page').forEach((el,i)=>{el.classList.toggle('active',i===0);el.style.opacity=i===0?'1':'0'});animating=false;
+  });
+</script>
+</body>
+</html>

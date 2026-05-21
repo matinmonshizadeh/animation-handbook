@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal / Tunnel Zoom</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:1200ms;--ease:ease-in}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .page-area{flex:1;position:relative;overflow:hidden}
+    .page{position:absolute;inset:0;pointer-events:none;opacity:0}
+    .page.active{pointer-events:auto;opacity:1}
+    /* Portal element on each page */
+    .portal{position:absolute;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s ease}
+    @media(hover:hover){.portal:hover{transform:scale(1.06)}}
+    .portal-label{font-size:10px;text-align:center;opacity:.7;margin-top:6px;pointer-events:none}
+    /* Page content */
+    .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.4}
+    .ph{font-size:clamp(20px,3vw,34px);font-weight:bold;line-height:1.15}
+    .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:300px}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+    .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:14px 10px;font-size:11px}
+    .pstat{display:flex;gap:16px;margin-top:4px}
+    .pstat b{display:block;font-size:clamp(16px,2.2vw,22px);color:var(--ui-accent)}
+    .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
+    /* Zoom mask overlay */
+    #zoom-mask{position:absolute;inset:0;z-index:20;pointer-events:none;clip-path:circle(0% at 50% 50%);background:var(--mask-bg,#060a10);transition:clip-path var(--dur) var(--ease)}
+    #zoom-mask.expanding{clip-path:circle(150% at var(--px,50%) var(--py,50%))}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .log{display:flex;flex-direction:column;gap:2px}
+    .log-row{font-size:9px;color:var(--ui-muted)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){#zoom-mask{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Portal / Tunnel Zoom</h1>
+  <p>Zooming through a portal element — clip-path expands from the portal's center to fill the stage.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <nav class="mini-nav" id="nav"></nav>
+    <div class="page-area" id="page-area">
+      <div id="zoom-mask"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The portal reads as a window into the next page. clip-path: circle() expands from the portal's center coordinates. The new page is already rendered behind the mask before the animation starts.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
+    <div class="kv"><span>Portal</span><span class="v" id="portal-val">Click portal →</span></div>
+    <div class="div"></div>
+    <div class="lbl">Portal shape</div>
+    <select id="shape-sel">
+      <option value="circle" selected>Circle</option>
+      <option value="square">Square (inset)</option>
+    </select>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="400" max="3000" value="1200" step="100"><span class="sv" id="dur-v">1.2s</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="ease-in" selected>Ease in (zoom-in)</option>
+        <option value="ease-out">Ease out (zoom-out)</option>
+        <option value="ease-in-out">Ease in-out</option>
+        <option value="linear">Linear</option>
+      </select>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">History</div>
+    <div class="log" id="trans-log"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">← Return to Home</button>
+  </aside>
+</div>
+<script>
+  const PAGES=[
+    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',portalBg:'#1a3060',portalLabel:'Enter gallery',
+     html:`<div class="pc"><div class="pe">Creative Studio</div><h2 class="ph">Design without compromise.</h2><p class="pp">Click the portal to travel to the gallery.</p></div>`},
+    {name:'Gallery',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',portalBg:'#2a5040',portalLabel:'View about',
+     html:`<div class="pc"><div class="pe">Selected Work</div><h2 class="ph">The Portfolio</h2><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',portalBg:'#402060',portalLabel:'Return home',
+     html:`<div class="pc"><div class="pe">Our Story</div><h2 class="ph">Built on conviction.</h2><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+  ];
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area');
+  const zoomMask=document.getElementById('zoom-mask');
+  const curPage=document.getElementById('cur-page'),portalVal=document.getElementById('portal-val'),logEl=document.getElementById('trans-log');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const easeSel=document.getElementById('ease-sel'),shapeSel=document.getElementById('shape-sel');
+  let current=0,animating=false,dur=1200,history=[];
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function buildPortal(page,pageEl,next){
+    const p=document.createElement('div');p.className='portal';
+    const size=80;
+    p.style.cssText=`bottom:32px;right:32px;width:${size}px;height:${size}px;border-radius:50%;background:${page.portalBg};border:3px solid rgba(255,255,255,.2);flex-direction:column;gap:4px`;
+    p.innerHTML=`<div style="font-size:9px;opacity:.6;text-align:center;padding:4px;line-height:1.3">${page.portalLabel}</div>`;
+    p.addEventListener('click',()=>{if(!animating)navigate(next,p)});
+    pageEl.appendChild(p);
+  }
+
+  PAGES.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;
+    area.insertBefore(d,zoomMask);
+    const next=(i+1)%PAGES.length;buildPortal(p,d,next);
+    const b=document.createElement('button');b.className='nav-btn'+(i===0?' active':'');b.textContent=p.name;b.addEventListener('click',()=>{if(!animating)navigate(i,null)});nav.appendChild(b);
+  });
+
+  function updateNav(n){document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===n));curPage.textContent=PAGES[n].name}
+  function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
+
+  function navigate(next,portalEl){
+    if(next===current||animating)return;
+    const prev=current;current=next;updateNav(next);addLog(prev,next);
+    portalVal.textContent=PAGES[next].name;
+    if(!motionOk){document.querySelectorAll('.page').forEach((el,i)=>el.classList.toggle('active',i===next));return;}
+    animating=true;
+    const prevEl=document.getElementById('p'+prev),nextEl=document.getElementById('p'+next);
+    const areaRect=area.getBoundingClientRect();
+    let px='50%',py='50%';
+    if(portalEl){
+      const pr=portalEl.getBoundingClientRect();
+      px=((pr.left+pr.width/2-areaRect.left)/areaRect.width*100).toFixed(1)+'%';
+      py=((pr.top+pr.height/2-areaRect.top)/areaRect.height*100).toFixed(1)+'%';
+    }
+    // Clip the new page to nothing at the portal position, then expand to fill
+    const isSquare=shapeSel.value==='square';
+    const startClip=isSquare?`inset(${py} ${(100-parseFloat(px)).toFixed(1)}% ${(100-parseFloat(py)).toFixed(1)}% ${px})`:`circle(0% at ${px} ${py})`;
+    const endClip=isSquare?'inset(0%)':`circle(150% at ${px} ${py})`;
+    nextEl.style.clipPath=startClip;
+    nextEl.style.transition='none';
+    nextEl.classList.add('active');
+    nextEl.offsetHeight; // force reflow
+    nextEl.style.transition=`clip-path ${dur}ms ${easeSel.value}`;
+    nextEl.style.clipPath=endClip;
+    setTimeout(()=>{
+      prevEl.classList.remove('active');
+      nextEl.style.clipPath='';nextEl.style.transition='';
+      animating=false;
+    },dur+50);
+  }
+
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=(dur/1000).toFixed(1)+'s';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
+    document.querySelectorAll('.page').forEach((el,i)=>el.classList.toggle('active',i===0));zoomMask.style.clipPath='circle(0%)';zoomMask.classList.remove('expanding');animating=false;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Element Transition</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#0a0f14;overflow:hidden;display:flex;flex-direction:column}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0;align-items:center}
+    .nav-back{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:36px;opacity:0;pointer-events:none;transition:opacity .2s}
+    .nav-back.show{opacity:1;pointer-events:auto}
+    .nav-title{font-size:10px;color:var(--ui-text);letter-spacing:1px;flex:1;text-align:center}
+    .nav-label{font-size:10px;color:var(--ui-muted);letter-spacing:1px}
+    .page-area{flex:1;position:relative;overflow:hidden}
+    /* Grid page */
+    #page-grid{position:absolute;inset:0;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:auto}
+    .thumb{border-radius:10px;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;transition:transform .2s;overflow:hidden;position:relative}
+    @media(hover:hover){.thumb:hover{transform:scale(1.02)}}
+    .thumb-label{font-size:11px;font-weight:bold;line-height:1.2;margin-bottom:2px}
+    .thumb-sub{font-size:9px;opacity:.5}
+    /* Detail page */
+    #page-detail{position:absolute;inset:0;pointer-events:none;opacity:0;display:flex;flex-direction:column}
+    #page-detail.active{pointer-events:auto;opacity:1}
+    #detail-hero{height:45%;border-radius:0;transition:none}
+    #detail-body{flex:1;padding:20px;background:#0a0f14}
+    #detail-title{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:8px}
+    #detail-sub{font-size:11px;opacity:.5;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+    #detail-desc{font-size:12px;opacity:.6;line-height:1.7;max-width:360px}
+    /* FLIP element — the morphing clone */
+    #flip-el{position:fixed;border-radius:10px;pointer-events:none;z-index:100;will-change:transform}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}#page-grid{grid-template-columns:1fr 1fr}}
+    @media(prefers-reduced-motion:reduce){#flip-el{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Shared Element Transition</h1>
+  <p>FLIP technique — a thumbnail morphs continuously into a hero as pages change.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="mini-nav">
+      <button class="nav-back" id="nav-back">← Back</button>
+      <div class="nav-title" id="nav-title">Projects</div>
+    </div>
+    <div class="page-area" id="page-area">
+      <div id="page-grid"></div>
+      <div id="page-detail">
+        <div id="detail-hero"></div>
+        <div id="detail-body">
+          <div id="detail-title">Project Name</div>
+          <div id="detail-sub">Category</div>
+          <div id="detail-desc">Project description goes here.</div>
+        </div>
+      </div>
+      <div id="flip-el"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Shared element transitions create visual continuity — the user moves WITH the content. The FLIP technique measures position before and after the DOM change, then plays an inverse transform to smooth.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>View</span><span class="v" id="view-val">Grid</span></div>
+    <div class="kv"><span>Selected</span><span class="v" id="sel-val">—</span></div>
+    <div class="div"></div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="200" max="1500" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">← Return to Grid</button>
+  </aside>
+</div>
+<script>
+  const PROJECTS=[
+    {name:'Atlas',sub:'Brand Identity',desc:'A complete brand system for a mapping-technology startup — wordmark, motion language, and product icon suite.',bg:'linear-gradient(135deg,#0d2b5e,#1a4a8c)',ac:'#79c0ff'},
+    {name:'Orbit',sub:'Digital Platform',desc:'A collaboration platform for distributed design teams. Real-time editing, async review flows, approval trails.',bg:'linear-gradient(135deg,#2d1b3d,#4a2a6c)',ac:'#d2a8ff'},
+    {name:'Prism',sub:'Mobile Application',desc:'A personal finance app that makes spending visible through a live data-art dashboard.',bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',ac:'#56d364'},
+    {name:'Lumen',sub:'E-commerce',desc:'Redesign of a lighting brand\'s online store — focused on large-format product photography and editorial layout.',bg:'linear-gradient(135deg,#3d2000,#6c3a00)',ac:'#ffa657'},
+  ];
+  const grid=document.getElementById('page-grid'),detail=document.getElementById('page-detail');
+  const detailHero=document.getElementById('detail-hero'),detailTitle=document.getElementById('detail-title');
+  const detailSub=document.getElementById('detail-sub'),detailDesc=document.getElementById('detail-desc');
+  const flipEl=document.getElementById('flip-el'),navBack=document.getElementById('nav-back');
+  const navTitle=document.getElementById('nav-title'),viewVal=document.getElementById('view-val'),selVal=document.getElementById('sel-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v'),easeSel=document.getElementById('ease-sel');
+  let dur=500,animating=false,currentView='grid';
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let thumbEls=[];
+
+  PROJECTS.forEach((p,i)=>{
+    const el=document.createElement('div');el.className='thumb';el.id='thumb'+i;
+    el.style.background=p.bg;
+    el.innerHTML=`<div class="thumb-label" style="color:${p.ac}">${p.name}</div><div class="thumb-sub">${p.sub}</div>`;
+    el.addEventListener('click',()=>{if(!animating)openDetail(i)});
+    grid.appendChild(el);thumbEls.push(el);
+  });
+
+  function openDetail(i){
+    animating=true;const p=PROJECTS[i];
+    selVal.textContent=p.name;viewVal.textContent='Detail';
+    // FIRST: record thumb rect
+    const thumbRect=thumbEls[i].getBoundingClientRect();
+    // Set detail content
+    detailHero.style.background=p.bg;detailTitle.textContent=p.name;detailTitle.style.color=p.ac;
+    detailSub.textContent=p.sub;detailDesc.textContent=p.desc;
+    // LAST: show detail to get hero rect
+    detail.classList.add('active');
+    const heroRect=detailHero.getBoundingClientRect();
+    if(!motionOk){navBack.classList.add('show');navTitle.textContent=p.name;grid.style.opacity='0';grid.style.pointerEvents='none';animating=false;return;}
+    // FLIP: animate the shared element
+    flipEl.style.cssText=`background:${p.bg};border-radius:10px;width:${thumbRect.width}px;height:${thumbRect.height}px;top:${thumbRect.top}px;left:${thumbRect.left}px;transition:none;display:block`;
+    grid.style.opacity='0';grid.style.transition=`opacity ${Math.round(dur*0.4)}ms ease`;
+    detail.style.opacity='0';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      flipEl.style.transition=`all ${dur}ms ${easeSel.value}`;
+      flipEl.style.top=heroRect.top+'px';flipEl.style.left=heroRect.left+'px';
+      flipEl.style.width=heroRect.width+'px';flipEl.style.height=heroRect.height+'px';flipEl.style.borderRadius='0';
+      detail.style.transition=`opacity ${Math.round(dur*0.4)}ms ease ${Math.round(dur*0.6)}ms`;
+      detail.style.opacity='1';
+      setTimeout(()=>{
+        flipEl.style.display='none';
+        navBack.classList.add('show');navTitle.textContent=p.name;
+        currentView='detail';animating=false;
+      },dur+50);
+    }));
+  }
+
+  function closeDetail(){
+    if(animating||currentView!=='detail')return;
+    animating=true;viewVal.textContent='Grid';selVal.textContent='—';
+    navBack.classList.remove('show');navTitle.textContent='Projects';
+    if(!motionOk){detail.classList.remove('active');detail.style.opacity='0';grid.style.opacity='1';grid.style.pointerEvents='auto';currentView='grid';animating=false;return;}
+    detail.style.transition=`opacity ${Math.round(dur*0.3)}ms ease`;detail.style.opacity='0';
+    setTimeout(()=>{
+      detail.classList.remove('active');grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(dur*0.4)}ms ease`;grid.style.pointerEvents='auto';
+      currentView='grid';animating=false;
+    },Math.round(dur*0.3)+50);
+  }
+
+  navBack.addEventListener('click',closeDetail);
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
+  document.getElementById('rst-btn').addEventListener('click',closeDetail);
+</script>
+</body>
+</html>

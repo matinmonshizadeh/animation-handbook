@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Transitions API</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--vt-dur:0.5s;--vt-ease:ease-in-out}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .page-area{flex:1;position:relative;overflow:hidden;view-transition-name:page-content}
+    .page{position:absolute;inset:0;pointer-events:none}
+    .page.active{pointer-events:auto}
+    /* Suppress root animation — we only want page-content to animate */
+    ::view-transition-old(root),::view-transition-new(root){animation:none}
+    /* Default: crossfade */
+    ::view-transition-old(page-content){animation:vt-out var(--vt-dur) var(--vt-ease) both}
+    ::view-transition-new(page-content){animation:vt-in var(--vt-dur) var(--vt-ease) both}
+    @keyframes vt-out{from{opacity:1}to{opacity:0}}
+    @keyframes vt-in{from{opacity:0}to{opacity:1}}
+    /* Slide style */
+    [data-vt="slide"]::view-transition-old(page-content){animation:vt-slide-out var(--vt-dur) var(--vt-ease) both}
+    [data-vt="slide"]::view-transition-new(page-content){animation:vt-slide-in var(--vt-dur) var(--vt-ease) both}
+    @keyframes vt-slide-out{to{transform:translateX(-100%)}}
+    @keyframes vt-slide-in{from{transform:translateX(100%)}}
+    /* Zoom style */
+    [data-vt="zoom"]::view-transition-old(page-content){animation:vt-zoom-out var(--vt-dur) var(--vt-ease) both}
+    [data-vt="zoom"]::view-transition-new(page-content){animation:vt-zoom-in var(--vt-dur) var(--vt-ease) both}
+    @keyframes vt-zoom-out{to{opacity:0;transform:scale(0.8)}}
+    @keyframes vt-zoom-in{from{opacity:0;transform:scale(1.15)}}
+    /* Custom style */
+    [data-vt="custom"]::view-transition-old(page-content){animation:vt-custom-out var(--vt-dur) var(--vt-ease) both}
+    [data-vt="custom"]::view-transition-new(page-content){animation:vt-custom-in var(--vt-dur) var(--vt-ease) both}
+    @keyframes vt-custom-out{to{opacity:0;transform:scale(0.9) rotate(-2deg)}}
+    @keyframes vt-custom-in{from{opacity:0;transform:scale(0.9) rotate(2deg)}}
+    .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.4}
+    .ph{font-size:clamp(22px,3.5vw,36px);font-weight:bold;line-height:1.15}
+    .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:320px}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+    .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:18px 12px;font-size:11px}
+    .pstat{display:flex;gap:20px;margin-top:4px}
+    .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:var(--ui-accent)}
+    .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
+    .support-banner{font-size:10px;padding:6px 10px;border-radius:4px;margin-bottom:4px}
+    .support-banner.ok{background:#0d2010;color:#56d364;border:1px solid #1a4020}
+    .support-banner.no{background:#2a0d0d;color:#f78166;border:1px solid #401a1a}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .log{display:flex;flex-direction:column;gap:2px}
+    .log-row{font-size:9px;color:var(--ui-muted)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){::view-transition-old(page-content),::view-transition-new(page-content){animation:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>View Transitions API</h1>
+  <p>document.startViewTransition() — the browser captures before/after and animates automatically.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <nav class="mini-nav" id="nav"></nav>
+    <div class="page-area" id="page-area"></div>
+  </div>
+  <aside>
+    <p class="note">View Transitions API wraps any DOM change and the browser handles capture and animation. CSS pseudo-elements ::view-transition-old() and ::view-transition-new() let you customize the choreography.</p>
+    <div id="support-banner" class="support-banner ok">✓ Supported in this browser</div>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
+    <div class="div"></div>
+    <div class="lbl">Transition style</div>
+    <select id="style-sel">
+      <option value="crossfade" selected>Crossfade (default)</option>
+      <option value="slide">Slide</option>
+      <option value="zoom">Zoom</option>
+      <option value="custom">Custom (rotate)</option>
+    </select>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="ease-in-out" selected>Ease in-out</option>
+        <option value="ease-out">Ease out</option>
+        <option value="linear">Linear</option>
+        <option value="cubic-bezier(.2,.7,.3,1)">Smooth</option>
+      </select>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">History</div>
+    <div class="log" id="trans-log"></div>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">← Return to Home</button>
+  </aside>
+</div>
+<script>
+  const PAGES=[
+    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><h2 class="ph">Design without compromise.</h2><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
+    {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><h2 class="ph">The Portfolio</h2><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><h2 class="ph">Built on conviction.</h2><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+  ];
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area');
+  const curPage=document.getElementById('cur-page'),logEl=document.getElementById('trans-log');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const easeSel=document.getElementById('ease-sel'),styleSel=document.getElementById('style-sel');
+  const supportBanner=document.getElementById('support-banner');
+  const supportsVT='startViewTransition' in document;
+  let current=0,animating=false,history=[];
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  if(!supportsVT){supportBanner.className='support-banner no';supportBanner.textContent='✗ Not supported — using crossfade fallback';}
+
+  PAGES.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;d.style.opacity=i===0?'1':'0';area.appendChild(d);
+    const b=document.createElement('button');b.className='nav-btn'+(i===0?' active':'');b.textContent=p.name;b.addEventListener('click',()=>navigate(i));nav.appendChild(b);
+  });
+
+  function updateNav(n){document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===n));curPage.textContent=PAGES[n].name}
+  function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
+
+  function switchPage(prev,next){
+    document.getElementById('p'+prev).classList.remove('active');document.getElementById('p'+prev).style.opacity='0';
+    document.getElementById('p'+next).classList.add('active');document.getElementById('p'+next).style.opacity='1';
+  }
+
+  async function navigate(next){
+    if(next===current||animating)return;
+    const prev=current;current=next;updateNav(next);addLog(prev,next);
+    if(!motionOk){switchPage(prev,next);return;}
+    animating=true;
+    const style=styleSel.value;
+    document.documentElement.dataset.vt=style==='crossfade'?'':style;
+    if(supportsVT){
+      const t=document.startViewTransition(()=>switchPage(prev,next));
+      await t.finished;
+    }else{
+      // Fallback crossfade
+      const o=document.getElementById('p'+prev),n=document.getElementById('p'+next);
+      o.style.transition=`opacity 300ms ease-in-out`;n.style.transition=`opacity 300ms ease-in-out`;
+      o.style.opacity='0';n.style.opacity='1';n.classList.add('active');
+      await new Promise(r=>setTimeout(r,350));
+      o.classList.remove('active');o.style.cssText='';o.style.background=PAGES[prev].bg;o.style.opacity='0';n.style.cssText='';n.style.background=PAGES[next].bg;
+    }
+    animating=false;
+  }
+
+  durSl.addEventListener('input',()=>{const d=durSl.value+'ms';durV.textContent=d;document.documentElement.style.setProperty('--vt-dur',d)});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--vt-ease',easeSel.value));
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
+    document.querySelectorAll('.page').forEach((el,i)=>{el.classList.toggle('active',i===0);el.style.cssText='';el.style.background=PAGES[i].bg;el.style.opacity=i===0?'1':'0'});animating=false;
+  });
+</script>
+</body>
+</html>

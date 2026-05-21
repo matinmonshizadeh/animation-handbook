@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLIP Technique</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .stage-toolbar{display:flex;gap:6px;padding:10px 12px;background:#0d1117;border-bottom:1px solid var(--ui-border);flex-shrink:0;flex-wrap:wrap}
+    .tb-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:36px}
+    .tb-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .tb-btn.active-layout{border-color:var(--ui-accent);color:var(--ui-accent)}
+    .page-area{flex:1;position:relative;overflow:hidden;padding:16px}
+    #card-grid{display:grid;gap:10px;transition:none}
+    .flip-card{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;cursor:default;will-change:transform;position:relative}
+    .card-num{font-size:32px;font-weight:bold;opacity:.15;line-height:1;position:absolute;top:10px;right:12px}
+    .card-name{font-size:12px;font-weight:bold;margin-bottom:2px}
+    .card-meta{font-size:10px;opacity:.5}
+    /* Invert step overlay */
+    .invert-badge{position:absolute;top:4px;left:4px;font-size:8px;background:rgba(0,0,0,.7);color:var(--ui-accent);padding:2px 6px;border-radius:3px;display:none}
+    .invert-badge.show{display:block}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.flip-card{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>FLIP Technique</h1>
+  <p>First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="stage-toolbar">
+      <button class="tb-btn" id="btn-shuffle">⟳ Shuffle</button>
+      <button class="tb-btn" id="btn-color">Sort by color</button>
+      <button class="tb-btn" id="btn-size">Sort by size</button>
+      <button class="tb-btn active-layout" id="btn-3col" data-cols="3">3 cols</button>
+      <button class="tb-btn" id="btn-2col" data-cols="2">2 cols</button>
+      <button class="tb-btn" id="btn-list" data-cols="1">List</button>
+    </div>
+    <div class="page-area">
+      <div id="card-grid"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">FLIP solves layout animation: 1. Record First positions. 2. Apply new layout (cards jump instantly). 3. Invert — apply a transform that puts each card back visually at its original spot. 4. Play the transform to zero so cards glide to their real positions.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Layout</span><span class="v" id="layout-val">3 columns</span></div>
+    <div class="kv"><span>FLIP step</span><span class="v" id="step-val">idle</span></div>
+    <div class="div"></div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1500" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+        <option value="linear">Linear</option>
+      </select>
+    </div>
+    <label class="tog" for="show-inv"><input type="checkbox" id="show-inv"><span>Show Invert step</span></label>
+    <div class="div"></div>
+    <button class="rst" id="rst-btn">Reset layout</button>
+  </aside>
+</div>
+<script>
+  const CARDS=[
+    {name:'Atlas',meta:'Brand identity',bg:'linear-gradient(135deg,#0d2b5e,#1a4a8c)',h:1,colorRank:1},
+    {name:'Orbit',meta:'Digital platform',bg:'linear-gradient(135deg,#2d1b3d,#4a2a6c)',h:2,colorRank:4},
+    {name:'Prism',meta:'Mobile app',bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',h:1,colorRank:2},
+    {name:'Lumen',meta:'E-commerce',bg:'linear-gradient(135deg,#3d2000,#6c3a00)',h:2,colorRank:5},
+    {name:'Frame',meta:'Design system',bg:'linear-gradient(135deg,#0d3a3a,#1a5c5c)',h:1,colorRank:3},
+    {name:'Echo',meta:'Audio product',bg:'linear-gradient(135deg,#3d0028,#6c004a)',h:2,colorRank:6},
+  ];
+  const grid=document.getElementById('card-grid');
+  const layoutVal=document.getElementById('layout-val'),stepVal=document.getElementById('step-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const easeSel=document.getElementById('ease-sel'),showInvTog=document.getElementById('show-inv');
+  let dur=500,cols=3,order=[0,1,2,3,4,5],animating=false;
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function renderCards(){
+    grid.innerHTML='';
+    grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    order.forEach(i=>{
+      const c=CARDS[i];const el=document.createElement('div');el.className='flip-card';el.id='fc'+i;
+      const h=cols===1?'56px':(c.h===2?'140px':'110px');
+      el.style.cssText=`background:${c.bg};height:${h}`;
+      el.innerHTML=`<div class="card-num">${String(i+1).padStart(2,'0')}</div><div class="card-name">${c.name}</div><div class="card-meta">${c.meta}</div><div class="invert-badge" id="ib${i}">INVERTED</div>`;
+      grid.appendChild(el);
+    });
+  }
+
+  function doFlip(newOrderOrCols,newCols){
+    if(animating)return;animating=true;
+    // FIRST: record positions
+    const cards=[...grid.querySelectorAll('.flip-card')];
+    const first={};cards.forEach(c=>{first[c.id]=c.getBoundingClientRect()});
+    stepVal.textContent='First ✓';
+    // LAST: apply new layout
+    if(newCols!==undefined){cols=newCols;}
+    if(newOrderOrCols){order=newOrderOrCols;}
+    renderCards();
+    grid.offsetHeight; // force reflow
+    stepVal.textContent='Last ✓ — Inverting';
+    if(!motionOk){animating=false;stepVal.textContent='idle';return;}
+    // INVERT: apply transforms to put cards back at original positions
+    const newCards=[...grid.querySelectorAll('.flip-card')];
+    newCards.forEach(c=>{
+      const f=first[c.id];if(!f)return;
+      const last=c.getBoundingClientRect();
+      const dx=f.left-last.left,dy=f.top-last.top;
+      c.style.transform=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+      c.style.transition='none';
+      if(showInvTog.checked){const b=document.getElementById('ib'+c.id.replace('fc',''));if(b)b.className='invert-badge show';}
+    });
+    // PLAY: animate to zero
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      stepVal.textContent='Playing →';
+      const ease=easeSel.value;
+      newCards.forEach(c=>{
+        c.style.transition=`transform ${dur}ms ${ease}`;
+        c.style.transform='';
+        const b=document.getElementById('ib'+c.id.replace('fc',''));if(b)setTimeout(()=>b.className='invert-badge',dur*0.3);
+      });
+      setTimeout(()=>{stepVal.textContent='idle';animating=false},dur+50);
+    }));
+  }
+
+  document.getElementById('btn-shuffle').addEventListener('click',()=>{
+    const o=[...order];for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]];}doFlip(o);
+  });
+  document.getElementById('btn-color').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[a].colorRank-CARDS[b].colorRank)));
+  document.getElementById('btn-size').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[b].h-CARDS[a].h)));
+  document.querySelectorAll('[data-cols]').forEach(b=>b.addEventListener('click',()=>{
+    const c=+b.dataset.cols;
+    document.querySelectorAll('[data-cols]').forEach(x=>x.classList.remove('active-layout'));b.classList.add('active-layout');
+    const labels={1:'List',2:'2 columns',3:'3 columns'};layoutVal.textContent=labels[c];
+    doFlip(null,c);
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    if(animating)return;order=[0,1,2,3,4,5];cols=3;
+    document.querySelectorAll('[data-cols]').forEach(x=>x.classList.remove('active-layout'));document.getElementById('btn-3col').classList.add('active-layout');
+    layoutVal.textContent='3 columns';renderCards();stepVal.textContent='idle';
+  });
+  renderCards();
+</script>
+</body>
+</html>
