@@ -5,7 +5,7 @@ own page with a working demo and a short explanation of how it works.
 
 ## Categories
 - [Scroll-Based](animations/01-scroll-based/)
-- [Transitions](animations/02-transitions/)
+- [Entrance & Exit](animations/02-entrance-and-exit/)
 - [Micro-Interactions](animations/03-micro-interactions/)
 - [Text & Typography](animations/04-text-typography/)
 - [3D & Advanced](animations/05-3d-advanced/)
