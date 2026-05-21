@@ -5,204 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Animation Atlas</title>
   <style>
-    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--text:#c9d1d9;--muted:#8b949e;--accent1:#58a6ff;--accent2:#56d364;--stage-h:auto}
+    :root{--bg:#060a10;--ui-bg:#0d1117;--border:#21262d;--text:#c9d1d9;--muted:#8b949e;--c1:#58a6ff;--c2:#56d364;--c3:#d2a8ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:monospace;padding:clamp(20px,4vw,56px) clamp(16px,4vw,48px);max-width:960px;margin:0 auto}
+    body{background:var(--bg);color:var(--text);font-family:monospace;padding:clamp(20px,4vw,56px) clamp(16px,4vw,48px);max-width:1100px;margin:0 auto}
     /* Hero */
-    .hero{margin-bottom:clamp(32px,5vw,56px);padding-bottom:28px;border-bottom:1px solid var(--ui-border)}
-    h1{font-size:clamp(14px,2.2vw,20px);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
-    .hero-sub{font-size:clamp(11px,1.4vw,13px);color:var(--muted);line-height:1.65;max-width:540px;margin-bottom:16px}
+    .hero{margin-bottom:clamp(40px,6vw,72px);padding-bottom:32px;border-bottom:1px solid var(--border)}
+    h1{font-size:clamp(14px,2.4vw,22px);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px}
+    .hero-sub{font-size:clamp(11px,1.4vw,13px);color:var(--muted);line-height:1.7;max-width:560px;margin-bottom:20px}
     .hero-meta{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-    .hero-link{font-size:11px;color:var(--accent1);text-decoration:none;letter-spacing:1px}
+    .hero-link{font-size:11px;color:var(--c1);text-decoration:none;letter-spacing:1px}
     @media(hover:hover){.hero-link:hover{text-decoration:underline}}
-    .badge{font-size:10px;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--muted);padding:4px 10px;border-radius:20px;letter-spacing:1px}
+    .badge{font-size:10px;background:var(--ui-bg);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:20px;letter-spacing:1px;white-space:nowrap}
     /* Category */
-    .category{margin-bottom:clamp(32px,5vw,48px)}
-    .cat-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
-    h2{font-size:clamp(11px,1.5vw,13px);text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
-    .cat-accent{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:4px}
-    .cat-desc{font-size:11px;color:var(--muted);margin-bottom:16px;padding-left:4px}
-    /* Cards grid */
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(200px,28%,280px),1fr));gap:8px}
-    .card{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;overflow:hidden;transition:border-color .15s}
-    @media(hover:hover){.card:hover{border-color:var(--card-accent,var(--accent1))}}
+    .cat{margin-bottom:clamp(40px,6vw,64px)}
+    .cat-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    h2{font-size:clamp(10px,1.4vw,12px);text-transform:uppercase;letter-spacing:2.5px;color:var(--muted)}
+    .cat-desc{font-size:11px;color:var(--muted);margin-bottom:20px;padding-left:18px;line-height:1.6}
+    /* Card grid */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    @media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--ui-bg);border:1px solid var(--border);border-radius:6px;transition:border-color .15s,transform .15s;min-height:80px}
+    @media(hover:hover){.card:hover{transform:translateY(-1px)}}
     .card a{display:block;padding:14px 16px;text-decoration:none;color:inherit;height:100%}
-    .card-name{font-size:clamp(11px,1.3vw,13px);font-weight:bold;color:var(--card-accent,var(--accent1));margin-bottom:5px}
+    .card-name{font-size:clamp(11px,1.3vw,13px);font-weight:bold;margin-bottom:5px;transition:color .15s}
     .card-desc{font-size:10px;color:var(--muted);line-height:1.6}
+    /* Per-category accent on hover */
+    .c1-cat .card:hover{border-color:var(--c1)}.c1-cat .card:hover .card-name{color:var(--c1)}
+    .c2-cat .card:hover{border-color:var(--c2)}.c2-cat .card:hover .card-name{color:var(--c2)}
+    .c3-cat .card:hover{border-color:var(--c3)}.c3-cat .card:hover .card-name{color:var(--c3)}
     /* Coming soon */
-    .planned{margin-bottom:clamp(24px,4vw,40px)}
-    .planned h2{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;opacity:.5}
-    .planned-list{display:flex;gap:8px;flex-wrap:wrap}
-    .soon{font-size:10px;color:var(--muted);background:var(--ui-bg);border:1px solid var(--ui-border);padding:6px 12px;border-radius:20px;opacity:.4;letter-spacing:1px}
-    @media(max-width:600px){.grid{grid-template-columns:1fr}.hero-meta{flex-direction:column;align-items:flex-start}}
+    .planned{margin-bottom:16px}
+    .planned h2{font-size:10px;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-bottom:12px;opacity:.45}
+    .soon-list{display:flex;gap:8px;flex-wrap:wrap}
+    .soon{font-size:10px;color:var(--muted);background:var(--ui-bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;opacity:.35;letter-spacing:1px}
+    @media(max-width:600px){.hero-meta{flex-direction:column;align-items:flex-start}}
   </style>
 </head>
 <body>
-  <div class="hero">
-    <h1>Animation Atlas</h1>
-    <p class="hero-sub">A visual reference of web animation techniques. Each entry is a self-contained demo with an explanation of the mechanic — open an HTML file, it runs offline.</p>
-    <div class="hero-meta">
-      <a class="hero-link" href="https://github.com/matinmonshizadeh/animation-handbook">github.com/matinmonshizadeh/animation-handbook →</a>
-      <span class="badge">32 animations · 2 categories</span>
-    </div>
+<div class="hero">
+  <h1>Animation Atlas</h1>
+  <p class="hero-sub">A visual reference of web animation techniques. Each entry is a self-contained demo with an explanation of the mechanic — open any HTML file and it runs offline, no build step.</p>
+  <div class="hero-meta">
+    <a class="hero-link" href="https://github.com/matinmonshizadeh/animation-handbook">github.com/matinmonshizadeh/animation-handbook →</a>
+    <span class="badge">44 animations · 3 categories</span>
   </div>
+</div>
+<div id="root"></div>
+<script>
+const CATS=[
+  {
+    name:'Scroll-Based',cat:'c1-cat',dot:'#58a6ff',n:'01',
+    desc:'Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling.',
+    folder:'animations/01-scroll-based',
+    entries:[
+      ['parallax-depth-of-field','Parallax Depth-of-Field','Five mountain layers translate at different speeds; blur simulates camera depth-of-field.'],
+      ['parallax-scrolling','Parallax Scrolling','Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.'],
+      ['reverse-scrolling-columns','Reverse-Scrolling Columns','A center column scrolls normally while two flanking columns scroll in reverse, looping infinitely.'],
+      ['cover-card-to-fixed-header','Cover Card to Fixed Header','A full-page hero morphs into a compact fixed header — every visual property scrubbed to a single progress value.'],
+      ['fly-in-fly-out-contact-list','Fly-in Fly-out Contact List','Rows translate and fade through entry, active, and exit zones as you scroll — bidirectional and continuous.'],
+      ['stacking-cards','Stacking Cards','CSS Scroll-Driven Animations fan cards into a deck — per-index sticky offset creates the visible peek tab.'],
+      ['scroll-trigger','ScrollTrigger Animation','The onEnter / onLeave lifecycle demonstrated with vanilla JS — four scroll trigger zones.'],
+      ['scrub-animation','Scrub Animation','Every transform welded to scroll position — scrub backward and the animation reverses perfectly.'],
+      ['pin-animation','Pin Animation','An element freezes in place while the page scrolls beneath it — CSS sticky, no JavaScript pinning.'],
+      ['snap-scrolling','Snap Scrolling','CSS scroll-snap-type creates a paginated, magnetic feel — mandatory, proximity, and none compared.'],
+      ['scrollytelling','Scrollytelling','Fractional chapter progress drives continuous depth crossfades across six ocean-layer chapters.'],
+      ['reveal-on-scroll','Reveal on Scroll','Seven reveal techniques fired by IntersectionObserver at a configurable trigger line.'],
+      ['stagger-reveal','Stagger Reveal','Groups reveal with cascading delays — forward, reverse, center-out, and random cascade directions.'],
+      ['horizontal-scroll','Horizontal Scroll','Vertical scroll translates a horizontal panel strip — a tall pinned section provides the scroll budget.'],
+      ['sticky-section','Sticky Section','The whole section pins while its interior morphs through four states scrubbed to scroll position.'],
+      ['counter-animation','Counter Animation','Numbers count 0 → target with easing on scroll entry — four formats and configurable curve.'],
+      ['progress-bar','Progress Bar','Reading progress in three styles — top bar, circular ring, and side rail — driven by scrollTop / scrollHeight.'],
+      ['section-wipe','Section Wipe','The next section slides over the current via sticky z-index stacking — scale-down adds depth.'],
+      ['zoom-into-image','Zoom Into Image','clip-path expands from a framed card to full-bleed as you scroll — the portal effect.'],
+    ]
+  },
+  {
+    name:'Entrance & Exit',cat:'c2-cat',dot:'#56d364',n:'02',
+    desc:'Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.',
+    folder:'animations/02-entrance-and-exit',
+    entries:[
+      ['fade-in-out','Fade In / Fade Out','Opacity 0 → 1 enter, 1 → 0 exit — the compositor handles this without re-painting.'],
+      ['slide-in','Slide In','Translates from an off-screen edge into final position — with or without simultaneous fade.'],
+      ['slide-up-reveal','Slide Up Reveal','Text rises from below its clip boundary — translateY method vs clip-path inset, identical visual result.'],
+      ['scale-in','Scale In / Zoom In','Scales from a small start value to 1.0 — transform-origin controls where the pop expands from.'],
+      ['clip-path-reveal','Clip-Path Reveal','A shape mask expands to uncover the element — content is always rendered, just progressively visible.'],
+      ['curtain-reveal','Curtain Reveal','A colored bar slides over content then off the other side — the reveal is hidden then exposed.'],
+      ['split-text-reveal','Split Text Reveal','Text split into chars, words, or lines — each piece staggers with --index CSS transition-delay.'],
+      ['letter-by-letter-stagger','Letter-by-Letter Stagger','CSS transition-delay cascade per letter, or JS typewriter mode with a blinking cursor.'],
+      ['word-by-word-reveal','Word-by-Word Reveal','Words animate sequentially at 80–120ms per word — the readable stagger speed for taglines.'],
+      ['blur-in','Blur In','Fades in while reducing blur — mimics camera focus pulling. Best on single hero elements.'],
+      ['flip-in','Flip In','Rotates from a flat plane into view using CSS 3D perspective — perspective on the parent is the key.'],
+      ['bounce-in','Bounce In','Overshoots final position then springs back — explicit @keyframes waypoints, not easing alone.'],
+      ['rotate-in','Rotate In','Spins while entering — best on radially-symmetric shapes like icons, stars, and gears.'],
+    ]
+  },
+  {
+    name:'Page Transitions',cat:'c3-cat',dot:'#d2a8ff',n:'03',
+    desc:'Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API.',
+    folder:'animations/03-page-transitions',
+    entries:[
+      ['view-transitions-api','View Transitions API','document.startViewTransition() — the browser captures before/after and animates automatically.'],
+      ['shared-element-transition','Shared Element Transition','A thumbnail morphs continuously into a detail hero as pages change — the FLIP technique applied.'],
+      ['morph-transition','Morph Transition','An SVG path morphs between page-specific shapes — point-by-point interpolation across 12-vertex paths.'],
+      ['crossfade','Crossfade','Both pages visible simultaneously at ~50% opacity mid-transition — compare with sequential fade.'],
+      ['slide-transition','Slide Transition','Directional slides with forward/back awareness — matches native iOS and Android navigation patterns.'],
+      ['zoom-transition','Zoom Transition','Three scale variants — zoom-in, zoom-out, pull-through — each implying different spatial depth.'],
+      ['flash-transition','Flash / Light Leak','A colored flash peaks at full opacity, hides the page swap, then fades to reveal the new scene.'],
+      ['blur-transition','Blur Transition','Current page blurs and fades out, then new page sharpens in — a defocus wipe between scenes.'],
+      ['elastic-transition','Elastic Transition','Spring physics cause overshoot before settling — CSS keyframes or live JS spring simulation.'],
+      ['portal-zoom','Portal / Tunnel Zoom','clip-path expands from a portal element\'s center, zooming the viewport into the next page.'],
+      ['dissolve','Dissolve','Random tiles fade at staggered delays — a non-uniform wipe that reads as dissolving rather than fading.'],
+      ['flip-technique','FLIP Technique','First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.'],
+    ]
+  }
+];
 
-  <div class="category" style="--card-accent:var(--accent1)">
-    <div class="cat-head">
-      <span class="cat-accent" style="background:var(--accent1)"></span>
-      <h2>01 — Scroll-Based</h2>
-    </div>
-    <p class="cat-desc">Animations driven by scroll position — parallax, sticky, scrub, snap, and storytelling.</p>
-    <div class="grid">
-      <div class="card"><a href="animations/01-scroll-based/parallax-depth-of-field/">
-        <div class="card-name">Parallax Depth-of-Field</div>
-        <div class="card-desc">Five mountain layers with parallax translation and blur-based depth-of-field driven by scroll.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/parallax-scrolling/">
-        <div class="card-name">Parallax Scrolling</div>
-        <div class="card-desc">Four SVG layers at different scroll speeds create a 3D depth illusion; adjustable speed multipliers.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/reverse-scrolling-columns/">
-        <div class="card-name">Reverse-Scrolling Columns</div>
-        <div class="card-desc">A center column scrolls normally while two flanking columns scroll in reverse, looping infinitely.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/cover-card-to-fixed-header/">
-        <div class="card-name">Cover Card to Fixed Header</div>
-        <div class="card-desc">A hero cover card scrubs into a compact fixed header — height, font size, opacity, blur from one eased value.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/fly-in-fly-out-contact-list/">
-        <div class="card-name">Fly-in Fly-out Contact List</div>
-        <div class="card-desc">Rows translate and fade through entry, active, and exit zones as you scroll — continuous, bidirectional.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/stacking-cards/">
-        <div class="card-name">Stacking Cards</div>
-        <div class="card-desc">Cards fan into a deck — per-index sticky offset creates the peek tab, CSS Scroll-Driven Animations drive scale.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/scroll-trigger/">
-        <div class="card-name">ScrollTrigger Animation</div>
-        <div class="card-desc">The onEnter / onLeave lifecycle demonstrated with vanilla JS — four zones, fade, scrub, pin, and snap.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/scrub-animation/">
-        <div class="card-name">Scrub Animation</div>
-        <div class="card-desc">A camera lens disassembles in five stages as you scroll — every transform welded to scroll position, no autoplay.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/pin-animation/">
-        <div class="card-name">Pin Animation</div>
-        <div class="card-desc">A phone mockup pins to the viewport while four features swap in sequence — CSS sticky, no JS pinning.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/snap-scrolling/">
-        <div class="card-name">Snap Scrolling</div>
-        <div class="card-desc">CSS scroll-snap-type creates a paginated, magnetic feel — switch between mandatory, proximity, and none.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/scrollytelling/">
-        <div class="card-name">Scrollytelling</div>
-        <div class="card-desc">Fractional chapter progress drives continuous depth crossfades across six ocean-layer chapters.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/reveal-on-scroll/">
-        <div class="card-name">Reveal on Scroll</div>
-        <div class="card-desc">Seven reveal techniques fired by IntersectionObserver at a configurable trigger line.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/stagger-reveal/">
-        <div class="card-name">Stagger Reveal</div>
-        <div class="card-desc">Groups reveal with cascading delays — forward, reverse, center-out, and random across grid, list, and chips.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/horizontal-scroll/">
-        <div class="card-name">Horizontal Scroll</div>
-        <div class="card-desc">Vertical scroll translates a horizontal panel strip — a tall pinned section provides the scroll budget.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/sticky-section/">
-        <div class="card-name">Sticky Section</div>
-        <div class="card-desc">The whole section pins while its interior morphs through four states scrubbed to scroll position.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/counter-animation/">
-        <div class="card-name">Counter Animation</div>
-        <div class="card-desc">Numbers count 0 → target with easing when the stats section enters the viewport — four formats, stagger support.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/progress-bar/">
-        <div class="card-name">Progress Bar</div>
-        <div class="card-desc">Reading progress in three styles — top bar, circular ring, and side rail — driven by scrollTop / scrollHeight.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/section-wipe/">
-        <div class="card-name">Section Wipe</div>
-        <div class="card-desc">The next section slides over the current via sticky z-index stacking; scale-down adds depth to the transition.</div>
-      </a></div>
-      <div class="card"><a href="animations/01-scroll-based/zoom-into-image/">
-        <div class="card-name">Zoom Into Image</div>
-        <div class="card-desc">clip-path expands from a framed card to full-bleed as you scroll — the portal effect.</div>
-      </a></div>
-    </div>
-  </div>
+const root=document.getElementById('root');
+CATS.forEach(cat=>{
+  const sec=document.createElement('div');sec.className='cat '+cat.cat;
+  sec.innerHTML=`<div class="cat-head"><span class="cat-dot" style="background:${cat.dot}"></span><h2>${cat.n} — ${cat.name}</h2></div><p class="cat-desc">${cat.desc}</p>`;
+  const grid=document.createElement('div');grid.className='grid';
+  cat.entries.forEach(([slug,name,desc])=>{
+    grid.innerHTML+=`<div class="card"><a href="${cat.folder}/${slug}/"><div class="card-name">${name}</div><div class="card-desc">${desc}</div></a></div>`;
+  });
+  sec.appendChild(grid);root.appendChild(sec);
+});
 
-  <div class="category" style="--card-accent:var(--accent2)">
-    <div class="cat-head">
-      <span class="cat-accent" style="background:var(--accent2)"></span>
-      <h2>02 — Entrance &amp; Exit</h2>
-    </div>
-    <p class="cat-desc">Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.</p>
-    <div class="grid">
-      <div class="card"><a href="animations/02-entrance-and-exit/fade-in-out/">
-        <div class="card-name">Fade In / Fade Out</div>
-        <div class="card-desc">Opacity 0 → 1 enter, 1 → 0 exit. The compositor handles this without re-painting — the cheapest animation.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/slide-in/">
-        <div class="card-name">Slide In</div>
-        <div class="card-desc">Translates from an off-screen edge into final position — combine with fade for natural arrival feel.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/slide-up-reveal/">
-        <div class="card-name">Slide Up Reveal</div>
-        <div class="card-desc">Text rises from below its clip boundary — two technique variants: translateY and clip-path inset.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/scale-in/">
-        <div class="card-name">Scale In / Zoom In</div>
-        <div class="card-desc">Scales from a small value to 1.0 — springy easing makes it feel like the element is landing into place.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/clip-path-reveal/">
-        <div class="card-name">Clip-Path Reveal</div>
-        <div class="card-desc">A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/curtain-reveal/">
-        <div class="card-name">Curtain Reveal</div>
-        <div class="card-desc">A colored bar slides over then off in two stages — the reveal is hidden then exposed for maximum drama.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/split-text-reveal/">
-        <div class="card-name">Split Text Reveal</div>
-        <div class="card-desc">Text split into chars, words, or lines — each piece animates with a staggered delay via --index.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/letter-by-letter-stagger/">
-        <div class="card-name">Letter-by-Letter Stagger</div>
-        <div class="card-desc">Cascade mode uses CSS transition-delay per letter; typewriter mode reveals letters sequentially with a blinking cursor.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/word-by-word-reveal/">
-        <div class="card-name">Word-by-Word Reveal</div>
-        <div class="card-desc">Words animate sequentially at reading speed — 80–120ms per word matches comfortable reading pace.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/blur-in/">
-        <div class="card-name">Blur In</div>
-        <div class="card-desc">Fades in while reducing blur — mimics camera focus pulling. GPU-intensive; best on single hero elements.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/flip-in/">
-        <div class="card-name">Flip In</div>
-        <div class="card-desc">Rotates from a flat plane into view using CSS 3D perspective — perspective on the parent is the key.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/bounce-in/">
-        <div class="card-name">Bounce In</div>
-        <div class="card-desc">Overshoots final position then springs back — implemented with explicit @keyframes waypoints, not easing alone.</div>
-      </a></div>
-      <div class="card"><a href="animations/02-entrance-and-exit/rotate-in/">
-        <div class="card-name">Rotate In</div>
-        <div class="card-desc">Spins while entering — best on radially-symmetric shapes like icons, stars, and gears.</div>
-      </a></div>
-    </div>
-  </div>
-
-  <div class="planned">
-    <h2>Coming soon</h2>
-    <div class="planned-list">
-      <span class="soon">03 — Micro-Interactions</span>
-      <span class="soon">04 — Text &amp; Typography</span>
-      <span class="soon">05 — 3D &amp; Advanced</span>
-      <span class="soon">06 — Ambient &amp; Background</span>
-    </div>
-  </div>
+const planned=document.createElement('div');planned.className='planned';
+planned.innerHTML=`<h2>Coming soon</h2><div class="soon-list"><span class="soon">04 — Micro-Interactions</span><span class="soon">05 — Text &amp; Typography</span><span class="soon">06 — 3D &amp; Advanced</span><span class="soon">07 — Ambient &amp; Background</span></div>`;
+root.appendChild(planned);
+</script>
 </body>
 </html>
