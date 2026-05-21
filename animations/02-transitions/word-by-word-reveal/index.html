@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word-by-Word Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:450ms;--ease:cubic-bezier(.2,.7,.3,1);--stagger:80ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:clamp(20px,5vw,56px)}
+    #text-target{font-size:clamp(18px,3vw,28px);font-weight:bold;text-align:center;line-height:1.55;max-width:520px}
+    .word{display:inline-block;margin-right:0.28em;
+      opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+    [data-anim="fade-up"] .word{transform:translateY(0.4em)}
+    [data-anim="blur"] .word{filter:blur(8px);transform:none}
+    [data-anim="scale"] .word{transform:scale(0.6)}
+    [data-anim="rotate"] .word{transform:rotateX(90deg)}
+    [data-anim="fade"] .word{transform:none}
+    .splitting.in .word{opacity:1;transform:none;filter:none}
+    .sent-break{display:block;height:0.4em}
+    @media(prefers-reduced-motion:reduce){.word{transition:opacity 300ms linear!important;transform:none!important;filter:none!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    textarea{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px;border-radius:4px;width:100%;resize:vertical;min-height:60px;line-height:1.5}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Word-by-Word Reveal</h1>
+  <p>Words animate sequentially — 80–120ms per word matches comfortable reading speed.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div id="text-target" class="splitting" data-anim="fade-up"></div>
+  </div>
+  <aside>
+    <p class="note">80–120ms per word matches comfortable reading speed — slower and users wait; faster and the stagger blurs into a single reveal. Use sentence pauses for paragraph reveals.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Total time</span><span class="v" id="total-time">—</span></div>
+    <div class="div"></div>
+    <div><div class="lbl" id="stag-lbl">Per-word delay</div>
+      <div class="sr"><input type="range" id="stag-sl" aria-labelledby="stag-lbl" min="20" max="200" value="80" step="10"><span class="sv" id="stag-v">80ms</span></div>
+    </div>
+    <div><div class="lbl">Per-word animation</div>
+      <select id="anim-sel">
+        <option value="fade-up" selected>↑ Fade up</option>
+        <option value="fade">Fade only</option>
+        <option value="scale">Scale in</option>
+        <option value="blur">Blur in</option>
+        <option value="rotate">Rotate X</option>
+      </select>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration per word</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1000" value="450" step="50"><span class="sv" id="dur-v">450ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <label class="tog" for="punct-tog"><input type="checkbox" id="punct-tog"><span>Sentence pauses</span></label>
+    <div><div class="lbl">Edit text</div>
+      <textarea id="txt-in" aria-label="Edit text">We build interfaces that disappear.
+Tools that feel inevitable.
+Software made with care.</textarea>
+    </div>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play reveal">Play in</button>
+      <button class="act" id="btn-out" aria-label="Hide">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const target=document.getElementById('text-target');
+  const stEl=document.getElementById('st'),totalEl=document.getElementById('total-time');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const stagSl=document.getElementById('stag-sl'),stagV=document.getElementById('stag-v');
+  const easeSel=document.getElementById('ease-sel'),animSel=document.getElementById('anim-sel');
+  const punctTog=document.getElementById('punct-tog'),txtIn=document.getElementById('txt-in');
+  const loopTog=document.getElementById('loop-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let stagger=80,dur=450,looping=false,loopTimer=null,animTimer=null;
+
+  function buildWords(){
+    target.innerHTML='';target.dataset.anim=animSel.value;
+    const sentences=(txtIn.value||'').split('\n').filter(Boolean);
+    let idx=0,totalWords=0;
+    sentences.forEach((sent,si)=>{
+      const words=sent.trim().split(/\s+/).filter(Boolean);
+      words.forEach((w,wi)=>{
+        const s=document.createElement('span');s.className='word';
+        const delay=punctTog.checked?idx*stagger+si*200:idx*stagger;
+        s.style.setProperty('--i',delay/stagger);
+        s.textContent=w;target.appendChild(s);
+        if(wi<words.length-1)target.appendChild(document.createTextNode(' '));
+        idx++;totalWords++;
+      });
+      if(si<sentences.length-1){const br=document.createElement('span');br.className='sent-break';target.appendChild(br);}
+    });
+    const extra=punctTog.checked?(sentences.length-1)*200:0;
+    totalEl.textContent=Math.round(totalWords*stagger+dur+extra)+'ms';
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);target.classList.remove('in');void target.offsetWidth;
+    if(cls==='in')target.classList.add('in');
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    const words=target.querySelectorAll('.word');
+    const maxIdx=Math.max(...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',maxIdx*stagger+dur+200);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function playIn(){stopLoop();_trigger('in')}
+  function playOut(){stopLoop();_trigger('out')}
+  function loop(){
+    _trigger('in');
+    const words=target.querySelectorAll('.word');
+    const maxIdx=Math.max(...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
+    const t=maxIdx*stagger+dur;
+    loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},t+400)},t+1000);
+  }
+
+  document.getElementById('btn-in').addEventListener('click',playIn);
+  document.getElementById('btn-out').addEventListener('click',playOut);
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);target.classList.remove('in');stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms');buildWords()});
+  stagSl.addEventListener('input',()=>{stagger=+stagSl.value;stagV.textContent=stagger+'ms';document.documentElement.style.setProperty('--stagger',stagger+'ms');buildWords()});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  animSel.addEventListener('change',()=>{target.dataset.anim=animSel.value});
+  punctTog.addEventListener('change',buildWords);
+  txtIn.addEventListener('input',()=>{stopLoop();target.classList.remove('in');buildWords();stEl.textContent='hidden'});
+  buildWords();
+</script>
+</body>
+</html>

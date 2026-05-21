@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Split Text Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1);--stagger:30ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:clamp(20px,4vw,48px)}
+    #text-target{font-size:clamp(24px,4.5vw,48px);font-weight:bold;text-align:center;line-height:1.35;max-width:560px;word-break:break-word}
+    /* shared unit styles — animation-type overrides below */
+    .unit{display:inline-block;
+      opacity:0;
+      transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+    /* animation types */
+    [data-anim="fade-up"] .unit{transform:translateY(0.5em)}
+    [data-anim="fade"] .unit{transform:none}
+    [data-anim="scale"] .unit{transform:scale(0.5)}
+    [data-anim="rotate"] .unit{transform:rotateY(90deg)}
+    .splitting.in .unit{opacity:1;transform:none}
+    /* lines mode: each word gets line-height clipping */
+    [data-mode="lines"] .unit{display:block;overflow:hidden}
+    [data-mode="lines"] .unit-inner{display:block;transform:translateY(100%);transition:transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+    [data-mode="lines"] .splitting.in .unit-inner{transform:none}
+    [data-mode="lines"] .unit{opacity:1}
+    /* word spacing */
+    [data-mode="words"] .unit{margin-right:0.28em}
+    [data-mode="chars"] .unit{margin-right:0.01em}
+    @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}.splitting.in .unit{opacity:1}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px;border-radius:4px;width:100%;min-height:44px}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Split Text Reveal</h1>
+  <p>Text split into chars, words, or lines — each piece animates with a staggered delay via --index.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div id="text-target" class="splitting" data-mode="words" data-anim="fade-up">Design beyond the obvious</div>
+  </div>
+  <aside>
+    <p class="note">Wrapping each unit in a span with --index lets transition-delay cascade automatically. Splitting.js is the canonical library; this demo shows the vanilla technique.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Total time</span><span class="v" id="total-time">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Split mode</div>
+    <div class="seg" id="mode-seg">
+      <button data-m="chars">Chars</button>
+      <button data-m="words" class="on">Words</button>
+      <button data-m="lines">Lines</button>
+    </div>
+    <div class="lbl">Animation per unit</div>
+    <div class="seg" id="anim-seg">
+      <button data-a="fade-up" class="on">↑Fade</button>
+      <button data-a="fade">Fade</button>
+      <button data-a="scale">Scale</button>
+      <button data-a="rotate">Rotate</button>
+    </div>
+    <div><div class="lbl" id="stag-lbl">Stagger delay</div>
+      <div class="sr"><input type="range" id="stag-sl" aria-labelledby="stag-lbl" min="5" max="100" value="30" step="5"><span class="sv" id="stag-v">30ms</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration per unit</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1200" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <div><div class="lbl">Edit text</div>
+      <input type="text" id="txt-in" value="Design beyond the obvious" aria-label="Edit text">
+    </div>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play reveal">Play in</button>
+      <button class="act" id="btn-out" aria-label="Hide">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const target=document.getElementById('text-target');
+  const stEl=document.getElementById('st'),totalEl=document.getElementById('total-time');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const stagSl=document.getElementById('stag-sl'),stagV=document.getElementById('stag-v');
+  const easeSel=document.getElementById('ease-sel'),txtIn=document.getElementById('txt-in');
+  const loopTog=document.getElementById('loop-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let mode='words',anim='fade-up',dur=500,stagger=30,looping=false,loopTimer=null,animTimer=null;
+
+  function split(){
+    const text=txtIn.value||'Design beyond the obvious';
+    target.dataset.mode=mode;target.dataset.anim=anim;
+    target.innerHTML='';
+    if(mode==='chars'){
+      let unitIdx=0;
+      [...text].forEach(c=>{
+        if(c===' '){target.appendChild(document.createTextNode(' '));return;}
+        const s=document.createElement('span');s.className='unit';s.style.setProperty('--i',unitIdx++);
+        s.textContent=c;target.appendChild(s);
+      });
+    } else {
+      let units=[];
+      if(mode==='words'){units=text.split(/\s+/).filter(Boolean);}
+      else{units=text.split('\n').filter(Boolean);if(units.length<2)units=text.match(/.{1,18}(\s|$)/g)||[text];}
+      units.forEach((u,i)=>{
+        const s=document.createElement('span');
+        s.className='unit';s.style.setProperty('--i',i);
+        if(mode==='lines'){s.innerHTML=`<span class="unit-inner">${u.trim()}</span>`;}
+        else{s.textContent=u;}
+        target.appendChild(s);
+        if(mode==='words'&&i<units.length-1)target.appendChild(document.createTextNode(' '));
+      });
+    }
+    const n=target.querySelectorAll('.unit').length;
+    totalEl.textContent=Math.round(n*stagger+dur)+'ms';
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);
+    target.classList.remove('in');void target.offsetWidth;
+    if(cls==='in')target.classList.add('in');
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    const n=target.querySelectorAll('.unit').length;
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',n*stagger+dur);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function playIn(){stopLoop();_trigger('in')}
+  function playOut(){stopLoop();_trigger('out')}
+  function loop(){_trigger('in');const n=target.querySelectorAll('.unit').length;const t=n*stagger+dur;loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},t+400)},t+800)}
+
+  document.getElementById('btn-in').addEventListener('click',playIn);
+  document.getElementById('btn-out').addEventListener('click',playOut);
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);target.classList.remove('in');stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#mode-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#mode-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    mode=b.dataset.m;stopLoop();target.classList.remove('in');split();stEl.textContent='hidden';
+  }));
+  document.querySelectorAll('#anim-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#anim-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    anim=b.dataset.a;target.dataset.anim=anim;stopLoop();target.classList.remove('in');stEl.textContent='hidden';
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms');split()});
+  stagSl.addEventListener('input',()=>{stagger=+stagSl.value;stagV.textContent=stagger+'ms';document.documentElement.style.setProperty('--stagger',stagger+'ms');split()});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  txtIn.addEventListener('input',()=>{stopLoop();target.classList.remove('in');split();stEl.textContent='hidden'});
+  split();
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide In</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:600ms;--ease:ease-out;--tx:0px;--ty:200px;--fade:0}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:clamp(28px,5vw,48px);text-align:center;max-width:300px;
+      opacity:var(--fade);transform:translate(var(--tx),var(--ty));
+      transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease);will-change:transform,opacity}
+    .card.in{opacity:1!important;transform:translate(0,0)!important}
+    .card-icon{font-size:28px;margin-bottom:12px;opacity:.6}
+    .card-title{font-size:clamp(16px,2.3vw,21px);font-weight:bold;margin-bottom:8px}
+    .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:46px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .seg{display:flex;gap:3px}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:44px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .dir-diagram{font-size:28px;text-align:center;padding:8px 0;color:var(--ui-accent)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Slide In</h1>
+  <p>Translates from off-screen edge into final position — with or without simultaneous fade.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="card-icon">→</div>
+      <div class="card-title">Slide Arrival</div>
+      <div class="card-sub">Directional motion reads as arrival. Combined with a fade it feels natural; slide alone feels mechanical.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Slide-in alone often feels mechanical. Combined with a subtle fade (opacity 0 → 1 during the slide), it reads as arrival rather than movement.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Translate</span><span class="v" id="tr-val">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Direction</div>
+    <div class="seg" id="dir-seg">
+      <button data-dir="top" class="on">↑ Top</button>
+      <button data-dir="bottom">↓ Bot</button>
+      <button data-dir="left">← Left</button>
+      <button data-dir="right">→ Right</button>
+    </div>
+    <div class="dir-diagram" id="dir-diag">↑</div>
+    <div><div class="lbl" id="dist-lbl">Distance</div>
+      <div class="sr"><input type="range" id="dist-sl" aria-labelledby="dist-lbl" min="50" max="400" value="200" step="10"><span class="sv" id="dist-v">200px</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="600" step="50"><span class="sv" id="dur-v">600ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out" selected>Ease out</option>
+        <option value="ease-in-out">Ease in-out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)">Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <label class="tog" for="fade-tog"><input type="checkbox" id="fade-tog" checked><span>Combine with fade</span></label>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play slide in">Play in</button>
+      <button class="act" id="btn-out" aria-label="Play slide out">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const card=document.getElementById('card');
+  const stEl=document.getElementById('st'),trVal=document.getElementById('tr-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const distSl=document.getElementById('dist-sl'),distV=document.getElementById('dist-v');
+  const easeSl=document.getElementById('ease-sel');
+  const fadeTog=document.getElementById('fade-tog'),loopTog=document.getElementById('loop-tog');
+  const dirDiag=document.getElementById('dir-diag');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const ARROWS={top:'↑',bottom:'↓',left:'←',right:'→'};
+  let dur=600,dist=200,dir='top',withFade=true,looping=false,loopTimer=null,animTimer=null;
+
+  function applyDir(){
+    const tx=dir==='left'?-dist:dir==='right'?dist:0;
+    const ty=dir==='top'?-dist:dir==='bottom'?dist:0;
+    document.documentElement.style.setProperty('--tx',tx+'px');
+    document.documentElement.style.setProperty('--ty',ty+'px');
+    document.documentElement.style.setProperty('--fade',withFade?'0':'1');
+    trVal.textContent=`(${tx},${ty})`;
+    dirDiag.textContent=ARROWS[dir];
+    card.querySelector('.card-icon').textContent=ARROWS[dir];
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);
+    card.classList.remove('in');void card.offsetWidth;
+    if(cls==='in')card.classList.add('in');
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',dur);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function playIn(){stopLoop();_trigger('in')}
+  function playOut(){stopLoop();_trigger('out')}
+  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+800)}
+
+  document.getElementById('btn-in').addEventListener('click',playIn);
+  document.getElementById('btn-out').addEventListener('click',playOut);
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);card.classList.remove('in');stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#dir-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');dir=b.dataset.dir;applyDir();
+  }));
+  distSl.addEventListener('input',()=>{dist=+distSl.value;distV.textContent=dist+'px';applyDir()});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  easeSl.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSl.value));
+  fadeTog.addEventListener('change',()=>{withFade=fadeTog.checked;applyDir()});
+  applyDir();
+</script>
+</body>
+</html>

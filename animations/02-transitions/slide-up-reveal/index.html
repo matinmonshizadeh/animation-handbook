@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Up Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:700ms;--ease:cubic-bezier(.2,.7,.3,1);--stagger:60ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:hidden;padding:40px}
+    /* translateY method */
+    .line-wrap{overflow:hidden;line-height:1.15}
+    [data-method="translatey"] .line{display:block;transform:translateY(110%);transition:transform var(--dur) var(--ease);transition-delay:calc(var(--d,0)*var(--stagger))}
+    [data-method="translatey"] .line.in{transform:translateY(0)}
+    /* clip-path method */
+    [data-method="clippath"] .line{display:block;clip-path:inset(100% 0 0 0);transition:clip-path var(--dur) var(--ease);transition-delay:calc(var(--d,0)*var(--stagger))}
+    [data-method="clippath"] .line.in{clip-path:inset(0% 0 0 0)}
+    .headline{font-size:clamp(28px,5vw,52px);font-weight:bold;text-align:center;line-height:1.1}
+    .sub-line{font-size:clamp(13px,2vw,16px);color:var(--ui-muted);text-align:center}
+    @media(prefers-reduced-motion:reduce){.line{transition:opacity 300ms linear!important;transform:none!important;clip-path:none!important}  .line.in{opacity:1!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-size:9px}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:44px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Slide Up Reveal</h1>
+  <p>Text rises from below its clip boundary — two technique variants with identical visual results.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage" data-method="translatey">
+    <div id="lines-wrap">
+      <div class="line-wrap"><span class="headline line" id="l0" style="--d:0">Beautiful</span></div>
+      <div class="line-wrap"><span class="headline line" id="l1" style="--d:1">interfaces</span></div>
+      <div class="line-wrap"><span class="sub-line line" id="l2" style="--d:2">crafted with care.</span></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Slide-up reveal is the typographic workhorse. clip-path preserves accessibility; translateY performs slightly better. Both look identical to users.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Technique</span><span class="v" id="tech-val">translateY(110%)</span></div>
+    <div class="div"></div>
+    <div class="lbl">Technique</div>
+    <div class="seg" id="method-seg">
+      <button data-m="translatey" class="on">translateY</button>
+      <button data-m="clippath">clip-path</button>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="700" step="50"><span class="sv" id="dur-v">700ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <div><div class="lbl" id="stag-lbl">Line stagger</div>
+      <div class="sr"><input type="range" id="stag-sl" aria-labelledby="stag-lbl" min="0" max="150" value="60" step="10"><span class="sv" id="stag-v">60ms</span></div>
+    </div>
+    <label class="tog" for="multi-tog"><input type="checkbox" id="multi-tog" checked><span>Multi-line (3 lines)</span></label>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play reveal">Play in</button>
+      <button class="act" id="btn-out" aria-label="Play hide">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const stEl=document.getElementById('st'),techVal=document.getElementById('tech-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const stagSl=document.getElementById('stag-sl'),stagV=document.getElementById('stag-v');
+  const easeSel=document.getElementById('ease-sel');
+  const multiTog=document.getElementById('multi-tog'),loopTog=document.getElementById('loop-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let dur=700,method='translatey',looping=false,loopTimer=null,animTimer=null;
+  const lines=()=>multiTog.checked?[...document.querySelectorAll('.line')]:[document.getElementById('l0')];
+
+  const TECH={translatey:'translateY(110%)', clippath:'clip-path: inset(100% 0 0 0)'};
+
+  function _trigger(cls){
+    clearTimeout(animTimer);
+    const ls=lines();
+    ls.forEach(l=>{l.classList.remove('in');void l.offsetWidth});
+    if(cls==='in')ls.forEach(l=>l.classList.add('in'));
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    const total=dur+(ls.length-1)*(+stagSl.value);
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',total);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function playIn(){stopLoop();_trigger('in')}
+  function playOut(){stopLoop();_trigger('out')}
+  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+1000)}
+
+  document.getElementById('btn-in').addEventListener('click',playIn);
+  document.getElementById('btn-out').addEventListener('click',playOut);
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);lines().forEach(l=>l.classList.remove('in'));stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#method-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#method-seg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');method=b.dataset.m;stage.dataset.method=method;
+    techVal.textContent=TECH[method];
+    stopLoop();lines().forEach(l=>l.classList.remove('in'));stEl.textContent='hidden';
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  stagSl.addEventListener('input',()=>{stagV.textContent=stagSl.value+'ms';document.documentElement.style.setProperty('--stagger',stagSl.value+'ms')});
+  multiTog.addEventListener('change',()=>{
+    const ls=document.querySelectorAll('.line');
+    ls.forEach((l,i)=>{l.style.display=(!multiTog.checked&&i>0)?'none':'block';l.classList.remove('in')});
+    stEl.textContent='hidden';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clip-Path Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:800ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+    .surface{width:min(400px,80%);aspect-ratio:4/3;border-radius:12px;overflow:hidden;position:relative;
+      clip-path:var(--cp-out,inset(0 100% 0 0));transition:clip-path var(--dur) var(--ease);will-change:clip-path}
+    .surface.in{clip-path:var(--cp-in,inset(0 0% 0 0))}
+    .surface-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a2a4a 0%,#0d3a5c 40%,#1a4a3a 70%,#2a3a1a 100%)}
+    .surface-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(88,166,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,.08) 1px,transparent 1px);background-size:40px 40px}
+    .surface-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+    .surface-label{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.5}
+    .surface-title{font-size:clamp(22px,4vw,36px);font-weight:bold;color:#fff}
+    .clip-outline{position:absolute;inset:0;pointer-events:none;border:2px dashed var(--ui-accent);opacity:0;transition:opacity .3s;border-radius:12px}
+    .clip-outline.show{opacity:.6}
+    @media(prefers-reduced-motion:reduce){.surface{transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-size:9px;max-width:130px;text-align:right;word-break:break-all}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Clip-Path Reveal</h1>
+  <p>A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="surface" id="surface">
+      <div class="surface-bg"></div>
+      <div class="surface-grid"></div>
+      <div class="surface-text">
+        <div class="surface-label">Clip-Path Reveal</div>
+        <div class="surface-title">Unmasked</div>
+      </div>
+      <div class="clip-outline" id="outline"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Clip-path masks reveal content without moving or fading it — the element is fully rendered the whole time, only progressively visible. This is what gives clip-path reveals their cinematic feel.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>clip-path</span><span class="v" id="cp-val">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Shape</div>
+    <div class="seg" id="shape-seg">
+      <button data-s="inset" class="on">Inset</button>
+      <button data-s="circle">Circle</button>
+      <button data-s="ellipse">Ellipse</button>
+      <button data-s="polygon">Swipe</button>
+    </div>
+    <div class="lbl" id="dir-head" style="margin-top:2px">Direction (inset)</div>
+    <div class="seg" id="dir-seg">
+      <button data-d="left" class="on">←</button>
+      <button data-d="right">→</button>
+      <button data-d="top">↑</button>
+      <button data-d="bottom">↓</button>
+      <button data-d="center">⊙</button>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="800" step="50"><span class="sv" id="dur-v">800ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out">Ease out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <label class="tog" for="outline-tog"><input type="checkbox" id="outline-tog"><span>Show clip-path boundary</span></label>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Reveal">Play in</button>
+      <button class="act" id="btn-out" aria-label="Hide">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const surface=document.getElementById('surface'),outline=document.getElementById('outline');
+  const stEl=document.getElementById('st'),cpVal=document.getElementById('cp-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const easeSel=document.getElementById('ease-sel'),outlineTog=document.getElementById('outline-tog');
+  const loopTog=document.getElementById('loop-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let shape='inset',dir='left',dur=800,looping=false,loopTimer=null,animTimer=null;
+
+  const CLIPS={
+    inset:{
+      left:{out:'inset(0 100% 0 0)',    in:'inset(0 0% 0 0)'},
+      right:{out:'inset(0 0 0 100%)',   in:'inset(0 0 0 0%)'},
+      top:{out:'inset(100% 0 0 0)',     in:'inset(0% 0 0 0)'},
+      bottom:{out:'inset(0 0 100% 0)',  in:'inset(0 0 0% 0)'},
+      center:{out:'inset(50% 50%)',     in:'inset(0%)'},
+    },
+    circle:{out:'circle(0% at 50% 50%)',    in:'circle(75% at 50% 50%)'},
+    ellipse:{out:'ellipse(0% 0% at 50% 50%)', in:'ellipse(80% 70% at 50% 50%)'},
+    polygon:{out:'polygon(0 0, 0 0, 0 100%, 0 100%)', in:'polygon(0 0, 100% 0, 100% 100%, 0 100%)'},
+  };
+
+  function getClips(){return shape==='inset'?CLIPS.inset[dir]:CLIPS[shape]}
+
+  function applyClips(){
+    const c=getClips();
+    document.documentElement.style.setProperty('--cp-out',c.out);
+    document.documentElement.style.setProperty('--cp-in',c.in);
+    cpVal.textContent=c.out;
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);surface.classList.remove('in');void surface.offsetWidth;
+    if(cls==='in'){surface.classList.add('in');cpVal.textContent=getClips().in;}
+    else cpVal.textContent=getClips().out;
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',dur);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+800)}
+
+  document.getElementById('btn-in').addEventListener('click',()=>{stopLoop();_trigger('in')});
+  document.getElementById('btn-out').addEventListener('click',()=>{stopLoop();_trigger('out')});
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);surface.classList.remove('in');stEl.textContent='hidden';cpVal.textContent=getClips().out});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#shape-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#shape-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    shape=b.dataset.s;
+    const dirHead=document.getElementById('dir-head');
+    document.getElementById('dir-seg').style.display=shape==='inset'?'flex':'none';
+    dirHead.style.display=shape==='inset'?'block':'none';
+    applyClips();surface.classList.remove('in');stEl.textContent='hidden';
+  }));
+  document.querySelectorAll('#dir-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    dir=b.dataset.d;applyClips();surface.classList.remove('in');stEl.textContent='hidden';
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  outlineTog.addEventListener('change',()=>outline.classList.toggle('show',outlineTog.checked));
+  applyClips();
+</script>
+</body>
+</html>

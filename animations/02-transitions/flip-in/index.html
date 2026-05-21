@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flip In</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:600ms;--ease:ease-out;--persp:1000px;--rot-y:90deg;--rot-x:0deg;--origin:center}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;perspective:var(--persp)}
+    .card{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:clamp(28px,5vw,48px);text-align:center;width:clamp(220px,50%,280px);
+      opacity:0;transform:rotateY(var(--rot-y)) rotateX(var(--rot-x));transform-origin:var(--origin);
+      transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease);will-change:transform,opacity}
+    .card.in{opacity:1;transform:rotateY(0deg) rotateX(0deg)}
+    .card-icon{font-size:32px;margin-bottom:14px;opacity:.6}
+    .card-title{font-size:clamp(16px,2.4vw,21px);font-weight:bold;margin-bottom:8px}
+    .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important;transform:none!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:42px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Flip In</h1>
+  <p>Rotates from a flat plane into view using CSS 3D perspective — perspective on the parent is the key.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="card" id="card">
+      <div class="card-icon">⬡</div>
+      <div class="card-title">3D Flip</div>
+      <div class="card-sub">Perspective is set on the parent, not the card. Without it, rotateY looks like a horizontal squash — not a 3D rotation.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Flip-in requires `perspective` on the PARENT element, not the flipping card. The perspective value sets the viewer distance — lower = more dramatic, higher = more subtle.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Rotation</span><span class="v" id="rot-val">Y: 90°</span></div>
+    <div class="div"></div>
+    <div class="lbl">Flip axis</div>
+    <div class="seg" id="axis-seg">
+      <button data-ax="Y" class="on">Y (horiz)</button>
+      <button data-ax="X">X (vert)</button>
+      <button data-ax="both">Both</button>
+    </div>
+    <div><div class="lbl" id="rot-lbl">Starting rotation</div>
+      <div class="sr"><input type="range" id="rot-sl" aria-labelledby="rot-lbl" min="45" max="180" value="90" step="5"><span class="sv" id="rot-v">90°</span></div>
+    </div>
+    <div><div class="lbl" id="persp-lbl">Perspective</div>
+      <div class="sr"><input type="range" id="persp-sl" aria-labelledby="persp-lbl" min="200" max="2000" value="1000" step="100"><span class="sv" id="persp-v">1000px</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="600" step="50"><span class="sv" id="dur-v">600ms</span></div>
+    </div>
+    <div><div class="lbl">Easing</div>
+      <select id="ease-sel">
+        <option value="linear">Linear</option>
+        <option value="ease-out" selected>Ease out</option>
+        <option value="ease-in-out">Ease in-out</option>
+        <option value="cubic-bezier(.2,.7,.3,1)">Smooth</option>
+        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
+      </select>
+    </div>
+    <div class="lbl">Transform origin</div>
+    <div class="seg" id="orig-seg">
+      <button data-o="center" class="on">Center</button>
+      <button data-o="top center">Top</button>
+      <button data-o="bottom center">Bottom</button>
+      <button data-o="left center">Left</button>
+    </div>
+    <label class="tog" for="fade-tog"><input type="checkbox" id="fade-tog" checked><span>Combine with fade</span></label>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play flip in">Play in</button>
+      <button class="act" id="btn-out" aria-label="Play flip out">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const card=document.getElementById('card'),stage=document.getElementById('stage');
+  const stEl=document.getElementById('st'),rotVal=document.getElementById('rot-val');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const rotSl=document.getElementById('rot-sl'),rotV=document.getElementById('rot-v');
+  const perspSl=document.getElementById('persp-sl'),perspV=document.getElementById('persp-v');
+  const easeSel=document.getElementById('ease-sel'),fadeTog=document.getElementById('fade-tog'),loopTog=document.getElementById('loop-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let dur=600,axis='Y',rot=90,looping=false,loopTimer=null,animTimer=null;
+
+  function applyRot(){
+    const ry=axis==='X'?'0deg':rot+'deg';
+    const rx=axis==='Y'?'0deg':rot+'deg';
+    document.documentElement.style.setProperty('--rot-y',ry);
+    document.documentElement.style.setProperty('--rot-x',rx);
+    rotVal.textContent=axis==='both'?`X/Y: ${rot}°`:axis+`: ${rot}°`;
+    card.classList.remove('in');void card.offsetWidth;
+    if(!fadeTog.checked)card.style.opacity='1';else card.style.opacity='';
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);card.classList.remove('in');void card.offsetWidth;
+    if(cls==='in')card.classList.add('in');
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',dur);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+800)}
+
+  document.getElementById('btn-in').addEventListener('click',()=>{stopLoop();_trigger('in')});
+  document.getElementById('btn-out').addEventListener('click',()=>{stopLoop();_trigger('out')});
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);card.classList.remove('in');stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#axis-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#axis-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    axis=b.dataset.ax;applyRot();stEl.textContent='hidden';
+  }));
+  document.querySelectorAll('#orig-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#orig-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    document.documentElement.style.setProperty('--origin',b.dataset.o);
+  }));
+  rotSl.addEventListener('input',()=>{rot=+rotSl.value;rotV.textContent=rot+'°';applyRot()});
+  perspSl.addEventListener('input',()=>{const v=perspSl.value+'px';perspV.textContent=v;document.documentElement.style.setProperty('--persp',v);stage.style.perspective=v});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
+  fadeTog.addEventListener('change',()=>{card.style.opacity=fadeTog.checked?'':'1'});
+  applyRot();
+</script>
+</body>
+</html>

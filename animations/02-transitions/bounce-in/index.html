@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bounce In</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:1100ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .card{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:clamp(28px,5vw,48px);text-align:center;max-width:300px;
+      opacity:0;transform:scale(0.3) translateY(40px)}
+    .card.in{animation:bounce-in var(--dur) ease forwards}
+    .card.out{animation:bounce-out calc(var(--dur)*0.5) ease forwards}
+    @keyframes bounce-out{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(0.4) translateY(30px)}}
+    .card-icon{font-size:36px;margin-bottom:14px}
+    .card-title{font-size:clamp(16px,2.4vw,22px);font-weight:bold;margin-bottom:8px}
+    .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    @media(prefers-reduced-motion:reduce){.card.in{animation:none!important;opacity:1;transform:none}.card.out{animation:none!important;opacity:0}}
+    /* keyframe inspector */
+    .kf-block{background:#0a0f14;border:1px solid var(--ui-border);border-radius:4px;padding:8px;font-size:8px;color:#56d364;line-height:1.7;overflow-x:auto;white-space:pre}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+  <style id="kf-style"></style>
+</head>
+<body>
+<header>
+  <h1>Bounce In</h1>
+  <p>Overshoots final position then springs back — implemented with explicit @keyframes waypoints, not easing alone.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="card-icon">◈</div>
+      <div class="card-title">Bounce Landing</div>
+      <div class="card-sub">Real bounce is more complex than a single cubic-bezier curve. Hand-tuned keyframe waypoints give precise control over each phase.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Bounce-in uses explicit keyframe waypoints rather than cubic-bezier easing. The right number of bounces is almost always 1 — multiple bounces feel cartoonish.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="div"></div>
+    <div><div class="lbl" id="ov-lbl">Overshoot intensity</div>
+      <div class="sr"><input type="range" id="ov-sl" aria-labelledby="ov-lbl" min="0" max="100" value="60" step="5"><span class="sv" id="ov-v">60%</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="300" max="2000" value="1100" step="100"><span class="sv" id="dur-v">1100ms</span></div>
+    </div>
+    <div class="lbl">Bounces</div>
+    <div class="seg" id="bounce-seg">
+      <button data-b="1" class="on">1× Single</button>
+      <button data-b="2">2× Double</button>
+      <button data-b="3">3× Triple</button>
+    </div>
+    <label class="tog" for="fade-tog"><input type="checkbox" id="fade-tog" checked><span>Combine with fade</span></label>
+    <div class="div"></div>
+    <div class="lbl">Live keyframes</div>
+    <div class="kf-block" id="kf-display">@keyframes bounce-in { ... }</div>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-in" aria-label="Play bounce in">Play in</button>
+      <button class="act" id="btn-out" aria-label="Play out">Play out</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const card=document.getElementById('card');
+  const stEl=document.getElementById('st');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const ovSl=document.getElementById('ov-sl'),ovV=document.getElementById('ov-v');
+  const fadeTog=document.getElementById('fade-tog'),loopTog=document.getElementById('loop-tog');
+  const kfStyle=document.getElementById('kf-style'),kfDisplay=document.getElementById('kf-display');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let dur=1100,bounces=1,looping=false,loopTimer=null,animTimer=null;
+
+  function buildKF(intensity,n){
+    const t=intensity/100;
+    const ov1=1+t*0.15,un1=1-t*0.07,ov2=1+t*0.06,un2=1-t*0.03;
+    const fadeIn=fadeTog.checked;
+    let kf,display;
+    if(n===1){
+      kf=`@keyframes bounce-in{
+  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
+  55% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
+  80% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}`;
+      display=`0%   scale(0.3) translateY(40px)\n55%  scale(${ov1.toFixed(2)}) translateY(-8px)\n80%  scale(${un1.toFixed(2)}) translateY(3px)\n100% scale(1) translateY(0)`;
+    }else if(n===2){
+      kf=`@keyframes bounce-in{
+  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
+  40% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
+  60% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
+  75% {transform:scale(${ov2.toFixed(3)}) translateY(-3px)}
+  90% {transform:scale(${un2.toFixed(3)}) translateY(1px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}`;
+      display=`0%  →40% → 60% → 75% → 90% → 100%\nDouble overshoot: ${ov1.toFixed(2)} / ${ov2.toFixed(2)}`;
+    }else{
+      kf=`@keyframes bounce-in{
+  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
+  35% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
+  52% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
+  65% {transform:scale(${ov2.toFixed(3)}) translateY(-3px)}
+  78% {transform:scale(${un2.toFixed(3)}) translateY(1px)}
+  88% {transform:scale(${(1+t*0.03).toFixed(3)}) translateY(-1px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}`;
+      display=`Triple: ${ov1.toFixed(2)} → ${un1.toFixed(2)} → ${ov2.toFixed(2)}\n→ ${un2.toFixed(2)} → ${(1+t*0.03).toFixed(2)} → 1.0`;
+    }
+    kfStyle.textContent=kf;
+    kfDisplay.textContent=display;
+  }
+
+  function _trigger(cls){
+    clearTimeout(animTimer);
+    card.classList.remove('in','out');void card.offsetWidth;
+    buildKF(+ovSl.value,bounces);
+    card.classList.add(cls);
+    stEl.textContent=cls==='in'?'playing in':'playing out';
+    const d=cls==='out'?Math.round(dur*0.5):dur;
+    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',d);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},Math.round(dur*0.5)+400)},dur+800)}
+
+  document.getElementById('btn-in').addEventListener('click',()=>{stopLoop();_trigger('in')});
+  document.getElementById('btn-out').addEventListener('click',()=>{stopLoop();_trigger('out')});
+  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);card.classList.remove('in','out');stEl.textContent='hidden'});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  document.querySelectorAll('#bounce-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#bounce-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    bounces=+b.dataset.b;buildKF(+ovSl.value,bounces);
+  }));
+  ovSl.addEventListener('input',()=>{ovV.textContent=ovSl.value+'%';buildKF(+ovSl.value,bounces)});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  fadeTog.addEventListener('change',()=>buildKF(+ovSl.value,bounces));
+  buildKF(60,1);
+</script>
+</body>
+</html>

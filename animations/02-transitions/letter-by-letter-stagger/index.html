@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letter-by-Letter Stagger</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:400ms;--ease:ease-out;--stagger:35ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:clamp(20px,4vw,48px)}
+    #text-target{font-size:clamp(26px,5vw,56px);font-weight:bold;text-align:center;line-height:1.2;max-width:560px;word-break:break-word;position:relative}
+    /* cascade mode */
+    .char{display:inline-block}
+    [data-mode="cascade"] .char{opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+    [data-mode="cascade"][data-anim="fade-up"] .char{transform:translateY(0.4em)}
+    [data-mode="cascade"][data-anim="scale"] .char{transform:scale(0.3)}
+    [data-mode="cascade"][data-anim="rotate"] .char{transform:rotateY(90deg)}
+    [data-mode="cascade"].done .char{opacity:1;transform:none}
+    /* typewriter mode */
+    [data-mode="typewriter"] .char{opacity:0}
+    [data-mode="typewriter"] .char.visible{opacity:1}
+    .cursor{display:inline-block;width:3px;height:0.85em;background:var(--ui-accent);vertical-align:text-bottom;margin-left:2px;animation:blink 1s step-end infinite}
+    .cursor.hidden{display:none}
+    @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+    @media(prefers-reduced-motion:reduce){.char{transition:none!important;opacity:1!important;transform:none!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px;border-radius:4px;width:100%;min-height:44px}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Letter-by-Letter Stagger</h1>
+  <p>Cascade: CSS transition-delay per letter. Typewriter: JS sequential reveal with a blinking cursor.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div id="text-target" data-mode="cascade" data-anim="fade-up">Hello, world.</div>
+  </div>
+  <aside>
+    <p class="note">Letter-by-letter is the most dramatic split, but also the most overused. Reserve it for short phrases (under 30 chars). For longer text, word-level stagger is more legible.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
+    <div class="kv"><span>Total time</span><span class="v" id="total-time">—</span></div>
+    <div class="div"></div>
+    <div class="lbl">Mode</div>
+    <div class="seg" id="mode-seg">
+      <button data-m="cascade" class="on">Cascade</button>
+      <button data-m="typewriter">Typewriter</button>
+    </div>
+    <div id="cascade-opts">
+      <div class="lbl" style="margin-top:4px">Per-letter animation</div>
+      <div class="seg" id="anim-seg">
+        <button data-a="fade-up" class="on">↑Fade</button>
+        <button data-a="fade">Fade</button>
+        <button data-a="scale">Scale</button>
+        <button data-a="rotate">Rotate</button>
+      </div>
+    </div>
+    <div><div class="lbl" id="stag-lbl">Per-letter delay</div>
+      <div class="sr"><input type="range" id="stag-sl" aria-labelledby="stag-lbl" min="10" max="120" value="35" step="5"><span class="sv" id="stag-v">35ms</span></div>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Duration per letter</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1000" value="400" step="50"><span class="sv" id="dur-v">400ms</span></div>
+    </div>
+    <label class="tog" for="cursor-tog"><input type="checkbox" id="cursor-tog" checked><span>Show cursor (typewriter)</span></label>
+    <div><div class="lbl">Edit text</div>
+      <input type="text" id="txt-in" value="Hello, world." aria-label="Edit text" maxlength="60">
+    </div>
+    <div class="div"></div>
+    <div class="btn-row">
+      <button class="act pri" id="btn-play" aria-label="Replay">Replay</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const target=document.getElementById('text-target');
+  const stEl=document.getElementById('st'),totalEl=document.getElementById('total-time');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const stagSl=document.getElementById('stag-sl'),stagV=document.getElementById('stag-v');
+  const cursorTog=document.getElementById('cursor-tog'),txtIn=document.getElementById('txt-in');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let mode='cascade',anim='fade-up',dur=400,stagger=35;
+  let twTimers=[],animTimer=null;
+
+  function clearTimers(){twTimers.forEach(clearTimeout);twTimers=[];clearTimeout(animTimer)}
+
+  function buildSpans(){
+    target.classList.remove('done');
+    const text=txtIn.value||'Hello, world.';
+    target.innerHTML='';
+    [...text].forEach((c,i)=>{
+      const s=document.createElement('span');
+      s.className='char';s.style.setProperty('--i',i);
+      s.textContent=c===' '?' ':c;
+      target.appendChild(s);
+    });
+    if(mode==='typewriter'&&cursorTog.checked){
+      const cur=document.createElement('span');cur.className='cursor hidden';cur.id='cursor';
+      target.appendChild(cur);
+    }
+    const n=target.querySelectorAll('.char').length;
+    totalEl.textContent=mode==='cascade'?Math.round(n*stagger+dur)+'ms':Math.round(n*stagger)+'ms';
+  }
+
+  function playCascade(){
+    target.classList.remove('done');void target.offsetWidth;
+    stEl.textContent='playing in';
+    target.classList.add('done');
+    const n=target.querySelectorAll('.char').length;
+    animTimer=setTimeout(()=>stEl.textContent='visible',n*stagger+dur);
+  }
+
+  function playTypewriter(){
+    if(!motionOk){target.querySelectorAll('.char').forEach(c=>c.classList.add('visible'));stEl.textContent='visible';return}
+    const chars=[...target.querySelectorAll('.char')];
+    const cur=target.querySelector('.cursor');
+    chars.forEach(c=>c.classList.remove('visible'));
+    if(cur)cur.classList.remove('hidden');
+    stEl.textContent='playing in';
+    chars.forEach((c,i)=>{twTimers.push(setTimeout(()=>c.classList.add('visible'),i*stagger))});
+    animTimer=setTimeout(()=>{stEl.textContent='visible';if(cur)cur.classList.add('hidden')},chars.length*stagger);
+  }
+
+  function play(){
+    clearTimers();buildSpans();
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+      if(mode==='cascade')playCascade();else playTypewriter();
+    })});
+  }
+  function reset(){
+    clearTimers();buildSpans();stEl.textContent='hidden';
+  }
+
+  document.getElementById('btn-play').addEventListener('click',play);
+  document.getElementById('btn-rst').addEventListener('click',reset);
+  document.querySelectorAll('#mode-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#mode-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    mode=b.dataset.m;target.dataset.mode=mode;
+    document.getElementById('cascade-opts').style.display=mode==='cascade'?'flex':'none';
+    document.getElementById('cascade-opts').style.flexDirection='column';
+    document.getElementById('cascade-opts').style.gap='6px';
+    reset();
+  }));
+  document.querySelectorAll('#anim-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#anim-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    anim=b.dataset.a;target.dataset.anim=anim;reset();
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms');buildSpans()});
+  stagSl.addEventListener('input',()=>{stagger=+stagSl.value;stagV.textContent=stagger+'ms';document.documentElement.style.setProperty('--stagger',stagger+'ms');buildSpans()});
+  txtIn.addEventListener('input',reset);cursorTog.addEventListener('change',reset);
+  buildSpans();
+</script>
+</body>
+</html>

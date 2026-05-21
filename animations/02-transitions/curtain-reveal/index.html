@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curtain Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1);--curtain-color:#111827;--pause:300ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#0a0f18;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+    /* Content */
+    .content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:24px;z-index:1}
+    .content-badge{font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--ui-accent);opacity:.7}
+    .content-title{font-size:clamp(24px,4vw,42px);font-weight:bold;line-height:1.1}
+    .content-sub{font-size:12px;color:var(--ui-muted);max-width:260px;line-height:1.6}
+    /* Curtains */
+    .curtain,.curtain-b{position:absolute;background:var(--curtain-color);z-index:2;transition:transform var(--dur) var(--ease)}
+    /* Horizontal */
+    .curtain[data-axis=h]{inset:0 auto 0 0;width:100%;transform:translateX(-101%)}
+    .curtain[data-axis=h].c-in{transform:translateX(0)}
+    .curtain[data-axis=h].c-out{transform:translateX(101%)}
+    /* Vertical */
+    .curtain[data-axis=v]{inset:0 0 auto 0;height:100%;transform:translateY(-101%)}
+    .curtain[data-axis=v].c-in{transform:translateY(0)}
+    .curtain[data-axis=v].c-out{transform:translateY(101%)}
+    /* Two-curtain halves */
+    .curtain-b{z-index:2;transition:transform var(--dur) var(--ease)}
+    .curtain-b[data-axis=h]{inset:0 0 0 auto;width:50%;transform:translateX(101%)}
+    .curtain[data-axis=h].twin{width:50%}
+    .curtain-b[data-axis=h].c-in{transform:translateX(0)}
+    .curtain-b[data-axis=h].c-out{transform:translateX(101%)}
+    /* Timeline */
+    .tl{display:flex;gap:4px;align-items:center;position:absolute;bottom:16px;left:50%;transform:translateX(-50%);pointer-events:none}
+    .tl-seg{height:4px;border-radius:2px;width:48px;background:#21262d;transition:background .2s}
+    .tl-seg.active{background:var(--ui-accent)}
+    .tl-label{font-size:8px;color:var(--ui-muted);position:absolute;bottom:-14px;white-space:nowrap}
+    @media(prefers-reduced-motion:reduce){.curtain,.curtain-b{transition:none!important}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:38px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:3px;flex-wrap:wrap}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
+    .swatches{display:flex;gap:5px}
+    .swatch{width:26px;height:26px;border-radius:4px;cursor:pointer;border:2px solid transparent;min-height:auto}
+    .swatch.on{border-color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .btn-row{display:flex;gap:6px}
+    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
+    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Curtain Reveal</h1>
+  <p>A colored bar slides over content then off the other side — the reveal is hidden then exposed.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="curtain" id="curtain" data-axis="h"></div>
+    <div class="curtain-b" id="curtain-b" data-axis="h" style="display:none"></div>
+    <div class="content">
+      <div class="content-badge">Curtain Reveal</div>
+      <div class="content-title">Unveiled</div>
+      <div class="content-sub">The reveal is hidden then exposed — your eye registers the change dramatically.</div>
+    </div>
+    <div class="tl">
+      <div class="tl-seg" id="tl0"><span class="tl-label" style="left:0">enter</span></div>
+      <div class="tl-seg" id="tl1"><span class="tl-label" style="left:0">pause</span></div>
+      <div class="tl-seg" id="tl2"><span class="tl-label" style="left:0">exit</span></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The curtain reveal is theatrical because the reveal is hidden THEN exposed — your eye registers the change. Pair with content that warrants the drama.</p>
+    <div class="lbl">State</div>
+    <div class="kv"><span>Status</span><span class="v" id="st">idle</span></div>
+    <div class="div"></div>
+    <div class="lbl">Curtain color</div>
+    <div class="swatches" id="swatches">
+      <div class="swatch on" data-c="#111827" style="background:#111827" tabindex="0" role="button" aria-label="Dark"></div>
+      <div class="swatch" data-c="#1e3a5f" style="background:#1e3a5f" tabindex="0" role="button" aria-label="Ink blue"></div>
+      <div class="swatch" data-c="#5c1a1a" style="background:#5c1a1a" tabindex="0" role="button" aria-label="Warm red"></div>
+      <div class="swatch" data-c="#f0ede8" style="background:#f0ede8" tabindex="0" role="button" aria-label="Off-white"></div>
+      <div class="swatch" data-c="#8a6e14" style="background:#8a6e14" tabindex="0" role="button" aria-label="Gold"></div>
+    </div>
+    <div class="lbl">Direction</div>
+    <div class="seg" id="dir-seg">
+      <button data-ax="h" data-dir="ltr" class="on">→ L→R</button>
+      <button data-ax="h" data-dir="rtl">← R→L</button>
+      <button data-ax="v" data-dir="ttb">↓ Top</button>
+      <button data-ax="v" data-dir="btt">↑ Bot</button>
+    </div>
+    <div><div class="lbl" id="dur-lbl">Curtain speed</div>
+      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1500" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    </div>
+    <div><div class="lbl" id="pause-lbl">Pause between</div>
+      <div class="sr"><input type="range" id="pause-sl" aria-labelledby="pause-lbl" min="0" max="1200" value="300" step="50"><span class="sv" id="pause-v">300ms</span></div>
+    </div>
+    <label class="tog" for="twin-tog"><input type="checkbox" id="twin-tog"><span>Two curtains (split)</span></label>
+    <div class="div"></div>
+    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+    <div class="btn-row">
+      <button class="act pri" id="btn-play" aria-label="Play curtain reveal">Play reveal</button>
+      <button class="act" id="btn-rst" aria-label="Reset">Reset</button>
+    </div>
+  </aside>
+</div>
+<script>
+  const curtain=document.getElementById('curtain'),curtainB=document.getElementById('curtain-b');
+  const stEl=document.getElementById('st'),loopTog=document.getElementById('loop-tog');
+  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
+  const pauseSl=document.getElementById('pause-sl'),pauseV=document.getElementById('pause-v');
+  const twinTog=document.getElementById('twin-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let dur=500,pause=300,axis='h',dirMode='ltr',twin=false,looping=false,loopTimer=null,busy=false;
+
+  function setTL(i){document.querySelectorAll('.tl-seg').forEach((s,j)=>s.classList.toggle('active',j===i))}
+  function clearCurtains(){
+    [curtain,curtainB].forEach(c=>{c.className=c.id==='curtain'?'curtain':'curtain-b';c.dataset.axis=axis});
+  }
+
+  function getInDir(){
+    if(axis==='h')return dirMode==='ltr'?'translateX(-101%)':'translateX(101%)';
+    return dirMode==='ttb'?'translateY(-101%)':'translateY(101%)';
+  }
+  function getOutDir(){
+    if(axis==='h')return dirMode==='ltr'?'translateX(101%)':'translateX(-101%)';
+    return dirMode==='ttb'?'translateY(101%)':'translateY(-101%)';
+  }
+
+  function play(){
+    if(busy)return;busy=true;
+    clearCurtains();
+    if(twin&&axis==='h'){
+      curtain.classList.add('twin');curtainB.style.display='block';
+      curtain.style.transform='translateX(-101%)';curtainB.style.transform='translateX(101%)';
+    } else {
+      curtain.style.transform=getInDir();curtainB.style.display='none';
+    }
+    stEl.textContent='entering';setTL(0);
+    void curtain.offsetWidth;
+    // Stage A: curtain enters
+    if(twin&&axis==='h'){curtain.classList.add('c-in');curtainB.classList.add('c-in');}
+    else curtain.classList.add('c-in');
+
+    loopTimer=setTimeout(()=>{
+      stEl.textContent='pause';setTL(1);
+      loopTimer=setTimeout(()=>{
+        stEl.textContent='exiting';setTL(2);
+        if(twin&&axis==='h'){curtain.classList.remove('c-in');curtainB.classList.remove('c-in');}
+        else{curtain.classList.remove('c-in');curtain.classList.add('c-out');}
+        loopTimer=setTimeout(()=>{
+          stEl.textContent='revealed';setTL(-1);busy=false;
+          if(looping)loopTimer=setTimeout(play,500);
+        },dur);
+      },pause);
+    },dur);
+  }
+  function stopLoop(){looping=false;clearTimeout(loopTimer);loopTog.checked=false;busy=false}
+
+  document.getElementById('btn-play').addEventListener('click',()=>{stopLoop();play()});
+  document.getElementById('btn-rst').addEventListener('click',()=>{
+    stopLoop();clearCurtains();stEl.textContent='idle';setTL(-1);
+  });
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)play();else stopLoop()});
+  document.querySelectorAll('#dir-seg button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    axis=b.dataset.ax;dirMode=b.dataset.dir;clearCurtains();
+  }));
+  document.querySelectorAll('.swatch').forEach(s=>s.addEventListener('click',()=>{
+    document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('on'));s.classList.add('on');
+    document.documentElement.style.setProperty('--curtain-color',s.dataset.c);
+  }));
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
+  pauseSl.addEventListener('input',()=>{pause=+pauseSl.value;pauseV.textContent=pause+'ms'});
+  twinTog.addEventListener('change',()=>{twin=twinTog.checked;clearCurtains()});
+</script>
+</body>
+</html>
