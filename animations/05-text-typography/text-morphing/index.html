@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Morphing</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--morph-dur:400ms;--pause-dur:1500ms;--stagger:0ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
+    .morph-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
+    /* Word display area */
+    .morph-stage{height:clamp(80px,12vw,130px);display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;min-width:200px}
+    .morph-word{position:absolute;display:flex;align-items:center;gap:0;top:50%;transform:translateY(-50%)}
+    .morph-char{
+      font-family:Georgia,'Times New Roman',serif;
+      font-size:clamp(56px,9vw,100px);
+      line-height:1;
+      color:#fff;
+      display:inline-block;
+      will-change:transform,opacity;
+      transition:transform var(--morph-dur) cubic-bezier(.4,0,.2,1),opacity var(--morph-dur) ease
+    }
+    .morph-char.out-up{transform:translateY(-100%);opacity:0}
+    .morph-char.out-down{transform:translateY(100%);opacity:0}
+    .morph-char.out-left{transform:translateX(-80%);opacity:0}
+    .morph-char.out-right{transform:translateX(80%);opacity:0}
+    .morph-char.enter-from-below{transform:translateY(100%);opacity:0}
+    .morph-char.enter-from-above{transform:translateY(-100%);opacity:0}
+    .morph-char.enter-from-left{transform:translateX(-80%);opacity:0}
+    .morph-char.enter-from-right{transform:translateX(80%);opacity:0}
+    /* Word cycle indicator */
+    .cycle-dots{display:flex;gap:6px}
+    .cycle-dot{width:6px;height:6px;border-radius:50%;background:var(--ui-border);transition:background .2s}
+    .cycle-dot.active{background:var(--ui-accent)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    textarea{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px;border-radius:4px;width:100%;resize:vertical;min-height:88px;line-height:1.5;outline:none}
+    textarea:focus{border-color:var(--ui-accent)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
+    @media(prefers-reduced-motion:reduce){.morph-char{transition:none!important;transform:none!important;opacity:1!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Text Morphing</h1>
+  <p>One word transitions into another character-by-character — each letter slides out as the next slides in.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="morph-label">Morphing</div>
+    <div class="morph-stage" id="morph-stage" aria-live="polite">
+      <div class="morph-word" id="current-word"></div>
+    </div>
+    <div class="cycle-dots" id="dots"></div>
+  </div>
+  <aside>
+    <p class="note">For words of different lengths, extra characters fade independently. Keep word lengths similar to minimize the layout shift during transition.</p>
+    <div class="lbl">Morph Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="200" max="800" value="400" step="50"><span class="sv" id="dur-v">400ms</span></div>
+    <div class="lbl">Pause Between Words</div>
+    <div class="sr"><input type="range" id="pause-sl" min="500" max="4000" value="1500" step="100"><span class="sv" id="pause-v">1.5s</span></div>
+    <div class="lbl">Stagger Per Char</div>
+    <div class="sr"><input type="range" id="stag-sl" min="0" max="80" value="0" step="5"><span class="sv" id="stag-v">0ms</span></div>
+    <div class="lbl">Direction</div>
+    <select id="dir-sel">
+      <option value="up" selected>Up</option>
+      <option value="down">Down</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+    <div class="div"></div>
+    <div class="lbl">Words (one per line)</div>
+    <textarea id="words-inp">OCEAN
+RIVER
+STORM
+LIGHT
+SOUND</textarea>
+    <button class="rst" id="restart-btn">↺ Restart</button>
+    <div class="kv"><span>Current word</span><span class="v" id="cur-word-kv">—</span></div>
+  </aside>
+</div>
+<script>
+  let wordIdx=0,morphTimer=null,running=false;
+  const wordEl=document.getElementById('current-word');
+  const dotsEl=document.getElementById('dots');
+  const curWordKv=document.getElementById('cur-word-kv');
+
+  function getWords(){
+    return document.getElementById('words-inp').value.split('\n').map(w=>w.trim().toUpperCase()).filter(Boolean);
+  }
+  function getDur(){return+document.getElementById('dur-sl').value}
+  function getPause(){return+document.getElementById('pause-sl').value}
+  function getStag(){return+document.getElementById('stag-sl').value}
+  function getDir(){return document.getElementById('dir-sel').value}
+
+  function buildDots(words){
+    dotsEl.innerHTML='';
+    words.forEach((_,i)=>{
+      const d=document.createElement('div');d.className='cycle-dot'+(i===wordIdx?' active':'');
+      dotsEl.appendChild(d);
+    });
+  }
+  function updateDots(i){
+    dotsEl.querySelectorAll('.cycle-dot').forEach((d,j)=>d.classList.toggle('active',j===i));
+  }
+
+  function showWord(word){
+    wordEl.innerHTML='';
+    word.split('').forEach((c,i)=>{
+      const s=document.createElement('span');s.className='morph-char';s.textContent=c;
+      const stag=getStag();
+      if(stag>0)s.style.transitionDelay=(stag*i)+'ms';
+      wordEl.appendChild(s);
+    });
+  }
+
+  function morphTo(fromWord,toWord,done){
+    const dir=getDir();
+    const dur=getDur();
+    const stag=getStag();
+    const fromChars=[...wordEl.querySelectorAll('.morph-char')];
+    const outClass='out-'+dir;
+
+    // Exit current word
+    fromChars.forEach((c,i)=>{
+      if(stag>0)c.style.transitionDelay=(stag*i)+'ms';
+      else c.style.transitionDelay='0ms';
+      c.classList.add(outClass);
+    });
+
+    const exitDur=dur+(stag*(fromChars.length-1));
+    setTimeout(()=>{
+      // Build new word off-screen
+      wordEl.innerHTML='';
+      const enterDir={up:'enter-from-below',down:'enter-from-above',left:'enter-from-right',right:'enter-from-left'}[dir];
+      const toChars=[];
+      toWord.split('').forEach((c,i)=>{
+        const s=document.createElement('span');s.className='morph-char '+enterDir;
+        if(stag>0)s.style.transitionDelay=(stag*i)+'ms';
+        s.textContent=c;wordEl.appendChild(s);toChars.push(s);
+      });
+      // Animate in
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        toChars.forEach(c=>{c.classList.remove('enter-from-below','enter-from-above','enter-from-left','enter-from-right');});
+        const enterDur=dur+(stag*(toChars.length-1));
+        setTimeout(done,enterDur+50);
+      }));
+    },exitDur+60);
+  }
+
+  function cycle(){
+    const words=getWords();
+    if(words.length<2)return;
+    running=true;
+    updateDots(wordIdx);
+    curWordKv.textContent=words[wordIdx];
+
+    morphTimer=setTimeout(()=>{
+      const next=(wordIdx+1)%words.length;
+      morphTo(words[wordIdx],words[next],()=>{
+        wordIdx=next;
+        updateDots(wordIdx);curWordKv.textContent=words[wordIdx];
+        morphTimer=setTimeout(cycle,100);
+      });
+    },getPause());
+  }
+
+  function start(){
+    if(morphTimer)clearTimeout(morphTimer);running=false;wordIdx=0;
+    const words=getWords();if(!words.length)return;
+    buildDots(words);showWord(words[0]);curWordKv.textContent=words[0];
+    setTimeout(cycle,100);
+  }
+
+  document.getElementById('restart-btn').addEventListener('click',start);
+  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms'});
+  document.getElementById('pause-sl').addEventListener('input',e=>{document.getElementById('pause-v').textContent=(e.target.value/1000).toFixed(1)+'s'});
+  document.getElementById('stag-sl').addEventListener('input',e=>{document.getElementById('stag-v').textContent=e.target.value+'ms'});
+
+  start();
+</script>
+</body>
+</html>

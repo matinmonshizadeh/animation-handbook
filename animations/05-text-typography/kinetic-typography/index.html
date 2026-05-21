@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinetic Typography</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--spd:1}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+    /* Phrase display */
+    #phrase{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:32px;text-align:center}
+    .kw{font-family:Georgia,'Times New Roman',serif;font-size:clamp(40px,8vw,90px);line-height:1;letter-spacing:-0.02em;color:#fff;will-change:transform,opacity;display:block}
+    .kw.sub{font-family:monospace;font-size:clamp(11px,1.5vw,14px);letter-spacing:4px;text-transform:uppercase;color:var(--ui-muted);margin-top:12px}
+    /* Enter/exit animations */
+    .kw{opacity:0;transform:translateY(0) scale(1)}
+    .enter-scale{animation:kEnterScale calc(600ms / var(--spd)) ease-out forwards}
+    .enter-slide{animation:kEnterSlide calc(500ms / var(--spd)) ease-out forwards}
+    .enter-fade{animation:kEnterFade calc(400ms / var(--spd)) ease-out forwards}
+    .enter-big{animation:kEnterBig calc(700ms / var(--spd)) cubic-bezier(.2,1.1,.4,1) forwards}
+    .enter-clip{animation:kEnterClip calc(600ms / var(--spd)) ease-out forwards}
+    .exit-up{animation:kExitUp calc(400ms / var(--spd)) ease-in forwards}
+    .exit-fade{animation:kExitFade calc(300ms / var(--spd)) ease-in forwards}
+    .exit-shrink{animation:kExitShrink calc(500ms / var(--spd)) ease-in forwards}
+    .exit-right{animation:kExitRight calc(400ms / var(--spd)) ease-in forwards}
+    @keyframes kEnterScale{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    @keyframes kEnterSlide{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes kEnterFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes kEnterBig{from{opacity:0;transform:scale(2.5)}to{opacity:1;transform:scale(1)}}
+    @keyframes kEnterClip{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0% 0 0)}}
+    @keyframes kExitUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-50px)}}
+    @keyframes kExitFade{from{opacity:1}to{opacity:0}}
+    @keyframes kExitShrink{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.3)}}
+    @keyframes kExitRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(80px)}}
+    /* Beat markers */
+    .beat-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--ui-border)}
+    .beat-fill{height:100%;background:var(--ui-accent);width:0%;transition:width 100ms linear}
+    /* Phrase counter */
+    .phrase-counter{position:absolute;top:14px;right:14px;font-size:10px;color:var(--ui-muted);letter-spacing:1px}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:36px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.kw{animation:none!important;opacity:1!important;transform:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Kinetic Typography</h1>
+  <p>Text in motion — phrases enter, transform, and exit in a coordinated timeline.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div id="phrase" aria-live="polite"></div>
+    <div class="phrase-counter" id="counter">1 / 6</div>
+    <div class="beat-bar"><div class="beat-fill" id="beat-fill"></div></div>
+  </div>
+  <aside>
+    <p class="note">Kinetic typography is choreography for words. Each transform should reinforce the meaning — a soft word dissolves; a hard word snaps in.</p>
+    <div class="lbl">Playback Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="5" max="20" value="10" step="1"><span class="sv" id="spd-v">1×</span></div>
+    <div class="div"></div>
+    <div class="kv"><span>Phrase</span><span class="v" id="phrase-kv">1 / 6</span></div>
+    <div class="kv"><span>State</span><span class="v" id="state-kv">Playing</span></div>
+    <div class="div"></div>
+    <button class="rst" id="play-btn">▶ Play / Restart</button>
+    <label class="tog"><input type="checkbox" id="loop-tog"><span>Loop sequence</span></label>
+    <label class="tog"><input type="checkbox" id="beat-tog" checked><span>Show progress bar</span></label>
+  </aside>
+</div>
+<script>
+const PHRASES=[
+  {text:'EVERY',sub:'word has',enter:'enter-scale',exit:'exit-up',hold:1400,color:'#c9d1d9'},
+  {text:'A WEIGHT',sub:null,enter:'enter-slide',exit:'exit-right',hold:1600,color:'#58a6ff'},
+  {text:'AND',sub:null,enter:'enter-fade',exit:'exit-fade',hold:900,color:'#8b949e'},
+  {text:'A MOMENT',sub:null,enter:'enter-big',exit:'exit-shrink',hold:1800,color:'#d2a8ff'},
+  {text:'IN MOTION',sub:'it becomes',enter:'enter-clip',exit:'exit-up',hold:1600,color:'#56d364'},
+  {text:'MEANING.',sub:null,enter:'enter-scale',exit:'exit-fade',hold:2200,color:'#ffa657'},
+];
+let idx=0,timer=null,running=false,speed=1;
+const phraseEl=document.getElementById('phrase');
+const counterEl=document.getElementById('counter');
+const phraseKv=document.getElementById('phrase-kv');
+const stateKv=document.getElementById('state-kv');
+const beatFill=document.getElementById('beat-fill');
+
+function ms(n){return Math.round(n/speed)}
+
+function showPhrase(i){
+  const p=PHRASES[i];
+  phraseEl.innerHTML='';
+  const w=document.createElement('span');w.className='kw';
+  w.style.color=p.color;w.textContent=p.text;phraseEl.appendChild(w);
+  if(p.sub){const s=document.createElement('span');s.className='kw sub';s.textContent=p.sub;phraseEl.appendChild(s);}
+  counterEl.textContent=(i+1)+' / '+PHRASES.length;
+  phraseKv.textContent=(i+1)+' / '+PHRASES.length;
+  const pct=((i+1)/PHRASES.length*100).toFixed(0)+'%';
+  if(document.getElementById('beat-tog').checked)beatFill.style.width=pct;
+  requestAnimationFrame(()=>{
+    w.classList.add(p.enter);
+    if(p.sub)phraseEl.querySelectorAll('.sub').forEach(s=>{s.style.animationDelay='200ms';s.classList.add(p.enter);});
+  });
+}
+
+function exitPhrase(i,done){
+  const p=PHRASES[i];
+  phraseEl.querySelectorAll('.kw').forEach(w=>{
+    w.classList.remove(p.enter);w.classList.add(p.exit);
+  });
+  setTimeout(done,ms(450));
+}
+
+function run(){
+  if(running)return;running=true;stateKv.textContent='Playing';
+  idx=0;
+  function step(){
+    showPhrase(idx);
+    timer=setTimeout(()=>{
+      exitPhrase(idx,()=>{
+        idx++;
+        if(idx<PHRASES.length){setTimeout(step,ms(120));}
+        else{
+          running=false;stateKv.textContent='Done';
+          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';setTimeout(run,ms(800));}
+        }
+      });
+    },ms(500)+ms(p.hold));
+  }
+  function p_hold(){return PHRASES[idx];}
+  function step2(){
+    showPhrase(idx);
+    const hold=PHRASES[idx].hold;
+    timer=setTimeout(()=>{
+      exitPhrase(idx,()=>{
+        idx++;
+        if(idx<PHRASES.length){setTimeout(step2,ms(120));}
+        else{
+          running=false;stateKv.textContent='Done';
+          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';setTimeout(run,ms(800));}
+        }
+      });
+    },ms(500+hold));
+  }
+  step2();
+}
+
+document.getElementById('play-btn').addEventListener('click',()=>{
+  if(timer)clearTimeout(timer);running=false;beatFill.style.width='0%';
+  setTimeout(run,50);
+});
+document.getElementById('spd-sl').addEventListener('input',e=>{
+  speed=e.target.value/10;
+  document.getElementById('spd-v').textContent=speed.toFixed(1)+'×';
+  document.documentElement.style.setProperty('--spd',speed);
+});
+document.getElementById('beat-tog').addEventListener('change',e=>{
+  beatFill.parentElement.style.display=e.target.checked?'block':'none';
+});
+
+run();
+</script>
+</body>
+</html>

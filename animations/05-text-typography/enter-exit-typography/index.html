@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter/Exit Typography</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--enter-dur:500ms;--hold-dur:2000ms;--exit-dur:400ms;--enter-ease:ease-out;--exit-ease:ease-in}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;overflow:hidden;position:relative}
+    /* Phrase container */
+    .phrase-el{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      padding:32px;text-align:center;will-change:transform,opacity,filter;pointer-events:none
+    }
+    .phrase-text{font-family:Georgia,'Times New Roman',serif;font-size:clamp(28px,5vw,56px);line-height:1.2;color:#fff;font-style:italic}
+    /* Enter states */
+    .state-hidden{opacity:0}
+    .enter-slide-up{animation:eSU var(--enter-dur) var(--enter-ease) forwards}
+    .enter-slide-right{animation:eSR var(--enter-dur) var(--enter-ease) forwards}
+    .enter-scale{animation:eSc var(--enter-dur) var(--enter-ease) forwards}
+    .enter-blur{animation:eBl var(--enter-dur) var(--enter-ease) forwards}
+    .enter-clip{animation:eCl var(--enter-dur) var(--enter-ease) forwards}
+    @keyframes eSU{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes eSR{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes eSc{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+    @keyframes eBl{from{opacity:0;filter:blur(12px)}to{opacity:1;filter:blur(0)}}
+    @keyframes eCl{from{opacity:1;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0% 0 0)}}
+    /* Exit states */
+    .exit-slide-up{animation:xSU var(--exit-dur) var(--exit-ease) forwards}
+    .exit-slide-left{animation:xSL var(--exit-dur) var(--exit-ease) forwards}
+    .exit-scale{animation:xSc var(--exit-dur) var(--exit-ease) forwards}
+    .exit-blur{animation:xBl var(--exit-dur) var(--exit-ease) forwards}
+    .exit-clip{animation:xCl var(--exit-dur) var(--exit-ease) forwards}
+    @keyframes xSU{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-50px)}}
+    @keyframes xSL{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60px)}}
+    @keyframes xSc{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.6)}}
+    @keyframes xBl{from{opacity:1;filter:blur(0)}to{opacity:0;filter:blur(12px)}}
+    @keyframes xCl{from{opacity:1;clip-path:inset(0 0% 0 0)}to{opacity:1;clip-path:inset(0 100% 0 0)}}
+    /* Progress */
+    .prog-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+    .prog-dot{width:6px;height:6px;border-radius:50%;background:var(--ui-border);transition:background .2s}
+    .prog-dot.active{background:var(--ui-accent)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.phrase-el{animation:none!important;opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Enter/Exit Typography</h1>
+  <p>Three-act phrase lifecycle: enter → hold → exit. Each phrase has its own choreography pair.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="phrase-el state-hidden" id="phrase-el" aria-live="polite">
+      <div class="phrase-text" id="phrase-text"></div>
+    </div>
+    <div class="prog-dots" id="prog-dots"></div>
+  </div>
+  <aside>
+    <p class="note">Three acts per phrase: enter, hold, exit. The hold is where reading happens. Match exit direction to the next phrase's enter direction for visual continuity.</p>
+    <div class="lbl">Enter Duration</div>
+    <div class="sr"><input type="range" id="enter-sl" min="200" max="1000" value="500" step="50"><span class="sv" id="enter-v">500ms</span></div>
+    <div class="lbl">Hold Duration</div>
+    <div class="sr"><input type="range" id="hold-sl" min="500" max="4000" value="2000" step="100"><span class="sv" id="hold-v">2.0s</span></div>
+    <div class="lbl">Exit Duration</div>
+    <div class="sr"><input type="range" id="exit-sl" min="200" max="800" value="400" step="50"><span class="sv" id="exit-v">400ms</span></div>
+    <div class="div"></div>
+    <div class="kv"><span>Phrase</span><span class="v" id="phrase-kv">1 / 5</span></div>
+    <div class="kv"><span>Phase</span><span class="v" id="phase-kv">—</span></div>
+    <div class="div"></div>
+    <button class="rst" id="replay-btn">↺ Replay</button>
+    <label class="tog"><input type="checkbox" id="loop-tog" checked><span>Loop</span></label>
+  </aside>
+</div>
+<script>
+const PHRASES=[
+  {text:'Everything starts',enter:'enter-slide-right',exit:'exit-slide-up'},
+  {text:'with a blank page.',enter:'enter-slide-up',exit:'exit-blur'},
+  {text:'Then words arrive.',enter:'enter-blur',exit:'exit-slide-left'},
+  {text:'Then motion.',enter:'enter-scale',exit:'exit-scale'},
+  {text:'Then meaning.',enter:'enter-clip',exit:'exit-clip'},
+];
+let idx=0,timer=null;
+const phraseEl=document.getElementById('phrase-el');
+const phraseText=document.getElementById('phrase-text');
+const dotsEl=document.getElementById('prog-dots');
+const phraseKv=document.getElementById('phrase-kv');
+const phaseKv=document.getElementById('phase-kv');
+
+function buildDots(){
+  dotsEl.innerHTML='';
+  PHRASES.forEach((_,i)=>{const d=document.createElement('div');d.className='cycle-dot prog-dot';dotsEl.appendChild(d);});
+}
+function activeDot(i){dotsEl.querySelectorAll('.prog-dot').forEach((d,j)=>d.classList.toggle('active',j===i));}
+
+function getEnterDur(){return+document.getElementById('enter-sl').value}
+function getHoldDur(){return+document.getElementById('hold-sl').value}
+function getExitDur(){return+document.getElementById('exit-sl').value}
+
+const enterClasses=['enter-slide-up','enter-slide-right','enter-scale','enter-blur','enter-clip'];
+const exitClasses=['exit-slide-up','exit-slide-left','exit-scale','exit-blur','exit-clip'];
+const allPhaseClasses=[...enterClasses,...exitClasses,'state-hidden'];
+
+function show(i,done){
+  const p=PHRASES[i];
+  phraseText.textContent=p.text;
+  phraseEl.classList.remove(...allPhaseClasses);
+  phraseEl.classList.add('state-hidden');
+  phraseKv.textContent=(i+1)+' / '+PHRASES.length;
+  activeDot(i);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    phaseKv.textContent='Enter';
+    phraseEl.classList.remove('state-hidden');
+    phraseEl.classList.add(p.enter);
+    const enterDur=getEnterDur();
+    timer=setTimeout(()=>{
+      phaseKv.textContent='Hold';
+      timer=setTimeout(()=>{
+        phaseKv.textContent='Exit';
+        phraseEl.classList.remove(p.enter);
+        phraseEl.classList.add(p.exit);
+        timer=setTimeout(()=>{phraseEl.classList.add('state-hidden');done();},getExitDur()+50);
+      },getHoldDur());
+    },enterDur+50);
+  }));
+}
+
+function cycle(){
+  show(idx,()=>{
+    idx=(idx+1)%PHRASES.length;
+    if(idx>0||document.getElementById('loop-tog').checked){
+      timer=setTimeout(cycle,120);
+    }else{phaseKv.textContent='Done';}
+  });
+}
+
+function start(){
+  if(timer)clearTimeout(timer);
+  idx=0;buildDots();
+  phraseEl.classList.add('state-hidden');
+  setTimeout(cycle,200);
+}
+
+document.getElementById('replay-btn').addEventListener('click',start);
+document.getElementById('enter-sl').addEventListener('input',e=>{
+  document.getElementById('enter-v').textContent=e.target.value+'ms';
+  document.documentElement.style.setProperty('--enter-dur',e.target.value+'ms');
+});
+document.getElementById('hold-sl').addEventListener('input',e=>{
+  document.getElementById('hold-v').textContent=(e.target.value/1000).toFixed(1)+'s';
+  document.documentElement.style.setProperty('--hold-dur',e.target.value+'ms');
+});
+document.getElementById('exit-sl').addEventListener('input',e=>{
+  document.getElementById('exit-v').textContent=e.target.value+'ms';
+  document.documentElement.style.setProperty('--exit-dur',e.target.value+'ms');
+});
+
+start();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee / Ticker</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--marq-spd:80px;--marq-size:48px;--marq-gap:48px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:0}
+    /* Marquee row */
+    .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid var(--ui-border);position:relative}
+    .marq-row:last-child{border-bottom:none}
+    .marq-row.accent{background:rgba(88,166,255,.05)}
+    .marq-track{display:flex;width:max-content;white-space:nowrap;animation:marqL linear infinite}
+    .marq-track.rev{animation-name:marqR}
+    .marq-row:hover .marq-track{animation-play-state:paused}
+    @keyframes marqL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    @keyframes marqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+    .marq-item{font-family:Georgia,'Times New Roman',serif;font-size:var(--marq-size);font-style:italic;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
+    .marq-item.rev-row{color:rgba(255,255,255,.6)}
+    .sep{color:var(--ui-accent);font-style:normal;font-size:.6em;opacity:.7}
+    /* Pause indicator */
+    .pause-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:9px;letter-spacing:1px;color:var(--ui-muted);opacity:0;transition:opacity .2s;pointer-events:none;background:var(--ui-bg);padding:3px 8px;border-radius:3px}
+    .marq-row:hover .pause-hint{opacity:1}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
+    @media(prefers-reduced-motion:reduce){.marq-track{animation-play-state:paused!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Marquee / Ticker</h1>
+  <p>Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <!-- built by JS -->
+  </div>
+  <aside>
+    <p class="note">Animate exactly the width of ONE copy. At -50% translateX, the second copy is in the first's original position — the reset is invisible. Hover pauses.</p>
+    <div class="lbl">Speed (px/sec)</div>
+    <div class="sr"><input type="range" id="spd-sl" min="20" max="200" value="80" step="10"><span class="sv" id="spd-v">80</span></div>
+    <div class="lbl">Font Size</div>
+    <div class="sr"><input type="range" id="size-sl" min="24" max="96" value="48" step="4"><span class="sv" id="size-v">48px</span></div>
+    <div class="lbl">Gap Between Items</div>
+    <div class="sr"><input type="range" id="gap-sl" min="16" max="96" value="48" step="4"><span class="sv" id="gap-v">48px</span></div>
+    <div class="lbl">Separator</div>
+    <select id="sep-sel">
+      <option value="·">Bullet ·</option>
+      <option value="★">Star ★</option>
+      <option value="—">Dash —</option>
+      <option value="✦" selected>Asterisk ✦</option>
+    </select>
+    <div class="div"></div>
+    <div class="lbl">Marquee Text</div>
+    <input type="text" id="text-inp" value="Animation Atlas">
+    <button class="rst" id="apply-btn">↺ Apply</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+
+  function buildRow(text,sep,reverse,className){
+    const row=document.createElement('div');row.className='marq-row'+(className?' '+className:'');
+    const hint=document.createElement('div');hint.className='pause-hint';hint.textContent='PAUSED';row.appendChild(hint);
+    const track=document.createElement('div');track.className='marq-track'+(reverse?' rev':'');
+    // Duplicate 4× for seamless loop
+    for(let i=0;i<4;i++){
+      const item=document.createElement('div');item.className='marq-item'+(reverse?' rev-row':'');
+      item.innerHTML=text+'<span class="sep" aria-hidden="true">'+sep+'</span>';
+      track.appendChild(item);
+    }
+    row.appendChild(track);
+    updateSpeed(track);
+    return row;
+  }
+
+  function getContent(){
+    return document.getElementById('text-inp').value||'Animation Atlas';
+  }
+  function getSep(){return document.getElementById('sep-sel').value}
+
+  function updateSpeed(track){
+    const spd=+document.getElementById('spd-sl').value;
+    // Estimate total track width: approximate by counting chars
+    const text=getContent();
+    const approxW=(text.length*40+100)*2; // 2 copies = -50% travel distance
+    const dur=Math.max(approxW/spd,2);
+    track.style.animationDuration=dur.toFixed(1)+'s';
+  }
+
+  function rebuild(){
+    const text=getContent();const sep=getSep();
+    stage.innerHTML='';
+    stage.appendChild(buildRow(text,sep,false,''));
+    stage.appendChild(buildRow(text,sep,true,'accent'));
+    stage.appendChild(buildRow(text+' · '+text,sep,false,''));
+  }
+
+  function refreshSpeeds(){
+    document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t));
+    document.documentElement.style.setProperty('--marq-spd',document.getElementById('spd-sl').value+'px');
+  }
+
+  document.getElementById('spd-sl').addEventListener('input',e=>{
+    document.getElementById('spd-v').textContent=e.target.value;refreshSpeeds();
+  });
+  document.getElementById('size-sl').addEventListener('input',e=>{
+    document.getElementById('size-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--marq-size',e.target.value+'px');
+  });
+  document.getElementById('gap-sl').addEventListener('input',e=>{
+    document.getElementById('gap-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--marq-gap',e.target.value+'px');
+  });
+  document.getElementById('apply-btn').addEventListener('click',rebuild);
+  document.getElementById('sep-sel').addEventListener('change',rebuild);
+
+  rebuild();
+</script>
+</body>
+</html>

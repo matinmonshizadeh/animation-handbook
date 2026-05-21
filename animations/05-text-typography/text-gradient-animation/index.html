@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Gradient Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--grad-dur:4s;--grad-size:120px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:32px}
+    /* Gradient text base */
+    .grad-text{
+      font-family:Georgia,'Times New Roman',serif;
+      font-size:var(--grad-size);
+      font-style:italic;
+      line-height:1;
+      letter-spacing:-0.02em;
+      background-clip:text;
+      -webkit-background-clip:text;
+      color:transparent;
+      background-size:300% 300%;
+      animation:grad-flow var(--grad-dur) linear infinite;
+      display:block;
+      text-align:center;
+      -webkit-user-select:none;user-select:none
+    }
+    /* Linear */
+    .grad-linear{background-image:linear-gradient(90deg,#58a6ff,#56d364,#d2a8ff,#ffa657,#58a6ff)}
+    /* Conic */
+    .grad-conic{
+      background-image:conic-gradient(from 0deg,#58a6ff,#56d364,#d2a8ff,#ffa657,#58a6ff);
+      animation:grad-spin var(--grad-dur) linear infinite;
+      background-size:200% 200%;background-position:50% 50%
+    }
+    /* Multi-stop */
+    .grad-multi{background-image:linear-gradient(135deg,#f85149,#ffa657,#56d364,#58a6ff,#d2a8ff,#f85149)}
+    /* Custom two-color */
+    .grad-custom{background-image:linear-gradient(90deg,var(--c1,#58a6ff),var(--c2,#d2a8ff),var(--c1,#58a6ff))}
+    @keyframes grad-flow{from{background-position:0% 50%}to{background-position:300% 50%}}
+    @keyframes grad-spin{from{background-position:0% 0%}to{background-position:100% 100%}}
+    .grad-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    .color-row{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted)}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}:root{--grad-size:64px}}
+    @media(prefers-reduced-motion:reduce){.grad-text{animation:none!important;background-position:0% 50%!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Text Gradient Animation</h1>
+  <p>background-clip: text + animated background-position flows color through the characters.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="grad-label">Gradient</div>
+    <div class="grad-text grad-linear" id="grad-text">Flow</div>
+    <div class="grad-label" style="opacity:.4;font-size:9px">background-clip: text · color: transparent</div>
+  </div>
+  <aside>
+    <p class="note">The text never animates — only the gradient behind it moves. background-clip: text + color: transparent exposes the background through character shapes.</p>
+    <div class="lbl">Gradient Type</div>
+    <select id="type-sel">
+      <option value="grad-linear" selected>Linear flow</option>
+      <option value="grad-conic">Conic rotation</option>
+      <option value="grad-multi">Multi-stop 135°</option>
+      <option value="grad-custom">Two-color custom</option>
+    </select>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="10" max="100" value="40" step="5"><span class="sv" id="spd-v">4s</span></div>
+    <div class="lbl">Font Size</div>
+    <div class="sr"><input type="range" id="size-sl" min="32" max="160" value="120" step="8"><span class="sv" id="size-v">120px</span></div>
+    <div class="lbl">Custom Colors</div>
+    <div class="color-row">
+      <span>Start</span>
+      <input type="color" id="c1-pick" value="#58a6ff" aria-label="Start color">
+      <span>End</span>
+      <input type="color" id="c2-pick" value="#d2a8ff" aria-label="End color">
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="Flow">
+  </aside>
+</div>
+<script>
+  const gradText=document.getElementById('grad-text');
+  const CLASSES=['grad-linear','grad-conic','grad-multi','grad-custom'];
+
+  document.getElementById('type-sel').addEventListener('change',e=>{
+    gradText.classList.remove(...CLASSES);
+    gradText.classList.add(e.target.value);
+  });
+  document.getElementById('spd-sl').addEventListener('input',e=>{
+    const v=e.target.value/10;
+    document.getElementById('spd-v').textContent=v.toFixed(1)+'s';
+    document.documentElement.style.setProperty('--grad-dur',v+'s');
+  });
+  document.getElementById('size-sl').addEventListener('input',e=>{
+    document.getElementById('size-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--grad-size',e.target.value+'px');
+  });
+  document.getElementById('text-inp').addEventListener('input',e=>{
+    gradText.textContent=e.target.value||'Flow';
+  });
+  document.getElementById('c1-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--c1',e.target.value);
+  });
+  document.getElementById('c2-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--c2',e.target.value);
+  });
+</script>
+</body>
+</html>

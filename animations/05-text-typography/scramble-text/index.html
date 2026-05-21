@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scramble / Glitch Text</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:32px}
+    .scramble-wrap{width:100%;max-width:520px}
+    .scramble-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted);margin-bottom:12px}
+    .scramble-text{font-family:Georgia,'Times New Roman',serif;font-size:clamp(28px,5vw,60px);letter-spacing:0.04em;line-height:1.2;color:#fff;min-height:1.4em;word-break:break-all}
+    .scramble-text .char{display:inline-block;transition:color 60ms}
+    .scramble-text .char.locked{color:#fff}
+    .scramble-text .char.scrambling{color:#4a7a4a}
+    .scramble-text .sp{display:inline-block;width:0.3em}
+    /* Status */
+    .status-bar{width:100%;max-width:520px;display:flex;gap:16px;font-size:10px;color:var(--ui-muted)}
+    .sv{color:var(--ui-text)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(prefers-reduced-motion:reduce){.scramble-text .char{transition:none!important;color:#fff!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scramble / Glitch Text</h1>
+  <p>Characters cycle through random symbols before locking to their true value — decryption aesthetic.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="scramble-wrap">
+      <div class="scramble-label">Decoding…</div>
+      <div class="scramble-text" id="scramble-out" aria-live="polite" aria-label="Scrambling text"></div>
+    </div>
+    <div class="status-bar">
+      <span>Locked: <span class="sv" id="locked-ct">0</span></span>
+      <span>Remaining: <span class="sv" id="remain-ct">0</span></span>
+      <span>Cycle: <span class="sv" id="cycle-ct">0ms</span></span>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Scramble effects evoke decryption and sci-fi interfaces. Characters settle left-to-right so the word is progressively readable — not all at once.</p>
+    <div class="lbl">Cycle Speed</div>
+    <div class="sr"><input type="range" id="cyc-sl" min="20" max="100" value="40" step="5"><span class="sval" id="cyc-v">40ms</span></div>
+    <div class="lbl">Settle Delay per Char</div>
+    <div class="sr"><input type="range" id="settle-sl" min="30" max="200" value="70" step="10"><span class="sval" id="settle-v">70ms</span></div>
+    <div class="lbl">Character Set</div>
+    <select id="charset-sel">
+      <option value="alpha">Alphabetic</option>
+      <option value="symbols" selected>Symbols</option>
+      <option value="numeric">Numeric</option>
+      <option value="matrix">Matrix (katakana)</option>
+      <option value="all">All mixed</option>
+    </select>
+    <div class="div"></div>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="DECODE THE MESSAGE">
+    <button class="rst" id="replay-btn">↺ Replay</button>
+    <label class="tog"><input type="checkbox" id="loop-tog"><span>Auto-loop</span></label>
+  </aside>
+</div>
+<script>
+const CHARSETS={
+  alpha:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  symbols:'!@#$%^&*<>{}[]|/\\?=+-_~`',
+  numeric:'0123456789',
+  matrix:'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン',
+  all:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>{}[]'
+};
+let cycleTimer=null,running=false;
+const out=document.getElementById('scramble-out');
+const lockedCt=document.getElementById('locked-ct');
+const remainCt=document.getElementById('remain-ct');
+const cycleCt=document.getElementById('cycle-ct');
+
+function randChar(charset){return charset[Math.floor(Math.random()*charset.length)]}
+
+function scramble(){
+  if(cycleTimer)clearInterval(cycleTimer);
+  running=true;
+  const text=document.getElementById('text-inp').value.toUpperCase();
+  const charset=CHARSETS[document.getElementById('charset-sel').value];
+  const cycleMs=+document.getElementById('cyc-sl').value;
+  const settleMs=+document.getElementById('settle-sl').value;
+  cycleCt.textContent=cycleMs+'ms';
+
+  // Build span per char
+  out.innerHTML='';
+  const spans=[];
+  text.split('').forEach(c=>{
+    if(c===' '){const sp=document.createElement('span');sp.className='sp';sp.setAttribute('aria-hidden','true');out.appendChild(sp);spans.push(null);return;}
+    const s=document.createElement('span');s.className='char scrambling';s.textContent=randChar(charset);out.appendChild(s);spans.push(s);
+  });
+  out.setAttribute('aria-label','Loading: '+text);
+
+  const locked=new Array(text.length).fill(false);
+  let lockedCount=0;
+
+  // Settle each char after staggered delay
+  spans.forEach((s,i)=>{
+    if(!s)return;
+    setTimeout(()=>{
+      s.textContent=text[i];s.classList.remove('scrambling');s.classList.add('locked');
+      locked[i]=true;lockedCount++;
+      lockedCt.textContent=lockedCount;
+      remainCt.textContent=spans.filter(Boolean).length-lockedCount;
+      if(lockedCount===spans.filter(Boolean).length){
+        running=false;out.setAttribute('aria-label',text);
+        if(document.getElementById('loop-tog').checked)setTimeout(scramble,1200);
+      }
+    },settleMs*i+settleMs);
+  });
+
+  // Cycle random chars on unlocked positions
+  cycleTimer=setInterval(()=>{
+    spans.forEach((s,i)=>{if(s&&!locked[i])s.textContent=randChar(charset);});
+  },cycleMs);
+
+  const total=spans.filter(Boolean).length;
+  const totalTime=settleMs*total+settleMs;
+  setTimeout(()=>clearInterval(cycleTimer),totalTime+cycleMs*2);
+
+  remainCt.textContent=total;lockedCt.textContent='0';
+}
+
+document.getElementById('replay-btn').addEventListener('click',()=>{
+  clearInterval(cycleTimer);running=false;scramble();
+});
+document.getElementById('cyc-sl').addEventListener('input',e=>document.getElementById('cyc-v').textContent=e.target.value+'ms');
+document.getElementById('settle-sl').addEventListener('input',e=>document.getElementById('settle-v').textContent=e.target.value+'ms');
+document.getElementById('text-inp').addEventListener('keydown',e=>{if(e.key==='Enter')scramble()});
+
+scramble();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variable Font Morph</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Recursive:wght@300..1000&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--wght:400;--CASL:0;--slnt:0}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
+    .vf-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
+    .vf-text{
+      font-family:'Recursive',Georgia,serif;
+      font-size:clamp(56px,10vw,110px);
+      line-height:1;
+      color:#fff;
+      letter-spacing:-0.02em;
+      font-variation-settings:'wght' var(--wght),'CASL' var(--CASL),'slnt' var(--slnt);
+      transition:font-variation-settings 600ms cubic-bezier(.4,0,.2,1);
+      -webkit-user-select:none;user-select:none
+    }
+    .vf-sub{font-family:'Recursive',monospace;font-size:clamp(13px,2vw,18px);color:var(--ui-muted);letter-spacing:0.1em;font-variation-settings:'wght' 300,'CASL' 0,'slnt' 0}
+    /* Axis readout */
+    .axis-row{display:flex;gap:20px;font-size:10px;color:var(--ui-muted)}
+    .axis-val{color:var(--ui-accent)}
+    /* Preset buttons */
+    .presets{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .preset-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:44px;min-width:70px;transition:border-color .15s,color .15s}
+    @media(hover:hover){.preset-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.vf-text{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Variable Font Morph</h1>
+  <p>CSS font-variation-settings transitions between weight, slant, and casual axes of a variable font.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="vf-label">Variable</div>
+    <div class="vf-text" id="vf-text">Type</div>
+    <div class="vf-sub" id="vf-sub">Recursive · wght + CASL + slnt</div>
+    <div class="axis-row">
+      <span>wght: <span class="axis-val" id="wght-v">400</span></span>
+      <span>casual: <span class="axis-val" id="casl-v">0.0</span></span>
+      <span>slant: <span class="axis-val" id="slnt-v">0°</span></span>
+    </div>
+    <div class="presets">
+      <button class="preset-btn" data-wght="300" data-casl="0" data-slnt="0">Thin</button>
+      <button class="preset-btn" data-wght="400" data-casl="0" data-slnt="0">Regular</button>
+      <button class="preset-btn" data-wght="700" data-casl="0" data-slnt="0">Bold</button>
+      <button class="preset-btn" data-wght="900" data-casl="0" data-slnt="0">Black</button>
+      <button class="preset-btn" data-wght="400" data-casl="1" data-slnt="-15">Casual Italic</button>
+      <button class="preset-btn" data-wght="700" data-casl="1" data-slnt="0">Casual Bold</button>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Variable fonts pack all weights into one file. font-variation-settings animates axes directly — CSS transitions work natively on any numeric axis.</p>
+    <div class="lbl">Weight (wght)</div>
+    <div class="sr"><input type="range" id="wght-sl" min="300" max="1000" value="400" step="10"><span class="sv" id="wght-sv">400</span></div>
+    <div class="lbl">Casual (CASL)</div>
+    <div class="sr"><input type="range" id="casl-sl" min="0" max="100" value="0" step="1"><span class="sv" id="casl-sv">0.0</span></div>
+    <div class="lbl">Slant (slnt)</div>
+    <div class="sr"><input type="range" id="slnt-sl" min="-15" max="0" value="0" step="1"><span class="sv" id="slnt-sv">0°</span></div>
+    <div class="div"></div>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="Type">
+    <button class="rst" id="auto-btn">▶ Auto-morph presets</button>
+    <div class="kv"><span>Font</span><span class="v">Recursive</span></div>
+    <div class="kv"><span>Axes</span><span class="v">wght · CASL · slnt</span></div>
+  </aside>
+</div>
+<script>
+const vfText=document.getElementById('vf-text');
+const PRESETS=[
+  {wght:300,CASL:0,slnt:0},{wght:900,CASL:0,slnt:0},{wght:700,CASL:1,slnt:-15},
+  {wght:400,CASL:1,slnt:0},{wght:300,CASL:0,slnt:-15},{wght:1000,CASL:0,slnt:0}
+];
+let autoTimer=null,autoIdx=0;
+
+function apply(wght,CASL,slnt){
+  document.documentElement.style.setProperty('--wght',wght);
+  document.documentElement.style.setProperty('--CASL',CASL/100);
+  document.documentElement.style.setProperty('--slnt',slnt);
+  document.getElementById('wght-v').textContent=wght;
+  document.getElementById('casl-v').textContent=(CASL/100).toFixed(1);
+  document.getElementById('slnt-v').textContent=slnt+'°';
+  document.getElementById('wght-sl').value=wght;
+  document.getElementById('casl-sl').value=CASL;
+  document.getElementById('slnt-sl').value=slnt;
+  document.getElementById('wght-sv').textContent=wght;
+  document.getElementById('casl-sv').textContent=(CASL/100).toFixed(1);
+  document.getElementById('slnt-sv').textContent=slnt+'°';
+}
+
+document.getElementById('wght-sl').addEventListener('input',e=>{
+  const v=+e.target.value;
+  document.getElementById('wght-sv').textContent=v;
+  document.getElementById('wght-v').textContent=v;
+  document.documentElement.style.setProperty('--wght',v);
+});
+document.getElementById('casl-sl').addEventListener('input',e=>{
+  const v=e.target.value/100;
+  document.getElementById('casl-sv').textContent=v.toFixed(1);
+  document.getElementById('casl-v').textContent=v.toFixed(1);
+  document.documentElement.style.setProperty('--CASL',v);
+});
+document.getElementById('slnt-sl').addEventListener('input',e=>{
+  const v=+e.target.value;
+  document.getElementById('slnt-sv').textContent=v+'°';
+  document.getElementById('slnt-v').textContent=v+'°';
+  document.documentElement.style.setProperty('--slnt',v);
+});
+document.getElementById('text-inp').addEventListener('input',e=>{
+  vfText.textContent=e.target.value||'Type';
+});
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    clearInterval(autoTimer);autoTimer=null;
+    apply(+btn.dataset.wght,+btn.dataset.casl*100,+btn.dataset.slnt);
+  });
+});
+document.getElementById('auto-btn').addEventListener('click',()=>{
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;document.getElementById('auto-btn').textContent='▶ Auto-morph presets';return;}
+  document.getElementById('auto-btn').textContent='■ Stop';
+  autoIdx=0;
+  function step(){const p=PRESETS[autoIdx%PRESETS.length];apply(p.wght,p.CASL*100,p.slnt);autoIdx++;}
+  step();autoTimer=setInterval(step,1400);
+});
+</script>
+</body>
+</html>

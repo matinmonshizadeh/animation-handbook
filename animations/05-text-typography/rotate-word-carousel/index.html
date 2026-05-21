@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotate Word Carousel</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--rot-dur:400ms;--hold-dur:2000ms;--rot-ease:cubic-bezier(.4,0,.2,1);--word-color:#58a6ff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;align-items:center;justify-content:center;padding:32px;overflow:hidden}
+    .headline{font-family:Georgia,'Times New Roman',serif;font-size:clamp(22px,3.5vw,42px);line-height:1.3;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
+    .static-line{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:0.2em}
+    .static-text{white-space:nowrap;color:rgba(255,255,255,.75)}
+    .rot-container{position:relative;display:inline-block;overflow:hidden;vertical-align:middle}
+    .rot-word{
+      display:block;
+      color:var(--word-color);
+      font-style:italic;
+      white-space:nowrap;
+      will-change:transform,opacity;
+      transition:transform var(--rot-dur) var(--rot-ease),opacity var(--rot-dur) ease
+    }
+    .rot-word.out-up{transform:translateY(-110%);opacity:0}
+    .rot-word.out-down{transform:translateY(110%);opacity:0}
+    .rot-word.out-left{transform:translateX(-110%);opacity:0}
+    .rot-word.out-right{transform:translateX(110%);opacity:0}
+    .rot-word.enter-below{transform:translateY(110%);opacity:0}
+    .rot-word.enter-above{transform:translateY(-110%);opacity:0}
+    .rot-word.enter-left{transform:translateX(-110%);opacity:0}
+    .rot-word.enter-right{transform:translateX(110%);opacity:0}
+    /* Multi-color classes */
+    .wc0{color:#58a6ff}.wc1{color:#56d364}.wc2{color:#d2a8ff}.wc3{color:#ffa657}.wc4{color:#f85149}
+    /* Word indicators */
+    .word-dots{display:flex;gap:6px;margin-top:16px}
+    .word-dot{font-size:9px;padding:3px 8px;border-radius:3px;background:var(--ui-border);color:var(--ui-muted);letter-spacing:0.5px;transition:background .2s,color .2s}
+    .word-dot.active{background:var(--ui-accent);color:#000}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    textarea{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px;border-radius:4px;width:100%;resize:vertical;min-height:88px;line-height:1.5;outline:none}
+    textarea:focus{border-color:var(--ui-accent)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
+    @media(prefers-reduced-motion:reduce){.rot-word{transition:none!important;transform:none!important;opacity:1!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Rotate Word Carousel</h1>
+  <p>One word cycles through a list while the sentence stays static — the classic hero pattern.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div style="display:flex;flex-direction:column;align-items:center">
+      <div class="headline" id="headline">
+        <div class="static-line">
+          <span class="static-text" id="static-text">We craft for</span>
+          <div class="rot-container" id="rot-container">
+            <span class="rot-word" id="rot-word">Designers</span>
+          </div>
+        </div>
+      </div>
+      <div class="word-dots" id="word-dots"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Only ONE word rotates — the sentence is static. Keep words similar in length to minimize layout shift. aria-live announces each new word to screen readers.</p>
+    <div class="lbl">Hold Duration</div>
+    <div class="sr"><input type="range" id="hold-sl" min="1000" max="5000" value="2000" step="100"><span class="sv" id="hold-v">2.0s</span></div>
+    <div class="lbl">Transition Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="200" max="800" value="400" step="50"><span class="sv" id="dur-v">400ms</span></div>
+    <div class="lbl">Direction</div>
+    <select id="dir-sel">
+      <option value="up" selected>Up</option>
+      <option value="down">Down</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="color-tog" checked><span>Different color per word</span></label>
+    <div class="div"></div>
+    <div class="lbl">Static text</div>
+    <input type="text" id="static-inp" value="We craft for">
+    <div class="lbl">Rotating words</div>
+    <textarea id="words-inp">Designers
+Developers
+Humans
+Teams
+Startups</textarea>
+    <button class="rst" id="restart-btn">↺ Restart</button>
+  </aside>
+</div>
+<script>
+  let wordIdx=0,timer=null;
+  const rotWord=document.getElementById('rot-word');
+  const rotContainer=document.getElementById('rot-container');
+  const staticText=document.getElementById('static-text');
+  const dotsEl=document.getElementById('word-dots');
+
+  function getWords(){return document.getElementById('words-inp').value.split('\n').map(w=>w.trim()).filter(Boolean)}
+  function getDur(){return+document.getElementById('dur-sl').value}
+  function getHold(){return+document.getElementById('hold-sl').value}
+  function getDir(){return document.getElementById('dir-sel').value}
+  const COLORS=['wc0','wc1','wc2','wc3','wc4'];
+  const outClasses=['out-up','out-down','out-left','out-right'];
+  const enterClasses=['enter-below','enter-above','enter-left','enter-right'];
+
+  function buildDots(words){
+    dotsEl.innerHTML='';
+    words.forEach((w,i)=>{const d=document.createElement('div');d.className='word-dot'+(i===wordIdx?' active':'');d.textContent=w;dotsEl.appendChild(d);});
+  }
+  function updateDots(i){dotsEl.querySelectorAll('.word-dot').forEach((d,j)=>d.classList.toggle('active',j===i));}
+
+  function setColor(el,i){
+    el.classList.remove(...COLORS);
+    if(document.getElementById('color-tog').checked)el.classList.add(COLORS[i%COLORS.length]);
+    else el.style.color='var(--word-color)';
+  }
+
+  function transitionTo(nextWord,nextIdx,done){
+    const dir=getDir();
+    const outMap={up:'out-up',down:'out-down',left:'out-left',right:'out-right'};
+    const enterMap={up:'enter-below',down:'enter-above',left:'enter-right',right:'enter-left'};
+    rotWord.classList.add(outMap[dir]);
+    setTimeout(()=>{
+      // swap word
+      rotWord.textContent=nextWord;
+      setColor(rotWord,nextIdx);
+      rotWord.classList.remove(...outClasses,...enterClasses);
+      rotWord.classList.add(enterMap[dir]);
+      // size container to new word
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        rotWord.classList.remove(...enterClasses);
+        setTimeout(done,getDur()+50);
+      }));
+    },getDur()+30);
+  }
+
+  function cycle(){
+    const words=getWords();if(words.length<2)return;
+    const next=(wordIdx+1)%words.length;
+    transitionTo(words[next],next,()=>{
+      wordIdx=next;updateDots(wordIdx);
+      timer=setTimeout(cycle,getHold());
+    });
+  }
+
+  function start(){
+    if(timer)clearTimeout(timer);wordIdx=0;
+    const words=getWords();if(!words.length)return;
+    rotWord.classList.remove(...outClasses,...enterClasses);
+    rotWord.textContent=words[0];
+    setColor(rotWord,0);
+    staticText.textContent=document.getElementById('static-inp').value;
+    buildDots(words);
+    timer=setTimeout(cycle,getHold());
+  }
+
+  document.getElementById('restart-btn').addEventListener('click',start);
+  document.getElementById('static-inp').addEventListener('input',e=>{staticText.textContent=e.target.value});
+  document.getElementById('words-inp').addEventListener('change',start);
+  document.getElementById('hold-sl').addEventListener('input',e=>{document.getElementById('hold-v').textContent=(e.target.value/1000).toFixed(1)+'s'});
+  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms'});
+  document.getElementById('dir-sel').addEventListener('change',()=>{});
+  document.getElementById('color-tog').addEventListener('change',()=>setColor(rotWord,wordIdx));
+
+  rotWord.setAttribute('aria-live','polite');
+  start();
+</script>
+</body>
+</html>
