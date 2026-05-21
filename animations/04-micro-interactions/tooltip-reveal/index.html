@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tooltip Reveal</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--tip-dur:150ms;--show-delay:300ms;--hide-delay:100ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:32px}
+    /* Tooltip base */
+    .tip-wrap{position:relative;display:inline-flex}
+    .tooltip{position:absolute;background:#1e2433;border:1px solid var(--ui-border);color:var(--ui-text);font-size:11px;padding:7px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transform:scale(.95);transition:opacity var(--tip-dur) ease,transform var(--tip-dur) ease;z-index:10;max-width:200px;white-space:normal;line-height:1.5}
+    .tooltip.visible{opacity:1;transform:scale(1)}
+    /* Positions */
+    .tip-top{bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.95);transform-origin:bottom center}
+    .tip-top.visible{transform:translateX(-50%) scale(1)}
+    .tip-bottom{top:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.95);transform-origin:top center}
+    .tip-bottom.visible{transform:translateX(-50%) scale(1)}
+    .tip-right{left:calc(100% + 8px);top:50%;transform:translateY(-50%) scale(.95);transform-origin:left center}
+    .tip-right.visible{transform:translateY(-50%) scale(1)}
+    .tip-left{right:calc(100% + 8px);top:50%;transform:translateY(-50%) scale(.95);transform-origin:right center}
+    .tip-left.visible{transform:translateY(-50%) scale(1)}
+    /* Arrow */
+    .has-arrow .tooltip::after{content:'';position:absolute;border:5px solid transparent}
+    .has-arrow .tip-bottom::after{top:-10px;left:50%;transform:translateX(-50%);border-bottom-color:#1e2433}
+    .has-arrow .tip-top::after{bottom:-10px;left:50%;transform:translateX(-50%);border-top-color:#1e2433}
+    .has-arrow .tip-right::after{left:-10px;top:50%;transform:translateY(-50%);border-right-color:#1e2433}
+    /* Trigger elements */
+    .icon-btn{width:52px;height:52px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer}
+    .trunc-text{font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:10px 12px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;color:var(--ui-muted)}
+    .help-input{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:12px;padding:10px 12px;border-radius:6px;outline:none;min-height:44px;width:200px;transition:border-color .15s}
+    .help-input:focus{border-color:var(--ui-accent)}
+    .avatar-sm{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1a3060,#2a5090);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
+    .row{display:flex;align-items:center;gap:12px}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:480px}}
+    @media(prefers-reduced-motion:reduce){.tooltip{transition:opacity var(--tip-dur) ease!important;transform:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Tooltip Reveal</h1>
+  <p>Info box fades in after a 300ms delay — long enough to avoid triggering on mouse pass-through.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="tip-wrap" id="tw0">
+      <div class="icon-btn" tabindex="0" aria-describedby="tt0">⚙️</div>
+      <div class="tooltip tip-bottom" id="tt0" role="tooltip">Settings — configure your workspace preferences</div>
+    </div>
+    <div class="tip-wrap" id="tw1">
+      <div class="trunc-text" tabindex="0" aria-describedby="tt1">This text is truncat…</div>
+      <div class="tooltip tip-top" id="tt1" role="tooltip">This text is truncated because it is too long for the available space in this layout.</div>
+    </div>
+    <div class="row">
+      <div class="tip-wrap" id="tw2" style="flex:1">
+        <input class="help-input" type="text" placeholder="Username" aria-describedby="tt2">
+        <div class="tooltip tip-right" id="tt2" role="tooltip">3–20 characters. Letters, numbers and underscores only.</div>
+      </div>
+    </div>
+    <div class="tip-wrap" id="tw3">
+      <div class="avatar-sm" tabindex="0" aria-describedby="tt3">🧑</div>
+      <div class="tooltip tip-top" id="tt3" role="tooltip">@atlas — joined 2019 · 140 projects</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The 300ms show delay prevents triggering on accidental hover. Hide delay (100ms) lets users move from trigger to tooltip without losing it.</p>
+    <div class="lbl">Show Delay</div>
+    <div class="sr"><input type="range" id="show-sl" min="0" max="800" value="300" step="50"><span class="sv" id="show-v">300ms</span></div>
+    <div class="lbl">Hide Delay</div>
+    <div class="sr"><input type="range" id="hide-sl" min="0" max="500" value="100" step="25"><span class="sv" id="hide-v">100ms</span></div>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="80" max="400" value="150" step="10"><span class="sv" id="dur-v">150ms</span></div>
+    <label class="tog" id="arrow-tog-wrap"><input type="checkbox" id="arrow-tog"><span>Show arrow</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Total shown</span><span class="v" id="total">0</span></div>
+  </aside>
+</div>
+<script>
+  let showDelay=300,hideDelay=100,total=0;
+  const wraps=document.querySelectorAll('.tip-wrap');
+
+  wraps.forEach(wrap=>{
+    const trigger=wrap.querySelector('[tabindex], input');
+    const tip=wrap.querySelector('.tooltip');
+    let showTimer=null,hideTimer=null;
+
+    function show(){
+      clearTimeout(hideTimer);
+      showTimer=setTimeout(()=>{tip.classList.add('visible');total++;document.getElementById('total').textContent=total;},showDelay);
+    }
+    function hide(){
+      clearTimeout(showTimer);
+      hideTimer=setTimeout(()=>tip.classList.remove('visible'),hideDelay);
+    }
+
+    wrap.addEventListener('mouseenter',show);
+    wrap.addEventListener('mouseleave',hide);
+    wrap.addEventListener('focusin',show);
+    wrap.addEventListener('focusout',hide);
+    // Touch fallback
+    wrap.addEventListener('touchstart',()=>{tip.classList.toggle('visible');},{passive:true});
+  });
+
+  document.getElementById('show-sl').addEventListener('input',e=>{showDelay=+e.target.value;document.getElementById('show-v').textContent=showDelay+'ms'});
+  document.getElementById('hide-sl').addEventListener('input',e=>{hideDelay=+e.target.value;document.getElementById('hide-v').textContent=hideDelay+'ms'});
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--tip-dur',e.target.value+'ms');
+  });
+  document.getElementById('arrow-tog').addEventListener('change',e=>{
+    wraps.forEach(w=>w.classList.toggle('has-arrow',e.target.checked));
+  });
+</script>
+</body>
+</html>

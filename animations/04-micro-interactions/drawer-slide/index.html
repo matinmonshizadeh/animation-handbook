@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawer / Panel Slide</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--drawer-w:280px;--open-dur:280ms;--close-dur:220ms;--open-ease:ease-out;--close-ease:ease-in;--backdrop-op:0.5}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#0a0f18;overflow:hidden;position:relative;display:flex;flex-direction:column}
+    /* App header */
+    .app-header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--ui-border);background:#0d1117;flex-shrink:0}
+    .hamburger{background:none;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:16px;width:44px;height:44px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s;flex-shrink:0}
+    @media(hover:hover){.hamburger:hover{border-color:var(--ui-accent)}}
+    .app-title{font-size:13px;font-weight:bold;letter-spacing:1px}
+    /* App body */
+    .app-body{flex:1;padding:24px 16px;display:flex;flex-direction:column;gap:12px}
+    .content-line{height:10px;background:rgba(255,255,255,.06);border-radius:4px}
+    .content-line.w100{width:100%}.content-line.w80{width:80%}.content-line.w60{width:60%}.content-line.w40{width:40%}
+    /* Backdrop */
+    .backdrop{position:absolute;inset:0;background:rgba(0,0,0,var(--backdrop-op));opacity:0;transition:opacity var(--open-dur) var(--open-ease);pointer-events:none;z-index:5}
+    .backdrop.visible{opacity:1;pointer-events:auto}
+    /* Drawer */
+    .drawer{position:absolute;top:0;bottom:0;width:var(--drawer-w);background:var(--ui-bg);border-right:1px solid var(--ui-border);z-index:10;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform var(--open-dur) var(--open-ease);will-change:transform;overflow:hidden}
+    .drawer.right{left:auto;right:0;border-right:none;border-left:1px solid var(--ui-border);transform:translateX(100%)}
+    .drawer.top{width:auto;left:0;right:0;top:0;bottom:auto;height:200px;transform:translateY(-100%)}
+    .drawer.bottom{width:auto;left:0;right:0;top:auto;bottom:0;height:200px;transform:translateY(100%)}
+    .drawer.open{transform:translate(0,0);transition-duration:var(--open-dur);transition-timing-function:var(--open-ease)}
+    .drawer.closing{transform:translateX(-100%);transition-duration:var(--close-dur);transition-timing-function:var(--close-ease)}
+    .drawer.right.closing{transform:translateX(100%)}
+    .drawer.top.closing,.drawer.bottom.closing{transform:translateY(0)}
+    .drawer.top.open,.drawer.bottom.open{transform:translateY(0)}
+    .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .drawer-title{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
+    .close-btn{background:none;border:none;color:var(--ui-muted);font-size:18px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+    @media(hover:hover){.close-btn:hover{color:var(--ui-text)}}
+    .drawer-body{padding:16px;display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto}
+    .nav-item{padding:10px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;min-height:44px;display:flex;align-items:center}
+    @media(hover:hover){.nav-item:hover{background:rgba(255,255,255,.05)}}
+    .nav-item.active{color:var(--ui-accent)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.drawer,.backdrop{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Drawer / Panel Slide</h1>
+  <p>Off-canvas panel slides from edge — ease-out open, ease-in close. Swipe or backdrop to dismiss.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="app-header">
+      <button class="hamburger" id="open-btn" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">☰</button>
+      <div class="app-title">Atlas App</div>
+    </div>
+    <div class="app-body">
+      <div class="content-line w100"></div><div class="content-line w80"></div>
+      <div class="content-line w60"></div><div class="content-line w100"></div>
+      <div class="content-line w40"></div><div class="content-line w80"></div>
+    </div>
+    <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+    <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
+      <div class="drawer-header">
+        <div class="drawer-title">Menu</div>
+        <button class="close-btn" id="close-btn" aria-label="Close menu">×</button>
+      </div>
+      <div class="drawer-body">
+        <div class="nav-item active">Home</div>
+        <div class="nav-item">Gallery</div>
+        <div class="nav-item">About</div>
+        <div class="nav-item">Contact</div>
+        <div class="nav-item" style="margin-top:auto;color:var(--ui-muted)">Settings</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Asymmetric easing: ease-out on open (decelerates into position — feels like arrival), ease-in on close (accelerates away — feels like dismissal).</p>
+    <div class="lbl">Drawer Side</div>
+    <select id="side-sel">
+      <option value="left" selected>Left</option>
+      <option value="right">Right</option>
+      <option value="top">Top</option>
+      <option value="bottom">Bottom</option>
+    </select>
+    <div class="lbl">Open Duration</div>
+    <div class="sr"><input type="range" id="odur-sl" min="100" max="500" value="280" step="20"><span class="sv" id="odur-v">280ms</span></div>
+    <div class="lbl">Close Duration</div>
+    <div class="sr"><input type="range" id="cdur-sl" min="80" max="400" value="220" step="20"><span class="sv" id="cdur-v">220ms</span></div>
+    <div class="lbl">Backdrop Opacity</div>
+    <div class="sr"><input type="range" id="bop-sl" min="0" max="70" value="50" step="5"><span class="sv" id="bop-v">0.50</span></div>
+    <div class="div"></div>
+    <div class="kv"><span>State</span><span class="v" id="state-v">Closed</span></div>
+  </aside>
+</div>
+<script>
+  const drawer=document.getElementById('drawer');
+  const backdrop=document.getElementById('backdrop');
+  const openBtn=document.getElementById('open-btn');
+  const stateEl=document.getElementById('state-v');
+  let isOpen=false,side='left',dragStartX=0,dragStartY=0;
+
+  function open(){
+    drawer.classList.add('open');backdrop.classList.add('visible');
+    openBtn.setAttribute('aria-expanded','true');isOpen=true;stateEl.textContent='Open';
+  }
+  function close(){
+    const closeClass=side==='right'?'right closing':(side==='top'||side==='bottom')?'closing':side+' closing';
+    drawer.classList.remove('open');backdrop.classList.remove('visible');
+    openBtn.setAttribute('aria-expanded','false');isOpen=false;stateEl.textContent='Closed';
+  }
+
+  openBtn.addEventListener('click',open);
+  document.getElementById('close-btn').addEventListener('click',close);
+  backdrop.addEventListener('click',close);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen)close()});
+
+  // Swipe to close
+  drawer.addEventListener('pointerdown',e=>{dragStartX=e.clientX;dragStartY=e.clientY});
+  drawer.addEventListener('pointerup',e=>{
+    const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
+    if(side==='left'&&dx<-50)close();
+    if(side==='right'&&dx>50)close();
+    if(side==='top'&&dy<-50)close();
+    if(side==='bottom'&&dy>50)close();
+  });
+
+  document.getElementById('side-sel').addEventListener('change',e=>{
+    if(isOpen)close();
+    side=e.target.value;
+    drawer.className='drawer';
+    if(side!=='left')drawer.classList.add(side);
+  });
+  document.getElementById('odur-sl').addEventListener('input',e=>{
+    document.getElementById('odur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--open-dur',e.target.value+'ms');
+  });
+  document.getElementById('cdur-sl').addEventListener('input',e=>{
+    document.getElementById('cdur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--close-dur',e.target.value+'ms');
+  });
+  document.getElementById('bop-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);
+    document.getElementById('bop-v').textContent=v;
+    document.documentElement.style.setProperty('--backdrop-op',v);
+  });
+</script>
+</body>
+</html>

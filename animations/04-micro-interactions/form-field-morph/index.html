@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Field Morph</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--field-dur:200ms;--float-dist:22px;--label-scale:0.8;--focus-color:#58a6ff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:32px}
+    .form{display:flex;flex-direction:column;gap:24px;width:100%;max-width:320px}
+    /* Float field */
+    .float-field{position:relative;padding-top:20px}
+    .float-field label{position:absolute;left:0;top:20px;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,font-size var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
+    .float-field input,.float-field textarea{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
+    .float-field textarea{min-height:80px;resize:none}
+    .float-field .underline{position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--focus-color);transition:width var(--field-dur) ease}
+    .float-field:focus-within .underline{width:100%}
+    .float-field:focus-within label,
+    .float-field.filled label{transform:translateY(calc(var(--float-dist)*-1)) scale(var(--label-scale));color:var(--focus-color)}
+    /* Variant 2: box input */
+    .box-field{position:relative;padding-top:20px}
+    .box-field label{position:absolute;left:12px;top:calc(20px + 10px);font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
+    .box-field input{display:block;width:100%;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:13px;padding:24px 12px 8px;outline:none;border-radius:6px;transition:border-color var(--field-dur) ease,background var(--field-dur) ease;min-height:56px}
+    .box-field:focus-within input{border-color:var(--focus-color);background:rgba(88,166,255,.04)}
+    .box-field:focus-within label,.box-field.filled label{transform:translateY(-12px) scale(0.78);color:var(--focus-color)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:460px}}
+    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Form Field Morph</h1>
+  <p>Floating label rises out of the input on focus — persists when the field is filled.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="form">
+      <div class="float-field" id="ff1">
+        <label for="inp-name">Full name</label>
+        <input id="inp-name" type="text" placeholder=" " autocomplete="off" aria-label="Full name">
+        <div class="underline"></div>
+      </div>
+      <div class="float-field" id="ff2">
+        <label for="inp-email">Email address</label>
+        <input id="inp-email" type="email" placeholder=" " autocomplete="off" aria-label="Email address">
+        <div class="underline"></div>
+      </div>
+      <div class="box-field" id="bf1">
+        <label for="inp-company">Company</label>
+        <input id="inp-company" type="text" placeholder=" " autocomplete="off" aria-label="Company">
+      </div>
+      <div class="float-field" id="ff3">
+        <label for="inp-msg">Message</label>
+        <textarea id="inp-msg" placeholder=" " aria-label="Message"></textarea>
+        <div class="underline"></div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Floating labels persist as identifiers. :placeholder-shown detects empty state in CSS. For filled state detection in JS, check input.value.length.</p>
+    <div class="lbl">Animation Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="80" max="400" value="200" step="10"><span class="sv" id="dur-v">200ms</span></div>
+    <div class="lbl">Float Distance</div>
+    <div class="sr"><input type="range" id="dist-sl" min="14" max="32" value="22" step="1"><span class="sv" id="dist-v">22px</span></div>
+    <div class="lbl">Label Scale</div>
+    <div class="sr"><input type="range" id="scale-sl" min="65" max="90" value="80" step="1"><span class="sv" id="scale-v">0.80</span></div>
+    <div class="lbl">Focus Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Focus color">
+    <div class="div"></div>
+    <div class="kv"><span>Filled fields</span><span class="v" id="filled-count">0 / 4</span></div>
+    <div class="div"></div>
+    <p class="note" style="opacity:.7">Row 1–2: underline style. Row 3: box / Material style. Row 4: textarea.</p>
+  </aside>
+</div>
+<script>
+  const floatFields=document.querySelectorAll('.float-field');
+  const boxFields=document.querySelectorAll('.box-field');
+  const allInputs=document.querySelectorAll('input,textarea');
+  const filledEl=document.getElementById('filled-count');
+
+  function updateFilled(){
+    const n=[...allInputs].filter(i=>i.value.trim().length>0).length;
+    filledEl.textContent=n+' / 4';
+  }
+
+  function syncFilled(input,wrapper){
+    wrapper.classList.toggle('filled',input.value.trim().length>0);
+    updateFilled();
+  }
+
+  [...floatFields].forEach(wrap=>{
+    const inp=wrap.querySelector('input,textarea');
+    inp.addEventListener('input',()=>syncFilled(inp,wrap));
+    inp.addEventListener('blur',()=>syncFilled(inp,wrap));
+    syncFilled(inp,wrap);
+  });
+  [...boxFields].forEach(wrap=>{
+    const inp=wrap.querySelector('input');
+    inp.addEventListener('input',()=>syncFilled(inp,wrap));
+    inp.addEventListener('blur',()=>syncFilled(inp,wrap));
+    syncFilled(inp,wrap);
+  });
+
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--field-dur',e.target.value+'ms');
+  });
+  document.getElementById('dist-sl').addEventListener('input',e=>{
+    document.getElementById('dist-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--float-dist',e.target.value+'px');
+  });
+  document.getElementById('scale-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);
+    document.getElementById('scale-v').textContent=v;
+    document.documentElement.style.setProperty('--label-scale',v);
+  });
+  document.getElementById('color-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--focus-color',e.target.value);
+  });
+</script>
+</body>
+</html>

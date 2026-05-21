@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--prog-dur:2000ms;--prog-color:#58a6ff;--prog-ease:ease-out}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:32px}
+    /* Linear bar */
+    .prog-section{width:100%;max-width:320px}
+    .prog-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted);display:flex;justify-content:space-between;margin-bottom:8px}
+    .prog-track{height:8px;background:var(--ui-border);border-radius:4px;overflow:hidden}
+    .prog-fill{height:100%;background:var(--prog-color);width:0%;border-radius:4px;transition:width var(--prog-dur) var(--prog-ease)}
+    .prog-fill.indet{width:40%!important;animation:indet var(--prog-dur) ease-in-out infinite;transition:none}
+    @keyframes indet{0%{transform:translateX(-150%)}100%{transform:translateX(350%)}}
+    /* Circular */
+    .circle-wrap{display:flex;align-items:center;gap:20px}
+    .prog-circle{position:relative;width:80px;height:80px;flex-shrink:0}
+    .prog-circle svg{transform:rotate(-90deg)}
+    .prog-ring{fill:none;stroke:var(--ui-border);stroke-width:6}
+    .prog-arc{fill:none;stroke:var(--prog-color);stroke-width:6;stroke-linecap:round;stroke-dasharray:201;stroke-dashoffset:201;transition:stroke-dashoffset var(--prog-dur) var(--prog-ease)}
+    .prog-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
+    /* Steps */
+    .steps{display:flex;gap:4px;align-items:center;width:100%;max-width:320px}
+    .step{flex:1;height:6px;background:var(--ui-border);border-radius:3px;transition:background 200ms ease}
+    .step.done{background:var(--prog-color)}
+    .step-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--ui-muted);margin-top:6px}
+    /* Play btn */
+    .play-btn{background:var(--ui-accent);color:#000;border:none;font-family:monospace;font-size:12px;font-weight:bold;padding:0 24px;height:44px;border-radius:6px;cursor:pointer;min-width:120px}
+    @media(hover:hover){.play-btn:hover{filter:brightness(1.1)}}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:500px}}
+    @media(prefers-reduced-motion:reduce){.prog-fill,.prog-arc{transition:none!important}.prog-fill.indet{animation:none!important;width:100%!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Progress Animation</h1>
+  <p>Linear bar, circular ring, and stepped segments — all driven by a single percentage value.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="prog-section">
+      <div class="prog-label"><span>Linear Bar</span><span id="pct-label">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="linear-fill"></div></div>
+    </div>
+    <div class="circle-wrap">
+      <div class="prog-circle">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="prog-ring" cx="40" cy="40" r="32"/>
+          <circle class="prog-arc" id="prog-arc" cx="40" cy="40" r="32"/>
+        </svg>
+        <div class="prog-pct" id="circ-pct">0%</div>
+      </div>
+      <div style="font-size:11px;color:var(--ui-muted);line-height:1.6;max-width:180px">Circular ring — stroke-dashoffset animates from the full circumference (201px) to 0.</div>
+    </div>
+    <div style="width:100%;max-width:320px">
+      <div class="prog-label"><span>Stepped</span><span id="step-label">0 / 5</span></div>
+      <div class="steps" id="steps">
+        <div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div>
+      </div>
+      <div class="step-labels"><span>Start</span><span>Complete</span></div>
+    </div>
+    <button class="play-btn" id="play-btn" aria-label="Start progress">▶ Start</button>
+  </div>
+  <aside>
+    <p class="note">Determinate progress reduces anxiety — users wait calmly when they can see the end. Indeterminate is for unknown durations.</p>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="500" max="5000" value="2000" step="100"><span class="sv" id="dur-v">2.0s</span></div>
+    <div class="lbl">Target %</div>
+    <div class="sr"><input type="range" id="target-sl" min="0" max="100" value="100" step="5"><span class="sv" id="target-v">100%</span></div>
+    <div class="lbl">Easing</div>
+    <select id="ease-sel">
+      <option value="ease-out" selected>Ease out</option>
+      <option value="linear">Linear</option>
+      <option value="ease-in-out">Ease in-out</option>
+    </select>
+    <div class="lbl">Fill Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Progress color">
+    <label class="tog"><input type="checkbox" id="indet-tog"><span>Indeterminate mode (bar)</span></label>
+    <div class="div"></div>
+    <p style="font-size:10px;color:var(--ui-muted)">Circumference of r=32 circle ≈ 201px. stroke-dashoffset controls how much arc is hidden.</p>
+  </aside>
+</div>
+<script>
+  let dur=2000,target=100,running=false,animRaf=null;
+  const linearFill=document.getElementById('linear-fill');
+  const arc=document.getElementById('prog-arc');
+  const pctLabel=document.getElementById('pct-label');
+  const circPct=document.getElementById('circ-pct');
+  const stepEl=document.getElementById('steps');
+  const stepLabel=document.getElementById('step-label');
+  const steps=[...stepEl.querySelectorAll('.step')];
+  const CIRC=201;
+
+  function setProgress(p){
+    const pct=Math.round(p);
+    const indet=document.getElementById('indet-tog').checked;
+    if(!indet){linearFill.style.width=p+'%';}
+    arc.style.strokeDashoffset=CIRC*(1-p/100);
+    pctLabel.textContent=pct+'%';
+    circPct.textContent=pct+'%';
+    const doneSteps=Math.ceil(p/100*5);
+    steps.forEach((s,i)=>s.classList.toggle('done',i<doneSteps));
+    stepLabel.textContent=doneSteps+' / 5';
+  }
+
+  function startAnim(){
+    if(running)return;
+    setProgress(0);running=true;
+    const start=performance.now();
+    const indet=document.getElementById('indet-tog').checked;
+    if(indet){linearFill.classList.add('indet');setTimeout(()=>{linearFill.classList.remove('indet');running=false;},dur*2);}
+    function tick(now){
+      const t=Math.min((now-start)/dur,1);
+      setProgress(target*t);
+      if(t<1){animRaf=requestAnimationFrame(tick);}else{running=false;animRaf=null;}
+    }
+    animRaf=requestAnimationFrame(tick);
+  }
+
+  document.getElementById('play-btn').addEventListener('click',()=>{
+    if(animRaf)cancelAnimationFrame(animRaf);running=false;startAnim();
+  });
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    dur=+e.target.value;document.getElementById('dur-v').textContent=(dur/1000).toFixed(1)+'s';
+    document.documentElement.style.setProperty('--prog-dur',dur+'ms');
+  });
+  document.getElementById('target-sl').addEventListener('input',e=>{
+    target=+e.target.value;document.getElementById('target-v').textContent=target+'%';
+  });
+  document.getElementById('ease-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--prog-ease',e.target.value);
+  });
+  document.getElementById('color-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--prog-color',e.target.value);
+    arc.style.stroke=e.target.value;
+  });
+  document.getElementById('indet-tog').addEventListener('change',e=>{
+    if(!e.target.checked)linearFill.classList.remove('indet');
+  });
+</script>
+</body>
+</html>

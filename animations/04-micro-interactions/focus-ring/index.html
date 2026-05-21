@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Ring Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--ring-color:#58a6ff;--ring-w:2px;--ring-offset:3px;--ring-dur:140ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:24px}
+    .tab-indicator{display:flex;gap:0;font-size:9px;color:var(--ui-muted);border:1px solid var(--ui-border);border-radius:4px;overflow:hidden}
+    .tab-step{padding:8px 14px;border-right:1px solid var(--ui-border);transition:background .15s,color .15s}
+    .tab-step:last-child{border-right:none}
+    .tab-step.active{background:rgba(88,166,255,.15);color:var(--ui-accent)}
+    .form{display:flex;flex-direction:column;gap:16px;width:100%;max-width:340px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
+    /* Reset browser outline */
+    .focusable{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:12px;padding:10px 12px;border-radius:4px;width:100%;outline:none;min-height:44px;transition:border-color var(--ring-dur) ease}
+    /* ring-solid */
+    .ring-solid .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    /* ring-dashed */
+    .ring-dashed .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) dashed var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    /* ring-glow */
+    .ring-glow .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 5px rgba(88,166,255,.18);animation:ring-in var(--ring-dur) ease-out both}
+    /* ring-dual */
+    .ring-dual .focusable:focus-visible{outline:2px solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 1px var(--bg),0 0 0 calc(3px + var(--ring-offset)) var(--ring-color);animation:ring-in var(--ring-dur) ease-out both}
+    @keyframes ring-in{from{outline-offset:calc(var(--ring-offset) + 8px);opacity:.3}to{outline-offset:var(--ring-offset);opacity:1}}
+    .form-btn{background:var(--ui-accent);color:#000;border:none;font-family:monospace;font-size:12px;font-weight:bold;padding:0 20px;border-radius:4px;cursor:pointer;min-height:44px;width:100%;outline:none}
+    .form-link{color:var(--ui-accent);text-decoration:none;font-size:12px;padding:10px 2px;display:inline-block;min-height:44px;line-height:24px;outline:none}
+    .form-link:focus-visible{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    .form-btn:focus-visible{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px;padding:20px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Focus Ring Animation</h1>
+  <p>Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="tab-indicator">
+      <div class="tab-step" data-i="0">1 · Text</div>
+      <div class="tab-step" data-i="1">2 · Select</div>
+      <div class="tab-step" data-i="2">3 · Button</div>
+      <div class="tab-step" data-i="3">4 · Link</div>
+    </div>
+    <div class="form ring-solid" id="the-form">
+      <div class="field">
+        <label for="f-name">Full name</label>
+        <input class="focusable" id="f-name" type="text" placeholder="Your name" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-country">Country</label>
+        <select class="focusable" id="f-country">
+          <option>Select a country…</option>
+          <option>United States</option>
+          <option>United Kingdom</option>
+          <option>Canada</option>
+        </select>
+      </div>
+      <div class="field">
+        <button class="form-btn focusable" type="button" aria-label="Submit">Submit Form</button>
+      </div>
+      <div class="field">
+        <a href="#" class="form-link focusable" onclick="return false">Forgot password?</a>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">:focus-visible shows rings only for keyboard users. Mouse clicks don't trigger it. This satisfies both WCAG 2.4.7 and designers who dislike always-visible rings.</p>
+    <div class="lbl">Ring Style</div>
+    <select id="ring-sel">
+      <option value="ring-solid" selected>Solid</option>
+      <option value="ring-dashed">Dashed</option>
+      <option value="ring-glow">Glow</option>
+      <option value="ring-dual">Dual ring</option>
+    </select>
+    <div class="lbl">Ring Width</div>
+    <div class="sr"><input type="range" id="rw-sl" min="1" max="4" value="2" step="1"><span class="sv" id="rw-v">2px</span></div>
+    <div class="lbl">Ring Offset</div>
+    <div class="sr"><input type="range" id="ro-sl" min="0" max="8" value="3" step="1"><span class="sv" id="ro-v">3px</span></div>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="80" max="300" value="140" step="10"><span class="sv" id="dur-v">140ms</span></div>
+    <div class="div"></div>
+    <p style="font-size:10px;color:var(--ui-muted)">Click in stage, then press Tab.</p>
+    <button class="rst" id="rst-btn">Reset focus</button>
+  </aside>
+</div>
+<script>
+  const form=document.getElementById('the-form');
+  const tabs=document.querySelectorAll('.tab-step');
+  const focusables=[...form.querySelectorAll('.focusable')];
+  focusables.forEach((el,i)=>{
+    el.addEventListener('focus',()=>tabs.forEach((t,j)=>t.classList.toggle('active',j===i)));
+    el.addEventListener('blur',()=>tabs[i]?.classList.remove('active'));
+  });
+  const ringStyles=['ring-solid','ring-dashed','ring-glow','ring-dual'];
+  document.getElementById('ring-sel').addEventListener('change',e=>{
+    form.classList.remove(...ringStyles);form.classList.add(e.target.value);
+  });
+  document.getElementById('rw-sl').addEventListener('input',e=>{
+    document.getElementById('rw-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--ring-w',e.target.value+'px');
+  });
+  document.getElementById('ro-sl').addEventListener('input',e=>{
+    document.getElementById('ro-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--ring-offset',e.target.value+'px');
+  });
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--ring-dur',e.target.value+'ms');
+  });
+  document.getElementById('rst-btn').addEventListener('click',()=>{
+    document.activeElement?.blur();
+    tabs.forEach(t=>t.classList.remove('active'));
+  });
+</script>
+</body>
+</html>

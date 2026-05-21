@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accordion Open/Close</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--acc-dur:300ms;--acc-ease:ease-in-out}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+    .acc-list{width:100%;max-width:420px;display:flex;flex-direction:column;gap:4px}
+    /* Accordion item */
+    .acc-item{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;overflow:hidden;transition:border-color .15s}
+    .acc-item.open{border-color:rgba(88,166,255,.35)}
+    .acc-trigger{display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:52px;cursor:pointer;width:100%;background:none;border:none;color:var(--ui-text);font-family:monospace;font-size:13px;text-align:left;gap:12px;-webkit-user-select:none;user-select:none}
+    @media(hover:hover){.acc-trigger:hover{background:rgba(255,255,255,.03)}}
+    .acc-chevron{flex-shrink:0;font-size:12px;transition:transform var(--acc-dur) var(--acc-ease);color:var(--ui-muted)}
+    .acc-item.open .acc-chevron{transform:rotate(180deg)}
+    /* JS measured height */
+    .acc-body.js-method{overflow:hidden;height:0;transition:height var(--acc-dur) var(--acc-ease)}
+    .acc-body.js-method.open{height:var(--target-h)}
+    /* CSS grid method */
+    .acc-body.grid-method{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--acc-dur) var(--acc-ease)}
+    .acc-body.grid-method.open{grid-template-rows:1fr}
+    .acc-inner{overflow:hidden;padding:0 16px 16px;font-size:11px;color:var(--ui-muted);line-height:1.7}
+    /* Stagger children */
+    .acc-body.stagger .acc-inner > *{opacity:0;transform:translateY(4px);transition:opacity .2s ease,transform .2s ease}
+    .acc-body.stagger.open .acc-inner > *{opacity:1;transform:translateY(0)}
+    .acc-body.stagger.open .acc-inner > *:nth-child(2){transition-delay:.05s}
+    .acc-body.stagger.open .acc-inner > *:nth-child(3){transition-delay:.1s}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:500px}}
+    @media(prefers-reduced-motion:reduce){.acc-body,.acc-chevron,.acc-body.stagger .acc-inner>*{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Accordion Open/Close</h1>
+  <p>Height animates between 0 and auto — two approaches: JS measured height and CSS grid-template-rows.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="acc-list" id="acc-list">
+      <div class="acc-item" data-i="0">
+        <button class="acc-trigger" aria-expanded="false" aria-controls="ab0">
+          <span>What is FLIP animation?</span><span class="acc-chevron">▼</span>
+        </button>
+        <div class="acc-body js-method" id="ab0" role="region">
+          <div class="acc-inner"><p>FLIP stands for First-Last-Invert-Play. It's a technique for animating layout changes smoothly by recording positions before and after a DOM change, then playing the inverse transform away.</p></div>
+        </div>
+      </div>
+      <div class="acc-item" data-i="1">
+        <button class="acc-trigger" aria-expanded="false" aria-controls="ab1">
+          <span>Why not animate max-height?</span><span class="acc-chevron">▼</span>
+        </button>
+        <div class="acc-body js-method" id="ab1" role="region">
+          <div class="acc-inner"><p>max-height animation requires a fixed maximum value (e.g. 1000px). If the content is shorter, the easing is wrong — it runs through "empty space" first, making the timing feel off.</p></div>
+        </div>
+      </div>
+      <div class="acc-item" data-i="2">
+        <button class="acc-trigger" aria-expanded="false" aria-controls="ab2">
+          <span>What is the CSS grid trick?</span><span class="acc-chevron">▼</span>
+        </button>
+        <div class="acc-body js-method" id="ab2" role="region">
+          <div class="acc-inner"><p>Set grid-template-rows: 0fr on the container, with the inner div having overflow:hidden and min-height:0. Animating to 1fr reveals the content. No JS needed, but requires 2023+ browser support.</p></div>
+        </div>
+      </div>
+      <div class="acc-item" data-i="3">
+        <button class="acc-trigger" aria-expanded="false" aria-controls="ab3">
+          <span>When should I use accordions?</span><span class="acc-chevron">▼</span>
+        </button>
+        <div class="acc-body js-method" id="ab3" role="region">
+          <div class="acc-inner"><p>FAQ sections, settings panels, navigation menus, and long-form content where hierarchy matters. Avoid using them when all content should be visible simultaneously — use tabs or sections instead.</p><p style="margin-top:8px">Also avoid deeply nested accordions — more than two levels confuses navigation.</p></div>
+        </div>
+      </div>
+      <div class="acc-item" data-i="4">
+        <button class="acc-trigger" aria-expanded="false" aria-controls="ab4">
+          <span>What about accessibility?</span><span class="acc-chevron">▼</span>
+        </button>
+        <div class="acc-body js-method" id="ab4" role="region">
+          <div class="acc-inner"><p>Use button elements for triggers (keyboard focusable by default). Toggle aria-expanded on the trigger. Link trigger to content with aria-controls / role="region". Screen readers announce open/closed state from aria-expanded.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">animating height to auto doesn't work in CSS natively. JS measures scrollHeight; CSS grid-template-rows: 0fr→1fr avoids JS but requires modern browsers.</p>
+    <div class="lbl">Implementation</div>
+    <select id="method-sel">
+      <option value="js" selected>JS measured height</option>
+      <option value="grid">CSS grid-template-rows</option>
+    </select>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="100" max="600" value="300" step="25"><span class="sv" id="dur-v">300ms</span></div>
+    <div class="lbl">Easing</div>
+    <select id="ease-sel">
+      <option value="ease-in-out" selected>Ease in-out</option>
+      <option value="ease-out">Ease out</option>
+      <option value="ease-in">Ease in</option>
+      <option value="linear">Linear</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="multi-tog"><span>Allow multiple open</span></label>
+    <label class="tog"><input type="checkbox" id="chevron-tog" checked><span>Rotate chevron</span></label>
+    <label class="tog"><input type="checkbox" id="stagger-tog"><span>Stagger child reveals</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Open items</span><span class="v" id="open-count">0</span></div>
+  </aside>
+</div>
+<script>
+  const items=[...document.querySelectorAll('.acc-item')];
+  let method='js',multiOpen=false,openSet=new Set();
+
+  function getBody(item){return item.querySelector('.acc-body')}
+  function getTrigger(item){return item.querySelector('.acc-trigger')}
+
+  function openItem(item){
+    const body=getBody(item);const trigger=getTrigger(item);
+    item.classList.add('open');trigger.setAttribute('aria-expanded','true');
+    if(method==='js'){
+      const h=body.querySelector('.acc-inner').scrollHeight;
+      body.style.setProperty('--target-h',h+'px');
+      body.classList.add('open');
+    }else{
+      body.classList.add('open');
+    }
+    openSet.add(item);
+    if(document.getElementById('stagger-tog').checked)body.classList.add('stagger');
+    updateCount();
+  }
+  function closeItem(item){
+    const body=getBody(item);const trigger=getTrigger(item);
+    item.classList.remove('open');trigger.setAttribute('aria-expanded','false');
+    body.classList.remove('open','stagger');
+    openSet.delete(item);updateCount();
+  }
+  function toggle(item){
+    const isOpen=openSet.has(item);
+    if(!multiOpen)openSet.forEach(i=>{if(i!==item)closeItem(i)});
+    isOpen?closeItem(item):openItem(item);
+  }
+  function updateCount(){document.getElementById('open-count').textContent=openSet.size}
+
+  items.forEach(item=>{
+    getTrigger(item).addEventListener('click',()=>toggle(item));
+  });
+
+  function switchMethod(m){
+    method=m;
+    openSet.forEach(i=>closeItem(i));
+    items.forEach(item=>{
+      const body=getBody(item);
+      body.className='acc-body '+(m==='js'?'js-method':'grid-method');
+    });
+  }
+
+  document.getElementById('method-sel').addEventListener('change',e=>switchMethod(e.target.value));
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--acc-dur',e.target.value+'ms');
+  });
+  document.getElementById('ease-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--acc-ease',e.target.value);
+  });
+  document.getElementById('multi-tog').addEventListener('change',e=>{multiOpen=e.target.checked});
+  document.getElementById('chevron-tog').addEventListener('change',e=>{
+    document.querySelectorAll('.acc-chevron').forEach(c=>{
+      c.style.transition=e.target.checked?`transform var(--acc-dur) var(--acc-ease)`:'none';
+    });
+  });
+</script>
+</body>
+</html>

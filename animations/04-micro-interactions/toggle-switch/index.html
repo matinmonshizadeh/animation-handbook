@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toggle / Switch Slide</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--tog-dur:200ms;--tog-ease:cubic-bezier(.4,0,.2,1);--on-color:#58a6ff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:32px}
+    /* Toggle row */
+    .tog-row{display:flex;align-items:center;gap:16px;width:100%;max-width:320px}
+    .tog-label{flex:1;font-size:12px;color:var(--ui-text)}
+    .tog-sub{font-size:10px;color:var(--ui-muted);display:block;margin-top:2px}
+    /* Base track */
+    .sw{position:relative;width:52px;height:30px;flex-shrink:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+    .sw input{position:absolute;opacity:0;width:0;height:0}
+    .sw-track{position:absolute;inset:0;border-radius:15px;background:var(--ui-border);transition:background var(--tog-dur) var(--tog-ease)}
+    .sw-thumb{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform var(--tog-dur) var(--tog-ease),box-shadow var(--tog-dur) var(--tog-ease);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+    .sw input:checked~.sw-track{background:var(--on-color)}
+    .sw input:checked~.sw-thumb{transform:translateX(22px)}
+    /* Elastic variant */
+    .sw.elastic .sw-thumb{transition:transform var(--tog-dur) cubic-bezier(.34,1.56,.64,1),background var(--tog-dur) var(--tog-ease)}
+    /* Large with icons */
+    .sw-lg{width:68px;height:36px}
+    .sw-lg .sw-thumb{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ui-muted)}
+    .sw-lg .sw-thumb::before{content:'🌙'}
+    .sw-lg input:checked~.sw-thumb{transform:translateX(32px)}
+    .sw-lg input:checked~.sw-thumb::before{content:'☀️'}
+    .sw-lg input:checked~.sw-track{background:#ffa657}
+    /* Status readout */
+    .status-row{display:flex;gap:16px;font-size:10px;color:var(--ui-muted)}
+    .sv{color:var(--ui-text)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:48px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog-inp{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.sw-track,.sw-thumb{transition:background .1s!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Toggle / Switch Slide</h1>
+  <p>Pill slides left/right for on/off — smooth cubic-bezier gives a weighted, physical feel.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="tog-row">
+      <div class="tog-label">Notifications<span class="tog-sub">Standard iOS-style toggle</span></div>
+      <label class="sw" aria-label="Toggle notifications">
+        <input type="checkbox" id="sw0" checked>
+        <span class="sw-track"></span>
+        <span class="sw-thumb"></span>
+      </label>
+    </div>
+    <div class="tog-row">
+      <div class="tog-label">Appearance<span class="tog-sub">Icon changes with state</span></div>
+      <label class="sw sw-lg" aria-label="Toggle appearance">
+        <input type="checkbox" id="sw1">
+        <span class="sw-track"></span>
+        <span class="sw-thumb"></span>
+      </label>
+    </div>
+    <div class="tog-row">
+      <div class="tog-label">Auto-save<span class="tog-sub">Elastic release overshoot</span></div>
+      <label class="sw elastic" aria-label="Toggle auto-save">
+        <input type="checkbox" id="sw2" checked>
+        <span class="sw-track"></span>
+        <span class="sw-thumb"></span>
+      </label>
+    </div>
+    <div class="status-row">
+      <span>Notif: <span class="sv" id="s0">On</span></span>
+      <span>Appear: <span class="sv" id="s1">Off</span></span>
+      <span>Save: <span class="sv" id="s2">On</span></span>
+    </div>
+  </div>
+  <aside>
+    <p class="note">200ms with smooth easing reads as "physical" — the pill has mass. Under 120ms feels mechanical; over 350ms feels sluggish.</p>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="120" max="400" value="200" step="10"><span class="sval" id="dur-v">200ms</span></div>
+    <div class="lbl">Easing</div>
+    <select id="ease-sel">
+      <option value="cubic-bezier(.4,0,.2,1)" selected>Material smooth</option>
+      <option value="ease-in-out">Ease in-out</option>
+      <option value="ease-out">Ease out</option>
+      <option value="linear">Linear</option>
+    </select>
+    <div class="lbl">On Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="On color">
+    <label class="tog-inp"><input type="checkbox" id="elastic-tog" checked><span>Elastic on toggle 3</span></label>
+    <div class="div"></div>
+    <p style="font-size:10px;color:var(--ui-muted)">Tap any toggle to flip state.</p>
+  </aside>
+</div>
+<script>
+  const switches=document.querySelectorAll('.sw input');
+  switches.forEach((sw,i)=>{
+    sw.addEventListener('change',()=>{
+      document.getElementById('s'+i).textContent=sw.checked?'On':'Off';
+    });
+  });
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--tog-dur',e.target.value+'ms');
+  });
+  document.getElementById('ease-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--tog-ease',e.target.value);
+  });
+  document.getElementById('color-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--on-color',e.target.value);
+  });
+  document.getElementById('elastic-tog').addEventListener('change',e=>{
+    const el=document.querySelector('.sw.elastic');
+    if(e.target.checked){
+      el.querySelector('.sw-thumb').style.transition='';
+    }else{
+      el.querySelector('.sw-thumb').style.transition=`transform var(--tog-dur) var(--tog-ease)`;
+    }
+  });
+</script>
+</body>
+</html>

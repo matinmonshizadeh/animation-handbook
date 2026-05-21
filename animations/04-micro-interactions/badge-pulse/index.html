@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Badge Pulse</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--pulse-dur:1500ms;--pulse-scale:1.3;--badge-color:#f85149}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:32px}
+    .icon-row{display:flex;gap:40px;align-items:flex-end}
+    /* Icon base */
+    .icon-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
+    .icon-btn{width:64px;height:64px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;cursor:pointer;transition:border-color .15s}
+    @media(hover:hover){.icon-btn:hover{border-color:var(--ui-accent)}}
+    .icon-label{font-size:10px;color:var(--ui-muted);text-align:center}
+    /* Badge */
+    .badge{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--badge-color);color:#fff;font-size:10px;font-weight:bold;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+    /* Dot badge */
+    .dot-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--badge-color);border:2px solid var(--bg)}
+    /* Pulse scale only */
+    .pulse-scale .badge,.pulse-scale .dot-badge{animation:badge-scale var(--pulse-dur) ease-in-out infinite}
+    @keyframes badge-scale{0%,100%{transform:scale(1)}50%{transform:scale(var(--pulse-scale))}}
+    /* Halo */
+    .pulse-halo .badge::after,.pulse-halo .dot-badge::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:var(--badge-color);opacity:.4;animation:halo-grow var(--pulse-dur) ease-out infinite}
+    @keyframes halo-grow{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.2);opacity:0}}
+    /* Both */
+    .pulse-both .badge,.pulse-both .dot-badge{animation:badge-scale var(--pulse-dur) ease-in-out infinite}
+    .pulse-both .badge::after,.pulse-both .dot-badge::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:var(--badge-color);opacity:.4;animation:halo-grow var(--pulse-dur) ease-out infinite}
+    /* Fade mode */
+    .fade-mode .badge,.fade-mode .dot-badge{animation-iteration-count:3!important}
+    /* Status dot (online) */
+    .status-dot{position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#56d364;border:2px solid var(--bg);animation:badge-scale var(--pulse-dur) ease-in-out infinite}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}.icon-row{gap:20px}}
+    @media(prefers-reduced-motion:reduce){.badge,.dot-badge,.status-dot,.badge::after,.dot-badge::after{animation:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Notification Badge Pulse</h1>
+  <p>Dot on icon pulses to draw peripheral attention — scale, halo, or both.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="icon-row" id="icon-row">
+      <div class="icon-wrap">
+        <div class="icon-btn pulse-scale" id="ic0" aria-label="Notifications, 3 new" role="button" tabindex="0">
+          🔔
+          <div class="badge" id="badge0">3</div>
+        </div>
+        <div class="icon-label">Bell<br>numbered</div>
+      </div>
+      <div class="icon-wrap">
+        <div class="icon-btn pulse-scale" id="ic1" aria-label="Inbox, new messages" role="button" tabindex="0">
+          📥
+          <div class="dot-badge" id="badge1"></div>
+        </div>
+        <div class="icon-label">Inbox<br>dot</div>
+      </div>
+      <div class="icon-wrap">
+        <div class="icon-btn" id="ic2" aria-label="Profile, online" role="button" tabindex="0" style="border-radius:50%;width:64px;height:64px;font-size:28px">
+          🧑
+          <div class="status-dot" id="badge2"></div>
+        </div>
+        <div class="icon-label">Avatar<br>online</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">A subtle 1.15× scale at 1.5s intervals catches peripheral vision without causing anxiety. Too fast = frantic; too slow = imperceptible.</p>
+    <div class="lbl">Pulse Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="800" max="3000" value="1500" step="100"><span class="sv" id="dur-v">1.5s</span></div>
+    <div class="lbl">Scale Amount</div>
+    <div class="sr"><input type="range" id="scale-sl" min="110" max="160" value="130" step="5"><span class="sv" id="scale-v">1.30</span></div>
+    <div class="lbl">Pulse Style</div>
+    <select id="style-sel">
+      <option value="pulse-scale" selected>Scale only</option>
+      <option value="pulse-halo">Halo expand</option>
+      <option value="pulse-both">Scale + Halo</option>
+    </select>
+    <div class="lbl">Badge Color</div>
+    <input type="color" id="color-pick" value="#f85149" aria-label="Badge color">
+    <label class="tog"><input type="checkbox" id="fade-tog"><span>Fade after attention (3 pulses)</span></label>
+    <div class="div"></div>
+    <p style="font-size:10px;color:var(--ui-muted)">Click an icon to dismiss its badge.</p>
+  </aside>
+</div>
+<script>
+  const icons=document.querySelectorAll('.icon-btn');
+  const badges=document.querySelectorAll('.badge,.dot-badge,.status-dot');
+  let currentStyle='pulse-scale';
+
+  function applyStyle(){
+    icons.forEach((ic,i)=>{
+      if(i===2)return; // status dot always pulses
+      ic.classList.remove('pulse-scale','pulse-halo','pulse-both');
+      ic.classList.add(currentStyle);
+    });
+  }
+
+  icons.forEach((ic,i)=>{
+    ic.addEventListener('click',()=>{
+      const b=ic.querySelector('.badge,.dot-badge');
+      if(b){b.style.display='none';}
+    });
+  });
+
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=(e.target.value/1000).toFixed(1)+'s';
+    document.documentElement.style.setProperty('--pulse-dur',e.target.value+'ms');
+  });
+  document.getElementById('scale-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);
+    document.getElementById('scale-v').textContent=v;
+    document.documentElement.style.setProperty('--pulse-scale',v);
+  });
+  document.getElementById('style-sel').addEventListener('change',e=>{
+    currentStyle=e.target.value;applyStyle();
+  });
+  document.getElementById('color-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--badge-color',e.target.value);
+  });
+  document.getElementById('fade-tog').addEventListener('change',e=>{
+    icons.forEach(ic=>ic.classList.toggle('fade-mode',e.target.checked));
+  });
+</script>
+</body>
+</html>

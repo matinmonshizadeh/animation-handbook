@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading Spinner</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--spd:800ms;--clr:#58a6ff;--sz:40px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:32px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:380px}
+    .spin-cell{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px}
+    .spin-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted);text-align:center}
+    /* 1. Ring */
+    .sp-ring{width:var(--sz);height:var(--sz);border-radius:50%;border:3px solid rgba(255,255,255,.1);border-top-color:var(--clr);animation:spin var(--spd) linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* 2. Dots rotating */
+    .sp-dots{width:var(--sz);height:var(--sz);position:relative;animation:spin var(--spd) linear infinite}
+    .sp-dots span{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--clr);top:50%;left:50%;transform-origin:0 0}
+    .sp-dots span:nth-child(1){transform:rotate(0deg) translateX(14px);opacity:1}
+    .sp-dots span:nth-child(2){transform:rotate(60deg) translateX(14px);opacity:.8}
+    .sp-dots span:nth-child(3){transform:rotate(120deg) translateX(14px);opacity:.6}
+    .sp-dots span:nth-child(4){transform:rotate(180deg) translateX(14px);opacity:.4}
+    .sp-dots span:nth-child(5){transform:rotate(240deg) translateX(14px);opacity:.25}
+    .sp-dots span:nth-child(6){transform:rotate(300deg) translateX(14px);opacity:.1}
+    /* 3. SVG arc */
+    .sp-arc{width:var(--sz);height:var(--sz);animation:spin var(--spd) linear infinite}
+    .sp-arc circle{fill:none;stroke:var(--clr);stroke-width:4;stroke-linecap:round;stroke-dasharray:60 100;animation:arc-pulse calc(var(--spd)*2) ease-in-out infinite}
+    @keyframes arc-pulse{0%,100%{stroke-dasharray:15 100}50%{stroke-dasharray:80 100}}
+    /* 4. Bounce dots */
+    .sp-bounce{display:flex;gap:6px;align-items:center;height:var(--sz)}
+    .sp-bounce span{width:10px;height:10px;border-radius:50%;background:var(--clr);animation:bounce var(--spd) ease-in-out infinite}
+    .sp-bounce span:nth-child(2){animation-delay:calc(var(--spd)*0.15)}
+    .sp-bounce span:nth-child(3){animation-delay:calc(var(--spd)*0.3)}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+    /* 5. Pulse ring */
+    .sp-pulse{width:var(--sz);height:var(--sz);border-radius:50%;background:rgba(88,166,255,.15);border:2px solid var(--clr);animation:pulse-ring var(--spd) ease-out infinite}
+    @keyframes pulse-ring{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.5);opacity:0}}
+    /* 6. Square rotate */
+    .sp-square{width:calc(var(--sz)*0.65);height:calc(var(--sz)*0.65);border:3px solid var(--clr);animation:sq-spin var(--spd) ease-in-out infinite}
+    @keyframes sq-spin{0%{transform:rotate(0deg)}50%{transform:rotate(180deg) scale(.7)}100%{transform:rotate(360deg)}}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Loading Spinner</h1>
+  <p>Six spinner variants from a single CSS color and speed — ring, dots, arc, bounce, pulse, square.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="grid">
+      <div class="spin-cell">
+        <div class="sp-ring" role="status" aria-label="Loading"></div>
+        <div class="spin-label">Ring</div>
+      </div>
+      <div class="spin-cell">
+        <div class="sp-dots" role="status" aria-label="Loading">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="spin-label">Orbit</div>
+      </div>
+      <div class="spin-cell">
+        <svg class="sp-arc" viewBox="0 0 40 40" role="status" aria-label="Loading">
+          <circle cx="20" cy="20" r="16"/>
+        </svg>
+        <div class="spin-label">Arc</div>
+      </div>
+      <div class="spin-cell">
+        <div class="sp-bounce" role="status" aria-label="Loading">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="spin-label">Bounce</div>
+      </div>
+      <div class="spin-cell">
+        <div class="sp-pulse" role="status" aria-label="Loading"></div>
+        <div class="spin-label">Pulse</div>
+      </div>
+      <div class="spin-cell">
+        <div class="sp-square" role="status" aria-label="Loading"></div>
+        <div class="spin-label">Square</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Use spinners for unknown-duration loads only. For known-duration loads, a progress bar is less anxious — it shows how much longer.</p>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="400" max="2000" value="800" step="50"><span class="sv" id="spd-v">800ms</span></div>
+    <div class="lbl">Size</div>
+    <div class="sr"><input type="range" id="sz-sl" min="20" max="70" value="40" step="2"><span class="sv" id="sz-v">40px</span></div>
+    <div class="lbl">Color</div>
+    <input type="color" id="clr-pick" value="#58a6ff" aria-label="Spinner color">
+    <div class="div"></div>
+    <p class="note" style="opacity:.7">Minimum display time: show a spinner for at least 400ms — flashing it for 50ms is worse than showing nothing.</p>
+  </aside>
+</div>
+<script>
+  document.getElementById('spd-sl').addEventListener('input',e=>{
+    document.getElementById('spd-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--spd',e.target.value+'ms');
+  });
+  document.getElementById('sz-sl').addEventListener('input',e=>{
+    document.getElementById('sz-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--sz',e.target.value+'px');
+  });
+  document.getElementById('clr-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--clr',e.target.value);
+    document.querySelector('.sp-pulse').style.borderColor=e.target.value;
+    document.querySelector('.sp-pulse').style.background=e.target.value.replace('#','rgba(')+',0.15)';
+  });
+</script>
+</body>
+</html>

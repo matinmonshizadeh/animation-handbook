@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skeleton Loader</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--skel-bg:#1a1f28;--pulse-min:0.5;--pulse-spd:1.5s;--load-dur:2000}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+    /* Card */
+    .card-wrap{width:100%;max-width:340px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:20px;position:relative;min-height:260px}
+    /* Skeleton blocks */
+    .skel{border-radius:4px;background:var(--skel-bg);animation:pulse var(--pulse-spd) ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:var(--pulse-min)}50%{opacity:1}}
+    .sk-avatar{width:52px;height:52px;border-radius:50%}
+    .sk-line{height:10px;margin-top:10px}
+    .sk-line.w100{width:100%}
+    .sk-line.w80{width:80%}
+    .sk-line.w60{width:60%}
+    .sk-line.w40{width:40%}
+    .sk-img{width:100%;height:120px;border-radius:6px;margin-top:14px}
+    .skel-header{display:flex;align-items:center;gap:14px}
+    .skel-header-text{flex:1}
+    /* Real content — hidden initially */
+    .real{position:absolute;inset:0;padding:20px;opacity:0;transition:opacity 400ms ease;pointer-events:none;border-radius:10px}
+    .real.visible{opacity:1;pointer-events:auto}
+    .real-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+    .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3060,#2a5090);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .real-name{font-size:13px;font-weight:bold}
+    .real-meta{font-size:10px;color:var(--ui-muted);margin-top:2px}
+    .real-img{width:100%;height:120px;border-radius:6px;background:linear-gradient(135deg,#0d2b5e,#1a4a8c);margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.6}
+    .real-text{font-size:11px;color:var(--ui-muted);line-height:1.6}
+    /* Progress bar */
+    .load-bar-wrap{width:100%;max-width:340px;margin-top:16px}
+    .load-bar-track{height:2px;background:var(--ui-border);border-radius:1px;overflow:hidden}
+    .load-bar-fill{height:100%;background:var(--ui-accent);width:0%;transition:width 100ms linear;border-radius:1px}
+    .load-label{font-size:10px;color:var(--ui-muted);margin-top:6px;text-align:center}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
+    @media(prefers-reduced-motion:reduce){.skel{animation:none!important;opacity:.6}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Skeleton Loader</h1>
+  <p>Pulsing placeholder blocks match the shape of real content — reduces perceived wait time.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div style="width:100%;max-width:340px">
+      <div class="card-wrap" id="card">
+        <!-- Skeleton -->
+        <div id="skel-content">
+          <div class="skel-header">
+            <div class="skel sk-avatar"></div>
+            <div style="flex:1"><div class="skel sk-line w80"></div><div class="skel sk-line w40" style="margin-top:6px"></div></div>
+          </div>
+          <div class="skel sk-img"></div>
+          <div class="skel sk-line w100"></div>
+          <div class="skel sk-line w80"></div>
+          <div class="skel sk-line w60"></div>
+        </div>
+        <!-- Real content -->
+        <div class="real" id="real-content">
+          <div class="real-header">
+            <div class="avatar">🌊</div>
+            <div><div class="real-name">Atlas Studio</div><div class="real-meta">2 hours ago · Design</div></div>
+          </div>
+          <div class="real-img">[ Landscape Photography ]</div>
+          <div class="real-text">A new collection of coastal landscapes — shot at the edge of the Pacific where light meets water and everything else disappears.</div>
+        </div>
+      </div>
+      <div class="load-bar-wrap">
+        <div class="load-bar-track"><div class="load-bar-fill" id="load-fill"></div></div>
+        <div class="load-label" id="load-label">Loading…</div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Skeleton loaders reduce perceived wait time — users see the shape of what's coming. A spinner gives no information; a skeleton tells them what's arriving.</p>
+    <div class="lbl">Load Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="500" max="5000" value="2000" step="100"><span class="sv" id="dur-v">2.0s</span></div>
+    <div class="lbl">Pulse Speed</div>
+    <div class="sr"><input type="range" id="pulse-sl" min="10" max="30" value="15" step="1"><span class="sv" id="pulse-v">1.5s</span></div>
+    <div class="lbl">Pulse Intensity</div>
+    <div class="sr"><input type="range" id="int-sl" min="3" max="9" value="5" step="1"><span class="sv" id="int-v">0.5</span></div>
+    <div class="div"></div>
+    <button class="rst" id="reload-btn">↺ Reload sequence</button>
+  </aside>
+</div>
+<script>
+  let loadDur=2000,timer=null,rafId=null;
+  const skelEl=document.getElementById('skel-content');
+  const realEl=document.getElementById('real-content');
+  const fill=document.getElementById('load-fill');
+  const label=document.getElementById('load-label');
+
+  function startLoad(){
+    if(timer)clearTimeout(timer);if(rafId)cancelAnimationFrame(rafId);
+    skelEl.style.display='';realEl.classList.remove('visible');
+    fill.style.width='0%';label.textContent='Loading…';
+    const start=performance.now();
+    function tick(now){
+      const p=Math.min((now-start)/loadDur,1);
+      fill.style.width=(p*100).toFixed(1)+'%';
+      if(p<1){rafId=requestAnimationFrame(tick);}
+      else{reveal();}
+    }
+    rafId=requestAnimationFrame(tick);
+  }
+
+  function reveal(){
+    label.textContent='Loaded';
+    skelEl.style.display='none';
+    realEl.classList.add('visible');
+  }
+
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    loadDur=+e.target.value;
+    document.getElementById('dur-v').textContent=(loadDur/1000).toFixed(1)+'s';
+  });
+  document.getElementById('pulse-sl').addEventListener('input',e=>{
+    const v=(e.target.value/10).toFixed(1);
+    document.getElementById('pulse-v').textContent=v+'s';
+    document.documentElement.style.setProperty('--pulse-spd',v+'s');
+  });
+  document.getElementById('int-sl').addEventListener('input',e=>{
+    const v=(e.target.value/10).toFixed(1);
+    document.getElementById('int-v').textContent=v;
+    document.documentElement.style.setProperty('--pulse-min',v);
+  });
+  document.getElementById('reload-btn').addEventListener('click',startLoad);
+  startLoad();
+</script>
+</body>
+</html>

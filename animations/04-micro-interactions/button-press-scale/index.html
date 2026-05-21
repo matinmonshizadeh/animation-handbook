@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Press Scale</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--press-scale:0.95;--press-dur:80ms;--release-dur:180ms;--release-ease:cubic-bezier(.34,1.56,.64,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:32px}
+    .pbtn{border:none;border-radius:8px;font-family:monospace;font-size:14px;font-weight:bold;cursor:pointer;padding:0 36px;height:56px;min-width:200px;transform-origin:center;transition:transform var(--release-dur) var(--release-ease),box-shadow var(--release-dur) var(--release-ease);-webkit-user-select:none;user-select:none;touch-action:manipulation}
+    .pbtn.pressed{transition:transform var(--press-dur) ease,box-shadow var(--press-dur) ease;transform:scale(var(--press-scale))}
+    .pbtn-primary{background:var(--ui-accent);color:#000;box-shadow:0 4px 20px rgba(88,166,255,.35)}
+    .pbtn-primary.pressed{box-shadow:0 1px 6px rgba(88,166,255,.2)}
+    .pbtn-success{background:#56d364;color:#000;box-shadow:0 4px 20px rgba(86,211,100,.3)}
+    .pbtn-success.pressed{box-shadow:0 1px 6px rgba(86,211,100,.15)}
+    .pbtn-ghost{background:var(--ui-bg);border:1px solid var(--ui-border)!important;color:var(--ui-text);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+    .pbtn-ghost.pressed{box-shadow:0 1px 4px rgba(0,0,0,.3)}
+    .cnt-row{display:flex;gap:20px;font-size:10px;color:var(--ui-muted)}
+    .cv{color:var(--ui-text)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(prefers-reduced-motion:reduce){.pbtn,.pbtn.pressed{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Button Press Scale</h1>
+  <p>Scales to 0.95 on press, springs back on release — asymmetric timing gives a tactile feel.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <button class="pbtn pbtn-primary" id="b0" aria-label="Confirm">Confirm</button>
+    <button class="pbtn pbtn-success" id="b1" aria-label="Save">Save Draft</button>
+    <button class="pbtn pbtn-ghost" id="b2" aria-label="Cancel">Cancel</button>
+    <div class="cnt-row">
+      <span>Confirm: <span class="cv" id="c0">0</span></span>
+      <span>Save: <span class="cv" id="c1">0</span></span>
+      <span>Cancel: <span class="cv" id="c2">0</span></span>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Press fast (80ms), release slow (180ms) — matches how real buttons feel. The spring easing on release makes the bounce satisfying without being cartoonish.</p>
+    <div class="lbl">Press Scale</div>
+    <div class="sr"><input type="range" id="scale-sl" min="85" max="99" value="95" step="1"><span class="sv" id="scale-v">0.95</span></div>
+    <div class="lbl">Press Duration</div>
+    <div class="sr"><input type="range" id="pdur-sl" min="30" max="200" value="80" step="10"><span class="sv" id="pdur-v">80ms</span></div>
+    <div class="lbl">Release Duration</div>
+    <div class="sr"><input type="range" id="rdur-sl" min="80" max="500" value="180" step="10"><span class="sv" id="rdur-v">180ms</span></div>
+    <div class="lbl">Release Easing</div>
+    <select id="ease-sel">
+      <option value="cubic-bezier(.34,1.56,.64,1)" selected>Springy</option>
+      <option value="ease-out">Ease out</option>
+      <option value="cubic-bezier(.2,.7,.3,1)">Smooth</option>
+      <option value="linear">Linear</option>
+    </select>
+    <div class="div"></div>
+    <div class="kv"><span>Total presses</span><span class="v" id="total">0</span></div>
+  </aside>
+</div>
+<script>
+  const btns=document.querySelectorAll('.pbtn');
+  const counts=[0,0,0];
+  let total=0;
+
+  btns.forEach((btn,i)=>{
+    const press=()=>btn.classList.add('pressed');
+    const release=()=>{
+      btn.classList.remove('pressed');
+      counts[i]++;total++;
+      document.getElementById('c'+i).textContent=counts[i];
+      document.getElementById('total').textContent=total;
+    };
+    btn.addEventListener('pointerdown',press);
+    btn.addEventListener('pointerup',release);
+    btn.addEventListener('pointercancel',()=>btn.classList.remove('pressed'));
+    btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')press()});
+    btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')release()});
+  });
+
+  document.getElementById('scale-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);
+    document.getElementById('scale-v').textContent=v;
+    document.documentElement.style.setProperty('--press-scale',v);
+  });
+  document.getElementById('pdur-sl').addEventListener('input',e=>{
+    document.getElementById('pdur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--press-dur',e.target.value+'ms');
+  });
+  document.getElementById('rdur-sl').addEventListener('input',e=>{
+    document.getElementById('rdur-v').textContent=e.target.value+'ms';
+    document.documentElement.style.setProperty('--release-dur',e.target.value+'ms');
+  });
+  document.getElementById('ease-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--release-ease',e.target.value);
+  });
+</script>
+</body>
+</html>
