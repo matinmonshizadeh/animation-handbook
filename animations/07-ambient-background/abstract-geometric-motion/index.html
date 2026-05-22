@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abstract Geometric Motion</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%}
+    .preset-tabs{position:absolute;top:8px;left:8px;display:flex;gap:4px;z-index:5}
+    .ptab{background:rgba(13,17,23,.8);border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:5px 10px;border-radius:4px;cursor:pointer;min-height:36px;letter-spacing:.5px}
+    .ptab.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Abstract Geometric Motion</h1>
+  <p>Four hypnotic loops — polygons, rings, bars, color lines. Satisfying to watch, never demanding.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="preset-tabs" id="tabs">
+      <button class="ptab active" data-idx="0">Polygons</button>
+      <button class="ptab" data-idx="1">Rings</button>
+      <button class="ptab" data-idx="2">Bars</button>
+      <button class="ptab" data-idx="3">Lines</button>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Abstract geometric motion is the descendant of screensaver art. Visually satisfying, never demanding interaction. Watch for 30 seconds — the mind quiets.</p>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="6" step="1"><span class="sv" id="spd-v">0.6</span></div>
+    <div class="lbl">Complexity</div>
+    <div class="sr"><input type="range" id="cx-sl" min="2" max="12" value="6" step="1"><span class="sv" id="cx-v">6</span></div>
+    <div class="lbl">Palette</div>
+    <select id="pal-sel">
+      <option value="cool" selected>Cool blue</option>
+      <option value="warm">Warm amber</option>
+      <option value="neon">Neon</option>
+      <option value="mono">Monochrome</option>
+    </select>
+    <div class="lbl">Background</div>
+    <select id="bg-sel">
+      <option value="#020408" selected>Near black</option>
+      <option value="#060a10">Dark blue</option>
+      <option value="#080510">Dark purple</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="contrast-tog"><span>High contrast</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+let W,H,paused=false,raf=null,lastT=0,t=0;
+let PRESET=0,SPD=0.6,CX=6,PAL='cool',BG='#020408',CONTRAST=false;
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+resize();window.addEventListener('resize',resize);
+
+const PALETTES={
+  cool:c=>`hsla(${200+c*10},70%,65%,`,
+  warm:c=>`hsla(${30+c*8},80%,60%,`,
+  neon:c=>`hsla(${(c*60)%360},100%,65%,`,
+  mono:c=>`hsla(0,0%,${60+c*5}%,`
+};
+
+function col(c,a){return PALETTES[PAL](c)+a+')';}
+function lineW(){return CONTRAST?1.5:.8;}
+
+// PRESET 0: Rotating polygons
+function drawPolygons(){
+  const cx=W/2,cy=H/2;
+  for(let i=0;i<CX;i++){
+    const n=3+i%5; // 3 to 7 sides
+    const r=30+i*20;
+    const rot=t*(0.2+i*.08)+(i%2===0?0:Math.PI);
+    ctx.beginPath();
+    for(let j=0;j<=n;j++){const a=j/n*Math.PI*2+rot;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}
+    ctx.strokeStyle=col(i,.5+Math.sin(t*.5+i)*.3);
+    ctx.lineWidth=lineW()*(1+i*.1);ctx.stroke();
+  }
+}
+
+// PRESET 1: Concentric expanding rings
+let rings2=[];
+function updateRings(){
+  if(t-Math.floor(t)<.02&&Math.floor(t)%1===0&&Math.random()<.3)rings2.push({r:0,born:t,c:Math.floor(Math.random()*CX)});
+  rings2=rings2.filter(r=>r.r<Math.max(W,H));
+  rings2.forEach(r=>{r.r+=SPD*2;});
+}
+function drawRings(){
+  const cx=W/2,cy=H/2;
+  rings2.forEach(r=>{
+    const life=1-r.r/Math.max(W,H);
+    ctx.beginPath();ctx.arc(cx,cy,r.r,0,Math.PI*2);
+    ctx.strokeStyle=col(r.c,life*.6);ctx.lineWidth=lineW()*(1+life);ctx.stroke();
+  });
+}
+
+// PRESET 2: Sliding bars
+function drawBars(){
+  const count=CX;
+  for(let i=0;i<count;i++){
+    const x=(t*SPD*40+i*(W/count)*1.1)%W;
+    const barW=W/count*.5;
+    const op=.15+.1*Math.sin(t+i*.7);
+    ctx.fillStyle=col(i,op);
+    // Diagonal slant
+    ctx.save();ctx.translate(x,0);
+    ctx.beginPath();
+    ctx.moveTo(-barW*.2,0);ctx.lineTo(barW*.8,0);ctx.lineTo(barW*.6,H);ctx.lineTo(-barW*.4,H);ctx.closePath();
+    ctx.fill();ctx.restore();
+  }
+}
+
+// PRESET 3: Color-flow lines
+function drawLines(){
+  const count=CX*2;
+  for(let i=0;i<count;i++){
+    const y=H*(i+.5)/count;
+    const amp=15+i*3;
+    const phase=i*.4+t*.8;
+    ctx.beginPath();
+    for(let x=0;x<=W;x+=4){
+      const py=y+Math.sin(x/80+phase)*amp+Math.cos(x/120+phase*.7)*amp*.5;
+      x===0?ctx.moveTo(x,py):ctx.lineTo(x,py);
+    }
+    // Animated dash offset for color flow effect
+    const dashLen=40,gapLen=60;
+    ctx.setLineDash([dashLen,gapLen]);
+    ctx.lineDashOffset=-t*30*SPD+i*20;
+    ctx.strokeStyle=col(i%CX,.6+Math.sin(t+i)*.3);
+    ctx.lineWidth=lineW()*(1.5-i*.03);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  t+=SPD*.01;
+  ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+  if(PRESET===0)drawPolygons();
+  else if(PRESET===1){updateRings();drawRings();}
+  else if(PRESET===2)drawBars();
+  else drawLines();
+}
+
+raf=requestAnimationFrame(loop);
+
+document.querySelectorAll('.ptab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    PRESET=+b.dataset.idx;
+    document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');rings2=[];
+  });
+});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('cx-sl').addEventListener('input',e=>{CX=+e.target.value;document.getElementById('cx-v').textContent=CX;});
+document.getElementById('pal-sel').addEventListener('change',e=>{PAL=e.target.value;});
+document.getElementById('bg-sel').addEventListener('change',e=>{BG=e.target.value;});
+document.getElementById('contrast-tog').addEventListener('change',e=>{CONTRAST=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

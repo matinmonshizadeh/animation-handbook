@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starfield / Space Particles</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#000}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none}
+    .fg-card{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:clamp(180px,55%,280px);background:rgba(0,0,0,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px 18px;z-index:10;text-align:center}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(13px,1.8vw,17px);color:#fff;margin-bottom:6px;font-style:italic}
+    .fg-body{font-size:10px;color:rgba(255,255,255,.4);line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Starfield / Space Particles</h1>
+  <p>Stars drift outward from center with parallax depth — slower near center, faster at edges.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Starfield</div>
+      <div class="fg-title">Infinite depth from a single point</div>
+      <div class="fg-body">Stars start small at center, grow as they reach the edge — perspective through motion.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Depth illusion: couple size and speed to distance from center. Stars near center = slow, tiny. Stars at edge = fast, large. This single trick creates convincing 3D perspective.</p>
+    <div class="lbl">Mode</div>
+    <select id="mode-sel">
+      <option value="radial" selected>Radial (outward)</option>
+      <option value="drift">Side drift (parallax)</option>
+    </select>
+    <div class="lbl">Star Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="50" max="800" value="300" step="50"><span class="sv" id="count-v">300</span></div>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="4" step="1"><span class="sv" id="spd-v">0.4</span></div>
+    <div class="lbl">Star Color</div>
+    <select id="col-sel">
+      <option value="white" selected>White</option>
+      <option value="warm">Warm white</option>
+      <option value="color">Multi-color</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="twinkle-tog" checked><span>Twinkling</span></label>
+    <label class="tog"><input type="checkbox" id="nebula-tog"><span>Nebula haze</span></label>
+    <div class="div"></div>
+    <div style="font-size:9px;color:var(--ui-muted)" id="fps-note">FPS: <span id="fps2">—</span></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+const fpsEl=document.getElementById('fps'),fps2=document.getElementById('fps2');
+let W,H,paused=false,raf=null,lastT=0,MODE='radial',COUNT=300,SPD=0.4,TWINKLE=true,NEBULA=false,COL='white';
+let stars=[];
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;initStars();}
+
+class Star{
+  constructor(init){
+    if(MODE==='radial'){
+      this.angle=Math.random()*Math.PI*2;
+      this.dist=init?Math.random()*Math.max(W,H)*.5:0;
+      this.maxDist=Math.max(W,H)*.55;
+      this.speed=(Math.random()*.6+.2)*SPD;
+      this.size=Math.random()*1.5+.5;
+      this.twinklePhase=Math.random()*Math.PI*2;
+    }else{
+      this.x=Math.random()*W;this.y=Math.random()*H;
+      this.depth=Math.random()*.8+.2;
+      this.size=(Math.random()*1.5+.5)*this.depth;
+      this.twinklePhase=Math.random()*Math.PI*2;
+    }
+    this.hue=Math.random()*60;
+  }
+  update(){
+    if(MODE==='radial'){
+      this.dist+=this.speed;
+      const ratio=this.dist/this.maxDist;
+      this.speed=(ratio*.5+.2)*SPD*1.5;
+      if(this.dist>this.maxDist){this.dist=0;this.speed=(Math.random()*.6+.2)*SPD;this.angle=Math.random()*Math.PI*2;}
+    }else{
+      this.x-=this.depth*SPD*2;if(this.x<-2){this.x=W+2;}
+    }
+    this.twinklePhase+=.05;
+  }
+  draw(){
+    const ratio=MODE==='radial'?this.dist/this.maxDist:this.depth;
+    const r=parseInt('ff',16),g=parseInt('ff',16),b=parseInt('ff',16);
+    let col='rgba(255,255,255,';
+    if(COL==='warm')col=`rgba(255,240,200,`;
+    if(COL==='color')col=`hsla(${this.hue},80%,90%,`;
+    const sz=this.size*(1+ratio*1.5);
+    const twinkle=TWINKLE?(.7+Math.sin(this.twinklePhase)*.3):1;
+    const op=(ratio*.7+.3)*twinkle;
+    ctx.fillStyle=col+op+')';
+    ctx.beginPath();
+    if(MODE==='radial'){
+      const x=W/2+Math.cos(this.angle)*this.dist,y=H/2+Math.sin(this.angle)*this.dist;
+      ctx.arc(x,y,sz,0,Math.PI*2);
+    }else{
+      ctx.arc(this.x,this.y,sz,0,Math.PI*2);
+    }
+    ctx.fill();
+  }
+}
+
+function initStars(){stars=Array.from({length:COUNT},(_,i)=>new Star(true));}
+
+function drawNebula(){
+  const g=ctx.createRadialGradient(W*.3,H*.4,0,W*.3,H*.4,W*.5);
+  g.addColorStop(0,'rgba(50,20,100,.15)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const g2=ctx.createRadialGradient(W*.7,H*.6,0,W*.7,H*.6,W*.4);
+  g2.addColorStop(0,'rgba(20,50,80,.1)');g2.addColorStop(1,'transparent');
+  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;
+  const f=Math.round(1000/(dt||16));fpsEl.textContent=f+' fps';fps2.textContent=f;lastT=ts;
+  ctx.fillStyle='rgba(0,0,0,.85)';ctx.fillRect(0,0,W,H);
+  if(NEBULA)drawNebula();
+  stars.forEach(s=>{s.update();s.draw();});
+}
+
+resize();raf=requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+
+document.getElementById('mode-sel').addEventListener('change',e=>{MODE=e.target.value;initStars();});
+document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;initStars();});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('col-sel').addEventListener('change',e=>{COL=e.target.value;});
+document.getElementById('twinkle-tog').addEventListener('change',e=>{TWINKLE=e.target.checked;});
+document.getElementById('nebula-tog').addEventListener('change',e=>{NEBULA=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

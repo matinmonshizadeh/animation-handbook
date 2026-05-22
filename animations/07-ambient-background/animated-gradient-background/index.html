@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Gradient Background</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:20s}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    /* ── Gradient variants ── */
+    .grad-bg{position:absolute;inset:0}
+    .var-pos{background:linear-gradient(135deg,#0d1a2e,#1a0d2e,#0d2e1a,#2e1a0d,#0d1a2e);background-size:400% 400%;animation:grad-pos var(--dur) ease infinite}
+    .var-hue{background:linear-gradient(135deg,#58a6ff,#d2a8ff,#56d364,#ffa657);animation:grad-hue var(--dur) linear infinite}
+    .var-multi{background:linear-gradient(135deg,#0d1a2e 0%,#58a6ff 25%,#d2a8ff 50%,#56d364 75%,#0d1a2e 100%);background-size:300% 300%;animation:grad-pos calc(var(--dur)*1.5) ease infinite}
+    @keyframes grad-pos{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    @keyframes grad-hue{to{filter:hue-rotate(360deg)}}
+    /* Palette overrides via JS class */
+    .pal-sunset .var-pos{background:linear-gradient(135deg,#1a0d05,#2e1505,#1a0518,#2e0505,#1a0d05);background-size:400% 400%}
+    .pal-sunset .var-hue{background:linear-gradient(135deg,#ffa657,#f85149,#d2a8ff,#ffa657)}
+    .pal-ocean .var-pos{background:linear-gradient(135deg,#05101a,#051a1a,#05101a,#0a0525,#05101a);background-size:400% 400%}
+    .pal-ocean .var-hue{background:linear-gradient(135deg,#58a6ff,#56d364,#0d3040,#58a6ff)}
+    .pal-mono .var-pos{background:linear-gradient(135deg,#050608,#0d1117,#1a1f28,#0d1117,#050608);background-size:400% 400%}
+    .pal-mono .var-hue{background:linear-gradient(135deg,#3a4050,#c9d1d9,#3a4050)}
+    /* Foreground card */
+    .fg-card{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:clamp(200px,60%,320px);background:rgba(6,10,16,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:20px 22px;z-index:10}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:8px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(15px,2vw,20px);color:#fff;margin-bottom:8px;line-height:1.2}
+    .fg-body{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.grad-bg{animation-duration:300s!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Animated Gradient Background</h1>
+  <p>CSS gradient shifts hue and position continuously — pure CSS, no JavaScript, seamless loop.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="grad-bg var-pos" id="grad-bg"></div>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Animated Gradient</div>
+      <div class="fg-title">Color that moves without demanding it</div>
+      <div class="fg-body">A long cycle duration makes the loop imperceptible. The color shifts; the eye barely notices.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Cycle 20s+: users don't perceive the loop. Below 8s the motion becomes distracting. 20s is the sweet spot for ambient without hypnotic.</p>
+    <div class="lbl">Variant</div>
+    <select id="var-sel">
+      <option value="var-pos" selected>Position shift</option>
+      <option value="var-hue">Hue rotation</option>
+      <option value="var-multi">Multi-stop cascade</option>
+    </select>
+    <div class="lbl">Cycle Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="5" max="60" value="20" step="5"><span class="sv" id="dur-v">20s</span></div>
+    <div class="lbl">Palette</div>
+    <select id="pal-sel">
+      <option value="" selected>Default (dark blue)</option>
+      <option value="pal-sunset">Sunset</option>
+      <option value="pal-ocean">Ocean</option>
+      <option value="pal-mono">Monochrome</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="subtle-tog"><span>Subtle (reduced saturation)</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+  const bg=document.getElementById('grad-bg');
+  const stage=document.getElementById('stage');
+  let paused=false,curVar='var-pos',curPal='';
+
+  document.getElementById('var-sel').addEventListener('change',e=>{
+    bg.classList.remove('var-pos','var-hue','var-multi');
+    bg.classList.add(e.target.value);curVar=e.target.value;
+  });
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'s';
+    document.documentElement.style.setProperty('--dur',e.target.value+'s');
+  });
+  document.getElementById('pal-sel').addEventListener('change',e=>{
+    if(curPal)stage.classList.remove(curPal);
+    curPal=e.target.value;if(curPal)stage.classList.add(curPal);
+  });
+  document.getElementById('subtle-tog').addEventListener('change',e=>{
+    bg.style.filter=e.target.checked?'saturate(0.3)':'';
+  });
+  document.getElementById('pause-btn').addEventListener('click',()=>{
+    paused=!paused;
+    bg.style.animationPlayState=paused?'paused':'running';
+    document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  });
+</script>
+</body>
+</html>

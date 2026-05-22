@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mesh Gradient Animation</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--blob-blur:80px;--dur:40s;--blend:normal}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#04060c}
+    .mesh-wrap{position:absolute;inset:0;overflow:hidden}
+    .blob{position:absolute;border-radius:50%;filter:blur(var(--blob-blur));opacity:.75;mix-blend-mode:var(--blend)}
+    .b1{width:60%;height:60%;background:#1a3060;top:-10%;left:-10%;animation:b1 var(--dur) ease-in-out infinite alternate}
+    .b2{width:55%;height:55%;background:#2e0a50;top:20%;right:-15%;animation:b2 calc(var(--dur)*1.1) ease-in-out infinite alternate}
+    .b3{width:50%;height:50%;background:#0a2e1a;bottom:-15%;left:15%;animation:b3 calc(var(--dur)*.9) ease-in-out infinite alternate}
+    .b4{width:45%;height:45%;background:#2e1a05;top:40%;left:30%;animation:b4 calc(var(--dur)*1.2) ease-in-out infinite alternate}
+    .b5{width:40%;height:40%;background:#1a0a2e;bottom:10%;right:5%;animation:b5 calc(var(--dur)*.8) ease-in-out infinite alternate;display:none}
+    @keyframes b1{0%{transform:translate(0,0) scale(1)}100%{transform:translate(20%,15%) scale(1.2)}}
+    @keyframes b2{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-15%,20%) scale(0.85)}}
+    @keyframes b3{0%{transform:translate(0,0) scale(1)}100%{transform:translate(15%,-20%) scale(1.15)}}
+    @keyframes b4{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-20%,-15%) scale(0.9)}}
+    @keyframes b5{0%{transform:translate(0,0) scale(1)}100%{transform:translate(10%,25%) scale(1.1)}}
+    .fg-card{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:clamp(200px,60%,320px);background:rgba(6,10,16,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:20px 22px;z-index:10}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:8px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(15px,2vw,20px);color:#fff;margin-bottom:8px;line-height:1.2}
+    .fg-body{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.blob{animation-duration:300s!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Mesh Gradient Animation</h1>
+  <p>Blurred radial gradients drift slowly — heavy blur dissolves edges into pure organic color washes.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="mesh-wrap" id="mesh">
+      <div class="blob b1" id="b1"></div>
+      <div class="blob b2" id="b2"></div>
+      <div class="blob b3" id="b3"></div>
+      <div class="blob b4" id="b4"></div>
+      <div class="blob b5" id="b5"></div>
+    </div>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Mesh Gradient</div>
+      <div class="fg-title">Organic color without sharp edges</div>
+      <div class="fg-body">Heavy blur dissolves gradient boundaries into painterly washes. Popularized by Stripe's landing pages.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The key: blur 80px+. Below that, gradient circles are visible; above, pure color wash. Stripe's design uses this at 120–160px blur across large areas.</p>
+    <div class="lbl">Blob Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="3" max="5" value="4" step="1"><span class="sv" id="count-v">4</span></div>
+    <div class="lbl">Blur Amount</div>
+    <div class="sr"><input type="range" id="blur-sl" min="40" max="150" value="80" step="10"><span class="sv" id="blur-v">80px</span></div>
+    <div class="lbl">Speed (cycle)</div>
+    <div class="sr"><input type="range" id="spd-sl" min="15" max="90" value="40" step="5"><span class="sv" id="spd-v">40s</span></div>
+    <div class="lbl">Palette</div>
+    <select id="pal-sel">
+      <option value="cool" selected>Cool (default)</option>
+      <option value="warm">Warm</option>
+      <option value="sunset">Sunset</option>
+      <option value="synthwave">Synthwave</option>
+      <option value="earth">Earth</option>
+    </select>
+    <div class="lbl">Blend Mode</div>
+    <select id="blend-sel">
+      <option value="normal" selected>Normal</option>
+      <option value="screen">Screen</option>
+      <option value="overlay">Overlay</option>
+    </select>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+  const PALETTES={
+    cool:['#1a3060','#2e0a50','#0a2e1a','#2e1a05'],
+    warm:['#3a1010','#3a2a10','#3a1025','#2a1035'],
+    sunset:['#3a1510','#2a1040','#1a0540','#3a0520'],
+    synthwave:['#0a0a3a','#3a0050','#003a3a','#1a003a'],
+    earth:['#1a1505','#0a1a0a','#1a0a05','#0a1015']
+  };
+  const blobs=[...document.querySelectorAll('.blob')];
+  let paused=false;
+
+  function setPalette(name){
+    const cols=PALETTES[name];
+    blobs.forEach((b,i)=>{if(i<cols.length)b.style.background=cols[i%cols.length];});
+  }
+
+  document.getElementById('count-sl').addEventListener('input',e=>{
+    const n=+e.target.value;document.getElementById('count-v').textContent=n;
+    blobs.forEach((b,i)=>b.style.display=i<n?'':'none');
+  });
+  document.getElementById('blur-sl').addEventListener('input',e=>{
+    document.getElementById('blur-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--blob-blur',e.target.value+'px');
+  });
+  document.getElementById('spd-sl').addEventListener('input',e=>{
+    document.getElementById('spd-v').textContent=e.target.value+'s';
+    document.documentElement.style.setProperty('--dur',e.target.value+'s');
+  });
+  document.getElementById('pal-sel').addEventListener('change',e=>setPalette(e.target.value));
+  document.getElementById('blend-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--blend',e.target.value);
+  });
+  document.getElementById('pause-btn').addEventListener('click',()=>{
+    paused=!paused;
+    blobs.forEach(b=>b.style.animationPlayState=paused?'paused':'running');
+    document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  });
+  // Show 4 blobs by default
+  document.getElementById('b5').style.display='none';
+</script>
+</body>
+</html>

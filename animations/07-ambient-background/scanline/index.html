@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanline Effect</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--line-gap:4px;--line-dark:.15;--beam-dur:4s;--beam-bright:.12}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#05080d}
+    /* Screen content */
+    .screen-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px}
+    .terminal{width:100%;max-width:420px;background:#040608;border:1px solid rgba(88,166,255,.2);border-radius:6px;padding:20px 24px;font-family:monospace}
+    .term-bar{display:flex;gap:6px;margin-bottom:14px}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.r{background:#f85149}.dot.y{background:#ffa657}.dot.g{background:#56d364}
+    .term-line{font-size:clamp(10px,1.3vw,12px);color:var(--ui-accent);line-height:1.7;opacity:.9}
+    .term-line.dim{opacity:.4}
+    .term-cursor{display:inline-block;width:8px;height:1em;background:var(--ui-accent);vertical-align:text-bottom;animation:blink 1s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+    /* Scanline overlay */
+    .scanlines{
+      position:absolute;inset:0;pointer-events:none;z-index:5;
+      background:repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent calc(var(--line-gap) - 1px),
+        rgba(0,0,0,var(--line-dark)) calc(var(--line-gap) - 1px),
+        rgba(0,0,0,var(--line-dark)) var(--line-gap)
+      )
+    }
+    /* Sweep beam */
+    .beam{
+      position:absolute;left:0;right:0;height:120px;top:-120px;z-index:6;pointer-events:none;
+      background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,var(--beam-bright)) 50%,transparent 100%);
+      animation:beam-sweep var(--beam-dur) linear infinite;
+      display:none
+    }
+    @keyframes beam-sweep{from{top:-120px}to{top:100%}}
+    /* CRT curvature (barrel distortion via border-radius on content) */
+    .crt-wrap{position:absolute;inset:0;border-radius:40%;overflow:hidden;pointer-events:none;display:none}
+    .crt-inner{position:absolute;inset:-5%;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
+    /* Phosphor glow on text (via CSS on terminal) */
+    .phosphor .term-line{text-shadow:0 0 8px var(--ui-accent),0 0 20px rgba(88,166,255,.3)}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.beam{animation-duration:60s!important}.term-cursor{animation:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scanline Effect</h1>
+  <p>Repeating dark lines over content create a CRT monitor aesthetic — optional sweep beam and phosphor glow.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="screen-content">
+      <div class="terminal" id="terminal">
+        <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+        <div class="term-line">$ initialize_system --mode ambient</div>
+        <div class="term-line dim">// scanning for motion patterns</div>
+        <div class="term-line">→ all systems nominal</div>
+        <div class="term-line dim">→ rendering 60fps continuous</div>
+        <div class="term-line">_ <span class="term-cursor"></span></div>
+      </div>
+    </div>
+    <div class="scanlines" id="scanlines"></div>
+    <div class="beam" id="beam"></div>
+    <div class="crt-wrap" id="crt-wrap"><div class="crt-inner"></div></div>
+  </div>
+  <aside>
+    <p class="note">Scanlines = nostalgic. Static + sweep beam = cinematic sci-fi. Add curvature + phosphor = full CRT simulation. Use sparingly — the look is dated by design.</p>
+    <div class="lbl">Line Density</div>
+    <select id="density-sel">
+      <option value="2">Dense (every 2px)</option>
+      <option value="4" selected>Medium (every 4px)</option>
+      <option value="8">Coarse (every 8px)</option>
+    </select>
+    <div class="lbl">Line Darkness</div>
+    <div class="sr"><input type="range" id="dark-sl" min="5" max="40" value="15" step="1"><span class="sv" id="dark-v">0.15</span></div>
+    <label class="tog"><input type="checkbox" id="beam-tog"><span>Moving beam sweep</span></label>
+    <div class="lbl">Beam Speed</div>
+    <div class="sr"><input type="range" id="beam-sl" min="2" max="15" value="4" step="1"><span class="sv" id="beam-v">4s</span></div>
+    <div class="lbl">Beam Brightness</div>
+    <div class="sr"><input type="range" id="bri-sl" min="5" max="30" value="12" step="1"><span class="sv" id="bri-v">0.12</span></div>
+    <label class="tog"><input type="checkbox" id="crt-tog"><span>CRT curvature vignette</span></label>
+    <label class="tog"><input type="checkbox" id="phos-tog"><span>Phosphor text glow</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+  let paused=false;
+  document.getElementById('density-sel').addEventListener('change',e=>{
+    document.documentElement.style.setProperty('--line-gap',e.target.value+'px');
+  });
+  document.getElementById('dark-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);document.getElementById('dark-v').textContent=v;
+    document.documentElement.style.setProperty('--line-dark',v);
+  });
+  document.getElementById('beam-tog').addEventListener('change',e=>{
+    document.getElementById('beam').style.display=e.target.checked?'block':'none';
+  });
+  document.getElementById('beam-sl').addEventListener('input',e=>{
+    document.getElementById('beam-v').textContent=e.target.value+'s';
+    document.documentElement.style.setProperty('--beam-dur',e.target.value+'s');
+  });
+  document.getElementById('bri-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);document.getElementById('bri-v').textContent=v;
+    document.documentElement.style.setProperty('--beam-bright',v);
+  });
+  document.getElementById('crt-tog').addEventListener('change',e=>{
+    document.getElementById('crt-wrap').style.display=e.target.checked?'block':'none';
+  });
+  document.getElementById('phos-tog').addEventListener('change',e=>{
+    document.getElementById('terminal').classList.toggle('phosphor',e.target.checked);
+  });
+  document.getElementById('pause-btn').addEventListener('click',()=>{
+    paused=!paused;
+    document.getElementById('beam').style.animationPlayState=paused?'paused':'running';
+    document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  });
+</script>
+</body>
+</html>

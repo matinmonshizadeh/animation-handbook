@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambient Ripple Effect</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#020508}
+    canvas{display:block;width:100%;height:100%;position:absolute;inset:0}
+    .fg-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(180px,55%,280px);background:rgba(2,5,8,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:20px;z-index:10;text-align:center}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:8px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(14px,2vw,18px);color:#fff;margin-bottom:8px;font-style:italic;line-height:1.3}
+    .fg-body{font-size:10px;color:rgba(255,255,255,.45);line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Ambient Ripple Effect</h1>
+  <p>Concentric rings expand from idle sources — automatic, periodic, decorative. Not click-triggered.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Ambient Ripple</div>
+      <div class="fg-title">Something is alive here</div>
+      <div class="fg-body">Like water drops on a still pond, ECG monitors, sonar pings — suggests presence without interaction.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Ambient ripples evoke "something alive" without requiring interaction. Keep timing IRREGULAR — perfectly periodic ripples feel mechanical, like a clock, not nature.</p>
+    <div class="lbl">Source Count</div>
+    <div class="sr"><input type="range" id="src-sl" min="1" max="5" value="3" step="1"><span class="sv" id="src-v">3</span></div>
+    <div class="lbl">Emit Interval (base)</div>
+    <div class="sr"><input type="range" id="int-sl" min="10" max="80" value="30" step="5"><span class="sv" id="int-v">3.0s</span></div>
+    <div class="lbl">Max Radius</div>
+    <div class="sr"><input type="range" id="rad-sl" min="50" max="300" value="160" step="10"><span class="sv" id="rad-v">160px</span></div>
+    <div class="lbl">Ring Life (duration)</div>
+    <div class="sr"><input type="range" id="life-sl" min="10" max="50" value="25" step="5"><span class="sv" id="life-v">2.5s</span></div>
+    <div class="lbl">Ring Thickness</div>
+    <div class="sr"><input type="range" id="thick-sl" min="1" max="4" value="1.5" step="0.5"><span class="sv" id="thick-v">1.5px</span></div>
+    <div class="lbl">Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Ripple color">
+    <label class="tog"><input type="checkbox" id="irr-tog" checked><span>Irregular timing</span></label>
+    <label class="tog"><input type="checkbox" id="drift-tog"><span>Sources drift slowly</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+let W,H,paused=false,raf=null,lastT=0;
+let SRCS=3,INTERVAL=3,MAX_R=160,LIFE=2.5,THICK=1.5,IRR=true,DRIFT=false;
+let COLOR=[88,166,255];
+let sources=[],rings=[];
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;initSources();}
+
+function initSources(){
+  sources=Array.from({length:SRCS},(_,i)=>({
+    x:W*(.2+i*.3/(Math.max(SRCS-1,1)))+W*.15,y:H*(.25+Math.random()*.5),
+    vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.15,
+    nextEmit:performance.now()+Math.random()*INTERVAL*1000
+  }));
+}
+
+class Ring{
+  constructor(x,y){this.x=x;this.y=y;this.r=0;this.born=performance.now();this.dur=LIFE*1000;}
+  update(now){this.r=MAX_R*(now-this.born)/this.dur;}
+  isDead(now){return now-this.born>this.dur;}
+  draw(now){
+    const life=1-(now-this.born)/this.dur;
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${COLOR[0]},${COLOR[1]},${COLOR[2]},${(life*.5).toFixed(2)})`;
+    ctx.lineWidth=THICK*(1-this.r/MAX_R*.3);ctx.stroke();
+  }
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  ctx.clearRect(0,0,W,H);
+  // Update sources
+  sources.slice(0,SRCS).forEach(s=>{
+    if(DRIFT){
+      s.x+=s.vx;s.y+=s.vy;
+      if(s.x<W*.05||s.x>W*.95)s.vx*=-1;
+      if(s.y<H*.1||s.y>H*.9)s.vy*=-1;
+    }
+    if(ts>=s.nextEmit){
+      rings.push(new Ring(s.x,s.y));
+      const jitter=IRR?(Math.random()-.5)*INTERVAL*1000*.8:0;
+      s.nextEmit=ts+INTERVAL*1000+jitter;
+    }
+    // Draw source dot
+    ctx.fillStyle=`rgba(${COLOR[0]},${COLOR[1]},${COLOR[2]},.4)`;
+    ctx.beginPath();ctx.arc(s.x,s.y,3,0,Math.PI*2);ctx.fill();
+  });
+  // Draw rings
+  rings=rings.filter(r=>!r.isDead(ts));
+  rings.forEach(r=>{r.update(ts);r.draw(ts);});
+}
+
+resize();raf=requestAnimationFrame(loop);window.addEventListener('resize',()=>{resize();});
+
+document.getElementById('src-sl').addEventListener('input',e=>{SRCS=+e.target.value;document.getElementById('src-v').textContent=SRCS;initSources();});
+document.getElementById('int-sl').addEventListener('input',e=>{INTERVAL=e.target.value/10;document.getElementById('int-v').textContent=INTERVAL.toFixed(1)+'s';});
+document.getElementById('rad-sl').addEventListener('input',e=>{MAX_R=+e.target.value;document.getElementById('rad-v').textContent=MAX_R+'px';});
+document.getElementById('life-sl').addEventListener('input',e=>{LIFE=e.target.value/10;document.getElementById('life-v').textContent=LIFE.toFixed(1)+'s';});
+document.getElementById('thick-sl').addEventListener('input',e=>{THICK=+e.target.value;document.getElementById('thick-v').textContent=THICK+'px';});
+document.getElementById('color-pick').addEventListener('input',e=>{const h=e.target.value;COLOR=[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];});
+document.getElementById('irr-tog').addEventListener('change',e=>{IRR=e.target.checked;});
+document.getElementById('drift-tog').addEventListener('change',e=>{DRIFT=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

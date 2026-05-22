@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breathing / Pulsing Glow</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--glow-dur:5s;--glow-color:#58a6ff;--glow-min:.6;--glow-max:1.5;--glow-size:260px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#020408;display:flex;align-items:center;justify-content:center}
+    /* Glow layers */
+    .glow-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .glow{
+      width:var(--glow-size);height:var(--glow-size);border-radius:50%;
+      background:radial-gradient(circle,var(--glow-color) 0%,transparent 70%);
+      opacity:.6;filter:blur(40px);
+      animation:breathe var(--glow-dur) ease-in-out infinite
+    }
+    .glow2{
+      width:calc(var(--glow-size)*1.5);height:calc(var(--glow-size)*1.5);border-radius:50%;
+      background:radial-gradient(circle,var(--glow-color) 0%,transparent 60%);
+      opacity:.3;filter:blur(60px);
+      animation:breathe calc(var(--glow-dur)*1.3) ease-in-out infinite reverse;
+      display:none
+    }
+    @keyframes breathe{
+      0%,100%{transform:scale(var(--glow-min));opacity:.6}
+      50%{transform:scale(var(--glow-max));opacity:.9}
+    }
+    /* Center element */
+    .center-el{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;animation:el-breathe var(--glow-dur) ease-in-out infinite}
+    .center-icon{width:72px;height:72px;border-radius:50%;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);display:flex;align-items:center;justify-content:center;font-size:28px}
+    .center-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+    .center-title{font-family:Georgia,serif;font-size:clamp(20px,3vw,28px);color:#fff;text-align:center;font-style:italic}
+    @keyframes el-breathe{
+      0%,100%{transform:scale(1);opacity:.9}
+      50%{transform:scale(1.02);opacity:1}
+    }
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.glow,.glow2,.center-el{animation-duration:60s!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Breathing / Pulsing Glow</h1>
+  <p>Radial gradient expands and contracts on a 5-second cycle — mimicking a slow, relaxed breath.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="glow-wrap">
+      <div class="glow" id="glow1"></div>
+      <div class="glow2" id="glow2"></div>
+    </div>
+    <div class="center-el" id="center-el">
+      <div class="center-icon">✦</div>
+      <div class="center-label">Breathing glow</div>
+      <div class="center-title">Rest state</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The 4–6 second cycle matches a slow, relaxed breath. Faster = anxious; slower = imperceptible. Use behind idle UI elements, meditation timers, paused media players.</p>
+    <div class="lbl">Cycle Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="2" max="12" value="5" step="0.5"><span class="sv" id="dur-v">5s</span></div>
+    <div class="lbl">Min Scale</div>
+    <div class="sr"><input type="range" id="min-sl" min="40" max="90" value="60" step="5"><span class="sv" id="min-v">0.60</span></div>
+    <div class="lbl">Max Scale</div>
+    <div class="sr"><input type="range" id="max-sl" min="100" max="200" value="150" step="10"><span class="sv" id="max-v">1.50</span></div>
+    <div class="lbl">Glow Size</div>
+    <div class="sr"><input type="range" id="size-sl" min="100" max="400" value="260" step="20"><span class="sv" id="size-v">260px</span></div>
+    <div class="lbl">Glow Color</div>
+    <input type="color" id="color-pick" value="#58a6ff" aria-label="Glow color">
+    <label class="tog"><input type="checkbox" id="double-tog"><span>Double glow (two layers)</span></label>
+    <label class="tog"><input type="checkbox" id="el-tog" checked><span>Element breathes too</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+  let paused=false;
+  const allAnims=[document.getElementById('glow1'),document.getElementById('glow2'),document.getElementById('center-el')];
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'s';
+    document.documentElement.style.setProperty('--glow-dur',e.target.value+'s');
+  });
+  document.getElementById('min-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);document.getElementById('min-v').textContent=v;
+    document.documentElement.style.setProperty('--glow-min',v);
+  });
+  document.getElementById('max-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);document.getElementById('max-v').textContent=v;
+    document.documentElement.style.setProperty('--glow-max',v);
+  });
+  document.getElementById('size-sl').addEventListener('input',e=>{
+    document.getElementById('size-v').textContent=e.target.value+'px';
+    document.documentElement.style.setProperty('--glow-size',e.target.value+'px');
+  });
+  document.getElementById('color-pick').addEventListener('input',e=>{
+    document.documentElement.style.setProperty('--glow-color',e.target.value);
+  });
+  document.getElementById('double-tog').addEventListener('change',e=>{
+    document.getElementById('glow2').style.display=e.target.checked?'block':'none';
+  });
+  document.getElementById('el-tog').addEventListener('change',e=>{
+    document.getElementById('center-el').style.animation=e.target.checked?'':'none';
+  });
+  document.getElementById('pause-btn').addEventListener('click',()=>{
+    paused=!paused;
+    allAnims.forEach(el=>el.style.animationPlayState=paused?'paused':'running');
+    document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  });
+</script>
+</body>
+</html>

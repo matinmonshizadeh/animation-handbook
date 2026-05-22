@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floating Elements</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#03050a}
+    .float-layer{position:absolute;inset:0;overflow:hidden}
+    .el{position:absolute;will-change:transform;opacity:.5}
+    /* Shapes via border/border-radius */
+    .shape-circle{border-radius:50%}
+    .shape-square{}
+    .shape-triangle{background:none!important;width:0!important;height:0!important;border-style:solid}
+    .shape-ring{background:none!important;border-radius:50%;border:2px solid currentColor}
+    /* Foreground */
+    .fg-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(200px,60%,320px);background:rgba(3,5,10,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:24px;z-index:10;text-align:center}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(16px,2.2vw,22px);color:#fff;margin-bottom:10px;font-style:italic;line-height:1.2}
+    .fg-body{font-size:11px;color:rgba(255,255,255,.45);line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:40px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.el{animation:none!important;transform:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Floating Elements</h1>
+  <p>Geometric shapes drift on independent sine-wave paths — no two elements move in sync.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="float-layer" id="float-layer"></div>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Floating Elements</div>
+      <div class="fg-title">5–12 shapes is the sweet spot</div>
+      <div class="fg-body">Each shape has a unique amplitude, frequency, and phase. Synchronized motion would look mechanical.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">5–12 shapes is the sweet spot. Each shape gets a unique amplitude, frequency, and phase for its sine-wave path. Synchronized shapes look mechanical; independence looks natural.</p>
+    <div class="lbl">Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="4" max="20" value="8" step="1"><span class="sv" id="count-v">8</span></div>
+    <div class="lbl">Drift Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="5" step="1"><span class="sv" id="spd-v">0.5</span></div>
+    <div class="lbl">Drift Range</div>
+    <div class="sr"><input type="range" id="range-sl" min="20" max="120" value="50" step="10"><span class="sv" id="range-v">50px</span></div>
+    <div class="lbl">Shape Mix</div>
+    <select id="shape-sel">
+      <option value="circles">Circles only</option>
+      <option value="squares">Squares only</option>
+      <option value="rings">Rings only</option>
+      <option value="mixed" selected>Mixed</option>
+    </select>
+    <div class="lbl">Palette</div>
+    <select id="pal-sel">
+      <option value="cool" selected>Cool (blues/purples)</option>
+      <option value="warm">Warm (oranges/reds)</option>
+      <option value="mono">Monochrome</option>
+      <option value="neon">Neon</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="rot-tog" checked><span>Subtle rotation</span></label>
+    <label class="tog"><input type="checkbox" id="pulse-tog"><span>Opacity pulse</span></label>
+    <label class="tog"><input type="checkbox" id="react-tog"><span>Mouse repulsion</span></label>
+    <div class="div"></div>
+    <button class="rst" id="rebuild-btn">↺ Rebuild</button>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const layer=document.getElementById('float-layer');
+const stage=document.getElementById('stage');
+let W=stage.clientWidth,H=stage.clientHeight;
+let COUNT=8,SPD=0.5,RANGE=50,SHAPE='mixed',PAL='cool',ROT=true,PULSE=true,REACT=false;
+let elements=[],raf=null,paused=false,t=0,mouse={x:-999,y:-999};
+
+const PALETTES={
+  cool:['rgba(88,166,255,.3)','rgba(100,80,220,.3)','rgba(56,200,180,.25)'],
+  warm:['rgba(255,166,87,.3)','rgba(248,81,73,.3)','rgba(255,210,100,.25)'],
+  mono:['rgba(200,210,220,.15)','rgba(150,160,170,.12)','rgba(240,245,255,.1)'],
+  neon:['rgba(0,255,180,.4)','rgba(255,0,200,.35)','rgba(0,200,255,.4)']
+};
+
+const SHAPES=['circles','squares','rings'];
+
+function mkEl(){
+  const shapePick=SHAPE==='mixed'?SHAPES[Math.floor(Math.random()*SHAPES.length)]:SHAPE.replace(/s$/,'');
+  const sz=8+Math.random()*20;
+  const col=PALETTES[PAL][Math.floor(Math.random()*PALETTES[PAL].length)];
+  const el=document.createElement('div');el.className='el';
+  const bx=10+Math.random()*80,by=10+Math.random()*80;
+  const amp=RANGE*.5+Math.random()*RANGE*.5;
+  const freq=0.3+Math.random()*0.5;
+  const phase=Math.random()*Math.PI*2;
+  const phaseY=Math.random()*Math.PI*2;
+  const rotSpd=(Math.random()-.5)*0.3;
+  const pulsePhs=Math.random()*Math.PI*2;
+
+  if(shapePick==='ring'){
+    el.style.width=sz+'px';el.style.height=sz+'px';el.style.borderRadius='50%';el.style.border='2px solid '+col.replace(',.',',0.6,').replace('rgba(','rgba(').replace(/,[\d.]+\)$/,',0.6)');
+    el.style.background='none';
+  }else if(shapePick==='square'){
+    el.style.width=sz+'px';el.style.height=sz+'px';el.style.background=col;
+  }else{
+    el.style.width=sz+'px';el.style.height=sz+'px';el.style.borderRadius='50%';el.style.background=col;
+  }
+  el.style.position='absolute';
+  layer.appendChild(el);
+  return{el,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0,mx:bx,my:by};
+}
+
+function rebuild(){
+  layer.innerHTML='';
+  elements=Array.from({length:COUNT},mkEl);
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  t+=SPD*.005;
+  elements.forEach(e=>{
+    const W=stage.clientWidth,H=stage.clientHeight;
+    let x=e.bx/100*W+Math.sin(e.freq*t+e.phase)*e.amp;
+    let y=e.by/100*H+Math.cos(e.freq*t*0.7+e.phaseY)*e.amp*.6;
+    // Mouse repulsion
+    if(REACT&&mouse.x>0){
+      const dx=x-mouse.x,dy=y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){const f=120-d;x+=dx/d*f*.08;y+=dy/d*f*.08;}
+    }
+    let rot=0;if(ROT){e.rot+=e.rotSpd;rot=e.rot;}
+    let op=0.5;if(PULSE)op=0.3+0.4*Math.sin(e.pulsePhs+t*.5);
+    e.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+    e.el.style.opacity=op;
+  });
+}
+
+rebuild();raf=requestAnimationFrame(loop);
+
+stage.addEventListener('mousemove',e=>{const r=stage.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
+stage.addEventListener('mouseleave',()=>{mouse.x=-999;});
+window.addEventListener('resize',()=>{W=stage.clientWidth;H=stage.clientHeight;});
+
+document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;rebuild();});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('range-sl').addEventListener('input',e=>{RANGE=+e.target.value;document.getElementById('range-v').textContent=RANGE+'px';rebuild();});
+document.getElementById('shape-sel').addEventListener('change',e=>{SHAPE=e.target.value;rebuild();});
+document.getElementById('pal-sel').addEventListener('change',e=>{PAL=e.target.value;rebuild();});
+document.getElementById('rot-tog').addEventListener('change',e=>{ROT=e.target.checked;});
+document.getElementById('pulse-tog').addEventListener('change',e=>{PULSE=e.target.checked;});
+document.getElementById('react-tog').addEventListener('change',e=>{REACT=e.target.checked;});
+document.getElementById('rebuild-btn').addEventListener('click',rebuild);
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

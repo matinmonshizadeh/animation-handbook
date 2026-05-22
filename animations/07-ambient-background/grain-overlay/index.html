@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grain / Film Noise Overlay</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--grain-op:0.08;--grain-blend:overlay}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    /* Scene beneath grain */
+    .scene{position:absolute;inset:0;background:linear-gradient(135deg,#0a1520,#152035,#0a2520);display:flex;align-items:center;justify-content:center;padding:24px}
+    .hero-mock{text-align:center;max-width:360px}
+    .hero-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(88,166,255,.5);margin-bottom:12px}
+    .hero-h{font-family:Georgia,serif;font-size:clamp(22px,3.5vw,36px);color:#fff;font-style:italic;line-height:1.2;margin-bottom:12px}
+    .hero-p{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;max-width:280px;margin:0 auto}
+    /* SVG grain filter approach */
+    .grain-svg{display:none}
+    /* Canvas grain overlay */
+    .grain-canvas{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:var(--grain-op);mix-blend-mode:var(--grain-blend)}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
+    /* SVG filter grain */
+    .grain-filter-wrap{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:var(--grain-op);mix-blend-mode:var(--grain-blend);display:none}
+    .grain-filter-wrap rect{width:100%;height:100%;filter:url(#grain-filter)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
+    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Grain / Film Noise Overlay</h1>
+  <p>Animated noise texture adds cinematic warmth — subtlety is everything. 5–10% opacity, not 30%.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="scene">
+      <div class="hero-mock">
+        <div class="hero-label">Atlas Studio</div>
+        <div class="hero-h">Design without compromise</div>
+        <div class="hero-p">We craft digital products that earn attention and keep it. Every pixel, every frame, considered.</div>
+      </div>
+    </div>
+    <!-- SVG filter fallback -->
+    <svg class="grain-svg" style="display:none"><defs><filter id="grain-filter" x="0%" y="0%" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" id="grain-turb"/><feColorMatrix type="saturate" values="0"/></filter></defs></svg>
+    <div class="grain-filter-wrap" id="grain-filter-wrap"><svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#grain-filter)"/></svg></div>
+    <!-- Canvas grain -->
+    <div class="grain-canvas" id="grain-canvas-wrap"><canvas id="grain-cvs"></canvas></div>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">Grain at 30%+ opacity looks like a broken screen. At 5–10% it improves perceived quality without being visible. Real film grain is 24fps — slower feels more cinematic.</p>
+    <div class="lbl">Implementation</div>
+    <select id="impl-sel">
+      <option value="canvas" selected>Canvas (regen)</option>
+      <option value="svgfilter">SVG feTurbulence</option>
+    </select>
+    <div class="lbl">Intensity</div>
+    <div class="sr"><input type="range" id="int-sl" min="2" max="30" value="8" step="1"><span class="sv" id="int-v">8%</span></div>
+    <div class="lbl">Grain Size</div>
+    <select id="size-sel">
+      <option value="1">Fine (1px)</option>
+      <option value="2" selected>Medium (2px)</option>
+      <option value="3">Coarse (3px)</option>
+    </select>
+    <div class="lbl">Update Rate</div>
+    <select id="rate-sel">
+      <option value="60" selected>60fps (digital)</option>
+      <option value="24">24fps (film)</option>
+      <option value="12">12fps (lo-fi)</option>
+      <option value="4">4fps (analog)</option>
+    </select>
+    <div class="lbl">Blend Mode</div>
+    <select id="blend-sel">
+      <option value="overlay" selected>Overlay</option>
+      <option value="screen">Screen</option>
+      <option value="soft-light">Soft-light</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="color-tog"><span>Color noise (RGB)</span></label>
+    <div class="div"></div>
+    <div style="font-size:9px;color:var(--ui-muted)">Render: <span id="fps2">—</span> fps</div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('grain-cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+const fpsEl=document.getElementById('fps'),fps2El=document.getElementById('fps2');
+let W,H,paused=false,raf=null,lastFrame=0,lastT=0;
+let IMPL='canvas',SIZE=2,RATE=60,COLOR_NOISE=false,INTENSITY=0.08;
+let frameInterval=1000/60;
+let svgTurb=document.getElementById('grain-turb');
+let seed=0;
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+resize();window.addEventListener('resize',resize);
+
+function drawCanvasGrain(){
+  const img=ctx.createImageData(W,H);const data=img.data;
+  const step=SIZE;
+  for(let y=0;y<H;y+=step)for(let x=0;x<W;x+=step){
+    const v=Math.random()*255|0;
+    for(let dy=0;dy<step&&y+dy<H;dy++)for(let dx=0;dx<step&&x+dx<W;dx++){
+      const idx=(y+dy)*W*4+(x+dx)*4;
+      if(COLOR_NOISE){data[idx]=Math.random()*255|0;data[idx+1]=Math.random()*255|0;data[idx+2]=Math.random()*255|0;}
+      else{data[idx]=v;data[idx+1]=v;data[idx+2]=v;}
+      data[idx+3]=255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<10)return;
+  const f=Math.round(1000/(dt||16));fpsEl.textContent=f+' fps';fps2El.textContent=f;lastT=ts;
+  if(ts-lastFrame>=frameInterval){
+    lastFrame=ts;
+    if(IMPL==='canvas')drawCanvasGrain();
+    else{seed++;svgTurb.setAttribute('seed',seed);}
+  }
+}
+
+loop(performance.now());
+
+document.getElementById('impl-sel').addEventListener('change',e=>{
+  IMPL=e.target.value;
+  document.getElementById('grain-canvas-wrap').style.display=IMPL==='canvas'?'block':'none';
+  document.getElementById('grain-filter-wrap').style.display=IMPL==='svgfilter'?'block':'none';
+});
+document.getElementById('int-sl').addEventListener('input',e=>{
+  INTENSITY=e.target.value/100;document.getElementById('int-v').textContent=e.target.value+'%';
+  document.documentElement.style.setProperty('--grain-op',INTENSITY);
+});
+document.getElementById('size-sel').addEventListener('change',e=>{SIZE=+e.target.value;});
+document.getElementById('rate-sel').addEventListener('change',e=>{frameInterval=1000/+e.target.value;});
+document.getElementById('blend-sel').addEventListener('change',e=>{document.documentElement.style.setProperty('--grain-blend',e.target.value);});
+document.getElementById('color-tog').addEventListener('change',e=>{COLOR_NOISE=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

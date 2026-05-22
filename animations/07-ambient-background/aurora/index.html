@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurora / Northern Lights</title>
+  <style>
+    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px;--dur:30s}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    /* Sky gradient */
+    .sky{position:absolute;inset:0;background:linear-gradient(180deg,#010508 0%,#020a12 40%,#030e1a 100%)}
+    /* Star layer */
+    .stars-layer{position:absolute;inset:0;display:none}
+    /* Aurora bands — vertically tall, horizontally drifting */
+    .aurora-wrap{position:absolute;inset:0;overflow:hidden}
+    .band{
+      position:absolute;left:-30%;right:-30%;
+      filter:blur(35px);
+      opacity:.75;
+      transform-origin:center bottom;
+    }
+    .band1{top:5%;height:45%;background:linear-gradient(to bottom,transparent 0%,rgba(0,220,100,.5) 35%,rgba(0,180,80,.6) 55%,rgba(0,100,50,.2) 80%,transparent 100%);animation:drift1 var(--dur) ease-in-out infinite}
+    .band2{top:10%;height:55%;background:linear-gradient(to bottom,transparent 0%,rgba(50,150,255,.4) 30%,rgba(30,100,220,.5) 55%,rgba(20,50,150,.15) 80%,transparent 100%);animation:drift2 calc(var(--dur)*1.15) ease-in-out infinite}
+    .band3{top:0%;height:50%;background:linear-gradient(to bottom,transparent 0%,rgba(150,50,220,.35) 30%,rgba(100,30,180,.4) 55%,rgba(80,20,120,.1) 80%,transparent 100%);animation:drift3 calc(var(--dur)*0.85) ease-in-out infinite;display:none}
+    .band4{top:5%;height:40%;background:linear-gradient(to bottom,transparent 0%,rgba(255,100,180,.3) 35%,rgba(200,50,120,.35) 55%,rgba(150,30,80,.1) 80%,transparent 100%);animation:drift4 calc(var(--dur)*1.25) ease-in-out infinite;display:none}
+    .band5{top:15%;height:35%;background:linear-gradient(to bottom,transparent 0%,rgba(255,50,50,.3) 35%,rgba(200,20,20,.35) 55%,rgba(150,10,10,.1) 80%,transparent 100%);animation:drift5 calc(var(--dur)*1.1) ease-in-out infinite;display:none}
+    @keyframes drift1{0%{transform:translateX(-8%) skewY(-1deg) scaleX(1)}33%{transform:translateX(5%) skewY(1.5deg) scaleX(1.1)}66%{transform:translateX(-3%) skewY(-.5deg) scaleX(.95)}100%{transform:translateX(-8%) skewY(-1deg) scaleX(1)}}
+    @keyframes drift2{0%{transform:translateX(6%) skewY(.5deg) scaleX(1.05)}40%{transform:translateX(-7%) skewY(-1deg) scaleX(.92)}80%{transform:translateX(4%) skewY(1deg) scaleX(1.08)}100%{transform:translateX(6%) skewY(.5deg) scaleX(1.05)}}
+    @keyframes drift3{0%{transform:translateX(-5%) skewY(1deg)}50%{transform:translateX(8%) skewY(-1.5deg)}100%{transform:translateX(-5%) skewY(1deg)}}
+    @keyframes drift4{0%{transform:translateX(10%) skewY(-1deg)}50%{transform:translateX(-6%) skewY(1deg)}100%{transform:translateX(10%) skewY(-1deg)}}
+    @keyframes drift5{0%{transform:translateX(-4%) skewY(.5deg)}50%{transform:translateX(9%) skewY(-1deg)}100%{transform:translateX(-4%) skewY(.5deg)}}
+    /* Ground strip */
+    .horizon{position:absolute;bottom:0;left:0;right:0;height:28%;background:linear-gradient(to top,#01030a,transparent)}
+    /* Stars */
+    .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s ease-in-out infinite alternate}
+    @keyframes twinkle{0%{opacity:.2}100%{opacity:.9}}
+    /* Card */
+    .fg-card{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);width:clamp(200px,60%,300px);background:rgba(2,5,10,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:18px 20px;z-index:10}
+    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,220,100,.7);margin-bottom:6px}
+    .fg-title{font-family:Georgia,serif;font-size:clamp(14px,1.8vw,18px);color:#e8f4f0;margin-bottom:6px;line-height:1.3}
+    .fg-body{font-size:10px;color:rgba(255,255,255,.45);line-height:1.6}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
+    @media(prefers-reduced-motion:reduce){.band{animation-duration:300s!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Aurora / Northern Lights</h1>
+  <p>Tall color bands drift and skew horizontally — blurred gradient layers faking the waving curtain of light.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="sky"></div>
+    <div class="stars-layer" id="stars-layer"></div>
+    <div class="aurora-wrap">
+      <div class="band band1" id="band1"></div>
+      <div class="band band2" id="band2"></div>
+      <div class="band band3" id="band3"></div>
+      <div class="band band4" id="band4"></div>
+      <div class="band band5" id="band5"></div>
+    </div>
+    <div class="horizon"></div>
+    <div class="fg-card">
+      <div class="fg-eyebrow">Aurora Borealis</div>
+      <div class="fg-title">Charged particles. Magnetic fields. Light.</div>
+      <div class="fg-body">Green oxygen at 100km altitude, blue nitrogen below, rare red oxygen above 200km.</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Aurora colors are chemistry: green = oxygen at ~100km, red = oxygen above 200km, blue/purple = nitrogen. The visual trick is tall, drifting, blurred vertical bands.</p>
+    <div class="lbl">Band Count</div>
+    <div class="sr"><input type="range" id="bands-sl" min="2" max="5" value="2" step="1"><span class="sv" id="bands-v">2</span></div>
+    <div class="lbl">Speed (cycle)</div>
+    <div class="sr"><input type="range" id="spd-sl" min="15" max="90" value="30" step="5"><span class="sv" id="spd-v">30s</span></div>
+    <div class="lbl">Brightness</div>
+    <div class="sr"><input type="range" id="bri-sl" min="30" max="100" value="75" step="5"><span class="sv" id="bri-v">0.75</span></div>
+    <div class="lbl">Palette</div>
+    <select id="pal-sel">
+      <option value="classic" selected>Classic (green/blue)</option>
+      <option value="vivid">Vivid (purple/pink)</option>
+      <option value="rare">Rare red aurora</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="stars-tog"><span>Stars in background</span></label>
+    <div class="div"></div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+  const bands=[...document.querySelectorAll('.band')];
+  const starsLayer=document.getElementById('stars-layer');
+  let paused=false,starsBuilt=false;
+
+  function buildStars(){
+    if(starsBuilt)return;starsBuilt=true;
+    for(let i=0;i<120;i++){
+      const s=document.createElement('div');s.className='star';
+      const sz=Math.random()*2+0.5;
+      s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*65}%;left:${Math.random()*100}%;opacity:${.2+Math.random()*.5};animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*4}s`;
+      starsLayer.appendChild(s);
+    }
+  }
+
+  const PALETTES={
+    classic:[true,true,false,false,false],
+    vivid:[false,true,true,true,false],
+    rare:[false,false,false,false,true]
+  };
+
+  function applyPalette(name){
+    const vis=PALETTES[name];
+    const count=+document.getElementById('bands-sl').value;
+    bands.forEach((b,i)=>{b.style.display=(vis[i]&&i<count)?'block':'none';});
+  }
+
+  document.getElementById('bands-sl').addEventListener('input',e=>{
+    document.getElementById('bands-v').textContent=e.target.value;
+    applyPalette(document.getElementById('pal-sel').value);
+  });
+  document.getElementById('spd-sl').addEventListener('input',e=>{
+    document.getElementById('spd-v').textContent=e.target.value+'s';
+    document.documentElement.style.setProperty('--dur',e.target.value+'s');
+  });
+  document.getElementById('bri-sl').addEventListener('input',e=>{
+    const v=(e.target.value/100).toFixed(2);document.getElementById('bri-v').textContent=v;
+    bands.forEach(b=>b.style.opacity=v);
+  });
+  document.getElementById('pal-sel').addEventListener('change',e=>applyPalette(e.target.value));
+  document.getElementById('stars-tog').addEventListener('change',e=>{
+    if(e.target.checked){buildStars();starsLayer.style.display='block';}
+    else starsLayer.style.display='none';
+  });
+  document.getElementById('pause-btn').addEventListener('click',()=>{
+    paused=!paused;
+    bands.forEach(b=>b.style.animationPlayState=paused?'paused':'running');
+    document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  });
+
+  applyPalette('classic');
+</script>
+</body>
+</html>
