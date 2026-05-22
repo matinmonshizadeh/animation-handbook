@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Animation Atlas</title>
+  <title>Animation Handbook</title>
   <style>
     :root{--bg:#060a10;--ui-bg:#0d1117;--border:#21262d;--text:#c9d1d9;--muted:#8b949e;--c1:#58a6ff;--c2:#56d364;--c3:#d2a8ff;--c4:#ffa657;--c5:#f85149;--c6:#56d364;--c7:#58a6ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -40,11 +40,29 @@
     .soon-list{display:flex;gap:8px;flex-wrap:wrap}
     .soon{font-size:10px;color:var(--muted);background:var(--ui-bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;opacity:.35;letter-spacing:1px}
     @media(max-width:600px){.hero-meta{flex-direction:column;align-items:flex-start}}
+    .hero{position:relative}
+    #gh-stars{position:absolute;top:clamp(12px,3vw,20px);right:clamp(12px,3vw,20px);display:inline-flex;align-items:center;gap:7px;padding:7px 13px;background:var(--ui-bg);border:1px solid var(--border);border-radius:20px;text-decoration:none;color:var(--text);font-family:monospace;font-size:11px;line-height:1;transition:background .15s,transform .15s,border-color .15s;white-space:nowrap;min-height:44px;min-width:44px}
+    @media(hover:hover){#gh-stars:hover{background:#161b22;border-color:#30363d;transform:translateY(-1px)}}
+    #gh-stars:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+    .gh-icon{flex-shrink:0;opacity:.85}
+    .gh-label{color:var(--muted)}
+    @media(max-width:600px){.gh-label{display:none}}
+    .gh-sep{color:var(--border);margin:0 1px}
+    @media(max-width:600px){.gh-sep{display:none}}
+    .gh-star-wrap{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+    #gh-star-count{min-width:1ch}
+    #gh-stars.no-count .gh-sep,#gh-stars.no-count .gh-star-wrap{display:none}
   </style>
 </head>
 <body>
 <div class="hero">
-  <h1>Animation Atlas</h1>
+  <a id="gh-stars" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="View animation-handbook on GitHub">
+    <svg class="gh-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 98 96" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/></svg>
+    <span class="gh-label">GitHub</span>
+    <span class="gh-sep">·</span>
+    <span class="gh-star-wrap">&#9733;&nbsp;<span id="gh-star-count">—</span></span>
+  </a>
+  <h1>Animation Handbook</h1>
   <p class="hero-sub">A visual reference of web animation techniques. Each entry is a self-contained demo with an explanation of the mechanic — open any HTML file and it runs offline, no build step.</p>
   <div class="hero-meta">
     <a class="hero-link" href="https://github.com/matinmonshizadeh/animation-handbook">github.com/matinmonshizadeh/animation-handbook →</a>
@@ -53,6 +71,35 @@
 </div>
 <div id="root"></div>
 <script>
+(function loadStars(){
+  const KEY='gh-star-count',TTL=5*60*1000;
+  function updateUI(n){
+    const el=document.getElementById('gh-star-count');
+    if(!el)return;
+    el.textContent=Number(n).toLocaleString();
+    const link=document.getElementById('gh-stars');
+    if(link)link.setAttribute('aria-label','View animation-handbook on GitHub ('+Number(n).toLocaleString()+' stars)');
+  }
+  try{
+    const cached=localStorage.getItem(KEY);
+    if(cached){
+      const{count,ts}=JSON.parse(cached);
+      if(Date.now()-ts<TTL){updateUI(count);return;}
+    }
+  }catch(e){}
+  fetch('https://api.github.com/repos/matinmonshizadeh/animation-handbook')
+    .then(function(r){if(!r.ok)throw new Error();return r.json();})
+    .then(function(d){
+      const n=d.stargazers_count;
+      updateUI(n);
+      try{localStorage.setItem(KEY,JSON.stringify({count:n,ts:Date.now()}));}catch(e){}
+    })
+    .catch(function(){
+      const el=document.getElementById('gh-stars');
+      if(el)el.classList.add('no-count');
+    });
+})();
+
 const CATS=[
   {
     name:'Scroll-Based',cat:'c1-cat',dot:'#58a6ff',n:'01',
