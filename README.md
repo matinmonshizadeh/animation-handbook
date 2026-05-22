@@ -1,5 +1,7 @@
 # Animation Atlas
 
+**[Live demo →](https://matinmonshizadeh.github.io/animation-handbook/)**
+
 A visual reference of 100 web animation techniques. Each entry is a
 self-contained HTML demo with an explanation of the mechanic — open
 any file in a browser and it runs offline, no build step.
