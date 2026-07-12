@@ -1,4 +1,4 @@
-# Animation Atlas — Claude Code Instructions
+# Animation Handbook — Claude Code Instructions
 
 ## Project purpose
 A visual reference of web animation techniques. Each animation has its own

@@ -1,4 +1,4 @@
-# Animation Atlas
+# Animation Handbook
 
 **[Live demo →](https://matinmonshizadeh.github.io/animation-handbook/)**
 
