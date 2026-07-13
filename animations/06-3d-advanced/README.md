@@ -22,6 +22,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Image Distortion on Hover](image-distortion-hover/) | Fragment shader displaces UV coordinates around the cursor — four distortion types |
 | [Cloth Simulation](cloth-simulation/) | Verlet integration + distance constraints — draggable, gravity, and wind-responsive |
 | [Volumetric Smoke](volumetric-smoke/) | Ray marching that accumulates 3D noise density — light scattering, shadow rays |
+| [Morphing Blob](morphing-blob/) | Metaball circles fused by an SVG blur-plus-contrast filter — drifts and a droplet chases the pointer |
 
 ## Key concepts
 

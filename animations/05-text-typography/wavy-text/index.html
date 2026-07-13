@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wavy Text</title>
+  <style>
+    :root{
+      --bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;
+      --ui-text:#f4f4f2;--ui-muted:#77777e;
+      --disp:'Arial Narrow','Segoe UI',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
+      --stage-h:520px;--amp:16px;--dur:1.6s;--stagger:60ms;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;
+      background:radial-gradient(circle at 50% 45%,#101018,#04060c);display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+    .wave-text{font-family:var(--disp);font-weight:800;font-size:clamp(40px,11vw,110px);
+      line-height:1;letter-spacing:.01em;color:#fff;white-space:pre;-webkit-user-select:none;user-select:none}
+    /* each character is its own span, offset in the wave by --i * stagger */
+    .wave-text span{display:inline-block;will-change:transform;
+      animation:bob var(--dur) ease-in-out infinite;
+      animation-delay:calc(var(--i) * var(--stagger))}
+    @keyframes bob{
+      0%,100%{transform:translateY(calc(var(--amp) * .6))}
+      50%{transform:translateY(calc(var(--amp) * -1))}
+    }
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:340px}}
+    @media(prefers-reduced-motion:reduce){
+      .wave-text span{animation:none!important;transform:none!important}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Wavy Text</h1>
+  <p>Each letter is its own span with a staggered animation-delay, so a vertical sine wave travels across the word.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="wave-text" id="wave" aria-label="Wavy">Wavy</div>
+  </div>
+  <aside>
+    <p class="note">JS splits the string into per-letter spans and sets a --i index on each. A shared bob keyframe plus a delay of i × stagger phases neighbours apart, producing a rolling wave.</p>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="Wavy" maxlength="14">
+    <div class="lbl">Amplitude</div>
+    <div class="sr"><input type="range" id="amp-sl" min="4" max="40" value="16" step="2"><span class="sv" id="amp-sv">16px</span></div>
+    <div class="lbl">Wave speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="10" value="6" step="1"><span class="sv" id="spd-sv">1.6s</span></div>
+    <div class="lbl">Per-letter stagger</div>
+    <div class="sr"><input type="range" id="stg-sl" min="0" max="160" value="60" step="10"><span class="sv" id="stg-sv">60ms</span></div>
+  </aside>
+</div>
+<script>
+const wave=document.getElementById('wave');
+const root=document.documentElement;
+
+// Split the string into spans, preserving spaces, and index each with --i.
+function build(str){
+  wave.setAttribute('aria-label',str);
+  wave.textContent='';
+  [...str].forEach((ch,i)=>{
+    const s=document.createElement('span');
+    s.textContent=ch===' '?' ':ch;
+    s.style.setProperty('--i',i);
+    s.setAttribute('aria-hidden','true');
+    wave.appendChild(s);
+  });
+}
+build('Wavy');
+
+document.getElementById('text-inp').addEventListener('input',e=>build(e.target.value||' '));
+document.getElementById('amp-sl').addEventListener('input',e=>{
+  root.style.setProperty('--amp',e.target.value+'px');
+  document.getElementById('amp-sv').textContent=e.target.value+'px';
+});
+document.getElementById('spd-sl').addEventListener('input',e=>{
+  const dur=(11-+e.target.value)*0.28;
+  root.style.setProperty('--dur',dur.toFixed(1)+'s');
+  document.getElementById('spd-sv').textContent=dur.toFixed(1)+'s';
+});
+document.getElementById('stg-sl').addEventListener('input',e=>{
+  root.style.setProperty('--stagger',e.target.value+'ms');
+  document.getElementById('stg-sv').textContent=e.target.value+'ms';
+});
+</script>
+</body>
+</html>

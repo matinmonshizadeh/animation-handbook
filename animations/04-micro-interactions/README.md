@@ -10,7 +10,10 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Click / Tap Ripple](click-ripple/) | Ripple from exact click point — Material Design's tactile confirmation |
 | [Focus Ring Animation](focus-ring/) | Animated outline on keyboard Tab — :focus-visible for keyboard users only |
 | [Button Press Scale](button-press-scale/) | Scales down on press, springs back on release — asymmetric timing |
+| [Magnetic Button](magnetic-button/) | Button leans toward the cursor within a radius, label lagging for parallax |
 | [Toggle / Switch Slide](toggle-switch/) | Pill slides between on/off — smooth cubic-bezier for weighted feel |
+| [Heart / Like Burst](heart-burst/) | Heart pops and fills while small hearts burst outward on canvas |
+| [Success Confetti](success-confetti/) | Canvas confetti burst on completion — rotating rectangles with gravity |
 | [Skeleton Loader](skeleton-loader/) | Pulsing placeholder blocks while real content loads |
 | [Shimmer Effect](shimmer-effect/) | Gradient sweep across skeleton placeholders |
 | [Loading Spinner](loading-spinner/) | Six spinner variants — ring, orbit, arc, bounce, pulse, square |
@@ -23,6 +26,8 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Modal Expand](modal-expand/) | Modal scales from trigger button position — spatial continuity |
 | [Accordion Open/Close](accordion/) | Height 0 → auto: JS measured vs CSS grid-template-rows |
 | [Cursor Follower](cursor-follower/) | Lerp-lagged cursor + mix-blend-mode: difference inversion |
+| [Error Shake](error-shake/) | Invalid field shakes with a decaying wobble and flashes red — the universal "no" |
+| [Swipe to Dismiss](swipe-to-dismiss/) | Drag past a threshold to fling a card away as its row collapses — pointer-driven, touch-ready |
 
 ## Key concepts
 

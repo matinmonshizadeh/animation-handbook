@@ -42,3 +42,5 @@ Techniques driven by scroll position.
   z-index stacking; a scale-down on the receding layer adds depth to the transition.
 - [Zoom Into Image](zoom-into-image/) — clip-path expands from a framed card to full-bleed
   as you scroll; the portal effect is clip-path: inset() collapsing from center outward.
+- [Scroll Image Sequence](scroll-image-sequence/) — a canvas pinned with position:sticky while
+  scroll progress maps to a frame index; the Apple product-scroll technique, frames drawn procedurally.

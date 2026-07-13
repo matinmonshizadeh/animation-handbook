@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particle Constellation</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#5ad1ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#06070c}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Particle Constellation</h1>
+  <p>Drifting nodes link to nearby neighbors — line opacity fades with distance, building a living network mesh.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">The whole effect is one rule: for every pair of nodes closer than the link distance, draw a line whose opacity is proportional to how close they are. Nodes never touch — the connections do the work.</p>
+    <div class="lbl">Node Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="20" max="160" value="90" step="10"><span class="sv" id="count-v">90</span></div>
+    <div class="lbl">Link Distance</div>
+    <div class="sr"><input type="range" id="link-sl" min="60" max="220" value="130" step="10"><span class="sv" id="link-v">130</span></div>
+    <div class="lbl">Drift Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="6" step="1"><span class="sv" id="spd-v">0.6</span></div>
+    <div class="lbl">Color</div>
+    <select id="col-sel">
+      <option value="cyan" selected>Cyan</option>
+      <option value="violet">Violet</option>
+      <option value="mint">Mint</option>
+      <option value="mono">Monochrome</option>
+    </select>
+    <label class="tog"><input type="checkbox" id="mouse-tog" checked><span>Mouse attraction</span></label>
+    <div class="div"></div>
+    <div style="font-size:9px;color:var(--ui-muted)">Nodes cap at 60 on small screens for 60fps.</div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
+let W,H,paused=false,raf=null,lastT=0;
+let COUNT=90,LINK=130,SPD=0.6,COL='cyan',MOUSE=true;
+let nodes=[],mx=-999,my=-999;
+const PAL={cyan:[90,209,255],violet:[168,130,255],mint:[122,255,200],mono:[220,220,225]};
+const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+function effCount(){return W<600?Math.min(COUNT,60):COUNT;}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();}
+
+function init(){
+  const n=effCount();
+  nodes=Array.from({length:n},()=>({
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-.5),vy:(Math.random()-.5),
+    r:Math.random()*1.4+1
+  }));
+}
+
+function step(){
+  for(const p of nodes){
+    p.x+=p.vx*SPD;p.y+=p.vy*SPD;
+    if(MOUSE&&mx>-500){
+      const dx=mx-p.x,dy=my-p.y,d2=dx*dx+dy*dy;
+      if(d2<26000&&d2>1){const f=.04/Math.sqrt(d2);p.vx+=dx*f;p.vy+=dy*f;}
+    }
+    // gentle damping keeps velocities bounded so drift stays ambient
+    p.vx*=.99;p.vy*=.99;
+    if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+    p.x=Math.max(0,Math.min(W,p.x));p.y=Math.max(0,Math.min(H,p.y));
+  }
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const c=PAL[COL],L2=LINK*LINK;
+  for(let i=0;i<nodes.length;i++){
+    const a=nodes[i];
+    for(let j=i+1;j<nodes.length;j++){
+      const b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
+      if(d2<L2){
+        const op=(1-Math.sqrt(d2)/LINK)*.55;
+        ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${op})`;
+        ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+  }
+  ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.9)`;
+  for(const p of nodes){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';
+  step();draw();
+}
+
+resize();
+if(reduce){step();draw();fpsEl.textContent='static';}
+else raf=requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+
+stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});
+stage.addEventListener('pointerleave',()=>{mx=my=-999;});
+
+document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;init();if(reduce){draw();}});
+document.getElementById('link-sl').addEventListener('input',e=>{LINK=+e.target.value;document.getElementById('link-v').textContent=LINK;if(reduce){draw();}});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('col-sel').addEventListener('change',e=>{COL=e.target.value;if(reduce){draw();}});
+document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE=e.target.checked;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

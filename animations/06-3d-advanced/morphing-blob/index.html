@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morphing Blob</title>
+  <style>
+    :root{
+      --bg:#0b0b0d;--stage:#08060e;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);
+      --accent:#b98bff;--accent2:#58a6ff;--text:#f4f4f2;--muted:#77777e;
+      --mono:ui-monospace,Menlo,Consolas,monospace;--stage-h:min(70vh,620px);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:18px}
+    header h1{font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}
+    header p{font-size:clamp(11px,1.4vw,13px);color:var(--muted);margin-top:6px;max-width:62ch}
+    .layout{display:flex;gap:clamp(12px,2vw,22px);align-items:stretch}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:12px;
+      background:radial-gradient(circle at 50% 42%,#141024,var(--stage) 70%);overflow:hidden;position:relative;touch-action:none;cursor:crosshair}
+    svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+    .tip{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);pointer-events:none}
+    aside{width:clamp(210px,24vw,250px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--muted);line-height:1.6;border-left:2px solid var(--accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+    .row{display:flex;align-items:center;gap:8px}
+    input[type=range]{flex:1;accent-color:var(--accent);min-height:44px}
+    .sv{width:44px;text-align:right;font-size:12px;color:var(--text)}
+    .div{height:1px;background:var(--ui-border)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+    .kv .v{color:var(--text)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:56vh}}
+    @media(prefers-reduced-motion:reduce){.tip{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Morphing Blob</h1>
+  <p>An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.</p>
+</header>
+
+<div class="layout">
+  <div class="stage" id="stage">
+    <svg id="svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <!-- The "goo": blur spreads the circles, then the alpha channel is
+             pushed through a steep contrast curve so soft edges snap back to a
+             hard silhouette — overlapping circles fuse into one liquid shape. -->
+        <filter id="goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur"/>
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
+          <feBlend in="SourceGraphic" in2="goo"/>
+        </filter>
+        <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#b98bff"/>
+          <stop offset="1" stop-color="#58a6ff"/>
+        </linearGradient>
+      </defs>
+      <g id="blobs" filter="url(#goo)" fill="url(#fill)"></g>
+    </svg>
+    <div class="tip" id="tip">Move your pointer</div>
+  </div>
+
+  <aside>
+    <p class="note">No shaders and no libraries — the whole liquid effect is one SVG filter over plain moving circles. Blur softens, the color-matrix re-hardens the edge, and the metaballs appear to melt together.</p>
+    <div class="lbl">Gooeyness (blur)</div>
+    <div class="row"><input type="range" id="goo" min="4" max="22" step="1" value="10"><span class="sv" id="gooV">10</span></div>
+    <div class="lbl">Blob count</div>
+    <div class="row"><input type="range" id="count" min="3" max="10" step="1" value="6"><span class="sv" id="countV">6</span></div>
+    <div class="lbl">Drift speed</div>
+    <div class="row"><input type="range" id="speed" min="0" max="200" step="1" value="100"><span class="sv" id="speedV">1.0</span></div>
+    <div class="div"></div>
+    <div class="kv"><span>Technique</span><span class="v">metaballs</span></div>
+    <div class="kv"><span>Filter</span><span class="v">blur + contrast</span></div>
+    <div class="kv"><span>Droplet</span><span class="v">pointer-tracked</span></div>
+  </aside>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const group=document.getElementById('blobs'),blur=document.getElementById('blur'),tip=document.getElementById('tip');
+const gooEl=document.getElementById('goo'),gooV=document.getElementById('gooV');
+const countEl=document.getElementById('count'),countV=document.getElementById('countV');
+const speedEl=document.getElementById('speed'),speedV=document.getElementById('speedV');
+const stage=document.getElementById('stage');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+const CX=200,CY=200;             // viewBox centre
+let blobs=[],speed=1;
+let pointer={x:CX,y:CY,active:false}; // target for the droplet, in viewBox units
+
+function build(n){
+  group.textContent='';
+  blobs=[];
+  for(let i=0;i<n;i++){
+    const el=document.createElementNS(NS,'circle');
+    group.appendChild(el);
+    if(i===0){
+      // The droplet: chases the pointer instead of drifting.
+      blobs.push({el,droplet:true,x:CX,y:CY,r:34});
+    }else{
+      const ang=(i/n)*Math.PI*2, orbit=58+Math.random()*30;
+      blobs.push({el,droplet:false,
+        bx:CX+Math.cos(ang)*orbit, by:CY+Math.sin(ang)*orbit,
+        r:26+Math.random()*26,
+        ax:20+Math.random()*34, ay:20+Math.random()*34,     // wander amplitude
+        px:Math.random()*6.28, py:Math.random()*6.28,       // phase
+        sx:0.4+Math.random()*0.6, sy:0.4+Math.random()*0.6, // per-axis rate
+        x:CX,y:CY});
+    }
+  }
+}
+
+function frame(t){
+  const time=t/1000;
+  for(const b of blobs){
+    if(b.droplet){
+      b.x+=(pointer.x-b.x)*0.09;   // lerp toward the pointer (attraction)
+      b.y+=(pointer.y-b.y)*0.09;
+    }else{
+      const w=time*speed;
+      b.x=b.bx+Math.sin(w*b.sx+b.px)*b.ax;
+      b.y=b.by+Math.cos(w*b.sy+b.py)*b.ay;
+    }
+    b.el.setAttribute('cx',b.x.toFixed(2));
+    b.el.setAttribute('cy',b.y.toFixed(2));
+    b.el.setAttribute('r',b.r.toFixed(2));
+  }
+  raf=requestAnimationFrame(frame);
+}
+
+// Pointer Events cover mouse, pen and touch with one code path.
+function toViewBox(e){
+  const r=stage.getBoundingClientRect();
+  // slice-scaled square viewBox: map to the larger dimension, centre the shorter
+  const side=Math.max(r.width,r.height);
+  const ox=(r.width-side)/2, oy=(r.height-side)/2;
+  pointer.x=((e.clientX-r.left-ox)/side)*400;
+  pointer.y=((e.clientY-r.top-oy)/side)*400;
+  pointer.active=true;tip.style.opacity=0;
+}
+stage.addEventListener('pointermove',toViewBox);
+stage.addEventListener('pointerdown',toViewBox);
+stage.addEventListener('pointerleave',()=>{pointer.x=CX;pointer.y=CY;});
+
+gooEl.addEventListener('input',e=>{blur.setAttribute('stdDeviation',e.target.value);gooV.textContent=e.target.value;});
+countEl.addEventListener('input',e=>{countV.textContent=e.target.value;build(+e.target.value);if(reduce)paintStatic();});
+speedEl.addEventListener('input',e=>{speed=e.target.value/100;speedV.textContent=speed.toFixed(1);});
+
+build(+countEl.value);
+let raf=null;
+function paintStatic(){ // one settled arrangement, no idle motion
+  for(const b of blobs){
+    b.el.setAttribute('cx',(b.droplet?CX:b.bx).toFixed(2));
+    b.el.setAttribute('cy',(b.droplet?CY:b.by).toFixed(2));
+    b.el.setAttribute('r',b.r.toFixed(2));
+  }
+}
+if(reduce){speed=0;paintStatic();}
+else{raf=requestAnimationFrame(frame);}
+</script>
+</body>
+</html>

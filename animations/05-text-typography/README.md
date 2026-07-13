@@ -17,6 +17,9 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Outline to Fill](outline-to-fill/) | Hollow stroke letterforms fill with color via clip-path or opacity crossfade |
 | [Enter/Exit Typography](enter-exit-typography/) | Three-act phrase lifecycle: enter → hold → exit, sequenced for storytelling |
 | [Rotate Word Carousel](rotate-word-carousel/) | One keyword cycles through a list while the surrounding sentence stays static |
+| [Glitch Text](glitch-text/) | RGB-split copies jitter behind animated clip-path slices — the datamosh / signal-loss look |
+| [Text on a Path](text-on-path/) | Text flows along an SVG curve via textPath with an animated startOffset |
+| [Wavy Text](wavy-text/) | Per-letter sine-wave bob with a staggered delay sends a wave travelling across the word |
 
 ## Key principles
 

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magnetic Button</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--radius:160}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{position:relative;flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:manipulation}
+    /* Radius ring — purely visual, follows the button */
+    .ring{position:absolute;width:calc(var(--radius)*2px);height:calc(var(--radius)*2px);border:1px dashed rgba(255,157,92,.35);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s}
+    .ring.show{opacity:1}
+    .mag{position:relative;border:none;cursor:pointer;background:var(--ui-accent);color:#1a0e05;font-family:var(--disp);font-weight:700;font-size:clamp(15px,2vw,18px);letter-spacing:.01em;padding:20px 40px;min-height:56px;border-radius:40px;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
+    .mag.pressed{transform:scale(.94)}
+    .mag .lbl{display:inline-block;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
+    .hint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:10px;color:var(--ui-muted);letter-spacing:.5px;pointer-events:none}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:52px;text-align:right;color:var(--ui-text)}
+    .tog-inp{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.mag,.mag .lbl{transition:transform .12s linear}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Magnetic Button</h1>
+  <p>A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="ring" id="ring"></div>
+    <button class="mag" id="btn"><span class="lbl">Get Started</span></button>
+    <div class="hint" id="hint">Move your cursor near the button</div>
+  </div>
+  <aside>
+    <p class="note">Magnetism is pointer distance mapped to a translate. The button moves a fraction of the way to the cursor; the label moves further, so it appears to float above the surface.</p>
+    <div class="lbl2">Magnet Strength</div>
+    <div class="sr"><input type="range" id="str-sl" min="0" max="60" value="35" step="1"><span class="sval" id="str-v">0.35</span></div>
+    <div class="lbl2">Activation Radius</div>
+    <div class="sr"><input type="range" id="rad-sl" min="80" max="280" value="160" step="10"><span class="sval" id="rad-v">160px</span></div>
+    <label class="tog-inp"><input type="checkbox" id="ring-tog"><span>Show radius ring</span></label>
+    <div class="div"></div>
+    <div class="kv"><span>Pull</span><span class="v" id="pull-v">0px</span></div>
+    <div class="kv"><span>Input</span><span class="v" id="mode-v">—</span></div>
+  </aside>
+</div>
+<script>
+const stage=document.getElementById('stage'),btn=document.getElementById('btn'),
+      lbl=btn.querySelector('.lbl'),ring=document.getElementById('ring'),hint=document.getElementById('hint');
+const hasHover=window.matchMedia('(hover: hover)').matches;
+let strength=0.35,radius=160;
+
+document.getElementById('mode-v').textContent=hasHover?'pointer (magnet)':'touch (press)';
+
+function reset(){
+  btn.style.transform='';lbl.style.transform='';ring.style.left='';ring.style.top='';
+  document.getElementById('pull-v').textContent='0px';
+}
+
+if(hasHover){
+  stage.addEventListener('pointermove',e=>{
+    const s=stage.getBoundingClientRect(),b=btn.getBoundingClientRect();
+    // Button center relative to stage
+    const bx=b.left+b.width/2-s.left, by=b.top+b.height/2-s.top;
+    const px=e.clientX-s.left, py=e.clientY-s.top;
+    const dx=px-bx, dy=py-by, dist=Math.hypot(dx,dy);
+    ring.style.left=(bx-radius)+'px';ring.style.top=(by-radius)+'px';
+    if(dist<radius){
+      // Falloff: full strength at center, easing to 0 at the radius edge
+      const pull=(1-dist/radius);
+      const tx=dx*strength*pull, ty=dy*strength*pull;
+      btn.style.transform=`translate(${tx}px,${ty}px)`;
+      lbl.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
+      document.getElementById('pull-v').textContent=Math.round(Math.hypot(tx,ty))+'px';
+    }else{ reset(); }
+  });
+  stage.addEventListener('pointerleave',reset);
+}else{
+  hint.textContent='Tap the button';
+}
+// Press feedback works on both touch and pointer
+btn.addEventListener('pointerdown',()=>btn.classList.add('pressed'));
+['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,()=>btn.classList.remove('pressed')));
+
+document.getElementById('str-sl').addEventListener('input',e=>{
+  strength=+e.target.value/100;
+  document.getElementById('str-v').textContent=strength.toFixed(2);
+});
+document.getElementById('rad-sl').addEventListener('input',e=>{
+  radius=+e.target.value;
+  document.getElementById('rad-v').textContent=radius+'px';
+  document.documentElement.style.setProperty('--radius',radius);
+});
+document.getElementById('ring-tog').addEventListener('change',e=>{
+  ring.classList.toggle('show',e.target.checked);
+});
+</script>
+</body>
+</html>

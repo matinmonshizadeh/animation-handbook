@@ -18,6 +18,9 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Floating Elements](floating-elements/) | Geometric shapes drift on independent sine-wave paths — SaaS hero pattern |
 | [Grid / Dot Pattern Parallax](grid-dot-pattern-parallax/) | Pattern shifts subtly opposite to mouse — depth felt, not seen |
 | [Abstract Geometric Motion](abstract-geometric-motion/) | Four hypnotic loops — polygons, rings, bars, flowing lines |
+| [Particle Constellation](particle-constellation/) | Drifting nodes link with lines when they come close — the network-mesh hero background |
+| [Flow Field](flow-field/) | Particles follow a noise-driven vector field, leaving flowing trails |
+| [Synthwave Grid](synthwave-grid/) | A perspective grid scrolls toward a glowing sun — the retro synthwave horizon |
 
 ## The ambient mindset
 

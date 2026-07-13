@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glitch Text</title>
+  <style>
+    :root{
+      --bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;
+      --ui-text:#f4f4f2;--ui-muted:#77777e;
+      --disp:'Arial Narrow','Segoe UI',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
+      --stage-h:520px;--offset:4px;--speed:2.4s;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;
+      background:radial-gradient(circle at 50% 40%,#141018,#04060c);display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
+    /* Glitch text: three stacked copies via ::before/::after clones */
+    .glitch{
+      position:relative;font-family:var(--disp);font-weight:800;
+      font-size:clamp(44px,12vw,120px);line-height:1;letter-spacing:-.02em;color:#fff;
+      text-transform:uppercase;-webkit-user-select:none;user-select:none;
+    }
+    .glitch::before,.glitch::after{
+      content:attr(data-text);position:absolute;inset:0;
+      clip-path:inset(0 0 0 0);
+    }
+    .glitch::before{color:#ff2d5e;text-shadow:calc(var(--offset)*-1) 0 #ff2d5e;left:calc(var(--offset)*-1);
+      animation:slice var(--speed) infinite linear alternate-reverse}
+    .glitch::after{color:#2dffe6;text-shadow:var(--offset) 0 #2dffe6;left:var(--offset);
+      animation:slice2 var(--speed) infinite linear alternate-reverse}
+    /* clip-path slices are re-randomized from JS via --a../--b.. custom props */
+    @keyframes slice{
+      0%{clip-path:inset(20% 0 60% 0)}20%{clip-path:inset(70% 0 5% 0)}
+      40%{clip-path:inset(10% 0 80% 0)}60%{clip-path:inset(45% 0 35% 0)}
+      80%{clip-path:inset(85% 0 2% 0)}100%{clip-path:inset(30% 0 55% 0)}
+    }
+    @keyframes slice2{
+      0%{clip-path:inset(65% 0 10% 0)}20%{clip-path:inset(15% 0 70% 0)}
+      40%{clip-path:inset(80% 0 8% 0)}60%{clip-path:inset(30% 0 45% 0)}
+      80%{clip-path:inset(5% 0 85% 0)}100%{clip-path:inset(50% 0 30% 0)}
+    }
+    /* hover-trigger mode: layers hold still until pointer enters */
+    .paused .glitch::before,.paused .glitch::after{animation-play-state:paused}
+    @media(hover:hover){.paused:hover .glitch::before,.paused:hover .glitch::after{animation-play-state:running}}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .div{height:1px;background:var(--ui-border)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(prefers-reduced-motion:reduce){
+      .glitch::before,.glitch::after{animation:none!important;clip-path:none!important}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Glitch Text</h1>
+  <p>Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="glitch" id="glitch" data-text="GLITCH">GLITCH</div>
+  </div>
+  <aside>
+    <p class="note">RGB-split: a red and a cyan clone sit behind the white text, offset sideways. Horizontal clip-path slices reveal random bands, and re-randomizing them each cycle makes the tear look non-repeating.</p>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="GLITCH" maxlength="12">
+    <div class="lbl">RGB offset</div>
+    <div class="sr"><input type="range" id="off-sl" min="0" max="12" value="4" step="1"><span class="sv" id="off-sv">4px</span></div>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="12" value="6" step="1"><span class="sv" id="spd-sv">2.4s</span></div>
+    <div class="lbl">Intensity</div>
+    <div class="sr"><input type="range" id="int-sl" min="0" max="100" value="60" step="5"><span class="sv" id="int-sv">60%</span></div>
+    <div class="div"></div>
+    <label class="tog"><input type="checkbox" id="hover-ck"> Hover-trigger only</label>
+  </aside>
+</div>
+<script>
+const glitch=document.getElementById('glitch');
+const stage=document.getElementById('stage');
+const root=document.documentElement;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let intensity=0.6,jitterTimer=null;
+
+// Re-randomize the clip-path keyframes so each burst of slices differs.
+function rand(max){return Math.floor(Math.random()*max)}
+function reslice(){
+  if(reduce)return;
+  // amplitude of the tear scales with intensity: low intensity = thin, rare bands
+  const spread=Math.round(intensity*40);
+  const jitter=(intensity*6).toFixed(1);
+  glitch.style.setProperty('--offset',(parseInt(root.style.getPropertyValue('--offset'))||4)+'px');
+  // nudge the whole element sideways for a frame to sell the tear
+  glitch.style.transform=`translateX(${(Math.random()*2-1)*jitter}px)`;
+  // occasionally hard-cut a fresh clip band on the ::before via inline var not possible;
+  // instead we retrigger animation to reshuffle phase
+  if(Math.random()<intensity){
+    glitch.style.animation='none';void glitch.offsetWidth;glitch.style.animation='';
+  }
+  jitterTimer=setTimeout(reslice,120+rand(spread*8+60));
+}
+
+document.getElementById('text-inp').addEventListener('input',e=>{
+  const t=(e.target.value||'GLITCH');glitch.textContent=t;glitch.dataset.text=t;
+});
+document.getElementById('off-sl').addEventListener('input',e=>{
+  root.style.setProperty('--offset',e.target.value+'px');
+  document.getElementById('off-sv').textContent=e.target.value+'px';
+});
+document.getElementById('spd-sl').addEventListener('input',e=>{
+  // higher slider = faster = shorter duration (invert)
+  const dur=(14-+e.target.value)*0.4;
+  root.style.setProperty('--speed',dur.toFixed(1)+'s');
+  document.getElementById('spd-sv').textContent=dur.toFixed(1)+'s';
+});
+document.getElementById('int-sl').addEventListener('input',e=>{
+  intensity=+e.target.value/100;
+  document.getElementById('int-sv').textContent=e.target.value+'%';
+});
+document.getElementById('hover-ck').addEventListener('change',e=>{
+  stage.classList.toggle('paused',e.target.checked);
+});
+if(!reduce)reslice();
+</script>
+</body>
+</html>

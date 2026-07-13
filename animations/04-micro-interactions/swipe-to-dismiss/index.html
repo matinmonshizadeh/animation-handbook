@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swipe to Dismiss</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--del:#f4515b}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:clamp(16px,4vw,32px);overflow:hidden}
+    .list{width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px}
+    /* Row wrapper collapses its own height when the card is dismissed */
+    .row{position:relative;height:66px;transition:height .28s cubic-bezier(.4,0,.2,1),opacity .2s;overflow:hidden}
+    .row.collapsing{height:0!important;opacity:0}
+    /* Reveal action sits behind the card */
+    .reveal{position:absolute;inset:0;border-radius:10px;background:var(--del);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-family:var(--disp);font-weight:700;font-size:12px;color:#fff;opacity:0;transition:opacity .12s}
+    .reveal.show{opacity:1}
+    .reveal.hidden{display:none}
+    /* The draggable card */
+    .card{position:absolute;inset:0;border-radius:10px;background:var(--ui-bg);border:1px solid var(--ui-border);display:flex;align-items:center;gap:12px;padding:0 16px;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;will-change:transform}
+    .card.settling{transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .32s}
+    .card.flung{transition:transform .3s cubic-bezier(.4,0,1,1),opacity .3s}
+    .avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:14px;color:#1a0f08;background:var(--ui-accent)}
+    .meta{min-width:0}
+    .meta .t{font-size:12px;color:var(--ui-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta .s{font-size:10px;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .empty{font-size:11px;color:var(--ui-muted);text-align:center}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:44px;text-align:right;color:var(--ui-text)}
+    .tog-inp{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .div{height:1px;background:var(--ui-border)}
+    .reset{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
+    @media(hover:hover){.reset:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.row,.card.settling,.card.flung{transition:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Swipe to Dismiss</h1>
+  <p>Drag a card past the threshold (or fling it) to delete; release short and it springs back.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <div class="list" id="list"></div>
+  </div>
+  <aside>
+    <p class="note">The card follows your finger 1:1 while dragging. Commit is decided at release by distance OR velocity — a fast flick counts even if it's short.</p>
+    <div class="lbl">Dismiss threshold</div>
+    <div class="sr"><input type="range" id="th-sl" min="15" max="70" value="35" step="5"><span class="sval" id="th-v">35%</span></div>
+    <label class="tog-inp"><input type="checkbox" id="reveal-tog" checked><span>Show delete background</span></label>
+    <div class="div"></div>
+    <button class="reset" id="reset">↺ Reset list</button>
+  </aside>
+</div>
+<script>
+  const listEl=document.getElementById('list');
+  const root=document.documentElement.style;
+  let threshold=0.35, showReveal=true;
+  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const DATA=[
+    ['AV','Ava Reyes','Lunch tomorrow? I found a spot'],
+    ['KM','Kai Morgan','Deploy is green, shipping it'],
+    ['NP','Noor Patel','Sent the revised mockups'],
+    ['TG','Theo Grant','Re: invoice — all sorted'],
+    ['SL','Sol Lindqvist','Are we still on for Friday?']
+  ];
+
+  function build(){
+    listEl.innerHTML='';
+    DATA.forEach(d=>{
+      const row=document.createElement('div');row.className='row';
+      row.innerHTML=`<div class="reveal ${showReveal?'':'hidden'}">Delete</div>`+
+        `<div class="card"><div class="avatar">${d[0]}</div>`+
+        `<div class="meta"><div class="t">${d[1]}</div><div class="s">${d[2]}</div></div></div>`;
+      listEl.appendChild(row);
+      wire(row);
+    });
+  }
+
+  function wire(row){
+    const card=row.querySelector('.card');
+    const reveal=row.querySelector('.reveal');
+    let startX=0,dx=0,dragging=false,lastX=0,lastT=0,vel=0;
+
+    card.addEventListener('pointerdown',e=>{
+      dragging=true;dx=0;startX=e.clientX;lastX=e.clientX;lastT=e.now||performance.now();vel=0;
+      card.classList.remove('settling','flung');
+      card.setPointerCapture(e.pointerId);
+      card.style.cursor='grabbing';
+    });
+    card.addEventListener('pointermove',e=>{
+      if(!dragging)return;
+      dx=e.clientX-startX;
+      const now=performance.now();
+      if(now>lastT){vel=(e.clientX-lastX)/(now-lastT);lastX=e.clientX;lastT=now;} // px per ms
+      card.style.transform=`translateX(${dx}px)`;
+      card.style.opacity=String(Math.max(0.3,1-Math.abs(dx)/(card.offsetWidth*0.9)));
+      if(reveal)reveal.classList.toggle('show',showReveal&&Math.abs(dx)>8);
+    });
+    function end(){
+      if(!dragging)return;dragging=false;card.style.cursor='grab';
+      const w=card.offsetWidth;
+      const pastDist=Math.abs(dx)>w*threshold;
+      const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24; // velocity commit
+      if(pastDist||flick){dismiss(row,card,dx>=0?1:-1);}
+      else{spring(card,reveal);}
+    }
+    card.addEventListener('pointerup',end);
+    card.addEventListener('pointercancel',end);
+  }
+
+  function spring(card,reveal){
+    card.classList.add('settling');
+    card.style.transform='translateX(0)';
+    card.style.opacity='1';
+    if(reveal)reveal.classList.remove('show');
+  }
+
+  function dismiss(row,card,dir){
+    if(reduce){ // no fly-off flourish — collapse immediately
+      row.style.height='0';row.style.opacity='0';
+      setTimeout(()=>row.remove(),0);checkEmpty();return;
+    }
+    card.classList.add('flung');
+    card.style.transform=`translateX(${dir*card.offsetWidth*1.25}px)`;
+    card.style.opacity='0';
+    row.classList.add('collapsing');
+    row.addEventListener('transitionend',function te(ev){
+      if(ev.propertyName==='height'){row.remove();checkEmpty();}
+    });
+  }
+
+  function checkEmpty(){
+    if(!listEl.querySelector('.row')){
+      listEl.innerHTML='<div class="empty">All cleared. Reset the list to try again.</div>';
+    }
+  }
+
+  document.getElementById('th-sl').addEventListener('input',e=>{
+    threshold=+e.target.value/100;
+    document.getElementById('th-v').textContent=e.target.value+'%';
+  });
+  document.getElementById('reveal-tog').addEventListener('change',e=>{
+    showReveal=e.target.checked;
+    document.querySelectorAll('.reveal').forEach(r=>r.classList.toggle('hidden',!showReveal));
+  });
+  document.getElementById('reset').addEventListener('click',build);
+
+  build();
+</script>
+</body>
+</html>

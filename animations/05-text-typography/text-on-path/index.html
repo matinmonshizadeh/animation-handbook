@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text on a Path</title>
+  <style>
+    :root{
+      --bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;
+      --ui-text:#f4f4f2;--ui-muted:#77777e;
+      --disp:'Arial Narrow','Segoe UI',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
+      --stage-h:520px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;
+      background:radial-gradient(circle at 50% 45%,#101018,#04060c);display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
+    svg{width:100%;height:100%;max-width:640px}
+    .flow-text{font-family:var(--disp);font-weight:800;font-size:34px;letter-spacing:2px;fill:var(--ui-text)}
+    .guide{fill:none;stroke:var(--ui-accent);stroke-width:1.5;stroke-dasharray:5 6;opacity:.5;transition:opacity .2s}
+    .guide.hidden{opacity:0}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
+    input[type=text]:focus{border-color:var(--ui-accent)}
+    .seg{display:flex;gap:6px}
+    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;min-height:44px}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.seg button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
+    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .div{height:1px;background:var(--ui-border)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:340px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Text on a Path</h1>
+  <p>An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" aria-label="animated text following a curved path">
+      <defs>
+        <path id="curve" d="M20,180 C120,60 240,300 340,180 S560,60 620,180"/>
+      </defs>
+      <use href="#curve" class="guide" id="guide"/>
+      <text class="flow-text">
+        <textPath href="#curve" id="tp" startOffset="0%">FOLLOW THE CURVE · </textPath>
+      </text>
+    </svg>
+  </div>
+  <aside>
+    <p class="note">The path is defined once in defs. textPath lays glyphs along it, and each frame we advance startOffset so the string appears to travel down the curve.</p>
+    <div class="lbl">Text</div>
+    <input type="text" id="text-inp" value="FOLLOW THE CURVE · " maxlength="40">
+    <div class="lbl">Path shape</div>
+    <div class="seg" id="shape">
+      <button data-shape="wave" class="on">Wave</button>
+      <button data-shape="arc">Arc</button>
+      <button data-shape="circle">Circle</button>
+    </div>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="0" max="100" value="40" step="5"><span class="sv" id="spd-sv">40</span></div>
+    <div class="div"></div>
+    <label class="tog"><input type="checkbox" id="guide-ck" checked> Show guide path</label>
+  </aside>
+</div>
+<script>
+const tp=document.getElementById('tp');
+const curve=document.getElementById('curve');
+const guide=document.getElementById('guide');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const PATHS={
+  wave:'M20,180 C120,60 240,300 340,180 S560,60 620,180',
+  arc:'M20,300 Q320,20 620,300',
+  circle:'M320,60 a120,120 0 1,1 -0.1,0'
+};
+let offset=0,speed=0.4,raf=null;
+
+function loop(){
+  offset=(offset+speed)%100;
+  tp.setAttribute('startOffset',offset+'%');
+  raf=requestAnimationFrame(loop);
+}
+function start(){ if(reduce||raf)return; raf=requestAnimationFrame(loop); }
+
+document.getElementById('text-inp').addEventListener('input',e=>{
+  tp.textContent=e.target.value||' ';
+});
+document.getElementById('spd-sl').addEventListener('input',e=>{
+  speed=+e.target.value/100;
+  document.getElementById('spd-sv').textContent=e.target.value;
+});
+document.getElementById('guide-ck').addEventListener('change',e=>{
+  guide.classList.toggle('hidden',!e.target.checked);
+});
+document.querySelectorAll('#shape button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#shape button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    curve.setAttribute('d',PATHS[b.dataset.shape]);
+  });
+});
+start();
+</script>
+</body>
+</html>

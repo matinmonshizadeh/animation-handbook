@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flow Field</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#7affc8;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#05060a}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Flow Field</h1>
+  <p>Particles ride a vector field sampled from inline pseudo-noise, leaving fading trails that map the invisible currents.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">There is no image here — only a math function that returns an angle for every point on screen. Each particle reads the angle under it and steps that way. Trails appear because the frame is dimmed, not cleared.</p>
+    <div class="lbl">Particle Count</div>
+    <div class="sr"><input type="range" id="count-sl" min="200" max="2000" value="900" step="100"><span class="sv" id="count-v">900</span></div>
+    <div class="lbl">Noise Scale</div>
+    <div class="sr"><input type="range" id="scale-sl" min="10" max="80" value="34" step="2"><span class="sv" id="scale-v">34</span></div>
+    <div class="lbl">Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="2" max="30" value="10" step="1"><span class="sv" id="spd-v">1.0</span></div>
+    <div class="lbl">Trail Persistence</div>
+    <div class="sr"><input type="range" id="trail-sl" min="1" max="14" value="6" step="1"><span class="sv" id="trail-v">0.06</span></div>
+    <div class="lbl">Color</div>
+    <select id="col-sel">
+      <option value="mint" selected>Mint</option>
+      <option value="ember">Ember</option>
+      <option value="ice">Ice</option>
+      <option value="spectrum">Spectrum</option>
+    </select>
+    <div class="div"></div>
+    <div style="font-size:9px;color:var(--ui-muted)">Count caps at 500 on small screens.</div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
+let W,H,paused=false,raf=null,lastT=0,t=0;
+let COUNT=900,SCALE=34,SPD=1.0,TRAIL=0.06,COL='mint';
+let parts=[];
+const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+// tiny deterministic value-noise: hash a lattice, smooth-interpolate, return an angle.
+function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
+function smooth(t){return t*t*(3-2*t);}
+function vnoise(x,y){
+  const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const tl=hash(xi,yi),tr=hash(xi+1,yi),bl=hash(xi,yi+1),br=hash(xi+1,yi+1);
+  const u=smooth(xf),v=smooth(yf);
+  return (tl*(1-u)+tr*u)*(1-v)+(bl*(1-u)+br*u)*v;
+}
+function angleAt(x,y,time){
+  const n=vnoise(x/SCALE,y/SCALE+time*0.15);
+  return n*Math.PI*4; // map [0,1] noise to a couple of full turns
+}
+
+function effCount(){return W<600?Math.min(COUNT,500):COUNT;}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();ctx.fillStyle='#05060a';ctx.fillRect(0,0,W,H);}
+function init(){parts=Array.from({length:effCount()},()=>({x:Math.random()*W,y:Math.random()*H}));}
+
+function colorFor(p){
+  if(COL==='mint')return'rgba(122,255,200,.5)';
+  if(COL==='ember')return'rgba(255,150,80,.5)';
+  if(COL==='ice')return'rgba(120,190,255,.5)';
+  return`hsla(${(p.x/W*120+t*20)%360},80%,65%,.5)`;
+}
+
+function frame(){
+  // translucent fill instead of clear -> old pixels fade, forming trails
+  ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;ctx.fillRect(0,0,W,H);
+  for(const p of parts){
+    const a=angleAt(p.x,p.y,t);
+    const nx=p.x+Math.cos(a)*SPD,ny=p.y+Math.sin(a)*SPD;
+    ctx.strokeStyle=colorFor(p);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(nx,ny);ctx.stroke();
+    p.x=nx;p.y=ny;
+    if(p.x<0||p.x>W||p.y<0||p.y>H){p.x=Math.random()*W;p.y=Math.random()*H;}
+  }
+  t+=0.01;
+}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';
+  frame();
+}
+
+resize();
+if(reduce){for(let i=0;i<40;i++)frame();fpsEl.textContent='static';}
+else raf=requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+
+document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;init();});
+document.getElementById('scale-sl').addEventListener('input',e=>{SCALE=+e.target.value;document.getElementById('scale-v').textContent=SCALE;});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('trail-sl').addEventListener('input',e=>{TRAIL=e.target.value/100;document.getElementById('trail-v').textContent=TRAIL.toFixed(2);});
+document.getElementById('col-sel').addEventListener('change',e=>{COL=e.target.value;});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

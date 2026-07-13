@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synthwave Grid</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff5ca8;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#0a0316}
+    canvas{display:block;width:100%;height:100%}
+    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:44px;text-align:right;color:var(--ui-text)}
+    input[type=color]{width:44px;height:44px;padding:0;border:1px solid var(--ui-border);border-radius:4px;background:none;cursor:pointer}
+    .row{display:flex;align-items:center;gap:8px;font-size:10px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Synthwave Grid</h1>
+  <p>A neon perspective grid scrolls toward the viewer under a gradient sky and glowing sun — the retro-futurist loop.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cvs"></canvas>
+    <div class="fps-badge" id="fps">— fps</div>
+  </div>
+  <aside>
+    <p class="note">Horizontal lines are placed by a perspective curve — spacing shrinks toward the horizon. Scrolling only means increasing an offset and taking it modulo the spacing, so the grid loops forever with no seam.</p>
+    <div class="lbl">Scroll Speed</div>
+    <div class="sr"><input type="range" id="spd-sl" min="1" max="30" value="10" step="1"><span class="sv" id="spd-v">1.0</span></div>
+    <div class="lbl">Line Density</div>
+    <div class="sr"><input type="range" id="dens-sl" min="8" max="30" value="16" step="1"><span class="sv" id="dens-v">16</span></div>
+    <div class="lbl">Grid Glow Color</div>
+    <div class="row"><input type="color" id="glow-col" value="#ff2fb0"><span id="glow-hex">#ff2fb0</span></div>
+    <div class="div"></div>
+    <div style="font-size:9px;color:var(--ui-muted)">Sun and sky bands are static gradients; only the grid animates.</div>
+    <button class="rst" id="pause-btn">⏸ Pause</button>
+  </aside>
+</div>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
+let W,H,paused=false,raf=null,lastT=0,offset=0;
+let SPD=1.0,DENS=16,GLOW='#ff2fb0';
+const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+function horizon(){return H*0.42;}
+
+function drawSky(){
+  const hz=horizon();
+  const sky=ctx.createLinearGradient(0,0,0,hz);
+  sky.addColorStop(0,'#1a0b2e');sky.addColorStop(.55,'#3d1152');sky.addColorStop(1,'#8a2160');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,hz);
+  // glowing sun with retro scanline gaps
+  const cx=W/2,cy=hz-6,rad=Math.min(W,H)*0.18;
+  const sun=ctx.createLinearGradient(0,cy-rad,0,cy+rad);
+  sun.addColorStop(0,'#ffe15a');sun.addColorStop(.5,'#ff8a3d');sun.addColorStop(1,'#ff2fb0');
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,rad,Math.PI,0);ctx.closePath();ctx.clip();
+  ctx.fillStyle=sun;ctx.fillRect(cx-rad,cy-rad,rad*2,rad*2);
+  ctx.fillStyle='#1a0b2e';
+  for(let i=0;i<7;i++){const y=cy-rad*.15+i*(rad*.16);ctx.fillRect(cx-rad,y+i*1.5,rad*2,Math.max(1,3-i*.3));}
+  ctx.restore();
+  // floor
+  const flr=ctx.createLinearGradient(0,hz,0,H);
+  flr.addColorStop(0,'#160726');flr.addColorStop(1,'#05010a');
+  ctx.fillStyle=flr;ctx.fillRect(0,hz,W,H-hz);
+}
+
+function drawGrid(){
+  const hz=horizon(),cx=W/2;
+  ctx.strokeStyle=GLOW;ctx.shadowColor=GLOW;ctx.shadowBlur=8;ctx.lineWidth=1.4;
+  // vertical lines converge to the vanishing point
+  const cols=Math.round(DENS*0.7);
+  for(let i=-cols;i<=cols;i++){
+    const fx=cx+(i/cols)*W*1.4;
+    ctx.beginPath();ctx.moveTo(cx,hz);ctx.lineTo(fx,H);ctx.stroke();
+  }
+  // horizontal lines: perspective spacing, scrolled by modulo offset
+  for(let i=0;i<DENS;i++){
+    let p=((i+offset)%DENS)/DENS; // 0 at horizon -> 1 at viewer, loops seamlessly
+    const y=hz+Math.pow(p,2.2)*(H-hz);
+    ctx.globalAlpha=Math.min(1,p*1.6);
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+}
+
+function frame(){drawSky();drawGrid();}
+function loop(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';
+  offset+=SPD*0.02;frame();
+}
+
+resize();
+if(reduce){frame();fpsEl.textContent='static';}
+else raf=requestAnimationFrame(loop);
+window.addEventListener('resize',()=>{resize();if(reduce)frame();});
+
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
+document.getElementById('dens-sl').addEventListener('input',e=>{DENS=+e.target.value;document.getElementById('dens-v').textContent=DENS;if(reduce)frame();});
+document.getElementById('glow-col').addEventListener('input',e=>{GLOW=e.target.value;document.getElementById('glow-hex').textContent=e.target.value;if(reduce)frame();});
+document.getElementById('pause-btn').addEventListener('click',()=>{
+  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+});
+</script>
+</body>
+</html>

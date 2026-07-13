@@ -68,7 +68,7 @@ setInterval(() => { apply(...Object.values(PRESETS[i++ % PRESETS.length])); }, 1
 - **`font-variation-settings` is all-or-nothing**: if you set `font-variation-settings: 'wght' 700`, all other axes reset to their defaults. Always specify all axes you care about, even if unchanged.
 - **CSS `font-weight` is preferred for weight**: `font-weight: 700` works with variable fonts and is more readable than `font-variation-settings: 'wght' 700`. Use `font-variation-settings` only for non-standard axes (`CASL`, `MONO`, etc.).
 - **Transition performance**: variable font interpolation is handled by the GPU text rendering pipeline in modern browsers. It is not as fast as `transform`/`opacity` animations, but it is generally smooth on mid-range devices for single display elements.
-- **Font loading**: this demo uses Google Fonts CDN (one external request). In production, self-host the variable font file and use `@font-face` with `font-display: swap` to avoid layout shift.
+- **Font loading**: this demo ships no font files — it targets `system-ui`, which resolves to a real variable font on modern OSes (Segoe UI Variable on Windows 11, San Francisco on macOS), so the `wght` axis morphs smoothly offline. `font-weight` and a `skewX()` transform are wired as universal fallbacks so weight and slant still animate where no variable font is present. In production, self-host a variable font (e.g. Recursive) via `@font-face` with `font-display: swap` to unlock font-specific axes like `CASL`.
 - **Recommended variable fonts**: Recursive (CASL, MONO, slnt, wght), Inter (wght), Fraunces (opsz, SOFT, WONK, wght), Bricolage Grotesque (opsz, wdth, wght).
 
 ## See also

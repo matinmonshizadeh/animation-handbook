@@ -44,10 +44,11 @@ Every animation README has exactly these sections:
 
 1. Scroll-Based — scroll-driven techniques (folder: 01-scroll-based)
 2. Entrance & Exit — element enter, exit, reveal animations (folder: 02-entrance-and-exit)
-3. Micro-Interactions — hover, click, focus, loading, UI feedback (folder: 03-micro-interactions)
-4. Text & Typography — text-specific animations (folder: 04-text-typography)
-5. 3D & Advanced — WebGL, shaders, particles, 3D transforms (folder: 05-3d-advanced)
-6. Ambient & Background — passive looping effects (folder: 06-ambient-background)
+3. Page Transitions — full-page/route transitions (folder: 03-page-transitions)
+4. Micro-Interactions — hover, click, focus, loading, UI feedback (folder: 04-micro-interactions)
+5. Text & Typography — text-specific animations (folder: 05-text-typography)
+6. 3D & Advanced — WebGL, shaders, particles, 3D transforms (folder: 06-3d-advanced)
+7. Ambient & Background — passive looping effects (folder: 07-ambient-background)
 
 ## Distinction: technique vs tool
 This atlas catalogs **techniques**, not libraries. GSAP, Framer Motion,

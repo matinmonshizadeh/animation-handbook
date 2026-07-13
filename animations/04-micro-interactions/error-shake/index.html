@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Shake</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--err:#f4515b;--ok:#3fb950;--shake-x:8px;--shake-osc:6;--shake-dur:400ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:32px}
+    /* Login card */
+    .card{width:100%;max-width:320px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:14px}
+    .card h2{font-family:var(--disp);font-weight:700;font-size:15px}
+    .card .hint{font-size:10px;color:var(--ui-muted);line-height:1.5}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
+    .field input{background:var(--bg);border:1.5px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:13px;padding:11px 12px;border-radius:7px;width:100%;min-height:44px;outline:none;transition:border-color .18s}
+    .field input:focus{border-color:var(--ui-accent)}
+    /* Error state: red border + shake keyframe */
+    .field.error input{border-color:var(--err)}
+    .field.error input{animation:shake var(--shake-dur) cubic-bezier(.36,.07,.19,.97) both}
+    .msg{font-size:10.5px;min-height:14px;color:var(--err);opacity:0;transform:translateY(-2px);transition:opacity .18s,transform .18s}
+    .field.error .msg{opacity:1;transform:none}
+    .field.ok input{border-color:var(--ok)}
+    .field.ok .msg{opacity:1;transform:none;color:var(--ok)}
+    /* The decaying horizontal wobble. translateX only -> compositor-friendly. */
+    @keyframes shake{
+      10%,90%{transform:translateX(calc(var(--shake-x) * -1))}
+      20%,80%{transform:translateX(calc(var(--shake-x) * 1))}
+      30%,50%,70%{transform:translateX(calc(var(--shake-x) * -0.6))}
+      40%,60%{transform:translateX(calc(var(--shake-x) * 0.6))}
+      100%{transform:translateX(0)}
+    }
+    .submit{background:var(--ui-accent);border:none;color:#1a0f08;font-family:var(--disp);font-weight:700;font-size:12px;padding:13px;border-radius:7px;cursor:pointer;min-height:44px;transition:filter .15s}
+    @media(hover:hover){.submit:hover{filter:brightness(1.08)}}
+    .submit:active{filter:brightness(.94)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:52px;text-align:right;color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .replay{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
+    @media(hover:hover){.replay:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.field.error input{animation:none!important}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Error Shake</h1>
+  <p>Invalid input triggers a decaying horizontal wobble plus a red border — a universal "no".</p>
+</header>
+<div class="layout">
+  <div class="stage">
+    <form class="card" id="login" novalidate>
+      <h2>Sign in</h2>
+      <p class="hint">Password is <b>letmein</b>. Try a wrong value (or submit empty) to see the shake.</p>
+      <div class="field" id="field">
+        <label for="pw">Password</label>
+        <input type="password" id="pw" autocomplete="off" placeholder="••••••••">
+        <span class="msg" id="msg"></span>
+      </div>
+      <button class="submit" type="submit">Sign in</button>
+    </form>
+  </div>
+  <aside>
+    <p class="note">A shake decays — big swings settle to small ones, then stop. That deceleration reads as a headshake: motion that returns to origin says "denied," not "progress."</p>
+    <div class="lbl">Shake intensity</div>
+    <div class="sr"><input type="range" id="int-sl" min="2" max="20" value="8" step="1"><span class="sval" id="int-v">8px</span></div>
+    <div class="lbl">Oscillations</div>
+    <div class="sr"><input type="range" id="osc-sl" min="2" max="8" value="6" step="1"><span class="sval" id="osc-v">6</span></div>
+    <div class="lbl">Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="200" max="800" value="400" step="20"><span class="sval" id="dur-v">400ms</span></div>
+    <div class="div"></div>
+    <button class="replay" id="replay">↺ Replay shake</button>
+  </aside>
+</div>
+<script>
+  const form=document.getElementById('login');
+  const field=document.getElementById('field');
+  const input=document.getElementById('pw');
+  const msg=document.getElementById('msg');
+  const root=document.documentElement.style;
+  const PASSWORD='letmein';
+
+  // Building the keyframe from the oscillation count keeps the demo honest:
+  // more oscillations = more decaying swings written into one @keyframes.
+  function buildShake(count){
+    const sheet=document.styleSheets[0];
+    // find and drop the old shake rule
+    for(let i=sheet.cssRules.length-1;i>=0;i--){
+      if(sheet.cssRules[i].name==='shake'){sheet.deleteRule(i);break;}
+    }
+    let steps='0%{transform:translateX(0)}';
+    for(let i=1;i<=count;i++){
+      const pos=(i/(count+1))*100;
+      const dir=i%2?-1:1;
+      const decay=(1-i/(count+1)).toFixed(3); // amplitude shrinks toward the end
+      steps+=`${pos.toFixed(2)}%{transform:translateX(calc(var(--shake-x) * ${(dir*decay).toFixed(3)}))}`;
+    }
+    steps+='100%{transform:translateX(0)}';
+    sheet.insertRule(`@keyframes shake{${steps}}`,sheet.cssRules.length);
+  }
+
+  function clearState(){field.classList.remove('error','ok');}
+
+  function shake(text){
+    clearState();
+    // reflow forces the animation to restart even on repeated failures
+    void field.offsetWidth;
+    msg.textContent=text;
+    field.classList.add('error');
+  }
+
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const v=input.value.trim();
+    if(!v){shake('Password is required.');input.focus();return;}
+    if(v!==PASSWORD){shake('Incorrect password. Try again.');input.select();return;}
+    clearState();
+    msg.textContent='Welcome back — signed in.';
+    field.classList.add('ok');
+  });
+  input.addEventListener('input',clearState);
+
+  document.getElementById('int-sl').addEventListener('input',e=>{
+    document.getElementById('int-v').textContent=e.target.value+'px';
+    root.setProperty('--shake-x',e.target.value+'px');
+  });
+  document.getElementById('osc-sl').addEventListener('input',e=>{
+    document.getElementById('osc-v').textContent=e.target.value;
+    buildShake(+e.target.value);
+  });
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    root.setProperty('--shake-dur',e.target.value+'ms');
+  });
+  document.getElementById('replay').addEventListener('click',()=>shake('Incorrect password. Try again.'));
+
+  buildShake(6);
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Image Sequence</title>
+  <style>
+    :root{
+      --bg:#0b0b0d;--stage:#04060c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);
+      --accent:#58a6ff;--text:#f4f4f2;--muted:#77777e;
+      --mono:ui-monospace,Menlo,Consolas,monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+    header{padding:clamp(14px,3vw,24px)}
+    header h1{font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}
+    header p{font-size:clamp(11px,1.4vw,13px);color:var(--muted);margin-top:6px;max-width:60ch}
+    /* Tall track gives the scroll budget; the inner panel pins with position:sticky. */
+    .track{position:relative;height:340vh}
+    .pin{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:clamp(10px,2vw,18px);gap:12px}
+    .stage{flex:1;min-height:0;position:relative;border:1px solid var(--ui-border);border-radius:10px;background:var(--stage);overflow:hidden}
+    canvas{display:block;width:100%;height:100%}
+    .hud{position:absolute;top:12px;left:12px;font-size:11px;letter-spacing:1px;color:var(--muted);pointer-events:none}
+    .hud .fr{color:var(--accent);font-size:clamp(15px,2.4vw,20px);letter-spacing:.03em}
+    .hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);pointer-events:none}
+    .hint.hide{opacity:0;transition:opacity .4s}
+    .bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06)}
+    .bar i{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(0)}
+    /* Controls sit inside the pinned viewport so they stay reachable while scrubbing. */
+    aside{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:12px 14px;
+      display:flex;gap:clamp(12px,3vw,28px);align-items:center;flex-wrap:wrap}
+    .ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+    .row{display:flex;align-items:center;gap:8px}
+    input[type=range]{flex:1;accent-color:var(--accent);min-height:44px}
+    .sv{width:52px;text-align:right;font-size:12px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;min-height:44px;user-select:none}
+    .tog input{accent-color:var(--accent);width:18px;height:18px;flex-shrink:0}
+    .note{font-size:10px;color:var(--muted);line-height:1.5;flex-basis:100%}
+    @media(max-width:600px){
+      aside{flex-direction:column;align-items:stretch}
+      .ctl{min-width:0}
+    }
+    @media(prefers-reduced-motion:reduce){.hint{transition:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Scroll Image Sequence</h1>
+  <p>The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.</p>
+</header>
+
+<div class="track" id="track">
+  <div class="pin">
+    <div class="stage">
+      <canvas id="c"></canvas>
+      <div class="hud"><div class="fr"><span id="frameNo">000</span> / <span id="frameTot">120</span></div>PROCEDURAL FRAME</div>
+      <div class="hint" id="hint">Scroll to scrub &#x21C5;</div>
+      <div class="bar"><i id="barFill"></i></div>
+    </div>
+    <aside>
+      <div class="ctl">
+        <span class="lbl">Total frames</span>
+        <div class="row"><input type="range" id="frames" min="24" max="240" step="1" value="120"><span class="sv" id="framesV">120</span></div>
+      </div>
+      <label class="tog"><input type="checkbox" id="smooth" checked> Smoothing (lerp between frames)</label>
+      <p class="note">Real deployments preload an array of image frames (an exported video → JPG sequence) and draw the nearest one per scroll frame. This demo generates each frame procedurally — a rotating wireframe object — so it stays dependency-free and offline.</p>
+    </aside>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const track=document.getElementById('track');
+const framesEl=document.getElementById('frames'),framesV=document.getElementById('framesV');
+const smoothEl=document.getElementById('smooth');
+const frameNo=document.getElementById('frameNo'),frameTot=document.getElementById('frameTot');
+const barFill=document.getElementById('barFill'),hint=document.getElementById('hint');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+let TOTAL=+framesEl.value;         // total "images" in the sequence
+let targetFrame=0;                 // frame the scroll position points at
+let shownFrame=0;                  // frame currently drawn (lerps toward target)
+let W=0,H=0,DPR=1;
+
+// --- Geometry: a cube + an inner octahedron, both wireframe -----------------
+const CUBE_V=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+const CUBE_E=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+const OCT_V=[[1.4,0,0],[-1.4,0,0],[0,1.4,0],[0,-1.4,0],[0,0,1.4],[0,0,-1.4]];
+const OCT_E=[[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,4],[2,5],[3,4],[3,5]];
+
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  const r=canvas.getBoundingClientRect();
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+function rotate(v,ax,ay){
+  let [x,y,z]=v;
+  const cy=Math.cos(ay),sy=Math.sin(ay);
+  const x1=x*cy-z*sy, z1=x*sy+z*cy;
+  const cx=Math.cos(ax),sx=Math.sin(ax);
+  const y1=y*cx-z1*sx, z2=y*sx+z1*cx;
+  return [x1,y1,z2];
+}
+function project(v,cx,cy,s){
+  const d=4.5, k=d/(d-v[2]);      // simple perspective divide
+  return [cx+v[0]*s*k, cy+v[1]*s*k, v[2]];
+}
+function drawShape(verts,edges,rx,ry,explode,cx,cy,s){
+  const p=verts.map(v=>{
+    const n=Math.hypot(v[0],v[1],v[2])||1;
+    const ex=[v[0]+v[0]/n*explode, v[1]+v[1]/n*explode, v[2]+v[2]/n*explode]; // push out along its own direction
+    return project(rotate(ex,rx,ry),cx,cy,s);
+  });
+  for(const [a,b] of edges){
+    const za=(p[a][2]+p[b][2])/2;              // depth for shading
+    const alpha=0.28+0.62*((za+2.2)/4.4);
+    ctx.strokeStyle='rgba(88,166,255,'+alpha.toFixed(3)+')';
+    ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(p[a][0],p[a][1]);ctx.lineTo(p[b][0],p[b][1]);ctx.stroke();
+  }
+  ctx.fillStyle='#cfe3ff';
+  for(const q of p){ctx.beginPath();ctx.arc(q[0],q[1],1.8,0,7);ctx.fill();}
+}
+// Draw one procedural "image" for a given frame index. Deterministic: same
+// frame index always yields the same picture, so scrubbing reverses exactly.
+function drawFrame(f){
+  const t=TOTAL>1?f/(TOTAL-1):0;             // 0..1 through the sequence
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2, cy=H/2, s=Math.min(W,H)*0.24;
+  const ry=t*Math.PI*3, rx=t*Math.PI*1.5;
+  const explode=Math.sin(t*Math.PI)*0.9;     // implode → explode → implode
+  drawShape(CUBE_V,CUBE_E,rx,ry,explode,cx,cy,s);
+  drawShape(OCT_V,OCT_E,-rx*1.3,-ry*0.7,explode*0.5,cx,cy,s*0.62);
+}
+
+function updateTarget(){
+  const rect=track.getBoundingClientRect();
+  const span=rect.height-innerHeight;
+  const p=span>0?Math.min(Math.max(-rect.top/span,0),1):0;
+  targetFrame=p*(TOTAL-1);
+  barFill.style.transform='scaleX('+p+')';
+  if(p>0.02) hint.classList.add('hide');
+}
+
+let raf=null;
+function loop(){
+  const smoothing=smoothEl.checked&&!reduce;
+  if(smoothing) shownFrame+=(targetFrame-shownFrame)*0.18;
+  else shownFrame=targetFrame;
+  const idx=Math.round(shownFrame);
+  drawFrame(idx);
+  frameNo.textContent=String(idx).padStart(3,'0');
+  raf=requestAnimationFrame(loop);
+}
+
+framesEl.addEventListener('input',e=>{
+  TOTAL=+e.target.value;framesV.textContent=TOTAL;frameTot.textContent=TOTAL;
+  updateTarget();
+});
+addEventListener('scroll',updateTarget,{passive:true});   // scroll fires for wheel AND touch
+addEventListener('resize',()=>{resize();updateTarget();});
+
+resize();updateTarget();shownFrame=targetFrame;loop();
+</script>
+</body>
+</html>

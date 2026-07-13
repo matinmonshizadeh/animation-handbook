@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success Confetti</title>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--ok:#3fb950;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{position:relative;flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;overflow:hidden;touch-action:manipulation}
+    canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .order-btn{position:relative;z-index:2;background:var(--ui-accent);color:#1a0e05;border:none;cursor:pointer;font-family:var(--disp);font-weight:700;font-size:clamp(14px,1.8vw,17px);padding:18px 40px;min-height:56px;border-radius:12px;transition:transform .12s,background .3s;-webkit-tap-highlight-color:transparent}
+    .order-btn:active{transform:scale(.96)}
+    .order-btn.done{background:var(--ok);color:#04140a}
+    .order-btn .check{display:inline-block;margin-right:8px;opacity:0;width:0;transition:opacity .3s}
+    .order-btn.done .check{opacity:1;width:auto}
+    .sub{font-size:11px;color:var(--ui-muted);z-index:2;text-align:center}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:52px;text-align:right;color:var(--ui-text)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(prefers-reduced-motion:reduce){.order-btn:active{transform:none}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Success Confetti</h1>
+  <p>Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <button class="order-btn" id="btn"><span class="check">✓</span><span id="btn-lbl">Place order</span></button>
+    <div class="sub" id="sub">Click to complete — click again to replay</div>
+  </div>
+  <aside>
+    <p class="note">Each confetto is a rotating rectangle with its own velocity, angular spin, and gravity. They launch upward and outward from the button, then decelerate, fall, and fade — retired once off-screen or faded out.</p>
+    <div class="lbl2">Particle Count</div>
+    <div class="sr"><input type="range" id="cnt-sl" min="30" max="220" value="120" step="10"><span class="sval" id="cnt-v">120</span></div>
+    <div class="lbl2">Spread (deg)</div>
+    <div class="sr"><input type="range" id="spr-sl" min="30" max="180" value="110" step="5"><span class="sval" id="spr-v">110°</span></div>
+    <div class="lbl2">Gravity</div>
+    <div class="sr"><input type="range" id="grv-sl" min="10" max="60" value="28" step="1"><span class="sval" id="grv-v">0.28</span></div>
+    <div class="div"></div>
+    <div class="kv"><span>Live particles</span><span class="v" id="live-v">0</span></div>
+  </aside>
+</div>
+<script>
+const stage=document.getElementById('stage'),btn=document.getElementById('btn'),
+      cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COLORS=['#ff9d5c','#ff5470','#3fb950','#58a6ff','#ffd166','#c792ea'];
+let particles=[],raf=null,dpr=Math.min(window.devicePixelRatio||1,2);
+let pCount=120,spreadDeg=110,gravity=0.28;
+
+function resize(){cv.width=stage.clientWidth*dpr;cv.height=stage.clientHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+resize();new ResizeObserver(resize).observe(stage);
+
+function fire(){
+  const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
+  const ox=b.left+b.width/2-s.left;          // origin x at button center
+  const cy=b.top+b.height/2-s.top;           // origin y at button center
+  const half=(spreadDeg*Math.PI/180)/2;
+  for(let i=0;i<pCount;i++){
+    // Base direction is straight up (-90deg), fanned by the spread angle
+    const ang=-Math.PI/2+(Math.random()*2-1)*half;
+    const speed=6+Math.random()*7;
+    particles.push({x:ox,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
+      w:6+Math.random()*6,h:3+Math.random()*5,rot:Math.random()*Math.PI,
+      spin:(Math.random()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1});
+  }
+  if(!raf)raf=requestAnimationFrame(tick);
+}
+function tick(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  particles=particles.filter(p=>p.life>0&&p.y<stage.clientHeight+40);
+  document.getElementById('live-v').textContent=particles.length;
+  for(const p of particles){
+    p.vy+=gravity;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.spin;p.life-=0.008;
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+    ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
+    ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+  }
+  ctx.globalAlpha=1;
+  if(particles.length)raf=requestAnimationFrame(tick);else raf=null;
+}
+btn.addEventListener('click',()=>{
+  btn.classList.add('done');
+  document.getElementById('btn-lbl').textContent='Order placed';
+  document.getElementById('sub').textContent=reduce?'Completed — confetti disabled by reduced-motion':'Click again to replay';
+  if(!reduce)fire();
+});
+document.getElementById('cnt-sl').addEventListener('input',e=>{pCount=+e.target.value;document.getElementById('cnt-v').textContent=pCount;});
+document.getElementById('spr-sl').addEventListener('input',e=>{spreadDeg=+e.target.value;document.getElementById('spr-v').textContent=spreadDeg+'°';});
+document.getElementById('grv-sl').addEventListener('input',e=>{gravity=+e.target.value/100;document.getElementById('grv-v').textContent=gravity.toFixed(2);});
+</script>
+</body>
+</html>

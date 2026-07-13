@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Variable Font Morph</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Recursive:wght@300..1000&display=swap" rel="stylesheet">
   <style>
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
@@ -21,16 +19,20 @@
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
     .vf-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
     .vf-text{
-      font-family:'Recursive',Georgia,serif;
+      font-family:'Recursive','Segoe UI Variable',system-ui,'Segoe UI',sans-serif;
       font-size:clamp(56px,10vw,110px);
       line-height:1;
       color:#fff;
       letter-spacing:-0.02em;
+      /* wght/slnt are standard axes system-ui exposes; font-weight + skewX are the
+         universal fallback so the morph is visible even without a variable font. */
+      font-weight:var(--wght);
       font-variation-settings:'wght' var(--wght),'CASL' var(--CASL),'slnt' var(--slnt);
-      transition:font-variation-settings 600ms cubic-bezier(.4,0,.2,1);
+      transform:skewX(calc(var(--slnt) * -1deg));
+      transition:font-variation-settings 600ms cubic-bezier(.4,0,.2,1),font-weight 600ms cubic-bezier(.4,0,.2,1),transform 600ms cubic-bezier(.4,0,.2,1);
       -webkit-user-select:none;user-select:none
     }
-    .vf-sub{font-family:'Recursive',monospace;font-size:clamp(13px,2vw,18px);color:var(--ui-muted);letter-spacing:0.1em;font-variation-settings:'wght' 300,'CASL' 0,'slnt' 0}
+    .vf-sub{font-family:'Recursive','Segoe UI Variable',system-ui,monospace;font-size:clamp(13px,2vw,18px);color:var(--ui-muted);letter-spacing:0.1em;font-weight:300}
     /* Axis readout */
     .axis-row{display:flex;gap:20px;font-size:10px;color:var(--ui-muted)}
     .axis-val{color:var(--ui-accent)}
@@ -67,7 +69,7 @@
   <div class="stage">
     <div class="vf-label">Variable</div>
     <div class="vf-text" id="vf-text">Type</div>
-    <div class="vf-sub" id="vf-sub">Recursive · wght + CASL + slnt</div>
+    <div class="vf-sub" id="vf-sub">system-ui · wght + slnt (CASL needs a font that exposes it)</div>
     <div class="axis-row">
       <span>wght: <span class="axis-val" id="wght-v">400</span></span>
       <span>casual: <span class="axis-val" id="casl-v">0.0</span></span>
@@ -94,7 +96,7 @@
     <div class="lbl">Text</div>
     <input type="text" id="text-inp" value="Type">
     <button class="rst" id="auto-btn">▶ Auto-morph presets</button>
-    <div class="kv"><span>Font</span><span class="v">Recursive</span></div>
+    <div class="kv"><span>Font</span><span class="v">system-ui</span></div>
     <div class="kv"><span>Axes</span><span class="v">wght · CASL · slnt</span></div>
   </aside>
 </div>
