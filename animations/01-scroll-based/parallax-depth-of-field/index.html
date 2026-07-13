@@ -25,7 +25,7 @@
     header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: clamp(10px, 2vh, 16px) clamp(12px, 3vw, 24px);
-      background: linear-gradient(to bottom, rgba(6,10,16,.9), transparent);
+      background: linear-gradient(to bottom, rgba(11,11,13,.92), transparent);
       pointer-events: none;
     }
     header h1 { font-family: var(--disp); font-weight: 700; font-size: clamp(16px, 2.2vw, 22px); letter-spacing: -.01em; }
@@ -81,17 +81,21 @@
         right: auto; top: auto; bottom: 0; left: 0; width: 100%;
         transform: none; border-radius: 8px 8px 0 0;
         border: 1px solid var(--ui-border); border-bottom: none;
-        flex-direction: row; align-items: center;
-        padding: 10px 16px; gap: 10px;
+        flex-flow: row wrap; align-items: center;
+        padding: 10px 16px; gap: 6px 12px;
       }
-      .slider-wrap { flex-direction: row; }
+      .s-label { flex: 0 0 auto; }
+      .slider-wrap { flex-direction: row; align-items: center; flex: 1 1 auto; }
       input[type=range].focal-slider {
         writing-mode: horizontal-tb; direction: ltr;
         -webkit-appearance: auto; appearance: auto;
-        width: 110px; min-height: 44px;
+        flex: 1; width: auto; min-height: 44px;
       }
       .tick { display: none; }
-      .readout { flex-direction: row; gap: 8px; }
+      /* turn the divider into a full-width line break: keeps "Blur" + readout on their own row */
+      .divider { flex: 0 0 100%; height: 0; background: none; }
+      .readout { flex: 1 1 auto; flex-direction: row; justify-content: space-between; gap: 4px; }
+      .readout-row { justify-content: flex-start; gap: 3px; }
     }
 
     /* ── Reduced motion ── */
@@ -115,8 +119,8 @@
          preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#0a1628"/>
-          <stop offset="100%" stop-color="#060a10"/>
+          <stop offset="0%" stop-color="#141a24"/>
+          <stop offset="100%" stop-color="#0b0b0d"/>
         </linearGradient>
       </defs>
       <rect width="1200" height="800" fill="url(#sky)"/>
@@ -139,7 +143,7 @@
     <!-- L4: Distant peaks (depth 0.2) -->
     <svg class="layer" id="l4" viewBox="0 0 1200 800"
          preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <polygon fill="#0d2b3e"
+      <polygon fill="#33455f"
         points="0,500 80,340 180,400 300,280 420,360 540,260
                 660,320 780,290 900,330 1020,270 1140,310 1200,290 1200,800 0,800"/>
     </svg>
@@ -147,7 +151,7 @@
     <!-- L3: Mid mountains (depth 0.4) -->
     <svg class="layer" id="l3" viewBox="0 0 1200 800"
          preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <polygon fill="#0f2236"
+      <polygon fill="#253243"
         points="0,530 100,390 220,440 360,320 480,400 600,310
                 720,370 840,345 960,382 1080,332 1200,360 1200,800 0,800"/>
     </svg>
@@ -155,7 +159,7 @@
     <!-- L2: Near hills (depth 0.7) -->
     <svg class="layer" id="l2" viewBox="0 0 1200 800"
          preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <polygon fill="#0c1828"
+      <polygon fill="#18202c"
         points="0,570 120,445 260,480 400,392 540,455 680,382
                 820,432 960,408 1100,442 1200,422 1200,800 0,800"/>
     </svg>
@@ -163,7 +167,7 @@
     <!-- L1: Foreground (depth 1.0) -->
     <svg class="layer" id="l1" viewBox="0 0 1200 800"
          preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <polygon fill="#060810"
+      <polygon fill="#0e1015"
         points="0,612 160,502 320,542 480,472 640,522 800,482
                 960,522 1120,492 1200,508 1200,800 0,800"/>
     </svg>
@@ -175,7 +179,8 @@
   <div class="s-label">Focal Plane</div>
   <div class="slider-wrap">
     <span class="tick">near</span>
-    <input type="range" class="focal-slider" id="focalSlider" min="0" max="100" value="0">
+    <input type="range" class="focal-slider" id="focalSlider" min="0" max="100" value="0"
+           aria-label="Focal plane distance (near to far)">
     <span class="tick">far</span>
   </div>
   <div class="divider"></div>
