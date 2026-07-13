@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canvas Particle Effect</title>
   <style>
-    :root{--bg:#060a10;--ui-bg:#0d1117;--ui-border:#21262d;--ui-accent:#58a6ff;--ui-text:#c9d1d9;--ui-muted:#8b949e;--stage-h:620px}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:monospace;padding:clamp(12px,3vw,24px)}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
     header{margin-bottom:20px}
-    header h1{font-size:clamp(11px,1.8vw,15px);letter-spacing:2px;text-transform:uppercase}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
@@ -27,7 +31,7 @@
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
     @media(prefers-reduced-motion:reduce){canvas{display:none}}
@@ -46,7 +50,7 @@
   <aside>
     <p class="note">Canvas is right for 50+ particles — DOM bogs down at that scale. O(n²) distance checks are fine below 500 particles; above that, use spatial partitioning (quadtree).</p>
     <div class="lbl">Particle Count</div>
-    <div class="sr"><input type="range" id="count-sl" min="50" max="1500" value="400" step="50"><span class="sv" id="count-v">400</span></div>
+    <div class="sr"><input type="range" id="count-sl" min="50" max="1500" value="500" step="50"><span class="sv" id="count-v">500</span></div>
     <div class="lbl">Connect Distance</div>
     <div class="sr"><input type="range" id="dist-sl" min="40" max="200" value="100" step="10"><span class="sv" id="dist-v">100px</span></div>
     <div class="lbl">Speed</div>
@@ -58,7 +62,7 @@
     <label class="tog"><input type="checkbox" id="conn-tog" checked><span>Show connections</span></label>
     <label class="tog"><input type="checkbox" id="trail-tog"><span>Particle trails</span></label>
     <div class="div"></div>
-    <div class="kv"><span>Particles</span><span class="v" id="p-count">400</span></div>
+    <div class="kv"><span>Particles</span><span class="v" id="p-count">500</span></div>
     <button class="rst" id="pause-btn">⏸ Pause</button>
   </aside>
 </div>
@@ -68,7 +72,7 @@ const stage=document.getElementById('stage');
 const fpsEl=document.getElementById('fps');
 let W,H,particles=[],mouse={x:-999,y:-999};
 let paused=false,raf=null,lastT=0,fps=0;
-let COUNT=400,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
+let COUNT=500,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
 let CONNECTIONS=true,TRAILS=false;
 
 function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
