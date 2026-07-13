@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toast Notification — Animation Handbook</title>
+  <meta name="description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Toast Notification — Animation Handbook">
+  <meta property="og:description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Toast Notification — Animation Handbook">
+  <meta name="twitter:description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Toast Notification", "name": "Toast Notification", "description": "Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Toast Notification"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--ok:#5ad19a;--err:#f4515b;--info:#6ea8ff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{position:relative;overflow:hidden;min-height:min(62vh,480px);border:1px solid var(--ui-border);border-radius:8px;background:radial-gradient(120% 100% at 50% 0,#141418,#0b0b0d)}
+    .hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ui-muted);text-align:center;pointer-events:none;padding:0 16px}
+    /* Toast region — anchored to a corner of the stage */
+    .toaster{position:absolute;display:flex;flex-direction:column;gap:10px;width:min(300px,calc(100% - 24px));padding:12px;z-index:2}
+    .toaster.tl{top:0;left:0;align-items:flex-start}
+    .toaster.tr{top:0;right:0;align-items:flex-end}
+    .toaster.bl{bottom:0;left:0;flex-direction:column-reverse;align-items:flex-start}
+    .toaster.br{bottom:0;right:0;flex-direction:column-reverse;align-items:flex-end}
+    .toast{position:relative;width:100%;overflow:hidden;border:1px solid var(--ui-border);border-left:3px solid var(--tc,var(--info));border-radius:8px;background:var(--ui-bg);padding:12px 38px 12px 12px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .34s;will-change:transform,opacity}
+    .toast.ok{--tc:var(--ok)} .toast.err{--tc:var(--err)} .toast.info{--tc:var(--info)}
+    .toast .ic{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#0b0b0d;font-family:var(--disp);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
+    .toast .body{min-width:0}
+    .toast .ti{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:-.01em}
+    .toast .ms{font-size:10.5px;color:var(--ui-muted);margin-top:2px;line-height:1.4}
+    .toast .x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;background:transparent;color:var(--ui-muted);font-size:15px;cursor:pointer;border-radius:6px;line-height:1}
+    @media(hover:hover){.toast .x:hover{color:var(--ui-text);background:rgba(255,255,255,.06)}}
+    .toast .prog{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--tc);transform-origin:left;transform:scaleX(1);animation:ah_prog var(--dur,4s) linear forwards}
+    @media(hover:hover){.toast:hover .prog{animation-play-state:paused}}
+    .toast.paused .prog{animation-play-state:paused}
+    @keyframes ah_prog{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+    /* controls */
+    aside{width:clamp(210px,24vw,250px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .row{display:flex;flex-direction:column;gap:6px}
+    select{width:100%;min-height:44px;background:var(--bg);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:6px;font-family:var(--mono);font-size:11px;padding:0 8px}
+    .sr{display:flex;align-items:center;gap:8px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:46px;text-align:right;color:var(--ui-text)}
+    .trigger{background:var(--ui-accent);border:0;color:#1a0f08;font-family:var(--disp);font-weight:700;font-size:12px;padding:14px 8px;border-radius:6px;cursor:pointer;width:100%;min-height:44px}
+    .clear{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:12px 8px;border-radius:6px;cursor:pointer;width:100%;min-height:44px}
+    @media(hover:hover){.trigger:hover{filter:brightness(1.08)}.clear:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .div{height:1px;background:var(--ui-border)}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{animation:none!important;transform:scaleX(0)}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../star-rating/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../segmented-control/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/toast-notification/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Toast Notification</h1>
+  <p>Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="hint" id="hint">Trigger a toast &rarr;</div>
+      <div class="toaster tr" id="toaster" role="status" aria-live="polite" aria-atomic="false"></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Each toast auto-dismisses when its progress bar empties. Hover (or drag) to pause the countdown; tap, swipe, or press &times; to dismiss early.</p>
+    <div class="row"><span class="lbl">Corner</span>
+      <select id="corner">
+        <option value="tr" selected>Top right</option>
+        <option value="tl">Top left</option>
+        <option value="br">Bottom right</option>
+        <option value="bl">Bottom left</option>
+      </select>
+    </div>
+    <div class="row"><span class="lbl">Animation</span>
+      <select id="style">
+        <option value="slide" selected>Slide</option>
+        <option value="fade">Fade</option>
+        <option value="scale">Scale</option>
+      </select>
+    </div>
+    <div class="row"><span class="lbl">Auto-dismiss</span>
+      <div class="sr"><input type="range" id="dur" min="2" max="8" step="0.5" value="4"><span class="sval" id="durv">4.0s</span></div>
+    </div>
+    <div class="row"><span class="lbl">Stack limit</span>
+      <div class="sr"><input type="range" id="limit" min="1" max="6" step="1" value="4"><span class="sval" id="limitv">4</span></div>
+    </div>
+    <button class="trigger" id="trigger">Trigger toast</button>
+    <div class="div"></div>
+    <button class="clear" id="clear">Dismiss all</button>
+  </aside>
+</div>
+<script>
+  const toaster=document.getElementById('toaster'), hint=document.getElementById('hint');
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let corner='tr', style='slide', dur=4, limit=4, toasts=[], n=0;
+
+  const TYPES=[
+    ['ok','Saved','Your changes were published.'],
+    ['ok','Uploaded','profile.png finished uploading.'],
+    ['err','Failed','Could not reach the server.'],
+    ['err','Rejected','Card was declined — try another.'],
+    ['info','Heads up','A new version is available.'],
+    ['info','Synced','3 items synced across devices.']
+  ];
+  const ICON={ok:'✓',err:'✕',info:'i'};
+  const signX=()=>corner.endsWith('r')?1:-1;
+
+  // Enter/exit transforms per animation style
+  function tf(state){
+    if(style==='fade')return state==='rest'?'none':'none';
+    if(style==='scale')return state==='rest'?'none':'scale(.85)';
+    return state==='rest'?'none':`translateX(${signX()*112}%)`; // slide
+  }
+  function offscreen(el,dir){
+    el.style.opacity='0';
+    el.style.transform=style==='scale'?'scale(.85)':style==='fade'?'none':`translateX(${(dir||signX())*112}%)`;
+  }
+
+  // FLIP: measure remaining toasts' tops, then animate the delta with transform
+  const snap=()=>{const m=new Map();toasts.forEach(t=>m.set(t,t.getBoundingClientRect().top));return m;};
+  function play(prev){
+    if(reduce)return;
+    toasts.forEach(t=>{
+      const o=prev.get(t); if(o==null)return;
+      const d=o-t.getBoundingClientRect().top; if(!d)return;
+      t.style.transition='none'; t.style.transform=`translateY(${d}px)`;
+      requestAnimationFrame(()=>{t.style.transition='';t.style.transform='';});
+    });
+  }
+
+  function spawn(){
+    const [type,title,msg]=TYPES[Math.floor(Math.random()*TYPES.length)];
+    const el=document.createElement('div');
+    el.className='toast '+type;
+    el.style.setProperty('--dur',dur+'s');
+    el.innerHTML=`<span class="ic">${ICON[type]}</span>`+
+      `<div class="body"><div class="ti">${title}</div><div class="ms">${msg}</div></div>`+
+      `<button class="x" aria-label="Dismiss">&times;</button><span class="prog"></span>`;
+    // enter: start off, then settle to rest next frame
+    el.style.opacity='0'; el.style.transform=tf('enter');
+    const top=corner.startsWith('t');
+    top?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
+    toasts.push(el); wire(el,type);
+    if(!reduce)requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='none';});
+    else{el.style.opacity='1';el.style.transform='none';}
+    if(reduce)el._to=setTimeout(()=>dismiss(el),dur*1000);
+    enforce(); hint.style.display='none';
+  }
+
+  function enforce(){ while(toasts.filter(t=>!t._gone).length>limit)dismiss(toasts.find(t=>!t._gone)); }
+
+  function dismiss(el,dir,now){
+    if(!el||el._gone)return; el._gone=true;
+    const i=toasts.indexOf(el); if(i>-1)toasts.splice(i,1);
+    clearTimeout(el._to);
+    const close=()=>{const prev=snap();el.remove();play(prev);if(!toasts.length)hint.style.display='';};
+    if(reduce||now){el.remove();if(!toasts.length)hint.style.display='';return;}
+    el.style.transition='transform .3s cubic-bezier(.4,0,1,1),opacity .3s';
+    offscreen(el,dir);
+    setTimeout(close,300);
+  }
+
+  function wire(el,type){
+    const prog=el.querySelector('.prog');
+    prog.addEventListener('animationend',e=>{if(e.animationName==='ah_prog')dismiss(el);});
+    el.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();dismiss(el);});
+    // swipe / tap dismiss
+    let x0=0,dx=0,drag=false;
+    el.addEventListener('pointerdown',e=>{if(e.target.closest('.x'))return;drag=true;dx=0;x0=e.clientX;el.classList.add('paused');el.style.transition='none';el.setPointerCapture(e.pointerId);});
+    el.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px)`;el.style.opacity=String(Math.max(.3,1-Math.abs(dx)/(el.offsetWidth*.8)));});
+    function up(){if(!drag)return;drag=false;el.classList.remove('paused');
+      if(Math.abs(dx)>el.offsetWidth*.35||Math.abs(dx)<6){dismiss(el,dx<0?-1:1);}
+      else{el.style.transition='transform .3s cubic-bezier(.22,1,.36,1),opacity .3s';el.style.transform='none';el.style.opacity='1';}}
+    el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+  }
+
+  // controls
+  document.getElementById('trigger').addEventListener('click',spawn);
+  document.getElementById('clear').addEventListener('click',()=>{[...toasts].forEach(t=>dismiss(t));});
+  document.getElementById('corner').addEventListener('change',e=>{corner=e.target.value;toaster.className='toaster '+corner;});
+  document.getElementById('style').addEventListener('change',e=>style=e.target.value);
+  document.getElementById('dur').addEventListener('input',e=>{dur=+e.target.value;document.getElementById('durv').textContent=dur.toFixed(1)+'s';});
+  document.getElementById('limit').addEventListener('input',e=>{limit=+e.target.value;document.getElementById('limitv').textContent=limit;enforce();});
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

@@ -528,7 +528,7 @@ Open root `index.html`. Expected:
 
 ```bash
 git add index.html
-git commit -m "feat: add parallax-scrolling to root atlas index"
+git commit -m "feat: add parallax-scrolling to root handbook index"
 ```
 
 ---

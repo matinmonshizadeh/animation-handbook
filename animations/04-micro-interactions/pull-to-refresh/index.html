@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pull to Refresh — Animation Handbook</title>
+  <meta name="description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Pull to Refresh — Animation Handbook">
+  <meta property="og:description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pull to Refresh — Animation Handbook">
+  <meta name="twitter:description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pull to Refresh", "name": "Pull to Refresh", "description": "Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Pull to Refresh"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:600px;--ind:64px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{position:relative;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden}
+    /* Indicator zone sits just above the visible top edge; it slides down with the pull */
+    .indicator{position:absolute;top:calc(var(--ind)*-1);left:0;right:0;height:var(--ind);display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ui-muted);font-size:10px;will-change:transform}
+    .indicator.ready{color:var(--ui-accent)}
+    .hint{letter-spacing:.06em;text-transform:uppercase}
+    .spin{width:26px;height:26px;position:relative;opacity:0;will-change:transform}
+    .spin>*{display:none;position:absolute;inset:0}
+    .spin.s-ring .ring{display:block;border-radius:50%;border:3px solid rgba(255,255,255,.14);border-top-color:var(--ui-accent)}
+    .spin.s-dots .dots{display:flex;align-items:center;justify-content:center;gap:5px}
+    .spin.s-dots .dots i{width:7px;height:7px;border-radius:50%;background:var(--ui-accent)}
+    .spin.s-bars .bars{display:flex;align-items:center;justify-content:center;gap:4px}
+    .spin.s-bars .bars i{width:5px;height:16px;border-radius:2px;background:var(--ui-accent)}
+    /* Continuous "refreshing" motion, per style */
+    .spin.spinning{opacity:1!important;transform:none!important}
+    .spin.spinning.s-ring .ring{animation:ah-rot .7s linear infinite}
+    .spin.spinning.s-dots i{animation:ah-blink .9s ease-in-out infinite}
+    .spin.spinning.s-dots i:nth-child(2){animation-delay:.15s}
+    .spin.spinning.s-dots i:nth-child(3){animation-delay:.3s}
+    .spin.spinning.s-bars i{animation:ah-stretch .8s ease-in-out infinite}
+    .spin.spinning.s-bars i:nth-child(2){animation-delay:.12s}
+    .spin.spinning.s-bars i:nth-child(3){animation-delay:.24s}
+    .spin.spinning.s-bars i:nth-child(4){animation-delay:.36s}
+    @keyframes ah-rot{to{transform:rotate(360deg)}}
+    @keyframes ah-blink{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+    @keyframes ah-stretch{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+    /* Scrollable list — the pull is only claimed when scrollTop is 0 */
+    .scroller{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;will-change:transform;padding:10px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .card{border:1px solid var(--ui-border);background:var(--ui-bg);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+    .card.fresh{animation:ah-in .34s cubic-bezier(.22,1,.36,1)}
+    @keyframes ah-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--ui-accent);flex-shrink:0}
+    .card.old .dot{background:var(--ui-muted)}
+    .meta{min-width:0}
+    .meta .t{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta .s{font-size:10px;color:var(--ui-muted);margin-top:2px}
+    aside{width:clamp(200px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:52px;text-align:right;color:var(--ui-text)}
+    select{width:100%;min-height:44px;background:var(--bg);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:4px;font-family:var(--mono);font-size:10px;padding:0 8px}
+    select:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
+    .div{height:1px;background:var(--ui-border)}
+    .btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
+    .btn:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
+    @media(hover:hover){.btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .status{font-size:10px;color:var(--ui-muted);min-height:14px}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:60vh;min-height:380px}}
+    @media(prefers-reduced-motion:reduce){.scroller,.indicator{transition:none!important}.card.fresh{animation:none}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../segmented-control/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/pull-to-refresh/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Pull to Refresh</h1>
+  <p>Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="indicator" id="indicator">
+        <div class="spin s-ring" id="spin"><span class="ring"></span><span class="dots"><i></i><i></i><i></i></span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+        <span class="hint" id="hint">Pull to refresh</span>
+      </div>
+      <div class="scroller" id="scroller"><div class="list" id="list"></div></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The list follows your drag with rubber-band resistance — the further you pull, the more it fights back. Release past the threshold to trigger a refresh; short pulls snap back.</p>
+    <div class="lbl">Pull threshold</div>
+    <div class="sr"><input type="range" id="th" min="40" max="120" value="64" step="4"><span class="sval" id="thv">64px</span></div>
+    <div class="lbl">Resistance</div>
+    <div class="sr"><input type="range" id="re" min="1" max="4" value="2" step="0.5"><span class="sval" id="rev">2.0×</span></div>
+    <div class="lbl">Spinner style</div>
+    <select id="style"><option value="ring">Ring</option><option value="dots">Dots</option><option value="bars">Bars</option></select>
+    <div class="lbl">Refresh duration</div>
+    <div class="sr"><input type="range" id="du" min="400" max="2400" value="1200" step="200"><span class="sval" id="duv">1200ms</span></div>
+    <div class="div"></div>
+    <button class="btn" id="trigger" type="button">↻ Refresh now</button>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </aside>
+</div>
+<script>
+  const scroller=document.getElementById('scroller');
+  const indicator=document.getElementById('indicator');
+  const spin=document.getElementById('spin');
+  const hint=document.getElementById('hint');
+  const listEl=document.getElementById('list');
+  const statusEl=document.getElementById('status');
+  const INDH=64;                       // resting offset held while refreshing
+  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let threshold=64, resistance=2, dur=1200;
+  let startY=0, pulling=false, pull=0, refreshing=false, n=0;
+
+  const SEED=['Design review moved to 3pm','Build #482 passed on main','Ana commented on your PR','Weekly metrics are ready','Invoice from Northwind paid','Standup notes posted'];
+  function card(text,fresh){
+    const el=document.createElement('div');
+    el.className='card'+(fresh?' fresh':' old');
+    el.innerHTML='<span class="dot"></span><div class="meta"><div class="t">'+text+'</div><div class="s">'+(fresh?'just now':'earlier')+'</div></div>';
+    return el;
+  }
+  SEED.forEach(t=>listEl.appendChild(card(t,false)));
+
+  // Move both the indicator and the list by the same amount; optionally tween.
+  function setY(y,animate){
+    const t=(animate&&!reduce)?'transform .34s cubic-bezier(.22,1,.36,1)':'none';
+    scroller.style.transition=t; indicator.style.transition=t;
+    scroller.style.transform='translateY('+y+'px)';
+    indicator.style.transform='translateY('+y+'px)';
+  }
+  // Rubber-band: near 1:1 at first, asymptotic as the drag grows.
+  function resist(dy){ const max=threshold*2.2; return max*dy/(dy+max*resistance); }
+  function drawSpin(){
+    const p=Math.min(pull/threshold,1);
+    spin.style.opacity=String(p);
+    spin.style.transform='rotate('+(pull*2.2)+'deg) scale('+(0.55+p*0.45)+')';
+    indicator.classList.toggle('ready',p>=1);
+    hint.textContent=p>=1?'Release to refresh':'Pull to refresh';
+  }
+
+  scroller.addEventListener('pointerdown',e=>{
+    if(refreshing)return;
+    startY=e.clientY; pulling=false;
+  });
+  scroller.addEventListener('pointermove',e=>{
+    if(refreshing)return;
+    const dy=e.clientY-startY;
+    if(!pulling){                       // only claim the gesture at the very top
+      if(dy>4 && scroller.scrollTop<=0){ pulling=true; try{scroller.setPointerCapture(e.pointerId);}catch(_){} }
+      else return;
+    }
+    if(dy<=0){ pull=0; setY(0,false); drawSpin(); pulling=false; return; }
+    pull=resist(dy);
+    setY(pull,false); drawSpin();
+  });
+  function release(){
+    if(refreshing||!pulling)return;
+    pulling=false;
+    if(pull>=threshold){ startRefresh(); }
+    else { pull=0; setY(0,true); drawSpin(); }
+  }
+  scroller.addEventListener('pointerup',release);
+  scroller.addEventListener('pointercancel',release);
+
+  function startRefresh(){
+    if(refreshing)return;
+    refreshing=true; pull=INDH;
+    setY(INDH,true);
+    indicator.classList.add('ready');
+    hint.textContent='Refreshing…';
+    spin.style.transform=''; spin.classList.add('spinning');
+    statusEl.textContent='Refreshing…';
+    setTimeout(()=>{
+      n++;
+      listEl.insertBefore(card('New update #'+n+' arrived',true),listEl.firstChild);
+      scroller.scrollTop=0;
+      spin.classList.remove('spinning');
+      pull=0; setY(0,true); drawSpin();
+      refreshing=false;
+      statusEl.textContent='Updated — 1 new item added.';
+    },dur);
+  }
+
+  // Controls
+  const $=id=>document.getElementById(id);
+  $('th').addEventListener('input',e=>{ threshold=+e.target.value; $('thv').textContent=threshold+'px'; });
+  $('re').addEventListener('input',e=>{ resistance=+e.target.value; $('rev').textContent=(+e.target.value).toFixed(1)+'×'; });
+  $('du').addEventListener('input',e=>{ dur=+e.target.value; $('duv').textContent=dur+'ms'; });
+  $('style').addEventListener('change',e=>{ spin.className='spin s-'+e.target.value; });
+  $('trigger').addEventListener('click',startRefresh);   // keyboard/button fallback
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

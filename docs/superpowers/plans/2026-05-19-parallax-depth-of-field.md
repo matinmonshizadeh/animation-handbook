@@ -444,7 +444,7 @@ git commit -m "feat: add parallax scroll and focal-plane blur to depth-of-field 
 **Files:**
 - Modify: `index.html` (root)
 
-The root `index.html` is currently nearly empty. Replace it with a proper atlas index page that links to the animation.
+The root `index.html` is currently nearly empty. Replace it with a proper handbook index page that links to the animation.
 
 - [ ] **Step 1: Replace root index.html**
 
@@ -454,7 +454,7 @@ The root `index.html` is currently nearly empty. Replace it with a proper atlas 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Animation Atlas</title>
+  <title>Animation Handbook</title>
   <style>
     :root { --bg: #060a10; --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff; --border: #21262d; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -469,7 +469,7 @@ The root `index.html` is currently nearly empty. Replace it with a proper atlas 
   </style>
 </head>
 <body>
-  <h1>Animation Atlas</h1>
+  <h1>Animation Handbook</h1>
   <p class="subtitle">A visual reference of web animation techniques.</p>
 
   <h2>01 — Scroll-Based</h2>
@@ -486,7 +486,7 @@ The root `index.html` is currently nearly empty. Replace it with a proper atlas 
 - [ ] **Step 2: Open root index.html in browser and verify**
 
 Open the root `index.html`. Expected:
-- Dark page with "Animation Atlas" header
+- Dark page with "Animation Handbook" header
 - One entry under "01 — Scroll-Based" linking to the animation
 - Clicking the link opens the animation demo
 
@@ -494,7 +494,7 @@ Open the root `index.html`. Expected:
 
 ```bash
 git add index.html
-git commit -m "feat: add root atlas index page with depth-of-field entry"
+git commit -m "feat: add root handbook index page with depth-of-field entry"
 ```
 
 ---

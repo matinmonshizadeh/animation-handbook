@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smooth (Inertia) Scroll — Animation Handbook</title>
+  <meta name="description" content="Wheel and touch input drive a target value; the content eases toward it each frame for a weighted, gliding feel.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/smooth-scroll/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Smooth (Inertia) Scroll — Animation Handbook">
+  <meta property="og:description" content="Wheel and touch input drive a target value; the content eases toward it each frame for a weighted, gliding feel.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/smooth-scroll/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Smooth (Inertia) Scroll — Animation Handbook">
+  <meta name="twitter:description" content="Wheel and touch input drive a target value; the content eases toward it each frame for a weighted, gliding feel.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Smooth (Inertia) Scroll", "name": "Smooth (Inertia) Scroll", "description": "Wheel and touch input drive a target value; the content eases toward it each frame for a weighted, gliding feel.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/smooth-scroll/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Smooth (Inertia) Scroll"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:600px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    /* Masked viewport — inner content is translated, never scrolled natively (in smooth mode). */
+    .stage{position:relative;height:var(--stage-h);overflow:hidden;border:1px solid var(--ui-border);border-radius:8px;touch-action:none;cursor:grab;background:var(--ui-bg)}
+    .stage.native{overflow-y:auto;scrollbar-width:none;touch-action:auto;cursor:auto}
+    .stage.native::-webkit-scrollbar{display:none}
+    .stage.dragging{cursor:grabbing}
+    .content{will-change:transform}
+    .stage.native .content{will-change:auto}
+    .card{padding:clamp(24px,5vw,52px);min-height:calc(var(--stage-h) * 0.72);display:flex;flex-direction:column;justify-content:center;border-bottom:1px solid var(--ui-border)}
+    .card:last-child{border-bottom:0}
+    .card-num{font-size:clamp(52px,9vw,88px);font-weight:bold;line-height:1;opacity:.12;margin-bottom:10px}
+    .card-title{font-family:var(--disp);font-weight:700;font-size:clamp(20px,3.4vw,32px);margin-bottom:12px}
+    .card-body{font-size:clamp(12px,1.4vw,14px);opacity:.6;line-height:1.7;max-width:460px}
+    /* Progress rail, pinned to the stage viewport. */
+    .rail{position:absolute;top:10px;right:10px;bottom:10px;width:4px;border-radius:2px;background:var(--ui-border);pointer-events:none}
+    .rail-fill{position:absolute;top:0;left:0;width:100%;border-radius:2px;background:var(--ui-accent);transform-origin:top;height:24px}
+    .hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:10px;letter-spacing:1px;opacity:.35;pointer-events:none}
+    aside{width:clamp(210px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .ctl{display:flex;flex-direction:column;gap:6px}
+    .ctl .row{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .ctl .row .v{color:var(--ui-text)}
+    input[type=range]{width:100%;height:44px;accent-color:var(--ui-accent);cursor:pointer}
+    .toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:11px;color:var(--ui-text);cursor:pointer}
+    .toggle input{width:20px;height:20px;accent-color:var(--ui-accent);cursor:pointer}
+    .toggle.disabled{opacity:.4;cursor:not-allowed}
+    .div{height:1px;background:var(--ui-border)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:460px}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-image-sequence/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/smooth-scroll/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Smooth (Inertia) Scroll</h1>
+  <p>Wheel and touch input drive a target value; the content eases toward it each frame for a weighted, gliding feel.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="content" id="content"></div>
+      <div class="rail"><div class="rail-fill" id="fill"></div></div>
+      <div class="hint" id="hint">drag or scroll ↑↓</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Native scroll snaps to the input instantly. Smooth scroll keeps a target and a current value, then lerps current toward target every frame: <code>current += (target − current) × ease</code>.</p>
+    <div class="lbl">Ease / lerp factor</div>
+    <div class="ctl">
+      <input type="range" id="ease" min="0.05" max="0.2" step="0.01" value="0.09">
+      <div class="row"><span>ease</span><span class="v" id="easeVal">0.09</span></div>
+      <div class="row"><span>lower = heavier glide</span><span></span></div>
+    </div>
+    <div class="div"></div>
+    <label class="toggle" id="nativeToggle"><input type="checkbox" id="nativeChk"><span>Compare: native scroll</span></label>
+    <div class="div"></div>
+    <div class="lbl">Live values</div>
+    <div class="kv"><span>Target</span><span class="v" id="tVal">0</span></div>
+    <div class="kv"><span>Current</span><span class="v" id="cVal">0</span></div>
+    <div class="kv"><span>Progress</span><span class="v" id="pVal">0%</span></div>
+    <div class="kv"><span>Mode</span><span class="v" id="mVal">smooth</span></div>
+  </aside>
+</div>
+<script>
+  const CARDS=[
+    {title:'Captured Input',   body:'The stage swallows wheel and pointer events instead of letting the browser scroll. Each gesture adds to a target value rather than moving the page directly.'},
+    {title:'Target vs Current', body:'Two numbers are kept: where scroll wants to be (target) and where the content currently sits (current). The gap between them is what produces the glide.'},
+    {title:'Lerp Each Frame',  body:'On every animation frame, current moves a fraction of the way to target. A small fraction feels heavy and floaty; a larger fraction snaps closer to native.'},
+    {title:'Transform, Not Scroll', body:'The eased value is written as translate3d on the inner content — a compositor-only property. No layout, no scrollTop thrash, just a moving surface.'},
+    {title:'Momentum For Free', body:'Because current chases a target that already jumped ahead, releasing a flick lets the content coast to a stop. The easing is the momentum.'},
+    {title:'Know The Trade-offs', body:'Hijacking scroll can break keyboard, anchor jumps, and find-in-page. Respect reduced-motion and never take over the whole document lightly.'},
+  ];
+  const stage=document.getElementById('stage'),content=document.getElementById('content'),fill=document.getElementById('fill');
+  const easeInput=document.getElementById('ease'),easeVal=document.getElementById('easeVal');
+  const nativeChk=document.getElementById('nativeChk'),nativeToggle=document.getElementById('nativeToggle');
+  const tVal=document.getElementById('tVal'),cVal=document.getElementById('cVal'),pVal=document.getElementById('pVal'),mVal=document.getElementById('mVal'),hint=document.getElementById('hint');
+
+  CARDS.forEach((c,i)=>{
+    const el=document.createElement('div');el.className='card';
+    el.innerHTML=`<div class="card-num">0${i+1}</div><div class="card-title">${c.title}</div><div class="card-body">${c.body}</div>`;
+    content.appendChild(el);
+  });
+
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  let target=0,current=0,ease=0.09,maxScroll=0,mode='smooth',dragging=false,startY=0,startTarget=0;
+
+  function measure(){maxScroll=Math.max(0,content.scrollHeight-stage.clientHeight);target=clamp(target,0,maxScroll);}
+  function progress(pos){return maxScroll>0?pos/maxScroll:0;}
+  function paint(pos){
+    const p=progress(pos);
+    fill.style.transform=`translateY(${(p*(stage.clientHeight-44)).toFixed(1)}px)`;
+    tVal.textContent=Math.round(target);cVal.textContent=Math.round(current);pVal.textContent=Math.round(p*100)+'%';
+  }
+
+  // Smooth mode: ease current toward target each frame, apply as transform.
+  function loop(){
+    if(mode!=='smooth'){return;}
+    current+=(target-current)*ease;
+    if(Math.abs(target-current)<0.1)current=target;
+    content.style.transform=`translate3d(0,${(-current).toFixed(2)}px,0)`;
+    paint(current);
+    requestAnimationFrame(loop);
+  }
+
+  function onWheel(e){e.preventDefault();target=clamp(target+e.deltaY,0,maxScroll);}
+  function onDown(e){dragging=true;startY=e.clientY;startTarget=target;stage.classList.add('dragging');stage.setPointerCapture(e.pointerId);}
+  function onMove(e){if(!dragging)return;target=clamp(startTarget-(e.clientY-startY),0,maxScroll);}
+  function onUp(){dragging=false;stage.classList.remove('dragging');}
+
+  function enableSmooth(){
+    measure();current=target=stage.scrollTop||current;stage.scrollTop=0;
+    stage.classList.remove('native');mode='smooth';mVal.textContent='smooth';hint.textContent='drag or scroll ↑↓';
+    stage.addEventListener('wheel',onWheel,{passive:false});
+    stage.addEventListener('pointerdown',onDown);stage.addEventListener('pointermove',onMove);
+    stage.addEventListener('pointerup',onUp);stage.addEventListener('pointercancel',onUp);
+    requestAnimationFrame(loop);
+  }
+  function disableSmooth(){
+    stage.removeEventListener('wheel',onWheel);
+    stage.removeEventListener('pointerdown',onDown);stage.removeEventListener('pointermove',onMove);
+    stage.removeEventListener('pointerup',onUp);stage.removeEventListener('pointercancel',onUp);
+  }
+  function enableNative(){
+    disableSmooth();mode='native';mVal.textContent='native';hint.textContent='native scroll';
+    content.style.transform='';stage.classList.add('native');
+    stage.scrollTop=current;measure();
+    stage.addEventListener('scroll',onNativeScroll,{passive:true});
+    target=current=stage.scrollTop;paint(current);
+  }
+  function onNativeScroll(){current=target=stage.scrollTop;paint(current);}
+
+  easeInput.addEventListener('input',()=>{ease=parseFloat(easeInput.value);easeVal.textContent=ease.toFixed(2);});
+  nativeChk.addEventListener('change',()=>{
+    if(nativeChk.checked){enableNative();}
+    else{stage.removeEventListener('scroll',onNativeScroll);stage.classList.remove('native');enableSmooth();}
+  });
+  window.addEventListener('resize',measure);
+
+  if(reduce){
+    // Reduced motion: skip the lerp entirely, use native/instant scroll and lock the toggle on.
+    nativeChk.checked=true;nativeChk.disabled=true;nativeToggle.classList.add('disabled');
+    enableNative();
+  }else{
+    enableSmooth();
+  }
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

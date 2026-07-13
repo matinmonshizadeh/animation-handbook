@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segmented Control — Animation Handbook</title>
+  <meta name="description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Segmented Control — Animation Handbook">
+  <meta property="og:description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Segmented Control — Animation Handbook">
+  <meta name="twitter:description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Segmented Control", "name": "Segmented Control", "description": "A highlighted pill slides between options; the active label crossfades as it lands.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Segmented Control"}</script>
+<style>
+@font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+:root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--dur:340ms;--ease:cubic-bezier(.5,1.6,.4,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+header{margin-bottom:20px}
+header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+.layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+.stage-wrap{flex:1;min-width:0}
+.stage{border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:clamp(28px,6vw,64px) 20px;min-height:clamp(280px,42vh,420px)}
+/* Segmented control */
+.seg{position:relative;display:inline-flex;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:4px;max-width:100%;overflow:hidden}
+.seg-ind{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:9px;background:var(--ui-accent);transform-origin:left center;transform:translateX(var(--x,0)) scaleX(var(--sx,1));width:var(--w,0);transition:transform var(--dur) var(--ease);will-change:transform;z-index:0}
+.seg.underline .seg-ind{top:auto;bottom:2px;height:2px;border-radius:2px}
+.seg-opt{position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);color:var(--ui-muted);padding:0 clamp(12px,2.4vw,22px);min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9px;transition:color var(--dur) var(--ease);outline:none;-webkit-tap-highlight-color:transparent}
+.seg-opt[aria-checked="true"]{color:#0b0b0d;font-weight:500}
+.seg.underline .seg-opt[aria-checked="true"]{color:var(--ui-accent)}
+.seg-opt:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ui-accent)}
+@media(hover:hover){.seg-opt:not([aria-checked="true"]):hover{color:var(--ui-text)}}
+.readout{font-size:11px;color:var(--ui-muted)}
+.readout b{color:var(--ui-text);font-weight:500}
+/* Controls */
+aside{width:clamp(210px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+.div{height:1px;background:var(--ui-border)}
+.sr{display:flex;align-items:center;gap:6px;font-size:10px}
+.sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+.sval{width:52px;text-align:right;color:var(--ui-text)}
+select{background:var(--bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+@media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+@media(prefers-reduced-motion:reduce){.seg-ind,.seg-opt{transition:none!important}}
+</style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../toast-notification/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../pull-to-refresh/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/segmented-control/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Segmented Control</h1>
+  <p>A highlighted pill slides between options; the active label crossfades as it lands.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="seg" id="seg" role="radiogroup" aria-label="View mode"></div>
+      <div class="readout">Selected: <b id="ro">—</b></div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The indicator never animates left/width. JS measures the target button, then drives transform: translateX + scaleX so motion stays on the compositor.</p>
+    <div class="lbl">Segments</div>
+    <div class="sr"><input type="range" id="count" min="2" max="6" value="4" step="1"><span class="sval" id="count-v">4</span></div>
+    <div class="lbl">Slide duration</div>
+    <div class="sr"><input type="range" id="dur" min="80" max="700" value="340" step="10"><span class="sval" id="dur-v">340ms</span></div>
+    <div class="lbl">Easing</div>
+    <select id="ease">
+      <option value="cubic-bezier(.5,1.6,.4,1)" selected>Spring (overshoot)</option>
+      <option value="cubic-bezier(.4,0,.2,1)">Material smooth</option>
+      <option value="ease-in-out">Ease in-out</option>
+      <option value="ease-out">Ease out</option>
+      <option value="linear">Linear</option>
+    </select>
+    <div class="lbl">Indicator style</div>
+    <select id="style">
+      <option value="filled" selected>Filled pill</option>
+      <option value="underline">Underline</option>
+    </select>
+    <div class="div"></div>
+    <p style="font-size:10px;color:var(--ui-muted)">Click a segment, or focus it and use ← → arrows.</p>
+  </aside>
+</div>
+<script>
+const LABELS=['Day','Week','Month','Year','Decade','All'];
+const seg=document.getElementById('seg'),ind=Object.assign(document.createElement('span'),{className:'seg-ind'});
+const ro=document.getElementById('ro');
+let opts=[],current=0;
+
+function build(n){
+  seg.innerHTML='';seg.appendChild(ind);opts=[];
+  for(let i=0;i<n;i++){
+    const b=document.createElement('button');
+    b.type='button';b.className='seg-opt';b.setAttribute('role','radio');b.textContent=LABELS[i];
+    b.setAttribute('aria-checked','false');
+    b.tabIndex=-1;
+    b.addEventListener('click',()=>select(i));
+    seg.appendChild(b);opts.push(b);
+  }
+  current=Math.min(current,n-1);
+  // measure once from a neutral position, then animate future moves
+  requestAnimationFrame(()=>{move(current,false);paint();});
+}
+
+// Measure the target segment and translate the indicator to it.
+function move(i,animate){
+  const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
+  const x=opts[i].offsetLeft;                           // absolute offset inside the track
+  const sx=g.width/base.width;                          // scaleX to match differing widths
+  if(!animate)ind.style.transition='none';
+  ind.style.width=base.width+'px';                     // fixed reference width; scaleX does the rest
+  ind.style.setProperty('--x',x+'px');
+  ind.style.setProperty('--sx',sx);
+  if(!animate)requestAnimationFrame(()=>ind.style.transition='');
+}
+
+function paint(){
+  opts.forEach((b,i)=>{
+    const on=i===current;
+    b.setAttribute('aria-checked',on?'true':'false');
+    b.tabIndex=on?0:-1;
+  });
+  ro.textContent=LABELS[current];
+}
+
+function select(i){
+  if(i===current){opts[i].focus();return;}
+  current=i;move(i,true);paint();opts[i].focus();
+}
+
+// Roving-tabindex arrow navigation for the radiogroup.
+seg.addEventListener('keydown',e=>{
+  const n=opts.length;let t=current;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')t=(current+1)%n;
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp')t=(current-1+n)%n;
+  else if(e.key==='Home')t=0;
+  else if(e.key==='End')t=n-1;
+  else return;
+  e.preventDefault();select(t);
+});
+
+// Recompute geometry when the box reflows or a font swaps in.
+addEventListener('resize',()=>move(current,false));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>move(current,false));
+
+// Controls
+const R=document.documentElement.style;
+document.getElementById('count').addEventListener('input',e=>{
+  document.getElementById('count-v').textContent=e.target.value;build(+e.target.value);
+});
+document.getElementById('dur').addEventListener('input',e=>{
+  document.getElementById('dur-v').textContent=e.target.value+'ms';R.setProperty('--dur',e.target.value+'ms');
+});
+document.getElementById('ease').addEventListener('change',e=>R.setProperty('--ease',e.target.value));
+document.getElementById('style').addEventListener('change',e=>{
+  seg.classList.toggle('underline',e.target.value==='underline');
+  requestAnimationFrame(()=>move(current,false));
+});
+
+build(4);
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

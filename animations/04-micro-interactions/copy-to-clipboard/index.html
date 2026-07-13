@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copy to Clipboard — Animation Handbook</title>
+  <meta name="description" content="A copy button morphs to a checkmark and &quot;Copied!&quot; on success, then reverts after a short delay.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/copy-to-clipboard/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Copy to Clipboard — Animation Handbook">
+  <meta property="og:description" content="A copy button morphs to a checkmark and &quot;Copied!&quot; on success, then reverts after a short delay.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/copy-to-clipboard/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Copy to Clipboard — Animation Handbook">
+  <meta name="twitter:description" content="A copy button morphs to a checkmark and &quot;Copied!&quot; on success, then reverts after a short delay.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Copy to Clipboard", "name": "Copy to Clipboard", "description": "A copy button morphs to a checkmark and \"Copied!\" on success, then reverts after a short delay.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/copy-to-clipboard/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Copy to Clipboard"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--dur:280ms;--ease:cubic-bezier(.34,1.4,.5,1);--revert:1500ms;--ok:#56d364}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:16px}
+    .code-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:10px;color:var(--ui-muted);text-transform:uppercase;letter-spacing:1px}
+    pre{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;padding:16px;overflow-x:auto;font-family:var(--mono);font-size:clamp(11px,1.5vw,13px);line-height:1.7;color:var(--ui-text)}
+    pre .k{color:var(--ui-accent)}
+    /* copy button */
+    .copy-btn{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;align-self:flex-start;background:var(--ui-bg);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;overflow:hidden;transition:border-color var(--dur) var(--ease),color var(--dur) var(--ease)}
+    .copy-btn.copied{border-color:var(--ok);color:var(--ok)}
+    /* pulse ring */
+    .copy-btn::after{content:"";position:absolute;inset:0;border-radius:8px;background:var(--ok);opacity:0;transform:scale(.6);pointer-events:none}
+    .copy-btn.copied::after{animation:pulse 520ms var(--ease)}
+    @keyframes pulse{0%{opacity:.28;transform:scale(.6)}100%{opacity:0;transform:scale(1.08)}}
+    /* icon stack: two icons crossfade in place */
+    .ic{position:relative;width:16px;height:16px;flex-shrink:0}
+    .ic svg{position:absolute;inset:0;width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+    .ic .clip{opacity:1;transform:scale(1)}
+    .ic .chk{opacity:0;transform:scale(.5)}
+    .ic .chk path{stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset var(--dur) var(--ease)}
+    .copy-btn.copied .clip{opacity:0;transform:scale(.5)}
+    .copy-btn.copied .chk{opacity:1;transform:scale(1)}
+    .copy-btn.copied .chk path{stroke-dashoffset:0;transition-delay:80ms}
+    /* label crossfade */
+    .lbls{position:relative;display:inline-grid}
+    .lbls span{grid-area:1/1;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+    .l-copied{opacity:0;transform:translateY(4px)}
+    .copy-btn.copied .l-copy{opacity:0;transform:translateY(-4px)}
+    .copy-btn.copied .l-copied{opacity:1;transform:translateY(0)}
+    .hint{font-size:10px;color:var(--ui-muted)}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    /* panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:52px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    @media(prefers-reduced-motion:reduce){.copy-btn,.copy-btn::after,.ic svg,.ic .chk path,.lbls span{transition:none!important;animation:none!important}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../theme-toggle-morph/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../star-rating/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/copy-to-clipboard/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Copy to Clipboard</h1>
+  <p>A copy button morphs to a checkmark and "Copied!" on success, then reverts after a short delay.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="code-head"><span>snippet.js</span><span>click copy to grab it</span></div>
+      <pre id="snippet"><span class="k">const</span> el = document.querySelector(<span class="k">'.card'</span>);
+el.animate(
+  [{ opacity: <span class="k">0</span> }, { opacity: <span class="k">1</span> }],
+  { duration: <span class="k">300</span>, easing: <span class="k">'ease-out'</span> }
+);</pre>
+      <button class="copy-btn" id="copyBtn" type="button" aria-label="Copy code snippet">
+        <span class="ic" aria-hidden="true">
+          <svg class="clip" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>
+          <svg class="chk" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5"/></svg>
+        </span>
+        <span class="lbls"><span class="l-copy">Copy</span><span class="l-copied">Copied!</span></span>
+      </button>
+      <span class="sr-only" id="live" role="status" aria-live="polite"></span>
+      <span class="hint">Uses navigator.clipboard.writeText with a document.execCommand fallback.</span>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Success feedback should be transient: confirm the action, then quietly revert so the control is ready to use again.</p>
+    <div class="lbl">Revert delay</div>
+    <div class="sr"><input type="range" id="rv" min="600" max="3000" value="1500" step="100"><span class="sv" id="rvv">1500ms</span></div>
+    <div class="lbl">Animation duration</div>
+    <div class="sr"><input type="range" id="du" min="120" max="600" value="280" step="20"><span class="sv" id="duv">280ms</span></div>
+    <div class="lbl">Easing</div>
+    <select id="es">
+      <option value="cubic-bezier(.34,1.4,.5,1)" selected>Overshoot (spring)</option>
+      <option value="ease-out">Ease out</option>
+      <option value="ease-in-out">Ease in-out</option>
+      <option value="linear">Linear</option>
+    </select>
+    <div class="div"></div>
+    <p class="note" style="border-color:var(--ui-border)">The checkmark and label share one <code>.copied</code> class toggle; a timer removes it to revert.</p>
+  </aside>
+</div>
+<script>
+  const btn=document.getElementById('copyBtn');
+  const snippet=document.getElementById('snippet');
+  const live=document.getElementById('live');
+  const root=document.documentElement;
+  let timer=null;
+  let revert=1500;
+
+  function copyText(text){
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise((res,rej)=>{
+      const ta=document.createElement('textarea');
+      ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy')?res():rej();}catch(e){rej(e);}
+      document.body.removeChild(ta);
+    });
+  }
+
+  btn.addEventListener('click',()=>{
+    const text=snippet.innerText;
+    copyText(text).then(()=>{
+      btn.classList.add('copied');
+      live.textContent='Copied to clipboard';
+      clearTimeout(timer);
+      timer=setTimeout(()=>{
+        btn.classList.remove('copied');
+        live.textContent='';
+      },revert);
+    }).catch(()=>{
+      live.textContent='Copy failed — select and copy manually';
+    });
+  });
+
+  document.getElementById('rv').addEventListener('input',e=>{
+    revert=+e.target.value;
+    document.getElementById('rvv').textContent=e.target.value+'ms';
+  });
+  document.getElementById('du').addEventListener('input',e=>{
+    document.getElementById('duv').textContent=e.target.value+'ms';
+    root.style.setProperty('--dur',e.target.value+'ms');
+  });
+  document.getElementById('es').addEventListener('change',e=>{
+    root.style.setProperty('--ease',e.target.value);
+  });
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

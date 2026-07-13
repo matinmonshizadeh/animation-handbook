@@ -44,3 +44,5 @@ Techniques driven by scroll position.
   as you scroll; the portal effect is clip-path: inset() collapsing from center outward.
 - [Scroll Image Sequence](scroll-image-sequence/) — a canvas pinned with position:sticky while
   scroll progress maps to a frame index; the Apple product-scroll technique, frames drawn procedurally.
+- [Smooth (Inertia) Scroll](smooth-scroll/) — wheel and touch input eased toward a target each
+  frame with a lerp, giving weighted, gliding momentum instead of the browser's instant jumps.

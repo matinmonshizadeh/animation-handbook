@@ -28,6 +28,13 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Cursor Follower](cursor-follower/) | Lerp-lagged cursor + mix-blend-mode: difference inversion |
 | [Error Shake](error-shake/) | Invalid field shakes with a decaying wobble and flashes red — the universal "no" |
 | [Swipe to Dismiss](swipe-to-dismiss/) | Drag past a threshold to fling a card away as its row collapses — pointer-driven, touch-ready |
+| [Hamburger Menu Toggle](hamburger-menu-toggle/) | The bars icon morphs to an X — top and bottom bars rotate to cross while the middle fades |
+| [Theme Toggle Morph](theme-toggle-morph/) | A sun morphs into a crescent moon as the interface flips between light and dark |
+| [Copy to Clipboard](copy-to-clipboard/) | Copy button swaps to a checkmark and a Copied confirmation, then reverts |
+| [Star Rating](star-rating/) | Stars fill toward the pointer and pop on commit — an accessible five-star control |
+| [Toast Notification](toast-notification/) | Notification cards slide in, stack, and auto-dismiss with a progress bar |
+| [Segmented Control](segmented-control/) | A highlighted pill slides under the selected segment — iOS-style |
+| [Pull to Refresh](pull-to-refresh/) | Drag past the top to reveal a spinner; release past a threshold to refresh |
 
 ## Key concepts
 

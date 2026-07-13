@@ -38,7 +38,7 @@ Every animation README has exactly these sections:
 3. **How it works** — the mechanic, with code snippet
 4. **Key parameters** — the values that matter (delay, threshold, etc.)
 5. **Production notes** — gotchas, library equivalents (GSAP, Framer Motion)
-6. **See also** — links to related animations in the atlas
+6. **See also** — links to related animations in the handbook
 
 ## Taxonomy (do not invent new top-level categories without asking)
 
@@ -51,7 +51,7 @@ Every animation README has exactly these sections:
 7. Ambient & Background — passive looping effects (folder: 07-ambient-background)
 
 ## Distinction: technique vs tool
-This atlas catalogs **techniques**, not libraries. GSAP, Framer Motion,
+This handbook catalogs **techniques**, not libraries. GSAP, Framer Motion,
 Lottie, Three.js are tools that *implement* techniques. They get mentioned
 inside an entry's "Production notes" section, never as their own entry.
 

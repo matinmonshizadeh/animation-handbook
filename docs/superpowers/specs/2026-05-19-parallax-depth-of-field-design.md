@@ -131,7 +131,7 @@ The sidebar IS the controls panel. No separate overlay. On mobile it becomes a h
 3. **How it works** — scroll progress → focal plane `f` → `blur = maxBlur × |d − f|` per layer
 4. **Key parameters** — `maxBlur`, per-layer `depth`, parallax speed ratios, `maxOffset`
 5. **Production notes** — GSAP ScrollTrigger equivalent; performance note on `filter:blur` (use `will-change: filter` or promote layers); avoid blurring too many large elements simultaneously
-6. **See also** — links to other scroll-based entries (to be filled as atlas grows)
+6. **See also** — links to other scroll-based entries (to be filled as handbook grows)
 
 ---
 

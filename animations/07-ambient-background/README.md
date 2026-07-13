@@ -21,6 +21,8 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Particle Constellation](particle-constellation/) | Drifting nodes link with lines when they come close — the network-mesh hero background |
 | [Flow Field](flow-field/) | Particles follow a noise-driven vector field, leaving flowing trails |
 | [Synthwave Grid](synthwave-grid/) | A perspective grid scrolls toward a glowing sun — the retro synthwave horizon |
+| [Matrix Rain](matrix-rain/) | Columns of glowing characters fall on canvas — bright leaders, fading trails |
+| [Plasma Field](plasma/) | Summed sine fields make a flowing, organic color plasma on canvas |
 
 ## The ambient mindset
 

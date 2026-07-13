@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star Rating — Animation Handbook</title>
+  <meta name="description" content="Hover or tap to fill the stars up to the pointer; click commits the rating with a small pop on the selected star.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/star-rating/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Star Rating — Animation Handbook">
+  <meta property="og:description" content="Hover or tap to fill the stars up to the pointer; click commits the rating with a small pop on the selected star.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/star-rating/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Star Rating — Animation Handbook">
+  <meta name="twitter:description" content="Hover or tap to fill the stars up to the pointer; click commits the rating with a small pop on the selected star.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Star Rating", "name": "Star Rating", "description": "Hover or tap to fill the stars up to the pointer; click commits the rating with a small pop on the selected star.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/star-rating/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Star Rating"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--star:clamp(44px,11vw,60px);--pop:1.35;--fill-dur:180ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);min-height:clamp(280px,42vh,420px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,4vh,32px);padding:clamp(16px,4vw,40px)}
+    /* Rating control */
+    .rate{display:inline-flex;gap:clamp(4px,1.5vw,12px);outline:none;touch-action:none}
+    .rate:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ui-accent);border-radius:8px}
+    .star{position:relative;width:var(--star);height:var(--star);color:var(--ui-muted);cursor:pointer;transition:color var(--fill-dur) ease;-webkit-tap-highlight-color:transparent;transform-origin:center;will-change:transform}
+    .star svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+    .star .half{position:absolute;left:0;top:0;height:100%;width:50%;overflow:hidden;color:var(--ui-accent);opacity:0}
+    .star .half svg{width:var(--star)}
+    .star.full{color:var(--ui-accent)}
+    .star.half-on .half{opacity:1}
+    @keyframes pop{0%{transform:scale(1)}35%{transform:scale(var(--pop))}70%{transform:scale(.94)}100%{transform:scale(1)}}
+    .star.pop{animation:pop .42s cubic-bezier(.22,1,.36,1)}
+    .value{font-family:var(--disp);font-weight:700;font-size:clamp(20px,5vw,32px)}
+    .value small{font-family:var(--mono);font-weight:400;font-size:clamp(11px,1.6vw,14px);color:var(--ui-muted)}
+    .hint{font-size:10px;color:var(--ui-muted);text-align:center;max-width:32ch;line-height:1.6}
+    /* Controls */
+    aside{width:clamp(200px,24vw,250px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent);margin-top:4px}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sval{width:56px;text-align:right;color:var(--ui-text)}
+    .row{display:flex;align-items:center;justify-content:space-between;font-size:10px;min-height:44px}
+    .row span{color:var(--ui-muted)}
+    .tog{position:relative;width:44px;height:26px;border-radius:13px;background:#2a2a30;border:1px solid var(--ui-border);cursor:pointer;flex-shrink:0}
+    .tog::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--ui-text);transition:transform .18s ease}
+    .tog[aria-checked=true]{background:var(--ui-accent)}
+    .tog[aria-checked=true]::after{transform:translateX(18px)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text)}
+    @media(hover:hover){.star:hover{color:var(--ui-accent)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    @media(prefers-reduced-motion:reduce){.star{transition:none}.star.pop{animation:none}.tog::after{transition:none}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../copy-to-clipboard/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../toast-notification/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/star-rating/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Star Rating</h1>
+  <p>Hover or tap to fill the stars up to the pointer; click commits the rating with a small pop on the selected star.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage">
+      <div class="rate" id="rate" role="slider" tabindex="0" aria-label="Rating"
+           aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-valuetext="3 out of 5"></div>
+      <div class="value"><span id="val">3.0</span><small> / <span id="max">5</span></small></div>
+      <p class="hint">Click a star, or focus the control and use the arrow keys. Home clears, End maxes out.</p>
+    </div>
+  </div>
+  <aside>
+    <p class="note">Each star is two stacked shapes: a muted outline and an accent fill. Filling is a color transition that cascades across the row as the pointer moves; committing plays a transform:scale pop on the chosen star.</p>
+    <div class="lbl2">Star count</div>
+    <div class="sr"><input type="range" id="cnt-sl" min="3" max="10" value="5" step="1"><span class="sval" id="cnt-v">5</span></div>
+    <div class="lbl2">Pop intensity</div>
+    <div class="sr"><input type="range" id="pop-sl" min="1" max="1.8" value="1.35" step="0.05"><span class="sval" id="pop-v">1.35×</span></div>
+    <div class="lbl2">Fill duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="0" max="500" value="180" step="20"><span class="sval" id="dur-v">180ms</span></div>
+    <div class="div"></div>
+    <div class="row"><span>Allow half-stars</span><button class="tog" id="half" role="switch" aria-checked="false" aria-label="Allow half-stars"></button></div>
+    <div class="div"></div>
+    <div class="kv"><span>Committed</span><span class="v" id="state-v">3.0</span></div>
+  </aside>
+</div>
+<script>
+const STAR='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z';
+const rate=document.getElementById('rate'),valEl=document.getElementById('val'),maxEl=document.getElementById('max'),stateEl=document.getElementById('state-v');
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let count=5,rating=3,step=1,pop=1.35;
+const svg=c=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${STAR}"/></svg>`;
+
+function build(){
+  rate.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('span');
+    s.className='star';s.dataset.i=i;
+    s.innerHTML=svg()+'<span class="half">'+svg()+'</span>';
+    rate.appendChild(s);
+  }
+  rate.setAttribute('aria-valuemax',count);
+  maxEl.textContent=count;
+  if(rating>count)rating=count;
+  render(rating);commit(false);
+}
+// Paint stars up to value v (0..count), supporting halves.
+function render(v){
+  rate.querySelectorAll('.star').forEach((s,i)=>{
+    s.classList.toggle('full',v>=i+1);
+    s.classList.toggle('half-on',v>=i+0.5&&v<i+1);
+  });
+}
+function commit(doPop){
+  render(rating);
+  valEl.textContent=rating.toFixed(1);
+  stateEl.textContent=rating.toFixed(1);
+  rate.setAttribute('aria-valuenow',rating);
+  rate.setAttribute('aria-valuetext',rating+' out of '+count);
+  if(doPop&&!reduce&&rating>0){
+    const star=rate.querySelector('.star[data-i="'+(Math.ceil(rating)-1)+'"]');
+    if(star){star.classList.remove('pop');void star.offsetWidth;star.classList.add('pop');}
+  }
+}
+// Map a pointer position within a star to a rating value.
+function valueAt(star,clientX){
+  const i=+star.dataset.i,r=star.getBoundingClientRect();
+  if(step===0.5&&clientX-r.left<r.width/2)return i+0.5;
+  return i+1;
+}
+rate.addEventListener('pointermove',e=>{
+  const star=e.target.closest('.star');if(star)render(valueAt(star,e.clientX));
+});
+rate.addEventListener('pointerleave',()=>render(rating));
+rate.addEventListener('pointerdown',e=>{
+  const star=e.target.closest('.star');if(!star)return;
+  rating=valueAt(star,e.clientX);rate.focus();commit(true);
+});
+rate.addEventListener('keydown',e=>{
+  let handled=true;
+  if(e.key==='ArrowRight'||e.key==='ArrowUp')rating=Math.min(count,rating+step);
+  else if(e.key==='ArrowLeft'||e.key==='ArrowDown')rating=Math.max(0,rating-step);
+  else if(e.key==='Home')rating=0;
+  else if(e.key==='End')rating=count;
+  else handled=false;
+  if(handled){e.preventDefault();commit(true);}
+});
+// Controls
+document.getElementById('cnt-sl').addEventListener('input',e=>{
+  count=+e.target.value;document.getElementById('cnt-v').textContent=count;build();
+});
+document.getElementById('pop-sl').addEventListener('input',e=>{
+  pop=+e.target.value;document.documentElement.style.setProperty('--pop',pop);
+  document.getElementById('pop-v').textContent=pop.toFixed(2)+'×';
+});
+document.getElementById('dur-sl').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--fill-dur',e.target.value+'ms');
+  document.getElementById('dur-v').textContent=e.target.value+'ms';
+});
+document.getElementById('half').addEventListener('click',e=>{
+  const on=e.currentTarget.getAttribute('aria-checked')!=='true';
+  e.currentTarget.setAttribute('aria-checked',on);
+  step=on?0.5:1;
+  if(!on)rating=Math.round(rating);
+  commit(false);
+});
+build();
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Toggle Morph — Animation Handbook</title>
+  <meta name="description" content="A sun retracts its rays and slides a mask into a crescent moon — one icon animating between light and dark.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/theme-toggle-morph/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Theme Toggle Morph — Animation Handbook — Animation Handbook">
+  <meta property="og:description" content="A sun retracts its rays and slides a mask into a crescent moon — one icon animating between light and dark.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/theme-toggle-morph/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Theme Toggle Morph — Animation Handbook — Animation Handbook">
+  <meta name="twitter:description" content="A sun retracts its rays and slides a mask into a crescent moon — one icon animating between light and dark.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Theme Toggle Morph — Animation Handbook", "name": "Theme Toggle Morph — Animation Handbook", "description": "A sun retracts its rays and slides a mask into a crescent moon — one icon animating between light and dark.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/theme-toggle-morph/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Theme Toggle Morph — Animation Handbook"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--morph-dur:500ms;--morph-ease:cubic-bezier(.4,0,.2,1);--toggle-size:104px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,5vh,52px);padding:32px}
+    /* The toggle button */
+    .toggle{width:calc(var(--toggle-size) + 28px);height:calc(var(--toggle-size) + 28px);border-radius:50%;border:1px solid var(--ui-border);background:var(--ui-bg);color:var(--ui-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:color var(--morph-dur) var(--morph-ease),background var(--morph-dur) var(--morph-ease)}
+    .toggle:focus-visible{outline:2px solid var(--ui-accent);outline-offset:3px}
+    .icon{width:var(--toggle-size);height:var(--toggle-size);display:block}
+    .icon line{stroke:currentColor;stroke-width:2;stroke-linecap:round;transform-origin:12px 12px;transition:transform var(--morph-dur) var(--morph-ease),opacity var(--morph-dur) var(--morph-ease)}
+    .icon .disc{fill:currentColor;transform-origin:12px 12px;transition:transform var(--morph-dur) var(--morph-ease)}
+    .icon .cutout{transform:translate(20px,-20px);transition:transform var(--morph-dur) var(--morph-ease)}
+    /* Dark / moon state */
+    .demo.dark .toggle{color:#cdd3ff}
+    .demo.dark .icon line{transform:scale(0);opacity:0}
+    .demo.dark .icon .disc{transform:scale(1.28)}
+    .demo.dark .icon .cutout{transform:translate(7px,-4px)}
+    /* Flip preview card */
+    .card{width:min(260px,80%);aspect-ratio:8/5;perspective:1000px}
+    .card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform var(--morph-dur) var(--morph-ease)}
+    .demo.dark .card-inner{transform:rotateY(180deg)}
+    .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;border:1px solid;padding:16px;display:flex;flex-direction:column;justify-content:space-between}
+    .face .row{display:flex;gap:6px}
+    .dot{width:12px;height:12px;border-radius:50%}
+    .bar{height:8px;border-radius:4px}
+    .face .tt{font-size:12px;font-weight:bold}
+    .face .st{font-size:9px}
+    .face.light{background:#f4f4f2;border-color:#d9d9d6;color:#1a1a1c}
+    .face.light .bar{background:#c9c9c4}.face.light .dot{background:#ff9d5c}
+    .face.dark-face{background:#141418;border-color:rgba(255,255,255,.12);color:#f4f4f2;transform:rotateY(180deg)}
+    .face.dark-face .bar{background:#33333a}.face.dark-face .dot{background:#cdd3ff}
+    .state-label{font-size:11px;color:var(--ui-muted);text-align:center;min-height:20px}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .div{height:1px;background:var(--ui-border)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:52px;text-align:right;color:var(--ui-text)}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.toggle:hover{background:#17171b}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:440px}}
+    @media(prefers-reduced-motion:reduce){.icon line,.icon .disc,.icon .cutout,.card-inner,.toggle{transition:none!important}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../hamburger-menu-toggle/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../copy-to-clipboard/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/theme-toggle-morph/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Theme Toggle Morph</h1>
+  <p>A sun retracts its rays and slides a mask into a crescent moon — one icon animating between light and dark.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage demo" id="demo">
+      <button class="toggle" id="toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <mask id="moon-mask">
+              <rect width="24" height="24" fill="#fff"/>
+              <circle class="cutout" cx="12" cy="12" r="5"/>
+            </mask>
+          </defs>
+          <g class="rays">
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="4.22" x2="19.78" y2="5.64"/>
+          </g>
+          <circle class="disc" cx="12" cy="12" r="5" mask="url(#moon-mask)"/>
+        </svg>
+      </button>
+      <div class="card" aria-hidden="true">
+        <div class="card-inner">
+          <div class="face light">
+            <div><div class="tt">Light theme</div><div class="st">preview card</div></div>
+            <div class="row"><span class="dot"></span><div class="bar" style="flex:1"></div></div>
+          </div>
+          <div class="face dark-face">
+            <div><div class="tt">Dark theme</div><div class="st">preview card</div></div>
+            <div class="row"><span class="dot"></span><div class="bar" style="flex:1"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="state-label" id="state-label">Light theme active</div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">The sun's rays scale to zero from the center while an SVG mask circle slides across the disc, carving out a crescent. The card flips on the same clock.</p>
+    <div class="lbl">Morph Duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="150" max="1200" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    <div class="lbl">Easing</div>
+    <select id="ease-sel">
+      <option value="cubic-bezier(.4,0,.2,1)" selected>Standard</option>
+      <option value="cubic-bezier(.34,1.56,.64,1)">Overshoot</option>
+      <option value="ease-in-out">Ease in-out</option>
+      <option value="linear">Linear</option>
+    </select>
+    <div class="lbl">Toggle Size</div>
+    <div class="sr"><input type="range" id="size-sl" min="64" max="140" value="104" step="4"><span class="sv" id="size-v">104px</span></div>
+    <div class="div"></div>
+    <button class="rst" id="reset-btn">↺ Reset to light</button>
+  </aside>
+</div>
+<script>
+  const demo=document.getElementById('demo');
+  const toggle=document.getElementById('toggle');
+  const label=document.getElementById('state-label');
+  const root=document.documentElement;
+
+  function setDark(on){
+    demo.classList.toggle('dark',on);
+    toggle.setAttribute('aria-pressed',String(on));
+    toggle.setAttribute('aria-label',on?'Switch to light theme':'Switch to dark theme');
+    label.textContent=on?'Dark theme active':'Light theme active';
+  }
+  toggle.addEventListener('click',()=>setDark(!demo.classList.contains('dark')));
+  document.getElementById('reset-btn').addEventListener('click',()=>setDark(false));
+
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+    root.style.setProperty('--morph-dur',e.target.value+'ms');
+  });
+  document.getElementById('ease-sel').addEventListener('change',e=>{
+    root.style.setProperty('--morph-ease',e.target.value);
+  });
+  document.getElementById('size-sl').addEventListener('input',e=>{
+    document.getElementById('size-v').textContent=e.target.value+'px';
+    root.style.setProperty('--toggle-size',e.target.value+'px');
+  });
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

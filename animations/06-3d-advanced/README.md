@@ -23,6 +23,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Cloth Simulation](cloth-simulation/) | Verlet integration + distance constraints — draggable, gravity, and wind-responsive |
 | [Volumetric Smoke](volumetric-smoke/) | Ray marching that accumulates 3D noise density — light scattering, shadow rays |
 | [Morphing Blob](morphing-blob/) | Metaball circles fused by an SVG blur-plus-contrast filter — drifts and a droplet chases the pointer |
+| [3D Flip Card](flip-card-3d/) | A card rotates in 3D to reveal its back face — preserve-3d + backface-visibility |
 
 ## Key concepts
 

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animation Handbook — redesign sample</title>
+<script>document.documentElement.classList.add('js')</script>
+<style>
+@font-face{font-family:'Bricolage';src:url('fonts/brico-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Bricolage';src:url('fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Bricolage';src:url('fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'PlexMono';src:url('fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'PlexMono';src:url('fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+
+:root{
+  --bg:#0b0b0d; --panel:#111114; --panel-2:#0c0c0f; --stage:#08080a;
+  --ink:#f4f4f2; --ink-dim:#adadb2; --muted:#77777e; --faint:#4c4c54;
+  --line:rgba(255,255,255,.085); --line-2:rgba(255,255,255,.05);
+  --c1:#6ea8ff; --c2:#5fd88a; --c3:#b98cff; --c4:#ff9d5c; --c5:#ff6f8b; --c6:#3fd6c4; --c7:#ffce5a;
+  --disp:'Bricolage','Arial Narrow',sans-serif;
+  --mono:'PlexMono',ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;font-size:14px}
+
+/* engineered background: dot grid + faint top light + grain */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.4px);background-size:28px 28px;
+  -webkit-mask:radial-gradient(130% 78% at 50% -6%,#000 38%,transparent 84%);mask:radial-gradient(130% 78% at 50% -6%,#000 38%,transparent 84%)}
+.toplight{position:fixed;top:0;left:0;right:0;height:70vh;z-index:0;pointer-events:none;
+  background:radial-gradient(80% 100% at 50% -12%,rgba(110,168,255,.06),transparent 62%)}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.03;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+main{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,60px) clamp(18px,4vw,52px) 120px}
+
+/* ── top bar ── */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:clamp(50px,10vw,120px);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.topbar .mark{color:var(--ink);font-weight:500}
+.topbar a{color:var(--muted);text-decoration:none;transition:color .2s var(--ease)}
+.topbar a:hover{color:var(--ink)}
+
+/* ── hero ── */
+.hero{padding-bottom:clamp(34px,5vw,58px)}
+.kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:22px}
+.wordmark{font-family:var(--disp);font-weight:800;line-height:.86;letter-spacing:-.045em;
+  font-size:clamp(58px,14vw,190px);text-transform:none}
+.lede{font-size:clamp(14px,1.7vw,17px);line-height:1.6;color:var(--ink-dim);max-width:52ch;margin-top:30px}
+.hero-foot{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin-top:40px;border:1px solid var(--line);border-radius:3px;width:fit-content;max-width:100%}
+.stat{padding:16px 26px 15px;display:flex;flex-direction:column;gap:5px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat b{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+/* ── search ── */
+.search{position:relative;display:flex;align-items:center;margin-top:34px;max-width:520px}
+.search svg{position:absolute;left:16px;opacity:.45;pointer-events:none}
+#q{width:100%;min-height:52px;background:var(--panel-2);border:1px solid var(--line);border-radius:3px;
+  color:var(--ink);font-family:var(--mono);font-size:13px;letter-spacing:.02em;padding:14px 84px 14px 44px;
+  outline:none;transition:border-color .25s var(--ease),background .25s var(--ease)}
+#q::placeholder{color:var(--faint)}
+#q:focus{border-color:rgba(255,255,255,.28);background:#141418}
+.kbd{position:absolute;right:14px;font-size:10px;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:3px 8px;transition:opacity .2s}
+#q:focus~.kbd,#q:not(:placeholder-shown)~.kbd{opacity:0}
+
+/* ── category header ── */
+.chapter{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:clamp(16px,3vw,30px);
+  margin:clamp(60px,9vw,104px) 0 clamp(24px,3vw,36px);padding-bottom:20px;border-bottom:1px solid var(--line-2)}
+.ch-num{font-family:var(--disp);font-weight:800;font-size:clamp(40px,7vw,78px);line-height:.8;color:var(--accent);
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.chapter h2{font-family:var(--disp);font-weight:700;font-size:clamp(21px,3.4vw,34px);line-height:1;letter-spacing:-.02em}
+.ch-desc{font-size:12px;line-height:1.6;color:var(--muted);max-width:50ch;margin-top:9px}
+.ch-count{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);white-space:nowrap;text-align:right}
+
+/* ── grid + card ── */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.4vw,18px)}
+@media(max-width:920px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.grid{grid-template-columns:1fr}}
+
+.card{--accent:var(--c1);position:relative;background:var(--panel);border:1px solid var(--line-2);border-radius:4px;
+  overflow:hidden;cursor:pointer;text-decoration:none;color:inherit;
+  transition:transform .45s var(--ease),border-color .3s var(--ease)}
+.c1{--accent:var(--c1)}.c2{--accent:var(--c2)}.c3{--accent:var(--c3)}.c4{--accent:var(--c4)}.c5{--accent:var(--c5)}.c6{--accent:var(--c6)}.c7{--accent:var(--c7)}
+@media(hover:hover){.card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}}
+.card:active{transform:translateY(-1px) scale(.995);transition-duration:.1s}
+.card:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+
+.stage{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--stage);border-bottom:1px solid var(--line-2)}
+.pv{position:absolute;inset:0;transition:transform .6s var(--ease)}
+@media(hover:hover){.card:hover .pv{transform:scale(1.04)}}
+.live{position:absolute;right:11px;top:11px;z-index:4;width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .45s var(--ease)}
+.card.playing .live{opacity:.85;animation:livepulse 2s ease-in-out infinite}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}70%,100%{box-shadow:0 0 0 5px transparent}}
+
+.meta{padding:14px 15px 16px;display:flex;flex-direction:column;gap:7px}
+.plate{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.1em}
+.plate .idx{color:var(--accent);font-variant-numeric:tabular-nums}
+.plate .tag{color:var(--faint);text-transform:uppercase;letter-spacing:.16em}
+.card .title{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:-.015em;line-height:1.1;transition:color .25s var(--ease)}
+@media(hover:hover){.card:hover .title{color:var(--accent)}}
+.card .desc{font-size:11.5px;line-height:1.55;color:var(--muted)}
+
+.empty{display:none;text-align:center;color:var(--muted);font-size:13px;padding:56px 0}
+.empty.show{display:block}
+.cat[hidden]{display:none}
+
+.footer{margin-top:104px;padding-top:26px;border-top:1px solid var(--line-2);display:flex;flex-wrap:wrap;gap:12px;
+  justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.08em;color:var(--faint)}
+.footer a{color:var(--muted);text-decoration:none}
+.footer a:hover{color:var(--ink)}
+.flag{position:fixed;z-index:20;left:16px;bottom:16px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);background:rgba(11,11,13,.85);backdrop-filter:blur(6px);border:1px solid var(--line);
+  padding:7px 13px;border-radius:3px;pointer-events:none}
+
+/* ── preview engines ── */
+.pv *{will-change:transform,opacity}
+.card:not(.playing) .pv .anim{animation-play-state:paused!important}
+
+.pv-aurora{background:#04060e}
+.pv-aurora .band{position:absolute;top:-40%;height:180%;width:44%;filter:blur(26px);opacity:.85;border-radius:50%}
+.pv-aurora .b1{left:2%;background:linear-gradient(var(--c6),transparent);animation:aur 6s ease-in-out infinite}
+.pv-aurora .b2{left:34%;background:linear-gradient(var(--c1),transparent);animation:aur 7.5s ease-in-out infinite -2s}
+.pv-aurora .b3{left:62%;background:linear-gradient(var(--c3),transparent);animation:aur 6.8s ease-in-out infinite -4s}
+@keyframes aur{0%,100%{transform:translateX(-10%) skewX(-14deg) scaleY(.9)}50%{transform:translateX(14%) skewX(12deg) scaleY(1.1)}}
+
+.pv-mesh{background:#0a0710}
+.pv-mesh .m{position:absolute;width:70%;height:70%;border-radius:50%;filter:blur(24px);mix-blend-mode:screen}
+.pv-mesh .m1{top:-14%;left:-10%;background:radial-gradient(circle,var(--c4),transparent 65%);animation:mesh 9s ease-in-out infinite}
+.pv-mesh .m2{bottom:-16%;right:-8%;background:radial-gradient(circle,var(--c3),transparent 65%);animation:mesh 11s ease-in-out infinite -3s}
+.pv-mesh .m3{top:20%;left:38%;background:radial-gradient(circle,var(--c5),transparent 65%);animation:mesh 10s ease-in-out infinite -6s}
+@keyframes mesh{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(18%,-12%) scale(1.2)}66%{transform:translate(-14%,14%) scale(.85)}}
+
+.pv-glow{background:radial-gradient(circle at 50% 52%,#12100a,#050609 70%)}
+.pv-glow .core{position:absolute;top:50%;left:50%;width:34%;height:34%;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,var(--c7),transparent 66%);filter:blur(8px);animation:breath 5s ease-in-out infinite}
+.pv-glow .ring{position:absolute;top:50%;left:50%;width:34%;height:34%;transform:translate(-50%,-50%);border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--c7) 50%,transparent);animation:breathring 5s ease-in-out infinite}
+@keyframes breath{0%,100%{transform:translate(-50%,-50%) scale(.8);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.25);opacity:1}}
+@keyframes breathring{0%,100%{transform:translate(-50%,-50%) scale(.9);opacity:.7}50%{transform:translate(-50%,-50%) scale(2);opacity:0}}
+
+.pv-ripple{background:#0b0805;display:grid;place-items:center}
+.pv-ripple .r{position:absolute;width:14%;height:22%;border-radius:50%;border:1.5px solid var(--c4);opacity:0;animation:rip 2.4s ease-out infinite}
+.pv-ripple .r2{animation-delay:-.8s}.pv-ripple .r3{animation-delay:-1.6s}
+@keyframes rip{0%{transform:scale(.4);opacity:.9}100%{transform:scale(4.5);opacity:0}}
+.pv-ripple .dot{width:8px;height:8px;border-radius:50%;background:var(--c4)}
+
+.pv-spinner{background:#0b0805;display:grid;place-items:center}
+.pv-spinner .s{width:30%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg,transparent,var(--c4));
+  -webkit-mask:radial-gradient(farthest-side,transparent 58%,#000 60%);mask:radial-gradient(farthest-side,transparent 58%,#000 60%);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.pv-shimmer{background:#0a0c11;padding:16% 15%;display:flex;flex-direction:column;gap:9%;justify-content:center}
+.pv-shimmer .ln{height:9px;border-radius:3px;position:relative;overflow:hidden;background:#181820}
+.pv-shimmer .ln:nth-child(2){width:78%}.pv-shimmer .ln:nth-child(3){width:56%}
+.pv-shimmer .ln::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c4) 55%,transparent),transparent);animation:shim 1.6s ease-in-out infinite}
+@keyframes shim{100%{transform:translateX(100%)}}
+
+.pv-gtext{background:#0c0608;display:grid;place-items:center}
+.pv-gtext span{font-family:var(--disp);font-size:58px;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(100deg,var(--c5),var(--c3),var(--c1),var(--c5));background-size:280% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:gtext 4s linear infinite}
+@keyframes gtext{to{background-position:280% 0}}
+
+.pv-marquee{background:#0c0608;display:flex;flex-direction:column;justify-content:center;gap:11%;overflow:hidden}
+.pv-marquee .row{display:flex;white-space:nowrap;font-family:var(--disp);font-weight:700;font-size:24px;color:var(--ink-dim)}
+.pv-marquee .r-a{animation:mqa 7s linear infinite}
+.pv-marquee .r-b{animation:mqb 9s linear infinite;color:var(--c5)}
+@keyframes mqa{to{transform:translateX(-50%)}}
+@keyframes mqb{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+
+.pv-scramble{background:#0c0608;display:grid;place-items:center}
+.pv-scramble .txt{font-family:var(--mono);font-weight:500;font-size:24px;letter-spacing:.1em;color:var(--c5)}
+
+.pv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+@media(prefers-reduced-motion:reduce){
+  .card .pv .anim,.pv-aurora .band,.pv-mesh .m,.pv-glow .core,.pv-glow .ring,.pv-ripple .r,.pv-spinner .s,
+  .pv-shimmer .ln::after,.pv-gtext span,.pv-marquee .row{animation-play-state:paused!important}
+  .card{transition:border-color .2s}
+  .card:hover .pv{transform:none}
+  .card.playing .live{animation:none;opacity:.6}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div><div class="toplight"></div><div class="grain"></div>
+<div class="flag">Preview of new design</div>
+
+<main>
+  <div class="topbar">
+    <span class="mark">Animation Handbook</span>
+    <a href="https://github.com/matinmonshizadeh/animation-handbook">GitHub</a>
+  </div>
+
+  <header class="hero">
+    <p class="kicker">Web animation reference</p>
+    <h1 class="wordmark">Animation<br>Handbook</h1>
+    <p class="lede">A reference of 100 web animation techniques. Every entry is a live demo you can open in the browser and read how it works.</p>
+    <div class="hero-foot">
+      <div class="stat"><b>100</b><span>Techniques</span></div>
+      <div class="stat"><b>07</b><span>Categories</span></div>
+      <div class="stat"><b>0</b><span>Dependencies</span></div>
+    </div>
+    <div class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search techniques" aria-label="Search techniques">
+      <span class="kbd" aria-hidden="true">/</span>
+    </div>
+  </header>
+
+  <div id="root"></div>
+  <p class="empty" id="empty">No technique matches that search.</p>
+
+  <footer class="footer">
+    <span>Animation Handbook</span>
+    <a href="https://github.com/matinmonshizadeh/animation-handbook">github.com/matinmonshizadeh/animation-handbook</a>
+  </footer>
+</main>
+
+<script>
+const CATS=[
+  {n:'07',name:'Ambient & Background',cls:'c7',
+   desc:'Passive, looping effects that hold visual interest without demanding attention.',
+   items:[
+     ['Aurora','aurora','Tall color bands drift and skew. Heavy blur fakes a curtain of light.'],
+     ['Mesh Gradient','mesh','Blurred radial blobs drift and blend into an organic color wash.'],
+     ['Starfield','starfield','Stars drift outward with parallax depth at a slow ambient speed.'],
+     ['Breathing Glow','glow','A radial glow expands and contracts on a five-second cycle.'],
+   ]},
+  {n:'04',name:'Micro-Interactions',cls:'c4',
+   desc:'Short, user-triggered responses that confirm the interface registered an action.',
+   items:[
+     ['Tap Ripple','ripple','A ripple spreads from the exact point of contact.'],
+     ['Loading Spinner','spinner','A single conic sweep masked into a ring reads as fast loading.'],
+     ['Shimmer Skeleton','shimmer','A gradient sweep over placeholder blocks suggests streaming content.'],
+   ]},
+  {n:'05',name:'Text & Typography',cls:'c5',
+   desc:'Motion built specifically for letterforms and running type.',
+   items:[
+     ['Gradient Flow','gtext','A moving gradient clipped to text pushes color through the glyphs.'],
+     ['Marquee Ticker','marquee','Continuous scroll with a seamless loop. Duplicated content hides the reset.'],
+     ['Scramble Text','scramble','Characters cycle at random, then lock left to right.'],
+   ]},
+];
+
+const root=document.getElementById('root');
+CATS.forEach(cat=>{
+  const sec=document.createElement('section');sec.className='cat '+cat.cls;
+  sec.innerHTML=`<header class="chapter"><span class="ch-num">${cat.n}</span>
+    <div class="ch-body"><h2>${cat.name}</h2><p class="ch-desc">${cat.desc}</p></div>
+    <span class="ch-count">${String(cat.items.length).padStart(2,'0')} demos</span></header>`;
+  const grid=document.createElement('div');grid.className='grid';
+  cat.items.forEach(([name,pv,desc],i)=>{
+    const a=document.createElement('a');a.className='card '+cat.cls;a.href='#';a.dataset.pv=pv;
+    a.innerHTML=`<div class="stage"><div class="pv pv-${pv}"></div><span class="live" aria-hidden="true"></span></div>
+      <div class="meta"><div class="plate"><span class="idx">${cat.n}.${String(i+1).padStart(2,'0')}</span><span class="tag">${cat.name.split(' ')[0].replace('&','')}</span></div>
+      <h3 class="title">${name}</h3><p class="desc">${desc}</p></div>`;
+    grid.appendChild(a);
+  });
+  sec.appendChild(grid);root.appendChild(sec);
+});
+
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const html={
+  aurora:'<span class="band b1 anim"></span><span class="band b2 anim"></span><span class="band b3 anim"></span>',
+  mesh:'<span class="m m1 anim"></span><span class="m m2 anim"></span><span class="m m3 anim"></span>',
+  glow:'<span class="core anim"></span><span class="ring anim"></span>',
+  ripple:'<span class="r anim"></span><span class="r r2 anim"></span><span class="r r3 anim"></span><span class="dot"></span>',
+  spinner:'<span class="s anim"></span>',
+  shimmer:'<span class="ln anim"></span><span class="ln anim"></span><span class="ln anim"></span>',
+  gtext:'<span class="anim">Aa</span>',
+  marquee:'<div class="row r-a anim"><span>ANIMATION&nbsp;HANDBOOK&nbsp;&nbsp;</span><span>ANIMATION&nbsp;HANDBOOK&nbsp;&nbsp;</span></div><div class="row r-b anim"><span>KINETIC&nbsp;TYPE&nbsp;&nbsp;</span><span>KINETIC&nbsp;TYPE&nbsp;&nbsp;</span></div>',
+  scramble:'<span class="txt">SCRAMBLE</span>',
+};
+document.querySelectorAll('.pv').forEach(pv=>{
+  const type=[...pv.classList].find(c=>c.startsWith('pv-')).slice(3);
+  pv.innerHTML=html[type]||'';
+});
+
+function starfield(pv){
+  const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
+  let w,h,stars,raf=null;
+  function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*devicePixelRatio;h=c.height=r.height*devicePixelRatio;
+    stars=Array.from({length:90},()=>({x:(Math.random()-.5)*w,y:(Math.random()-.5)*h,z:Math.random()*w}));draw(false);}
+  function draw(advance){
+    ctx.fillStyle=advance?'rgba(4,5,12,.35)':'#04050c';ctx.fillRect(0,0,w,h);
+    ctx.save();ctx.translate(w/2,h/2);
+    for(const s of stars){if(advance){s.z-=w*.004;if(s.z<1){s.z=w;s.x=(Math.random()-.5)*w;s.y=(Math.random()-.5)*h;}}
+      const k=128/s.z,x=s.x*k,y=s.y*k,size=(1-s.z/w)*2.4*devicePixelRatio;
+      ctx.fillStyle='rgba(110,168,255,'+(1-s.z/w)+')';ctx.beginPath();ctx.arc(x,y,Math.max(size,.4),0,7);ctx.fill();}
+    ctx.restore();
+  }
+  function frame(){draw(true);raf=requestAnimationFrame(frame);}
+  size();addEventListener('resize',size);
+  return {play(){if(!raf&&!reduce)frame();},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+}
+function scramble(pv){
+  const el=pv.querySelector('.txt'),final='SCRAMBLE',chars='ABCDEFGHJKLMNPQRSTUVWXYZ#%$&/<>*';let t=null,locked=0;
+  function step(){locked+=.5;let s='';for(let i=0;i<final.length;i++){s+=i<locked?final[i]:chars[Math.floor(Math.random()*chars.length)];}
+    el.textContent=s;if(locked<final.length)t=setTimeout(step,45);else t=null;}
+  return {play(){if(reduce){el.textContent=final;return;}locked=0;clearTimeout(t);step();},pause(){clearTimeout(t);t=null;el.textContent=final;}};
+}
+const engines={starfield,scramble};
+
+document.querySelectorAll('.card').forEach(card=>{
+  const pv=card.querySelector('.pv'),type=card.dataset.pv;
+  const eng=engines[type]?engines[type](pv):null;
+  card._play=()=>{card.classList.add('playing');eng&&eng.play();};
+  card._pause=()=>{card.classList.remove('playing');eng&&eng.pause();};
+  card.addEventListener('click',e=>e.preventDefault());
+  card.addEventListener('focus',card._play);
+});
+const hoverCap=matchMedia('(hover:hover)').matches;
+if('IntersectionObserver'in window){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{e.target[e.isIntersecting?'_play':'_pause']();}),
+    hoverCap?{threshold:.28}:{rootMargin:'-34% 0px -34% 0px'});
+  document.querySelectorAll('.card').forEach(c=>io.observe(c));
+}else{document.querySelectorAll('.card').forEach(c=>c._play());}
+
+const q=document.getElementById('q'),emptyEl=document.getElementById('empty'),sections=[...document.querySelectorAll('.cat')];
+const cards=[...document.querySelectorAll('.card')];cards.forEach(c=>c._t=c.textContent.toLowerCase());
+q.addEventListener('input',()=>{
+  const term=q.value.trim().toLowerCase();let shown=0;
+  sections.forEach(s=>{let vis=0;s.querySelectorAll('.card').forEach(c=>{const m=!term||c._t.includes(term);c.style.display=m?'':'none';if(m){vis++;shown++;}});s.hidden=vis===0;});
+  emptyEl.classList.toggle('show',shown===0);
+});
+addEventListener('keydown',e=>{const t=document.activeElement.tagName;
+  if(e.key==='/'&&document.activeElement!==q&&t!=='INPUT'){e.preventDefault();q.focus();}
+  else if(e.key==='Escape'&&document.activeElement===q){q.value='';q.dispatchEvent(new Event('input'));q.blur();}});
+</script>
+</body>
+</html>

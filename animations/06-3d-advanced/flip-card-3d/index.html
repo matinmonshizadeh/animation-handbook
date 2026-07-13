@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Flip Card — Animation Handbook</title>
+  <meta name="description" content="A card rotates in 3D on rotateY/rotateX to reveal its back face, with an optional cursor-driven idle tilt for depth.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flip-card-3d/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="3D Flip Card — Animation Handbook">
+  <meta property="og:description" content="A card rotates in 3D on rotateY/rotateX to reveal its back face, with an optional cursor-driven idle tilt for depth.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flip-card-3d/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="3D Flip Card — Animation Handbook">
+  <meta name="twitter:description" content="A card rotates in 3D on rotateY/rotateX to reveal its back face, with an optional cursor-driven idle tilt for depth.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "3D Flip Card", "name": "3D Flip Card", "description": "A card rotates in 3D on rotateY/rotateX to reveal its back face, with an optional cursor-driven idle tilt for depth.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flip-card-3d/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 3D Flip Card"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--perspective:1200px;--flip-dur:650ms;--tilt:10}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage-wrap{flex:1;min-width:0}
+    .stage{height:clamp(360px,52vh,560px);border:1px solid var(--ui-border);border-radius:8px;background:radial-gradient(120% 120% at 50% 0%,#141018,#08070a);display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);perspective:var(--perspective)}
+    /* Tilt wrapper carries the idle cursor-driven 3D tilt */
+    .tilt{transform-style:preserve-3d;transition:transform 300ms ease}
+    .tilt.tracking{transition:none}
+    /* Card — the flipping element */
+    .card{
+      width:clamp(220px,60%,300px);aspect-ratio:5/7;position:relative;
+      transform-style:preserve-3d;cursor:pointer;
+      transition:transform var(--flip-dur) cubic-bezier(.6,.02,.2,1);
+      will-change:transform
+    }
+    .card.flipped{transform:rotateY(180deg)}
+    .card.axis-x.flipped{transform:rotateX(180deg)}
+    .card:focus-visible{outline:2px solid var(--ui-accent);outline-offset:6px;border-radius:16px}
+    .face{
+      position:absolute;inset:0;border-radius:16px;overflow:hidden;
+      backface-visibility:hidden;-webkit-backface-visibility:hidden;
+      transform:translateZ(0);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 24px 60px rgba(0,0,0,.55);
+      display:flex;flex-direction:column;padding:clamp(16px,4%,24px)
+    }
+    /* Front — profile face */
+    .front{background:linear-gradient(150deg,#2a1a4a,#1a1030)}
+    .card.axis-x .back{transform:rotateX(180deg)}
+    .card:not(.axis-x) .back{transform:rotateY(180deg)}
+    .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#b98cff,#6d4ea8);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;font-size:22px;color:#0b0b0d}
+    .front .name{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.4vw,22px);margin-top:auto;color:#fff;line-height:1.15}
+    .front .role{font-size:11px;color:var(--ui-accent);letter-spacing:1px;margin-top:6px;text-transform:uppercase}
+    .front .hint{font-size:9px;color:rgba(255,255,255,.4);margin-top:14px;letter-spacing:.5px}
+    /* Back — details face */
+    .back{background:linear-gradient(150deg,#120c1e,#0d0a16)}
+    .back .over{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent)}
+    .back .row{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.7);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+    .back .row span:last-child{color:#fff}
+    .back .rows{margin-top:auto}
+    .back .hint{font-size:9px;color:rgba(255,255,255,.4);margin-top:14px;letter-spacing:.5px}
+    /* Panel */
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sv{width:52px;text-align:right;color:var(--ui-text)}
+    .seg{display:flex;gap:4px}
+    .seg button{flex:1;min-height:44px;background:#08070a;border:1px solid var(--ui-border);color:var(--ui-muted);border-radius:6px;font:inherit;font-size:10px;cursor:pointer}
+    .seg button.on{border-color:var(--ui-accent);color:var(--ui-text)}
+    .div{height:1px;background:var(--ui-border)}
+    .flip-btn{min-height:44px;background:var(--ui-accent);border:0;border-radius:6px;color:#0b0b0d;font:inherit;font-weight:600;font-size:11px;cursor:pointer}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    /* Tilt only on true hover-capable pointers */
+    @media(hover:hover){.tilt{will-change:transform}}
+    @media(hover:none){.tilt{transform:none!important}}
+    /* Reduced motion — instant opacity swap, no tilt, no rotation */
+    @media(prefers-reduced-motion:reduce){
+      .card{transition:none!important;transform:none!important}
+      .tilt{transition:none!important;transform:none!important}
+      .face{backface-visibility:visible;-webkit-backface-visibility:visible;transition:opacity 120ms linear}
+      .card:not(.axis-x) .back,.card.axis-x .back{transform:none}
+      .back{opacity:0}
+      .card.flipped .front{opacity:0}
+      .card.flipped .back{opacity:1}
+    }
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../morphing-blob/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/flip-card-3d/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>3D Flip Card</h1>
+  <p>A card rotates in 3D on rotateY/rotateX to reveal its back face, with an optional cursor-driven idle tilt for depth.</p>
+</header>
+<div class="layout">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="tilt" id="tilt">
+        <div class="card" id="card" tabindex="0" role="button" aria-pressed="false" aria-label="Flip card to see details">
+          <div class="face front">
+            <div class="avatar">AV</div>
+            <div class="name">Ava Reyes</div>
+            <div class="role">Motion Engineer</div>
+            <div class="hint">Click / tap / Enter to flip →</div>
+          </div>
+          <div class="face back">
+            <div class="over">Details</div>
+            <div class="rows">
+              <div class="row"><span>Team</span><span>Interface Systems</span></div>
+              <div class="row"><span>Location</span><span>Lisbon</span></div>
+              <div class="row"><span>Focus</span><span>CSS 3D · WebGL</span></div>
+              <div class="row"><span>Joined</span><span>2021</span></div>
+            </div>
+            <div class="hint">← Flip back</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <p class="note">perspective sits on the stage. The inner card uses transform-style:preserve-3d; each face is backface-visibility:hidden so only the facing side shows.</p>
+    <div class="lbl">Flip axis</div>
+    <div class="seg" id="axis">
+      <button data-axis="y" class="on">rotateY</button>
+      <button data-axis="x">rotateX</button>
+    </div>
+    <div class="lbl">Trigger</div>
+    <div class="seg" id="trigger">
+      <button data-trig="click" class="on">Click</button>
+      <button data-trig="hover">Hover</button>
+    </div>
+    <div class="lbl">Flip duration</div>
+    <div class="sr"><input type="range" id="dur-sl" min="150" max="1400" value="650" step="50"><span class="sv" id="dur-v">650ms</span></div>
+    <div class="lbl">Perspective depth</div>
+    <div class="sr"><input type="range" id="persp-sl" min="500" max="2500" value="1200" step="50"><span class="sv" id="persp-v">1200px</span></div>
+    <div class="lbl">Idle tilt strength</div>
+    <div class="sr"><input type="range" id="tilt-sl" min="0" max="20" value="10" step="1"><span class="sv" id="tilt-v">10°</span></div>
+    <div class="div"></div>
+    <button class="flip-btn" id="flip-btn">Flip card</button>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage');
+  const tilt=document.getElementById('tilt');
+  const card=document.getElementById('card');
+  const root=document.documentElement.style;
+  let axis='y',trigger='click',maxTilt=10;
+
+  function setFlipped(on){
+    card.classList.toggle('flipped',on);
+    card.setAttribute('aria-pressed',on?'true':'false');
+  }
+  function toggle(){setFlipped(!card.classList.contains('flipped'));}
+
+  // Trigger: click
+  card.addEventListener('click',()=>{if(trigger==='click')toggle();});
+  document.getElementById('flip-btn').addEventListener('click',toggle);
+  // Keyboard — flip is reachable and operable without a pointer
+  card.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}
+  });
+  // Trigger: hover (pointer-capable devices only)
+  card.addEventListener('pointerenter',e=>{if(trigger==='hover'&&e.pointerType!=='touch')setFlipped(true);});
+  card.addEventListener('pointerleave',()=>{if(trigger==='hover')setFlipped(false);});
+
+  // Cursor-driven idle 3D tilt via Pointer Events
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+  const canHover=matchMedia('(hover:hover)');
+  stage.addEventListener('pointermove',e=>{
+    if(reduce.matches||!canHover.matches||maxTilt===0)return;
+    const r=stage.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    tilt.classList.add('tracking');
+    tilt.style.transform=`rotateX(${(-y*maxTilt).toFixed(2)}deg) rotateY(${(x*maxTilt).toFixed(2)}deg)`;
+  });
+  stage.addEventListener('pointerleave',()=>{
+    tilt.classList.remove('tracking');
+    tilt.style.transform='rotateX(0deg) rotateY(0deg)';
+  });
+
+  // Controls
+  document.querySelectorAll('#axis button').forEach(b=>b.addEventListener('click',()=>{
+    axis=b.dataset.axis;
+    document.querySelectorAll('#axis button').forEach(x=>x.classList.toggle('on',x===b));
+    card.classList.toggle('axis-x',axis==='x');
+  }));
+  document.querySelectorAll('#trigger button').forEach(b=>b.addEventListener('click',()=>{
+    trigger=b.dataset.trig;
+    document.querySelectorAll('#trigger button').forEach(x=>x.classList.toggle('on',x===b));
+    if(trigger==='hover')setFlipped(false);
+  }));
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    root.setProperty('--flip-dur',e.target.value+'ms');
+    document.getElementById('dur-v').textContent=e.target.value+'ms';
+  });
+  document.getElementById('persp-sl').addEventListener('input',e=>{
+    root.setProperty('--perspective',e.target.value+'px');
+    document.getElementById('persp-v').textContent=e.target.value+'px';
+  });
+  document.getElementById('tilt-sl').addEventListener('input',e=>{
+    maxTilt=+e.target.value;
+    document.getElementById('tilt-v').textContent=maxTilt+'°';
+    if(maxTilt===0)tilt.style.transform='rotateX(0deg) rotateY(0deg)';
+  });
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

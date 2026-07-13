@@ -59,7 +59,7 @@ const sectionIndex = Math.round(stage.scrollTop / sectionHeight);
 - **CSS is the entire mechanism.** Snap scrolling requires no JavaScript for the snapping itself. JS is only needed for auxiliary UI — pagination indicators, jump buttons, or syncing external state to the current section.
 - **`mandatory` vs. `proximity`.** Use `mandatory` when every section is viewport-height and partial views are never desirable. Use `proximity` when sections have varying heights or when you want snap behavior only on deliberate gestures. `mandatory` with small scroll steps (keyboard arrows) can feel locked and jarring.
 - **Mobile Safari.** iOS Safari has historically had issues with `scroll-snap-type` inside overflow containers. Test on real devices. Workarounds include using `overflow: auto` instead of `scroll`.
-- **No library needed.** Unlike most other entries in this atlas, snap scrolling requires nothing beyond the browser. The feature is native and well-supported across all modern browsers.
+- **No library needed.** Unlike most other entries in this handbook, snap scrolling requires nothing beyond the browser. The feature is native and well-supported across all modern browsers.
 - **Accessibility.** Snap scrolling can frustrate keyboard users who expect continuous scroll. Ensure the `Tab` key navigates between sections, section headings are focusable, and skip-nav links exist.
 
 ## See also
