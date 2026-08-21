@@ -43,6 +43,10 @@
       flex:1;min-width:0;height:620px;
       overflow-y:scroll;scrollbar-width:none;
       border:1px solid var(--ui-border);border-radius:8px;
+      /* The cover shrinking above the viewport makes scroll anchoring claw scrollTop
+         back, which lowers progress, which re-grows the cover — a feedback loop that
+         stalls the collapse partway. Any scroll-driven size change needs this off. */
+      overflow-anchor:none;
     }
     .stage::-webkit-scrollbar{display:none}
     .scene{min-height:2500px;position:relative}
@@ -61,7 +65,11 @@
     .cover-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:0 24px 20px}
     .cover-spacer{flex:1}
     .cover-meta{font-size:10px;color:#3d7a52;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-    .cover-title{font-size:26px;color:#d1f7d6;line-height:1.2;letter-spacing:-.5px;margin-bottom:8px}
+    /* scaled rather than re-sized: font-size re-shapes the text every frame */
+    .cover-title{font-size:26px;color:#d1f7d6;line-height:1.2;letter-spacing:-.5px;margin-bottom:8px;
+                 transform-origin:left top;will-change:transform}
+    /* the collapsed header's hairline, faded in — cheaper than writing box-shadow per frame */
+    .cover-rule{position:absolute;left:0;right:0;bottom:0;height:1px;background:#3fb950;opacity:0;pointer-events:none}
     .cover-sub{
       font-size:12px;color:#3d7a52;line-height:1.5;margin-bottom:14px;
     }
@@ -176,6 +184,7 @@ body{padding-top:46px}
             <span class="author-name">Matin M. · May 2026</span>
           </div>
         </div>
+        <div class="cover-rule" id="cover-rule" aria-hidden="true"></div>
         <div class="header-chip" id="header-chip">
           <div class="avatar-sm"></div>
           <span class="chip-name">Matin M.</span>
@@ -222,110 +231,115 @@ body{padding-top:46px}
 </div>
 
 <script>
-  const cover        = document.getElementById('cover');
-  const coverBg      = document.getElementById('cover-bg');
-  const coverMeta    = document.getElementById('cover-meta');
-  const coverTitle   = document.getElementById('cover-title');
-  const coverSub     = document.getElementById('cover-sub');
-  const coverAuthor  = document.getElementById('cover-author');
-  const headerChip   = document.getElementById('header-chip');
-  const stage        = document.getElementById('stage');
-  const scrollProg   = document.getElementById('scroll-prog');
-  const collapseProg = document.getElementById('collapse-prog');
-  const colSlider    = document.getElementById('collapse-slider');
-  const colVal       = document.getElementById('col-val');
-  const rangeSlider  = document.getElementById('range-slider');
-  const rangeVal     = document.getElementById('range-val');
-  const binaryTog    = document.getElementById('binary-tog');
-  const resetBtn     = document.getElementById('reset-btn');
-  const motionMQ     = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const $ = id => document.getElementById(id);
+  const cover = $('cover'), coverBg = $('cover-bg'), coverMeta = $('cover-meta');
+  const coverTitle = $('cover-title'), coverSub = $('cover-sub'), coverAuthor = $('cover-author');
+  const headerChip = $('header-chip'), coverRule = $('cover-rule'), stage = $('stage');
+  const scrollProg = $('scroll-prog'), collapseProg = $('collapse-prog');
+  const colSlider = $('collapse-slider'), colVal = $('col-val');
+  const rangeSlider = $('range-slider'), rangeVal = $('range-val');
+  const binaryTog = $('binary-tog'), resetBtn = $('reset-btn');
+  const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // Read heights from CSS variables at startup (respects mobile media query overrides)
   const cs   = getComputedStyle(document.documentElement);
   const FULL = parseFloat(cs.getPropertyValue('--cover-full')) || 530;
   const MIN  = parseFloat(cs.getPropertyValue('--cover-min'))  || 56;
 
-  let RANGE  = 320;
-  let manual = false;
-  let ticking = false;
+  // A wheel notch is ~100px — nearly a third of RANGE — and easeOutCubic turns that
+  // first notch into 68% of the collapse. Scroll therefore sets a *target* and the
+  // rendered progress eases toward it, so the header glides instead of snapping.
+  const EASE = 0.16, BLUR_STEP = 0.5;
+
+  let RANGE = 320, manual = false, raf = null, target = 0, current = 0, maxScroll = 1;
 
   function lerp(a, b, t)    { return a + (b - a) * t; }
   function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
   function ease(t)          { return 1 - Math.pow(1 - t, 3); } // easeOutCubic
 
-  function apply(rawE) {
-    // Under reduced motion: instant snap — no scrubbed morph
-    const e = motionMQ.matches ? (rawE > 0.5 ? 1 : 0) : rawE;
+  // Every write is guarded on its value actually changing, and quantized first, so a
+  // frame that changes nothing costs nothing — and the blur can reuse its raster.
+  const G = {};
+  const set = (k, v, fn) => { if (G[k] !== v) { G[k] = v; fn(v); } };
+  const q = (v, step) => Math.round(v / step) * step;
 
-    cover.style.height        = lerp(FULL, MIN, e)  + 'px';
-    coverBg.style.opacity     = lerp(1, 0.12, e);
-    coverBg.style.filter      = `blur(${lerp(0, 6, e)}px)`;
-    coverTitle.style.fontSize = lerp(26, 13, e)     + 'px';
+  // scrollHeight/clientHeight are layout reads: cache them instead of paying a
+  // forced reflow on every scroll event.
+  function measure() { maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight); }
 
-    const fadeEarly           = 1 - clamp(e * 3, 0, 1);
-    coverMeta.style.opacity   = fadeEarly;
-    coverSub.style.opacity    = fadeEarly;
-    coverAuthor.style.opacity = 1 - clamp(e * 2, 0, 1);
-    headerChip.style.opacity  = clamp((e - 0.5) * 2, 0, 1);
+  // Scroll progress -> collapse amount. Binary mode and reduced motion snap by design.
+  const snaps = () => motionMQ.matches || binaryTog.checked;
+  const curveOf = p => snaps() ? (p > 0.5 ? 1 : 0) : ease(p);
 
-    cover.style.boxShadow     = `0 1px 0 rgba(63,185,80,${lerp(0, 0.2, e)})`;
-    collapseProg.textContent  = Math.round(e * 100) + '%';
+  // Takes the finished collapse value, so easing it bounds how far the header can
+  // travel in one frame — easing raw progress instead lets easeOutCubic (slope 3
+  // near zero) re-amplify a wheel notch back into a jump.
+  function render(e) {
+    set('h',     q(lerp(FULL, MIN, e), .5),      v => cover.style.height = v + 'px');
+    set('bgOp',  q(lerp(1, .12, e), .01),        v => coverBg.style.opacity = v);
+    set('blur',  q(lerp(0, 6, e), BLUR_STEP),    v => coverBg.style.filter = v > 0 ? `blur(${v}px)` : 'none');
+    set('scale', q(lerp(1, 13 / 26, e), .002),   v => coverTitle.style.transform = `scale(${v})`);
+    set('fade',  q(1 - clamp(e * 3, 0, 1), .01), v => { coverMeta.style.opacity = v; coverSub.style.opacity = v; });
+    set('auth',  q(1 - clamp(e * 2, 0, 1), .01), v => coverAuthor.style.opacity = v);
+    set('chip',  q(clamp((e - .5) * 2, 0, 1), .01), v => headerChip.style.opacity = v);
+    set('rule',  q(e, .01),                      v => coverRule.style.opacity = v);
+    set('pct',   Math.round(e * 100), v => {
+      collapseProg.textContent = v + '%';
+      if (!manual) { colSlider.value = v; colVal.textContent = v + '%'; }
+    });
   }
 
-  function computeE(scrollTop) {
-    const p = clamp(scrollTop / RANGE, 0, 1);
-    return binaryTog.checked ? (p > 0.5 ? 1 : 0) : ease(p);
+  function tick() {
+    const d = target - current;
+    if (Math.abs(d) < 0.0005) { current = target; render(current); raf = null; return; }
+    current += d * EASE;
+    render(current);
+    raf = requestAnimationFrame(tick);
   }
-
-  function update() {
-    const st  = stage.scrollTop;
-    const max = stage.scrollHeight - stage.clientHeight;
-    scrollProg.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
-    if (!manual) {
-      const e = computeE(st);
-      colSlider.value    = Math.round(e * 100);
-      colVal.textContent = Math.round(e * 100) + '%';
-      apply(e);
-    }
-    ticking = false;
+  function schedule() {
+    if (snaps()) { current = target; render(current); return; }
+    if (raf === null) raf = requestAnimationFrame(tick);
   }
 
   stage.addEventListener('scroll', () => {
     manual = false;
-    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    target = curveOf(clamp(stage.scrollTop / RANGE, 0, 1));
+    set('sp', Math.round(stage.scrollTop / maxScroll * 100), v => scrollProg.textContent = v + '%');
+    schedule();
   }, { passive: true });
 
   colSlider.addEventListener('input', () => {
     manual = true;
-    const p    = colSlider.value / 100;
-    const rawE = binaryTog.checked ? (p > 0.5 ? 1 : 0) : ease(p);
-    colVal.textContent        = colSlider.value + '%';
-    collapseProg.textContent  = Math.round(rawE * 100) + '%';
-    apply(rawE);
+    colVal.textContent = colSlider.value + '%';
+    target = curveOf(colSlider.value / 100);
+    schedule();
   });
 
   rangeSlider.addEventListener('input', () => {
     RANGE = parseInt(rangeSlider.value);
     rangeVal.textContent = RANGE + 'px';
-    if (!manual) update();
+    if (!manual) { target = curveOf(clamp(stage.scrollTop / RANGE, 0, 1)); schedule(); }
   });
 
   binaryTog.addEventListener('change', () => {
-    if (manual) {
-      const p = colSlider.value / 100;
-      apply(binaryTog.checked ? (p > 0.5 ? 1 : 0) : ease(p));
-    } else update();
+    for (const k in G) delete G[k];        // the curve changed, so every value is stale
+    const p = manual ? colSlider.value / 100 : clamp(stage.scrollTop / RANGE, 0, 1);
+    target = curveOf(p);
+    schedule();
   });
 
   resetBtn.addEventListener('click', () => {
-    manual             = false;
-    stage.scrollTop    = 0;
-    colSlider.value    = 0;
-    colVal.textContent = '0%';
-    apply(0);
+    manual = false; stage.scrollTop = 0;
+    target = current = 0;
+    render(0);
   });
 
-  apply(0);
+  let rt;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(measure, 150); });
+
+  measure();
+  target = current = curveOf(clamp(stage.scrollTop / RANGE, 0, 1));
+  render(current);
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

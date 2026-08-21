@@ -56,6 +56,8 @@ position without any JS transform on the title element itself.
 | Cover full height | 530px (desktop) / 480px (mobile) | Starting cover height |
 | Cover min height | 56px (desktop) / 64px (mobile) | Collapsed header height |
 | Easing | easeOutCubic | Brisk start, settled finish |
+| `EASE` | 0.16 | Share of the remaining collapse covered per frame. Lower = smoother but laggier; above ~0.3 a wheel notch reads as a jump again |
+| `BLUR_STEP` | 0.5px | Granularity the backdrop blur snaps to, so the compositor can reuse its cached texture |
 
 ## Production notes
 
@@ -70,6 +72,22 @@ position without any JS transform on the title element itself.
   animate `clip-path` (layout-free) or `transform: scaleY()` on the inner
   element with `transform-origin: top`. This demo prioritises readability
   over raw performance.
+- **Turn off scroll anchoring.** This is the bug that bites everyone who builds a
+  collapsing header. When the cover shrinks, content above the viewport loses
+  height, so the browser "helpfully" adjusts `scrollTop` to keep what you are
+  looking at in place. That lowers scroll progress, which grows the cover back,
+  which moves the scroll again — the collapse stalls partway and the scroll feels
+  like it is fighting you. `overflow-anchor: none` on the scroll container ends it.
+  Any scroll-driven animation that changes the size of in-flow content needs this.
+- **Ease the finished value, not the raw progress.** A mouse wheel arrives in
+  ~100px jumps; with a 320px range that is a third of the animation per notch, and
+  easeOutCubic — slope 3 near zero — turns the first notch into 68% of the collapse.
+  Easing the *output* bounds how far the header can travel per frame no matter how
+  steep the curve is; easing the input lets the curve re-amplify the step.
+- **Never write `font-size` or `box-shadow` per frame.** `font-size` re-shapes the
+  text run (measured here as the single most expensive write); `box-shadow` repaints.
+  Use `transform: scale()` with a `transform-origin`, and fade a static hairline
+  element's `opacity` instead.
 - **Real-world examples.** Medium's article header, Apple's product detail
   pages, and Stripe's blog all implement variants of this morph. The
   distinguishing quality is always whether intermediate scroll states look
