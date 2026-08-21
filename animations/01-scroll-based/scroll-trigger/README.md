@@ -51,13 +51,15 @@ swatch.style.filter    = `hue-rotate(${p * 120}deg)`;
 |-----------|---------|--------|
 | Zone start | zone top, measured against the stage | Where the trigger fires. Must be in the scroll container's coordinate space, not `offsetTop` |
 | Zone height | 550px | The span over which a zone counts as active |
-| Scrub denominator | `zoneHeight − viewport × 0.5` | How much scrolling maps to 0→1 progress |
+| Scrub start | `top 80%` | Zone top at 80% down the viewport — just after the section appears |
+| Scrub end | `top 20%` | Zone top near the viewport top; the animation finishes as the section settles |
 | Run-out | one viewport | Trailing space so the final zone can exit and fire `onLeave` |
 
 ## Production notes
 
 - **GSAP ScrollTrigger** is the production standard. It handles scroll direction, pinning, scrubbing, snapping, and lifecycle callbacks with a clean declarative API. The vanilla JS approach here is educational — it replicates the underlying mechanics without GSAP's optimizations.
 - **`IntersectionObserver` vs. scroll events.** IO is the right tool for lifecycle callbacks (enter/leave); scroll-position arithmetic is right for scrubbing. This demo derives both from scroll position so the two stay in lockstep — with IO the callback and the scrub can disagree by a frame.
+- **Anchor the scrub to where the section *enters*, not to where it reaches the top.** Measuring progress as `scrollTop − zoneTop` keeps it at zero until the section's top has climbed all the way to the top of the viewport — by which point the reader has watched a full screen of it sit motionless, and the animation only plays as it leaves. That reads as a broken or badly late trigger. GSAP's default `start: "top 80%"` / `end: "top 20%"` begins just after the section appears and finishes as it settles; here that moved each trigger roughly 0.8 of a viewport earlier.
 - **`offsetTop` is not in the scroll container's coordinate space.** It is measured from the nearest *positioned* ancestor, which for a plain `overflow: scroll` panel is usually `body` — so it includes every pixel of page chrome above the container, while `scrollTop` starts at zero inside it. Comparing them directly put every trigger here 109px late. Measure the zone against the container's own box instead.
 - **Prime the state before logging callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: this log opened claiming zone 1 had fired `onEnterBack` and zones 2–4 `onLeaveBack`, before any scrolling. Record the initial state on the first pass and only emit transitions after that.
 - **Evaluate every trigger each frame, not just the active ones.** Updating a zone only while it is active leaves whatever value it happened to stop on — jump past a zone and its scrub never runs at all, and scrolling back to the top left the pinned card still reading "Step 3 of 3". Clamped progress resolves to 0 before a zone and 1 after it, so both ends settle correctly on their own.

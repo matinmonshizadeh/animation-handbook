@@ -169,7 +169,7 @@ body{padding-top:46px}
   const pinStep=document.getElementById('pin-step'),pinTitle=document.getElementById('pin-title'),pinBody=document.getElementById('pin-body');
   const snapDots4=[...document.getElementById('snap-dots-z4').children],snapVal=document.getElementById('snap-val');
   const pills=[document.getElementById('pill1'),document.getElementById('pill2'),document.getElementById('pill3'),document.getElementById('pill4')];
-  const cbLog=document.getElementById('cb-log');
+  const cbLog=document.getElementById('cb-log'),EMPTY_LOG=cbLog.innerHTML;
   const PIN_STEPS=[['Step 1 of 3','Initialize','The trigger fires. The animation begins. State is set.'],['Step 2 of 3','Process','Scroll-linked progress drives every value. Each pixel is intentional.'],['Step 3 of 3','Complete','The trigger fires onLeave. State is captured. Callback logged.']];
   let ticking=false,prevState=[null,null,null,null],cbEvents=[],primed=false;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
@@ -191,6 +191,14 @@ body{padding-top:46px}
   }
   const zoneState=i=>{const vt=stage.scrollTop;
     if(vt+VH<=ZT[i])return'idle'; if(vt>=ZT[i]+ZH[i])return'past'; return'active'};
+
+  /* Scrub window, in GSAP's terms `start:"top 80%"` / `end:"top 20%"` — progress
+     begins once the zone's top has risen to 80% down the viewport (just after it
+     appears) and completes as it settles near the top. Measuring from the zone top
+     alone, as this did before, held progress at 0 until the section had already
+     scrolled fully into view — roughly 0.8 of a viewport late. */
+  const START=0.8,END=0.2;
+  const scrub=i=>clamp((stage.scrollTop-(ZT[i]-START*VH))/((START-END)*VH),0,1);
   function logEvent(msg){cbEvents=[msg,...cbEvents].slice(0,5);cbLog.innerHTML=cbEvents.map(e=>`<span>${e}</span>`).join('')}
   const NAMES=['Fade on Enter','Scrub','Pin + Scrub','Snap'];
 
@@ -222,19 +230,19 @@ body{padding-top:46px}
     // Zone 1 — fade on enter
     set('reveal',states[0]==='active',v=>reveal.classList.toggle('active',v));
     // Zone 2 — scrub
-    const p2=clamp((st-ZT[1])/(ZH[1]-VH*.5),0,1);
+    const p2=scrub(1);
     set('p2',Math.round(p2*200)/200,v=>{
       swatch.style.transform=`rotate(${lerp(0,180,v)}deg) scale(${lerp(1,1.3,v)})`;
       swatch.style.filter=`hue-rotate(${lerp(0,120,v)}deg)`;
       scrubVal.textContent=`progress: ${Math.round(v*100)}%`;
     });
     // Zone 3 — pin + scrub
-    const p3=clamp((st-ZT[2])/(ZH[2]-VH*.5),0,1);
+    const p3=scrub(2);
     set('p3',Math.min(2,Math.floor(p3*3)),v=>{
       pinStep.textContent=PIN_STEPS[v][0];pinTitle.textContent=PIN_STEPS[v][1];pinBody.textContent=PIN_STEPS[v][2];
     });
     // Zone 4 — snap
-    const p4=clamp((st-ZT[3])/ZH[3],0,1);
+    const p4=scrub(3);
     set('p4',Math.round(p4*5),v=>{
       snapDots4.forEach((d,i)=>{d.classList.toggle('lit',i<v);d.style.background=i<v?'#f85149':'var(--ui-border)'});
       snapVal.textContent=`${v} / 5 lit`;
@@ -243,7 +251,7 @@ body{padding-top:46px}
   }
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
   document.getElementById('reset-btn').addEventListener('click',()=>{
-    stage.scrollTop=0;cbEvents=[];cbLog.innerHTML='';primed=false;measure();update();
+    stage.scrollTop=0;cbEvents=[];cbLog.innerHTML=EMPTY_LOG;primed=false;measure();update();
   });
   let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
   measure();update();
