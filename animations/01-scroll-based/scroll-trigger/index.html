@@ -23,17 +23,19 @@
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
     header{margin-bottom:20px}
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
     .stage::-webkit-scrollbar{display:none}
     .zone{min-height:550px;padding:32px 24px;border-top:1px dashed;border-bottom:1px dashed;position:relative;display:flex;flex-direction:column;justify-content:center}
     .zone-tag{position:absolute;top:10px;left:12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;opacity:.8}
+    .run-out{height:var(--stage-h);display:flex;align-items:center;justify-content:center;
+             font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ui-muted);opacity:.5}
     .z1{background:rgba(88,166,255,.06);border-color:rgba(88,166,255,.25)}
     .z2{background:rgba(191,145,243,.06);border-color:rgba(191,145,243,.25)}
     .z3{background:rgba(63,185,80,.06);border-color:rgba(63,185,80,.25)}
@@ -73,7 +75,9 @@
     .cb-log{display:flex;flex-direction:column;gap:2px;font-size:9px;color:var(--ui-muted);font-family:monospace;min-height:70px}
     button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}
+      /* in a column container `flex:1` makes flex-basis the height and overrides --stage-h */
+      .stage{flex:none;width:100%}:root{--stage-h:480px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -134,6 +138,9 @@ body{padding-top:46px}
         <div style="font-size:11px;color:var(--ui-muted)" id="snap-val">0 / 5 lit</div>
       </div>
     </div>
+    <!-- Without a viewport's worth of run-out the last zone can never scroll past
+         the top, so it could never finish its scrub or fire onLeave. -->
+    <div class="run-out">all zones exited · scroll back up to replay</div>
   </div>
   <aside>
     <p class="note">ScrollTrigger isn't an animation type — it's the MECHANISM that fires animations at the right scroll position. The four zones below show its core behaviors. In production, GSAP's ScrollTrigger plugin handles all of this.</p>
@@ -164,53 +171,82 @@ body{padding-top:46px}
   const pills=[document.getElementById('pill1'),document.getElementById('pill2'),document.getElementById('pill3'),document.getElementById('pill4')];
   const cbLog=document.getElementById('cb-log');
   const PIN_STEPS=[['Step 1 of 3','Initialize','The trigger fires. The animation begins. State is set.'],['Step 2 of 3','Process','Scroll-linked progress drives every value. Each pixel is intentional.'],['Step 3 of 3','Complete','The trigger fires onLeave. State is captured. Callback logged.']];
-  let ticking=false,prevState=[null,null,null,null],cbEvents=[];
+  let ticking=false,prevState=[null,null,null,null],cbEvents=[],primed=false;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
   const lerp=(a,b,t)=>a+(b-a)*t;
-  function zoneProgress(zone){const vt=stage.scrollTop,vb=vt+stage.clientHeight,zt=zone.offsetTop,zb=zt+zone.offsetHeight;if(vb<=zt||vt>=zb)return null;return clamp((vt-zt)/(zone.offsetHeight-stage.clientHeight),0,1)}
-  function zoneState(zone){const vt=stage.scrollTop,vb=vt+stage.clientHeight,zt=zone.offsetTop,zb=zt+zone.offsetHeight;if(vb<=zt)return'idle';if(vt>=zb)return'past';return'active'}
+  const G={},set=(k,v,fn)=>{if(G[k]!==v){G[k]=v;fn(v)}};
+
+  /* Zone geometry, cached. offsetTop is measured from the nearest positioned
+     ancestor — here body, since .stage is static — while scrollTop is measured
+     from the scroll container's content origin. Comparing the two directly put
+     every trigger 109px late. Measure against the stage's own box instead. */
+  const ZONES=[zone1,zone2,zone3,zone4];
+  let ZT=[],ZH=[],VH=1,MAXS=1;
+  function measure(){
+    const sTop=stage.getBoundingClientRect().top,sy=stage.scrollTop;
+    ZT=ZONES.map(z=>Math.round(z.getBoundingClientRect().top-sTop+sy));
+    ZH=ZONES.map(z=>z.offsetHeight);
+    VH=stage.clientHeight;
+    MAXS=Math.max(1,stage.scrollHeight-stage.clientHeight);
+  }
+  const zoneState=i=>{const vt=stage.scrollTop;
+    if(vt+VH<=ZT[i])return'idle'; if(vt>=ZT[i]+ZH[i])return'past'; return'active'};
   function logEvent(msg){cbEvents=[msg,...cbEvents].slice(0,5);cbLog.innerHTML=cbEvents.map(e=>`<span>${e}</span>`).join('')}
   const NAMES=['Fade on Enter','Scrub','Pin + Scrub','Snap'];
+
   function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
-    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const states=[zoneState(zone1),zoneState(zone2),zoneState(zone3),zoneState(zone4)];
+    const st=stage.scrollTop;
+    set('prog',Math.round(st/MAXS*100),v=>scrollProg.textContent=v+'%');
+    const states=[0,1,2,3].map(zoneState);
     states.forEach((s,i)=>{
-      pills[i].textContent=`Zone ${i+1} · ${NAMES[i]} · ${s}`;
-      pills[i].className='pill'+(s==='active'?' active':s==='past'?' past':'');
+      set('pill'+i,s,v=>{
+        pills[i].textContent=`Zone ${i+1} · ${NAMES[i]} · ${v}`;
+        pills[i].className='pill'+(v==='active'?' active':v==='past'?' past':'');
+      });
+      // The first pass only records where things start. Without this the log
+      // opened claiming zone 1 fired onEnterBack and zones 2-4 fired onLeaveBack,
+      // none of which had happened.
+      if(!primed){prevState[i]=s;return}
       if(s!==prevState[i]){
         const ev=s==='active'?(prevState[i]==='idle'?'onEnter':'onEnterBack'):(s==='past'?'onLeave':'onLeaveBack');
-        logEvent(`${s==='active'?'→':'←'} zone ${i+1} · ${ev}`);
+        logEvent(`${ev.endsWith('Back')?'↑':'↓'} zone ${i+1} · ${ev}`);
         prevState[i]=s;
       }
     });
-    // Zone 1
-    reveal.classList.toggle('active',states[0]==='active');
-    // Zone 2
-    if(states[1]==='active'){
-      const p=clamp((st-zone2.offsetTop)/(zone2.offsetHeight-stage.clientHeight*.5),0,1);
-      swatch.style.transform=`rotate(${lerp(0,180,p)}deg) scale(${lerp(1,1.3,p)})`;
-      swatch.style.filter=`hue-rotate(${lerp(0,120,p)}deg)`;
-      scrubVal.textContent=`progress: ${Math.round(p*100)}%`;
-    }
-    // Zone 3
-    if(states[2]==='active'){
-      const p=clamp((st-zone3.offsetTop)/(zone3.offsetHeight-stage.clientHeight*.5),0,1);
-      const si=Math.min(2,Math.floor(p*3));
-      pinStep.textContent=PIN_STEPS[si][0];pinTitle.textContent=PIN_STEPS[si][1];pinBody.textContent=PIN_STEPS[si][2];
-    }
-    // Zone 4
-    if(states[3]==='active'||states[3]==='past'){
-      const p=clamp((st-zone4.offsetTop)/(zone4.offsetHeight),0,1);
-      const lit=Math.round(p*5);
-      snapDots4.forEach((d,i)=>{d.classList.toggle('lit',i<lit);d.style.background=i<lit?'#f85149':'var(--ui-border)'});
-      snapVal.textContent=`${lit} / 5 lit`;
-    }
+    primed=true;
+
+    /* Every zone is evaluated on every frame, not only while active. Skipping the
+       inactive ones left stale state behind: zone 2 never animated if you jumped
+       past it, and zone 3 still read "Step 3 of 3" back at the top. The clamped
+       progress resolves to 0 before a zone and 1 after it, so both ends settle. */
+    // Zone 1 — fade on enter
+    set('reveal',states[0]==='active',v=>reveal.classList.toggle('active',v));
+    // Zone 2 — scrub
+    const p2=clamp((st-ZT[1])/(ZH[1]-VH*.5),0,1);
+    set('p2',Math.round(p2*200)/200,v=>{
+      swatch.style.transform=`rotate(${lerp(0,180,v)}deg) scale(${lerp(1,1.3,v)})`;
+      swatch.style.filter=`hue-rotate(${lerp(0,120,v)}deg)`;
+      scrubVal.textContent=`progress: ${Math.round(v*100)}%`;
+    });
+    // Zone 3 — pin + scrub
+    const p3=clamp((st-ZT[2])/(ZH[2]-VH*.5),0,1);
+    set('p3',Math.min(2,Math.floor(p3*3)),v=>{
+      pinStep.textContent=PIN_STEPS[v][0];pinTitle.textContent=PIN_STEPS[v][1];pinBody.textContent=PIN_STEPS[v][2];
+    });
+    // Zone 4 — snap
+    const p4=clamp((st-ZT[3])/ZH[3],0,1);
+    set('p4',Math.round(p4*5),v=>{
+      snapDots4.forEach((d,i)=>{d.classList.toggle('lit',i<v);d.style.background=i<v?'#f85149':'var(--ui-border)'});
+      snapVal.textContent=`${v} / 5 lit`;
+    });
     ticking=false;
   }
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
-  update();
+  document.getElementById('reset-btn').addEventListener('click',()=>{
+    stage.scrollTop=0;cbEvents=[];cbLog.innerHTML='';primed=false;measure();update();
+  });
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
+  measure();update();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
