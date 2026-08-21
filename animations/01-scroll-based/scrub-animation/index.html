@@ -4,54 +4,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scrub Animation — Animation Handbook</title>
-  <meta name="description" content="Timeline linked to scroll position — scrub backward and the animation reverses perfectly.">
+  <meta name="description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Scrub Animation — Animation Handbook">
-  <meta property="og:description" content="Timeline linked to scroll position — scrub backward and the animation reverses perfectly.">
+  <meta property="og:description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Scrub Animation — Animation Handbook">
-  <meta name="twitter:description" content="Timeline linked to scroll position — scrub backward and the animation reverses perfectly.">
+  <meta name="twitter:description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrub Animation", "name": "Scrub Animation", "description": "Timeline linked to scroll position — scrub backward and the animation reverses perfectly.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrub Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrub Animation", "name": "Scrub Animation", "description": "The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrub Animation"}</script>
   <style>
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;
+          --ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;
+          --disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
     header{margin-bottom:20px}
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;
+           border:1px solid var(--ui-border);border-radius:8px}
     .stage::-webkit-scrollbar{display:none}
-    .scroll-space{height:1500px}
-    .scene{position:sticky;top:0;height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
-    svg#lens{overflow:visible}
-    .caption{margin-top:24px;font-size:11px;color:var(--ui-muted);letter-spacing:1px;text-align:center;min-height:20px}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    /* .track supplies the scroll budget; .pinned holds the scene still inside it */
+    .track{height:calc(var(--stage-h) * 3)}
+    .pinned{position:sticky;top:0;height:var(--stage-h);display:flex;flex-direction:column;
+            justify-content:center;gap:18px;padding:clamp(14px,3vw,26px)}
+    .flight{width:100%}
+    .rail{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2;stroke-dasharray:5 7;stroke-linecap:round}
+    .trail{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round}
+    .mark{fill:var(--ui-border)}
+    .mark.done{fill:var(--ui-accent)}
+    /* paint-order draws a background-coloured outline first, so a label stays legible
+       where the curve passes behind it */
+    .mark-label{font-size:9px;fill:var(--ui-muted);font-family:var(--mono);
+                paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+    .plane{fill:var(--ui-accent)}
+    .halo{fill:var(--ui-accent);opacity:.14}
+
+    /* seek bar — the whole point: scroll is a playhead, not a play button */
+    .player{border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-bg);padding:14px 16px}
+    .player-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px}
+    .frame{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,26px);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+    .frame span{color:var(--ui-muted);font-size:12px;font-family:var(--mono);font-weight:400}
+    .dir{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ui-muted);
+         border:1px solid var(--ui-border);border-radius:20px;padding:4px 10px;white-space:nowrap}
+    .dir.fwd{color:var(--ui-accent);border-color:var(--ui-accent)}
+    .dir.rev{color:#f0883e;border-color:#f0883e}
+    .seek{position:relative;height:8px;border-radius:6px;background:rgba(255,255,255,.07)}
+    .seek-fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px;background:var(--ui-accent)}
+    .seek-head{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;
+               background:var(--ui-text);border:3px solid var(--ui-accent)}
+    .ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--ui-muted)}
+
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);
+          border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
+    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
     .tbl{display:flex;flex-direction:column;gap:2px}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:38px;text-align:right;color:var(--ui-text);font-variant-numeric:tabular-nums}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);
+           font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .div{height:1px;background:var(--ui-border)}
-    .timeline{position:relative;height:20px;background:var(--ui-border);border-radius:10px;margin-top:4px;overflow:hidden}
-    .tl-fill{height:100%;background:var(--ui-accent);border-radius:10px;width:0%;transition:none}
-    .tl-ticks{position:absolute;top:0;left:0;right:0;bottom:0;display:flex}
-    .tl-tick{flex:1;border-right:1px solid rgba(255,255,255,.12)}
-    .jump-btns{display:flex;gap:6px}
-    .jump-btn{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:10px 4px;border-radius:4px;cursor:pointer;min-height:44px}
-    @media(hover:hover){.jump-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.scene{height:480px}}
-    @media(prefers-reduced-motion:reduce){.tl-fill{transition:none}}
+    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);
+           font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
+    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(max-width:600px){
+      .layout{flex-direction:column}aside{width:100%}
+      /* in a column container `flex:1` makes flex-basis the height and overrides --stage-h */
+      .stage{flex:none;width:100%}:root{--stage-h:480px}
+    }
+    @media(prefers-reduced-motion:reduce){.halo{display:none}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -71,116 +107,164 @@ body{padding-top:46px}
 <div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-trigger/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../pin-animation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scrub-animation/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
 <header>
   <h1>Scrub Animation</h1>
-  <p>Timeline linked to scroll position — scrub backward and the animation reverses perfectly.</p>
+  <p>The animation has no duration. Scroll position <em>is</em> the playhead — seek it anywhere, forward or back.</p>
 </header>
+
 <div class="layout">
   <div class="stage" id="stage">
-    <div class="scroll-space">
-      <div class="scene">
-        <svg id="lens" width="220" height="220" viewBox="-110 -110 220 220">
-          <!-- Lens body (main barrel) -->
-          <g id="lens-body">
-            <circle r="98" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
-            <circle r="82" fill="#111120" stroke="#2a2a4a" stroke-width="1"/>
-          </g>
-          <!-- Hood (outer rim) -->
-          <g id="lens-hood">
-            <circle r="105" fill="none" stroke="#4a4a6a" stroke-width="8" stroke-dasharray="12 4"/>
-            <circle r="99" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.4"/>
-          </g>
-          <!-- Iris aperture blades -->
-          <g id="iris">
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(0)  translate(0,-38)"/>
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(60) translate(0,-38)"/>
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(120) translate(0,-38)"/>
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(180) translate(0,-38)"/>
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(240) translate(0,-38)"/>
-            <ellipse rx="28" ry="8" fill="#2a2a3a" transform="rotate(300) translate(0,-38)"/>
-          </g>
-          <!-- Front glass element -->
-          <g id="lens-glass">
-            <circle r="56" fill="#0d2040" stroke="#58a6ff" stroke-width="1.5" opacity="0.9"/>
-            <circle r="44" fill="#091828" stroke="#3a6a9a" stroke-width="1"/>
-            <circle r="28" fill="#060e18" stroke="#2a4a6a" stroke-width="1"/>
-            <ellipse cx="-12" cy="-12" rx="8" ry="5" fill="rgba(88,166,255,0.08)" transform="rotate(-20,-12,-12)"/>
-          </g>
-          <!-- Core / sensor -->
-          <g id="lens-core">
-            <circle r="14" fill="#58a6ff" opacity="0.15"/>
-            <circle r="9" fill="#58a6ff" opacity="0.3"/>
-            <circle r="5" fill="#58a6ff" opacity="0.6"/>
+    <div class="track">
+      <div class="pinned">
+
+        <svg class="flight" viewBox="0 0 620 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <!-- The curve IS the timeline. Drawing the whole route up front means you can
+               always see where the current frame sits inside the animation. -->
+          <path id="rail" class="rail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
+          <path id="trail" class="trail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
+          <g id="marks"></g>
+          <g id="flyer">
+            <circle class="halo" r="17"/>
+            <path class="plane" d="M 13 0 L -9 -8 L -4 0 L -9 8 Z"/>
           </g>
         </svg>
-        <div class="caption" id="caption">01 · Assembled</div>
+
+        <div class="player">
+          <div class="player-top">
+            <div class="frame" id="frame">000<span> / 120</span></div>
+            <div class="dir" id="dir">idle</div>
+          </div>
+          <div class="seek">
+            <div class="seek-fill" id="seek-fill"></div>
+            <div class="seek-head" id="seek-head"></div>
+          </div>
+          <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        </div>
+
       </div>
     </div>
   </div>
+
   <aside>
-    <p class="note">Scrub is not a 'play' — it's a 'position'. The animation has no duration, no autoplay. Scroll IS the seek bar. Try scrolling halfway down, then back up — the parts reassemble perfectly.</p>
-    <div><div class="lbl">Playback</div>
+    <p class="note">A scrubbed animation is a <em>position</em>, not a playback. Nothing is playing — every scroll offset maps to one exact frame. Drag Seek below and you get those same frames without scrolling at all: scroll is simply one way to move the playhead.</p>
+    <div><div class="lbl">Playhead</div>
       <div class="tbl">
         <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
-        <div class="kv"><span>Stage</span><span class="v" id="stage-label">01 · Assembled</span></div>
-        <div class="kv"><span>Direction</span><span class="v" id="direction">·</span></div>
+        <div class="kv"><span>Frame</span><span class="v" id="frame-kv">000 / 120</span></div>
+        <div class="kv"><span>Direction</span><span class="v" id="dir-kv">idle</span></div>
       </div>
     </div>
     <div class="div"></div>
-    <div><div class="lbl">Timeline</div>
-      <div class="timeline"><div class="tl-fill" id="tl-fill"></div><div class="tl-ticks"><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div><div class="tl-tick"></div></div></div>
+    <div><div class="lbl" id="seek-lbl">Seek</div>
+      <div class="sr"><input type="range" id="seek-sl" aria-labelledby="seek-lbl" min="0" max="1000" value="0"><span class="sv" id="seek-val">0%</span></div>
     </div>
-    <div><div class="lbl">Jump to</div>
-      <div class="jump-btns">
-        <button class="jump-btn" id="j-start">Start</button>
-        <button class="jump-btn" id="j-mid">Middle</button>
-        <button class="jump-btn" id="j-end">End</button>
-      </div>
+    <div><div class="lbl" id="ease-lbl">Easing</div>
+      <select id="ease-sel" aria-labelledby="ease-lbl">
+        <option value="linear">linear — 1:1 with scroll</option>
+        <option value="inOut">ease in-out</option>
+        <option value="out">ease out</option>
+        <option value="in">ease in</option>
+      </select>
     </div>
+    <div class="div"></div>
+    <button id="reset-btn">Reset playhead</button>
   </aside>
 </div>
+
 <script>
-  const stage=document.getElementById('stage');
-  const hood=document.getElementById('lens-hood'),iris=document.getElementById('iris');
-  const glass=document.getElementById('lens-glass'),body_=document.getElementById('lens-body');
-  const core=document.getElementById('lens-core'),caption=document.getElementById('caption');
-  const scrollProg=document.getElementById('scroll-prog'),stageLabel=document.getElementById('stage-label');
-  const dirEl=document.getElementById('direction'),tlFill=document.getElementById('tl-fill');
-  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let ticking=false,lastSt=0;
-  const lerp=(a,b,t)=>a+(b-a)*t;
+  const $=id=>document.getElementById(id);
+  const stage=$('stage'),rail=$('rail'),trail=$('trail'),flyer=$('flyer'),marks=$('marks');
+  const frameEl=$('frame'),dirEl=$('dir'),seekFill=$('seek-fill'),seekHead=$('seek-head');
+  const progKv=$('scroll-prog'),frameKv=$('frame-kv'),dirKv=$('dir-kv');
+  const seekSl=$('seek-sl'),seekVal=$('seek-val'),easeSel=$('ease-sel');
+  const FRAMES=120;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
-  const ease=(t)=>t;
-  const CAPTIONS=['01 · Assembled','01 · Hood lifts','02 · Glass forward','03 · Iris opens','04 · Body separates','05 · Core exposed'];
+  const G={},set=(k,v,fn)=>{if(G[k]!==v){G[k]=v;fn(v)}};
+
+  const EASES={linear:t=>t,
+    inOut:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+    out:t=>1-Math.pow(1-t,3),
+    in:t=>t*t*t};
+
+  // Layout reads happen here only — never per frame, where they would force a reflow.
+  let LEN=1,MAXS=1;
+  function measure(){
+    LEN=rail.getTotalLength();
+    MAXS=Math.max(1,stage.scrollHeight-stage.clientHeight);
+    trail.style.strokeDasharray=LEN;
+    buildMarks();
+  }
+
+  function buildMarks(){
+    marks.innerHTML='';
+    for(let i=0;i<=4;i++){
+      const pt=rail.getPointAtLength(LEN*i/4);
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('class','mark');c.setAttribute('r','4');
+      c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y);
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('class','mark-label');t.setAttribute('x',pt.x);t.setAttribute('y',pt.y-12);
+      t.setAttribute('text-anchor','middle');t.textContent=i*25+'%';
+      marks.append(c,t);
+    }
+  }
+
+  let lastScroll=0,idleTimer=null,ticking=false;
+
+  function render(p){
+    const e=EASES[easeSel.value](p);
+    // Position and heading both come from the path itself, so the drawn trail and the
+    // moving plane can never disagree about where the current frame is.
+    const d=LEN*e,pt=rail.getPointAtLength(d);
+    const ahead=rail.getPointAtLength(Math.min(LEN,d+1.5));
+    const behind=rail.getPointAtLength(Math.max(0,d-1.5));
+    const angle=Math.atan2(ahead.y-behind.y,ahead.x-behind.x)*180/Math.PI;
+    set('fly',`${pt.x.toFixed(1)},${pt.y.toFixed(1)},${angle.toFixed(1)}`,
+        ()=>flyer.setAttribute('transform',`translate(${pt.x} ${pt.y}) rotate(${angle})`));
+    set('trail',Math.round(d*10)/10,v=>trail.style.strokeDashoffset=LEN-v);
+
+    const frame=Math.round(e*FRAMES),pct=Math.round(p*100);
+    set('frame',frame,v=>{
+      const s=String(v).padStart(3,'0');
+      frameEl.innerHTML=`${s}<span> / ${FRAMES}</span>`;
+      frameKv.textContent=`${s} / ${FRAMES}`;
+    });
+    set('pct',pct,v=>{
+      progKv.textContent=v+'%';
+      seekFill.style.width=v+'%';
+      seekHead.style.left=v+'%';
+      seekVal.textContent=v+'%';
+      if(document.activeElement!==seekSl)seekSl.value=v*10;
+    });
+    set('marks',Math.floor(e*4+1e-6),v=>{
+      [...marks.querySelectorAll('.mark')].forEach((c,i)=>c.classList.toggle('done',i<=v));
+    });
+  }
+
+  function setDir(d){
+    set('dir',d,v=>{
+      dirEl.textContent=v==='fwd'?'scrubbing':v==='rev'?'rewinding':'idle';
+      dirEl.className='dir'+(v==='idle'?'':' '+v);
+      dirKv.textContent=v==='fwd'?'forward':v==='rev'?'reverse':'idle';
+    });
+  }
+
   function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
-    const p=max>0?st/max:0;
-    scrollProg.textContent=Math.round(p*100)+'%';
-    tlFill.style.width=Math.round(p*100)+'%';
-    const ci=Math.round(p*5);stageLabel.textContent=CAPTIONS[ci];caption.textContent=CAPTIONS[ci];
-    dirEl.textContent=st>lastSt?'→ forward':st<lastSt?'← reverse':'· paused';lastSt=st;
-    if(motionMQ.matches){ticking=false;return}
-    // Stage 1 (0–18%): hood lifts
-    const t1=clamp(p/0.18,0,1);
-    hood.style.transform=`translateY(${lerp(0,-70,t1)}px)`;
-    hood.style.opacity=lerp(1,0,t1);
-    // Stage 2 (18–36%): glass forward
-    const t2=clamp((p-0.18)/0.18,0,1);
-    glass.style.transform=`translateY(${lerp(0,-45,t2)}px) scale(${lerp(1,1.15,t2)})`;
-    // Stage 3 (36–54%): iris rotates
-    const t3=clamp((p-0.36)/0.18,0,1);
-    iris.style.transform=`rotate(${lerp(0,90,t3)}deg)`;
-    // Stage 4 (54–72%): body separates
-    const t4=clamp((p-0.54)/0.18,0,1);
-    body_.style.transform=`translateX(${lerp(0,-65,t4)}px)`;body_.style.opacity=lerp(1,0.5,t4);
-    // Stage 5 (72–90%): core exposed
-    const t5=clamp((p-0.72)/0.18,0,1);
-    core.style.transform=`scale(${lerp(1,2,t5)})`;core.style.filter=`brightness(${lerp(1,2.5,t5)})`;
+    const st=stage.scrollTop;
+    if(st!==lastScroll){
+      setDir(st>lastScroll?'fwd':'rev');lastScroll=st;
+      clearTimeout(idleTimer);idleTimer=setTimeout(()=>setDir('idle'),260);
+    }
+    render(clamp(st/MAXS,0,1));
     ticking=false;
   }
+
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  document.getElementById('j-start').addEventListener('click',()=>stage.scrollTo({top:0,behavior:'smooth'}));
-  document.getElementById('j-mid').addEventListener('click',()=>stage.scrollTo({top:(stage.scrollHeight-stage.clientHeight)/2,behavior:'smooth'}));
-  document.getElementById('j-end').addEventListener('click',()=>stage.scrollTo({top:stage.scrollHeight-stage.clientHeight,behavior:'smooth'}));
-  update();
+  // Seeking and scrolling are the same act — the slider just moves the same playhead.
+  seekSl.addEventListener('input',()=>{stage.scrollTop=(seekSl.value/1000)*MAXS;update()});
+  easeSel.addEventListener('change',()=>{for(const k in G)delete G[k];update()});
+  $('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;lastScroll=0;setDir('idle');update()});
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
+
+  measure();update();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

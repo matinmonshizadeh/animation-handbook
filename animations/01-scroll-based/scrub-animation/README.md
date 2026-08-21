@@ -4,61 +4,61 @@
 
 ## What it is
 
-A multi-stage product disassembly animation where every transform is welded directly to scroll position. There is no autoplay, no duration, no easing that runs independently — scroll IS the seek bar. Scrubbing backward reassembles the product perfectly because animation state is computed entirely from a single `0–1` progress value derived from `scrollTop`. This demo shows a camera lens disassembling in five stages across ~800px of scroll distance.
+An animation with no duration and no playback. Every scroll offset maps to exactly one frame, computed from a single `0–1` progress value derived from `scrollTop` — so scrolling backward does not "reverse" anything, it simply seeks to an earlier position. The demo makes that literal: a flight path is drawn in full up front, progress paints a trail along it, and a frame counter and seek bar report the playhead. Because the whole route is visible at once, you can always see where the current frame sits inside the animation.
 
 ## When to use it
 
-- Product reveal pages where the user controls the pace of the reveal
-- Technical explainer sequences — processors, architecture, mechanical parts — that benefit from user-controlled inspection
-- Apple-style feature walkthroughs where each scroll increment advances the story
-- Any animation that must be perfectly reversible and inspectable at any intermediate state
+- Product reveals where the reader controls the pace instead of watching a clip
+- Technical explainers — mechanisms, architecture diagrams — that reward stopping mid-way and inspecting
+- Apple-style feature walkthroughs where each scroll increment advances a story
+- Any animation that must be perfectly reversible and legible at every intermediate state
 
 ## How it works
 
-The entire animation runs from one number:
+Everything comes from one number. Progress is scroll position over scrollable distance, clamped:
 
 ```js
-const progress = stage.scrollTop / (stage.scrollHeight - stage.clientHeight); // 0→1
+const p = clamp(stage.scrollTop / maxScroll, 0, 1);
+const e = ease(p);                 // the curve is optional; the mapping is the point
 ```
 
-Each stage occupies an 18% slice of the progress range. A `clamp` function extracts a local `t` for each stage:
+Position and heading are both read from the path itself, so the drawn trail and the moving object can never disagree about where the current frame is:
 
 ```js
-const t1 = clamp(progress / 0.18, 0, 1);              // Stage 1: 0–18%
-const t2 = clamp((progress - 0.18) / 0.18, 0, 1);     // Stage 2: 18–36%
-// …and so on
+const d  = pathLength * e;
+const pt = rail.getPointAtLength(d);
+// heading from two samples either side, so the object banks into its turns
+const a  = rail.getPointAtLength(d + 1.5), b = rail.getPointAtLength(d - 1.5);
+const angle = Math.atan2(a.y - b.y, a.x - b.x) * 180 / Math.PI;
+
+flyer.setAttribute('transform', `translate(${pt.x} ${pt.y}) rotate(${angle})`);
+trail.style.strokeDashoffset = pathLength - d;   // elapsed portion of the route
 ```
 
-Each SVG element's transform is applied in the rAF callback:
+The trail uses the standard line-drawing trick: `stroke-dasharray` is set to the full path length, and `stroke-dashoffset` counts down from it, revealing the stroke as progress advances.
 
-```js
-lensHood.style.transform  = `translateY(${lerp(0, -70, t1)}px)`;
-lensGlass.style.transform = `translateY(${lerp(0, -45, t2)}px) scale(${lerp(1, 1.15, t2)})`;
-iris.style.transform      = `rotate(${lerp(0, 90, t3)}deg)`;
-lensBody.style.transform  = `translateX(${lerp(0, -65, t4)}px)`;
-lensCore.style.transform  = `scale(${lerp(1, 2, t5)})`;
-```
-
-Reversing is automatic — `progress` decreases when scrolling up, so all `lerp` calls return earlier values.
+Nothing here is time-based, which is why the Seek slider in the panel produces identical frames without any scrolling at all — it just writes `scrollTop` and lets the same code run. Scroll is one input to a position, not a trigger for playback.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Stage count | 5 | Number of distinct disassembly phases |
-| Stage width | 18% | Fraction of total progress range per stage |
-| Scroll travel | ~800px | Total scroll distance for the full animation |
-| `lerp(a, b, t)` | — | Linear interpolation between start and end transform values |
+| Scroll budget | `3 × stage height` | How much scrolling the animation is spread across. Longer = finer control, slower to traverse |
+| `FRAMES` | 120 | Purely a readout, to make "one offset = one frame" concrete |
+| Easing | linear | Curve applied to progress. Linear is 1:1 with scroll; anything else redistributes the frames |
+| Sample offset | 1.5px | Distance either side of the playhead used to derive heading. Larger = smoother, less responsive banking |
 
 ## Production notes
 
-- **No `setInterval`, no animation loops.** The only "loop" is the rAF-throttled scroll listener. Scrub animations have no concept of time, only position.
-- **GSAP ScrollTrigger with `scrub: true`** is the production equivalent. A GSAP timeline is linked to scroll with `scrub: 1` (smoothing lag). The timeline treats `progress` as its playhead. Framer Motion's `useScroll` + `useTransform` achieves the same in React.
-- **SVG transforms.** Set `transform-box: fill-box; transform-origin: center` in CSS so rotation and scale behave relative to each SVG element's own center rather than the SVG viewport origin.
-- **Easing within stages.** This demo uses linear interpolation. In production, apply a per-stage easing function to `t` before passing to `lerp` — this lets parts accelerate into or decelerate out of each stage.
-- **Accessibility.** Continuous scroll-driven motion is a vestibular concern. Under `prefers-reduced-motion: reduce`, skip all transforms and show the fully assembled state statically.
+- **Scrub is a position, not a playback.** The mental model that causes bugs is treating scroll as a *play* trigger and then trying to reverse it. Compute state from progress every frame and reversal is free — there is no direction to track and no animation object to rewind.
+- **Never gate the update on a state.** Skipping the calculation when the section is "inactive" leaves whatever value it stopped on. Clamping progress to `0–1` instead means the frame resolves correctly no matter how the reader arrived, including jumping straight to the end.
+- **Give the reader the whole timeline.** The failure mode of an abstract scrubbed scene is that the viewer cannot tell where they are or how much is left, so the motion reads as noise. Drawing the full route up front and filling it in turns the animation into its own progress bar.
+- **Keep layout reads out of the frame loop.** `getTotalLength()`, `scrollHeight` and `clientHeight` are measured once and refreshed on resize. Reading them per frame forces a synchronous reflow on every scroll event.
+- **Library equivalents.** GSAP ScrollTrigger with `scrub: true` is the production standard, and `scrub: 0.5` adds a smoothing lag that makes wheel-notch scrolling feel less stepped. Framer Motion's `useScroll` + `useTransform` is the React equivalent; both are wrappers over exactly this progress-to-value mapping.
+- **Accessibility.** Nothing autoplays, so this is direct manipulation rather than imposed motion. Under `prefers-reduced-motion: reduce` the demo drops the decorative glow and keeps the mapping, since removing it entirely would leave the control inert rather than calmer.
 
 ## See also
 
-- [ScrollTrigger Animation](../scroll-trigger/) — the broader scroll trigger concept this pattern uses.
-- [Pin Animation](../pin-animation/) — a complementary pattern where content pins and advances in steps rather than scrubbing continuously.
+- [ScrollTrigger Animation](../scroll-trigger/) — the broader trigger lifecycle this pattern sits inside.
+- [Pin Animation](../pin-animation/) — a complementary pattern where content pins and advances in discrete steps rather than scrubbing continuously.
+- [Progress Bar](../progress-bar/) — the same `scrollTop / maxScroll` value, used as an indicator instead of a driver.

@@ -18,7 +18,7 @@ Techniques driven by scroll position.
   offset creates the peek, CSS Scroll-Driven Animations drive the scale.
 - [ScrollTrigger Animation](scroll-trigger/) — demonstrates the onEnter/onLeave/onEnterBack/
   onLeaveBack lifecycle using IntersectionObserver and vanilla scroll events.
-- [Scrub Animation](scrub-animation/) — a camera lens disassembles in five stages as you scroll;
+- [Scrub Animation](scrub-animation/) — a plane flies a drawn curve that doubles as the timeline;
   every transform is welded to scroll position with no autoplay.
 - [Pin Animation](pin-animation/) — a phone mockup and feature copy pin to the viewport via
   CSS sticky while four features swap in sequence during the scroll.

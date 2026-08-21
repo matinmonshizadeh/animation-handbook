@@ -49,7 +49,7 @@ All 124 techniques, each linked to its live demo.
 - **[Fly-in Fly-out Contact List](animations/01-scroll-based/fly-in-fly-out-contact-list/)** — Rows translate and fade through entry, active, and exit zones as you scroll — bidirectional and continuous.
 - **[Stacking Cards](animations/01-scroll-based/stacking-cards/)** — CSS Scroll-Driven Animations fan cards into a deck — per-index sticky offset creates the visible peek tab.
 - **[ScrollTrigger Animation](animations/01-scroll-based/scroll-trigger/)** — The onEnter / onLeave lifecycle demonstrated with vanilla JS — four scroll trigger zones.
-- **[Scrub Animation](animations/01-scroll-based/scrub-animation/)** — Every transform welded to scroll position — scrub backward and the animation reverses perfectly.
+- **[Scrub Animation](animations/01-scroll-based/scrub-animation/)** — Scroll position is the playhead — a flight path doubles as its own timeline, seekable in either direction.
 - **[Pin Animation](animations/01-scroll-based/pin-animation/)** — An element freezes in place while the page scrolls beneath it — CSS sticky, no JavaScript pinning.
 - **[Snap Scrolling](animations/01-scroll-based/snap-scrolling/)** — CSS scroll-snap-type creates a paginated, magnetic feel — mandatory, proximity, and none compared.
 - **[Scrollytelling](animations/01-scroll-based/scrollytelling/)** — Fractional chapter progress drives continuous depth crossfades across six ocean-layer chapters.
