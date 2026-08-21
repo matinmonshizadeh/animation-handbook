@@ -10,7 +10,7 @@ quality is already there; this is the distribution layer. Work top to bottom.
 GitHub → repo **Settings** (or the ⚙️ next to "About" on the repo home page):
 
 **Description:**
-> A visual reference of 124 web animation techniques — scroll effects, page transitions, micro-interactions, text, 3D, and ambient backgrounds. Every entry is a live, dependency-free demo.
+> A visual reference of 129 web animation techniques — scroll effects, page transitions, micro-interactions, text, 3D, and ambient backgrounds. Every entry is a live, dependency-free demo.
 
 **Website:** `https://matinmonshizadeh.github.io/animation-handbook/`
 
@@ -23,7 +23,7 @@ If you install the GitHub CLI (`gh`) later, this is one command:
 
 ```bash
 gh repo edit matinmonshizadeh/animation-handbook \
-  --description "A visual reference of 124 web animation techniques — scroll effects, page transitions, micro-interactions, text, 3D, and ambient backgrounds. Every entry is a live, dependency-free demo." \
+  --description "A visual reference of 129 web animation techniques — scroll effects, page transitions, micro-interactions, text, 3D, and ambient backgrounds. Every entry is a live, dependency-free demo." \
   --homepage "https://matinmonshizadeh.github.io/animation-handbook/" \
   --add-topic web-animation,css-animation,animation,frontend,web-development,javascript,motion-design,ui-animation,scroll-animation,microinteractions,webgl,awesome,reference,no-dependencies,github-pages
 ```
@@ -35,7 +35,7 @@ and share, which drives return visits.
 
 ## 2. Verify SEO is live (after pushing)
 
-- `https://matinmonshizadeh.github.io/animation-handbook/sitemap.xml` → should list 125 URLs
+- `https://matinmonshizadeh.github.io/animation-handbook/sitemap.xml` → should list 130 URLs
 - `https://matinmonshizadeh.github.io/animation-handbook/robots.txt` → should load
 - Submit the sitemap to **Google Search Console** (add the property, then Sitemaps → submit `sitemap.xml`).
 - Test the social card at https://opengraph.xyz — paste the homepage URL, confirm the og-image shows.
@@ -51,14 +51,14 @@ the hook.
 ### Show HN (news.ycombinator.com/submit)
 
 **Title:**
-> Show HN: Animation Handbook – 124 web animation techniques, each a live demo
+> Show HN: Animation Handbook – 129 web animation techniques, each a live demo
 
 **URL:** `https://matinmonshizadeh.github.io/animation-handbook/`
 
 **First comment (post immediately after submitting):**
 > I kept re-googling the same animation techniques and landing on either a
 > library's marketing page or a CodePen with no explanation. So I built a
-> reference: 124 techniques across scroll effects, page transitions,
+> reference: 129 techniques across scroll effects, page transitions,
 > micro-interactions, text, 3D, and ambient backgrounds. Each one is a single
 > self-contained HTML file — no build step, no framework, no dependencies — with
 > a short README on the mechanic and the production gotchas. It's meant to teach
@@ -68,7 +68,7 @@ the hook.
 ### Reddit — r/webdev (Showoff Saturday) and r/Frontend
 
 **Title:**
-> I built a handbook of 124 web animation techniques — every entry is a live, dependency-free demo
+> I built a handbook of 129 web animation techniques — every entry is a live, dependency-free demo
 
 **Body:**
 > Reference site for web animation, organized into 7 categories (scroll, entrance/exit,
@@ -81,7 +81,7 @@ the hook.
 
 ### dev.to / Hashnode article
 
-**Title:** `I catalogued 124 web animation techniques so you don't have to`
+**Title:** `I catalogued 129 web animation techniques so you don't have to`
 
 **Outline:**
 1. The problem — animation knowledge is scattered across libraries and CodePens.
@@ -94,7 +94,7 @@ the hook.
 
 ### X / Bluesky thread
 
-> 1/ I built Animation Handbook — 124 web animation techniques, each a live demo
+> 1/ I built Animation Handbook — 129 web animation techniques, each a live demo
 > you can open and read how it works. No dependencies, no build step. 🧵 <GIF>
 >
 > 2/ Scroll effects, page transitions, micro-interactions, kinetic type, WebGL,
@@ -111,7 +111,7 @@ awesome-web-animation) via PR.
 
 ### Product Hunt
 
-**Tagline:** `A live, dependency-free reference of 124 web animation techniques`
+**Tagline:** `A live, dependency-free reference of 129 web animation techniques`
 Schedule for a Tuesday–Thursday 12:01am PT. Line up 5–10 people to comment/upvote early.
 
 ---

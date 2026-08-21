@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Line Draw on Scroll — Animation Handbook</title>
+  <meta name="description" content="A long winding route embedded in the page draws itself as you scroll down it, popping waypoints as the line reaches them.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/svg-line-draw/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="SVG Line Draw on Scroll — Animation Handbook">
+  <meta property="og:description" content="A long winding route embedded in the page draws itself as you scroll down it, popping waypoints as the line reaches them.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/svg-line-draw/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SVG Line Draw on Scroll — Animation Handbook">
+  <meta name="twitter:description" content="A long winding route embedded in the page draws itself as you scroll down it, popping waypoints as the line reaches them.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "SVG Line Draw on Scroll", "name": "SVG Line Draw on Scroll", "description": "A long winding route embedded in the page draws itself as you scroll down it, popping waypoints as the line reaches them.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/svg-line-draw/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, SVG Line Draw on Scroll"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;
+          --ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;
+          --disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;
+           border:1px solid var(--ui-border);border-radius:8px}
+    .stage::-webkit-scrollbar{display:none}
+    /* The route lives IN the scrolling content — no pinning. Scrolling travels down it. */
+    .scene{padding:clamp(10px,2vw,20px)}
+    .scene svg{display:block;width:100%;height:auto}
+    .scene-cap{text-align:center;font-size:10px;color:var(--ui-muted);padding:8px 0 16px}
+    .guide{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2;stroke-dasharray:5 7;stroke-linecap:round}
+    .trail{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .dot{fill:var(--bg);stroke:var(--ui-accent);stroke-width:2.5}
+    /* paint-order draws a stage-coloured outline under each label, so text stays
+       legible where the line runs behind it */
+    .wp-label{font-family:var(--mono);font-size:13px;fill:var(--ui-text);
+              paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+    .wp-sub{font-family:var(--mono);font-size:10px;fill:var(--ui-muted);
+            paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+    .pop{opacity:0;transform:scale(.6);transform-box:fill-box;transform-origin:center;
+         transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .25s ease-out}
+    .wp.on .pop{opacity:1;transform:scale(1)}
+    .no-wps #wps{display:none}
+
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);
+          border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:38px;text-align:right;color:var(--ui-text);font-variant-numeric:tabular-nums}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);
+           font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .chk{display:flex;align-items:center;gap:8px;font-size:10px;min-height:44px;cursor:pointer}
+    .chk input{width:18px;height:18px;accent-color:var(--ui-accent);cursor:pointer}
+    .div{height:1px;background:var(--ui-border)}
+    @media(max-width:600px){
+      .layout{flex-direction:column}aside{width:100%}
+      /* in a column container `flex:1` makes flex-basis the height and overrides --stage-h */
+      .stage{flex:none;width:100%}:root{--stage-h:480px}
+    }
+    @media(prefers-reduced-motion:reduce){.pop{transition:none}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-velocity-skew/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../scrollspy-nav/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/svg-line-draw/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>SVG Line Draw on Scroll</h1>
+  <p>A long winding route embedded in the page draws itself as you scroll down it, popping waypoints as the line reaches them.</p>
+</header>
+
+<div class="layout">
+  <div class="stage" id="stage">
+    <div class="scene">
+      <svg id="map" viewBox="0 0 600 2200" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
+        <!-- faint dashed guide shows the full route before it is drawn -->
+        <path class="guide" d="M 300 80 C 510 160 530 300 340 400 C 150 500 90 620 260 730 C 440 840 520 960 340 1080 C 160 1200 100 1310 290 1410 C 490 1510 510 1650 310 1760 C 110 1870 150 2020 300 2120"/>
+        <path id="trail" class="trail" d="M 300 80 C 510 160 530 300 340 400 C 150 500 90 620 260 730 C 440 840 520 960 340 1080 C 160 1200 100 1310 290 1410 C 490 1510 510 1650 310 1760 C 110 1870 150 2020 300 2120"/>
+        <g id="wps">
+          <g class="wp" data-f="0.05"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">Depart</text><text class="wp-sub" x="20" y="17">km 0 — trailhead</text></g></g>
+          <g class="wp" data-f="0.27"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="-20" y="1" text-anchor="end">River crossing</text><text class="wp-sub" x="-20" y="17" text-anchor="end">km 12 — footbridge</text></g></g>
+          <g class="wp" data-f="0.50"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">Basecamp</text><text class="wp-sub" x="20" y="17">km 27 — overnight</text></g></g>
+          <g class="wp" data-f="0.73"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="-20" y="1" text-anchor="end">Summit ridge</text><text class="wp-sub" x="-20" y="17" text-anchor="end">km 39 — 2 410 m</text></g></g>
+          <g class="wp" data-f="0.95"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">Arrive</text><text class="wp-sub" x="20" y="17">km 46 — journey's end</text></g></g>
+        </g>
+      </svg>
+      <div class="scene-cap">— end of route —</div>
+    </div>
+  </div>
+
+  <aside>
+    <p class="note">The path is part of the page, not a pinned scene. <code>stroke-dasharray</code> is set to the path's length once; each scroll frame writes <code>stroke-dashoffset&nbsp;=&nbsp;length&nbsp;−&nbsp;drawn</code>, revealing exactly as much of the route as you have travelled.</p>
+    <div><div class="lbl">Progress</div>
+      <div class="tbl">
+        <div class="kv"><span>Scroll</span><span class="v" id="scroll-kv">0%</span></div>
+        <div class="kv"><span>Path drawn</span><span class="v" id="drawn-kv">0%</span></div>
+        <div class="kv"><span>Waypoints passed</span><span class="v" id="wp-kv">0 / 5</span></div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div><div class="lbl" id="ca-lbl">Line completes at</div>
+      <div class="sr"><input type="range" id="ca-sl" aria-labelledby="ca-lbl" min="60" max="100" value="85"><span class="sv" id="ca-val">85%</span></div>
+    </div>
+    <div><div class="lbl" id="ease-lbl">Easing</div>
+      <select id="ease-sel" aria-labelledby="ease-lbl">
+        <option value="linear">linear — 1:1 with scroll</option>
+        <option value="out">ease out — fast start</option>
+      </select>
+    </div>
+    <label class="chk"><input type="checkbox" id="wp-chk" checked> Waypoints</label>
+  </aside>
+</div>
+
+<script>
+  const $=id=>document.getElementById(id);
+  const stage=$('stage'),trail=$('trail'),map=$('map');
+  const scrollKv=$('scroll-kv'),drawnKv=$('drawn-kv'),wpKv=$('wp-kv');
+  const caSl=$('ca-sl'),caVal=$('ca-val'),easeSel=$('ease-sel'),wpChk=$('wp-chk');
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const EASES={linear:t=>t,out:t=>1-Math.pow(1-t,3)};
+
+  // Waypoints are placed AT known fractions of the path, so their trigger points are
+  // just LEN * fraction — no per-scroll geometry lookups ever.
+  const wps=[...document.querySelectorAll('.wp')].map(g=>({g,f:parseFloat(g.dataset.f),len:0,on:false}));
+
+  // Layout reads live here only — at init and on (debounced) resize, never per scroll.
+  let LEN=1,MAXS=1;
+  function measure(){
+    LEN=trail.getTotalLength();
+    MAXS=Math.max(1,stage.scrollHeight-stage.clientHeight);
+    trail.style.strokeDasharray=LEN;
+    for(const w of wps){
+      w.len=LEN*w.f;
+      const pt=trail.getPointAtLength(w.len);
+      w.g.setAttribute('transform',`translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+    }
+  }
+
+  let ticking=false,lastScroll=-1,lastDrawn=-1,lastCount=-1;
+  function update(){
+    const p=EASES[easeSel.value](clamp(stage.scrollTop/MAXS,0,1));
+    // The line finishes before the scroll does (COMPLETE_AT < 1), so the reader sees
+    // the route completed rather than leaving it clipped at the viewport edge.
+    // Clamp, don't gate: jumping to the end draws everything, back to top erases it.
+    const drawn=clamp(LEN*p/(caSl.value/100),0,LEN);
+    trail.style.strokeDashoffset=LEN-drawn;
+
+    let count=0;
+    for(const w of wps){
+      const on=drawn>=w.len;
+      if(on)count++;
+      if(on!==w.on){w.on=on;w.g.classList.toggle('on',on)}  // toggle only on change
+    }
+    const sPct=Math.round(clamp(stage.scrollTop/MAXS,0,1)*100),dPct=Math.round(drawn/LEN*100);
+    if(sPct!==lastScroll){lastScroll=sPct;scrollKv.textContent=sPct+'%'}
+    if(dPct!==lastDrawn){lastDrawn=dPct;drawnKv.textContent=dPct+'%'}
+    if(count!==lastCount){lastCount=count;wpKv.textContent=count+' / '+wps.length}
+    ticking=false;
+  }
+
+  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  caSl.addEventListener('input',()=>{caVal.textContent=caSl.value+'%';update()});
+  easeSel.addEventListener('change',update);
+  wpChk.addEventListener('change',()=>map.classList.toggle('no-wps',!wpChk.checked));
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
+
+  measure();update();
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

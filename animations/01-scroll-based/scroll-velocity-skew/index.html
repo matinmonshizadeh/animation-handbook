@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Velocity Skew — Animation Handbook</title>
+  <meta name="description" content="Rows shear in proportion to how fast you scroll — velocity, not position, drives the transform, so stopping lets everything spring back straight.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-velocity-skew/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Scroll Velocity Skew — Animation Handbook">
+  <meta property="og:description" content="Rows shear in proportion to how fast you scroll — velocity, not position, drives the transform, so stopping lets everything spring back straight.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-velocity-skew/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Scroll Velocity Skew — Animation Handbook">
+  <meta name="twitter:description" content="Rows shear in proportion to how fast you scroll — velocity, not position, drives the transform, so stopping lets everything spring back straight.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scroll Velocity Skew", "name": "Scroll Velocity Skew", "description": "Rows shear in proportion to how fast you scroll — velocity, not position, drives the transform, so stopping lets everything spring back straight.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-velocity-skew/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scroll Velocity Skew"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-bg)}
+    .stage::-webkit-scrollbar{display:none}
+    .content{padding:clamp(16px,3vw,32px);display:flex;flex-direction:column;gap:clamp(14px,2vw,22px)}
+    .row{display:flex;gap:clamp(10px,2vw,18px);align-items:center;padding:clamp(10px,1.6vw,16px);background:rgba(255,255,255,.03);border:1px solid var(--ui-border);border-radius:8px;will-change:transform}
+    .thumb{flex-shrink:0;width:clamp(72px,14vw,120px);aspect-ratio:4/3;border-radius:6px}
+    .meta{min-width:0;flex:1}
+    .m-title{font-family:var(--disp);font-weight:700;font-size:clamp(13px,1.8vw,17px);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .m-line{height:7px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:6px}
+    .m-line.short{width:62%}
+    .m-tag{font-size:10px;color:var(--ui-muted);margin-top:8px;letter-spacing:.5px}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;flex-direction:column;gap:4px}
+    .sr .row2{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .sr .row2 .v{color:var(--ui-text)}
+    input[type=range]{width:100%;min-height:44px;accent-color:var(--ui-accent);cursor:pointer}
+    .seg{display:flex;gap:6px}
+    .seg button{flex:1;min-height:44px;font:inherit;font-size:11px;color:var(--ui-muted);background:none;border:1px solid var(--ui-border);border-radius:6px;cursor:pointer}
+    .seg button[aria-pressed="true"]{color:var(--ui-text);border-color:var(--ui-accent);background:rgba(110,168,255,.08)}
+    .div{height:1px;background:var(--ui-border)}
+    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%}:root{--stage-h:480px}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../text-fill-on-scroll/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../svg-line-draw/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scroll-velocity-skew/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Scroll Velocity Skew</h1>
+  <p>Rows shear in proportion to how fast you scroll — velocity, not position, drives the transform, so stopping lets everything spring back straight.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage"><div class="content" id="content"></div></div>
+  <aside>
+    <p class="note" id="note">Skew is mapped to smoothed scroll velocity, not scroll position. Scroll fast and the rows shear; the moment you stop, velocity decays to zero and the shear relaxes away.</p>
+    <div class="lbl">Intensity</div>
+    <div class="sr">
+      <input type="range" id="intensity" min="0.1" max="0.8" step="0.05" value="0.35">
+      <div class="row2"><span>deg per px/f</span><span class="v" id="intensityVal">0.35</span></div>
+    </div>
+    <div class="lbl">Max skew</div>
+    <div class="sr">
+      <input type="range" id="maxSkew" min="4" max="20" step="1" value="12">
+      <div class="row2"><span>clamp</span><span class="v" id="maxSkewVal">12°</span></div>
+    </div>
+    <div class="lbl">Smoothing</div>
+    <div class="sr">
+      <input type="range" id="smooth" min="0.05" max="0.3" step="0.01" value="0.12">
+      <div class="row2"><span>lerp factor</span><span class="v" id="smoothVal">0.12</span></div>
+    </div>
+    <div class="lbl">Axis</div>
+    <div class="seg">
+      <button type="button" id="axisY" aria-pressed="true">skewY</button>
+      <button type="button" id="axisX" aria-pressed="false">skewX</button>
+    </div>
+    <div class="div"></div>
+    <div class="lbl">Live values</div>
+    <div class="kv"><span>Velocity</span><span class="v" id="velVal">+0.0 px/f</span></div>
+    <div class="kv"><span>Skew</span><span class="v" id="skewVal">0.00°</span></div>
+    <div class="kv"><span>Direction</span><span class="v" id="dirVal">·</span></div>
+    <div class="kv"><span>Position</span><span class="v" id="posVal">0%</span></div>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage'),content=document.getElementById('content');
+  const velVal=document.getElementById('velVal'),skewVal=document.getElementById('skewVal'),dirVal=document.getElementById('dirVal'),posVal=document.getElementById('posVal');
+  const note=document.getElementById('note');
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+
+  // Build ~14 media-card-like rows: gradient thumbnail + placeholder text lines.
+  const rows=[];
+  const NAMES=['Signal','Drift','Cascade','Vector','Halide','Meridian','Pulse','Strata','Kelvin','Orbit','Fathom','Relay','Cinder','Apex'];
+  for(let i=0;i<14;i++){
+    const hue=(210+i*22)%360;
+    const el=document.createElement('div');el.className='row';
+    el.innerHTML=`<div class="thumb" style="background:linear-gradient(135deg,hsl(${hue} 45% 42%),hsl(${(hue+40)%360} 55% 22%))"></div>`+
+      `<div class="meta"><div class="m-title">${String(i+1).padStart(2,'0')} — ${NAMES[i]}</div>`+
+      `<div class="m-line"></div><div class="m-line short"></div><div class="m-tag">scroll to shear</div></div>`;
+    content.appendChild(el);rows.push(el);
+  }
+
+  let INTENSITY=0.35,MAX=12,SMOOTH=0.12,axis='skewY';
+  let vel=0,lastTop=stage.scrollTop,lastSkew=0,running=false,scrolled=false,maxScroll=1,reduce=false;
+
+  // Layout reads live here only — never in the scroll handler.
+  function measure(){maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight);}
+
+  function applySkew(deg){
+    const r=Math.round(deg*100)/100;
+    if(r===lastSkew)return;               // guard: skip identical writes
+    lastSkew=r;
+    const t=r===0?'none':`${axis}(${r}deg)`;
+    for(const el of rows)el.style.transform=t;
+  }
+
+  function tick(){
+    const top=stage.scrollTop;
+    const raw=top-lastTop;lastTop=top;     // px moved this frame
+    vel+=(raw-vel)*SMOOTH;                 // lerp-smooth the raw delta
+    applySkew(reduce?0:clamp(vel*INTENSITY,-MAX,MAX));
+    velVal.textContent=(vel<0?'−':'+')+Math.abs(vel).toFixed(1)+' px/f';
+    skewVal.textContent=lastSkew.toFixed(2)+'°';
+    dirVal.textContent=Math.abs(vel)<0.05?'·':(vel>0?'↓':'↑');
+    posVal.textContent=Math.round(top/maxScroll*100)+'%';
+    if(Math.abs(vel)<0.01&&!scrolled){     // settled: park the loop
+      vel=0;applySkew(0);
+      velVal.textContent='+0.0 px/f';skewVal.textContent='0.00°';dirVal.textContent='·';
+      running=false;return;
+    }
+    scrolled=false;
+    requestAnimationFrame(tick);
+  }
+
+  stage.addEventListener('scroll',()=>{
+    scrolled=true;
+    if(!running){running=true;lastTop=stage.scrollTop;requestAnimationFrame(tick);}
+  },{passive:true});
+
+  const rangeIds=[['intensity','intensityVal',v=>{INTENSITY=v;return v.toFixed(2)}],
+                  ['maxSkew','maxSkewVal',v=>{MAX=v;return v+'°'}],
+                  ['smooth','smoothVal',v=>{SMOOTH=v;return v.toFixed(2)}]];
+  for(const[id,out,set]of rangeIds){
+    const inp=document.getElementById(id),lab=document.getElementById(out);
+    inp.addEventListener('input',()=>{lab.textContent=set(parseFloat(inp.value));});
+  }
+  const axisY=document.getElementById('axisY'),axisX=document.getElementById('axisX');
+  function setAxis(a){
+    axis=a;axisY.setAttribute('aria-pressed',a==='skewY');axisX.setAttribute('aria-pressed',a==='skewX');
+    lastSkew=NaN;applySkew(reduce?0:clamp(vel*INTENSITY,-MAX,MAX));
+  }
+  axisY.addEventListener('click',()=>setAxis('skewY'));
+  axisX.addEventListener('click',()=>setAxis('skewX'));
+
+  const rmq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  function onReduce(){
+    reduce=rmq.matches;
+    if(reduce){vel=0;lastSkew=NaN;applySkew(0);note.textContent='Reduced motion is on: scrolling stays normal but the skew is held at 0°. Velocity-driven shear is exactly the kind of motion this preference exists to suppress.';}
+  }
+  rmq.addEventListener('change',onReduce);onReduce();
+
+  let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(measure,150);});
+  measure();
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

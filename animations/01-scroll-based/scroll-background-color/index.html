@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll-Driven Background Color — Animation Handbook</title>
+  <meta name="description" content="The page background continuously blends between each section&#x27;s color as you scroll — interpolation through a palette, not a snap at boundaries.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-background-color/">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Scroll-Driven Background Color — Animation Handbook">
+  <meta property="og:description" content="The page background continuously blends between each section&#x27;s color as you scroll — interpolation through a palette, not a snap at boundaries.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-background-color/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Scroll-Driven Background Color — Animation Handbook">
+  <meta name="twitter:description" content="The page background continuously blends between each section&#x27;s color as you scroll — interpolation through a palette, not a snap at boundaries.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scroll-Driven Background Color", "name": "Scroll-Driven Background Color", "description": "The page background continuously blends between each section's color as you scroll — interpolation through a palette, not a snap at boundaries.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-background-color/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scroll-Driven Background Color"}</script>
+  <style>
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;background:#0d1124}
+    .stage::-webkit-scrollbar{display:none}
+    section{min-height:calc(var(--stage-h)*0.9);display:flex;flex-direction:column;justify-content:center;padding:clamp(20px,4vw,48px);background:transparent}
+    .num{font-size:clamp(11px,1.4vw,13px);letter-spacing:2px;color:rgba(255,255,255,.55)}
+    .stage h2{font-family:var(--disp);font-weight:800;font-size:clamp(24px,4.5vw,44px);letter-spacing:-.02em;margin:10px 0 14px;color:#f4f4f2}
+    .stage p{font-size:clamp(11px,1.4vw,13px);line-height:1.7;max-width:44ch;color:rgba(255,255,255,.7)}
+    .stage.light h2{color:#16161a}
+    .stage.light .num{color:rgba(0,0,0,.5)}
+    .stage.light p{color:rgba(0,0,0,.62)}
+    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .sr{display:flex;flex-direction:column;gap:4px}
+    .sr .row2{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
+    .sr .row2 .v{color:var(--ui-text)}
+    input[type=range]{width:100%;min-height:44px;accent-color:var(--ui-accent);cursor:pointer}
+    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
+    .tog{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;min-height:44px;user-select:none}
+    .tog input{accent-color:var(--ui-accent);width:18px;height:18px;flex-shrink:0}
+    .div{height:1px;background:var(--ui-border)}
+    .kv{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--ui-muted)}
+    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
+    .swatch{display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid var(--ui-border);vertical-align:middle;margin-right:6px}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%}:root{--stage-h:480px}}
+  </style>
+<style id="ah-inject">
+:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
+body{padding-top:46px}
+.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
+.ah-home{color:var(--ah-ink);font-weight:600}
+.ah-actions{display:flex;align-items:center;gap:2px}
+.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
+.ah-copied{color:var(--ah-accent)!important}
+@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
+@media print{.ah-bar{display:none}body{padding-top:0}}
+</style>
+</head>
+<body>
+<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scrollspy-nav/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scroll-background-color/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<header>
+  <h1>Scroll-Driven Background Color</h1>
+  <p>The page background continuously blends between each section's color as you scroll — interpolation through a palette, not a snap at boundaries.</p>
+</header>
+<div class="layout">
+  <div class="stage" id="stage"></div>
+  <aside>
+    <p class="note" id="note">Scroll position maps to a segment of the palette, and the two neighboring colors are interpolated. Toggle "Snap at boundaries" to see the difference between hard cuts and blending — the blend is what sells the effect.</p>
+    <div class="lbl">Theme</div>
+    <select id="theme" aria-label="Color theme">
+      <option value="dusk" selected>Dusk</option>
+      <option value="daylight">Daylight</option>
+      <option value="forest">Forest</option>
+    </select>
+    <div class="lbl">Blend window</div>
+    <div class="sr">
+      <input type="range" id="win" min="0.3" max="1" step="0.05" value="1">
+      <div class="row2"><span>of each segment</span><span class="v" id="winVal">1.00</span></div>
+    </div>
+    <label class="tog"><input type="checkbox" id="snap"> Snap at boundaries</label>
+    <div class="div"></div>
+    <div class="lbl">Live values</div>
+    <div class="kv"><span>Scroll</span><span class="v" id="pctVal">0%</span></div>
+    <div class="kv"><span>Segment</span><span class="v" id="segVal">1 → 2</span></div>
+    <div class="kv"><span>Background</span><span class="v"><span class="swatch" id="swatch"></span><span id="hexVal">#0d1124</span></span></div>
+  </aside>
+</div>
+<script>
+  const stage=document.getElementById('stage'),note=document.getElementById('note');
+  const pctVal=document.getElementById('pctVal'),segVal=document.getElementById('segVal');
+  const swatch=document.getElementById('swatch'),hexVal=document.getElementById('hexVal');
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+
+  const THEMES={
+    dusk:    [[13,17,36],[28,36,84],[70,44,120],[122,52,98],[88,40,34]],
+    daylight:[[18,26,48],[86,138,198],[235,228,214],[248,214,160],[40,52,72]],
+    forest:  [[10,26,20],[22,60,44],[46,108,78],[104,150,116],[16,42,50]]
+  };
+  const CHAPTERS=[
+    ['Departure','The first section owns the darkest color.','Scroll down and the ground shifts under the text.'],
+    ['Ascent','Halfway between two sections the background is','a literal mix of both palette entries.'],
+    ['Meridian','On light palettes the ink flips automatically —','luminance is computed, never assumed.'],
+    ['Descent','A narrower blend window holds each color steady','near section centers and blends only at edges.'],
+    ['Arrival','Snapping at boundaries shows what the effect','looks like without interpolation. Jarring.']
+  ];
+  stage.innerHTML=CHAPTERS.map((c,i)=>
+    `<section><div class="num">CHAPTER ${String(i+1).padStart(2,'0')}</div><h2>${c[0]}</h2><p>${c[1]}<br>${c[2]}</p></section>`).join('');
+
+  let PAL=THEMES.dusk,WIN=1,SNAP=false;
+  let maxScroll=1,lastBg='',isLight=false,ticking=false;
+
+  // Layout reads live here only — never in the scroll handler.
+  function measure(){maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight);}
+
+  const hex=n=>n.toString(16).padStart(2,'0');
+
+  function update(){
+    const p=clamp(stage.scrollTop/maxScroll,0,1);
+    const seg=p*(PAL.length-1);
+    const i=Math.min(Math.floor(seg),PAL.length-2);
+    let t=seg-i;
+    if(SNAP){t=t<.5?0:1;}
+    else{
+      t=clamp((t-(1-WIN)/2)/WIN,0,1); // remap into the blend window around the boundary
+      t=t*t*(3-2*t);                  // smoothstep
+    }
+    const a=PAL[i],b=PAL[i+1];
+    const r=Math.round(a[0]+(b[0]-a[0])*t),
+          g=Math.round(a[1]+(b[1]-a[1])*t),
+          bl=Math.round(a[2]+(b[2]-a[2])*t);
+    const css=`rgb(${r},${g},${bl})`;
+    if(css!==lastBg){                  // guard: skip identical writes
+      lastBg=css;
+      stage.style.background=css;
+      swatch.style.background=css;
+      hexVal.textContent='#'+hex(r)+hex(g)+hex(bl);
+      const lum=(0.2126*r+0.7152*g+0.0722*bl)/255;
+      const light=lum>0.55;
+      if(light!==isLight){isLight=light;stage.classList.toggle('light',light);}
+    }
+    pctVal.textContent=Math.round(p*100)+'%';
+    segVal.textContent=(i+1)+' → '+(i+2);
+  }
+
+  stage.addEventListener('scroll',()=>{
+    if(ticking)return;                 // rAF-coalesced: one update per frame
+    ticking=true;
+    requestAnimationFrame(()=>{ticking=false;update();});
+  },{passive:true});
+
+  const winInp=document.getElementById('win'),winVal=document.getElementById('winVal');
+  winInp.addEventListener('input',()=>{WIN=parseFloat(winInp.value);winVal.textContent=WIN.toFixed(2);update();});
+  document.getElementById('snap').addEventListener('change',e=>{SNAP=e.target.checked;update();});
+  document.getElementById('theme').addEventListener('change',e=>{PAL=THEMES[e.target.value];update();});
+
+  // Color change is not vestibular motion — the blend stays on under reduced
+  // motion, deliberately. There are no transform-based decorations to disable.
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    note.textContent='Reduced motion is on. The color blend is kept: it tracks scroll position directly and involves no movement, parallax, or transforms — background color is not vestibular motion.';
+  }
+
+  let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update();},150);});
+  measure();update();
+</script>
+<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
+</body>
+</html>

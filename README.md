@@ -1,14 +1,14 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 124 web animation techniques with live demos" width="820"></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 129 web animation techniques with live demos" width="820"></a>
 
 # Animation Handbook
 
-**A visual reference of 124 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
+**A visual reference of 129 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-124-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-129-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
 
 </div>
 
@@ -22,7 +22,7 @@ Every major web-animation technique in one place, each shown working. Open any f
 
 | # | Category | Count | What's in it |
 |:--:|----------|:-----:|--------------|
-| 01 | [Scroll-Based](#01) | 21 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
+| 01 | [Scroll-Based](#01) | 26 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
 | 02 | [Entrance & Exit](#02) | 13 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
 | 03 | [Page Transitions](#03) | 12 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
 | 04 | [Micro-Interactions](#04) | 29 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
@@ -32,11 +32,11 @@ Every major web-animation technique in one place, each shown working. Open any f
 
 ## Full catalog
 
-All 124 techniques, each linked to its live demo.
+All 129 techniques, each linked to its live demo.
 
 <a id="01"></a>
 
-### 01 · Scroll-Based · 21 techniques
+### 01 · Scroll-Based · 26 techniques
 
 <sub>Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling.</sub>
 
@@ -63,6 +63,11 @@ All 124 techniques, each linked to its live demo.
 - **[Zoom Into Image](animations/01-scroll-based/zoom-into-image/)** — clip-path expands from a framed card to full-bleed as you scroll — the portal effect.
 - **[Scroll Image Sequence](animations/01-scroll-based/scroll-image-sequence/)** — A canvas pinned with sticky; scroll progress maps to a frame index — the Apple product-scroll technique, frames drawn procedurally.
 - **[Smooth (Inertia) Scroll](animations/01-scroll-based/smooth-scroll/)** — Wheel and touch input eased toward a target each frame — weighted, gliding momentum instead of native jumps.
+- **[Text Fill on Scroll](animations/01-scroll-based/text-fill-on-scroll/)** — A pinned paragraph fills word by word as you scroll — pause mid-read, scroll back and it un-reads.
+- **[Scroll Velocity Skew](animations/01-scroll-based/scroll-velocity-skew/)** — Content shears with scroll speed and springs straight when you stop — motion mapped to velocity, not position.
+- **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A winding route draws itself down the page via stroke-dashoffset, passing waypoints as you travel.
+- **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A nav rail tracks the section in view with a sliding indicator — the docs-site pattern.
+- **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background blends between section palettes as you scroll, flipping text contrast on light stops.
 
 </details>
 

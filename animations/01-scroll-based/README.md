@@ -46,3 +46,13 @@ Techniques driven by scroll position.
   scroll progress maps to a frame index; the Apple product-scroll technique, frames drawn procedurally.
 - [Smooth (Inertia) Scroll](smooth-scroll/) — wheel and touch input eased toward a target each
   frame with a lerp, giving weighted, gliding momentum instead of the browser's instant jumps.
+- [Text Fill on Scroll](text-fill-on-scroll/) — a pinned paragraph fills word by word as scroll
+  progress sweeps through it; pause mid-read, scroll back and it un-reads exactly.
+- [Scroll Velocity Skew](scroll-velocity-skew/) — rows shear in proportion to scroll speed and spring
+  straight on stop — velocity mapping, in contrast to every position-mapped entry.
+- [SVG Line Draw on Scroll](svg-line-draw/) — a winding route draws itself down the page via
+  stroke-dashoffset, popping waypoints as the line reaches them.
+- [Scrollspy Navigation](scrollspy-nav/) — a nav rail tracks the section in view with a sliding
+  indicator; clicking smooth-scrolls, with the spy locked during programmatic scroll.
+- [Scroll-Driven Background Color](scroll-background-color/) — the stage background blends through a palette as
+  you scroll, flipping text contrast automatically on light stops.
