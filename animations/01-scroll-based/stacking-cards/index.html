@@ -164,7 +164,9 @@ body{padding-top:46px}
   const cardsSl=document.getElementById('cards-sl'),cardsValEl=document.getElementById('cards-val');
   const debugTog=document.getElementById('debug-tog'),jsTog=document.getElementById('js-tog');
   const supportsSDCA=CSS.supports('animation-timeline','scroll()');
+  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
   let numCards=5,scaleStep=0.10,peekPx=14,useJsFallback=!supportsSDCA,ticking=false,currentCards=[];
+  let contents=[],cardOffsets=[],cardsTop=0,cardsH=1,maxScroll=1,lastScales=[],lastProg='',lastTop='';
   if(!supportsSDCA){jsTog.checked=true}
 
   function buildCards(){
@@ -185,26 +187,46 @@ body{padding-top:46px}
         <div class="card__visual" style="background:${d.vis}"></div></div>`;
       cardsEl.appendChild(el);currentCards.push(el);
     });
+    contents=currentCards.map(c=>c.querySelector('.card__content'));
+    lastScales=currentCards.map(()=>-1);
     cardsEl.classList.toggle('js-fallback',useJsFallback);
-    requestAnimationFrame(update);
+    measure();requestAnimationFrame(update);
   }
 
   const lerp=(a,b,t)=>a+(b-a)*t,clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 
+  /* Geometry, measured once instead of per frame.
+     Do NOT use card.offsetTop here: .card is position:sticky, so offsetTop reports
+     where the card is *currently stuck*, which changes as you scroll — measuring
+     mid-scroll yielded offsets that ran backwards. offsetHeight is unaffected by
+     sticky, so accumulating heights gives each card's static offset at any scroll.
+     #cards itself is static, so its rect is a reliable origin. */
+  function measure(){
+    cardsTop=Math.round(cardsEl.getBoundingClientRect().top-stage.getBoundingClientRect().top+stage.scrollTop);
+    cardsH=Math.max(1,cardsEl.offsetHeight);
+    maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight);
+    let acc=0;
+    cardOffsets=currentCards.map(c=>{const o=acc;acc+=c.offsetHeight;return o});
+  }
+
   function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight,stageH=stage.clientHeight;
-    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const cardsTop=cardsEl.offsetTop;
+    const st=stage.scrollTop;
+    const prog=Math.round(st/maxScroll*100)+'%';
+    if(prog!==lastProg){scrollProg.textContent=prog;lastProg=prog}
+    // topmost = the last card whose sticky top has reached the stage top
     let top=0;
-    currentCards.forEach((c,i)=>{if(st>=cardsTop+c.offsetTop-stageH*0.4)top=i});
-    topmostEl.textContent=ALL_CARDS[top].num;
-    if(useJsFallback){
-      const cardsH=cardsEl.offsetHeight,N=currentCards.length;
-      const exitProgress=clamp((st-(cardsTop+cardsH-stageH))/cardsH,0,1);
-      currentCards.forEach((c,i)=>{
-        const ri=N-i,t=clamp((exitProgress-i/N)/((i+1)/N-i/N),0,1);
-        c.querySelector('.card__content').style.transform=`scale(${lerp(1,1+scaleStep-scaleStep*ri,t).toFixed(4)})`;
-      });
+    for(let i=0;i<cardOffsets.length;i++) if(st>=cardsTop+cardOffsets[i]) top=i;
+    const num=ALL_CARDS[top].num;
+    if(num!==lastTop){topmostEl.textContent=num;lastTop=num}
+    if(useJsFallback&&!motionMQ.matches){
+      // Mirrors the CSS exit-crossing timeline: 0 when #cards' top edge reaches the
+      // stage top, 1 when its bottom edge does. Card i owns the slice [i/N,(i+1)/N].
+      const N=currentCards.length,p=clamp((st-cardsTop)/cardsH,0,1);
+      for(let i=0;i<N;i++){
+        const t=clamp(p*N-i,0,1),ri=N-i;
+        const s=+lerp(1,1+scaleStep-scaleStep*ri,t).toFixed(4);
+        if(s!==lastScales[i]){contents[i].style.transform=`scale(${s})`;lastScales[i]=s}
+      }
     }
     ticking=false;
   }
@@ -212,21 +234,27 @@ body{padding-top:46px}
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
   scaleSl.addEventListener('input',()=>{
     scaleStep=scaleSl.value/100;scaleValEl.textContent=scaleStep.toFixed(2);
-    document.documentElement.style.setProperty('--scale-step',scaleStep);update();
+    document.documentElement.style.setProperty('--scale-step',scaleStep);
+    lastScales=lastScales.map(()=>-1);update();
   });
   peekSl.addEventListener('input',()=>{
     peekPx=+peekSl.value;peekValEl.textContent=peekPx+'px';
-    document.documentElement.style.setProperty('--peek',peekPx+'px');update();
+    document.documentElement.style.setProperty('--peek',peekPx+'px');
+    measure();update();          // peek changes each card's height, so geometry moves
   });
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
   cardsSl.addEventListener('input',()=>{numCards=+cardsSl.value;cardsValEl.textContent=numCards;buildCards()});
   debugTog.addEventListener('change',()=>document.querySelectorAll('.debug-badge').forEach(b=>b.classList.toggle('on',debugTog.checked)));
   jsTog.addEventListener('change',()=>{
     useJsFallback=jsTog.checked||!supportsSDCA;
     cardsEl.classList.toggle('js-fallback',useJsFallback);
-    if(!useJsFallback)currentCards.forEach(c=>c.querySelector('.card__content').style.removeProperty('transform'));
-    update();
+    // leaving the fallback (or honouring reduced motion) must clear the inline
+    // transforms, or a stale scale would sit on top of the CSS timeline
+    if(!useJsFallback||motionMQ.matches)contents.forEach(c=>c.style.removeProperty('transform'));
+    lastScales=lastScales.map(()=>-1);
+    measure();update();
   });
-  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;measure();update()});
   document.documentElement.style.setProperty('--scale-step',scaleStep);
   buildCards();
 </script>
