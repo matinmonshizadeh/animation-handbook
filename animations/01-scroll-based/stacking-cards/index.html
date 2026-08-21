@@ -33,8 +33,18 @@
     /* stage: the ONLY scroll container. no overflow on any descendant above .card */
     .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;background:var(--bg)}
     .stage::-webkit-scrollbar{display:none}
-    .spacer{height:500px}
+    /* lead-in: enough to scroll the first card up into the stack, but not so much
+       that the demo opens on an empty stage */
+    .spacer{height:calc(var(--stage-h) * 0.25)}
     #cards{--numcards:5;view-timeline-name:--cards-timeline;view-timeline-axis:block}
+    /* The run-out MUST be a real child of #cards. A sticky card stays pinned only
+       while its containing block extends below it, and the last card's bottom is
+       flush with the last card — so a spacer *after* #cards let the finished deck
+       slide straight off the top. Padding does not work either: the sticky
+       constraint is the containing block's content box, which excludes padding.
+       This element's height is the pinned window — how far you can keep scrolling
+       with the completed deck held on screen. */
+    .run-out{height:calc(var(--stage-h) * 0.3)}
     /* sticky is on .card — the outer wrapper — NOT on .card__content */
     .card{
       --index0:calc(var(--index) - 1);
@@ -46,7 +56,10 @@
       z-index:var(--index);
     }
     .card__content{
-      height:calc(var(--stage-h) - 80px);
+      /* Each card's total height is content + its peek padding, and the last card
+         carries the tallest stack of it. Subtracting the peek run keeps every card
+         within the stage, so the deepest card never clips at high card counts. */
+      height:calc(var(--stage-h) - 24px - (var(--numcards) - 1) * var(--peek));
       border-radius:16px;overflow:hidden;
       display:grid;grid-template-columns:55fr 45fr;
       box-shadow:0 16px 56px rgba(0,0,0,.65);
@@ -121,7 +134,6 @@ body{padding-top:46px}
   <div class="stage" id="stage">
     <div class="spacer"></div>
     <div id="cards"></div>
-    <div class="spacer"></div>
   </div>
   <aside>
     <p class="note">Sticky is on .card (not .card__content). padding-top per index peeks earlier cards above later ones. transform-origin:50% 0% collapses scale downward so peek tabs stay visible.</p>
@@ -187,6 +199,9 @@ body{padding-top:46px}
         <div class="card__visual" style="background:${d.vis}"></div></div>`;
       cardsEl.appendChild(el);currentCards.push(el);
     });
+    // run-out lives inside #cards so the last card can stay pinned to the end
+    const runOut=document.createElement('div');runOut.className='run-out';
+    cardsEl.appendChild(runOut);
     contents=currentCards.map(c=>c.querySelector('.card__content'));
     lastScales=currentCards.map(()=>-1);
     cardsEl.classList.toggle('js-fallback',useJsFallback);
