@@ -50,7 +50,10 @@
 
     .layer {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      will-change: transform, filter;
+      /* promote for transform only — hinting `filter` keeps the blur pass hot
+         and costs more memory than it saves */
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
     }
 
     /* ── Sidebar ── */
@@ -240,46 +243,93 @@ body{padding-top:46px}
   const slider  = document.getElementById('focalSlider');
   const stage   = document.querySelector('.scroll-stage');
   const VALUES  = ROWS.map(r => r.querySelector('.val'));
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isMobile  = window.innerWidth <= 600;
-  const MAX_BLUR   = isMobile ? 8 : 14;
-  const MAX_OFFSET = isMobile ? 60 : 120;
-  let manualOverride = false;
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
 
-  function applyFrame(f) {
-    if (reducedMotion) return;
-    let closestIdx = 0, closestDist = Infinity;
-    LAYERS.forEach((layer, i) => {
-      const dist = Math.abs(layer.depth - f);
-      if (dist < closestDist) { closestDist = dist; closestIdx = i; }
-      const blur   = Math.round(MAX_BLUR * dist * 10) / 10;
-      const offset = layer.speed * f * MAX_OFFSET;
-      layer.el.style.filter    = `blur(${blur}px)`;
-      layer.el.style.transform = `translateY(${offset}px)`;
-      VALUES[i].textContent = `${blur}px`;
-    });
-    ROWS.forEach((r, i) => r.classList.toggle('focused', i === closestIdx));
+  // A wheel notch arrives as one ~100px jump, so mapping scrollY straight onto the
+  // layers makes them step. Easing toward the target each frame turns steps into glide.
+  const EASE = 0.14;
+  const BLUR_STEP = 0.5;
+
+  let MAX_BLUR, MAX_OFFSET, maxScroll;
+  // Layout reads live here only — never in the scroll handler, where each one
+  // would force a synchronous reflow before the styles below are written.
+  function measure() {
+    const mobile = window.innerWidth <= 600;
+    MAX_BLUR = mobile ? 8 : 14;
+    MAX_OFFSET = mobile ? 60 : 120;
+    maxScroll = Math.max(1, stage.offsetHeight - window.innerHeight);
+  }
+
+  let target = 0, current = 0, raf = null, manual = false;
+  let lastFocus = -1, lastSlider = -1;
+  const lastBlur = LAYERS.map(() => -1), lastOffset = LAYERS.map(() => NaN);
+
+  function render(f) {
+    let idx = 0, best = Infinity;
+    for (let i = 0; i < LAYERS.length; i++) {
+      const layer = LAYERS[i], dist = Math.abs(layer.depth - f);
+      if (dist < best) { best = dist; idx = i; }
+      // Snapping blur to 0.5px steps lets the compositor reuse the blurred texture
+      // instead of re-rasterising five full-screen layers on every single frame.
+      const blur = Math.round(MAX_BLUR * dist / BLUR_STEP) * BLUR_STEP;
+      if (blur !== lastBlur[i]) {
+        layer.el.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+        VALUES[i].textContent = `${blur}px`;
+        lastBlur[i] = blur;
+      }
+      const offset = reduced ? 0 : layer.speed * f * MAX_OFFSET;
+      if (offset !== lastOffset[i]) {
+        layer.el.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+        lastOffset[i] = offset;
+      }
+    }
+    if (idx !== lastFocus) {
+      for (let i = 0; i < ROWS.length; i++) ROWS[i].classList.toggle('focused', i === idx);
+      lastFocus = idx;
+    }
+  }
+
+  function tick() {
+    const diff = target - current;
+    if (Math.abs(diff) < 0.0002) { current = target; render(current); raf = null; return; }
+    current += diff * EASE;
+    render(current);
+    raf = requestAnimationFrame(tick);
+  }
+  // Every input collapses into one frame, and the loop idles once nothing moves.
+  function schedule() {
+    if (reduced) { current = target; render(current); return; }
+    if (raf === null) raf = requestAnimationFrame(tick);
   }
 
   function onScroll() {
-    if (manualOverride) return;
-    const max = stage.offsetHeight - window.innerHeight;
-    const f     = Math.min(1, Math.max(0, window.scrollY / max));
-    slider.value = f * 100;
-    applyFrame(f);
+    if (manual) return;
+    target = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+    const v = Math.round(target * 100);
+    if (v !== lastSlider) { slider.value = v; lastSlider = v; }
+    schedule();
   }
 
   slider.addEventListener('input', () => {
-    manualOverride = true;
-    applyFrame(slider.value / 100);
+    manual = true; lastSlider = +slider.value; target = slider.value / 100; schedule();
   });
+  window.addEventListener('scroll', () => { manual = false; onScroll(); }, { passive: true });
 
-  window.addEventListener('scroll', () => {
-    manualOverride = false;
-    onScroll();
-  }, { passive: true });
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      measure(); lastBlur.fill(-1); lastOffset.fill(NaN); onScroll(); render(current);
+    }, 150);
+  });
+  reduceMQ.addEventListener('change', e => { reduced = e.matches; lastOffset.fill(NaN); schedule(); });
 
-  applyFrame(0);
+  // Seed from wherever the page actually starts — no fly-in on load.
+  measure();
+  target = current = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+  slider.value = lastSlider = Math.round(target * 100);
+  render(current);
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
