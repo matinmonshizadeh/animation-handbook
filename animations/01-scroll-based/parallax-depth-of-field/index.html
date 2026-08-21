@@ -32,93 +32,62 @@
       --ui-muted: #77777e;
       --disp: 'Bricolage','Arial Narrow',sans-serif;
       --mono: 'PlexMono',ui-monospace,Menlo,Consolas,monospace;
+      --stage-h: 620px;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--ui-text); font-family: var(--mono); -webkit-font-smoothing: antialiased; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);
+         -webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
+    header{margin-bottom:20px}
+    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
+    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
 
-    header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: clamp(10px, 2vh, 16px) clamp(12px, 3vw, 24px);
-      background: linear-gradient(to bottom, rgba(11,11,13,.92), transparent);
-      pointer-events: none;
+    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
+
+    .stage{
+      flex:1;min-width:0;height:var(--stage-h);
+      overflow-y:scroll;scrollbar-width:none;
+      border:1px solid var(--ui-border);border-radius:8px;
     }
-    header h1 { font-family: var(--disp); font-weight: 700; font-size: clamp(16px, 2.2vw, 22px); letter-spacing: -.01em; }
-    header p  { font-size: clamp(10px, 1.2vw, 12px); color: var(--ui-muted); margin-top: 6px; letter-spacing: .02em; line-height: 1.5; }
+    .stage::-webkit-scrollbar{display:none}
+    .scene{height:calc(var(--stage-h) * 4)}
+    .pinned{position:sticky;top:0;height:var(--stage-h);overflow:hidden}
 
-    .scroll-stage    { height: 500vh; position: relative; }
-    .sticky-viewport { position: sticky; top: 0; height: 100vh; overflow: hidden; }
-
-    .layer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    .layer{
+      position:absolute;top:0;left:0;width:100%;height:100%;
       /* promote for transform only — hinting `filter` keeps the blur pass hot
          and costs more memory than it saves */
-      will-change: transform;
-      transform: translate3d(0, 0, 0);
+      will-change:transform;transform:translate3d(0,0,0);
     }
 
-    /* ── Sidebar ── */
-    .sidebar {
-      position: fixed; right: 0; top: 50%; transform: translateY(-50%);
-      width: clamp(90px, 11vw, 120px); z-index: 200;
-      background: var(--ui-bg); border: 1px solid var(--ui-border);
-      border-right: none; border-radius: 8px 0 0 8px;
-      padding: 16px 12px;
-      display: flex; flex-direction: column; gap: 10px;
+    aside{
+      width:clamp(200px,22vw,240px);flex-shrink:0;
+      background:var(--ui-bg);border:1px solid var(--ui-border);
+      border-radius:8px;padding:16px;
+      display:flex;flex-direction:column;gap:10px;
     }
-    .s-label {
-      font-size: 9px; text-transform: uppercase;
-      letter-spacing: 1px; color: var(--ui-accent);
-    }
-    .slider-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-    }
-    .tick { font-size: 8px; color: var(--ui-muted); }
-    input[type=range].focal-slider {
-      writing-mode: vertical-lr; direction: rtl;
-      -webkit-appearance: slider-vertical; appearance: slider-vertical;
-      width: 44px; height: 96px; cursor: pointer;
-      accent-color: var(--ui-accent);
-    }
+    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;
+          border-left:2px solid var(--ui-accent);padding-left:8px}
+    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
+    .row{display:flex;justify-content:space-between;font-size:10px}
+    .row .v{color:var(--ui-text)}
+    .tbl{display:flex;flex-direction:column;gap:2px}
+    .tbl .row{font-size:10px;color:var(--ui-muted)}
+    .tbl .row.focused{color:var(--ui-accent)}
+    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
+    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr .sv{width:40px;text-align:right;color:var(--ui-text)}
+    .hint{display:flex;justify-content:space-between;font-size:9px;color:var(--ui-muted);margin-top:-4px}
+    .div{height:1px;background:var(--ui-border)}
 
-    /* ── Tablet ── */
-    @media (min-width: 601px) and (max-width: 1024px) {
-      input[type=range].focal-slider { height: 120px; }
+    @media(max-width:600px){
+      .layout{flex-direction:column}
+      aside{width:100%}
+      /* once the container is a column, `flex:1` makes flex-basis the *height*
+         and it would override --stage-h, stretching the stage to its content */
+      .stage{flex:none;width:100%}
+      :root{--stage-h:480px}
     }
-    .divider { height: 1px; background: var(--ui-border); }
-    .readout { display: flex; flex-direction: column; gap: 3px; }
-    .readout-row {
-      display: flex; justify-content: space-between;
-      font-size: 9px; color: var(--ui-muted);
-    }
-    .readout-row.focused { color: var(--ui-accent); }
-    .readout-row .val { color: var(--ui-text); }
-
-    @media (max-width: 600px) {
-      .sidebar {
-        right: auto; top: auto; bottom: 0; left: 0; width: 100%;
-        transform: none; border-radius: 8px 8px 0 0;
-        border: 1px solid var(--ui-border); border-bottom: none;
-        flex-flow: row wrap; align-items: center;
-        padding: 10px 16px; gap: 6px 12px;
-      }
-      .s-label { flex: 0 0 auto; }
-      .slider-wrap { flex-direction: row; align-items: center; flex: 1 1 auto; }
-      input[type=range].focal-slider {
-        writing-mode: horizontal-tb; direction: ltr;
-        -webkit-appearance: auto; appearance: auto;
-        flex: 1; width: auto; min-height: 44px;
-      }
-      .tick { display: none; }
-      /* turn the divider into a full-width line break: keeps "Blur" + readout on their own row */
-      .divider { flex: 0 0 100%; height: 0; background: none; }
-      .readout { flex: 1 1 auto; flex-direction: row; justify-content: space-between; gap: 4px; }
-      .readout-row { justify-content: flex-start; gap: 3px; }
-    }
-
-    /* ── Reduced motion ── */
-    @media (prefers-reduced-motion: reduce) {
-      .layer { will-change: auto; }
-    }
+    @media(prefers-reduced-motion:reduce){.layer{will-change:auto}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -142,8 +111,10 @@ body{padding-top:46px}
   <p>Five mountain layers translate at different speeds; a focal plane blurs each by its depth distance.</p>
 </header>
 
-<div class="scroll-stage">
-  <div class="sticky-viewport">
+<div class="layout">
+  <div class="stage" id="stage">
+   <div class="scene">
+    <div class="pinned">
 
     <!-- L5: Sky + stars (depth 0.0, static) -->
     <svg class="layer" id="l5" viewBox="0 0 1200 800"
@@ -203,27 +174,38 @@ body{padding-top:46px}
                 960,522 1120,492 1200,508 1200,800 0,800"/>
     </svg>
 
+    </div>
+   </div>
   </div>
-</div>
 
-<aside class="sidebar">
-  <div class="s-label">Focal Plane</div>
-  <div class="slider-wrap">
-    <span class="tick">near</span>
-    <input type="range" class="focal-slider" id="focalSlider" min="0" max="100" value="0"
-           aria-label="Focal plane distance (near to far)">
-    <span class="tick">far</span>
-  </div>
-  <div class="divider"></div>
-  <div class="s-label">Blur</div>
-  <div class="readout" id="readout">
-    <div class="readout-row" id="row-l5"><span>L5</span><span class="val">0px</span></div>
-    <div class="readout-row" id="row-l4"><span>L4</span><span class="val">0px</span></div>
-    <div class="readout-row" id="row-l3"><span>L3</span><span class="val">0px</span></div>
-    <div class="readout-row" id="row-l2"><span>L2</span><span class="val">0px</span></div>
-    <div class="readout-row" id="row-l1"><span>L1</span><span class="val">0px</span></div>
-  </div>
-</aside>
+  <aside>
+    <p class="note">Every layer sits at a fixed depth. The focal plane is one 0–1 value, and a layer's blur is simply its distance from that plane — so racking focus from the far sky to the near ridge is a single number changing.</p>
+    <div>
+      <div class="lbl">Scroll Progress</div>
+      <div class="row"><span>Progress</span><span class="v" id="progress">0%</span></div>
+    </div>
+    <div class="div"></div>
+    <div>
+      <div class="lbl" id="focal-label">Focal Plane</div>
+      <div class="sr">
+        <input type="range" id="focalSlider" aria-labelledby="focal-label" min="0" max="100" value="0">
+        <span class="sv" id="focal-val">0.00</span>
+      </div>
+      <div class="hint"><span>far</span><span>near</span></div>
+    </div>
+    <div class="div"></div>
+    <div>
+      <div class="lbl">Blur</div>
+      <div class="tbl" id="readout">
+        <div class="row" id="row-l5"><span>L5 · sky</span><span class="v">0px</span></div>
+        <div class="row" id="row-l4"><span>L4 · peaks</span><span class="v">0px</span></div>
+        <div class="row" id="row-l3"><span>L3 · mountains</span><span class="v">0px</span></div>
+        <div class="row" id="row-l2"><span>L2 · hills</span><span class="v">0px</span></div>
+        <div class="row" id="row-l1"><span>L1 · ridge</span><span class="v">0px</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
 
 <script>
   const LAYERS = [
@@ -241,8 +223,10 @@ body{padding-top:46px}
     document.getElementById('row-l1'),
   ];
   const slider  = document.getElementById('focalSlider');
-  const stage   = document.querySelector('.scroll-stage');
-  const VALUES  = ROWS.map(r => r.querySelector('.val'));
+  const stage   = document.getElementById('stage');          // the demo's own scroll container
+  const progressEl = document.getElementById('progress');
+  const focalEl = document.getElementById('focal-val');
+  const VALUES  = ROWS.map(r => r.querySelector('.v'));
   const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = reduceMQ.matches;
 
@@ -258,11 +242,11 @@ body{padding-top:46px}
     const mobile = window.innerWidth <= 600;
     MAX_BLUR = mobile ? 8 : 14;
     MAX_OFFSET = mobile ? 60 : 120;
-    maxScroll = Math.max(1, stage.offsetHeight - window.innerHeight);
+    maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight);
   }
 
   let target = 0, current = 0, raf = null, manual = false;
-  let lastFocus = -1, lastSlider = -1;
+  let lastFocus = -1, lastSlider = -1, lastPct = -1;
   const lastBlur = LAYERS.map(() => -1), lastOffset = LAYERS.map(() => NaN);
 
   function render(f) {
@@ -288,6 +272,8 @@ body{padding-top:46px}
       for (let i = 0; i < ROWS.length; i++) ROWS[i].classList.toggle('focused', i === idx);
       lastFocus = idx;
     }
+    const pct = Math.round(f * 100);
+    if (pct !== lastPct) { progressEl.textContent = `${pct}%`; focalEl.textContent = f.toFixed(2); lastPct = pct; }
   }
 
   function tick() {
@@ -305,7 +291,7 @@ body{padding-top:46px}
 
   function onScroll() {
     if (manual) return;
-    target = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+    target = Math.min(1, Math.max(0, stage.scrollTop / maxScroll));
     const v = Math.round(target * 100);
     if (v !== lastSlider) { slider.value = v; lastSlider = v; }
     schedule();
@@ -314,7 +300,7 @@ body{padding-top:46px}
   slider.addEventListener('input', () => {
     manual = true; lastSlider = +slider.value; target = slider.value / 100; schedule();
   });
-  window.addEventListener('scroll', () => { manual = false; onScroll(); }, { passive: true });
+  stage.addEventListener('scroll', () => { manual = false; onScroll(); }, { passive: true });
 
   let rt;
   window.addEventListener('resize', () => {
@@ -325,9 +311,9 @@ body{padding-top:46px}
   });
   reduceMQ.addEventListener('change', e => { reduced = e.matches; lastOffset.fill(NaN); schedule(); });
 
-  // Seed from wherever the page actually starts — no fly-in on load.
+  // Seed from wherever the stage actually starts — no fly-in on load.
   measure();
-  target = current = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+  target = current = Math.min(1, Math.max(0, stage.scrollTop / maxScroll));
   slider.value = lastSlider = Math.round(target * 100);
   render(current);
 </script>
