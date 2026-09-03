@@ -36,8 +36,8 @@ function drawPolygons(t) {
 **Concentric expanding rings** — rings spawn from center, expand outward, and fade:
 
 ```js
-// Spawn a new ring periodically
-if (Math.random() < 0.3) rings.push({ r: 0, color: randomColor() });
+// Spawn a new ring on a fixed interval of t, so spacing stays even at any speed
+if (t - lastSpawn >= 0.5) { lastSpawn = t; rings.push({ r: 0, color: randomColor() }); }
 
 // Update and draw each ring
 rings.forEach(ring => {

@@ -47,8 +47,7 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;width:100%}.ptab{min-height:44px}aside{width:100%}:root{--stage-h:420px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -109,9 +108,16 @@ const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage');
 let W,H,paused=false,raf=null,lastT=0,t=0;
 let PRESET=0,SPD=0.6,CX=6,PAL='cool',BG='#020408',CONTRAST=false;
+const RM=matchMedia('(prefers-reduced-motion:reduce)');
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
-resize();window.addEventListener('resize',resize);
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  W=stage.clientWidth;H=stage.clientHeight;
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!raf)repaint(); // keep a frame on screen while paused / reduced-motion
+}
+window.addEventListener('resize',resize);
 
 const PALETTES={
   cool:c=>`hsla(${200+c*10},70%,65%,`,
@@ -138,9 +144,9 @@ function drawPolygons(){
 }
 
 // PRESET 1: Concentric expanding rings
-let rings2=[];
+let rings2=[],ringT=-1e9;
 function updateRings(){
-  if(t-Math.floor(t)<.02&&Math.floor(t)%1===0&&Math.random()<.3)rings2.push({r:0,born:t,c:Math.floor(Math.random()*CX)});
+  if(t-ringT>=.5){ringT=t;rings2.push({r:0,born:t,c:Math.floor(Math.random()*CX)});}
   rings2=rings2.filter(r=>r.r<Math.max(W,H));
   rings2.forEach(r=>{r.r+=SPD*2;});
 }
@@ -191,11 +197,7 @@ function drawLines(){
   }
 }
 
-function loop(ts){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(loop);
-  const dt=ts-lastT;if(dt<16)return;lastT=ts;
-  t+=SPD*.01;
+function render(){
   ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
   if(PRESET===0)drawPolygons();
   else if(PRESET===1){updateRings();drawRings();}
@@ -203,20 +205,38 @@ function loop(ts){
   else drawLines();
 }
 
+// Reduced motion: one representative still frame instead of the loop.
+function still(){
+  t=1.2;
+  if(PRESET===1){const m=Math.max(W,H);ringT=t;rings2=[];for(let i=0;i<6;i++)rings2.push({r:m*(i+1)/7,born:t,c:i%CX});}
+  render();
+}
+function repaint(){RM.matches?still():render();}
+
+function loop(ts){
+  if(paused){raf=null;return;}
+  if(RM.matches){raf=null;still();return;}
+  raf=requestAnimationFrame(loop);
+  const dt=ts-lastT;if(dt<16)return;lastT=ts;
+  t+=SPD*.01;
+  render();
+}
+
+resize();
 raf=requestAnimationFrame(loop);
 
 document.querySelectorAll('.ptab').forEach(b=>{
   b.addEventListener('click',()=>{
     PRESET=+b.dataset.idx;
     document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');rings2=[];
+    b.classList.add('active');rings2=[];ringT=-1e9;if(!raf)repaint();
   });
 });
-document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('cx-sl').addEventListener('input',e=>{CX=+e.target.value;document.getElementById('cx-v').textContent=CX;});
-document.getElementById('pal-sel').addEventListener('change',e=>{PAL=e.target.value;});
-document.getElementById('bg-sel').addEventListener('change',e=>{BG=e.target.value;});
-document.getElementById('contrast-tog').addEventListener('change',e=>{CONTRAST=e.target.checked;});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);if(!raf)repaint();});
+document.getElementById('cx-sl').addEventListener('input',e=>{CX=+e.target.value;document.getElementById('cx-v').textContent=CX;if(!raf)repaint();});
+document.getElementById('pal-sel').addEventListener('change',e=>{PAL=e.target.value;if(!raf)repaint();});
+document.getElementById('bg-sel').addEventListener('change',e=>{BG=e.target.value;if(!raf)repaint();});
+document.getElementById('contrast-tog').addEventListener('change',e=>{CONTRAST=e.target.checked;if(!raf)repaint();});
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
   if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}

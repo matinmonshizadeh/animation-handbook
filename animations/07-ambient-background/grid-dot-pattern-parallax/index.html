@@ -79,8 +79,8 @@
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
-    .color-row{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted)}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
+    .color-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted)}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}input[type=color]{height:44px}}
     @media(prefers-reduced-motion:reduce){.pattern-layer{transition:none!important}.auto-drift{animation-duration:300s!important}}
   </style>
 <style id="ah-inject">
@@ -146,6 +146,7 @@ body{padding-top:46px}
   const cursor=document.getElementById('cursor');
   const stage=document.getElementById('stage');
   let W=0,H=0,str=5,spotOn=true,hasMouse=false,raf=null,autoT=0;
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 
   function resize(){W=stage.clientWidth;H=stage.clientHeight;}
   resize();window.addEventListener('resize',resize);
@@ -163,6 +164,9 @@ body{padding-top:46px}
     cursor.style.left=x+'px';cursor.style.top=y+'px';
     if(spotOn){spotlight.style.left=x+'px';spotlight.style.top=y+'px';spotlight.style.opacity='1';}
   });
+  stage.addEventListener('touchstart',()=>{if(raf){cancelAnimationFrame(raf);raf=null;}},{passive:true});
+  stage.addEventListener('touchend',startAuto,{passive:true});
+  stage.addEventListener('touchcancel',startAuto,{passive:true});
   stage.addEventListener('touchmove',e=>{
     const r=stage.getBoundingClientRect();
     const x=e.touches[0].clientX-r.left,y=e.touches[0].clientY-r.top;
@@ -171,6 +175,8 @@ body{padding-top:46px}
   },{passive:true});
 
   function startAuto(){
+    if(raf!==null)return;
+    if(reduceMotion.matches){layer1.style.transform='translate(0,0)';return;}
     function loop(t){raf=requestAnimationFrame(loop);autoT=t*.0002;
       const dx=(-Math.sin(autoT)*str*0.01*W*.4).toFixed(1);
       const dy=(-Math.cos(autoT*.7)*str*0.01*H*.3).toFixed(1);

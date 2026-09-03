@@ -48,8 +48,8 @@
     input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}input[type=color]{height:44px}}
+    /* Reduced motion is handled in the script: one static frame, no loop. */
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -104,11 +104,17 @@ body{padding-top:46px}
 const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage');
 let W,H,paused=false,raf=null,lastT=0;
+const REDUCED=matchMedia('(prefers-reduced-motion:reduce)').matches;
 let SRCS=3,INTERVAL=3,MAX_R=160,LIFE=2.5,THICK=1.5,IRR=true,DRIFT=false;
 let COLOR=[88,166,255];
 let sources=[],rings=[];
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;initSources();}
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  W=stage.clientWidth;H=stage.clientHeight;
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+  initSources();
+}
 
 function initSources(){
   sources=Array.from({length:SRCS},(_,i)=>({
@@ -119,7 +125,7 @@ function initSources(){
 }
 
 class Ring{
-  constructor(x,y){this.x=x;this.y=y;this.r=0;this.born=performance.now();this.dur=LIFE*1000;}
+  constructor(x,y,now){this.x=x;this.y=y;this.r=0;this.born=now;this.dur=LIFE*1000;}
   update(now){this.r=MAX_R*(now-this.born)/this.dur;}
   isDead(now){return now-this.born>this.dur;}
   draw(now){
@@ -130,8 +136,23 @@ class Ring{
   }
 }
 
+// Reduced motion still needs to show the technique, so freeze a single frame
+// with each source mid-emission rather than an empty stage.
+function paintStatic(){
+  ctx.clearRect(0,0,W,H);
+  const now=performance.now();
+  sources.slice(0,SRCS).forEach(s=>{
+    ctx.fillStyle=`rgba(${COLOR[0]},${COLOR[1]},${COLOR[2]},.4)`;
+    ctx.beginPath();ctx.arc(s.x,s.y,3,0,Math.PI*2);ctx.fill();
+    [.3,.6,.9].forEach(f=>{
+      const r=new Ring(s.x,s.y,now-f*LIFE*1000);
+      r.update(now);r.draw(now);
+    });
+  });
+}
+
 function loop(ts){
-  if(paused){raf=null;return;}
+  if(paused||REDUCED){raf=null;return;}
   raf=requestAnimationFrame(loop);
   const dt=ts-lastT;if(dt<16)return;lastT=ts;
   ctx.clearRect(0,0,W,H);
@@ -143,7 +164,7 @@ function loop(ts){
       if(s.y<H*.1||s.y>H*.9)s.vy*=-1;
     }
     if(ts>=s.nextEmit){
-      rings.push(new Ring(s.x,s.y));
+      rings.push(new Ring(s.x,s.y,ts));
       const jitter=IRR?(Math.random()-.5)*INTERVAL*1000*.8:0;
       s.nextEmit=ts+INTERVAL*1000+jitter;
     }
@@ -156,7 +177,12 @@ function loop(ts){
   rings.forEach(r=>{r.update(ts);r.draw(ts);});
 }
 
-resize();raf=requestAnimationFrame(loop);window.addEventListener('resize',()=>{resize();});
+resize();
+if(REDUCED)paintStatic();else raf=requestAnimationFrame(loop);
+window.addEventListener('resize',()=>{resize();if(REDUCED||paused)paintStatic();});
+// Controls must still repaint the frozen frame when the loop is not running.
+document.addEventListener('input',()=>{if(REDUCED||paused)paintStatic();});
+document.addEventListener('change',()=>{if(REDUCED||paused)paintStatic();});
 
 document.getElementById('src-sl').addEventListener('input',e=>{SRCS=+e.target.value;document.getElementById('src-v').textContent=SRCS;initSources();});
 document.getElementById('int-sl').addEventListener('input',e=>{INTERVAL=e.target.value/10;document.getElementById('int-v').textContent=INTERVAL.toFixed(1)+'s';});

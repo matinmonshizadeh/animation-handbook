@@ -54,14 +54,18 @@
     }
     /* Sweep beam */
     .beam{
-      position:absolute;left:0;right:0;height:120px;top:-120px;z-index:6;pointer-events:none;
+      /* Element is 120px taller than the stage; the 120px band sits at its top
+         edge, so translateY(0 → 100%) sweeps the band across and off the stage. */
+      position:absolute;left:0;right:0;top:-120px;height:calc(100% + 120px);z-index:6;pointer-events:none;
       background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,var(--beam-bright)) 50%,transparent 100%);
+      background-size:100% 120px;background-repeat:no-repeat;background-position:0 0;
       animation:beam-sweep var(--beam-dur) linear infinite;
+      will-change:transform;
       display:none
     }
-    @keyframes beam-sweep{from{top:-120px}to{top:100%}}
-    /* CRT curvature (barrel distortion via border-radius on content) */
-    .crt-wrap{position:absolute;inset:0;border-radius:40%;overflow:hidden;pointer-events:none;display:none}
+    @keyframes beam-sweep{from{transform:translateY(0)}to{transform:translateY(100%)}}
+    /* CRT curvature — radial vignette darkening the corners */
+    .crt-wrap{position:absolute;inset:0;pointer-events:none;display:none}
     .crt-inner{position:absolute;inset:-5%;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
     /* Phosphor glow on text (via CSS on terminal) */
     .phosphor .term-line{text-shadow:0 0 8px #58a6ff,0 0 20px rgba(88,166,255,.3)}
@@ -166,7 +170,9 @@ body{padding-top:46px}
   });
   document.getElementById('pause-btn').addEventListener('click',()=>{
     paused=!paused;
-    document.getElementById('beam').style.animationPlayState=paused?'paused':'running';
+    const state=paused?'paused':'running';
+    document.getElementById('beam').style.animationPlayState=state;
+    document.querySelector('.term-cursor').style.animationPlayState=state;
     document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
   });
 </script>

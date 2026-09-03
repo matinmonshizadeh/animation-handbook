@@ -41,7 +41,7 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
     @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
   </style>
 <style id="ah-inject">
@@ -114,7 +114,7 @@ function angleAt(x,y,time){
 }
 
 function effCount(){return W<600?Math.min(COUNT,500):COUNT;}
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();ctx.fillStyle='#05060a';ctx.fillRect(0,0,W,H);}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();ctx.fillStyle='#05060a';ctx.fillRect(0,0,W,H);if(reduce)prerender();}
 function init(){parts=Array.from({length:effCount()},()=>({x:Math.random()*W,y:Math.random()*H}));}
 
 function colorFor(p){
@@ -137,6 +137,8 @@ function frame(){
   }
   t+=0.01;
 }
+// reduced-motion: paint a settled composition once instead of looping
+function prerender(){for(let i=0;i<40;i++)frame();}
 
 function loop(ts){
   if(paused){raf=null;return;}
@@ -147,7 +149,7 @@ function loop(ts){
 }
 
 resize();
-if(reduce){for(let i=0;i<40;i++)frame();fpsEl.textContent='static';}
+if(reduce)fpsEl.textContent='static';
 else raf=requestAnimationFrame(loop);
 window.addEventListener('resize',resize);
 

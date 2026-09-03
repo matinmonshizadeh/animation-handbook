@@ -76,7 +76,7 @@
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
-    @media(prefers-reduced-motion:reduce){.band{animation-duration:300s!important}}
+    @media(prefers-reduced-motion:reduce){.band{animation-duration:300s!important}.star{animation:none!important}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -150,16 +150,18 @@ body{padding-top:46px}
     }
   }
 
+  // Each palette is the band order it prefers (0=green 1=blue 2=purple 3=pink 4=red);
+  // the count slider takes the first N off that list.
   const PALETTES={
-    classic:[true,true,false,false,false],
-    vivid:[false,true,true,true,false],
-    rare:[false,false,false,false,true]
+    classic:[0,1,2,3,4],
+    vivid:[2,3,1,4,0],
+    rare:[4,3,2,1,0]
   };
 
   function applyPalette(name){
-    const vis=PALETTES[name];
     const count=+document.getElementById('bands-sl').value;
-    bands.forEach((b,i)=>{b.style.display=(vis[i]&&i<count)?'block':'none';});
+    const on=new Set(PALETTES[name].slice(0,count));
+    bands.forEach((b,i)=>{b.style.display=on.has(i)?'block':'none';});
   }
 
   document.getElementById('bands-sl').addEventListener('input',e=>{

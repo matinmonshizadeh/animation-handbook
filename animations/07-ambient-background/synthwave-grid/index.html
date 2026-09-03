@@ -42,7 +42,7 @@
     .row{display:flex;align-items:center;gap:8px;font-size:10px}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;height:var(--stage-h)}aside{width:100%}:root{--stage-h:380px}}
     @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
   </style>
 <style id="ah-inject">
@@ -145,14 +145,14 @@ function loop(ts){
 resize();
 if(reduce){frame();fpsEl.textContent='static';}
 else raf=requestAnimationFrame(loop);
-window.addEventListener('resize',()=>{resize();if(reduce)frame();});
+window.addEventListener('resize',()=>{resize();if(reduce||paused)frame();});
 
 document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
 document.getElementById('dens-sl').addEventListener('input',e=>{DENS=+e.target.value;document.getElementById('dens-v').textContent=DENS;if(reduce)frame();});
 document.getElementById('glow-col').addEventListener('input',e=>{GLOW=e.target.value;document.getElementById('glow-hex').textContent=e.target.value;if(reduce)frame();});
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+  if(!paused&&raf===null){lastT=performance.now();raf=requestAnimationFrame(loop);}
 });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

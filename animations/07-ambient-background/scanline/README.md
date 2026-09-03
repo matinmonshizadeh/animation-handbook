@@ -35,22 +35,28 @@ The `line-gap` CSS custom property in the demo allows the density to be adjusted
 .beam {
   position: absolute;
   left: 0; right: 0;
-  height: 120px;
-  top: -120px;   /* starts above the visible area */
+  top: -120px;                  /* starts above the visible area */
+  height: calc(100% + 120px);   /* 120px taller than the stage */
   background: linear-gradient(
     to bottom,
     transparent                      0%,
     rgba(255, 255, 255, 0.08)       50%,
     transparent                     100%
   );
+  background-size: 100% 120px;  /* the band sits at the element's top edge */
+  background-repeat: no-repeat;
   animation: sweep 4s linear infinite;
 }
 
 @keyframes sweep {
-  from { top: -120px; }
-  to   { top: 100%; }
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }   /* 100% = stage height + 120px */
 }
 ```
+
+Animating `transform` rather than `top` keeps the sweep on the compositor —
+the oversized element exists purely so a percentage translate covers the full
+travel without JavaScript measuring the stage.
 
 **CRT curvature** — a radial vignette overlay darkens the corners, simulating the slight convex curvature of a CRT screen:
 

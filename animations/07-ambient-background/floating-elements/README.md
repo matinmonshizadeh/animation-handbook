@@ -20,7 +20,7 @@ function animate(t) {
 
     const rot = el.rotation ? el.rotSpeed * t : 0;
     const opacity = el.pulse
-      ? 0.3 + 0.4 * Math.sin(el.pulsePhase + t * 0.5)
+      ? 0.4 + 0.3 * Math.sin(el.pulsePhase + t * 0.5)   // stays inside 0.1–0.7
       : 0.5;
 
     el.dom.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;

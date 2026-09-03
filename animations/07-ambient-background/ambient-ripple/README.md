@@ -14,12 +14,12 @@ Each ripple source has a timer that spawns new `Ring` objects at a configurable 
 
 ```js
 class Ring {
-  constructor(x, y) {
+  constructor(x, y, now) {
     this.x = x;
     this.y = y;
     this.r = 0;
-    this.born = performance.now();
-    this.duration = RING_LIFE_MS;
+    this.born = now;   // the rAF frame timestamp — mixing it with performance.now()
+    this.duration = RING_LIFE_MS;   // yields a negative radius on the birth frame
   }
 
   update(now) {

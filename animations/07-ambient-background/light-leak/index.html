@@ -36,14 +36,10 @@
     .photo-mock{width:100%;max-width:300px;height:200px;border-radius:8px;background:linear-gradient(135deg,#0d1a2e,#1a2e3a);border:1px solid rgba(255,255,255,.08);display:flex;align-items:flex-end;padding:16px}
     .photo-cap{font-size:11px;color:rgba(255,255,255,.5)}
     /* Leak overlay */
-    .leak{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .1s}
-    .leak.active{opacity:var(--leak-op)}
-    /* Direction variants */
-    .dir-tl{background:radial-gradient(ellipse at -10% -10%,var(--lc).9) 0%,var(--lc).5) 20%,var(--lc).1) 50%,transparent 70%)}
-    .dir-tr{background:radial-gradient(ellipse at 110% -10%,var(--lc).9) 0%,var(--lc).5) 20%,var(--lc).1) 50%,transparent 70%)}
-    .dir-bl{background:radial-gradient(ellipse at -10% 110%,var(--lc).9) 0%,var(--lc).5) 20%,var(--lc).1) 50%,transparent 70%)}
-    .dir-br{background:radial-gradient(ellipse at 110% 110%,var(--lc).9) 0%,var(--lc).5) 20%,var(--lc).1) 50%,transparent 70%)}
-    .dir-h{background:linear-gradient(90deg,transparent,var(--lc).6) 40%,var(--lc).8) 50%,var(--lc).6) 60%,transparent)}
+    .leak{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity var(--leak-dur) ease-in-out}
+    .leak.active{opacity:var(--leak-peak,var(--leak-op))}
+    /* Direction variants: the gradient itself is painted by applyColor() in JS,
+       since the leak colour is live-editable. The dir-* class is the state flag. */
     /* Bokeh blobs */
     .bokeh{position:absolute;border-radius:50%;pointer-events:none;z-index:4;animation:bokeh-float linear infinite;filter:blur(8px);display:none}
     @keyframes bokeh-float{from{transform:translateY(100%) scale(0);opacity:0}20%{opacity:.8}80%{opacity:.5}to{transform:translateY(-120%) scale(1.5);opacity:0}}
@@ -67,8 +63,10 @@
     input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:420px}}
-    @media(prefers-reduced-motion:reduce){.leak{transition:none!important}.bokeh{animation-duration:60s!important}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:420px}
+      input[type=color]{height:44px}.tog input{width:44px;height:44px}}
+    /* Reduced motion: no repeated flash — the leak sits steady and dim instead. */
+    @media(prefers-reduced-motion:reduce){.leak,.leak.active{transition:none!important;opacity:calc(var(--leak-op) * .5)}.bokeh{animation-duration:60s!important}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -132,14 +130,9 @@ body{padding-top:46px}
   const nextV=document.getElementById('next-v');
   let paused=false,leakTimer=null,countTimer=null,minDelay=2,maxDelay=10,intensity=.55;
   let bokehOn=false;
-  const COLORS={gold:'rgba(255,165,50,',cyan:'rgba(100,200,255,',rose:'rgba(255,100,150,',white:'rgba(255,255,255,'};
   let curColor='rgba(255,165,50,';
 
   function applyColor(){
-    // Update CSS custom property for gradient in all direction classes
-    document.querySelectorAll('.leak,.dir-tl,.dir-tr,.dir-bl,.dir-br,.dir-h').forEach(el=>{
-      // Re-apply the background based on current dir class
-    });
     const lc=curColor;
     const dir=[...leak.classList].find(c=>c.startsWith('dir-'));
     if(dir==='dir-tl')leak.style.background=`radial-gradient(ellipse at -10% -10%,${lc}.9) 0%,${lc}.5) 20%,${lc}.1) 50%,transparent 70%)`;
@@ -151,8 +144,10 @@ body{padding-top:46px}
 
   function flash(){
     if(paused)return;
-    leak.classList.add('active');
     const dur=+document.getElementById('dur-sl').value*100;
+    // Real leaks vary in strength — jitter the peak so it never reads as a loop
+    leak.style.setProperty('--leak-peak',(intensity*(.75+Math.random()*.25)).toFixed(3));
+    leak.classList.add('active');
     setTimeout(()=>leak.classList.remove('active'),dur+200);
     if(bokehOn)spawnBokeh();
     scheduleNext();
@@ -162,9 +157,13 @@ body{padding-top:46px}
     const delay=(minDelay+Math.random()*(maxDelay-minDelay))*1000;
     let countdown=Math.round(delay/1000);
     nextV.textContent=countdown+'s';
+    clearInterval(countTimer);
     leakTimer=setTimeout(flash,delay);
-    countTimer=setInterval(()=>{countdown--;nextV.textContent=Math.max(0,countdown)+'s';},1000);
-    setTimeout(()=>clearInterval(countTimer),delay);
+    // Hold the id locally: the stop timer must clear *this* interval, not
+    // whichever one the next cycle has already installed.
+    const tick=setInterval(()=>{countdown--;nextV.textContent=Math.max(0,countdown)+'s';},1000);
+    countTimer=tick;
+    setTimeout(()=>clearInterval(tick),delay);
   }
 
   function spawnBokeh(){
@@ -182,10 +181,13 @@ body{padding-top:46px}
     leak.classList.remove('dir-tl','dir-tr','dir-bl','dir-br','dir-h');
     leak.classList.add(e.target.value);applyColor();
   });
-  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=(e.target.value/10).toFixed(1)+'s';});
+  document.getElementById('dur-sl').addEventListener('input',e=>{
+    document.getElementById('dur-v').textContent=(e.target.value/10).toFixed(1)+'s';
+    document.documentElement.style.setProperty('--leak-dur',e.target.value*100+'ms');
+  });
   document.getElementById('mindelay-sl').addEventListener('input',e=>{minDelay=+e.target.value;document.getElementById('mindelay-v').textContent=minDelay+'s';});
   document.getElementById('maxdelay-sl').addEventListener('input',e=>{maxDelay=+e.target.value;document.getElementById('maxdelay-v').textContent=maxDelay+'s';});
-  document.getElementById('int-sl').addEventListener('input',e=>{intensity=e.target.value/100;document.getElementById('int-v').textContent=intensity.toFixed(2);document.documentElement.style.setProperty('--leak-op',intensity);});
+  document.getElementById('int-sl').addEventListener('input',e=>{intensity=e.target.value/100;document.getElementById('int-v').textContent=intensity.toFixed(2);document.documentElement.style.setProperty('--leak-op',intensity);leak.style.setProperty('--leak-peak',intensity);});
   document.getElementById('color-pick').addEventListener('input',e=>{
     const h=e.target.value;curColor=`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},`;applyColor();
   });

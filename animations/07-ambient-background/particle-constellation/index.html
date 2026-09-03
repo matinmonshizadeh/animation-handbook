@@ -43,8 +43,8 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
-    @media(prefers-reduced-motion:reduce){.fps-badge{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){.fps-badge,#pause-btn{display:none}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -102,7 +102,7 @@ const PAL={cyan:[90,209,255],violet:[168,130,255],mint:[122,255,200],mono:[220,2
 const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 function effCount(){return W<600?Math.min(COUNT,60):COUNT;}
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;init();if(reduce||paused)draw();}
 
 function init(){
   const n=effCount();
@@ -169,7 +169,7 @@ document.getElementById('col-sel').addEventListener('change',e=>{COL=e.target.va
 document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE=e.target.checked;});
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+  if(!paused&&!reduce){lastT=performance.now();raf=requestAnimationFrame(loop);}
 });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
