@@ -63,7 +63,7 @@
     .log-row{font-size:9px;color:var(--ui-muted)}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}.nav-btn,.seg button,button.rst{min-height:44px}:root{--stage-h:480px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -96,7 +96,7 @@ body{padding-top:46px}
     <div class="lbl">State</div>
     <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
     <div class="kv"><span>Old scale</span><span class="v" id="sc-old">1.00</span></div>
-    <div class="kv"><span>New scale</span><span class="v" id="sc-new">0.80</span></div>
+    <div class="kv"><span>New scale</span><span class="v" id="sc-new">1.00</span></div>
     <div class="div"></div>
     <div class="lbl">Variant</div>
     <div class="seg" id="var-seg">
@@ -135,7 +135,6 @@ body{padding-top:46px}
   const easeSel=document.getElementById('ease-sel');
   let current=0,animating=false,dur=550,variant='zoom-in',history=[];
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let rafId=null;
 
   PAGES.forEach((p,i)=>{
     const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;d.style.opacity=i===0?'1':'0';area.appendChild(d);
@@ -150,12 +149,6 @@ body{padding-top:46px}
     const prev=current;current=next;updateNav(next);addLog(prev,next);
     if(!motionOk){document.querySelectorAll('.page').forEach((el,i)=>{el.style.opacity=i===next?'1':'0';el.classList.toggle('active',i===next)});return;}
     animating=true;doTransition(prev,next);
-  }
-
-  function trackScales(oldEl,newEl){
-    scOld.textContent=parseFloat(getComputedStyle(oldEl).getPropertyValue('transform')!=='none'?'..':'1').toFixed?.(2)||'1.00';
-    scNew.textContent='...';
-    rafId=requestAnimationFrame(()=>trackScales(oldEl,newEl));
   }
 
   function doTransition(prev,next){

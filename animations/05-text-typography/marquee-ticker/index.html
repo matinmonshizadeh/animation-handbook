@@ -37,15 +37,16 @@
     .marq-row.accent{background:rgba(255,111,139,.05)}
     .marq-track{display:flex;width:max-content;white-space:nowrap;animation:marqL linear infinite}
     .marq-track.rev{animation-name:marqR}
-    .marq-row:hover .marq-track{animation-play-state:paused}
+    @media(hover:hover){.marq-row:hover .marq-track{animation-play-state:paused}.marq-row:hover .pause-hint{opacity:1}}
+    .marq-row.paused .marq-track{animation-play-state:paused}
+    .marq-row.paused .pause-hint{opacity:1}
     @keyframes marqL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
     @keyframes marqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
     .marq-item{font-family:Georgia,'Times New Roman',serif;font-size:var(--marq-size);font-style:italic;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
     .marq-item.rev-row{color:rgba(255,255,255,.6)}
     .sep{color:var(--ui-accent);font-style:normal;font-size:.6em;opacity:.7}
     /* Pause indicator */
-    .pause-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:9px;letter-spacing:1px;color:var(--ui-muted);opacity:0;transition:opacity .2s;pointer-events:none;background:var(--ui-bg);padding:3px 8px;border-radius:3px}
-    .marq-row:hover .pause-hint{opacity:1}
+    .pause-hint{position:absolute;z-index:1;right:12px;top:50%;transform:translateY(-50%);font-size:9px;letter-spacing:1px;color:var(--ui-muted);opacity:0;transition:opacity .2s;pointer-events:none;background:var(--ui-bg);padding:3px 8px;border-radius:3px}
     /* Panel */
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
@@ -57,7 +58,7 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
     input[type=text]:focus{border-color:var(--ui-accent)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
     @media(prefers-reduced-motion:reduce){.marq-track{animation-play-state:paused!important}}
@@ -110,18 +111,29 @@ body{padding-top:46px}
 <script>
   const stage=document.getElementById('stage');
 
+  const noHover=matchMedia('(hover:none)');
+
+  function makeItem(text,sep,reverse){
+    const item=document.createElement('div');item.className='marq-item'+(reverse?' rev-row':'');
+    item.textContent=text;
+    const s=document.createElement('span');s.className='sep';s.setAttribute('aria-hidden','true');s.textContent=sep;
+    item.appendChild(s);
+    return item;
+  }
+
   function buildRow(text,sep,reverse,className){
     const row=document.createElement('div');row.className='marq-row'+(className?' '+className:'');
     const hint=document.createElement('div');hint.className='pause-hint';hint.textContent='PAUSED';row.appendChild(hint);
-    const track=document.createElement('div');track.className='marq-track'+(reverse?' rev':'');
-    // Duplicate 4× for seamless loop
-    for(let i=0;i<4;i++){
-      const item=document.createElement('div');item.className='marq-item'+(reverse?' rev-row':'');
-      item.innerHTML=text+'<span class="sep" aria-hidden="true">'+sep+'</span>';
-      track.appendChild(item);
-    }
+    const track=document.createElement('div');track.className='marq-track'+(reverse?' rev':'');track.setAttribute('aria-live','off');
     row.appendChild(track);
+    stage.appendChild(row);
+    // One copy must be wider than the row, so repeat the item until it is, then duplicate that copy once
+    const probe=makeItem(text,sep,reverse);track.appendChild(probe);
+    const reps=Math.max(2,Math.ceil(row.clientWidth/Math.max(probe.offsetWidth,1))+1);
+    for(let i=1;i<reps*2;i++)track.appendChild(makeItem(text,sep,reverse));
     updateSpeed(track);
+    // Tap toggles pause where there is no hover
+    row.addEventListener('click',()=>{if(noHover.matches)row.classList.toggle('paused')});
     return row;
   }
 
@@ -132,19 +144,16 @@ body{padding-top:46px}
 
   function updateSpeed(track){
     const spd=+document.getElementById('spd-sl').value;
-    // Estimate total track width: approximate by counting chars
-    const text=getContent();
-    const approxW=(text.length*40+100)*2; // 2 copies = -50% travel distance
-    const dur=Math.max(approxW/spd,2);
-    track.style.animationDuration=dur.toFixed(1)+'s';
+    const oneCopy=track.scrollWidth/2; // -50% travel distance
+    track.style.animationDuration=(oneCopy/spd).toFixed(2)+'s';
   }
 
   function rebuild(){
     const text=getContent();const sep=getSep();
     stage.innerHTML='';
-    stage.appendChild(buildRow(text,sep,false,''));
-    stage.appendChild(buildRow(text,sep,true,'accent'));
-    stage.appendChild(buildRow(text+' · '+text,sep,false,''));
+    buildRow(text,sep,false,'');
+    buildRow(text,sep,true,'accent');
+    buildRow(text+' '+sep+' '+text,sep,false,'');
   }
 
   function refreshSpeeds(){
@@ -157,14 +166,22 @@ body{padding-top:46px}
   });
   document.getElementById('size-sl').addEventListener('input',e=>{
     document.getElementById('size-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--marq-size',e.target.value+'px');
+    document.documentElement.style.setProperty('--marq-size',e.target.value+'px');refreshSpeeds();
   });
   document.getElementById('gap-sl').addEventListener('input',e=>{
     document.getElementById('gap-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--marq-gap',e.target.value+'px');
+    document.documentElement.style.setProperty('--marq-gap',e.target.value+'px');refreshSpeeds();
   });
+  // Width changes alter how many repeats a row needs: rebuild once the slider settles
+  document.getElementById('size-sl').addEventListener('change',rebuild);
+  document.getElementById('gap-sl').addEventListener('change',rebuild);
   document.getElementById('apply-btn').addEventListener('click',rebuild);
   document.getElementById('sep-sel').addEventListener('change',rebuild);
+  let resizeTimer,lastW=innerWidth;
+  addEventListener('resize',()=>{
+    if(innerWidth===lastW)return; // ignore mobile address-bar height changes
+    lastW=innerWidth;clearTimeout(resizeTimer);resizeTimer=setTimeout(rebuild,150);
+  });
 
   rebuild();
 </script>

@@ -61,12 +61,15 @@
       animation:blur-breath 4s ease-in-out infinite
     }
     .glass-card.g3{
+      background:var(--tint);
       backdrop-filter:blur(var(--blur)) saturate(1.8);
       -webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);
       border:1px solid rgba(255,255,255,.18);
       box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2);
       animation:tint-cycle 8s linear infinite
     }
+    /* !important so the perf toggle also beats the blur-breath keyframes on card 2 */
+    .stage.no-bf .glass-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
     @keyframes blur-breath{
       0%,100%{backdrop-filter:blur(8px) saturate(1.8);-webkit-backdrop-filter:blur(8px) saturate(1.8)}
       50%{backdrop-filter:blur(20px) saturate(2);-webkit-backdrop-filter:blur(20px) saturate(2)}
@@ -90,8 +93,8 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
     .kv .v{color:var(--ui-text)}
-    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:460px}}
+    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:460px}.blob{filter:blur(36px)}}
     @media(prefers-reduced-motion:reduce){.blob,.glass-card.g2,.glass-card.g3{animation:none!important}}
   </style>
 <style id="ah-inject">
@@ -157,14 +160,6 @@ body{padding-top:46px}
   </aside>
 </div>
 <script>
-  const cards=[...document.querySelectorAll('.glass-card')];
-  function applyGlass(blur,op){
-    cards.forEach(c=>{
-      const perf=document.getElementById('perf-tog').checked;
-      c.style.backdropFilter=perf?'none':`blur(${blur}px) saturate(1.8)`;
-      c.style.webkitBackdropFilter=c.style.backdropFilter;
-    });
-  }
   document.getElementById('blur-sl').addEventListener('input',e=>{
     document.getElementById('blur-v').textContent=e.target.value+'px';
     document.documentElement.style.setProperty('--blur',e.target.value+'px');
@@ -184,19 +179,17 @@ body{padding-top:46px}
     const b=parseInt(e.target.value.slice(5,7),16);
     document.documentElement.style.setProperty('--tint',`rgba(${r},${g},${b},var(--glass-op))`);
   });
+  /* 'none' (not 'paused') so the card falls back to the slider/picker values while off */
   document.getElementById('blur-tog').addEventListener('change',e=>{
-    document.querySelector('.g2').style.animationPlayState=e.target.checked?'running':'paused';
+    document.querySelector('.g2').style.animation=e.target.checked?'':'none';
   });
   document.getElementById('tint-tog').addEventListener('change',e=>{
-    document.querySelector('.g3').style.animationPlayState=e.target.checked?'running':'paused';
+    document.querySelector('.g3').style.animation=e.target.checked?'':'none';
   });
   document.getElementById('perf-tog').addEventListener('change',e=>{
     const v=e.target.checked;
     document.getElementById('perf-v').textContent=v?'Disabled (compare)':'Active';
-    cards.forEach(c=>{
-      c.style.backdropFilter=v?'none':'';
-      c.style.webkitBackdropFilter=v?'none':'';
-    });
+    document.getElementById('stage').classList.toggle('no-bf',v);
   });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

@@ -65,7 +65,7 @@
     .log-row{font-size:9px;color:var(--ui-muted)}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;width:100%}aside{width:100%}.nav-btn,button.rst{min-height:44px}:root{--stage-h:480px}}
     @media(prefers-reduced-motion:reduce){.page{transition:opacity 300ms linear}.dtile{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -153,10 +153,10 @@ body{padding-top:46px}
     if(style==='diagonal'){
       return Array.from({length:total},(_,i)=>{const r=Math.floor(i/n),c=i%n;return(r+c)/(2*(n-1))});
     }
-    // radial from center
+    // radial from center: tile-centre distance, normalised so the corners land at 1
     return Array.from({length:total},(_,i)=>{
-      const r=Math.floor(i/n)-n/2,c=i%n-n/2;
-      const d=Math.sqrt(r*r+c*c)/Math.sqrt(2)*n/2;return d/(n*0.8);
+      const r=Math.floor(i/n)-(n-1)/2,c=i%n-(n-1)/2;
+      return Math.sqrt(r*r+c*c)/(Math.SQRT2*(n-1)/2);
     });
   }
 
@@ -167,7 +167,8 @@ body{padding-top:46px}
     const showMask=maskTog.checked;
     Array.from({length:n*n},(_,i)=>{
       const t=document.createElement('div');t.className='dtile';
-      t.style.cssText=`background:${bg};opacity:0;transition:opacity ${Math.round(tileDur*0.6)}ms ease ${Math.round(delays[i]*tileDur*0.7)}ms${showMask?';outline:1px solid rgba(255,100,100,.2)':''}`;
+      // stagger (33%) + per-tile fade (27%) = fully covered at 60%, when the swap fires
+      t.style.cssText=`background:${bg};opacity:0;transition:opacity ${Math.round(tileDur*0.27)}ms ease ${Math.round(delays[i]*tileDur*0.33)}ms${showMask?';outline:1px solid rgba(255,100,100,.2)':''}`;
       overlay.appendChild(t);
     });
     return delays;
@@ -183,20 +184,21 @@ body{padding-top:46px}
   function doDissolve(prev,next){
     const o=document.getElementById('p'+prev),n=document.getElementById('p'+next);
     const bg=getComputedStyle(o).background||'#060a10';
-    buildTiles(gran,bg,dur);
+    const g=gran,d=dur; // freeze the settings for this run so mid-transition slider changes cannot desync the tiles
+    buildTiles(g,bg,d);
     // Tiles appear over old page (dissolving it)
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       overlay.querySelectorAll('.dtile').forEach(t=>{t.style.opacity='1'});
-      const swapAt=Math.round(dur*0.6);
+      const swapAt=Math.round(d*0.6);
       setTimeout(()=>{
         o.classList.remove('active');o.style.opacity='0';
         n.classList.add('active');n.style.opacity='1';
         if(biTog.checked){
-          // Dissolve in: tiles fade back out
+          // Dissolve in: tiles fade back out over the remaining 40%
           const tiles=[...overlay.querySelectorAll('.dtile')];
-          const delays=getDelays(gran,styleSel.value);
-          tiles.forEach((t,i)=>{t.style.transition=`opacity ${Math.round(dur*0.5)}ms ease ${Math.round(delays[i]*dur*0.6)}ms`;t.style.opacity='0'});
-          setTimeout(()=>{overlay.innerHTML='';animating=false},dur+50);
+          const delays=getDelays(g,styleSel.value);
+          tiles.forEach((t,i)=>{t.style.transition=`opacity ${Math.round(d*0.18)}ms ease ${Math.round(delays[i]*d*0.22)}ms`;t.style.opacity='0'});
+          setTimeout(()=>{overlay.innerHTML='';animating=false},Math.round(d*0.4)+50);
         }else{
           overlay.innerHTML='';animating=false;
         }

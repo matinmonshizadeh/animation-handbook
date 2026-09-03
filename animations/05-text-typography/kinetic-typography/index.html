@@ -106,7 +106,7 @@ body{padding-top:46px}
   <aside>
     <p class="note">Kinetic typography is choreography for words. Each transform should reinforce the meaning — a soft word dissolves; a hard word snaps in.</p>
     <div class="lbl">Playback Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="5" max="20" value="10" step="1"><span class="sv" id="spd-v">1×</span></div>
+    <div class="sr"><input type="range" id="spd-sl" min="5" max="20" value="10" step="1"><span class="sv" id="spd-v">1.0×</span></div>
     <div class="div"></div>
     <div class="kv"><span>Phrase</span><span class="v" id="phrase-kv">1 / 6</span></div>
     <div class="kv"><span>State</span><span class="v" id="state-kv">Playing</span></div>
@@ -142,8 +142,7 @@ function showPhrase(i){
   if(p.sub){const s=document.createElement('span');s.className='kw sub';s.textContent=p.sub;phraseEl.appendChild(s);}
   counterEl.textContent=(i+1)+' / '+PHRASES.length;
   phraseKv.textContent=(i+1)+' / '+PHRASES.length;
-  const pct=((i+1)/PHRASES.length*100).toFixed(0)+'%';
-  if(document.getElementById('beat-tog').checked)beatFill.style.width=pct;
+  beatFill.style.width=((i+1)/PHRASES.length*100).toFixed(0)+'%';
   requestAnimationFrame(()=>{
     w.classList.add(p.enter);
     if(p.sub)phraseEl.querySelectorAll('.sub').forEach(s=>{s.style.animationDelay='200ms';s.classList.add(p.enter);});
@@ -153,9 +152,10 @@ function showPhrase(i){
 function exitPhrase(i,done){
   const p=PHRASES[i];
   phraseEl.querySelectorAll('.kw').forEach(w=>{
-    w.classList.remove(p.enter);w.classList.add(p.exit);
+    w.style.animationDelay='';w.classList.remove(p.enter);w.classList.add(p.exit);
   });
-  setTimeout(done,ms(450));
+  // Every pending timeout in the chain is stored in `timer` so Play/Restart can cancel it.
+  timer=setTimeout(done,ms(450));
 }
 
 function run(){
@@ -163,38 +163,24 @@ function run(){
   idx=0;
   function step(){
     showPhrase(idx);
-    timer=setTimeout(()=>{
-      exitPhrase(idx,()=>{
-        idx++;
-        if(idx<PHRASES.length){setTimeout(step,ms(120));}
-        else{
-          running=false;stateKv.textContent='Done';
-          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';setTimeout(run,ms(800));}
-        }
-      });
-    },ms(500)+ms(p.hold));
-  }
-  function p_hold(){return PHRASES[idx];}
-  function step2(){
-    showPhrase(idx);
     const hold=PHRASES[idx].hold;
     timer=setTimeout(()=>{
       exitPhrase(idx,()=>{
         idx++;
-        if(idx<PHRASES.length){setTimeout(step2,ms(120));}
+        if(idx<PHRASES.length){timer=setTimeout(step,ms(120));}
         else{
           running=false;stateKv.textContent='Done';
-          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';setTimeout(run,ms(800));}
+          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';timer=setTimeout(run,ms(800));}
         }
       });
     },ms(500+hold));
   }
-  step2();
+  step();
 }
 
 document.getElementById('play-btn').addEventListener('click',()=>{
-  if(timer)clearTimeout(timer);running=false;beatFill.style.width='0%';
-  setTimeout(run,50);
+  clearTimeout(timer);running=false;beatFill.style.width='0%';
+  timer=setTimeout(run,50);
 });
 document.getElementById('spd-sl').addEventListener('input',e=>{
   speed=e.target.value/10;

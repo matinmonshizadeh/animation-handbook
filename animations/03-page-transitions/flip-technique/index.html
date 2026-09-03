@@ -33,7 +33,7 @@
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
     .stage-toolbar{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;flex-wrap:wrap}
     .tb-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:36px}
-    .tb-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.tb-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .tb-btn.active-layout{border-color:var(--ui-accent);color:var(--ui-accent)}
     .page-area{flex:1;position:relative;overflow:hidden;padding:16px}
     #card-grid{display:grid;gap:10px;transition:none}
@@ -56,9 +56,9 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.stage{height:auto;min-height:var(--stage-h)}.tb-btn{min-height:44px}}
     @media(prefers-reduced-motion:reduce){.flip-card{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -187,6 +187,7 @@ body{padding-top:46px}
   document.getElementById('btn-color').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[a].colorRank-CARDS[b].colorRank)));
   document.getElementById('btn-size').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[b].h-CARDS[a].h)));
   document.querySelectorAll('[data-cols]').forEach(b=>b.addEventListener('click',()=>{
+    if(animating)return;
     const c=+b.dataset.cols;
     document.querySelectorAll('[data-cols]').forEach(x=>x.classList.remove('active-layout'));b.classList.add('active-layout');
     const labels={1:'List',2:'2 columns',3:'3 columns'};layoutVal.textContent=labels[c];

@@ -31,7 +31,7 @@
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
-    canvas{display:block;width:100%;height:100%}
+    canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
     .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
@@ -43,10 +43,9 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:400px}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:400px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -104,7 +103,8 @@ body{padding-top:46px}
 <script>
 const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
-let W,H,paused=false,raf=null,lastT=0;
+// Reduced motion: start paused with a static frame; the user can opt in via Resume.
+let W,H,paused=matchMedia('(prefers-reduced-motion:reduce)').matches,raf=null,lastT=0;
 let COLS=24,ROWS=18,GRAVITY=0.12,WIND=0.5,ITERS=4,PIN_MODE='top-corners';
 let SHOW_VERTS=false,SHOW_CONS=false;
 let pts=[],prev=[],pinned=[],constraints=[];
@@ -134,6 +134,7 @@ function initCloth(){
     if(c<COLS){const rest=Math.hypot(pts[n(r,c+1)][0]-pts[n(r,c)][0],pts[n(r,c+1)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r,c+1),rest]);}
     if(r<ROWS){const rest=Math.hypot(pts[n(r+1,c)][0]-pts[n(r,c)][0],pts[n(r+1,c)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r+1,c),rest]);}
   }}
+  if(paused)draw(); // keep the canvas populated while the loop is stopped
 }
 
 function update(){
@@ -205,6 +206,7 @@ function loop(ts){
 }
 
 function start(){resize();initCloth();if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
+document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
 start();
 
 // Drag interaction
@@ -213,12 +215,13 @@ function getClosestVertex(x,y,maxDist=30){
   pts.forEach((p,i)=>{const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd&&d<maxDist){bd=d;best=i;}});
   return best;
 }
-stage.addEventListener('mousedown',e=>{const r=cvs.getBoundingClientRect();dragIdx=getClosestVertex(e.clientX-r.left,e.clientY-r.top);dragMouse={x:e.clientX-r.left,y:e.clientY-r.top};});
-stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();dragMouse={x:e.clientX-r.left,y:e.clientY-r.top};});
-stage.addEventListener('mouseup',()=>dragIdx=-1);
-stage.addEventListener('touchstart',e=>{const r=cvs.getBoundingClientRect();dragIdx=getClosestVertex(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);},{passive:true});
-stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();dragMouse={x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};},{passive:true});
-stage.addEventListener('touchend',()=>dragIdx=-1);
+// Pointer Events cover mouse, touch and pen; capture keeps the drag alive outside the stage.
+const localPos=e=>{const r=cvs.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+stage.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;dragMouse=localPos(e);dragIdx=getClosestVertex(dragMouse.x,dragMouse.y);try{stage.setPointerCapture(e.pointerId);}catch(_){}});
+stage.addEventListener('pointermove',e=>{if(dragIdx>=0&&e.isPrimary)dragMouse=localPos(e);});
+const endDrag=()=>dragIdx=-1;
+stage.addEventListener('pointerup',endDrag);
+stage.addEventListener('pointercancel',endDrag);
 
 document.getElementById('res-sel').addEventListener('change',e=>{COLS=+e.target.value;ROWS=Math.round(COLS*.75);start();});
 document.getElementById('grav-sl').addEventListener('input',e=>{GRAVITY=e.target.value/100;document.getElementById('grav-v').textContent=GRAVITY.toFixed(2);});
@@ -230,9 +233,10 @@ document.getElementById('cons-tog').addEventListener('change',e=>{SHOW_CONS=e.ta
 document.getElementById('reset-btn').addEventListener('click',()=>initCloth());
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused){lastT=performance.now();raf=requestAnimationFrame(loop);}
+  if(raf){cancelAnimationFrame(raf);raf=null;} // never leave two loops queued
+  if(paused)draw();else{lastT=performance.now();raf=requestAnimationFrame(loop);}
 });
-window.addEventListener('resize',()=>{resize();initCloth();});
+window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;resize();initCloth();});
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

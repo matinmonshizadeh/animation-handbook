@@ -39,13 +39,13 @@
     .toaster.tr{top:0;right:0;align-items:flex-end}
     .toaster.bl{bottom:0;left:0;flex-direction:column-reverse;align-items:flex-start}
     .toaster.br{bottom:0;right:0;flex-direction:column-reverse;align-items:flex-end}
-    .toast{position:relative;width:100%;overflow:hidden;border:1px solid var(--ui-border);border-left:3px solid var(--tc,var(--info));border-radius:8px;background:var(--ui-bg);padding:12px 38px 12px 12px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .34s;will-change:transform,opacity}
+    .toast{position:relative;width:100%;overflow:hidden;border:1px solid var(--ui-border);border-left:3px solid var(--tc,var(--info));border-radius:8px;background:var(--ui-bg);padding:12px 44px 12px 12px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .34s;will-change:transform,opacity}
     .toast.ok{--tc:var(--ok)} .toast.err{--tc:var(--err)} .toast.info{--tc:var(--info)}
     .toast .ic{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#0b0b0d;font-family:var(--disp);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
     .toast .body{min-width:0}
     .toast .ti{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:-.01em}
     .toast .ms{font-size:10.5px;color:var(--ui-muted);margin-top:2px;line-height:1.4}
-    .toast .x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;background:transparent;color:var(--ui-muted);font-size:15px;cursor:pointer;border-radius:6px;line-height:1}
+    .toast .x{position:absolute;top:50%;right:0;transform:translateY(-50%);width:44px;height:44px;border:0;background:transparent;color:var(--ui-muted);font-size:15px;cursor:pointer;border-radius:6px;line-height:1}
     @media(hover:hover){.toast .x:hover{color:var(--ui-text);background:rgba(255,255,255,.06)}}
     .toast .prog{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--tc);transform-origin:left;transform:scaleX(1);animation:ah_prog var(--dur,4s) linear forwards}
     @media(hover:hover){.toast:hover .prog{animation-play-state:paused}}
@@ -64,7 +64,7 @@
     .clear{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:12px 8px;border-radius:6px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){.trigger:hover{filter:brightness(1.08)}.clear:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .div{height:1px;background:var(--ui-border)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}}
     @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{animation:none!important;transform:scaleX(0)}}
   </style>
 <style id="ah-inject">
@@ -157,6 +157,7 @@ body{padding-top:46px}
       const o=prev.get(t); if(o==null)return;
       const d=o-t.getBoundingClientRect().top; if(!d)return;
       t.style.transition='none'; t.style.transform=`translateY(${d}px)`;
+      void t.offsetWidth; // commit the inverted position before releasing it
       requestAnimationFrame(()=>{t.style.transition='';t.style.transform='';});
     });
   }
@@ -174,7 +175,7 @@ body{padding-top:46px}
     const top=corner.startsWith('t');
     top?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
     toasts.push(el); wire(el,type);
-    if(!reduce)requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='none';});
+    if(!reduce){void el.offsetWidth;requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none';});}
     else{el.style.opacity='1';el.style.transform='none';}
     if(reduce)el._to=setTimeout(()=>dismiss(el),dur*1000);
     enforce(); hint.style.display='none';
@@ -201,8 +202,8 @@ body{padding-top:46px}
     let x0=0,dx=0,drag=false;
     el.addEventListener('pointerdown',e=>{if(e.target.closest('.x'))return;drag=true;dx=0;x0=e.clientX;el.classList.add('paused');el.style.transition='none';el.setPointerCapture(e.pointerId);});
     el.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px)`;el.style.opacity=String(Math.max(.3,1-Math.abs(dx)/(el.offsetWidth*.8)));});
-    function up(){if(!drag)return;drag=false;el.classList.remove('paused');
-      if(Math.abs(dx)>el.offsetWidth*.35||Math.abs(dx)<6){dismiss(el,dx<0?-1:1);}
+    function up(e){if(!drag)return;drag=false;el.classList.remove('paused');
+      if(e.type!=='pointercancel'&&(Math.abs(dx)>el.offsetWidth*.35||Math.abs(dx)<6)){dismiss(el,dx<0?-1:1);}
       else{el.style.transition='transform .3s cubic-bezier(.22,1,.36,1),opacity .3s';el.style.transform='none';el.style.opacity='1';}}
     el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
   }

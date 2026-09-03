@@ -63,7 +63,7 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}.modal-close,.modal-confirm{height:44px}}
     @media(prefers-reduced-motion:reduce){.modal,.modal-backdrop{transition:none!important}.modal.open{transform:scale(1)!important;opacity:1!important}}
   </style>
 <style id="ah-inject">
@@ -141,22 +141,17 @@ body{padding-top:46px}
     const stage=document.getElementById('stage');
     const sr=stage.getBoundingClientRect();
     const br=btn.getBoundingClientRect();
-    const mr=modal.getBoundingClientRect();
     // Button center relative to stage
     const bx=br.left+br.width/2-sr.left;
     const by=br.top+br.height/2-sr.top;
-    // Modal center in stage
-    const mx=sr.width/2;
-    const my=sr.height/2-80;
-    // Origin relative to modal
-    const ox=bx-mx+mr.width/2;
-    const oy=by-my+mr.height/2;
+    // Origin relative to the modal's laid-out top-left corner.
+    // offsetLeft/Top ignore the closed-state scale transform, unlike getBoundingClientRect.
+    const ox=bx-modal.offsetLeft;
+    const oy=by-modal.offsetTop;
     modal.style.transformOrigin=`${ox.toFixed(0)}px ${oy.toFixed(0)}px`;
     originLabel.textContent=`${ox.toFixed(0)}px, ${oy.toFixed(0)}px`;
-    if(document.getElementById('debug-tog').checked){
-      originDot.style.left=bx+'px';originDot.style.top=by+'px';
-      originDot.classList.add('show');
-    }
+    originDot.style.left=bx+'px';originDot.style.top=by+'px';
+    originDot.classList.toggle('show',document.getElementById('debug-tog').checked);
     backdrop.classList.add('visible');modal.classList.add('open');isOpen=true;
   }
   function closeModal(){
@@ -183,6 +178,9 @@ body{padding-top:46px}
   });
   document.getElementById('ease-sel').addEventListener('change',e=>{
     document.documentElement.style.setProperty('--modal-ease',e.target.value);
+  });
+  document.getElementById('debug-tog').addEventListener('change',e=>{
+    originDot.classList.toggle('show',e.target.checked&&isOpen);
   });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

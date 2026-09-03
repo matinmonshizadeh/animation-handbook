@@ -47,8 +47,7 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -75,7 +74,7 @@ body{padding-top:46px}
     <canvas id="cvs"></canvas>
     <div class="hud">
       <div class="badge" id="fps">— fps</div>
-      <div class="badge" id="scene-badge">Scene 1</div>
+      <div class="badge" id="scene-badge">Scene 1: Blend</div>
     </div>
     <div class="src-panel" id="src-panel"></div>
   </div>
@@ -184,8 +183,8 @@ void main(){
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps'),sceneBadge=document.getElementById('scene-badge');
-const srcPanel=document.getElementById('src-panel');
-let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0;
+const srcPanel=document.getElementById('src-panel'),pauseBtn=document.getElementById('pause-btn');
+let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0,curT=0;
 let SCENE=0,CAM_SPD=0.6,MAX_STEPS=48,AO=true,SHADOW=false,DEBUG=false;
 const SCENE_NAMES=['Blend','Boolean','Repetition'];
 
@@ -203,7 +202,7 @@ function init(){
   srcPanel.textContent=FS;
   return true;
 }
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
+function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl){gl.viewport(0,0,W,H);if(paused)draw(curT);}}
 function u(n){return gl.getUniformLocation(prog,n);}
 
 function render(ts){
@@ -211,7 +210,10 @@ function render(ts){
   raf=requestAnimationFrame(render);
   const dt=ts-lastT;if(dt<16)return;
   fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
-  const t=(ts-startT)/1000;
+  draw((ts-startT)/1000);
+}
+function draw(t){
+  curT=t;
   gl.useProgram(prog);
   gl.uniform2f(u('uRes'),W,H);
   gl.uniform1f(u('uT'),t);
@@ -224,10 +226,17 @@ function render(ts){
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 
+// Resume from the time we paused at so the camera does not jump; never stack a second loop.
+function start(){lastT=performance.now();startT=lastT-curT*1000;if(raf===null)raf=requestAnimationFrame(render);}
+function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;}
+
 if(init()){
-  resize();startT=performance.now();lastT=startT;
-  raf=requestAnimationFrame(render);
+  resize();
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches){paused=true;pauseBtn.textContent='▶ Resume';draw(0);}
+  else start();
   window.addEventListener('resize',resize);
+  cvs.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();});
+  cvs.addEventListener('webglcontextrestored',()=>{init();resize();if(paused)draw(curT);else start();});
 }
 
 document.getElementById('scene-sel').addEventListener('change',e=>{SCENE=+e.target.value;sceneBadge.textContent='Scene '+(SCENE+1)+': '+SCENE_NAMES[SCENE];});
@@ -237,9 +246,10 @@ document.getElementById('ao-tog').addEventListener('change',e=>{AO=e.target.chec
 document.getElementById('shadow-tog').addEventListener('change',e=>{SHADOW=e.target.checked;});
 document.getElementById('debug-tog').addEventListener('change',e=>{DEBUG=e.target.checked;});
 document.getElementById('src-tog').addEventListener('change',e=>{srcPanel.style.display=e.target.checked?'block':'none';});
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused&&gl){lastT=performance.now();startT=lastT;raf=requestAnimationFrame(render);}
+pauseBtn.addEventListener('click',()=>{
+  paused=!paused;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
+  if(!gl)return;
+  if(paused)stop();else start();
 });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

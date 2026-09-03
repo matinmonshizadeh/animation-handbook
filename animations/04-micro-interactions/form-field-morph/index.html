@@ -34,11 +34,12 @@
     .form{display:flex;flex-direction:column;gap:24px;width:100%;max-width:320px}
     /* Float field */
     .float-field{position:relative;padding-top:20px}
-    .float-field label{position:absolute;left:0;top:20px;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,font-size var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
+    .float-field label{position:absolute;left:0;top:20px;height:44px;display:flex;align-items:center;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,font-size var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
+    .float-field:has(textarea) label{top:26px;height:auto}
     .float-field input,.float-field textarea{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
     .float-field textarea{min-height:80px;resize:none}
-    .float-field .underline{position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--focus-color);transition:width var(--field-dur) ease}
-    .float-field:focus-within .underline{width:100%}
+    .float-field .underline{position:absolute;bottom:0;left:0;width:100%;height:2px;background:var(--focus-color);transform:scaleX(0);transform-origin:left center;transition:transform var(--field-dur) ease}
+    .float-field:focus-within .underline{transform:scaleX(1)}
     .float-field:focus-within label,
     .float-field.filled label{transform:translateY(calc(var(--float-dist)*-1)) scale(var(--label-scale));color:var(--focus-color)}
     /* Variant 2: box input */
@@ -55,10 +56,10 @@
     .sr{display:flex;align-items:center;gap:6px;font-size:10px}
     .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
     .sv{width:44px;text-align:right;color:var(--ui-text)}
-    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
     .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:460px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:460px}}
     @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -124,7 +125,7 @@ body{padding-top:46px}
 <script>
   const floatFields=document.querySelectorAll('.float-field');
   const boxFields=document.querySelectorAll('.box-field');
-  const allInputs=document.querySelectorAll('input,textarea');
+  const allInputs=document.querySelectorAll('.form input,.form textarea');
   const filledEl=document.getElementById('filled-count');
 
   function updateFilled(){

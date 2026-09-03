@@ -33,7 +33,7 @@
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:clamp(20px,5vw,56px)}
     #text-target{font-family:monospace;font-size:clamp(18px,3vw,28px);font-weight:bold;text-align:center;line-height:1.55;max-width:520px}
     .word{display:inline-block;margin-right:0.28em;
-      opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+      opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger)),filter var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
     [data-anim="fade-up"] .word{transform:translateY(0.4em)}
     [data-anim="blur"] .word{filter:blur(8px);transform:none}
     [data-anim="scale"] .word{transform:scale(0.6)}
@@ -59,7 +59,7 @@
     button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
     button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
     @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -165,16 +165,16 @@ Software made with care.</textarea>
     if(cls==='in')target.classList.add('in');
     stEl.textContent=cls==='in'?'playing in':'playing out';
     const words=target.querySelectorAll('.word');
-    const maxIdx=Math.max(...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
+    const maxIdx=Math.max(0,...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
     animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',maxIdx*stagger+dur+200);
   }
-  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function stopLoop(){looping=false;clearTimeout(loopTimer);loopTog.checked=false}
   function playIn(){stopLoop();_trigger('in')}
   function playOut(){stopLoop();_trigger('out')}
   function loop(){
     _trigger('in');
     const words=target.querySelectorAll('.word');
-    const maxIdx=Math.max(...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
+    const maxIdx=Math.max(0,...[...words].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0));
     const t=maxIdx*stagger+dur;
     loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},t+400)},t+1000);
   }
@@ -188,7 +188,7 @@ Software made with care.</textarea>
   easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
   animSel.addEventListener('change',()=>{target.dataset.anim=animSel.value});
   punctTog.addEventListener('change',buildWords);
-  txtIn.addEventListener('input',()=>{stopLoop();target.classList.remove('in');buildWords();stEl.textContent='hidden'});
+  txtIn.addEventListener('input',()=>{stopLoop();clearTimeout(animTimer);target.classList.remove('in');buildWords();stEl.textContent='hidden'});
   buildWords();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

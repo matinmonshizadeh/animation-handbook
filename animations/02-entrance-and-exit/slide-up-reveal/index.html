@@ -40,7 +40,7 @@
     [data-method="clippath"] .line.in{clip-path:inset(0% 0 0 0)}
     .headline{font-family:monospace;font-size:clamp(28px,5vw,52px);font-weight:bold;text-align:center;line-height:1.1}
     .sub-line{font-family:monospace;font-size:clamp(13px,2vw,16px);color:var(--ui-muted);text-align:center}
-    @media(prefers-reduced-motion:reduce){.line{transition:opacity 300ms linear!important;transform:none!important;clip-path:none!important}  .line.in{opacity:1!important}}
+    @media(prefers-reduced-motion:reduce){.line{opacity:0;transition:opacity 300ms linear!important;transform:none!important;clip-path:none!important}  .line.in{opacity:1!important}}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -60,7 +60,7 @@
     button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
     button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
     @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none}aside{width:100%}:root{--stage-h:480px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -132,7 +132,6 @@ body{padding-top:46px}
   const stagSl=document.getElementById('stag-sl'),stagV=document.getElementById('stag-v');
   const easeSel=document.getElementById('ease-sel');
   const multiTog=document.getElementById('multi-tog'),loopTog=document.getElementById('loop-tog');
-  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let dur=700,method='translatey',looping=false,loopTimer=null,animTimer=null;
   const lines=()=>multiTog.checked?[...document.querySelectorAll('.line')]:[document.getElementById('l0')];
 
@@ -155,7 +154,7 @@ body{padding-top:46px}
   document.getElementById('btn-in').addEventListener('click',playIn);
   document.getElementById('btn-out').addEventListener('click',playOut);
   document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);lines().forEach(l=>l.classList.remove('in'));stEl.textContent='hidden'});
-  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
+  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping)loop();else clearTimeout(loopTimer)});
   document.querySelectorAll('#method-seg button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#method-seg button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');method=b.dataset.m;stage.dataset.method=method;
@@ -168,7 +167,7 @@ body{padding-top:46px}
   multiTog.addEventListener('change',()=>{
     const ls=document.querySelectorAll('.line');
     ls.forEach((l,i)=>{l.style.display=(!multiTog.checked&&i>0)?'none':'block';l.classList.remove('in')});
-    stEl.textContent='hidden';
+    clearTimeout(animTimer);stEl.textContent='hidden';
   });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

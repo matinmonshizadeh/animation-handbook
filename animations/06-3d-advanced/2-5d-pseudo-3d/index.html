@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;cursor:none}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;cursor:none;touch-action:pan-y}
     /* 3D scene container */
     .scene{width:100%;height:100%;position:relative;perspective:800px;perspective-origin:50% 50%;overflow:hidden}
     .scene-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:translateZ(0);transition:transform 0ms linear}
@@ -75,7 +75,7 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
     @media(prefers-reduced-motion:reduce){.scene-inner{transition:none!important}}
@@ -206,21 +206,15 @@ function applyParallax(normX,normY){
   });
 }
 
-stage.addEventListener('mousemove',e=>{
+stage.addEventListener('pointermove',e=>{
   const r=stage.getBoundingClientRect();
   mx=(e.clientX-r.left)/r.width-.5;
   my=(e.clientY-r.top)/r.height-.5;
-  cursor.style.display='block';cursor.style.left=(e.clientX-r.left)+'px';cursor.style.top=(e.clientY-r.top)+'px';
+  if(e.pointerType==='mouse'){cursor.style.display='block';cursor.style.left=(e.clientX-r.left)+'px';cursor.style.top=(e.clientY-r.top)+'px';}
   mxV.textContent=(mx*100).toFixed(0)+'%';
   if(mode==='mouse')applyParallax(mx,my);
 });
-stage.addEventListener('mouseleave',()=>{cursor.style.display='none'});
-stage.addEventListener('touchmove',e=>{
-  const r=stage.getBoundingClientRect();
-  mx=(e.touches[0].clientX-r.left)/r.width-.5;
-  my=(e.touches[0].clientY-r.top)/r.height-.5;
-  if(mode==='mouse')applyParallax(mx,my);
-},{passive:true});
+stage.addEventListener('pointerleave',()=>{cursor.style.display='none'});
 
 function autoLoop(t){
   raf=requestAnimationFrame(autoLoop);
@@ -230,8 +224,11 @@ function autoLoop(t){
 
 document.getElementById('mode-sel').addEventListener('change',e=>{
   mode=e.target.value;
-  if(mode==='auto'){if(!raf)raf=requestAnimationFrame(autoLoop);}
-  else{if(raf){cancelAnimationFrame(raf);raf=null;}}
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  if(mode==='auto'){
+    if(motionOk)raf=requestAnimationFrame(autoLoop);
+    else applyParallax(.25,.15); // reduced motion: hold a static camera offset instead of panning
+  }
 });
 document.getElementById('str-sl').addEventListener('input',e=>{
   strength=+e.target.value;document.getElementById('str-v').textContent=strength+'px';
@@ -239,7 +236,7 @@ document.getElementById('str-sl').addEventListener('input',e=>{
 document.getElementById('labels-tog').addEventListener('change',e=>{
   document.querySelectorAll('.depth-label').forEach(d=>d.style.display=e.target.checked?'block':'none');
 });
-document.getElementById('reset-btn').addEventListener('click',()=>{applyParallax(0,0)});
+document.getElementById('reset-btn').addEventListener('click',()=>{mx=0;my=0;mxV.textContent='—';applyParallax(0,0)});
 
 // Hide labels by default
 document.querySelectorAll('.depth-label').forEach(d=>d.style.display='none');

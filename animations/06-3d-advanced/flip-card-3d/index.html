@@ -33,11 +33,13 @@
     .stage-wrap{flex:1;min-width:0}
     .stage{height:clamp(360px,52vh,560px);border:1px solid var(--ui-border);border-radius:8px;background:radial-gradient(120% 120% at 50% 0%,#141018,#08070a);display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);perspective:var(--perspective)}
     /* Tilt wrapper carries the idle cursor-driven 3D tilt */
-    .tilt{transform-style:preserve-3d;transition:transform 300ms ease}
+    .tilt{width:100%;display:flex;justify-content:center;transform-style:preserve-3d;transition:transform 300ms ease}
     .tilt.tracking{transition:none}
     /* Card — the flipping element */
     .card{
-      width:clamp(220px,60%,300px);aspect-ratio:5/7;position:relative;
+      /* capped by the stage height so the 5/7 card never spills past the stage border */
+      width:min(clamp(220px,60%,300px),calc((clamp(360px,52vh,560px) - 40px) * 5 / 7));
+      aspect-ratio:5/7;position:relative;
       transform-style:preserve-3d;cursor:pointer;
       transition:transform var(--flip-dur) cubic-bezier(.6,.02,.2,1);
       will-change:transform
@@ -80,7 +82,7 @@
     .seg button.on{border-color:var(--ui-accent);color:var(--ui-text)}
     .div{height:1px;background:var(--ui-border)}
     .flip-btn{min-height:44px;background:var(--ui-accent);border:0;border-radius:6px;color:#0b0b0d;font:inherit;font-weight:600;font-size:11px;cursor:pointer}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}}
     /* Tilt only on true hover-capable pointers */
     @media(hover:hover){.tilt{will-change:transform}}
     @media(hover:none){.tilt{transform:none!important}}
@@ -176,7 +178,8 @@ body{padding-top:46px}
   function toggle(){setFlipped(!card.classList.contains('flipped'));}
 
   // Trigger: click
-  card.addEventListener('click',()=>{if(trigger==='click')toggle();});
+  // Hover trigger has no hover on touch devices, so a tap flips there instead
+  card.addEventListener('click',()=>{if(trigger==='click'||!canHover.matches)toggle();});
   document.getElementById('flip-btn').addEventListener('click',toggle);
   // Keyboard — flip is reachable and operable without a pointer
   card.addEventListener('keydown',e=>{
@@ -184,7 +187,7 @@ body{padding-top:46px}
   });
   // Trigger: hover (pointer-capable devices only)
   card.addEventListener('pointerenter',e=>{if(trigger==='hover'&&e.pointerType!=='touch')setFlipped(true);});
-  card.addEventListener('pointerleave',()=>{if(trigger==='hover')setFlipped(false);});
+  card.addEventListener('pointerleave',e=>{if(trigger==='hover'&&e.pointerType!=='touch')setFlipped(false);});
 
   // Cursor-driven idle 3D tilt via Pointer Events
   const reduce=matchMedia('(prefers-reduced-motion:reduce)');

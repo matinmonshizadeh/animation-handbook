@@ -30,8 +30,8 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
-    .acc-list{width:100%;max-width:420px;display:flex;flex-direction:column;gap:4px}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}
+    .acc-list{width:100%;max-width:420px;margin:auto;display:flex;flex-direction:column;gap:4px}
     /* Accordion item */
     .acc-item{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;overflow:hidden;transition:border-color .15s}
     .acc-item.open{border-color:rgba(255,157,92,.35)}
@@ -45,7 +45,8 @@
     /* CSS grid method */
     .acc-body.grid-method{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--acc-dur) var(--acc-ease)}
     .acc-body.grid-method.open{grid-template-rows:1fr}
-    .acc-inner{overflow:hidden;padding:0 16px 16px;font-size:11px;color:var(--ui-muted);line-height:1.7}
+    .acc-inner{overflow:hidden;min-height:0;padding:0 16px;font-size:11px;color:var(--ui-muted);line-height:1.7}
+    .acc-inner > :last-child{padding-bottom:16px}
     /* Stagger children */
     .acc-body.stagger .acc-inner > *{opacity:0;transform:translateY(4px);transition:opacity .2s ease,transform .2s ease}
     .acc-body.stagger.open .acc-inner > *{opacity:1;transform:translateY(0)}
@@ -173,14 +174,18 @@ body{padding-top:46px}
       body.classList.add('open');
     }
     openSet.add(item);
-    if(document.getElementById('stagger-tog').checked)body.classList.add('stagger');
     updateCount();
   }
   function closeItem(item){
     const body=getBody(item);const trigger=getTrigger(item);
     item.classList.remove('open');trigger.setAttribute('aria-expanded','false');
-    body.classList.remove('open','stagger');
+    body.classList.remove('open');
     openSet.delete(item);updateCount();
+  }
+  // Stagger class must already be on the body before .open is added, so children start at opacity 0
+  function applyStagger(){
+    const on=document.getElementById('stagger-tog').checked;
+    items.forEach(item=>getBody(item).classList.toggle('stagger',on));
   }
   function toggle(item){
     const isOpen=openSet.has(item);
@@ -200,7 +205,13 @@ body{padding-top:46px}
       const body=getBody(item);
       body.className='acc-body '+(m==='js'?'js-method':'grid-method');
     });
+    applyStagger();
   }
+  // JS method: re-measure open items when the viewport changes so content isn't clipped
+  addEventListener('resize',()=>{
+    if(method!=='js')return;
+    openSet.forEach(item=>{const body=getBody(item);body.style.setProperty('--target-h',body.querySelector('.acc-inner').scrollHeight+'px')});
+  });
 
   document.getElementById('method-sel').addEventListener('change',e=>switchMethod(e.target.value));
   document.getElementById('dur-sl').addEventListener('input',e=>{
@@ -212,10 +223,9 @@ body{padding-top:46px}
   });
   document.getElementById('multi-tog').addEventListener('change',e=>{multiOpen=e.target.checked});
   document.getElementById('chevron-tog').addEventListener('change',e=>{
-    document.querySelectorAll('.acc-chevron').forEach(c=>{
-      c.style.transition=e.target.checked?`transform var(--acc-dur) var(--acc-ease)`:'none';
-    });
+    document.querySelectorAll('.acc-chevron').forEach(c=>{c.style.transform=e.target.checked?'':'none'});
   });
+  document.getElementById('stagger-tog').addEventListener('change',applyStagger);
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

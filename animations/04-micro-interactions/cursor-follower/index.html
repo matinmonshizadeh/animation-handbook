@@ -40,7 +40,7 @@
     /* Hover targets */
     .hover-target{padding:10px 18px;border-radius:6px;border:1px solid var(--ui-border);cursor:none;font-size:11px;font-family:monospace;background:rgba(255,255,255,.05);transition:border-color .2s}
     /* Cursor follower */
-    #follower{position:absolute;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;transition:width .2s ease,height .2s ease,border-radius .2s ease}
+    #follower{position:absolute;pointer-events:none;z-index:100;opacity:0;transform:translate(-50%,-50%);will-change:transform;transition:width .2s ease,height .2s ease,border-radius .2s ease}
     #follower.circle{width:var(--follower-size);height:var(--follower-size);border-radius:50%;background:#fff;mix-blend-mode:difference}
     #follower.ring{width:var(--follower-size);height:var(--follower-size);border-radius:50%;border:2px solid #fff;background:transparent;mix-blend-mode:difference}
     #follower.square{width:var(--follower-size);height:var(--follower-size);border-radius:4px;background:#fff;mix-blend-mode:difference}
@@ -59,7 +59,7 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
     .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:400px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:400px}}
     @media(prefers-reduced-motion:reduce){#follower{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -119,7 +119,13 @@ body{padding-top:46px}
   const hasTouch=window.matchMedia('(pointer:coarse)').matches;
   if(hasTouch){follower.style.display='none';}
 
-  stage.addEventListener('mouseenter',()=>{inside=true;follower.style.opacity='1'});
+  stage.addEventListener('mouseenter',e=>{
+    // Snap to the entry point so the follower doesn't swoop in from its last position
+    const r=stage.getBoundingClientRect();
+    mx=fx=e.clientX-r.left;my=fy=e.clientY-r.top;
+    follower.style.left=fx.toFixed(1)+'px';follower.style.top=fy.toFixed(1)+'px';
+    inside=true;follower.style.opacity='1';
+  });
   stage.addEventListener('mouseleave',()=>{inside=false;follower.style.opacity='0'});
   stage.addEventListener('mousemove',e=>{
     const r=stage.getBoundingClientRect();
@@ -152,13 +158,17 @@ body{padding-top:46px}
   });
   document.getElementById('shape-sel').addEventListener('change',e=>{
     shape=e.target.value;
-    follower.className=shape+(blend?'':' no-blend');
+    follower.classList.remove('circle','ring','square');
+    follower.classList.add(shape);
   });
   document.getElementById('blend-tog').addEventListener('change',e=>{
     blend=e.target.checked;
     follower.classList.toggle('no-blend',!blend);
   });
-  document.getElementById('expand-tog').addEventListener('change',e=>{expandOnHover=e.target.checked});
+  document.getElementById('expand-tog').addEventListener('change',e=>{
+    expandOnHover=e.target.checked;
+    if(!expandOnHover)follower.classList.remove('expanded');
+  });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

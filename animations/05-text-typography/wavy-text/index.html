@@ -52,7 +52,7 @@
     input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
     input[type=text]:focus{border-color:var(--ui-accent)}
     .div{height:1px;background:var(--ui-border)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:340px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:340px}}
     @media(prefers-reduced-motion:reduce){
       .wave-text span{animation:none!important;transform:none!important}
     }
@@ -108,8 +108,17 @@ function build(str){
     s.setAttribute('aria-hidden','true');
     wave.appendChild(s);
   });
+  fit();
+}
+// Shrink the type when a long string would spill past the stage edges.
+const stage=document.querySelector('.stage');
+function fit(){
+  wave.style.fontSize='';
+  const room=stage.clientWidth-48;
+  if(wave.offsetWidth>room) wave.style.fontSize=parseFloat(getComputedStyle(wave).fontSize)*room/wave.offsetWidth+'px';
 }
 build('Wavy');
+addEventListener('resize',fit);
 
 document.getElementById('text-inp').addEventListener('input',e=>build(e.target.value||' '));
 document.getElementById('amp-sl').addEventListener('input',e=>{
@@ -117,7 +126,7 @@ document.getElementById('amp-sl').addEventListener('input',e=>{
   document.getElementById('amp-sv').textContent=e.target.value+'px';
 });
 document.getElementById('spd-sl').addEventListener('input',e=>{
-  const dur=(11-+e.target.value)*0.28;
+  const dur=(11-+e.target.value)*0.32;
   root.style.setProperty('--dur',dur.toFixed(1)+'s');
   document.getElementById('spd-sv').textContent=dur.toFixed(1)+'s';
 });

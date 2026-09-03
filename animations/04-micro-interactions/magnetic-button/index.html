@@ -32,8 +32,8 @@
     /* Radius ring — purely visual, follows the button */
     .ring{position:absolute;width:calc(var(--radius)*2px);height:calc(var(--radius)*2px);border:1px dashed rgba(255,157,92,.35);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s}
     .ring.show{opacity:1}
-    .mag{position:relative;border:none;cursor:pointer;background:var(--ui-accent);color:#1a0e05;font-family:var(--disp);font-weight:700;font-size:clamp(15px,2vw,18px);letter-spacing:.01em;padding:20px 40px;min-height:56px;border-radius:40px;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
-    .mag.pressed{transform:scale(.94)}
+    .mag{position:relative;border:none;cursor:pointer;background:var(--ui-accent);color:#1a0e05;font-family:var(--disp);font-weight:700;font-size:clamp(15px,2vw,18px);letter-spacing:.01em;padding:20px 40px;min-height:56px;border-radius:40px;transform:translate(var(--tx,0px),var(--ty,0px));transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
+    .mag.pressed{transform:translate(var(--tx,0px),var(--ty,0px)) scale(.94)}
     .mag .lbl{display:inline-block;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
     .hint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:10px;color:var(--ui-muted);letter-spacing:.5px;pointer-events:none}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -47,7 +47,7 @@
     .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
     .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px}}
     @media(prefers-reduced-motion:reduce){.mag,.mag .lbl{transition:transform .12s linear}}
   </style>
 <style id="ah-inject">
@@ -97,7 +97,7 @@ let strength=0.35,radius=160;
 document.getElementById('mode-v').textContent=hasHover?'pointer (magnet)':'touch (press)';
 
 function reset(){
-  btn.style.transform='';lbl.style.transform='';ring.style.left='';ring.style.top='';
+  btn.style.removeProperty('--tx');btn.style.removeProperty('--ty');lbl.style.transform='';ring.style.left='';ring.style.top='';
   document.getElementById('pull-v').textContent='0px';
 }
 
@@ -113,7 +113,7 @@ if(hasHover){
       // Falloff: full strength at center, easing to 0 at the radius edge
       const pull=(1-dist/radius);
       const tx=dx*strength*pull, ty=dy*strength*pull;
-      btn.style.transform=`translate(${tx}px,${ty}px)`;
+      btn.style.setProperty('--tx',tx+'px');btn.style.setProperty('--ty',ty+'px');
       lbl.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
       document.getElementById('pull-v').textContent=Math.round(Math.hypot(tx,ty))+'px';
     }else{ reset(); }

@@ -23,14 +23,14 @@
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
     @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--fill-dur:900ms;--fill-ease:ease-in-out;--stroke-color:#ff6f8b;--fill-color:#ff6f8b;--stroke-w:2;--fill-dir:up}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--fill-dur:900ms;--fill-ease:ease-in-out;--stroke-color:#ff6f8b;--fill-color:#ff6f8b;--stroke-w:2px;--fill-dir:up}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
     header{margin-bottom:20px}
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:32px}
+    .stage{flex:1;min-width:0;overflow:hidden;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:32px}
     /* Shared text style */
     .otf-text{
       font-family:Georgia,'Times New Roman',serif;
@@ -43,13 +43,13 @@
     /* Variant A: bottom-up fill via stacked layers */
     .otf-wrap{position:relative;display:inline-block}
     .outline-layer{
-      -webkit-text-stroke:var(--stroke-w)px var(--stroke-color);
+      -webkit-text-stroke:var(--stroke-w) var(--stroke-color);
       color:transparent;
       position:relative;z-index:2
     }
     .fill-layer{
       position:absolute;inset:0;
-      -webkit-text-stroke:var(--stroke-w)px var(--stroke-color);
+      -webkit-text-stroke:var(--stroke-w) var(--stroke-color);
       color:var(--fill-color);
       clip-path:inset(100% 0 0 0);
       transition:clip-path var(--fill-dur) var(--fill-ease);
@@ -63,7 +63,7 @@
     /* Variant B: stroke fade, fill fade */
     .stroke-fade-wrap{position:relative;display:inline-block}
     .stroke-only{
-      -webkit-text-stroke:var(--stroke-w)px var(--stroke-color);
+      -webkit-text-stroke:var(--stroke-w) var(--stroke-color);
       color:transparent;
       transition:opacity var(--fill-dur) var(--fill-ease)
     }
@@ -89,12 +89,12 @@
     input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
     input[type=text]:focus{border-color:var(--ui-accent)}
     .color-row{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted);flex-wrap:wrap}
-    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:440px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:440px}}
     @media(prefers-reduced-motion:reduce){.fill-layer,.stroke-only,.fill-only{transition:none!important}.fill-layer{clip-path:inset(0%)!important}.stroke-fade-wrap.filled .fill-only{opacity:1!important}.stroke-fade-wrap.filled .stroke-only{opacity:0!important}}
   </style>
 <style id="ah-inject">
@@ -177,6 +177,17 @@ body{padding-top:46px}
     ['outline-layer','fill-layer','stroke-only','fill-only'].forEach(id=>{
       document.getElementById(id).textContent=t;
     });
+    fitText();
+  }
+
+  function fitText(){
+    // Scale long words down so they never get clipped by the stage on narrow screens
+    const avail=document.querySelector('.stage').clientWidth-64;
+    document.querySelectorAll('.otf-wrap,.stroke-fade-wrap').forEach(w=>{
+      w.style.transform='';
+      const s=avail>0?Math.min(1,avail/w.offsetWidth):1;
+      if(s<1)w.style.transform='scale('+s.toFixed(3)+')';
+    });
   }
 
   function applyDir(){
@@ -186,21 +197,26 @@ body{padding-top:46px}
   }
 
   function reset(){
+    // Snap back without a reverse transition, so the next fill runs at full length
+    const layers=[fillLayer,...strokeWrap.children];
+    layers.forEach(el=>el.style.transition='none');
     fillLayer.classList.remove('filled');
     strokeWrap.classList.remove('filled');
+    applyDir();
+    void fillLayer.offsetWidth;
+    layers.forEach(el=>el.style.transition='');
   }
 
   function play(){
     clearTimeout(loopTimer);
     reset();
-    applyDir();
     const dur=+document.getElementById('dur-sl').value;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       fillLayer.classList.add('filled');
       strokeWrap.classList.add('filled');
     }));
     if(document.getElementById('loop-tog').checked){
-      loopTimer=setTimeout(()=>{reset();setTimeout(play,300);},dur+1400);
+      loopTimer=setTimeout(()=>{reset();loopTimer=setTimeout(play,300);},dur+1400);
     }
   }
 
@@ -211,7 +227,7 @@ body{padding-top:46px}
   });
   document.getElementById('sw-sl').addEventListener('input',e=>{
     document.getElementById('sw-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--stroke-w',e.target.value);
+    document.documentElement.style.setProperty('--stroke-w',e.target.value+'px');
   });
   document.getElementById('stroke-pick').addEventListener('input',e=>{
     document.documentElement.style.setProperty('--stroke-color',e.target.value);
@@ -222,11 +238,16 @@ body{padding-top:46px}
   document.getElementById('ease-sel').addEventListener('change',e=>{
     document.documentElement.style.setProperty('--fill-ease',e.target.value);
   });
-  document.getElementById('dir-sel').addEventListener('change',applyDir);
-  document.getElementById('text-inp').addEventListener('input',e=>{
-    applyText(e.target.value.toUpperCase()||'OUTLINE');reset();
+  document.getElementById('dir-sel').addEventListener('change',play);
+  document.getElementById('loop-tog').addEventListener('change',e=>{
+    if(e.target.checked)play();else clearTimeout(loopTimer);
   });
+  document.getElementById('text-inp').addEventListener('input',e=>{
+    applyText(e.target.value.toUpperCase()||'OUTLINE');play();
+  });
+  window.addEventListener('resize',fitText);
 
+  fitText();
   play();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

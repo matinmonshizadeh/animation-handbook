@@ -63,7 +63,7 @@
     .log-row{font-size:9px;color:var(--ui-muted)}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}.nav-btn,.seg button,button.rst{min-height:44px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important;animation:none!important}}
   </style>
   <style id="kf-style"></style>
@@ -153,18 +153,18 @@ body{padding-top:46px}
   function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
 
   function buildKF(ov){
-    const t=ov/100,os=1+t*0.15,un=1-t*0.06;
+    const t=ov/100,os=t,un=t;
     kfStyle.textContent=`@keyframes elastic-in{
       0%{transform:translateX(100%);opacity:0}
       5%{opacity:1}
-      55%{transform:translateX(${-os*8}%)}
-      75%{transform:translateX(${un*2}%)}
-      88%{transform:translateX(-1%)}
+      55%{transform:translateX(${-os*12}%)}
+      75%{transform:translateX(${un*4}%)}
+      88%{transform:translateX(${-t*1.5}%)}
       100%{transform:translateX(0);opacity:1}
     }
     @keyframes elastic-out{
       0%{transform:translateX(0);opacity:1}
-      40%{transform:translateX(${os*5}%)}
+      40%{transform:translateX(${os*6}%)}
       100%{transform:translateX(-100%);opacity:0}
     }`;
   }
@@ -197,7 +197,7 @@ body{padding-top:46px}
     o.style.transition=`transform 300ms ease-in, opacity 300ms ease-in`;
     o.style.transform='translateX(-40%)';o.style.opacity='0';
     // Spring in new page from right
-    let pos=-100,vel=0,target=0;
+    let pos=100,vel=0,target=0;
     n.style.opacity='1';n.style.transform=`translateX(${pos}%)`;n.classList.add('active');
     const positions=[];
     let rafId,lastTime=null;

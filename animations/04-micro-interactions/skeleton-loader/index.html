@@ -32,7 +32,8 @@
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
     /* Card */
-    .card-wrap{width:100%;max-width:340px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:20px;position:relative;min-height:260px}
+    .card-wrap{width:100%;max-width:340px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:20px;position:relative;min-height:260px;display:grid}
+    #skel-content,.real{grid-area:1/1}
     /* Skeleton blocks */
     .skel{border-radius:4px;background:var(--skel-bg);animation:pulse var(--pulse-spd) ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:var(--pulse-min)}50%{opacity:1}}
@@ -46,7 +47,7 @@
     .skel-header{display:flex;align-items:center;gap:14px}
     .skel-header-text{flex:1}
     /* Real content — hidden initially */
-    .real{position:absolute;inset:0;padding:20px;opacity:0;transition:opacity 400ms ease;pointer-events:none;border-radius:10px}
+    .real{opacity:0;transition:opacity 400ms ease;pointer-events:none}
     .real.visible{opacity:1;pointer-events:auto}
     .real-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
     .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3060,#2a5090);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
@@ -57,7 +58,7 @@
     /* Progress bar */
     .load-bar-wrap{width:100%;max-width:340px;margin-top:16px}
     .load-bar-track{height:2px;background:var(--ui-border);border-radius:1px;overflow:hidden}
-    .load-bar-fill{height:100%;background:var(--ui-accent);width:0%;transition:width 100ms linear;border-radius:1px}
+    .load-bar-fill{height:100%;background:var(--ui-accent);transform:scaleX(0);transform-origin:left;transition:transform 100ms linear;border-radius:1px}
     .load-label{font-size:10px;color:var(--ui-muted);margin-top:6px;text-align:center}
     /* Panel */
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -67,9 +68,9 @@
     .sr{display:flex;align-items:center;gap:6px;font-size:10px}
     .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
     .sv{width:44px;text-align:right;color:var(--ui-text)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;min-height:44px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:400px}}
     @media(prefers-reduced-motion:reduce){.skel{animation:none!important;opacity:.6}}
   </style>
 <style id="ah-inject">
@@ -144,12 +145,12 @@ body{padding-top:46px}
 
   function startLoad(){
     if(timer)clearTimeout(timer);if(rafId)cancelAnimationFrame(rafId);
-    skelEl.style.display='';realEl.classList.remove('visible');
-    fill.style.width='0%';label.textContent='Loading…';
+    skelEl.style.visibility='';realEl.classList.remove('visible');
+    fill.style.transform='scaleX(0)';label.textContent='Loading…';
     const start=performance.now();
     function tick(now){
       const p=Math.min((now-start)/loadDur,1);
-      fill.style.width=(p*100).toFixed(1)+'%';
+      fill.style.transform='scaleX('+p.toFixed(3)+')';
       if(p<1){rafId=requestAnimationFrame(tick);}
       else{reveal();}
     }
@@ -158,7 +159,7 @@ body{padding-top:46px}
 
   function reveal(){
     label.textContent='Loaded';
-    skelEl.style.display='none';
+    skelEl.style.visibility='hidden';
     realEl.classList.add('visible');
   }
 

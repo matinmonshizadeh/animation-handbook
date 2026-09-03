@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
+    .stage{flex:1;min-width:0;min-height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
     .vf-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
     .vf-text{
       font-family:'Recursive','Segoe UI Variable',system-ui,'Segoe UI',sans-serif;
@@ -38,11 +38,13 @@
       line-height:1;
       color:#fff;
       letter-spacing:-0.02em;
+      max-width:100%;overflow-wrap:anywhere;text-align:center;
       /* wght/slnt are standard axes system-ui exposes; font-weight + skewX are the
          universal fallback so the morph is visible even without a variable font. */
       font-weight:var(--wght);
       font-variation-settings:'wght' var(--wght),'CASL' var(--CASL),'slnt' var(--slnt);
-      transform:skewX(calc(var(--slnt) * -1deg));
+      /* slnt is negative for a right-leaning (italic) slant, and so is skewX. */
+      transform:skewX(calc(var(--slnt) * 1deg));
       transition:font-variation-settings 600ms cubic-bezier(.4,0,.2,1),font-weight 600ms cubic-bezier(.4,0,.2,1),transform 600ms cubic-bezier(.4,0,.2,1);
       -webkit-user-select:none;user-select:none
     }
@@ -174,7 +176,7 @@ document.getElementById('text-inp').addEventListener('input',e=>{
 });
 document.querySelectorAll('.preset-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    clearInterval(autoTimer);autoTimer=null;
+    clearInterval(autoTimer);autoTimer=null;document.getElementById('auto-btn').textContent='▶ Auto-morph presets';
     apply(+btn.dataset.wght,+btn.dataset.casl*100,+btn.dataset.slnt);
   });
 });

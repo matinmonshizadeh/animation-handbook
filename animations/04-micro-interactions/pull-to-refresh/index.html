@@ -80,7 +80,7 @@
     .btn:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
     @media(hover:hover){.btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .status{font-size:10px;color:var(--ui-muted);min-height:14px}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:60vh;min-height:380px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}:root{--stage-h:auto}.stage{height:60vh;min-height:380px}}
     @media(prefers-reduced-motion:reduce){.scroller,.indicator{transition:none!important}.card.fresh{animation:none}}
   </style>
 <style id="ah-inject">
@@ -189,6 +189,8 @@ body{padding-top:46px}
   }
   scroller.addEventListener('pointerup',release);
   scroller.addEventListener('pointercancel',release);
+  // Once the pull is claimed, stop the browser from turning the touch into a native pan (which would fire pointercancel).
+  scroller.addEventListener('touchmove',e=>{ if(pulling)e.preventDefault(); },{passive:false});
 
   function startRefresh(){
     if(refreshing)return;
@@ -214,7 +216,7 @@ body{padding-top:46px}
   $('th').addEventListener('input',e=>{ threshold=+e.target.value; $('thv').textContent=threshold+'px'; });
   $('re').addEventListener('input',e=>{ resistance=+e.target.value; $('rev').textContent=(+e.target.value).toFixed(1)+'×'; });
   $('du').addEventListener('input',e=>{ dur=+e.target.value; $('duv').textContent=dur+'ms'; });
-  $('style').addEventListener('change',e=>{ spin.className='spin s-'+e.target.value; });
+  $('style').addEventListener('change',e=>{ spin.classList.remove('s-ring','s-dots','s-bars'); spin.classList.add('s-'+e.target.value); });
   $('trigger').addEventListener('click',startRefresh);   // keyboard/button fallback
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

@@ -41,7 +41,7 @@
     .surface-title{font-size:clamp(22px,4vw,36px);font-weight:bold;color:#fff}
     .clip-outline{position:absolute;inset:0;pointer-events:none;border:2px dashed var(--ui-accent);opacity:0;transition:opacity .3s;border-radius:12px}
     .clip-outline.show{opacity:.6}
-    @media(prefers-reduced-motion:reduce){.surface{transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}}
+    @media(prefers-reduced-motion:reduce){.surface{opacity:0;transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -61,7 +61,7 @@
     button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
     button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
     @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:480px}.stage{flex:none}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:480px}.stage{flex:none}.seg button{min-height:44px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -168,6 +168,11 @@ body{padding-top:46px}
     cpVal.textContent=c.out;
   }
 
+  // Re-arm the hidden state without tweening old clip -> new clip (inset top -> inset left would flash a partial reveal)
+  function resetHidden(){
+    clearTimeout(animTimer);surface.style.transition='none';applyClips();surface.classList.remove('in');
+    void surface.offsetWidth;surface.style.transition='';stEl.textContent='hidden';
+  }
   function _trigger(cls){
     clearTimeout(animTimer);surface.classList.remove('in');void surface.offsetWidth;
     if(cls==='in'){surface.classList.add('in');cpVal.textContent=getClips().in;}
@@ -188,11 +193,11 @@ body{padding-top:46px}
     const dirHead=document.getElementById('dir-head');
     document.getElementById('dir-seg').style.display=shape==='inset'?'flex':'none';
     dirHead.style.display=shape==='inset'?'block':'none';
-    applyClips();surface.classList.remove('in');stEl.textContent='hidden';
+    resetHidden();
   }));
   document.querySelectorAll('#dir-seg button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    dir=b.dataset.d;applyClips();surface.classList.remove('in');stEl.textContent='hidden';
+    dir=b.dataset.d;resetHidden();
   }));
   durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
   easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));

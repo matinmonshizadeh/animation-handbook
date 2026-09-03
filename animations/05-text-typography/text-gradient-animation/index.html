@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:32px}
+    .stage{flex:1;min-width:0;min-height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:32px}
     /* Gradient text base */
     .grad-text{
       font-family:Georgia,'Times New Roman',serif;
@@ -45,6 +45,7 @@
       animation:grad-flow var(--grad-dur) linear infinite;
       display:block;
       text-align:center;
+      max-width:100%;overflow-wrap:anywhere;
       -webkit-user-select:none;user-select:none
     }
     /* Linear */
@@ -74,8 +75,8 @@
     input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
     input[type=text]:focus{border-color:var(--ui-accent)}
     .color-row{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted)}
-    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}:root{--grad-size:64px}}
+    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:400px}:root{--grad-size:64px}}
     @media(prefers-reduced-motion:reduce){.grad-text{animation:none!important;background-position:0% 50%!important}}
   </style>
 <style id="ah-inject">
@@ -114,7 +115,7 @@ body{padding-top:46px}
       <option value="grad-custom">Two-color custom</option>
     </select>
     <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="10" max="100" value="40" step="5"><span class="sv" id="spd-v">4s</span></div>
+    <div class="sr"><input type="range" id="spd-sl" min="10" max="100" value="40" step="5"><span class="sv" id="spd-v">4.0s</span></div>
     <div class="lbl">Font Size</div>
     <div class="sr"><input type="range" id="size-sl" min="32" max="160" value="120" step="8"><span class="sv" id="size-v">120px</span></div>
     <div class="lbl">Custom Colors</div>
@@ -142,10 +143,19 @@ body{padding-top:46px}
     document.getElementById('spd-v').textContent=v.toFixed(1)+'s';
     document.documentElement.style.setProperty('--grad-dur',v+'s');
   });
-  document.getElementById('size-sl').addEventListener('input',e=>{
+  const sizeSl=document.getElementById('size-sl');
+  sizeSl.addEventListener('input',e=>{
     document.getElementById('size-v').textContent=e.target.value+'px';
     document.documentElement.style.setProperty('--grad-size',e.target.value+'px');
   });
+  // The mobile media query shrinks --grad-size; keep the slider and readout in sync with it,
+  // including when the viewport crosses the breakpoint after load (rotation, resize).
+  const syncSize=()=>{
+    sizeSl.value=parseInt(getComputedStyle(gradText).fontSize,10);
+    document.getElementById('size-v').textContent=sizeSl.value+'px';
+  };
+  syncSize();
+  matchMedia('(max-width:600px)').addEventListener('change',syncSize);
   document.getElementById('text-inp').addEventListener('input',e=>{
     gradText.textContent=e.target.value||'Flow';
   });

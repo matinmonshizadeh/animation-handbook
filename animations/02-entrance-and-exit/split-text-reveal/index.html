@@ -45,12 +45,12 @@
     /* lines mode: each word gets line-height clipping */
     [data-mode="lines"] .unit{display:block;overflow:hidden}
     [data-mode="lines"] .unit-inner{display:block;transform:translateY(100%);transition:transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
-    [data-mode="lines"] .splitting.in .unit-inner{transform:none}
+    .splitting.in[data-mode="lines"] .unit-inner{transform:none}
     [data-mode="lines"] .unit{opacity:1}
     /* word spacing */
     [data-mode="words"] .unit{margin-right:0.28em}
     [data-mode="chars"] .unit{margin-right:0.01em}
-    @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}.splitting.in .unit{opacity:1}}
+    @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}[data-mode="lines"] .unit{opacity:0}.splitting.in .unit{opacity:1}}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -71,7 +71,7 @@
     button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
     button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
     @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}.seg button{min-height:44px}:root{--stage-h:480px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -166,16 +166,19 @@ body{padding-top:46px}
     } else {
       let units=[];
       if(mode==='words'){units=text.split(/\s+/).filter(Boolean);}
-      else{units=text.split('\n').filter(Boolean);if(units.length<2)units=text.match(/.{1,18}(\s|$)/g)||[text];}
+      else{units=(text.match(/.{1,18}(\s|$)|.{1,18}/g)||[text]).map(u=>u.trim()).filter(Boolean);}
       units.forEach((u,i)=>{
         const s=document.createElement('span');
         s.className='unit';s.style.setProperty('--i',i);
-        if(mode==='lines'){s.innerHTML=`<span class="unit-inner">${u.trim()}</span>`;}
+        if(mode==='lines'){const inner=document.createElement('span');inner.className='unit-inner';inner.textContent=u;s.appendChild(inner);}
         else{s.textContent=u;}
         target.appendChild(s);
         if(mode==='words'&&i<units.length-1)target.appendChild(document.createTextNode(' '));
       });
     }
+    updateTotal();
+  }
+  function updateTotal(){
     const n=target.querySelectorAll('.unit').length;
     totalEl.textContent=Math.round(n*stagger+dur)+'ms';
   }
@@ -188,27 +191,28 @@ body{padding-top:46px}
     const n=target.querySelectorAll('.unit').length;
     animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',n*stagger+dur);
   }
-  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function stopLoop(){looping=false;clearTimeout(loopTimer);loopTog.checked=false}
+  function reset(){stopLoop();clearTimeout(animTimer);target.classList.remove('in');stEl.textContent='hidden'}
   function playIn(){stopLoop();_trigger('in')}
   function playOut(){stopLoop();_trigger('out')}
   function loop(){_trigger('in');const n=target.querySelectorAll('.unit').length;const t=n*stagger+dur;loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},t+400)},t+800)}
 
   document.getElementById('btn-in').addEventListener('click',playIn);
   document.getElementById('btn-out').addEventListener('click',playOut);
-  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);target.classList.remove('in');stEl.textContent='hidden'});
+  document.getElementById('btn-rst').addEventListener('click',reset);
   loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
   document.querySelectorAll('#mode-seg button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#mode-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    mode=b.dataset.m;stopLoop();target.classList.remove('in');split();stEl.textContent='hidden';
+    mode=b.dataset.m;reset();split();
   }));
   document.querySelectorAll('#anim-seg button').forEach(b=>b.addEventListener('click',()=>{
     document.querySelectorAll('#anim-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    anim=b.dataset.a;target.dataset.anim=anim;stopLoop();target.classList.remove('in');stEl.textContent='hidden';
+    anim=b.dataset.a;target.dataset.anim=anim;reset();
   }));
-  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms');split()});
-  stagSl.addEventListener('input',()=>{stagger=+stagSl.value;stagV.textContent=stagger+'ms';document.documentElement.style.setProperty('--stagger',stagger+'ms');split()});
+  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms');updateTotal()});
+  stagSl.addEventListener('input',()=>{stagger=+stagSl.value;stagV.textContent=stagger+'ms';document.documentElement.style.setProperty('--stagger',stagger+'ms');updateTotal()});
   easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
-  txtIn.addEventListener('input',()=>{stopLoop();target.classList.remove('in');split();stEl.textContent='hidden'});
+  txtIn.addEventListener('input',()=>{reset();split()});
   split();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

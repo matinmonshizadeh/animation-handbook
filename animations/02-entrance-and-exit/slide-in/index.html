@@ -59,7 +59,7 @@
     button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
     button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
     @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -153,12 +153,15 @@ body{padding-top:46px}
 
   function _trigger(cls){
     clearTimeout(animTimer);
+    // Snap back to the start offset without a transition so a repeated "Play in" replays from the edge.
+    if(cls==='in')card.style.setProperty('transition','none','important');
     card.classList.remove('in');void card.offsetWidth;
+    card.style.removeProperty('transition');
     if(cls==='in')card.classList.add('in');
     stEl.textContent=cls==='in'?'playing in':'playing out';
     animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',dur);
   }
-  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
+  function stopLoop(){looping=false;clearTimeout(loopTimer);loopTog.checked=false}
   function playIn(){stopLoop();_trigger('in')}
   function playOut(){stopLoop();_trigger('out')}
   function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+800)}

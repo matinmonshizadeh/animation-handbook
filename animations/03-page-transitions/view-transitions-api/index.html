@@ -32,13 +32,15 @@
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
-    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
     .page-area{flex:1;position:relative;overflow:hidden;view-transition-name:page-content}
     .page{position:absolute;inset:0;pointer-events:none}
     .page.active{pointer-events:auto}
     /* Suppress root animation — we only want page-content to animate */
     ::view-transition-old(root),::view-transition-new(root){animation:none}
+    /* Keep the sliding/scaling snapshots inside the stage instead of bleeding over the page */
+    ::view-transition-group(page-content){overflow:clip}
     /* Default: crossfade */
     ::view-transition-old(page-content){animation:vt-out var(--vt-dur) var(--vt-ease) both}
     ::view-transition-new(page-content){animation:vt-in var(--vt-dur) var(--vt-ease) both}
@@ -83,9 +85,9 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .log{display:flex;flex-direction:column;gap:2px}
     .log-row{font-size:9px;color:var(--ui-muted)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none}aside{width:100%}:root{--stage-h:480px}}
     @media(prefers-reduced-motion:reduce){::view-transition-old(page-content),::view-transition-new(page-content){animation:none}}
   </style>
 <style id="ah-inject">
@@ -183,6 +185,7 @@ body{padding-top:46px}
     document.documentElement.dataset.vt=style==='crossfade'?'':style;
     if(supportsVT){
       const t=document.startViewTransition(()=>switchPage(prev,next));
+      t.ready.catch(()=>{}); // a skipped transition (e.g. tab hidden) rejects ready; the DOM change still applies
       await t.finished;
     }else{
       // Fallback crossfade

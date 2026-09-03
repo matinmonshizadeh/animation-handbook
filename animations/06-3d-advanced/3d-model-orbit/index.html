@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;touch-action:pan-y}
     canvas{display:block;width:100%;height:100%}
     .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
     .fps-badge,.obj-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
@@ -44,11 +44,10 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
+    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:0 0 auto}aside{width:100%}:root{--stage-h:380px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -197,7 +196,7 @@ function makeTetra(){
 // ─── WebGL setup ───────────────────────────────────────────────────────────
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps'),objBadge=document.getElementById('obj-badge');
-let W,H,gl,prog,posBuf,nrmBuf,idxBuf,idxCount;
+let W,H,gl,prog,posBuf,nrmBuf,idxBuf,lineBuf,idxCount,lineCount;
 let raf=null,paused=false,lastT=0,rx=.3,ry=0;
 let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let mouseNX=0,mouseNY=0;
@@ -211,17 +210,21 @@ function init(){
   gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
   gl.linkProgram(prog);gl.useProgram(prog);
   gl.enable(gl.DEPTH_TEST);gl.clearColor(.024,.039,.063,1);
-  posBuf=gl.createBuffer();nrmBuf=gl.createBuffer();idxBuf=gl.createBuffer();
+  posBuf=gl.createBuffer();nrmBuf=gl.createBuffer();idxBuf=gl.createBuffer();lineBuf=gl.createBuffer();
   loadGeometry('cube');
 }
 
 function loadGeometry(name){
   const geo={cube:makeCube,sphere:makeSphere,torus:makeTorus,tetra:makeTetra}[name]();
+  // Wireframe edges: each triangle (a,b,c) becomes three line segments
+  const lines=[];
+  for(let i=0;i<geo.idx.length;i+=3){const a=geo.idx[i],b=geo.idx[i+1],c=geo.idx[i+2];lines.push(a,b,b,c,c,a);}
   gl.bindBuffer(gl.ARRAY_BUFFER,posBuf);gl.bufferData(gl.ARRAY_BUFFER,geo.pos,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER,nrmBuf);gl.bufferData(gl.ARRAY_BUFFER,geo.nrm,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,geo.idx,gl.STATIC_DRAW);
-  idxCount=geo.idx.length;
-  objBadge.textContent=name.charAt(0).toUpperCase()+name.slice(1);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(lines),gl.STATIC_DRAW);
+  idxCount=geo.idx.length;lineCount=lines.length;
+  objBadge.textContent={cube:'Cube',sphere:'Sphere',torus:'Torus',tetra:'Tetrahedron'}[name];
 }
 
 function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
@@ -233,17 +236,10 @@ function setAttr(name,buf,size){
 }
 function u(n){return gl.getUniformLocation(prog,n);}
 
-function render(ts){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(render);
-  const dt=ts-lastT;if(dt<16)return;
-  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
-  if(MODE==='orbit'){ry+=SY*.01;rx+=SX*.01*(Math.sin(ts*.0003)*.5+.5);}
-  else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
+function draw(){
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.useProgram(prog);
   setAttr('aPos',posBuf,3);setAttr('aNorm',nrmBuf,3);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);
   const P=persp(Math.PI/4,W/H,.1,20);
   const T=trans(0,0,-DIST);
   const M=mul(mul(T,rotY(ry)),rotX(rx));
@@ -253,30 +249,41 @@ function render(ts){
   gl.uniform3fv(u('uCol'),COLOR);
   gl.uniform3f(u('uLight'),2,3,4);
   gl.uniform1i(u('uWire'),WIRE?1:0);
-  if(WIRE){
-    // Draw wireframe by drawing lines — use LINE_STRIP approximation
-    gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);
-  }else{
-    gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);
-  }
+  if(WIRE){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.drawElements(gl.LINES,lineCount,gl.UNSIGNED_SHORT,0);}
+  else{gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);}
+}
+
+function render(ts){
+  if(paused){raf=null;return;}
+  raf=requestAnimationFrame(render);
+  const dt=ts-lastT;if(dt<16)return;
+  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  if(MODE==='orbit'){ry+=SY*.01;rx+=SX*.01*(Math.sin(ts*.0003)*.5+.5);}
+  else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
+  draw();
 }
 
 init();resize();
-if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
+if(!gl){fpsEl.textContent='WebGL unavailable';}
+else if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
+else{draw();} // reduced motion: one static frame, object stays visible
 
-stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;});
-stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();mouseNX=(e.touches[0].clientX-r.left)/r.width*2-1;mouseNY=(e.touches[0].clientY-r.top)/r.height*2-1;},{passive:true});
-window.addEventListener('resize',resize);
+stage.addEventListener('pointermove',e=>{
+  const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;
+  if(gl&&!raf&&!paused&&MODE==='mouse'){rx=mouseNY*1.2;ry=mouseNX*1.5;draw();} // reduced motion: still follows the pointer
+});
+window.addEventListener('resize',()=>{resize();if(gl&&!raf)draw();});
 
 document.getElementById('mode-sel').addEventListener('change',e=>MODE=e.target.value);
-document.getElementById('obj-sel').addEventListener('change',e=>{loadGeometry(e.target.value);rx=0;ry=0;});
+document.getElementById('obj-sel').addEventListener('change',e=>{if(!gl)return;loadGeometry(e.target.value);rx=0;ry=0;if(!raf)draw();});
 document.getElementById('sx-sl').addEventListener('input',e=>{SX=e.target.value/10;document.getElementById('sx-v').textContent=SX.toFixed(1);});
 document.getElementById('sy-sl').addEventListener('input',e=>{SY=e.target.value/10;document.getElementById('sy-v').textContent=SY.toFixed(1);});
-document.getElementById('cam-sl').addEventListener('input',e=>{DIST=e.target.value/10;document.getElementById('cam-v').textContent=DIST.toFixed(1);});
-document.getElementById('color-pick').addEventListener('input',e=>{const h=e.target.value;COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];});
-document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;});
+document.getElementById('cam-sl').addEventListener('input',e=>{DIST=e.target.value/10;document.getElementById('cam-v').textContent=DIST.toFixed(1);if(gl&&!raf)draw();});
+document.getElementById('color-pick').addEventListener('input',e=>{const h=e.target.value;COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];if(gl&&!raf)draw();});
+document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;if(gl&&!raf)draw();});
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+  if(raf){cancelAnimationFrame(raf);raf=null;} // never leave two loops running
   if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
 });
 </script>

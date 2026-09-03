@@ -54,7 +54,7 @@
     /* Multi-color classes */
     .wc0{color:#58a6ff}.wc1{color:#56d364}.wc2{color:#d2a8ff}.wc3{color:#ffa657}.wc4{color:#f85149}
     /* Word indicators */
-    .word-dots{display:flex;gap:6px;margin-top:16px}
+    .word-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:16px}
     .word-dot{font-size:9px;padding:3px 8px;border-radius:3px;background:var(--ui-border);color:var(--ui-muted);letter-spacing:0.5px;transition:background .2s,color .2s}
     .word-dot.active{background:var(--ui-accent);color:#000}
     /* Panel */
@@ -72,7 +72,7 @@
     textarea:focus{border-color:var(--ui-accent)}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
     @media(prefers-reduced-motion:reduce){.rot-word{transition:none!important;transform:none!important;opacity:1!important}}
@@ -138,7 +138,7 @@ Startups</textarea>
   </aside>
 </div>
 <script>
-  let wordIdx=0,timer=null;
+  let wordIdx=0,timer=null,run=0;
   const rotWord=document.getElementById('rot-word');
   const rotContainer=document.getElementById('rot-container');
   const staticText=document.getElementById('static-text');
@@ -160,25 +160,30 @@ Startups</textarea>
 
   function setColor(el,i){
     el.classList.remove(...COLORS);
-    if(document.getElementById('color-tog').checked)el.classList.add(COLORS[i%COLORS.length]);
+    if(document.getElementById('color-tog').checked){el.style.color='';el.classList.add(COLORS[i%COLORS.length]);}
     else el.style.color='var(--word-color)';
   }
 
   function transitionTo(nextWord,nextIdx,done){
-    const dir=getDir();
+    const dir=getDir(),id=run;
     const outMap={up:'out-up',down:'out-down',left:'out-left',right:'out-right'};
     const enterMap={up:'enter-below',down:'enter-above',left:'enter-right',right:'enter-left'};
     rotWord.classList.add(outMap[dir]);
     setTimeout(()=>{
+      if(id!==run)return; // a restart superseded this transition
       // swap word
       rotWord.textContent=nextWord;
       setColor(rotWord,nextIdx);
+      // jump to the entry side without transitioning from the exit side
+      rotWord.style.transition='none';
       rotWord.classList.remove(...outClasses,...enterClasses);
       rotWord.classList.add(enterMap[dir]);
-      // size container to new word
+      void rotWord.offsetWidth;
+      rotWord.style.transition='';
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(id!==run)return;
         rotWord.classList.remove(...enterClasses);
-        setTimeout(done,getDur()+50);
+        setTimeout(()=>{if(id===run)done()},getDur()+50);
       }));
     },getDur()+30);
   }
@@ -193,9 +198,13 @@ Startups</textarea>
   }
 
   function start(){
-    if(timer)clearTimeout(timer);wordIdx=0;
+    if(timer)clearTimeout(timer);wordIdx=0;run++;
     const words=getWords();if(!words.length)return;
+    // snap back to rest without replaying the exit slide in reverse
+    rotWord.style.transition='none';
     rotWord.classList.remove(...outClasses,...enterClasses);
+    void rotWord.offsetWidth;
+    rotWord.style.transition='';
     rotWord.textContent=words[0];
     setColor(rotWord,0);
     staticText.textContent=document.getElementById('static-inp').value;
@@ -207,7 +216,7 @@ Startups</textarea>
   document.getElementById('static-inp').addEventListener('input',e=>{staticText.textContent=e.target.value});
   document.getElementById('words-inp').addEventListener('change',start);
   document.getElementById('hold-sl').addEventListener('input',e=>{document.getElementById('hold-v').textContent=(e.target.value/1000).toFixed(1)+'s'});
-  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms'});
+  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms';document.documentElement.style.setProperty('--rot-dur',e.target.value+'ms')});
   document.getElementById('dir-sel').addEventListener('change',()=>{});
   document.getElementById('color-tog').addEventListener('change',()=>setColor(rotWord,wordIdx));
 

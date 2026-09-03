@@ -36,7 +36,7 @@ header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
 .seg{position:relative;display:inline-flex;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:4px;max-width:100%;overflow:hidden}
 .seg-ind{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:9px;background:var(--ui-accent);transform-origin:left center;transform:translateX(var(--x,0)) scaleX(var(--sx,1));width:var(--w,0);transition:transform var(--dur) var(--ease);will-change:transform;z-index:0}
 .seg.underline .seg-ind{top:auto;bottom:2px;height:2px;border-radius:2px}
-.seg-opt{position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);color:var(--ui-muted);padding:0 clamp(12px,2.4vw,22px);min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9px;transition:color var(--dur) var(--ease);outline:none;-webkit-tap-highlight-color:transparent}
+.seg-opt{position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);color:var(--ui-muted);padding:0 clamp(10px,2.4vw,22px);min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9px;transition:color var(--dur) var(--ease);outline:none;-webkit-tap-highlight-color:transparent}
 .seg-opt[aria-checked="true"]{color:#0b0b0d;font-weight:500}
 .seg.underline .seg-opt[aria-checked="true"]{color:var(--ui-accent)}
 .seg-opt:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ui-accent)}
@@ -52,7 +52,7 @@ aside{width:clamp(210px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border
 .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
 .sval{width:52px;text-align:right;color:var(--ui-text)}
 select{background:var(--bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-@media(max-width:600px){.layout{flex-direction:column}aside{width:100%}}
+@media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}.stage{padding-left:12px;padding-right:12px}}
 @media(prefers-reduced-motion:reduce){.seg-ind,.seg-opt{transition:none!important}}
 </style>
 <style id="ah-inject">
@@ -122,20 +122,20 @@ function build(n){
     seg.appendChild(b);opts.push(b);
   }
   current=Math.min(current,n-1);
-  // measure once from a neutral position, then animate future moves
-  requestAnimationFrame(()=>{move(current,false);paint();});
+  // mark the selection before first style resolution (no label crossfade on rebuild), then snap the pill
+  paint();requestAnimationFrame(()=>move(current,false));
 }
 
 // Measure the target segment and translate the indicator to it.
 function move(i,animate){
   const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
-  const x=opts[i].offsetLeft;                           // absolute offset inside the track
+  const x=g.left-base.left+opts[0].offsetLeft;         // sub-pixel offset inside the track
   const sx=g.width/base.width;                          // scaleX to match differing widths
   if(!animate)ind.style.transition='none';
   ind.style.width=base.width+'px';                     // fixed reference width; scaleX does the rest
   ind.style.setProperty('--x',x+'px');
   ind.style.setProperty('--sx',sx);
-  if(!animate)requestAnimationFrame(()=>ind.style.transition='');
+  if(!animate){void ind.offsetWidth;ind.style.transition='';} // flush the snap before re-enabling transitions
 }
 
 function paint(){

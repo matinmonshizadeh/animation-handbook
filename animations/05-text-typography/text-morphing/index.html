@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#08080a;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
     .morph-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
     /* Word display area */
     .morph-stage{height:clamp(80px,12vw,130px);display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;min-width:200px}
@@ -69,9 +69,9 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     textarea{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px;border-radius:4px;width:100%;resize:vertical;min-height:88px;line-height:1.5;outline:none}
     textarea:focus{border-color:var(--ui-accent)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}}
     @media(prefers-reduced-motion:reduce){.morph-char{transition:none!important;transform:none!important;opacity:1!important}}
   </style>
 <style id="ah-inject">
@@ -129,7 +129,7 @@ SOUND</textarea>
   </aside>
 </div>
 <script>
-  let wordIdx=0,morphTimer=null,running=false;
+  let wordIdx=0,morphTimer=null,running=false,gen=0;
   const wordEl=document.getElementById('current-word');
   const dotsEl=document.getElementById('dots');
   const curWordKv=document.getElementById('cur-word-kv');
@@ -178,7 +178,8 @@ SOUND</textarea>
     });
 
     const exitDur=dur+(stag*(fromChars.length-1));
-    setTimeout(()=>{
+    const myGen=gen;
+    morphTimer=setTimeout(()=>{
       // Build new word off-screen
       wordEl.innerHTML='';
       const enterDir={up:'enter-from-below',down:'enter-from-above',left:'enter-from-right',right:'enter-from-left'}[dir];
@@ -190,9 +191,10 @@ SOUND</textarea>
       });
       // Animate in
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(myGen!==gen)return; // a restart happened while we waited for paint
         toChars.forEach(c=>{c.classList.remove('enter-from-below','enter-from-above','enter-from-left','enter-from-right');});
         const enterDur=dur+(stag*(toChars.length-1));
-        setTimeout(done,enterDur+50);
+        morphTimer=setTimeout(done,enterDur+50);
       }));
     },exitDur+60);
   }
@@ -201,6 +203,9 @@ SOUND</textarea>
     const words=getWords();
     if(words.length<2)return;
     running=true;
+    if(wordIdx>=words.length)wordIdx=0; // word list was shortened mid-cycle
+    if(wordEl.textContent!==words[wordIdx])showWord(words[wordIdx]); // list edited mid-cycle: keep display, dots and readout in sync
+    if(dotsEl.children.length!==words.length)buildDots(words);
     updateDots(wordIdx);
     curWordKv.textContent=words[wordIdx];
 
@@ -215,14 +220,15 @@ SOUND</textarea>
   }
 
   function start(){
-    if(morphTimer)clearTimeout(morphTimer);running=false;wordIdx=0;
-    const words=getWords();if(!words.length)return;
+    if(morphTimer)clearTimeout(morphTimer);running=false;wordIdx=0;gen++;
+    const words=getWords();
+    if(!words.length){wordEl.innerHTML='';dotsEl.innerHTML='';curWordKv.textContent='—';return}
     buildDots(words);showWord(words[0]);curWordKv.textContent=words[0];
-    setTimeout(cycle,100);
+    morphTimer=setTimeout(cycle,100);
   }
 
   document.getElementById('restart-btn').addEventListener('click',start);
-  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms'});
+  document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms';document.documentElement.style.setProperty('--morph-dur',e.target.value+'ms')});
   document.getElementById('pause-sl').addEventListener('input',e=>{document.getElementById('pause-v').textContent=(e.target.value/1000).toFixed(1)+'s'});
   document.getElementById('stag-sl').addEventListener('input',e=>{document.getElementById('stag-v').textContent=e.target.value+'ms'});
 

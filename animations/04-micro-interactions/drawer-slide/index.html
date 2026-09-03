@@ -41,21 +41,17 @@
     .content-line{height:10px;background:rgba(255,255,255,.06);border-radius:4px}
     .content-line.w100{width:100%}.content-line.w80{width:80%}.content-line.w60{width:60%}.content-line.w40{width:40%}
     /* Backdrop */
-    .backdrop{position:absolute;inset:0;background:rgba(0,0,0,var(--backdrop-op));opacity:0;transition:opacity var(--open-dur) var(--open-ease);pointer-events:none;z-index:5}
-    .backdrop.visible{opacity:1;pointer-events:auto}
+    .backdrop{position:absolute;inset:0;background:rgba(0,0,0,var(--backdrop-op));opacity:0;transition:opacity var(--close-dur) var(--close-ease);pointer-events:none;z-index:5}
+    .backdrop.visible{opacity:1;pointer-events:auto;transition:opacity var(--open-dur) var(--open-ease)}
     /* Drawer */
-    .drawer{position:absolute;top:0;bottom:0;width:var(--drawer-w);background:var(--ui-bg);border-right:1px solid var(--ui-border);z-index:10;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform var(--open-dur) var(--open-ease);will-change:transform;overflow:hidden}
+    .drawer{position:absolute;top:0;left:0;bottom:0;width:var(--drawer-w);background:var(--ui-bg);border-right:1px solid var(--ui-border);z-index:10;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform var(--close-dur) var(--close-ease);will-change:transform;overflow:hidden;touch-action:pan-y}
     .drawer.right{left:auto;right:0;border-right:none;border-left:1px solid var(--ui-border);transform:translateX(100%)}
-    .drawer.top{width:auto;left:0;right:0;top:0;bottom:auto;height:200px;transform:translateY(-100%)}
-    .drawer.bottom{width:auto;left:0;right:0;top:auto;bottom:0;height:200px;transform:translateY(100%)}
-    .drawer.open{transform:translate(0,0);transition-duration:var(--open-dur);transition-timing-function:var(--open-ease)}
-    .drawer.closing{transform:translateX(-100%);transition-duration:var(--close-dur);transition-timing-function:var(--close-ease)}
-    .drawer.right.closing{transform:translateX(100%)}
-    .drawer.top.closing,.drawer.bottom.closing{transform:translateY(0)}
-    .drawer.top.open,.drawer.bottom.open{transform:translateY(0)}
+    .drawer.top{width:auto;left:0;right:0;top:0;bottom:auto;height:200px;transform:translateY(-100%);touch-action:pan-x}
+    .drawer.bottom{width:auto;left:0;right:0;top:auto;bottom:0;height:200px;transform:translateY(100%);touch-action:pan-x}
+    .drawer.open{transform:translate(0,0);transition:transform var(--open-dur) var(--open-ease)}
     .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .drawer-title{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
-    .close-btn{background:none;border:none;color:var(--ui-muted);font-size:18px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+    .close-btn{background:none;border:none;color:var(--ui-muted);font-size:18px;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:4px}
     @media(hover:hover){.close-btn:hover{color:var(--ui-text)}}
     .drawer-body{padding:16px;display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto}
     .nav-item{padding:10px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .15s;min-height:44px;display:flex;align-items:center}
@@ -72,7 +68,7 @@
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
     .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
     .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}}
     @media(prefers-reduced-motion:reduce){.drawer,.backdrop{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -145,14 +141,13 @@ body{padding-top:46px}
   const backdrop=document.getElementById('backdrop');
   const openBtn=document.getElementById('open-btn');
   const stateEl=document.getElementById('state-v');
-  let isOpen=false,side='left',dragStartX=0,dragStartY=0;
+  let isOpen=false,side='left',dragging=false,dragStartX=0,dragStartY=0;
 
   function open(){
     drawer.classList.add('open');backdrop.classList.add('visible');
     openBtn.setAttribute('aria-expanded','true');isOpen=true;stateEl.textContent='Open';
   }
   function close(){
-    const closeClass=side==='right'?'right closing':(side==='top'||side==='bottom')?'closing':side+' closing';
     drawer.classList.remove('open');backdrop.classList.remove('visible');
     openBtn.setAttribute('aria-expanded','false');isOpen=false;stateEl.textContent='Closed';
   }
@@ -163,8 +158,10 @@ body{padding-top:46px}
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen)close()});
 
   // Swipe to close
-  drawer.addEventListener('pointerdown',e=>{dragStartX=e.clientX;dragStartY=e.clientY});
-  drawer.addEventListener('pointerup',e=>{
+  drawer.addEventListener('pointerdown',e=>{dragging=true;dragStartX=e.clientX;dragStartY=e.clientY});
+  document.addEventListener('pointercancel',()=>{dragging=false});
+  document.addEventListener('pointerup',e=>{
+    if(!dragging)return;dragging=false;
     const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
     if(side==='left'&&dx<-50)close();
     if(side==='right'&&dx>50)close();
@@ -175,8 +172,11 @@ body{padding-top:46px}
   document.getElementById('side-sel').addEventListener('change',e=>{
     if(isOpen)close();
     side=e.target.value;
+    drawer.style.transition='none';
     drawer.className='drawer';
     if(side!=='left')drawer.classList.add(side);
+    void drawer.offsetWidth;
+    drawer.style.transition='';
   });
   document.getElementById('odur-sl').addEventListener('input',e=>{
     document.getElementById('odur-v').textContent=e.target.value+'ms';

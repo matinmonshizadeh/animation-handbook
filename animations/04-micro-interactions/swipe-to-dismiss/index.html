@@ -59,7 +59,7 @@
     .div{height:1px;background:var(--ui-border)}
     .reset{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){.reset:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px}}
     @media(prefers-reduced-motion:reduce){.row,.card.settling,.card.flung{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -126,7 +126,8 @@ body{padding-top:46px}
     let startX=0,dx=0,dragging=false,lastX=0,lastT=0,vel=0;
 
     card.addEventListener('pointerdown',e=>{
-      dragging=true;dx=0;startX=e.clientX;lastX=e.clientX;lastT=e.now||performance.now();vel=0;
+      if(row.classList.contains('collapsing'))return; // already dismissed
+      dragging=true;dx=0;startX=e.clientX;lastX=e.clientX;lastT=performance.now();vel=0;
       card.classList.remove('settling','flung');
       card.setPointerCapture(e.pointerId);
       card.style.cursor='grabbing';
@@ -142,9 +143,10 @@ body{padding-top:46px}
     });
     function end(){
       if(!dragging)return;dragging=false;card.style.cursor='grab';
+      if(performance.now()-lastT>100)vel=0; // finger stopped before release: no flick
       const w=card.offsetWidth;
       const pastDist=Math.abs(dx)>w*threshold;
-      const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24; // velocity commit
+      const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24&&Math.sign(vel)===Math.sign(dx); // velocity commit, only when the flick points away from rest
       if(pastDist||flick){dismiss(row,card,dx>=0?1:-1);}
       else{spring(card,reveal);}
     }
@@ -161,8 +163,7 @@ body{padding-top:46px}
 
   function dismiss(row,card,dir){
     if(reduce){ // no fly-off flourish — collapse immediately
-      row.style.height='0';row.style.opacity='0';
-      setTimeout(()=>row.remove(),0);checkEmpty();return;
+      row.remove();checkEmpty();return;
     }
     card.classList.add('flung');
     card.style.transform=`translateX(${dir*card.offsetWidth*1.25}px)`;

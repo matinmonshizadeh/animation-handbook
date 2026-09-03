@@ -49,8 +49,7 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:380px}}
-    @media(prefers-reduced-motion:reduce){canvas{display:none}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -173,13 +172,17 @@ void main(){
 const RENDER_FS=`#version 300 es
 precision mediump float;in vec4 vCol;out vec4 fragColor;
 void main(){fragColor=vCol;}`;
+// Trails: a translucent full-screen quad fades the previous frame instead of clearing it
+const FADE_FS=`#version 300 es
+precision mediump float;out vec4 fragColor;
+void main(){fragColor=vec4(.024,.039,.063,.12);}`;
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps'),countBadge=document.getElementById('count-badge');
 const behavBadge=document.getElementById('behavior-badge'),texSizeEl=document.getElementById('tex-size');
 const noWgl2=document.getElementById('no-wgl2');
 const BEHAV_NAMES=['Flow Field','Vortex','Attractor','Orbit'];
-let W,H,gl,physicsProg,renderProg,fbo0,fbo1,tex0,tex1,raf=null;
+let W,H,gl,physicsProg,renderProg,fadeProg,qBuf,fbo0,fbo1,tex0,tex1,raf=null;
 let paused=false,lastT=0,startT=0,TEX_N=256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
 let idxBuf=null,particleCount=0;
 
@@ -202,6 +205,7 @@ function initTex(n){
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     return t;
   }
+  if(tex0){gl.deleteTexture(tex0);gl.deleteTexture(tex1);gl.deleteFramebuffer(fbo0);gl.deleteFramebuffer(fbo1);}
   tex0=makeTex(data);tex1=makeTex(null);
   function makeFbo(t){const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);return f;}
   fbo0=makeFbo(tex0);fbo1=makeFbo(tex1);
@@ -216,14 +220,16 @@ function initTex(n){
 }
 
 function init(){
-  gl=cvs.getContext('webgl2');
-  if(!gl){noWgl2.style.display='flex';return false;}
+  // preserveDrawingBuffer keeps last frame for trails; alpha:false avoids premultiplied-alpha artifacts
+  gl=cvs.getContext('webgl2',{preserveDrawingBuffer:true,alpha:false});
+  // Rendering into RGBA32F framebuffers requires EXT_color_buffer_float in WebGL2
+  if(!gl||!gl.getExtension('EXT_color_buffer_float')){noWgl2.style.display='flex';return false;}
   physicsProg=mkProg(PHYSICS_VS,PHYSICS_FS);
   renderProg=mkProg(RENDER_VS,RENDER_FS);
-  // Quad for physics pass
-  const qBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
+  fadeProg=mkProg(PHYSICS_VS,FADE_FS);
+  // Full-screen quad shared by the physics pass and the trail fade
+  qBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  gl.bindVertexArray(null);
   initTex(TEX_N);
   return true;
 }
@@ -241,9 +247,8 @@ function render(ts){
   gl.useProgram(physicsProg);
   gl.bindFramebuffer(gl.FRAMEBUFFER,fbo1);
   gl.viewport(0,0,TEX_N,TEX_N);
-  // Bind quad
-  const quad=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quad);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.DYNAMIC_DRAW);
+  gl.disable(gl.BLEND);
+  gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
   const pa=gl.getAttribLocation(physicsProg,'a');gl.enableVertexAttribArray(pa);gl.vertexAttribPointer(pa,2,gl.FLOAT,false,0,0);
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex0);
   gl.uniform1i(gl.getUniformLocation(physicsProg,'uPos'),0);
@@ -251,7 +256,6 @@ function render(ts){
   gl.uniform1f(gl.getUniformLocation(physicsProg,'uSpd'),SPD);
   gl.uniform1i(gl.getUniformLocation(physicsProg,'uBehavior'),BEHAVIOR);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-  gl.deleteBuffer(quad);
 
   // Swap textures
   [tex0,tex1]=[tex1,tex0];[fbo0,fbo1]=[fbo1,fbo0];
@@ -259,8 +263,12 @@ function render(ts){
   // ── Render pass (draw points) ──
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
   gl.viewport(0,0,W,H);
-  if(TRAILS){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0.024,0.039,0.063,0.1);gl.clear(gl.COLOR_BUFFER_BIT);}
-  else{gl.clearColor(0.024,0.039,0.063,1);gl.clear(gl.COLOR_BUFFER_BIT);}
+  if(TRAILS){// fade the previous frame instead of clearing it
+    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(fadeProg);gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
+    const fa=gl.getAttribLocation(fadeProg,'a');gl.enableVertexAttribArray(fa);gl.vertexAttribPointer(fa,2,gl.FLOAT,false,0,0);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }else{gl.clearColor(0.024,0.039,0.063,1);gl.clear(gl.COLOR_BUFFER_BIT);}
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
   gl.useProgram(renderProg);
   gl.bindBuffer(gl.ARRAY_BUFFER,idxBuf);
@@ -274,10 +282,14 @@ function render(ts){
   gl.disable(gl.BLEND);
 }
 
+const pauseBtn=document.getElementById('pause-btn');
 if(init()){
   resize();startT=performance.now();lastT=startT;
-  raf=requestAnimationFrame(render);
   window.addEventListener('resize',resize);
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+    // Reduced motion: draw one static frame, leave the loop stopped (user can opt in via Resume)
+    render(startT+16);cancelAnimationFrame(raf);raf=null;paused=true;pauseBtn.textContent='▶ Resume';
+  }else raf=requestAnimationFrame(render);
 }
 
 document.getElementById('count-sel').addEventListener('change',e=>{TEX_N=+e.target.value;if(gl)initTex(TEX_N);});
@@ -285,8 +297,9 @@ document.getElementById('behav-sel').addEventListener('change',e=>{BEHAVIOR=+e.t
 document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
 document.getElementById('col-sel').addEventListener('change',e=>{COLOR_MODE=+e.target.value;});
 document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;});
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+pauseBtn.addEventListener('click',()=>{
+  paused=!paused;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
+  if(raf!==null){cancelAnimationFrame(raf);raf=null;}// never stack a second loop
   if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
 });
 </script>

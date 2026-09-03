@@ -75,7 +75,7 @@
     .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
     .sv{width:44px;text-align:right;color:var(--ui-text)}
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
@@ -133,7 +133,7 @@ const PHRASES=[
   {text:'Then motion.',enter:'enter-scale',exit:'exit-scale'},
   {text:'Then meaning.',enter:'enter-clip',exit:'exit-clip'},
 ];
-let idx=0,timer=null;
+let idx=0,timer=null,run=0;
 const phraseEl=document.getElementById('phrase-el');
 const phraseText=document.getElementById('phrase-text');
 const dotsEl=document.getElementById('prog-dots');
@@ -155,13 +155,14 @@ const exitClasses=['exit-slide-up','exit-slide-left','exit-scale','exit-blur','e
 const allPhaseClasses=[...enterClasses,...exitClasses,'state-hidden'];
 
 function show(i,done){
-  const p=PHRASES[i];
+  const p=PHRASES[i],r=run;
   phraseText.textContent=p.text;
   phraseEl.classList.remove(...allPhaseClasses);
   phraseEl.classList.add('state-hidden');
   phraseKv.textContent=(i+1)+' / '+PHRASES.length;
   activeDot(i);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(r!==run)return;
     phaseKv.textContent='Enter';
     phraseEl.classList.remove('state-hidden');
     phraseEl.classList.add(p.enter);
@@ -188,10 +189,11 @@ function cycle(){
 }
 
 function start(){
-  if(timer)clearTimeout(timer);
+  if(timer)clearTimeout(timer);run++;
   idx=0;buildDots();
+  phraseEl.classList.remove(...allPhaseClasses);
   phraseEl.classList.add('state-hidden');
-  setTimeout(cycle,200);
+  timer=setTimeout(cycle,200);
 }
 
 document.getElementById('replay-btn').addEventListener('click',start);

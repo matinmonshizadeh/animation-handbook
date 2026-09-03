@@ -34,7 +34,7 @@
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;align-items:center}
     .nav-logo{flex-shrink:0;margin-right:8px}
     .nav-logo svg{display:block}
-    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:36px}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
     .page-area{flex:1;position:relative;overflow:hidden}
     .page{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 300ms ease}
@@ -49,7 +49,7 @@
     .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:#58a6ff}
     .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
     .shape-row{display:flex;gap:8px;margin-top:4px}
-    .shape-btn{background:none;border:1px solid var(--ui-border);padding:6px;border-radius:4px;cursor:pointer;flex-shrink:0}
+    .shape-btn{background:none;border:1px solid var(--ui-border);padding:6px;border-radius:4px;cursor:pointer;flex-shrink:0;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
     .shape-btn.on{border-color:var(--ui-accent)}
     .shape-btn svg{display:block}
     .pts-overlay{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transition:opacity .2s}
@@ -68,9 +68,10 @@
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     .log{display:flex;flex-direction:column;gap:2px}
     .log-row{font-size:9px;color:var(--ui-muted)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}}
+    @media(prefers-reduced-motion:reduce){.page,.pts-overlay{transition:none}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -170,16 +171,18 @@ body{padding-top:46px}
   morphPath.setAttribute('d',pts2path(circle12));morphPath.setAttribute('fill',SHAPES[0].color);
 
   function lerp(a,b,t){return a+(b-a)*t}
-  function easeFn(t){const e=easeSel.value;if(e==='linear')return t;if(e==='ease-out')return 1-(1-t)**3;if(e==='springy'){const ov=1.2;return t<0.5?2*t*t:(t<0.8?ov-(ov-1)*(t-0.5)/0.3:1);}return t<0.5?2*t*t:1-(-2*t+2)**2/2}
+  function easeFn(t,e=easeSel.value){if(e==='linear')return t;if(e==='ease-out')return 1-(1-t)**3;if(e==='springy'){const ov=1.2;return t<0.5?ov*(1-(1-2*t)**2):(t<0.8?ov-(ov-1)*(t-0.5)/0.3:1);}return t<0.5?2*t*t:1-(-2*t+2)**2/2}
 
+  function render(pts){morphPath.setAttribute('d',pts2path(pts));currentPts=pts;if(ptsTog.checked)drawPts(pts);}
   function startMorph(from,to,done){
     if(morphRaf)cancelAnimationFrame(morphRaf);
-    const start=performance.now();
+    morphRaf=null;
+    if(!motionOk){render([...to]);done?.();return;}
+    const start=performance.now(),d=dur,ez=easeSel.value;
     function tick(now){
-      const t=Math.min((now-start)/dur,1),et=easeFn(t);
-      const pts=from.map(([ax,ay],i)=>[lerp(ax,to[i][0],et),lerp(ay,to[i][1],et)]);
-      morphPath.setAttribute('d',pts2path(pts));
-      if(t<1)morphRaf=requestAnimationFrame(tick);else{done?.();morphRaf=null;}
+      const t=Math.min((now-start)/d,1),et=easeFn(t,ez);
+      render(from.map(([ax,ay],i)=>[lerp(ax,to[i][0],et),lerp(ay,to[i][1],et)]));
+      if(t<1)morphRaf=requestAnimationFrame(tick);else{morphRaf=null;done?.();}
     }
     morphRaf=requestAnimationFrame(tick);
   }
@@ -193,8 +196,7 @@ body{padding-top:46px}
     // Crossfade pages
     document.getElementById('p'+prev).classList.remove('active');
     document.getElementById('p'+next).classList.add('active');
-    if(!motionOk)return;
-    // Morph the logo shape
+    // Morph the logo shape (snaps straight to the target under reduced motion)
     const targetShape=SHAPES[PAGES[next].shape];
     animating=true;
     startMorph(currentPts,targetShape.pts,()=>{
@@ -207,19 +209,19 @@ body{padding-top:46px}
 
   const NS='http://www.w3.org/2000/svg';
   let ptsGroup=null;
+  function drawPts(pts){
+    if(!ptsGroup){ptsGroup=document.createElementNS(NS,'g');ptsGroup.id='pts-g';document.getElementById('morph-svg').appendChild(ptsGroup);}
+    ptsGroup.innerHTML=pts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#58a6ff" opacity=".9"/>`).join('');
+  }
   ptsTog.addEventListener('change',()=>{
     morphPath.style.opacity=ptsTog.checked?'0.5':'';
-    const svg=document.getElementById('morph-svg');
-    if(ptsTog.checked){
-      if(!ptsGroup){ptsGroup=document.createElementNS(NS,'g');ptsGroup.id='pts-g';svg.appendChild(ptsGroup);}
-      ptsGroup.innerHTML=currentPts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#58a6ff" opacity=".9"/>`).join('');
-    }else if(ptsGroup){ptsGroup.innerHTML='';}
+    if(ptsTog.checked)drawPts(currentPts);else if(ptsGroup)ptsGroup.innerHTML='';
   });
   durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
   document.getElementById('rst-btn').addEventListener('click',()=>{
     if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
     document.querySelectorAll('.page').forEach((el,i)=>el.classList.toggle('active',i===0));
-    if(motionOk)startMorph(currentPts,circle12,()=>{currentPts=[...circle12];shapeVal.textContent='Circle';morphPath.setAttribute('fill',SHAPES[0].color);document.querySelectorAll('.shape-btn').forEach((x,j)=>x.classList.toggle('on',j===0));animating=false;});
+    startMorph(currentPts,circle12,()=>{currentPts=[...circle12];shapeVal.textContent='Circle';morphPath.setAttribute('fill',SHAPES[0].color);document.querySelectorAll('.shape-btn').forEach((x,j)=>x.classList.toggle('on',j===0));animating=false;});
   });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

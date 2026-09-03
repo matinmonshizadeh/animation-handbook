@@ -55,10 +55,10 @@
     textarea{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px;border-radius:4px;width:100%;resize:vertical;min-height:72px;line-height:1.5}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     input[type=color]{border:none;background:none;width:44px;height:30px;cursor:pointer;border-radius:4px;padding:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:360px}input[type=color]{height:44px}}
     @media(prefers-reduced-motion:reduce){.cursor{animation:none!important;opacity:1!important}}
   </style>
 <style id="ah-inject">
@@ -160,6 +160,7 @@ body{padding-top:46px}
     const words=text.trim().split(' ');
     const deleteFrom=Math.max(text.length-words[words.length-1].length-1,Math.floor(text.length*0.6));
     type(text,()=>{
+      running=true;
       let i=text.length;
       function del(){
         if(i>deleteFrom){
@@ -172,13 +173,14 @@ body{padding-top:46px}
           function retype(){
             if(j<=rest.length+deleteFrom){
               typeOut.firstChild?.nodeType===3&&(typeOut.firstChild.textContent=(text.substring(0,deleteFrom)+rest.substring(0,j-deleteFrom)));
+              statChars.textContent=j;
               j++;timer=setTimeout(retype,jitter(getSpeed()));
             }else{running=false;afterType();}
           }
           retype();
         }
       }
-      setTimeout(del,500);
+      timer=setTimeout(del,500);
     });
   }
 
@@ -192,15 +194,22 @@ body{padding-top:46px}
   }
 
   function afterType(){
-    if(document.getElementById('loop-tog').checked)setTimeout(start,1200);
+    if(document.getElementById('loop-tog').checked)timer=setTimeout(()=>{if(document.getElementById('loop-tog').checked)start()},1200);
   }
 
-  document.getElementById('cursor-sel').addEventListener('change',()=>{if(!running)start()});
+  document.getElementById('cursor-sel').addEventListener('change',e=>{
+    const c=typeOut.querySelector('.cursor');
+    if(c)c.className='cursor '+e.target.value;
+  });
   document.getElementById('cursor-color').addEventListener('input',e=>{
     document.documentElement.style.setProperty('--cursor-color',e.target.value);
   });
   document.getElementById('spd-sl').addEventListener('input',e=>{
     document.getElementById('spd-v').textContent=e.target.value+'ms';
+    if(!running)statSpeed.textContent=e.target.value+'ms';
+  });
+  document.getElementById('loop-tog').addEventListener('change',e=>{
+    if(e.target.checked&&!running)start();
   });
   document.getElementById('replay-btn').addEventListener('click',()=>{
     if(timer)clearTimeout(timer);running=false;start();

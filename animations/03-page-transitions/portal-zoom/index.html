@@ -68,7 +68,7 @@
     .log-row{font-size:9px;color:var(--ui-muted)}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}.nav-btn,button.rst{min-height:44px}:root{--stage-h:480px}}
     @media(prefers-reduced-motion:reduce){#zoom-mask{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -181,7 +181,7 @@ body{padding-top:46px}
     const isSquare=shapeSel.value==='square';
     const startClip=isSquare?`inset(${py} ${(100-parseFloat(px)).toFixed(1)}% ${(100-parseFloat(py)).toFixed(1)}% ${px})`:`circle(0% at ${px} ${py})`;
     const endClip=isSquare?'inset(0%)':`circle(150% at ${px} ${py})`;
-    nextEl.style.clipPath=startClip;
+    nextEl.style.clipPath=startClip;nextEl.style.zIndex='2'; // incoming page must paint above the outgoing one regardless of DOM order
     nextEl.style.transition='none';
     nextEl.classList.add('active');
     nextEl.offsetHeight; // force reflow
@@ -189,7 +189,7 @@ body{padding-top:46px}
     nextEl.style.clipPath=endClip;
     setTimeout(()=>{
       prevEl.classList.remove('active');
-      nextEl.style.clipPath='';nextEl.style.transition='';
+      nextEl.style.clipPath='';nextEl.style.transition='';nextEl.style.zIndex='';
       animating=false;
     },dur+50);
   }

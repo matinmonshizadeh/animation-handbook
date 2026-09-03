@@ -41,7 +41,7 @@
       transform-style:preserve-3d;
       transform:perspective(var(--perspective)) rotateX(0deg) rotateY(0deg) scale(1);
       transition:transform var(--reset-dur) ease,box-shadow var(--reset-dur) ease;
-      cursor:pointer;
+      cursor:pointer;touch-action:none;
       will-change:transform
     }
     .tilt-card.active{transition:none}
@@ -139,9 +139,8 @@ body{padding-top:46px}
 
   function onMove(e){
     const r=card.getBoundingClientRect();
-    const src=e.touches?e.touches[0]:e;
-    const x=(src.clientX-r.left)/r.width-.5;   // -0.5 to 0.5
-    const y=(src.clientY-r.top)/r.height-.5;
+    const x=(e.clientX-r.left)/r.width-.5;   // -0.5 to 0.5
+    const y=(e.clientY-r.top)/r.height-.5;
     const inv=invert?-1:1;
     const rx=(-y*maxTilt*inv).toFixed(1);
     const ry=(x*maxTilt*inv).toFixed(1);
@@ -171,10 +170,9 @@ body{padding-top:46px}
     readout.textContent='rotX: 0° rotY: 0°';
   }
 
-  card.addEventListener('mousemove',onMove);
-  card.addEventListener('mouseleave',onLeave);
-  card.addEventListener('touchmove',e=>{e.preventDefault();onMove(e);},{passive:false});
-  card.addEventListener('touchend',onLeave);
+  card.addEventListener('pointermove',onMove);
+  card.addEventListener('pointerleave',onLeave);
+  card.addEventListener('pointercancel',onLeave);
 
   document.getElementById('tilt-sl').addEventListener('input',e=>{maxTilt=+e.target.value;document.getElementById('tilt-v').textContent=maxTilt+'°'});
   document.getElementById('persp-sl').addEventListener('input',e=>{

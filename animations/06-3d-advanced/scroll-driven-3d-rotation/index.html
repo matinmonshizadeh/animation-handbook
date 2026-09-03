@@ -68,9 +68,9 @@
     .sv{width:40px;text-align:right;color:var(--ui-text)}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
+    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;min-height:44px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.info-panel{width:120px;padding:12px}}
+    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}.info-panel{width:120px;padding:12px}}
     @media(prefers-reduced-motion:reduce){.obj-wrap{transition:none!important}.prog-fill{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -138,7 +138,7 @@ body{padding-top:46px}
     <div class="lbl">Scroll Progress</div>
     <div class="sr" style="pointer-events:none"><input type="range" id="prog-sl" min="0" max="100" value="0" step="1" style="pointer-events:none"><span class="sv" id="prog-sl-v">0%</span></div>
     <div class="lbl">Rotation Multiplier</div>
-    <div class="sr"><input type="range" id="mult-sl" min="5" max="30" value="10" step="1"><span class="sv" id="mult-v">1×</span></div>
+    <div class="sr"><input type="range" id="mult-sl" min="5" max="30" value="10" step="1"><span class="sv" id="mult-v">1.0×</span></div>
     <label class="tog"><input type="checkbox" id="smooth-tog" checked><span>Smooth scrub (lerp)</span></label>
     <div class="div"></div>
     <div class="kv"><span>Rotation X</span><span class="v" id="rx-v">0°</span></div>
@@ -156,10 +156,13 @@ const progVal=document.getElementById('prog-val');
 const stageName=document.getElementById('stage-name');
 const stageDesc=document.getElementById('stage-desc');
 const dots=[...document.querySelectorAll('.chapter-dot')];
-let currRx=0,currRy=0,currSc=1,raf=null,mult=10;
+let currRx=0,currRy=0,currSc=1,tgtRx=0,tgtRy=0,tgtSc=1,raf=null,mult=10;
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 
+// Each chapter is the end state the object reaches by the end of that quarter of scroll
+const START={rx:0,ry:0,sc:1};
 const CHAPTERS=[
-  {name:'Orbit Y',desc:'Rotating 90° around the Y axis.',rx:0,ry:0,sc:1},
+  {name:'Orbit Y',desc:'Rotating 90° around the Y axis.',rx:0,ry:90,sc:1},
   {name:'Tilt X',desc:'Tilting 30° forward on the X axis.',rx:-30,ry:90,sc:1},
   {name:'Scale Up',desc:'Growing 1.4× while tilted.',rx:-30,ry:90,sc:1.4},
   {name:'Back Face',desc:'Completing −180° Y rotation to show the back.',rx:0,ry:-180,sc:1},
@@ -167,19 +170,31 @@ const CHAPTERS=[
 
 function lerp(a,b,t){return a+(b-a)*t}
 
-function applyRotation(p){
-  const ch=Math.floor(p*4);const cp=Math.min(ch,3);const t=p*4-cp;
-  const c0=CHAPTERS[Math.max(cp-1,0)];const c1=CHAPTERS[Math.min(cp,3)];
-  let rx=lerp(c0.rx,c1.rx,t),ry=lerp(c0.ry,c1.ry,t),sc=lerp(c0.sc,c1.sc,t);
-  const smooth=document.getElementById('smooth-tog').checked;
-  if(smooth){currRx=lerp(currRx,rx,.1);currRy=lerp(currRy,ry,.1);currSc=lerp(currSc,sc,.1);}
-  else{currRx=rx;currRy=ry;currSc=sc;}
+function render(){
   objWrap.style.transform=`rotateX(${currRx.toFixed(1)}deg) rotateY(${currRy.toFixed(1)}deg) scale(${currSc.toFixed(3)})`;
   document.getElementById('rx-v').textContent=currRx.toFixed(0)+'°';
   document.getElementById('ry-v').textContent=currRy.toFixed(0)+'°';
   document.getElementById('sc-v').textContent=currSc.toFixed(2);
+}
 
-  const chIdx=Math.min(Math.floor(p*4),3);
+// Smooth scrub: keep easing toward the target each frame until it settles, then stop the loop
+function tick(){
+  raf=null;
+  currRx=lerp(currRx,tgtRx,.1);currRy=lerp(currRy,tgtRy,.1);currSc=lerp(currSc,tgtSc,.1);
+  if(Math.abs(tgtRx-currRx)>.05||Math.abs(tgtRy-currRy)>.05||Math.abs(tgtSc-currSc)>.001){render();raf=requestAnimationFrame(tick);}
+  else{currRx=tgtRx;currRy=tgtRy;currSc=tgtSc;render();}
+}
+
+function applyRotation(p){
+  const cp=Math.min(Math.floor(p*4),3);const t=p*4-cp;
+  const c0=cp>0?CHAPTERS[cp-1]:START;const c1=CHAPTERS[cp];
+  const k=mult/10;
+  tgtRx=lerp(c0.rx,c1.rx,t)*k;tgtRy=lerp(c0.ry,c1.ry,t)*k;tgtSc=lerp(c0.sc,c1.sc,t);
+  const smooth=document.getElementById('smooth-tog').checked&&!reduceMotion.matches;
+  if(smooth){if(!raf)raf=requestAnimationFrame(tick);}
+  else{if(raf){cancelAnimationFrame(raf);raf=null;}currRx=tgtRx;currRy=tgtRy;currSc=tgtSc;render();}
+
+  const chIdx=cp;
   dots.forEach((d,i)=>d.classList.toggle('active',i===chIdx));
   stageName.textContent=CHAPTERS[chIdx].name;
   stageDesc.textContent=CHAPTERS[chIdx].desc;
@@ -198,10 +213,12 @@ function onScroll(){
 
 stageEl.addEventListener('scroll',onScroll,{passive:true});
 document.getElementById('mult-sl').addEventListener('input',e=>{
-  mult=+e.target.value;document.getElementById('mult-v').textContent=(mult/10).toFixed(1)+'×';
+  mult=+e.target.value;document.getElementById('mult-v').textContent=(mult/10).toFixed(1)+'×';onScroll();
 });
+document.getElementById('smooth-tog').addEventListener('change',onScroll);
 document.getElementById('reset-btn').addEventListener('click',()=>{
-  stageEl.scrollTop=0;currRx=currRy=0;currSc=1;applyRotation(0);
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  stageEl.scrollTop=0;currRx=currRy=0;currSc=1;applyRotation(0);render();
 });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

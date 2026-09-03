@@ -51,7 +51,7 @@
     .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
     .sv{width:44px;text-align:right;color:var(--ui-text)}
     select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:360px}}
     @media(prefers-reduced-motion:reduce){.pbtn,.pbtn.pressed{transition:none!important}}
   </style>
 <style id="ah-inject">
@@ -112,12 +112,13 @@ body{padding-top:46px}
   btns.forEach((btn,i)=>{
     const press=()=>btn.classList.add('pressed');
     const release=()=>{
+      if(!btn.classList.contains('pressed'))return;
       btn.classList.remove('pressed');
       counts[i]++;total++;
       document.getElementById('c'+i).textContent=counts[i];
       document.getElementById('total').textContent=total;
     };
-    btn.addEventListener('pointerdown',press);
+    btn.addEventListener('pointerdown',e=>{press();btn.setPointerCapture(e.pointerId)});
     btn.addEventListener('pointerup',release);
     btn.addEventListener('pointercancel',()=>btn.classList.remove('pressed'));
     btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')press()});
