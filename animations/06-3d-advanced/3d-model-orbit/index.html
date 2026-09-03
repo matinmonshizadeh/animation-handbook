@@ -48,6 +48,7 @@
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:0 0 auto}aside{width:100%}:root{--stage-h:380px}}
+    @media(prefers-reduced-motion:reduce){button.rst,.ah-bar a,.ah-bar button{transition:none!important}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -113,7 +114,7 @@ uniform vec3 uCol,uLight;
 uniform bool uWire;
 void main(){
   if(uWire){gl_FragColor=vec4(uCol,1.);return;}
-  vec3 L=normalize(uLight-vP),V=normalize(vec3(0.,0.,4.)-vP);
+  vec3 L=normalize(uLight-vP),V=normalize(-vP);
   float d=max(dot(vN,L),0.),s=pow(max(dot(reflect(-L,vN),V),0.),48.);
   gl_FragColor=vec4(.15*uCol+d*uCol+.7*s*vec3(1.),1.);
 }`;
@@ -197,7 +198,7 @@ function makeTetra(){
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps'),objBadge=document.getElementById('obj-badge');
 let W,H,gl,prog,posBuf,nrmBuf,idxBuf,lineBuf,idxCount,lineCount;
-let raf=null,paused=false,lastT=0,rx=.3,ry=0;
+let raf=null,paused=false,lastT=0,rx=.3,ry=0,fpsAvg=0;
 let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let mouseNX=0,mouseNY=0;
 const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -257,7 +258,7 @@ function render(ts){
   if(paused){raf=null;return;}
   raf=requestAnimationFrame(render);
   const dt=ts-lastT;if(dt<16)return;
-  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  fpsAvg+=(1000/dt-fpsAvg)*(fpsAvg?.1:1);fpsEl.textContent=Math.round(fpsAvg)+' fps';lastT=ts;
   if(MODE==='orbit'){ry+=SY*.01;rx+=SX*.01*(Math.sin(ts*.0003)*.5+.5);}
   else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
   draw();
@@ -284,7 +285,7 @@ document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
   if(raf){cancelAnimationFrame(raf);raf=null;} // never leave two loops running
-  if(!paused&&gl){lastT=performance.now();raf=requestAnimationFrame(render);}
+  if(!paused&&gl&&motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
 });
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

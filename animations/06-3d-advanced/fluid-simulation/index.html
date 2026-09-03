@@ -46,6 +46,7 @@
     input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
     @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
 <style id="ah-inject">
@@ -99,7 +100,7 @@ const stage=document.getElementById('stage');
 const cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps');
 const noWgl=document.getElementById('no-webgl');
-let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0;
+let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0,simT=0;
 let BALLS=5,SMOOTH=.08,RAD=.14,SPD=.8,MOUSE_BALL=true,GLOW=true;
 let COLOR=[88/255,166/255,255/255],BG=[3/255,8/255,16/255];
 let mouseX=.5,mouseY=.5;
@@ -125,11 +126,11 @@ vec2 ball(int i,float t){
 void main(){
   vec2 uv=gl_FragCoord.xy/uRes;
   uv.y=1.-uv.y;
-  float d=1e10;
+  float d=10.;
   for(int i=0;i<8;i++){
     if(i>=uBalls)break;
-    vec2 c=(i==0&&uMouseBall)?uMouse:ball(i,uT*uRad*7.);
-    float bd=length(uv-c)-uRad;
+    vec2 c=(i==0&&uMouseBall)?uMouse:ball(i,uT);
+    float bd=length((uv-c)*vec2(uRes.x/uRes.y,1.))-uRad;
     d=smin(d,bd,uSmooth);
   }
   float inside=smoothstep(.01,-.01,d);
@@ -164,12 +165,13 @@ function resize(){
 function render(ts){
   raf=paused?null:requestAnimationFrame(render);
   const dt=ts-lastT;if(dt<16)return;
-  const realFps=Math.round(1000/(dt||16));fpsEl.textContent=realFps+' fps';lastT=ts;
-  const t=(ts-startT)/1000*SPD;
+  // Accumulate sim time so speed changes and pauses never make the blobs jump.
+  if(!paused){fpsEl.textContent=Math.round(1000/dt)+' fps';simT+=Math.min(dt,100)/1000*SPD;}
+  lastT=ts;
   gl.useProgram(prog);
   const u=(n)=>gl.getUniformLocation(prog,n);
   gl.uniform2f(u('uRes'),W,H);
-  gl.uniform1f(u('uT'),t);
+  gl.uniform1f(u('uT'),simT);
   gl.uniform1i(u('uBalls'),BALLS);
   gl.uniform1f(u('uSmooth'),SMOOTH);
   gl.uniform1f(u('uRad'),RAD);

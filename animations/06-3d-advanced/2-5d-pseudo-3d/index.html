@@ -37,7 +37,7 @@
     /* Layers */
     .layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;will-change:transform}
     /* Sky */
-    .sky{background:linear-gradient(180deg,#05101e 0%,#0a1f3a 50%,#0d2545 100%)}
+    .sky{inset:-6px;background:linear-gradient(180deg,#05101e 0%,#0a1f3a 50%,#0d2545 100%)}
     /* Stars */
     .stars{background:transparent}
     .star{position:absolute;border-radius:50%;background:#fff;opacity:.6}
@@ -45,23 +45,23 @@
     .mtns-far{display:flex;align-items:flex-end;justify-content:center;padding-bottom:0}
     .mtn{position:absolute;bottom:35%;border-style:solid;border-color:transparent;border-bottom-color:#0d2040}
     /* Hills */
-    .hills-wrap{position:absolute;bottom:30%;left:0;right:0;height:180px;overflow:hidden}
+    .hills-wrap{position:absolute;bottom:30%;left:-40px;right:-40px;height:180px;overflow:hidden}
     .hills{width:120%;height:100%;border-radius:50% 50% 0 0;margin-left:-10%}
     /* Ground */
-    .ground{position:absolute;bottom:0;left:-20%;right:-20%;height:35%}
+    .ground{position:absolute;bottom:-24px;left:-20%;right:-20%;height:calc(30% + 24px)}
     /* Trees */
     .trees-wrap{position:absolute;bottom:30%;left:0;right:0}
     .tree-el{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center}
     .tree-top{border-style:solid;border-color:transparent}
     .tree-trunk{background:#3a2510}
     /* Fog */
-    .fog{position:absolute;bottom:28%;left:0;right:0;height:80px;background:linear-gradient(transparent,rgba(10,30,60,.4) 60%,rgba(10,30,60,.6))}
+    .fog{position:absolute;bottom:28%;left:-60px;right:-60px;height:80px;background:linear-gradient(transparent,rgba(10,30,60,.4) 60%,rgba(10,30,60,.6))}
     /* Moon */
     .moon{position:absolute;top:15%;right:20%;width:50px;height:50px;border-radius:50%;background:#d8e8f8;box-shadow:0 0 20px rgba(200,220,255,.4)}
     /* Cursor */
     #cursor{position:absolute;width:20px;height:20px;border-radius:50%;border:2px solid var(--ui-accent);pointer-events:none;transform:translate(-50%,-50%);z-index:100;display:none}
     /* Depth label */
-    .depth-label{position:absolute;top:4px;right:4px;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);pointer-events:none;z-index:10}
+    .depth-label{position:absolute;top:4px;right:4px;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);pointer-events:none;z-index:10}
     /* Panel */
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
@@ -170,7 +170,7 @@ const LAYERS=[
   {id:'L0',depth:.05},{id:'L1',depth:.1},{id:'L2',depth:.2},
   {id:'L3',depth:.4},{id:'L4',depth:.6},{id:'L5',depth:.85},{id:'L6',depth:1}
 ];
-let mx=0,my=0,strength=40,mode='mouse',raf=null,autoT=0,paused=false;
+let mx=0,my=0,strength=40,mode='mouse',raf=null,autoT=0,autoT0=0;
 const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 // Add stars
@@ -218,7 +218,7 @@ stage.addEventListener('pointerleave',()=>{cursor.style.display='none'});
 
 function autoLoop(t){
   raf=requestAnimationFrame(autoLoop);
-  autoT=t*.0003;
+  autoT=(t-autoT0)*.0003;
   applyParallax(Math.sin(autoT)*.5,Math.sin(autoT*.7)*.3);
 }
 
@@ -226,9 +226,10 @@ document.getElementById('mode-sel').addEventListener('change',e=>{
   mode=e.target.value;
   if(raf){cancelAnimationFrame(raf);raf=null;}
   if(mode==='auto'){
+    autoT0=performance.now();
     if(motionOk)raf=requestAnimationFrame(autoLoop);
     else applyParallax(.25,.15); // reduced motion: hold a static camera offset instead of panning
-  }
+  }else applyParallax(mx,my); // leave the auto-pan offset behind, snap to the last pointer position
 });
 document.getElementById('str-sl').addEventListener('input',e=>{
   strength=+e.target.value;document.getElementById('str-v').textContent=strength+'px';
@@ -236,10 +237,10 @@ document.getElementById('str-sl').addEventListener('input',e=>{
 document.getElementById('labels-tog').addEventListener('change',e=>{
   document.querySelectorAll('.depth-label').forEach(d=>d.style.display=e.target.checked?'block':'none');
 });
-document.getElementById('reset-btn').addEventListener('click',()=>{mx=0;my=0;mxV.textContent='—';applyParallax(0,0)});
+document.getElementById('reset-btn').addEventListener('click',()=>{mx=0;my=0;autoT0=performance.now();mxV.textContent='—';applyParallax(0,0)});
 
-// Hide labels by default
-document.querySelectorAll('.depth-label').forEach(d=>d.style.display='none');
+// Hide labels by default; stagger them vertically so the seven layers' labels don't stack on one spot
+document.querySelectorAll('.depth-label').forEach((d,i)=>{d.style.display='none';d.style.top=(4+i*12)+'px'});
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

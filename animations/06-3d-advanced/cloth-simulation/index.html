@@ -46,6 +46,7 @@
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:400px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -153,14 +154,14 @@ function update(){
   }
   // Drag
   if(dragIdx>=0&&!pinned[dragIdx]){pts[dragIdx]=[dragMouse.x,dragMouse.y];prev[dragIdx]=[dragMouse.x,dragMouse.y];}
-  // Solve constraints
+  // Solve constraints (the dragged vertex is held at the pointer like a pin)
   for(let it=0;it<ITERS;it++){
     for(const[a,b,rest]of constraints){
       const dx=pts[b][0]-pts[a][0],dy=pts[b][1]-pts[a][1];
       const dist=Math.sqrt(dx*dx+dy*dy)||.001;
       const diff=(dist-rest)/dist*.5;
-      if(!pinned[a]){pts[a][0]+=dx*diff;pts[a][1]+=dy*diff;}
-      if(!pinned[b]){pts[b][0]-=dx*diff;pts[b][1]-=dy*diff;}
+      if(!pinned[a]&&a!==dragIdx){pts[a][0]+=dx*diff;pts[a][1]+=dy*diff;}
+      if(!pinned[b]&&b!==dragIdx){pts[b][0]-=dx*diff;pts[b][1]-=dy*diff;}
     }
   }
 }
@@ -178,16 +179,15 @@ function draw(){
       ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(d[0],d[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();
     }
   }
-  // Mesh edges
-  ctx.strokeStyle='rgba(88,166,255,.12)';ctx.lineWidth=.5;
+  // Mesh edges — one path, one stroke call per frame
+  ctx.strokeStyle='rgba(88,166,255,.12)';ctx.lineWidth=.5;ctx.beginPath();
   if(SHOW_CONS){
-    for(const[a,b]of constraints){
-      ctx.beginPath();ctx.moveTo(pts[a][0],pts[a][1]);ctx.lineTo(pts[b][0],pts[b][1]);ctx.stroke();
-    }
+    for(const[a,b]of constraints){ctx.moveTo(pts[a][0],pts[a][1]);ctx.lineTo(pts[b][0],pts[b][1]);}
   }else{
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.beginPath();ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);ctx.stroke();}
-    for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);ctx.stroke();}
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);}
+    for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);}
   }
+  ctx.stroke();
   // Vertices
   if(SHOW_VERTS){
     pts.forEach((p,i)=>{
@@ -218,7 +218,7 @@ function getClosestVertex(x,y,maxDist=30){
 // Pointer Events cover mouse, touch and pen; capture keeps the drag alive outside the stage.
 const localPos=e=>{const r=cvs.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
 stage.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;dragMouse=localPos(e);dragIdx=getClosestVertex(dragMouse.x,dragMouse.y);try{stage.setPointerCapture(e.pointerId);}catch(_){}});
-stage.addEventListener('pointermove',e=>{if(dragIdx>=0&&e.isPrimary)dragMouse=localPos(e);});
+stage.addEventListener('pointermove',e=>{if(dragIdx<0||!e.isPrimary)return;dragMouse=localPos(e);if(paused){update();draw();}});
 const endDrag=()=>dragIdx=-1;
 stage.addEventListener('pointerup',endDrag);
 stage.addEventListener('pointercancel',endDrag);

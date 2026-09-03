@@ -106,7 +106,11 @@ vec3 pat(vec2 uv){
   float t=cos(uv.x*5.-uT*.2)*cos(uv.y*6.+uT*.25);
   float mix1=(s+t)*.5+.5;
   vec3 a=vec3(.18,.3,.6),b=vec3(.6,.2,.7),c=vec3(.1,.5,.4);
-  return mix(mix(a,b,mix1),c,sin(uv.x*3.+uv.y*2.+uT*.15)*.5+.5);
+  vec3 col=mix(mix(a,b,mix1),c,sin(uv.x*3.+uv.y*2.+uT*.15)*.5+.5);
+  // faint grid so UV displacement is readable on the smooth gradient
+  vec2 g=abs(fract(uv*vec2(16.,10.))-.5);
+  float ln=1.-smoothstep(0.,.06,min(g.x,g.y));
+  return mix(col,col*1.4+.08,ln*.5);
 }
 
 void main(){
@@ -160,10 +164,10 @@ function u(n){return gl.getUniformLocation(prog,n);}
 function render(ts){
   if(paused){raf=null;return;}
   raf=requestAnimationFrame(render);
-  const dt=ts-lastT;if(dt<16)return;
+  const dt=ts-lastT;if(dt<15)return;
   fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
   phase+=(ts-startT)*.003;if(phase>Math.PI*10)phase-=Math.PI*10;startT=ts;
-  if(!active){amp*=Math.max(0,1-DECAY*.016);if(amp<.005){amp=0;mouseX=mouseY=-999;}}
+  if(!active){amp*=Math.max(0,1-DECAY*dt/1000);if(amp<.005){amp=0;mouseX=mouseY=-999;}}
   draw(ts);
 }
 function draw(ts){
@@ -204,7 +208,7 @@ document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.ta
 document.getElementById('src-tog').addEventListener('change',e=>{srcPanel.style.display=e.target.checked?'block':'none';});
 document.getElementById('pause-btn').addEventListener('click',()=>{
   paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(paused){if(raf)cancelAnimationFrame(raf);raf=null;}
+  if(paused){if(raf)cancelAnimationFrame(raf);raf=null;fpsEl.textContent='paused';}
   else if(gl&&!raf){lastT=performance.now();startT=lastT;raf=requestAnimationFrame(render);}
 });
 </script>
