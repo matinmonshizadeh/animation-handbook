@@ -47,7 +47,8 @@
       animation:slice var(--speed) infinite linear alternate-reverse}
     .glitch::after{color:#2dffe6;text-shadow:var(--offset) 0 #2dffe6;left:var(--offset);
       animation:slice2 var(--speed) infinite linear alternate-reverse}
-    /* clip-path slices are re-randomized from JS via --a../--b.. custom props */
+    .glitch::before,.glitch::after{animation-delay:var(--phase,0s)}
+    /* JS reshuffles the slice phase by restarting the clones with a random negative delay (--phase) */
     @keyframes slice{
       0%{clip-path:inset(20% 0 60% 0)}20%{clip-path:inset(70% 0 5% 0)}
       40%{clip-path:inset(10% 0 80% 0)}60%{clip-path:inset(45% 0 35% 0)}
@@ -122,13 +123,13 @@ body{padding-top:46px}
 const glitch=document.getElementById('glitch');
 const stage=document.getElementById('stage');
 const root=document.documentElement;
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-let intensity=0.6,jitterTimer=null;
+const reduceMQ=matchMedia('(prefers-reduced-motion:reduce)');
+let intensity=0.6,jitterTimer=null,dur=2.4;
 
 // Re-randomize the clip-path keyframes so each burst of slices differs.
 function rand(max){return Math.floor(Math.random()*max)}
 function reslice(){
-  if(reduce)return;
+  if(reduceMQ.matches){glitch.style.transform='';jitterTimer=null;return}
   // amplitude of the tear scales with intensity: low intensity = thin, rare bands
   const spread=Math.round(intensity*40);
   const jitter=(intensity*6).toFixed(1);
@@ -137,8 +138,9 @@ function reslice(){
   if(live){
     // nudge the whole element sideways for a frame to sell the tear
     glitch.style.transform=`translateX(${(Math.random()*2-1)*jitter}px)`;
-    // occasionally restart the clone animations to reshuffle their phase
+    // occasionally restart the clone animations at a random point on their timeline
     if(Math.random()<intensity){
+      glitch.style.setProperty('--phase',(-Math.random()*dur).toFixed(2)+'s');
       glitch.classList.add('reset');void glitch.offsetWidth;glitch.classList.remove('reset');
     }
   }else{
@@ -154,7 +156,7 @@ function fit(){
   if(w>avail)glitch.style.fontSize=Math.max(16,parseFloat(getComputedStyle(glitch).fontSize)*avail/w)+'px';
 }
 document.getElementById('text-inp').addEventListener('input',e=>{
-  const t=(e.target.value||'GLITCH');glitch.textContent=t;glitch.dataset.text=t;
+  const t=(e.target.value.trim()||'GLITCH');glitch.textContent=t;glitch.dataset.text=t;
   glitch.style.setProperty('--n',t.length); // longer words shrink so they stay inside the stage
   fit();
 });
@@ -166,7 +168,7 @@ document.getElementById('off-sl').addEventListener('input',e=>{
 });
 document.getElementById('spd-sl').addEventListener('input',e=>{
   // higher slider = faster = shorter duration (invert)
-  const dur=(14-+e.target.value)*0.4;
+  dur=(14-+e.target.value)*0.4;
   root.style.setProperty('--speed',dur.toFixed(1)+'s');
   document.getElementById('spd-sv').textContent=dur.toFixed(1)+'s';
 });
@@ -182,7 +184,8 @@ document.getElementById('hover-ck').addEventListener('change',e=>{
 stage.addEventListener('pointerdown',e=>{
   if(e.pointerType!=='mouse'&&stage.classList.contains('paused'))stage.classList.toggle('active');
 });
-if(!reduce)reslice();
+if(!reduceMQ.matches)reslice();
+reduceMQ.addEventListener('change',e=>{if(!e.matches&&jitterTimer===null)reslice()});
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>

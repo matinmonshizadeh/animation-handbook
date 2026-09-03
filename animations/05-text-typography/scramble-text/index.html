@@ -56,7 +56,7 @@
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:360px}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:360px}}
     @media(prefers-reduced-motion:reduce){.scramble-text .char{transition:none!important;color:#fff!important}}
   </style>
 <style id="ah-inject">
@@ -120,13 +120,15 @@ const CHARSETS={
   matrix:'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン',
   all:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>{}[]'
 };
-let cycleTimer=null,running=false,timers=[];
+let cycleTimer=null,cycleFn=null,running=false,timers=[];
 const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const out=document.getElementById('scramble-out');
 const lockedCt=document.getElementById('locked-ct');
 const remainCt=document.getElementById('remain-ct');
 const cycleCt=document.getElementById('cycle-ct');
+const charsetSel=document.getElementById('charset-sel');
+const loopTog=document.getElementById('loop-tog');
 
 function randChar(charset){return charset[Math.floor(Math.random()*charset.length)]}
 
@@ -136,7 +138,7 @@ function scramble(){
   timers.forEach(clearTimeout);timers=[];
   running=true;
   const text=document.getElementById('text-inp').value.toUpperCase();
-  const charset=CHARSETS[document.getElementById('charset-sel').value];
+  const charset=CHARSETS[charsetSel.value];
   const cycleMs=+document.getElementById('cyc-sl').value;
   const settleMs=+document.getElementById('settle-sl').value;
   const reduce=reduceMotion.matches;
@@ -171,15 +173,15 @@ function scramble(){
       if(lockedCount===total){
         clearInterval(cycleTimer);cycleTimer=null;
         running=false;out.setAttribute('aria-label',text);
-        if(document.getElementById('loop-tog').checked)later(scramble,1200);
+        // Re-check the toggle when the timer fires so unchecking mid-gap cancels the next run
+        if(loopTog.checked)later(()=>{if(loopTog.checked)scramble()},1200);
       }
     },settleMs*i+settleMs);
   });
 
-  // Cycle random chars on unlocked positions
-  cycleTimer=setInterval(()=>{
-    spans.forEach((s,i)=>{if(s&&!locked[i])s.textContent=randChar(charset);});
-  },cycleMs);
+  // Cycle random chars on unlocked positions; charset is read per tick so the select applies live
+  cycleFn=()=>{const cs=CHARSETS[charsetSel.value];spans.forEach((s,i)=>{if(s&&!locked[i])s.textContent=randChar(cs);});};
+  cycleTimer=setInterval(cycleFn,cycleMs);
 
   const totalTime=settleMs*total+settleMs;
   const thisTimer=cycleTimer;
@@ -189,8 +191,14 @@ function scramble(){
 }
 
 document.getElementById('replay-btn').addEventListener('click',scramble);
-document.getElementById('cyc-sl').addEventListener('input',e=>document.getElementById('cyc-v').textContent=e.target.value+'ms');
+document.getElementById('cyc-sl').addEventListener('input',e=>{
+  document.getElementById('cyc-v').textContent=e.target.value+'ms';
+  // Apply live: swap the running interval for one at the new rate
+  if(running&&cycleTimer){clearInterval(cycleTimer);cycleTimer=setInterval(cycleFn,+e.target.value);cycleCt.textContent=e.target.value+'ms';}
+});
 document.getElementById('settle-sl').addEventListener('input',e=>document.getElementById('settle-v').textContent=e.target.value+'ms');
+document.getElementById('settle-sl').addEventListener('change',scramble);
+loopTog.addEventListener('change',()=>{if(loopTog.checked&&!running)scramble();});
 document.getElementById('text-inp').addEventListener('keydown',e=>{if(e.key==='Enter')scramble()});
 
 scramble();

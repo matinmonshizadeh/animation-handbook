@@ -52,6 +52,7 @@
     .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
     .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
     .div{height:1px;background:var(--ui-border)}
+    @media(prefers-reduced-motion:reduce){.guide{transition:none}}
     @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:340px}}
   </style>
 <style id="ah-inject">
@@ -106,7 +107,7 @@ body{padding-top:46px}
 const tp=document.getElementById('tp');
 const curve=document.getElementById('curve');
 const guide=document.getElementById('guide');
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)');
 const PATHS={
   wave:'M20,180 C120,60 240,300 340,180 S560,60 620,180',
   arc:'M20,300 Q320,20 620,300',
@@ -128,11 +129,13 @@ function fill(){
   tp.textContent=s.repeat(Math.ceil(100/unit)+1);
 }
 function loop(){
+  if(reduce.matches){raf=null;return;}
   offset=(offset+speed)%unit;
   tp.setAttribute('startOffset',(offset-unit)+'%');
   raf=requestAnimationFrame(loop);
 }
-function start(){ if(reduce||raf)return; raf=requestAnimationFrame(loop); }
+function start(){ if(reduce.matches||raf)return; raf=requestAnimationFrame(loop); }
+reduce.addEventListener('change',start);
 
 inp.addEventListener('input',fill);
 document.getElementById('spd-sl').addEventListener('input',e=>{

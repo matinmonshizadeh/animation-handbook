@@ -184,8 +184,16 @@ body{padding-top:46px}
     });
   }
 
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
   function start(){
     const text=document.getElementById('text-inp').value;
+    if(reduceMotion.matches){
+      // No per-character loop: show the finished line at once.
+      if(timer)clearTimeout(timer);running=false;
+      typeOut.textContent=text;typeOut.appendChild(makeCursor());
+      statChars.textContent=text.length;statSpeed.textContent=getSpeed()+'ms';
+      return;
+    }
     if(document.getElementById('delete-tog').checked){
       deleteAndRetype(text);
     }else{

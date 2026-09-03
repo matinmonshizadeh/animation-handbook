@@ -137,6 +137,7 @@ const PRESETS=[
   {wght:400,CASL:1,slnt:0},{wght:300,CASL:0,slnt:-15},{wght:1000,CASL:0,slnt:0}
 ];
 let autoTimer=null,autoIdx=0;
+function stopAuto(){clearInterval(autoTimer);autoTimer=null;document.getElementById('auto-btn').textContent='▶ Auto-morph presets';}
 
 function apply(wght,CASL,slnt){
   document.documentElement.style.setProperty('--wght',wght);
@@ -154,18 +155,21 @@ function apply(wght,CASL,slnt){
 }
 
 document.getElementById('wght-sl').addEventListener('input',e=>{
+  stopAuto();
   const v=+e.target.value;
   document.getElementById('wght-sv').textContent=v;
   document.getElementById('wght-v').textContent=v;
   document.documentElement.style.setProperty('--wght',v);
 });
 document.getElementById('casl-sl').addEventListener('input',e=>{
+  stopAuto();
   const v=e.target.value/100;
   document.getElementById('casl-sv').textContent=v.toFixed(1);
   document.getElementById('casl-v').textContent=v.toFixed(1);
   document.documentElement.style.setProperty('--CASL',v);
 });
 document.getElementById('slnt-sl').addEventListener('input',e=>{
+  stopAuto();
   const v=+e.target.value;
   document.getElementById('slnt-sv').textContent=v+'°';
   document.getElementById('slnt-v').textContent=v+'°';
@@ -176,12 +180,12 @@ document.getElementById('text-inp').addEventListener('input',e=>{
 });
 document.querySelectorAll('.preset-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    clearInterval(autoTimer);autoTimer=null;document.getElementById('auto-btn').textContent='▶ Auto-morph presets';
+    stopAuto();
     apply(+btn.dataset.wght,+btn.dataset.casl*100,+btn.dataset.slnt);
   });
 });
 document.getElementById('auto-btn').addEventListener('click',()=>{
-  if(autoTimer){clearInterval(autoTimer);autoTimer=null;document.getElementById('auto-btn').textContent='▶ Auto-morph presets';return;}
+  if(autoTimer){stopAuto();return;}
   document.getElementById('auto-btn').textContent='■ Stop';
   autoIdx=0;
   function step(){const p=PRESETS[autoIdx%PRESETS.length];apply(p.wght,p.CASL*100,p.slnt);autoIdx++;}

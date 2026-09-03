@@ -142,18 +142,29 @@ body{padding-top:46px}
   }
   function getSep(){return document.getElementById('sep-sel').value}
 
-  function updateSpeed(track){
+  // Fraction of the loop a track has completed (0-1), so a duration change or rebuild can resume in place
+  function progressOf(track){
+    const an=track&&track.getAnimations()[0];const d=track&&track.durMs;
+    return an&&d&&an.currentTime!=null?(an.currentTime%d)/d:0;
+  }
+  function updateSpeed(track,frac){
     const spd=+document.getElementById('spd-sl').value;
     const oneCopy=track.scrollWidth/2; // -50% travel distance
-    track.style.animationDuration=(oneCopy/spd).toFixed(2)+'s';
+    if(frac==null)frac=progressOf(track);
+    track.durMs=Math.round(oneCopy/spd*1000);
+    track.style.animationDuration=track.durMs+'ms';
+    // Changing duration keeps elapsed time, not progress: re-seat the animation so the text does not jump
+    const an=track.getAnimations()[0];if(an)an.currentTime=frac*track.durMs;
   }
 
   function rebuild(){
     const text=getContent();const sep=getSep();
+    const frac=progressOf(stage.querySelector('.marq-track'));
     stage.innerHTML='';
     buildRow(text,sep,false,'');
     buildRow(text,sep,true,'accent');
     buildRow(text+' '+sep+' '+text,sep,false,'');
+    document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t,frac));
   }
 
   function refreshSpeeds(){

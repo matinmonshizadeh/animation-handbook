@@ -78,7 +78,7 @@
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
 body{padding-top:46px}
 .ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
+.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
 .ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
 .ah-home{color:var(--ah-ink);font-weight:600}
 .ah-actions{display:flex;align-items:center;gap:2px}
@@ -129,7 +129,7 @@ SOUND</textarea>
   </aside>
 </div>
 <script>
-  let wordIdx=0,morphTimer=null,running=false,gen=0;
+  let wordIdx=0,morphTimer=null,running=false;
   const wordEl=document.getElementById('current-word');
   const dotsEl=document.getElementById('dots');
   const curWordKv=document.getElementById('cur-word-kv');
@@ -178,7 +178,6 @@ SOUND</textarea>
     });
 
     const exitDur=dur+(stag*(fromChars.length-1));
-    const myGen=gen;
     morphTimer=setTimeout(()=>{
       // Build new word off-screen
       wordEl.innerHTML='';
@@ -189,19 +188,21 @@ SOUND</textarea>
         if(stag>0)s.style.transitionDelay=(stag*i)+'ms';
         s.textContent=c;wordEl.appendChild(s);toChars.push(s);
       });
-      // Animate in
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        if(myGen!==gen)return; // a restart happened while we waited for paint
-        toChars.forEach(c=>{c.classList.remove('enter-from-below','enter-from-above','enter-from-left','enter-from-right');});
-        const enterDur=dur+(stag*(toChars.length-1));
-        morphTimer=setTimeout(done,enterDur+50);
-      }));
+      // Animate in: force a style flush so the transition starts from the off-screen state
+      void wordEl.offsetWidth;
+      toChars.forEach(c=>c.classList.remove(enterDir));
+      const enterDur=dur+(stag*(toChars.length-1));
+      morphTimer=setTimeout(done,enterDur+50);
     },exitDur+60);
   }
 
   function cycle(){
     const words=getWords();
-    if(words.length<2)return;
+    if(words.length<2){ // list edited down to one word mid-cycle: sync display, loop resumes on next edit
+      running=false;wordIdx=0;buildDots(words);
+      if(words[0]){showWord(words[0]);curWordKv.textContent=words[0]}else{wordEl.innerHTML='';curWordKv.textContent='—'}
+      return;
+    }
     running=true;
     if(wordIdx>=words.length)wordIdx=0; // word list was shortened mid-cycle
     if(wordEl.textContent!==words[wordIdx])showWord(words[wordIdx]); // list edited mid-cycle: keep display, dots and readout in sync
@@ -220,7 +221,7 @@ SOUND</textarea>
   }
 
   function start(){
-    if(morphTimer)clearTimeout(morphTimer);running=false;wordIdx=0;gen++;
+    if(morphTimer)clearTimeout(morphTimer);running=false;wordIdx=0;
     const words=getWords();
     if(!words.length){wordEl.innerHTML='';dotsEl.innerHTML='';curWordKv.textContent='—';return}
     buildDots(words);showWord(words[0]);curWordKv.textContent=words[0];
@@ -228,6 +229,7 @@ SOUND</textarea>
   }
 
   document.getElementById('restart-btn').addEventListener('click',start);
+  document.getElementById('words-inp').addEventListener('input',()=>{if(!running)start()});
   document.getElementById('dur-sl').addEventListener('input',e=>{document.getElementById('dur-v').textContent=e.target.value+'ms';document.documentElement.style.setProperty('--morph-dur',e.target.value+'ms')});
   document.getElementById('pause-sl').addEventListener('input',e=>{document.getElementById('pause-v').textContent=(e.target.value/1000).toFixed(1)+'s'});
   document.getElementById('stag-sl').addEventListener('input',e=>{document.getElementById('stag-v').textContent=e.target.value+'ms'});

@@ -57,7 +57,7 @@
     @keyframes kExitRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(80px)}}
     /* Beat markers */
     .beat-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--ui-border)}
-    .beat-fill{height:100%;background:var(--ui-accent);width:0%;transition:width 100ms linear}
+    .beat-fill{height:100%;background:var(--ui-accent);transform-origin:left;transform:scaleX(0);transition:transform 100ms linear}
     /* Phrase counter */
     .phrase-counter{position:absolute;top:14px;right:14px;font-size:10px;color:var(--ui-muted);letter-spacing:1px}
     /* Panel */
@@ -75,7 +75,7 @@
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
-    @media(prefers-reduced-motion:reduce){.kw{animation:none!important;opacity:1!important;transform:none!important}}
+    @media(prefers-reduced-motion:reduce){.kw{animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important}.beat-fill{transition:none}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -142,7 +142,7 @@ function showPhrase(i){
   if(p.sub){const s=document.createElement('span');s.className='kw sub';s.textContent=p.sub;phraseEl.appendChild(s);}
   counterEl.textContent=(i+1)+' / '+PHRASES.length;
   phraseKv.textContent=(i+1)+' / '+PHRASES.length;
-  beatFill.style.width=((i+1)/PHRASES.length*100).toFixed(0)+'%';
+  beatFill.style.transform='scaleX('+((i+1)/PHRASES.length)+')';
   requestAnimationFrame(()=>{
     w.classList.add(p.enter);
     if(p.sub)phraseEl.querySelectorAll('.sub').forEach(s=>{s.style.animationDelay='200ms';s.classList.add(p.enter);});
@@ -155,7 +155,7 @@ function exitPhrase(i,done){
     w.style.animationDelay='';w.classList.remove(p.enter);w.classList.add(p.exit);
   });
   // Every pending timeout in the chain is stored in `timer` so Play/Restart can cancel it.
-  timer=setTimeout(done,ms(450));
+  timer=setTimeout(done,ms(520));
 }
 
 function run(){
@@ -170,7 +170,7 @@ function run(){
         if(idx<PHRASES.length){timer=setTimeout(step,ms(120));}
         else{
           running=false;stateKv.textContent='Done';
-          if(document.getElementById('loop-tog').checked){beatFill.style.width='0%';timer=setTimeout(run,ms(800));}
+          if(document.getElementById('loop-tog').checked){beatFill.style.transform='scaleX(0)';timer=setTimeout(run,ms(800));}
         }
       });
     },ms(500+hold));
@@ -179,7 +179,7 @@ function run(){
 }
 
 document.getElementById('play-btn').addEventListener('click',()=>{
-  clearTimeout(timer);running=false;beatFill.style.width='0%';
+  clearTimeout(timer);running=false;beatFill.style.transform='scaleX(0)';
   timer=setTimeout(run,50);
 });
 document.getElementById('spd-sl').addEventListener('input',e=>{

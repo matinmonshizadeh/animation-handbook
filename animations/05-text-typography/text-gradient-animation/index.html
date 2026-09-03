@@ -50,9 +50,10 @@
     }
     /* Linear */
     .grad-linear{background-image:linear-gradient(90deg,#58a6ff,#56d364,#d2a8ff,#ffa657,#58a6ff)}
-    /* Conic */
+    /* Conic — a registered <angle> property lets the gradient's "from" angle interpolate, so it truly rotates */
+    @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
     .grad-conic{
-      background-image:conic-gradient(from 0deg,#58a6ff,#56d364,#d2a8ff,#ffa657,#58a6ff);
+      background-image:conic-gradient(from var(--ang),#58a6ff,#56d364,#d2a8ff,#ffa657,#58a6ff);
       animation:grad-spin var(--grad-dur) linear infinite;
       background-size:200% 200%;background-position:50% 50%
     }
@@ -61,7 +62,7 @@
     /* Custom two-color */
     .grad-custom{background-image:linear-gradient(90deg,var(--c1,#58a6ff),var(--c2,#d2a8ff),var(--c1,#58a6ff))}
     @keyframes grad-flow{from{background-position:0% 50%}to{background-position:300% 50%}}
-    @keyframes grad-spin{from{background-position:0% 0%}to{background-position:100% 100%}}
+    @keyframes grad-spin{from{--ang:0deg}to{--ang:360deg}}
     .grad-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--ui-muted)}
     /* Panel */
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -77,7 +78,7 @@
     .color-row{display:flex;gap:8px;align-items:center;font-size:10px;color:var(--ui-muted)}
     input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0;flex-shrink:0}
     @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:400px}:root{--grad-size:64px}}
-    @media(prefers-reduced-motion:reduce){.grad-text{animation:none!important;background-position:0% 50%!important}}
+    @media(prefers-reduced-motion:reduce){.grad-text{animation:none!important}.grad-text:not(.grad-conic){background-position:0% 50%!important}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}

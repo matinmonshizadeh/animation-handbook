@@ -118,7 +118,8 @@ Always.</textarea>
 </div>
 <script>
   const headline=document.getElementById('headline');
-  let loopTimer=null;
+  let loopTimer=null,lineTimers=[];
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 
   function getDir(){return document.getElementById('dir-sel').value}
   function getDirClass(dir){
@@ -144,6 +145,7 @@ Always.</textarea>
 
   function reveal(){
     if(loopTimer){clearTimeout(loopTimer);loopTimer=null}
+    lineTimers.forEach(clearTimeout);lineTimers=[];
     const dur=+document.getElementById('dur-sl').value;
     const stag=+document.getElementById('stag-sl').value;
     document.documentElement.style.setProperty('--line-dur',dur+'ms');
@@ -151,11 +153,12 @@ Always.</textarea>
     document.documentElement.style.setProperty('--ease',document.getElementById('ease-sel').value);
 
     const lines=buildLines();
+    void headline.offsetWidth; // flush styles so the new spans have a clip-path start value to transition from
     lines.forEach((span,i)=>{
-      setTimeout(()=>{span.classList.add('revealed');},50+stag*i);
+      lineTimers.push(setTimeout(()=>{span.classList.add('revealed');},50+stag*i));
     });
 
-    if(document.getElementById('loop-tog').checked){
+    if(document.getElementById('loop-tog').checked&&!reducedMotion.matches){
       const total=50+stag*(lines.length-1)+dur+1200;
       loopTimer=setTimeout(reveal,total);
     }
