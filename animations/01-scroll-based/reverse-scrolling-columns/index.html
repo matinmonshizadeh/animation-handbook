@@ -234,11 +234,17 @@ body{padding-top:46px}
     el.appendChild(makeSet());
   });
 
-  // Measure loop period AFTER DOM insertion — height of one card-set plus the 8px col-inner gap
-  const singleSetH = leftInner.children[0].offsetHeight + 8;
+  // Loop period = one card-set plus the 8px col-inner gap. Re-measured after
+  // webfonts land and on resize, because card height changes with the font.
+  let singleSetH = 0;
 
-  // Center column: pre-offset so set A is above the viewport; set B starts visible
-  centerInner.style.marginTop = `-${singleSetH}px`;
+  function measure() {
+    singleSetH = leftInner.children[0].offsetHeight + 8;
+    // Side columns travel downward by default: pre-offset them so set A sits
+    // above the viewport and set B starts visible.
+    leftInner.style.marginTop  = `-${singleSetH}px`;
+    rightInner.style.marginTop = `-${singleSetH}px`;
+  }
 
   const stage    = document.getElementById('stage');
   const progEl   = document.getElementById('progress');
@@ -256,30 +262,33 @@ body{padding-top:46px}
   function fmt(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1) + '×'; }
 
   function update() {
-    if (motionMQ.matches) return;
     const st  = stage.scrollTop;
     const max = stage.scrollHeight - stage.clientHeight;
     progEl.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
+    ticking = false;
 
-    // Center: always scrolls down; margin-top=-singleSetH makes it loop from above
-    const cOff = st % singleSetH;
+    // Reduced motion: columns stay put, but the readouts stay honest
+    if (motionMQ.matches) {
+      offCtr.textContent = offLeft.textContent = offRight.textContent = '0px';
+      return;
+    }
+
+    // Center: scrolls with the input — content travels up as you scroll down
+    const cOff = -(st % singleSetH);
     centerInner.style.transform = `translate3d(0,${cOff}px,0)`;
     offCtr.textContent = Math.round(cOff) + 'px';
 
-    // Sides: magnitude = speed, sign = direction (negative = up = reverse)
+    // Sides: magnitude = speed, sign = direction (negative = down = reverse)
     const sideRaw = st * Math.abs(mult);
     const sideOff = sideRaw % singleSetH;
-    const sideY   = mult >= 0 ? sideOff : -sideOff;
+    const sideY   = mult >= 0 ? -sideOff : sideOff;
     leftInner.style.transform  = `translate3d(0,${sideY}px,0)`;
     rightInner.style.transform = `translate3d(0,${sideY}px,0)`;
     offLeft.textContent  = Math.round(sideY) + 'px';
     offRight.textContent = Math.round(sideY) + 'px';
-
-    ticking = false;
   }
 
   stage.addEventListener('scroll', () => {
-    if (motionMQ.matches) return;
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
 
@@ -305,6 +314,12 @@ body{padding-top:46px}
     update();
   });
 
+  window.addEventListener('resize', () => { measure(); update(); });
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { measure(); update(); });
+  }
+
+  measure();
   update();
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>

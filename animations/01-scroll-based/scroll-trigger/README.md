@@ -40,9 +40,19 @@ if (s !== prev[i]) {
 Scrubbing uses the same scroll position, normalised to `0–1` and clamped, then applied directly to transforms. Because it is clamped rather than gated on the active state, it resolves to 0 before the zone and 1 after it — so a zone you skipped past still ends up in its finished state:
 
 ```js
-const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport * 0.5), 0, 1);
+// enter window: 0 as the zone top passes 80% down the viewport, 1 at 20%
+const p = clamp((stage.scrollTop - (top[i] - 0.8 * viewport)) / (0.6 * viewport), 0, 1);
 swatch.style.transform = `rotate(${p * 180}deg) scale(${lerp(1, 1.3, p)})`;
 swatch.style.filter    = `hue-rotate(${p * 120}deg)`;
+```
+
+A pinned zone is the exception. It scrubs over the distance it is *held*, not
+over the window in which it enters, so its progress is measured against the
+overflow between the zone and the viewport:
+
+```js
+// pin span: 0 as the zone top meets the container top, 1 as its bottom meets the bottom
+const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport), 0, 1);
 ```
 
 ## Key parameters
@@ -50,10 +60,12 @@ swatch.style.filter    = `hue-rotate(${p * 120}deg)`;
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Zone start | zone top, measured against the stage | Where the trigger fires. Must be in the scroll container's coordinate space, not `offsetTop` |
-| Zone height | 550px | The span over which a zone counts as active |
+| Zone height | 550px (zone 3: two viewports) | The span over which a zone counts as active |
+| Pin offset | half a viewport, less half the card | Where `position: sticky` holds the card inside the scroll container |
 | Scrub start | `top 80%` | Zone top at 80% down the viewport — just after the section appears |
 | Scrub end | `top 20%` | Zone top near the viewport top; the animation finishes as the section settles |
 | Run-out | one viewport | Trailing space so the final zone can exit and fire `onLeave` |
+| Pin span | zone height − viewport | The scroll distance the pinned card is held for, and the range zone 3 scrubs across |
 
 ## Production notes
 
@@ -64,6 +76,7 @@ swatch.style.filter    = `hue-rotate(${p * 120}deg)`;
 - **Prime the state before logging callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: this log opened claiming zone 1 had fired `onEnterBack` and zones 2–4 `onLeaveBack`, before any scrolling. Record the initial state on the first pass and only emit transitions after that.
 - **Evaluate every trigger each frame, not just the active ones.** Updating a zone only while it is active leaves whatever value it happened to stop on — jump past a zone and its scrub never runs at all, and scrolling back to the top left the pinned card still reading "Step 3 of 3". Clamped progress resolves to 0 before a zone and 1 after it, so both ends settle correctly on their own.
 - **Leave a run-out after the last trigger.** A final zone with nothing beneath it can never scroll past the top, so it can neither finish its scrub nor fire `onLeave` — the snap dots here were stuck at 0/5 forever. One viewport of trailing space is enough.
+- **A pinned zone needs somewhere to be pinned.** `position: sticky` does nothing when the element's containing block is shorter than the scroll container — there is no overflow to hold it across. Zone 3 is deliberately two viewports tall so the card has one viewport of travel to stay fixed through; without that it scrolled straight past like any other card, and its three steps had all fired before it was on screen. Sticky also fails silently if any ancestor between it and the scroller has `overflow: hidden`.
 - **Scrub and `will-change`.** For elements that update on every scroll frame, declare `will-change: transform` before the first frame to avoid promotion jank.
 - **Snap-to-point** requires detecting scroll silence. A debounce timer (100–200ms) after the last scroll event is the reliable pattern; there is no native "scroll ended" event in most browser contexts.
 - **Accessibility.** `onEnter` animations should respect `prefers-reduced-motion`. In reduced-motion mode, jump elements directly to their final state at page load.

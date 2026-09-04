@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{flex:1;min-width:0;height:620px;position:relative;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
     .stage::-webkit-scrollbar{display:none}
     /* Intro */
     .intro{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-bottom:1px solid var(--ui-border)}
@@ -60,7 +60,7 @@
     .feat-seg.active{background:var(--ui-accent)}
     button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.intro,.outro{height:480px}.pin-inner{flex-direction:column;gap:16px}.phone-wrap svg{transform:scale(.8)}}
+    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%;height:480px}.intro,.outro{height:480px}.pin-inner{flex-direction:column;gap:16px;height:480px}.phone-wrap svg{transform:scale(.8)}}
     @media(prefers-reduced-motion:reduce){.feat-seg{transition:none}}
   </style>
 <style id="ah-inject">
@@ -148,7 +148,7 @@ body{padding-top:46px}
   function update(){
     const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
     scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const ps=pinSec.offsetTop,ph=1860,vh=620;
+    const ps=pinSec.offsetTop,ph=pinSec.offsetHeight,vh=stage.clientHeight;
     let lifecycle='before pin',fi=0;
     if(st>=ps&&st<ps+ph-vh){lifecycle='pinned · in section';const p=clamp((st-ps)/(ph-vh),0,1);fi=Math.min(3,Math.floor(p*4))}
     else if(st>=ps+ph-vh){lifecycle='after release';fi=3}
@@ -158,12 +158,16 @@ body{padding-top:46px}
       featNum.textContent=`${f.num} / 04`;featTitle.textContent=f.title;featDesc.textContent=f.desc;
       featInd.textContent=`${f.num} · ${f.title}`;
       phoneScreen.setAttribute('fill',f.color);phoneNum.setAttribute('fill',f.tcolor);phoneNum.textContent=f.num;
-      phoneIcon.textContent=f.title.slice(0,16);phoneIcon.setAttribute('fill',f.tcolor);
+      // trim to the last whole word that still fits inside the 92px phone screen
+      phoneIcon.textContent=f.title.length>16?f.title.slice(0,16).replace(/\s+\S*$/,'')+'…':f.title;
+      phoneIcon.setAttribute('fill',f.tcolor);
       segs.forEach((s,i)=>s.classList.toggle('active',i===fi));lastFi=fi;
     }
     ticking=false;
   }
-  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  const schedule=()=>{if(!ticking){requestAnimationFrame(update);ticking=true}};
+  stage.addEventListener('scroll',schedule,{passive:true});
+  addEventListener('resize',schedule,{passive:true});
   document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
   update();
 </script>

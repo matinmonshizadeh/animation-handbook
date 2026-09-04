@@ -20,12 +20,17 @@ multipliers simulate greater distance.
 ## How it works
 
 Each layer has a speed multiplier `s ∈ [0, 1.5]`. On scroll, a single
-`requestAnimationFrame` callback reads `scrollTop` and applies:
+`requestAnimationFrame` callback normalises `scrollTop` to a 0–1 progress
+value and scales a fixed travel budget by the layer's speed:
 
 ```js
-const offset = scrollTop * speed;
+const progress = scrollTop / (scrollHeight - clientHeight); // 0 → 1
+const offset   = progress * MAX_PARALLAX * speed;           // MAX_PARALLAX = 150px
 layer.el.style.transform = `translate3d(0, ${offset}px, 0)`;
 ```
+
+Normalising first keeps the travel identical no matter how tall the scroll
+container is, and clamps the effect at both ends for free.
 
 Layers with low speed (sky: 10%) barely move — they appear far away. Layers
 with high speed (foreground: 100%) track the scroll — they appear close. The
@@ -35,11 +40,12 @@ ratio between speeds determines how convincing the illusion is.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Sky speed | 10% | Near-zero drift — appears stationary |
-| Ridgeline speed | 30% | Slow drift |
-| Treeline speed | 60% | Mid-distance drift |
-| Foreground speed | 100% | Full scroll travel |
-| Scene height | 1800px | Total scroll distance (max scroll = 1200px) |
+| Sky speed | 10% | Near-zero drift — 15px total |
+| Ridgeline speed | 30% | Slow drift — 45px total |
+| Treeline speed | 60% | Mid-distance drift — 90px total |
+| Foreground speed | 100% | Full travel budget — 150px total |
+| `MAX_PARALLAX` | 150px | Travel at speed 1.0 across the whole scroll range |
+| Scene height | 1800px | Scroll track inside a 600px stage (400px under 600px wide) |
 
 ## Production notes
 
@@ -55,8 +61,10 @@ ratio between speeds determines how convincing the illusion is.
   scrolling with parallax hooks. Rellax is a lightweight zero-dependency option
   for simple cases.
 - **Accessibility:** respect `prefers-reduced-motion: reduce`. When the user
-  has requested reduced motion, skip all `transform` updates and show the
-  static scene. Apply `will-change: auto` in the reduced-motion media query to
+  has requested reduced motion, hold every layer at zero offset and show the
+  static scene — but keep the numeric readouts tracking the scroll, so the
+  panel isn't reporting stale values. Apply `will-change: auto` in the
+  reduced-motion media query to
   avoid unnecessary layer promotion.
 
 ## See also

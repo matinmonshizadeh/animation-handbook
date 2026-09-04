@@ -15,9 +15,14 @@ An element that freezes in place while the page continues to scroll beneath it. 
 
 ## How it works
 
-The pin requires only three things: a tall parent section, a sticky child, and matching heights:
+The pin requires only three things: a tall parent section, a sticky child, and matching heights. The scroll container is `position: relative` so the section's `offsetTop` is measured inside the scroller rather than against the page:
 
 ```css
+.stage {
+  position: relative;
+  overflow-y: scroll;
+  height: 620px;
+}
 .pin-section {
   height: 1860px; /* 3× the viewport height */
 }
@@ -31,9 +36,9 @@ The pin requires only three things: a tall parent section, a sticky child, and m
 JavaScript computes which feature to show based on position within the section:
 
 ```js
-const pinStart  = pinSection.offsetTop;
-const pinHeight = 1860;
-const viewH     = 620;
+const pinStart  = pinSection.offsetTop;   // measured inside the scroll container
+const pinHeight = pinSection.offsetHeight;
+const viewH     = stage.clientHeight;
 const p = clamp((scrollTop - pinStart) / (pinHeight - viewH), 0, 1);
 const featureIndex = Math.min(3, Math.floor(p * 4));
 ```

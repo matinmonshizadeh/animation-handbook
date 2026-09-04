@@ -46,7 +46,9 @@
     }
     .stage::-webkit-scrollbar{display:none}
     .scene{height:1800px}
-    .layers{position:sticky;top:0;height:600px;overflow:hidden}
+    /* matches the top stop of the sky gradient so layer travel never
+       exposes the page background above the backmost layer */
+    .layers{position:sticky;top:0;height:600px;overflow:hidden;background:#0a1628}
     .layer{
       position:absolute;top:0;left:0;width:100%;height:600px;
       will-change:transform;
@@ -71,7 +73,7 @@
     .sliders{display:flex;flex-direction:column;gap:5px}
     .sr{display:flex;align-items:center;gap:5px;font-size:10px}
     .sr label{width:42px;color:var(--ui-muted);flex-shrink:0}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
+    .sr input[type=range]{flex:1;min-width:0;accent-color:var(--ui-accent);min-height:44px}
     .sr .sv{width:32px;text-align:right;color:var(--ui-text)}
     .div{height:1px;background:var(--ui-border)}
     .sliders.locked{opacity:.4;pointer-events:none}
@@ -249,13 +251,14 @@ body{padding-top:46px}
   let ticking       = false;
 
   function update() {
-    if (motionMQ.matches) return;
     const st       = stage.scrollTop;
     const max      = stage.scrollHeight - stage.clientHeight;
     const progress = max > 0 ? st / max : 0;
+    // reduced motion: readouts still track the scroll, layers never translate
+    const still    = motionMQ.matches;
     progEl.textContent = Math.round(progress * 100) + '%';
     LAYERS.forEach((L, i) => {
-      const off = Math.round(progress * MAX_PARALLAX * L.speed);
+      const off = still ? 0 : Math.round(progress * MAX_PARALLAX * L.speed);
       L.el.style.transform = `translate3d(0,${off}px,0)`;
       OFFS[i].textContent  = off + 'px';
     });
@@ -263,7 +266,6 @@ body{padding-top:46px}
   }
 
   stage.addEventListener('scroll', () => {
-    if (motionMQ.matches) return;
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
 

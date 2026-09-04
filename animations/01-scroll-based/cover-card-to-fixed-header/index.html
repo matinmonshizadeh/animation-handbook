@@ -169,7 +169,7 @@ body{padding-top:46px}
 
       <div class="cover" id="cover">
         <div class="cover-bg" id="cover-bg"></div>
-        <div class="cover-code" aria-hidden="true">
+        <div class="cover-code" id="cover-code" aria-hidden="true">
           const p = stage.scrollTop / RANGE;<br>
           const e = easeOutCubic(p);<br>
           height = lerp(530, 56, e);
@@ -234,6 +234,7 @@ body{padding-top:46px}
   const $ = id => document.getElementById(id);
   const cover = $('cover'), coverBg = $('cover-bg'), coverMeta = $('cover-meta');
   const coverTitle = $('cover-title'), coverSub = $('cover-sub'), coverAuthor = $('cover-author');
+  const coverCode = $('cover-code');
   const headerChip = $('header-chip'), coverRule = $('cover-rule'), stage = $('stage');
   const scrollProg = $('scroll-prog'), collapseProg = $('collapse-prog');
   const colSlider = $('collapse-slider'), colVal = $('col-val');
@@ -241,10 +242,10 @@ body{padding-top:46px}
   const binaryTog = $('binary-tog'), resetBtn = $('reset-btn');
   const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // Read heights from CSS variables at startup (respects mobile media query overrides)
-  const cs   = getComputedStyle(document.documentElement);
-  const FULL = parseFloat(cs.getPropertyValue('--cover-full')) || 530;
-  const MIN  = parseFloat(cs.getPropertyValue('--cover-min'))  || 56;
+  // Heights come from CSS variables, which the mobile media query overrides — so they
+  // are re-read in measure(), not frozen at startup, or a rotation across the 600px
+  // breakpoint would leave the collapsed header at the desktop size.
+  let FULL = 530, MIN = 56;
 
   // A wheel notch is ~100px — nearly a third of RANGE — and easeOutCubic turns that
   // first notch into 68% of the collapse. Scroll therefore sets a *target* and the
@@ -265,11 +266,20 @@ body{padding-top:46px}
 
   // scrollHeight/clientHeight are layout reads: cache them instead of paying a
   // forced reflow on every scroll event.
-  function measure() { maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight); }
+  function measure() {
+    const cs = getComputedStyle(document.documentElement);
+    FULL = parseFloat(cs.getPropertyValue('--cover-full')) || 530;
+    MIN  = parseFloat(cs.getPropertyValue('--cover-min'))  || 56;
+    maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight);
+  }
 
   // Scroll progress -> collapse amount. Binary mode and reduced motion snap by design.
   const snaps = () => motionMQ.matches || binaryTog.checked;
   const curveOf = p => snaps() ? (p > 0.5 ? 1 : 0) : ease(p);
+  // The slider is also a readout — render() writes the collapse percentage back into
+  // it — so its value is already a collapse amount. Easing it a second time would make
+  // the number beside the slider disagree with the Collapse row.
+  const overrideOf = c => snaps() ? (c > 0.5 ? 1 : 0) : c;
 
   // Takes the finished collapse value, so easing it bounds how far the header can
   // travel in one frame — easing raw progress instead lets easeOutCubic (slope 3
@@ -279,7 +289,7 @@ body{padding-top:46px}
     set('bgOp',  q(lerp(1, .12, e), .01),        v => coverBg.style.opacity = v);
     set('blur',  q(lerp(0, 6, e), BLUR_STEP),    v => coverBg.style.filter = v > 0 ? `blur(${v}px)` : 'none');
     set('scale', q(lerp(1, 13 / 26, e), .002),   v => coverTitle.style.transform = `scale(${v})`);
-    set('fade',  q(1 - clamp(e * 3, 0, 1), .01), v => { coverMeta.style.opacity = v; coverSub.style.opacity = v; });
+    set('fade',  q(1 - clamp(e * 3, 0, 1), .01), v => { coverMeta.style.opacity = v; coverSub.style.opacity = v; coverCode.style.opacity = v; });
     set('auth',  q(1 - clamp(e * 2, 0, 1), .01), v => coverAuthor.style.opacity = v);
     set('chip',  q(clamp((e - .5) * 2, 0, 1), .01), v => headerChip.style.opacity = v);
     set('rule',  q(e, .01),                      v => coverRule.style.opacity = v);
@@ -311,7 +321,7 @@ body{padding-top:46px}
   colSlider.addEventListener('input', () => {
     manual = true;
     colVal.textContent = colSlider.value + '%';
-    target = curveOf(colSlider.value / 100);
+    target = overrideOf(colSlider.value / 100);
     schedule();
   });
 
@@ -323,8 +333,8 @@ body{padding-top:46px}
 
   binaryTog.addEventListener('change', () => {
     for (const k in G) delete G[k];        // the curve changed, so every value is stale
-    const p = manual ? colSlider.value / 100 : clamp(stage.scrollTop / RANGE, 0, 1);
-    target = curveOf(p);
+    target = manual ? overrideOf(colSlider.value / 100)
+                    : curveOf(clamp(stage.scrollTop / RANGE, 0, 1));
     schedule();
   });
 
@@ -335,7 +345,10 @@ body{padding-top:46px}
   });
 
   let rt;
-  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(measure, 150); });
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => { measure(); delete G.h; render(current); }, 150);
+  });
 
   measure();
   target = current = curveOf(clamp(stage.scrollTop / RANGE, 0, 1));

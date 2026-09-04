@@ -25,20 +25,23 @@ Each column contains two identical card sets stacked vertically. A single
 `requestAnimationFrame` callback that applies `translate3d` to each column:
 
 ```js
-// Center column — scrolls down (margin-top pre-offsets by -singleSetH)
-const cOff = scrollTop % singleSetH;
+// Center column — travels up, the direction a normal scroll moves content
+const cOff = -(scrollTop % singleSetH);
 centerInner.style.transform = `translate3d(0, ${cOff}px, 0)`;
 
 // Side columns — negative mult reverses direction; magnitude sets speed
+// (margin-top pre-offsets them by -singleSetH so there is content above)
 const sideOff = (scrollTop * Math.abs(mult)) % singleSetH;
-const sideY   = mult >= 0 ? sideOff : -sideOff; // positive = down, negative = up
+const sideY   = mult >= 0 ? -sideOff : sideOff; // negative = up, positive = down
 sideInner.style.transform = `translate3d(0, ${sideY}px, 0)`;
 ```
 
 `singleSetH` is the height of one card set (12 cards + gaps), measured from
-the DOM after card generation. The modulo keeps the offset in the range
-`[0, singleSetH)`, producing a seamless wrap when the second set aligns
-exactly with where the first set started.
+the DOM after card generation. Measure it again on `document.fonts.ready` —
+a webfont that swaps in after the first measurement changes card height and
+leaves the loop period a few pixels short, which shows up as a jump at every
+wrap. The modulo keeps the offset in the range `[0, singleSetH)`, producing a
+seamless wrap when the second set aligns exactly with where the first started.
 
 ## Key parameters
 

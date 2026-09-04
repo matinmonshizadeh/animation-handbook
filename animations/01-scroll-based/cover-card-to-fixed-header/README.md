@@ -34,19 +34,21 @@ Eight properties are then interpolated against `e` in a single
 `requestAnimationFrame` callback:
 
 ```js
-cover.style.height        = lerp(530, 56, e) + 'px';
-coverTitle.style.fontSize = lerp(26, 13, e)  + 'px';
-coverBg.style.opacity     = lerp(1, 0.12, e);
-coverBg.style.filter      = `blur(${lerp(0, 6, e)}px)`;
-coverMeta.style.opacity   = 1 - clamp(e * 3, 0, 1);
-coverSub.style.opacity    = 1 - clamp(e * 3, 0, 1);
-coverAuthor.style.opacity = 1 - clamp(e * 2, 0, 1);
-headerChip.style.opacity  = clamp((e - 0.5) * 2, 0, 1);
+cover.style.height         = lerp(530, 56, e) + 'px';
+coverTitle.style.transform = `scale(${lerp(1, 13 / 26, e)})`;
+coverBg.style.opacity      = lerp(1, 0.12, e);
+coverBg.style.filter       = `blur(${lerp(0, 6, e)}px)`;
+coverMeta.style.opacity    = 1 - clamp(e * 3, 0, 1);  // also coverSub, coverCode
+coverAuthor.style.opacity  = 1 - clamp(e * 2, 0, 1);
+headerChip.style.opacity   = clamp((e - 0.5) * 2, 0, 1);
+coverRule.style.opacity    = e;
 ```
 
-A `flex: 1` spacer inside the cover pushes content to the bottom at full
-height and compresses as height shrinks, making the title rise to header
-position without any JS transform on the title element itself.
+The title shrinks by `transform: scale()` with `transform-origin: left top`
+rather than by writing `font-size` — see the production note below. A
+`flex: 1` spacer inside the cover pushes content to the bottom at full
+height and compresses as height shrinks, so the title rises into header
+position on its own.
 
 ## Key parameters
 

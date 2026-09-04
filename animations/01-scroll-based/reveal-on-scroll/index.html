@@ -175,10 +175,17 @@ body{padding-top:46px}
     return el;
   });
 
+  // The top edge is unbounded on purpose. With a 0px top margin a card that has
+  // already scrolled above the trigger line is simply not intersecting, so a fast
+  // flick or a jump to the end steps over it: it is never reported as entering and
+  // stays at opacity 0 for good. Extending the root upwards makes "at or above the
+  // line" always count, so a card can only leave by dropping back below the line.
+  function rootMargin(){return `9999px 0px ${-(100-threshold)}% 0px`}
+  function obsSnippet(){return `new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "${rootMargin()}",\n  threshold: 0\n})`}
+
   function buildObserver(){
     if(observer)observer.disconnect();
-    const margin=-(100-threshold);
-    obsCode.textContent=`new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "0px 0px ${margin}% 0px",\n  threshold: 0\n})`;
+    obsCode.textContent=obsSnippet();
     observer=new IntersectionObserver(entries=>{
       entries.forEach(e=>{
         const i=+e.target.dataset.i,fx=e.target.dataset.fx;
@@ -191,7 +198,7 @@ body{padding-top:46px}
           logEvent(`← leave: ${fx}`);
         }
       });
-    },{root:stage,rootMargin:`0px 0px ${margin}% 0px`,threshold:0});
+    },{root:stage,rootMargin:rootMargin(),threshold:0});
     cardEls.forEach(el=>observer.observe(el));
   }
 
@@ -215,7 +222,7 @@ body{padding-top:46px}
   function updateLine(){
     triggerLine.style.top=(stage.clientTop+threshold/100*stage.clientHeight)+'px';
     thrVal.textContent=threshold+'%';
-    obsCode.textContent=`new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "0px 0px ${-(100-threshold)}% 0px",\n  threshold: 0\n})`;
+    obsCode.textContent=obsSnippet();
   }
 
   thrSl.addEventListener('input',()=>{threshold=+thrSl.value;updateLine();buildObserver()});

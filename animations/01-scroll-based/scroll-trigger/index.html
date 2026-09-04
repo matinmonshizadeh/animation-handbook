@@ -52,8 +52,10 @@
     .reveal-sub{font-size:13px;color:var(--ui-muted);line-height:1.6}
     /* Zone 2 */
     .swatch{width:90px;height:90px;border-radius:12px;background:var(--ui-accent);will-change:transform,filter;margin:24px auto}
-    /* Zone 3 */
-    .pin-card{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px;max-width:340px;margin:0 auto}
+    /* Zone 3 — two viewports tall so the card has a span to stay pinned across,
+       and anchored to the zone top so the pin engages as the zone arrives. */
+    .z3{min-height:calc(var(--stage-h) * 2);justify-content:flex-start}
+    .pin-card{position:sticky;top:calc(var(--stage-h) / 2 - 70px);background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px;max-width:340px;margin:0 auto}
     .pin-step{font-size:12px;color:var(--ui-accent);margin-bottom:6px}
     .pin-title{font-size:16px;font-weight:bold}
     .pin-body{font-size:12px;color:var(--ui-muted);margin-top:8px;line-height:1.6}
@@ -199,6 +201,12 @@ body{padding-top:46px}
      scrolled fully into view — roughly 0.8 of a viewport late. */
   const START=0.8,END=0.2;
   const scrub=i=>clamp((stage.scrollTop-(ZT[i]-START*VH))/((START-END)*VH),0,1);
+  /* A pinned zone scrubs over the distance it is held, not over the window in
+     which it enters: 0 as its top meets the container top, 1 as its bottom
+     meets the bottom. Driving zone 3 with the enter window ran all three steps
+     while the card was still below the fold, so it sat on "Step 3 of 3" for the
+     entire time it was pinned. */
+  const pinScrub=i=>clamp((stage.scrollTop-ZT[i])/Math.max(1,ZH[i]-VH),0,1);
   function logEvent(msg){cbEvents=[msg,...cbEvents].slice(0,5);cbLog.innerHTML=cbEvents.map(e=>`<span>${e}</span>`).join('')}
   const NAMES=['Fade on Enter','Scrub','Pin + Scrub','Snap'];
 
@@ -237,7 +245,7 @@ body{padding-top:46px}
       scrubVal.textContent=`progress: ${Math.round(v*100)}%`;
     });
     // Zone 3 — pin + scrub
-    const p3=scrub(2);
+    const p3=pinScrub(2);
     set('p3',Math.min(2,Math.floor(p3*3)),v=>{
       pinStep.textContent=PIN_STEPS[v][0];pinTitle.textContent=PIN_STEPS[v][1];pinBody.textContent=PIN_STEPS[v][2];
     });

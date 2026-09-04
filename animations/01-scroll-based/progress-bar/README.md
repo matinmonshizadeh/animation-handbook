@@ -60,7 +60,7 @@ circFg.style.strokeDashoffset = CIRC - (p * CIRC);
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Indicator style | top bar | Which visual indicator is active |
-| Bar color | `#58a6ff` | Applied via `--bar-color` CSS custom property |
+| Bar color | `#6ea8ff` | Applied via `--bar-color` CSS custom property |
 | Bar thickness | 3px | Applied via `--bar-thick` CSS custom property; also updates SVG `stroke-width` |
 
 ## Production notes

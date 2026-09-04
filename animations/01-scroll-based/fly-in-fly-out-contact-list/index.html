@@ -261,6 +261,7 @@ body{padding-top:46px}
 
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target));
+    schedule(); // paints the initial state, and re-styles rows the observer just re-added
   }, { root: stage, rootMargin: '50% 0px', threshold: 0 }); // 50% covers max zone size (40%)
   rows.forEach(r => io.observe(r));
 
@@ -268,7 +269,8 @@ body{padding-top:46px}
   function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 
   function applyRow(el) {
-    const pos = (el.offsetTop - stage.scrollTop) / stage.clientHeight;
+    const top = el.offsetTop - stage.scrollTop;
+    const pos = top / stage.clientHeight;
     const reduced = motionMQ.matches;
     let opacity = 1, ty = 0, sc = 1;
 
@@ -286,6 +288,7 @@ body{padding-top:46px}
 
     el.style.opacity   = opacity;
     el.style.transform = `translate3d(0,${ty}px,0) scale(${sc})`;
+    return top + el.offsetHeight > 0 && top < stage.clientHeight;
   }
 
   function updateOverlay() {
@@ -299,14 +302,19 @@ body{padding-top:46px}
     const st  = stage.scrollTop;
     const max = stage.scrollHeight - stage.clientHeight;
     scrollProg.textContent = max > 0 ? Math.round(st / max * 100) + '%' : '0%';
-    visible.forEach(applyRow);
-    visCount.textContent = visible.size;
+    let onScreen = 0;
+    visible.forEach(el => { if (applyRow(el)) onScreen++; }); // set includes a 50% margin — count only rows in view
+    visCount.textContent = onScreen;
     ticking = false;
   }
 
-  stage.addEventListener('scroll', () => {
+  function schedule() {
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
-  }, { passive: true });
+  }
+
+  stage.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', () => { updateOverlay(); schedule(); });
+  motionMQ.addEventListener('change', schedule);
 
   distSl.addEventListener('input',  () => { DIST  = +distSl.value;       distVal.textContent  = DIST + 'px';            update(); });
   scaleSl.addEventListener('input', () => { SCALE = scaleSl.value / 100; scaleVal.textContent = SCALE.toFixed(2);       update(); });

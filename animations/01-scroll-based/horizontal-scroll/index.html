@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{flex:1;min-width:0;position:relative;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
     .stage::-webkit-scrollbar{display:none}
     /* Intro / outro spacers */
     .spacer{height:calc(var(--stage-h) * 0.6);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.3;letter-spacing:2px}
@@ -61,8 +61,8 @@
     @media(hover:hover){.jbtn:hover{border-color:var(--ui-accent)}}
     button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
     @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:480px}.panel{padding:24px}}
-    @media(prefers-reduced-motion:reduce){#h-track{transition:none!important}}
+    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none}aside{width:100%}:root{--stage-h:480px}.panel{padding:24px}.jbtn{min-height:44px}button.rst{min-height:44px}}
+    @media(prefers-reduced-motion:reduce){#h-track{transition:none!important}.dot{transition:none}}
   </style>
 <style id="ah-inject">
 :root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
@@ -135,7 +135,8 @@ body{padding-top:46px}
     btn.addEventListener('click',()=>{
       const pin=document.getElementById('pin-section');
       const budget=pin.offsetHeight-stage.clientHeight;
-      stage.scrollTo({top:pin.offsetTop+Math.round(i/(PANELS.length-1)*budget),behavior:'smooth'});
+      const soft=matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth';
+      stage.scrollTo({top:pin.offsetTop+Math.round(i/(PANELS.length-1)*budget),behavior:soft});
     });
     jlist.appendChild(btn);
   });
@@ -159,6 +160,7 @@ body{padding-top:46px}
   }
 
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
+  window.addEventListener('resize',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}});
   document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
   update();
 </script>
