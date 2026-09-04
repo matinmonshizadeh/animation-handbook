@@ -75,7 +75,7 @@ body{padding-top:46px}
              pushed through a steep contrast curve so soft edges snap back to a
              hard silhouette — overlapping circles fuse into one liquid shape. -->
         <filter id="goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur"/>
+          <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur" result="blur"/>
           <feColorMatrix in="blur" mode="matrix"
             values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
           <feBlend in="SourceGraphic" in2="goo"/>
@@ -115,7 +115,7 @@ const stage=document.getElementById('stage');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 const CX=200,CY=200;             // viewBox centre
-let blobs=[],speed=1;
+let blobs=[],speed=1,phase=0,last=0; // phase accumulates so a speed change never jumps
 let pointer={x:CX,y:CY,active:false}; // target for the droplet, in viewBox units
 
 function build(n){
@@ -142,12 +142,17 @@ function build(n){
 
 function frame(t){
   const time=t/1000;
+  // Integrate the speed instead of multiplying absolute time: moving the drift
+  // slider then changes the rate without teleporting the blobs. The clamp stops
+  // a long background-tab pause from arriving as one huge step.
+  phase+=Math.min(time-last,0.1)*speed;
+  last=time;
   for(const b of blobs){
     if(b.droplet){
       b.x+=(pointer.x-b.x)*0.09;   // lerp toward the pointer (attraction)
       b.y+=(pointer.y-b.y)*0.09;
     }else{
-      const w=time*speed;
+      const w=phase;
       b.x=b.bx+Math.sin(w*b.sx+b.px)*b.ax;
       b.y=b.by+Math.cos(w*b.sy+b.py)*b.ay;
     }

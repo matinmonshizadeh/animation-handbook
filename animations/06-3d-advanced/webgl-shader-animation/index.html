@@ -36,6 +36,8 @@
     .fps-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
     .shader-name{font-size:9px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.4);padding:3px 10px;border-radius:4px;letter-spacing:1px;text-transform:uppercase}
     .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(11,11,13,.9);border-top:1px solid var(--ui-border);padding:12px;font-size:9px;color:var(--ui-muted);font-family:var(--mono);line-height:1.5;max-height:200px;overflow-y:auto;display:none;white-space:pre-wrap;word-break:break-all}
+    .gl-msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,32px);background:var(--bg);color:var(--ui-text);font-size:clamp(10px,2.2vw,12px);line-height:1.7;white-space:pre-wrap;overflow-y:auto}
+    .gl-msg.on{display:flex}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -78,6 +80,7 @@ body{padding-top:46px}
       <div class="shader-name" id="shader-name">Plasma</div>
     </div>
     <div class="src-panel" id="src-panel"></div>
+    <div class="gl-msg" id="gl-msg" role="status"></div>
   </div>
   <aside>
     <p class="note">Fragment shaders run once per pixel on the GPU. The boilerplate (vertex shader, quad geometry, uniforms) stays identical — only the fragment shader changes per preset.</p>
@@ -95,7 +98,7 @@ body{padding-top:46px}
     <label class="tog"><input type="checkbox" id="mouse-tog"><span>Mouse interaction</span></label>
     <label class="tog"><input type="checkbox" id="src-tog"><span>View shader source</span></label>
     <div class="div"></div>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
+    <button type="button" class="rst" id="pause-btn">⏸ Pause</button>
   </aside>
 </div>
 <script>
@@ -104,21 +107,23 @@ const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 const SHADERS=[
   // 0: Plasma
   {name:'Plasma',src:`precision mediump float;
-uniform vec2 R;uniform float T,H;
+uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
 vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
 void main(){
   vec2 uv=gl_FragCoord.xy/R*2.-1.;uv.x*=R.x/R.y;
-  float v=sin(uv.x*5.+T)+sin(uv.y*5.+T*.7)+sin((uv.x+uv.y)*5.+T*.5)+sin(sqrt(uv.x*uv.x+uv.y*uv.y)*6.);
+  vec2 c=vec2(0.);if(uMouse)c=(M*2.-1.)*vec2(R.x/R.y,1.);
+  float v=sin(uv.x*5.+T)+sin(uv.y*5.+T*.7)+sin((uv.x+uv.y)*5.+T*.5)+sin(length(uv-c)*6.);
   float hue=fract(v*.25+T*.05+H/360.);
   gl_FragColor=vec4(hsv(hue,.9,.95),1.);
 }`},
   // 1: Wave distortion
   {name:'Wave Distortion',src:`precision mediump float;
-uniform vec2 R;uniform float T,H;
+uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
 vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
 void main(){
   vec2 uv=gl_FragCoord.xy/R;
   float wave=sin(uv.y*12.+T*2.)*.04+sin(uv.x*8.-T*1.5)*.03;
+  if(uMouse)wave*=1.+4.*exp(-14.*dot(uv-M,uv-M));
   vec2 d=uv+vec2(wave,wave*1.3);
   float stripe=sin(d.x*20.+T)*sin(d.y*20.-T*.6);
   float hue=fract(stripe*.3+H/360.+T*.02);
@@ -126,11 +131,13 @@ void main(){
 }`},
   // 2: Voronoi
   {name:'Voronoi',src:`precision mediump float;
-uniform vec2 R;uniform float T,H;
+uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
 vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
 float rand(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
 void main(){
-  vec2 uv=gl_FragCoord.xy/R*4.;
+  vec2 q=gl_FragCoord.xy/R;
+  if(uMouse){vec2 dm=q-M;q+=dm*.7*exp(-16.*dot(dm,dm));}
+  vec2 uv=q*4.;
   vec2 i=floor(uv),f=fract(uv);
   float md=8.,mi=0.;
   for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
@@ -161,51 +168,82 @@ void main(){
 const stage=document.getElementById('stage');const cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps');const shaderName=document.getElementById('shader-name');
 const srcPanel=document.getElementById('src-panel');
-const pauseBtn=document.getElementById('pause-btn');
-let W,H,gl,prog=null,raf=null,paused=false,lastT=0,T=0;
+const pauseBtn=document.getElementById('pause-btn');const msgEl=document.getElementById('gl-msg');
+let W,H,gl,prog=null,U=null,raf=null,paused=false,lastT=0,T=0;
 let PRESET=0,SPD=1,HUE=0,MOUSE_UV=[.5,.5],MOUSE_ON=false;
 
+// A failed shader is otherwise invisible: the canvas just stays black.
+function fail(msg){msgEl.textContent=msg;msgEl.classList.add('on');cvs.style.visibility='hidden';fpsEl.textContent='—';}
+function clearFail(){msgEl.classList.remove('on');msgEl.textContent='';cvs.style.visibility='';}
+
 function mkProg(fs){
-  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
-  const p=gl.createProgram();
-  gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));
-  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(p);return p;
+  function sh(t,s){
+    const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);
+    if(!gl.getShaderParameter(x,gl.COMPILE_STATUS)){
+      const log=gl.getShaderInfoLog(x);gl.deleteShader(x);
+      throw new Error((t===gl.VERTEX_SHADER?'Vertex':'Fragment')+' shader failed to compile:\n'+log);
+    }
+    return x;
+  }
+  const p=gl.createProgram(),v=sh(gl.VERTEX_SHADER,VS),f=sh(gl.FRAGMENT_SHADER,fs);
+  gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);
+  gl.deleteShader(v);gl.deleteShader(f);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)){
+    const log=gl.getProgramInfoLog(p);gl.deleteProgram(p);
+    throw new Error('Program failed to link:\n'+log);
+  }
+  return p;
 }
 
 function init(){
   gl=cvs.getContext('webgl');if(!gl)return false;
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  switchShader(0);return true;
+  switchShader(PRESET);return true;
 }
 
 function switchShader(idx){
   PRESET=idx;
-  if(!gl)return;
-  if(prog)gl.deleteProgram(prog);
-  prog=mkProg(SHADERS[idx].src);
-  const a=gl.getAttribLocation(prog,'a');
-  gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   shaderName.textContent=SHADERS[idx].name;
   if(document.getElementById('src-tog').checked)srcPanel.textContent=SHADERS[idx].src;
+  if(!gl)return;
+  let next;
+  try{next=mkProg(SHADERS[idx].src);}
+  catch(err){
+    if(raf!==null){cancelAnimationFrame(raf);raf=null;}
+    prog=null;U=null;
+    fail(SHADERS[idx].name+' shader did not build.\n\n'+err.message);
+    return;
+  }
+  if(prog)gl.deleteProgram(prog);
+  prog=next;clearFail();
+  gl.useProgram(prog);
+  U={};['R','T','H','M','uMouse'].forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
+  const a=gl.getAttribLocation(prog,'a');
+  gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
 }
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl){gl.viewport(0,0,W,H);still();}}
+// Render at device pixels so the shader is not upscaled from a smaller buffer.
+// Capped — and capped harder on phones, where a full 3x buffer is 9x the fill cost.
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,innerWidth<=600?1.5:2);
+  W=cvs.width=Math.max(1,Math.round(stage.clientWidth*dpr));
+  H=cvs.height=Math.max(1,Math.round(stage.clientHeight*dpr));
+  if(gl){gl.viewport(0,0,W,H);still();}
+}
 
 function draw(){
   gl.useProgram(prog);
-  const u=n=>gl.getUniformLocation(prog,n);
-  gl.uniform2f(u('R'),W,H);gl.uniform1f(u('T'),T);gl.uniform1f(u('H'),HUE);
-  if(MOUSE_ON){gl.uniform2f(u('M'),MOUSE_UV[0],MOUSE_UV[1]);gl.uniform1i(u('uMouse'),1);}
-  else gl.uniform1i(u('uMouse'),0);
+  gl.uniform2f(U.R,W,H);gl.uniform1f(U.T,T);gl.uniform1f(U.H,HUE);
+  if(MOUSE_ON){gl.uniform2f(U.M,MOUSE_UV[0],MOUSE_UV[1]);gl.uniform1i(U.uMouse,1);}
+  else gl.uniform1i(U.uMouse,0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 // Redraw the held frame while paused so controls still take effect.
 function still(){if(paused&&prog)draw();}
 
 function render(ts){
-  if(paused){raf=null;return;}
+  if(paused||!prog){raf=null;return;}
   raf=requestAnimationFrame(render);
   const dt=ts-lastT;if(dt<16)return;
   fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
@@ -216,17 +254,31 @@ function render(ts){
 function setPaused(p){
   paused=p;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
   if(paused){cancelAnimationFrame(raf);raf=null;still();}
-  else if(gl&&raf===null){lastT=performance.now();raf=requestAnimationFrame(render);}
+  else if(gl&&prog&&raf===null){lastT=performance.now();raf=requestAnimationFrame(render);}
 }
 
 if(init()){
   resize();
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)setPaused(true);
   else{lastT=performance.now();raf=requestAnimationFrame(render);}
-  stage.addEventListener('pointermove',e=>{const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];still();});
+  // Pointer Events, so the same handler serves mouse, pen and touch.
+  // y is flipped because gl_FragCoord counts from the bottom of the buffer.
+  stage.addEventListener('pointermove',e=>{const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,1-(e.clientY-r.top)/r.height];still();});
   window.addEventListener('resize',resize);
+  // A GPU reset or a restored tab kills the context; without this the demo dies for good.
+  cvs.addEventListener('webglcontextlost',e=>{
+    e.preventDefault();
+    if(raf!==null){cancelAnimationFrame(raf);raf=null;}
+    prog=null;U=null;fail('WebGL context lost. Waiting for the browser to restore it…');
+  });
+  cvs.addEventListener('webglcontextrestored',()=>{
+    if(!init())return;
+    clearFail();resize();
+    if(!paused&&raf===null){lastT=performance.now();raf=requestAnimationFrame(render);}
+  });
 }else{
-  cvs.style.display='none';fpsEl.textContent='WebGL is not available in this browser';
+  fail('WebGL is not available in this browser.\n\nThis demo needs a WebGL 1.0 context — the patterns are generated by fragment shaders on the GPU, so there is nothing to fall back to. Try a different browser, or enable hardware acceleration.');
+  document.querySelectorAll('aside select,aside input,aside button').forEach(el=>{el.disabled=true;});
 }
 
 document.getElementById('preset-sel').addEventListener('change',e=>{switchShader(+e.target.value);still();});

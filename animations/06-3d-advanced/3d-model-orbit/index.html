@@ -34,6 +34,7 @@
     canvas{display:block;width:100%;height:100%}
     .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
     .fps-badge,.obj-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
+    .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:11px;line-height:1.7;color:var(--ui-muted)}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -203,13 +204,25 @@ let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let mouseNX=0,mouseNY=0;
 const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+// A failed shader is otherwise a silent black canvas — say so instead.
+function fail(msg){gl=null;if(raf){cancelAnimationFrame(raf);raf=null;}
+  cvs.style.display='none';fpsEl.textContent='—';
+  const d=document.createElement('div');d.className='msg';d.textContent=msg;stage.appendChild(d);}
+function sh(t,s){
+  const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);
+  if(!gl.getShaderParameter(x,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(x));return null;}
+  return x;
+}
 function init(){
-  gl=cvs.getContext('webgl');if(!gl)return;
+  gl=cvs.getContext('webgl');
+  if(!gl){fail('WebGL is unavailable in this browser, so there is nothing to render.');return;}
+  const vs=sh(gl.VERTEX_SHADER,VS),fs=sh(gl.FRAGMENT_SHADER,FS);
+  if(!vs||!fs){fail('Shader compilation failed — the log is in the browser console.');return;}
   prog=gl.createProgram();
-  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
-  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
-  gl.linkProgram(prog);gl.useProgram(prog);
+  gl.attachShader(prog,vs);gl.attachShader(prog,fs);
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));fail('Shader program failed to link — the log is in the browser console.');return;}
+  gl.useProgram(prog);
   gl.enable(gl.DEPTH_TEST);gl.clearColor(.024,.039,.063,1);
   posBuf=gl.createBuffer();nrmBuf=gl.createBuffer();idxBuf=gl.createBuffer();lineBuf=gl.createBuffer();
   loadGeometry('cube');
@@ -228,7 +241,12 @@ function loadGeometry(name){
   objBadge.textContent={cube:'Cube',sphere:'Sphere',torus:'Torus',tetra:'Tetrahedron'}[name];
 }
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl)gl.viewport(0,0,W,H);}
+// Backing store in device pixels (capped at 2x) so the render is not upscaled on retina.
+function resize(){
+  const d=Math.min(window.devicePixelRatio||1,2);
+  W=cvs.width=Math.round(stage.clientWidth*d);H=cvs.height=Math.round(stage.clientHeight*d);
+  if(gl)gl.viewport(0,0,W,H);
+}
 
 function setAttr(name,buf,size){
   gl.bindBuffer(gl.ARRAY_BUFFER,buf);
@@ -265,9 +283,10 @@ function render(ts){
 }
 
 init();resize();
-if(!gl){fpsEl.textContent='WebGL unavailable';}
-else if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
-else{draw();} // reduced motion: one static frame, object stays visible
+if(gl){
+  if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
+  else{draw();} // reduced motion: one static frame, object stays visible
+}
 
 stage.addEventListener('pointermove',e=>{
   const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;

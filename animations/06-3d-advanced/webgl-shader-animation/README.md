@@ -66,9 +66,13 @@ float voronoi(vec2 p) {
 |-----------|---------|--------|
 | Time speed | 1.0× | Multiplier on `uT` uniform — faster = more energetic animation |
 | Hue shift | 0° | Rotates the entire color palette without rewriting the shader |
-| Max steps (where applicable) | — | Quality/performance tradeoff in iterative shaders |
+| Mouse interaction | off | Feeds a normalised `M` uniform into the shader — each preset uses it differently |
+| Device pixel ratio | ≤2 (≤1.5 on mobile) | Backing-store multiplier. Capped, because fill cost scales with its square |
 
 ## Production notes
+- **Always check `COMPILE_STATUS` and `LINK_STATUS`.** A shader that fails to compile throws nothing and logs nothing — `gl.drawArrays` just quietly draws nothing and you get a black canvas. Read `getShaderInfoLog` / `getProgramInfoLog` and put the message somewhere a human will see it. This demo renders the compile log into the stage; break a shader on purpose and you get the GLSL error, not a black box.
+- **Handle context loss.** `webglcontextlost` fires on a GPU reset, a driver update, or a backgrounded tab that the OS reclaims. Call `preventDefault()` on it — otherwise the context never comes back — then rebuild buffers, programs and uniform locations in `webglcontextrestored`. Every GL object from the old context is gone.
+- **Size the backing store in device pixels**, not CSS pixels: `canvas.width = clientWidth * dpr`. Then update `gl.viewport(0, 0, canvas.width, canvas.height)` in the same place — forgetting the viewport is the classic resize bug, and it stretches or crops the scene instead of failing loudly.
 - **Shadertoy**: all four patterns in this demo are canonical Shadertoy exercises. The site has a live GLSL editor, a large library of community shaders, and a standard uniform convention (`iTime`, `iResolution`, `iMouse`).
 - **Canvas resolution**: shader cost scales with pixel count. At 4K, a complex shader runs 4× slower than at 1080p. Use `devicePixelRatio` carefully — rendering at 0.5× device pixels and upscaling often looks fine for background shaders.
 - **`mediump` vs `highp`**: `precision mediump float` is required on mobile. Some shaders produce visible banding at `mediump` — switch to `precision highp float` for patterns with fine detail.

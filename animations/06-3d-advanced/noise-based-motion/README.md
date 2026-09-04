@@ -56,7 +56,8 @@ ctx.closePath();
 | Noise scale | 0.008 | Small = large smooth patterns (zoomed in); large = fine rapid variation |
 | Time speed | 0.5 | How fast the noise "advects" — low = glacial; high = turbulent |
 | Amplitude | 12px | Displacement magnitude — how far points move from their rest position |
-| Octaves (fbm) | 4 | More octaves = more detail at multiple scales (fractal brownian motion) |
+| Grid density | 20 | Columns across the stage — spacing is `floor(W / density)` |
+| Blob vertices | 48 | Segment count around the blob; too few reads as a polygon |
 
 ## Production notes
 - **Simplex vs Perlin**: Simplex noise (Gustavson 2005) is faster and has fewer directional artifacts than classic Perlin noise. Use Simplex for new projects.

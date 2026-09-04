@@ -33,11 +33,11 @@
     .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#04060c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;position:relative}
     svg{width:100%;max-width:400px;overflow:visible}
     .draw-path{
-      fill:none;stroke:var(--stroke-color);stroke-width:var(--stroke-w);
+      fill:none;fill-opacity:.15;stroke:var(--stroke-color);stroke-width:var(--stroke-w);
       stroke-linecap:round;stroke-linejoin:round;
       stroke-dasharray:1;stroke-dashoffset:1;
     }
-    .draw-path.fill-done{fill:rgba(88,166,255,.15);transition:fill .4s ease}
+    .draw-path.fill-done{fill:var(--stroke-color);transition:fill .4s ease}
     .preset-tabs{display:flex;gap:6px}
     .ptab{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:44px;transition:border-color .15s,color .15s}
     .ptab.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -134,7 +134,7 @@ const PRESETS=[
     name:'Logo',label:'Logo Mark',
     paths:[
       // Circle + inner geometric shape
-      'M 200 40 A 120 120 0 1 1 199.99 40',
+      'M 200 10 A 120 120 0 1 1 199.99 10',
       'M 200 80 L 240 150 L 200 130 L 160 150 Z',
       'M 200 130 L 200 185',
     ]
@@ -184,14 +184,14 @@ function animate(paths){
   paths.forEach((path,i)=>{
     const len=path.getTotalLength();
     path.style.strokeDasharray=len;
-    path.style.strokeDashoffset=rev?0:len;
+    path.style.strokeDashoffset=rev?-len:len;
     path.style.transition='none';
     const delay=i*(dur*0.3);
     setTimeout(()=>{
       if(id!==run)return;
       path.getBoundingClientRect(); // flush the hidden state so the transition has a start value
       path.style.transition=`stroke-dashoffset ${dur}ms ${ease}`;
-      path.style.strokeDashoffset=rev?len:0;
+      path.style.strokeDashoffset=0;
       const isLast=i===paths.length-1;
       if(isLast){
         setTimeout(()=>{
@@ -226,7 +226,10 @@ document.getElementById('sw-sl').addEventListener('input',e=>{
 document.getElementById('color-pick').addEventListener('input',e=>{
   document.documentElement.style.setProperty('--stroke-color',e.target.value);
 });
-document.getElementById('ease-sel').addEventListener('change',()=>{});
+document.getElementById('loop-tog').addEventListener('change',e=>{
+  if(!e.target.checked){clearTimeout(loopTimer);return}
+  if(!animating)replay();
+});
 
 replay();
 </script>

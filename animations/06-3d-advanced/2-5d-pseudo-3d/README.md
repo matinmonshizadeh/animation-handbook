@@ -1,7 +1,7 @@
 # 2.5D / Pseudo-3D
 
 ## What it is
-2.5D (pseudo-3D) arranges flat 2D layers at different virtual depths using CSS `perspective` and `translateZ`, then moves a virtual "camera" to create a parallax depth illusion. Layers closest to the camera move the most in response to mouse or scroll; distant layers barely move. The technique was used in classic video games (Doom, old platformers) and animated films (Disney's multiplane camera, 1937), and translates directly to CSS with no additional libraries.
+2.5D (pseudo-3D) arranges flat 2D layers at different virtual depths, then moves a virtual "camera" to create a parallax depth illusion. Layers closest to the camera move the most in response to mouse or scroll; distant layers barely move. The technique was used in classic video games (Doom, old platformers) and animated films (Disney's multiplane camera, 1937), and translates directly to CSS with no additional libraries.
 
 ## When to use it
 - Hero sections with illustrated scenes that should feel dimensional

@@ -31,16 +31,14 @@ void main() {
 }
 ```
 
-The `uPhase` uniform advances each frame to animate the ripple outward even after the mouse stops. A **decay** multiplier fades the phase when the mouse is absent:
+The `uPhase` uniform advances each frame to animate the ripple outward even after the mouse stops. A separate **amplitude** term is what fades: it is pinned to 1 while the pointer is over the stage and decays exponentially once the pointer leaves, so the distortion settles back to the undisplaced image rather than snapping off.
 
 ```js
-// Advance phase while mouse is present; decay when absent
-if (mouseActive) {
-  phase += 0.05;
-} else {
-  phase *= Math.max(0, 1 - DECAY * 0.016);  // exponential decay
-}
+// Phase always advances; amplitude decays when the pointer is gone
+phase += dt * 0.003;
+if (!pointerActive) amp *= Math.max(0, 1 - DECAY * dt / 1000);
 gl.uniform1f(uPhase, phase);
+gl.uniform1f(uStrength, STRENGTH * amp);
 ```
 
 For a **procedural texture** (no external image required), generate the pattern in the same shader:
@@ -63,6 +61,9 @@ vec3 pattern(vec2 uv) {
 ## Production notes
 - **Real images**: replace the procedural `pattern()` function with `texture2D(uTexture, distortedUV)`. Load images into WebGL via `gl.texImage2D()` from an `<img>` or `ImageBitmap`. Same-origin policy applies — external image URLs need CORS headers.
 - **`gl.clampToEdge`**: ensure texture wrap mode is `CLAMP_TO_EDGE` so UV values outside [0,1] don't tile or mirror at the image border when distortion pushes UVs out of range.
+- **Pointer, not mouse**: bind `pointermove`/`pointerdown` rather than `mousemove`, or the effect never fires on a phone. The cursor position must be converted to backing-store pixels (multiply by the device pixel ratio used for the canvas) before it reaches the shader, or the distortion centre drifts away from the finger on high-DPI screens.
+- **Backing store and DPR**: size the canvas to `clientWidth * dpr` and call `gl.viewport()` after every resize. Uncapped DPR is expensive for a fullscreen fragment shader — this demo caps it at 2, and at 1.5 on phones. Resizing clears the drawing buffer, so a paused or reduced-motion demo has to repaint after a resize or it goes black.
+- **Context loss**: a GPU reset or a restored tab fires `webglcontextlost`. Without a listener (and a `preventDefault()` so `webglcontextrestored` follows) the canvas dies permanently. Shaders, buffers and uniform locations all have to be rebuilt on restore.
 - **CSS-only alternative**: CSS `filter: blur()` and `transform: translate()` on pseudo-elements can approximate push distortion for a single element at low intensity. WebGL is needed for per-pixel wave and liquid effects.
 - **hover-effect-curtains / Curtains.js**: production libraries that wrap this exact pattern. They handle texture loading, canvas sizing, and the shader boilerplate. The GLSL fragment shader is identical to what this demo uses.
 - **Shader Park**: a higher-level tool for declaring distortion effects with a JavaScript-like syntax that compiles to GLSL. Suitable for creative applications where writing raw GLSL is a barrier.

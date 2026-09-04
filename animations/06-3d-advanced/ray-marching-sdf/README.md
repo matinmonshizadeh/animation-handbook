@@ -66,7 +66,8 @@ vec3 getNormal(vec3 p) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Max steps | 48 | More steps = finer detail on concave surfaces, but lower FPS |
+| Max steps | 48 (32 on mobile) | More steps = finer detail on concave surfaces, but lower FPS |
+| Resolution scale | 0.7× under 600px, DPR capped at 1.5× above | Cost is per pixel, so the backing store — not the scene — sets the frame time |
 | Step scale | 0.9× | Multiplying by <1 trades performance for accuracy on thin features |
 | Epsilon (hit distance) | 0.001 | Smaller = sharper surface but more steps required |
 | Smooth-min k | 0.3–0.5 | Controls blend radius between shapes |

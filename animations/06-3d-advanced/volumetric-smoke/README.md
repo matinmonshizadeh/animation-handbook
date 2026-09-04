@@ -19,7 +19,7 @@ void main() {
   vec3 rd = normalize(vec3(uv, -0.9)); // ray direction
 
   float transmittance = 1.0;
-  vec3 color = uBackground;
+  vec3 color = vec3(0.0);            // background is composited once, at the end
   float stepSize = 3.0 / float(uSteps);
 
   for (int i = 0; i < MAX_STEPS; i++) {
@@ -48,7 +48,8 @@ void main() {
 ```glsl
 float smokeDensity(vec3 p, float t) {
   float r = length(p.xz);
-  float src = exp(-r * 3.0) * smoothstep(-0.2, 0.6, p.y) * smoothstep(1.8, 1.0, p.y);
+  // smoothstep needs edge0 < edge1, so the upper falloff is inverted rather than reversed
+  float src = exp(-r * 3.0) * smoothstep(-0.2, 0.6, p.y) * (1.0 - smoothstep(1.0, 1.8, p.y));
   float n = fbm(p * 1.4 + vec3(windDrift, t * speed, 0.0));
   return max(0.0, n - 0.45) * src * density;
 }
@@ -63,7 +64,10 @@ float smokeDensity(vec3 p, float t) {
 | Step size | `3.0 / steps` | Smaller steps = finer detail but more iterations needed |
 
 ## Production notes
-- **Step count vs quality**: each additional march step increases pixel cost linearly. 32 steps is generally sufficient for soft smoke; use 64 only for hero-quality renders. Add blue-noise dithering to random-offset each ray's start, breaking up banding artifacts at low step counts.
+- **Precision**: the `sin`-based hash multiplies by 43758.5, which overflows the usable range of a 16-bit `mediump` float and collapses the noise to flat blocks on many mobile GPUs. Request `highp` in the fragment shader (guarded by `GL_FRAGMENT_PRECISION_HIGH`) or swap the hash for an integer-free variant with a smaller multiplier.
+- **Mobile cost**: this is fill-rate bound — every fragment runs `steps x (fbm + 3 shadow taps)`. Honouring a 3x phone DPR would multiply the cost ninefold, so the demo caps the backing store at 0.75 CSS pixels and the march at 48 steps below 600px, and never exceeds 1 CSS pixel on desktop.
+- **Context loss**: a GPU reset, a backgrounded tab on mobile, or a driver hiccup fires `webglcontextlost`. Without a listener the canvas goes permanently black with no error. Preventing the default event and rebuilding shaders and buffers on `webglcontextrestored` is the production path; this demo takes the simpler route of stopping the loop and showing a message.
+- **Step count vs quality**: each additional march step increases pixel cost linearly. 32 steps is generally sufficient for soft smoke; use 64 only for hero-quality renders. Add blue-noise dithering to random-offset each ray's start, breaking up banding artifacts at low step counts. The offset has to be a fraction of a *full step* to help — jittering by a few thousandths of a unit is invisible.
 - **Shadow rays**: the 3-step shadow march adds 3× extra density samples per lit pixel. Toggle off on low-end devices. For production, pre-compute a voxelized shadow map and sample it instead.
 - **Real-time fire and smoke**: game engines use particle systems with additive-blended sprite sheets for fire/smoke, which is faster than ray marching. Ray-marched volumes are used in offline rendering (films, VFX) and cinematic-quality game cutscenes.
 - **Three.js `FogExp2`**: for simple atmosphere, Three.js's built-in exponential fog is computationally free (depth-based fog applied in the vertex shader). Use volumetric ray marching only when fog must have specific 3D shape.

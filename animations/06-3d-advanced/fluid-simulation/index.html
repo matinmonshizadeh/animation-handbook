@@ -100,7 +100,7 @@ const stage=document.getElementById('stage');
 const cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps');
 const noWgl=document.getElementById('no-webgl');
-let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0,simT=0;
+let W,H,gl,prog,U={},raf=null,paused=false,lastT=0,startT=0,simT=0;
 let BALLS=5,SMOOTH=.08,RAD=.14,SPD=.8,MOUSE_BALL=true,GLOW=true;
 let COLOR=[88/255,166/255,255/255],BG=[3/255,8/255,16/255];
 let mouseX=.5,mouseY=.5;
@@ -140,14 +140,27 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 
+// A failed shader is otherwise a silent black canvas — say so instead.
+function fail(msg){gl=null;cvs.style.display='none';fpsEl.style.display='none';
+  noWgl.textContent=msg;noWgl.style.display='flex';}
+
 function init(){
   gl=cvs.getContext('webgl');
-  if(!gl){noWgl.style.display='flex';return false;}
-  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
+  if(!gl){fail('WebGL is unavailable in this browser, so there is nothing to render.');return false;}
+  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null;}
+    return s;}
+  const vs=sh(gl.VERTEX_SHADER,VS),fs=sh(gl.FRAGMENT_SHADER,FS);
+  if(!vs||!fs){fail('Shader compilation failed — the log is in the browser console.');return false;}
   prog=gl.createProgram();
-  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
-  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.attachShader(prog,vs);
+  gl.attachShader(prog,fs);
   gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));
+    fail('Shader program failed to link — the log is in the browser console.');return false;}
+  gl.useProgram(prog);
+  U={};'uRes uT uBalls uSmooth uRad uMouse uGlow uMouseBall uColor uBG'.split(' ')
+    .forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
   const buf=gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
@@ -158,8 +171,15 @@ function init(){
 }
 
 function resize(){
-  W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;
-  if(gl)gl.viewport(0,0,W,H);
+  // Full DPR on desktop, capped lower on phones — every pixel costs one SDF
+  // pass per metaball, so the backing store is the whole cost of this demo.
+  const dpr=Math.min(window.devicePixelRatio||1,window.innerWidth<=600?1.5:2);
+  W=cvs.width=Math.max(1,Math.round(stage.clientWidth*dpr));
+  H=cvs.height=Math.max(1,Math.round(stage.clientHeight*dpr));
+  if(!gl)return;
+  gl.viewport(0,0,W,H);
+  // Resizing wipes the drawing buffer; while paused nothing would redraw it.
+  if(paused)render(lastT+16);
 }
 
 function render(ts){
@@ -169,17 +189,16 @@ function render(ts){
   if(!paused){fpsEl.textContent=Math.round(1000/dt)+' fps';simT+=Math.min(dt,100)/1000*SPD;}
   lastT=ts;
   gl.useProgram(prog);
-  const u=(n)=>gl.getUniformLocation(prog,n);
-  gl.uniform2f(u('uRes'),W,H);
-  gl.uniform1f(u('uT'),simT);
-  gl.uniform1i(u('uBalls'),BALLS);
-  gl.uniform1f(u('uSmooth'),SMOOTH);
-  gl.uniform1f(u('uRad'),RAD);
-  gl.uniform2f(u('uMouse'),mouseX,mouseY);
-  gl.uniform1i(u('uGlow'),GLOW?1:0);
-  gl.uniform1i(u('uMouseBall'),MOUSE_BALL?1:0);
-  gl.uniform3fv(u('uColor'),COLOR);
-  gl.uniform3fv(u('uBG'),BG);
+  gl.uniform2f(U.uRes,W,H);
+  gl.uniform1f(U.uT,simT);
+  gl.uniform1i(U.uBalls,BALLS);
+  gl.uniform1f(U.uSmooth,SMOOTH);
+  gl.uniform1f(U.uRad,RAD);
+  gl.uniform2f(U.uMouse,mouseX,mouseY);
+  gl.uniform1i(U.uGlow,GLOW?1:0);
+  gl.uniform1i(U.uMouseBall,MOUSE_BALL?1:0);
+  gl.uniform3fv(U.uColor,COLOR);
+  gl.uniform3fv(U.uBG,BG);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 
@@ -195,6 +214,13 @@ if(init()){
   // Shader uv.y is flipped to top-down, so the pointer y must be top-down too.
   stage.addEventListener('pointermove',e=>{const r=cvs.getBoundingClientRect();mouseX=(e.clientX-r.left)/r.width;mouseY=(e.clientY-r.top)/r.height;});
   window.addEventListener('resize',resize);
+  // Without these a GPU reset or tab restore leaves the stage black forever.
+  cvs.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=null;});
+  cvs.addEventListener('webglcontextrestored',()=>{
+    if(!init())return;
+    lastT=performance.now();resize();
+    if(!paused)raf=requestAnimationFrame(render);
+  });
 }
 
 document.getElementById('balls-sl').addEventListener('input',e=>{BALLS=+e.target.value;document.getElementById('balls-v').textContent=BALLS;});

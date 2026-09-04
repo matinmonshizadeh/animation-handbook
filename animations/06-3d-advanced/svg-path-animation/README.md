@@ -63,7 +63,7 @@ path.addEventListener('transitionend', () => {
 
 ## Production notes
 - **`getTotalLength()` is required**: hardcoding `stroke-dasharray` breaks when the path changes. Always measure at runtime. For SVGs loaded asynchronously, measure after the element is added to the DOM.
-- **Path direction**: the stroke draws from the path's start point (first `M` command). To control which end draws first, reverse the path data or animate in reverse (offset from 0 to length).
+- **Path direction**: the stroke draws from the path's start point (first `M` command). To control which end draws first, reverse the path data, or start from a *negative* offset (`-length` → `0`), which hides the stroke the same way but uncovers it from the far end. Animating `0` → `length` is a different effect: it erases an already-drawn path.
 - **`stroke-dasharray` shorthand**: `stroke-dasharray: length length` (repeated) and `stroke-dasharray: length` are equivalent — a single value sets both dash and gap to the same length.
 - **GSAP DrawSVG plugin**: handles `getTotalLength()`, offset calculation, and animation sequencing automatically. Essential for complex multi-path illustrations. `gsap.from(path, { drawSVG: 0 })`.
 - **Framer Motion**: `<motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} />` — `pathLength` is a 0–1 shorthand that internally manages `dasharray`/`dashoffset`.

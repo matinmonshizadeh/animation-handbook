@@ -144,9 +144,13 @@ void main(){
   }
   vx*=.985;vy*=.985;// damping
   x+=vx;y+=vy;
-  // wrap
-  x=x>1.2?-1.2:x<-1.2?1.2:x;
-  y=y>1.2?-1.2:y<-1.2?1.2:y;
+  // The flow field is divergent, so anything that leaves clip space is respawned
+  // near the middle. Wrapping instead just stacks every particle on one edge.
+  if(abs(x)>1.||abs(y)>1.){
+    float n=float(co.x)*.0713+float(co.y)*.1319+uT*.977;
+    float a=hash(n)*6.2832,r=hash(n+3.71)*.9+.05;
+    x=cos(a)*r;y=sin(a)*r;vx=0.;vy=0.;
+  }
   outCol=vec4(x,y,vx,vy);
 }`;
 
@@ -155,7 +159,7 @@ const RENDER_VS=`#version 300 es
 precision highp float;
 in float aIdx;
 uniform sampler2D uPos;uniform vec2 uTexSz;
-uniform int uColorMode;uniform float uT;
+uniform int uColorMode;uniform float uT;uniform float uPS;
 out vec4 vCol;
 void main(){
   int idx=int(aIdx);
@@ -163,7 +167,7 @@ void main(){
   int ty=idx/int(uTexSz.x);
   vec4 p=texelFetch(uPos,ivec2(tx,ty),0);
   gl_Position=vec4(p.xy,0.,1.);
-  gl_PointSize=1.5;
+  gl_PointSize=uPS;// 1.5 CSS px, scaled by devicePixelRatio
   float spd=length(p.zw)*200.;
   if(uColorMode==0)vCol=vec4(.35,.65,1.,.6);
   else if(uColorMode==1)vCol=vec4(spd*.8,spd*.4,1.-spd*.4,.7);
@@ -182,12 +186,15 @@ const fpsEl=document.getElementById('fps'),countBadge=document.getElementById('c
 const behavBadge=document.getElementById('behavior-badge'),texSizeEl=document.getElementById('tex-size');
 const noWgl2=document.getElementById('no-wgl2');
 const BEHAV_NAMES=['Flow Field','Vortex','Attractor','Orbit'];
+const NO_WGL2_MSG=noWgl2.innerHTML;
+// Small screens get the 16k texture by default — 65k points is too much fill for a phone
+const SMALL=matchMedia('(max-width:600px)').matches;
 let W,H,gl,physicsProg,renderProg,fadeProg,qBuf,fbo0,fbo1,tex0,tex1,raf=null;
-let paused=false,lastT=0,startT=0,TEX_N=256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
-let idxBuf=null,particleCount=0;
+let paused=false,lastT=0,startT=0,TEX_N=SMALL?128:256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
+let idxBuf=null,particleCount=0,PT=1.5,shaderErr='';
 
-function mk(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;}
-function mkProg(vs,fs){const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,vs));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(p));return p;}
+function mk(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS)){shaderErr=gl.getShaderInfoLog(x);console.error(shaderErr);}return x;}
+function mkProg(vs,fs){const p=gl.createProgram();gl.attachShader(p,mk(gl.VERTEX_SHADER,vs));gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS)){shaderErr=gl.getProgramInfoLog(p);console.error(shaderErr);}return p;}
 
 function initTex(n){
   const data=new Float32Array(n*n*4);
@@ -223,10 +230,13 @@ function init(){
   // preserveDrawingBuffer keeps last frame for trails; alpha:false avoids premultiplied-alpha artifacts
   gl=cvs.getContext('webgl2',{preserveDrawingBuffer:true,alpha:false});
   // Rendering into RGBA32F framebuffers requires EXT_color_buffer_float in WebGL2
-  if(!gl||!gl.getExtension('EXT_color_buffer_float')){noWgl2.style.display='flex';return false;}
+  if(!gl||!gl.getExtension('EXT_color_buffer_float')){noWgl2.innerHTML=NO_WGL2_MSG;noWgl2.style.display='flex';return false;}
+  shaderErr='';
   physicsProg=mkProg(PHYSICS_VS,PHYSICS_FS);
   renderProg=mkProg(RENDER_VS,RENDER_FS);
   fadeProg=mkProg(PHYSICS_VS,FADE_FS);
+  // A failed compile otherwise shows as a silent black canvas — say so instead
+  if(shaderErr){noWgl2.textContent='Shader failed to build: '+shaderErr;noWgl2.style.display='flex';return false;}
   // Full-screen quad shared by the physics pass and the trail fade
   qBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
@@ -234,15 +244,25 @@ function init(){
   return true;
 }
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+// Backing store follows devicePixelRatio (capped at 2) so points stay crisp, not upscaled
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  W=cvs.width=Math.max(1,Math.round(stage.clientWidth*dpr));
+  H=cvs.height=Math.max(1,Math.round(stage.clientHeight*dpr));
+  PT=1.5*dpr;
+  // Resizing clears the drawing buffer — repaint if the loop isn't running
+  if(paused&&gl)drawFrame((performance.now()-startT)/1000);
+}
 
 function render(ts){
   if(paused){raf=null;return;}
   raf=requestAnimationFrame(render);
   const dt=ts-lastT;if(dt<12)return;
   fpsEl.textContent=Math.round(1000/(dt||12))+' fps';lastT=ts;
-  const t=(ts-startT)/1000;
+  drawFrame((ts-startT)/1000);
+}
 
+function drawFrame(t){
   // ── Physics pass (render to texture) ──
   gl.useProgram(physicsProg);
   gl.bindFramebuffer(gl.FRAMEBUFFER,fbo1);
@@ -278,25 +298,41 @@ function render(ts){
   gl.uniform2f(gl.getUniformLocation(renderProg,'uTexSz'),TEX_N,TEX_N);
   gl.uniform1i(gl.getUniformLocation(renderProg,'uColorMode'),COLOR_MODE);
   gl.uniform1f(gl.getUniformLocation(renderProg,'uT'),t);
+  gl.uniform1f(gl.getUniformLocation(renderProg,'uPS'),PT);
   gl.drawArrays(gl.POINTS,0,particleCount);
   gl.disable(gl.BLEND);
 }
 
-const pauseBtn=document.getElementById('pause-btn');
+const pauseBtn=document.getElementById('pause-btn'),countSel=document.getElementById('count-sel');
+// Keep the select in sync with the small-screen default
+countSel.value=String(TEX_N);
+// While paused (including the reduced-motion hold) a control change still repaints once
+function refresh(){if(paused&&gl)drawFrame((performance.now()-startT)/1000);}
+
 if(init()){
-  resize();startT=performance.now();lastT=startT;
-  window.addEventListener('resize',resize);
+  startT=performance.now();lastT=startT;
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){
-    // Reduced motion: draw one static frame, leave the loop stopped (user can opt in via Resume)
-    render(startT+16);cancelAnimationFrame(raf);raf=null;paused=true;pauseBtn.textContent='▶ Resume';
-  }else raf=requestAnimationFrame(render);
+    // Reduced motion: draw one static frame, never start the loop (user can opt in via Resume)
+    paused=true;pauseBtn.textContent='▶ Resume';resize();
+  }else{resize();raf=requestAnimationFrame(render);}
+  window.addEventListener('resize',resize);
+  cvs.addEventListener('webglcontextlost',e=>{
+    e.preventDefault();
+    if(raf!==null){cancelAnimationFrame(raf);raf=null;}
+    gl=null;tex0=tex1=idxBuf=null;
+    noWgl2.textContent='WebGL context lost — waiting for the browser to restore it.';
+    noWgl2.style.display='flex';
+  });
+  cvs.addEventListener('webglcontextrestored',()=>{
+    if(init()){noWgl2.style.display='none';resize();startT=performance.now();lastT=startT;if(!paused)raf=requestAnimationFrame(render);}
+  });
 }
 
-document.getElementById('count-sel').addEventListener('change',e=>{TEX_N=+e.target.value;if(gl)initTex(TEX_N);});
-document.getElementById('behav-sel').addEventListener('change',e=>{BEHAVIOR=+e.target.value;behavBadge.textContent=BEHAV_NAMES[BEHAVIOR];});
-document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('col-sel').addEventListener('change',e=>{COLOR_MODE=+e.target.value;});
-document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;});
+countSel.addEventListener('change',e=>{TEX_N=+e.target.value;if(gl){initTex(TEX_N);refresh();}});
+document.getElementById('behav-sel').addEventListener('change',e=>{BEHAVIOR=+e.target.value;behavBadge.textContent=BEHAV_NAMES[BEHAVIOR];refresh();});
+document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);refresh();});
+document.getElementById('col-sel').addEventListener('change',e=>{COLOR_MODE=+e.target.value;refresh();});
+document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;refresh();});
 pauseBtn.addEventListener('click',()=>{
   paused=!paused;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
   if(raf!==null){cancelAnimationFrame(raf);raf=null;}// never stack a second loop

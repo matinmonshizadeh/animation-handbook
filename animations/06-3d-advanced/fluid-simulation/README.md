@@ -61,7 +61,9 @@ vec2 ballPosition(int i, float t) {
 ## Production notes
 - **Real fluid simulation**: Navier-Stokes-based fluid (velocity fields, pressure, diffusion) requires full-screen texture updates per frame. Pavel DoGreat's WebGL Fluid Simulation (open source) is the go-to — it renders truly interactive fluid at 60fps using a series of physics passes.
 - **SDF metaballs are an approximation**: they look fluid but don't conserve volume, don't flow around obstacles, and don't respond to physical forces. For true fluid behavior, use a full simulation library.
-- **Performance**: each additional metaball adds a distance evaluation per pixel. On a 1920×1080 canvas with 8 balls, that's ~16 million SDF evaluations per frame. This is why mobile frame rates drop — use a lower canvas resolution on mobile.
+- **Performance**: each additional metaball adds a distance evaluation per pixel. On a 1920×1080 canvas with 8 balls, that's ~16 million SDF evaluations per frame. This is why mobile frame rates drop — use a lower canvas resolution on mobile. The demo caps the backing store at 2× device pixel ratio on desktop and 1.5× under 600px, which is the whole of its quality/cost dial.
+- **Silent shader failure**: a shader that fails to compile throws nothing and logs nothing — you get a black canvas. Always check `COMPILE_STATUS` and `LINK_STATUS` and surface a message, as this demo does.
+- **Context loss**: `webglcontextlost` fires on a GPU reset, a driver update, or a backgrounded tab being restored. Without a listener the canvas stays black permanently. Call `preventDefault()` on the loss event, stop the loop, and rebuild the program on `webglcontextrestored`.
 - **Shadertoy**: the metaball pattern is one of the classic Shadertoy exercises. [shadertoy.com](https://www.shadertoy.com) has hundreds of metaball variants.
 - **`prefers-reduced-motion`**: pause the animation. The blobs should remain visible in their default positions.
 

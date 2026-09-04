@@ -35,6 +35,8 @@
     .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
     .badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
     .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(6,10,16,.93);border-top:1px solid var(--ui-border);padding:12px;font-size:8.5px;color:var(--ui-muted);font-family:monospace;line-height:1.5;max-height:220px;overflow-y:auto;display:none;white-space:pre-wrap;word-break:break-all}
+    .fallback{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;gap:8px;padding:clamp(16px,5vw,32px);background:var(--ui-bg);font-size:10px;line-height:1.7;color:var(--ui-muted);overflow-y:auto;white-space:pre-wrap}
+    .fallback strong{color:var(--ui-text);font-weight:400;font-size:11px}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
     .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
     .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
@@ -77,6 +79,7 @@ body{padding-top:46px}
       <div class="badge" id="scene-badge">Scene 1: Blend</div>
     </div>
     <div class="src-panel" id="src-panel"></div>
+    <div class="fallback" id="fallback"></div>
   </div>
   <aside>
     <p class="note">No geometry exists. The "shape" is a function returning distance to the nearest surface at any point. The shader marches rays forward in steps equal to the SDF value — guaranteed to be safe.</p>
@@ -183,27 +186,53 @@ void main(){
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fpsEl=document.getElementById('fps'),sceneBadge=document.getElementById('scene-badge');
-const srcPanel=document.getElementById('src-panel'),pauseBtn=document.getElementById('pause-btn');
-let W,H,gl,prog,raf=null,paused=false,lastT=0,startT=0,curT=0;
+const srcPanel=document.getElementById('src-panel'),pauseBtn=document.getElementById('pause-btn'),fallback=document.getElementById('fallback');
+const stepsSl=document.getElementById('steps-sl'),stepsV=document.getElementById('steps-v');
+let W,H,gl,prog,U=null,raf=null,paused=false,lastT=0,startT=0,curT=0;
 let SCENE=0,CAM_SPD=0.6,MAX_STEPS=48,AO=true,SHADOW=false,DEBUG=false;
 const SCENE_NAMES=['Blend','Boolean','Repetition'];
+const UNIFORMS=['uRes','uT','uCamSpd','uScene','uMaxSteps','uAO','uShadow','uDebug'];
+const MOBILE=matchMedia('(max-width:600px)');
+
+// Cost is one full ray march per *pixel*, so the backing store is what sets the
+// bill. Phones render below CSS resolution and desktops cap DPR at 1.5.
+function qScale(){const dpr=window.devicePixelRatio||1;return MOBILE.matches?Math.min(dpr,0.7):Math.min(dpr,1.5);}
+function fail(msg,detail){
+  fallback.style.display='flex';
+  fallback.innerHTML='';
+  const s=document.createElement('strong');s.textContent=msg;fallback.appendChild(s);
+  if(detail){const p=document.createElement('div');p.textContent=detail;fallback.appendChild(p);}
+}
 
 function init(){
-  gl=cvs.getContext('webgl');if(!gl)return false;
-  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(x));return x;}
+  gl=cvs.getContext('webgl');
+  if(!gl){fail('WebGL is unavailable in this browser.','The whole scene is a fragment shader — without a GL context there is no geometry left to draw. Try a browser with hardware acceleration enabled.');return false;}
+  let log='';
+  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))log+=(gl.getShaderInfoLog(x)||'shader compile failed')+'\n';return x;}
   prog=gl.createProgram();
   gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
   gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
   gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS))log+=(gl.getProgramInfoLog(prog)||'program link failed')+'\n';
+  // A failed compile normally leaves a silent black canvas — say so instead.
+  if(log){console.error(log);fail('The shader failed to build on this GPU.',log.trim());return false;}
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
   const a=gl.getAttribLocation(prog,'a');
   gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+  U={};UNIFORMS.forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
+  fallback.style.display='none';
   srcPanel.textContent=FS;
   return true;
 }
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;if(gl){gl.viewport(0,0,W,H);if(paused)draw(curT);}}
-function u(n){return gl.getUniformLocation(prog,n);}
+function resize(){
+  const s=qScale();
+  W=cvs.width=Math.max(1,Math.round(stage.clientWidth*s));
+  H=cvs.height=Math.max(1,Math.round(stage.clientHeight*s));
+  if(gl&&U){gl.viewport(0,0,W,H);if(paused)draw(curT);}
+}
+// Redraw a single frame so a control still shows its effect while paused.
+function refresh(){if(paused&&gl&&U)draw(curT);}
 
 function render(ts){
   if(paused){raf=null;return;}
@@ -215,14 +244,14 @@ function render(ts){
 function draw(t){
   curT=t;
   gl.useProgram(prog);
-  gl.uniform2f(u('uRes'),W,H);
-  gl.uniform1f(u('uT'),t);
-  gl.uniform1f(u('uCamSpd'),CAM_SPD);
-  gl.uniform1i(u('uScene'),SCENE);
-  gl.uniform1i(u('uMaxSteps'),MAX_STEPS);
-  gl.uniform1i(u('uAO'),AO?1:0);
-  gl.uniform1i(u('uShadow'),SHADOW?1:0);
-  gl.uniform1i(u('uDebug'),DEBUG?1:0);
+  gl.uniform2f(U.uRes,W,H);
+  gl.uniform1f(U.uT,t);
+  gl.uniform1f(U.uCamSpd,CAM_SPD);
+  gl.uniform1i(U.uScene,SCENE);
+  gl.uniform1i(U.uMaxSteps,MAX_STEPS);
+  gl.uniform1i(U.uAO,AO?1:0);
+  gl.uniform1i(U.uShadow,SHADOW?1:0);
+  gl.uniform1i(U.uDebug,DEBUG?1:0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 
@@ -231,6 +260,9 @@ function start(){lastT=performance.now();startT=lastT-curT*1000;if(raf===null)ra
 function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;}
 
 if(init()){
+  // Reduced-quality path for phones: fewer marches on top of the lower
+  // backing-store resolution picked in qScale().
+  if(MOBILE.matches){MAX_STEPS=32;stepsSl.value=String(MAX_STEPS);stepsV.textContent=MAX_STEPS;}
   resize();
   if(matchMedia('(prefers-reduced-motion:reduce)').matches){paused=true;pauseBtn.textContent='▶ Resume';draw(0);}
   else start();
@@ -239,16 +271,16 @@ if(init()){
   cvs.addEventListener('webglcontextrestored',()=>{init();resize();if(paused)draw(curT);else start();});
 }
 
-document.getElementById('scene-sel').addEventListener('change',e=>{SCENE=+e.target.value;sceneBadge.textContent='Scene '+(SCENE+1)+': '+SCENE_NAMES[SCENE];});
-document.getElementById('cam-sl').addEventListener('input',e=>{CAM_SPD=e.target.value/10;document.getElementById('cam-v').textContent=CAM_SPD.toFixed(1);});
-document.getElementById('steps-sl').addEventListener('input',e=>{MAX_STEPS=+e.target.value;document.getElementById('steps-v').textContent=MAX_STEPS;});
-document.getElementById('ao-tog').addEventListener('change',e=>{AO=e.target.checked;});
-document.getElementById('shadow-tog').addEventListener('change',e=>{SHADOW=e.target.checked;});
-document.getElementById('debug-tog').addEventListener('change',e=>{DEBUG=e.target.checked;});
+document.getElementById('scene-sel').addEventListener('change',e=>{SCENE=+e.target.value;sceneBadge.textContent='Scene '+(SCENE+1)+': '+SCENE_NAMES[SCENE];refresh();});
+document.getElementById('cam-sl').addEventListener('input',e=>{CAM_SPD=e.target.value/10;document.getElementById('cam-v').textContent=CAM_SPD.toFixed(1);refresh();});
+stepsSl.addEventListener('input',e=>{MAX_STEPS=+e.target.value;stepsV.textContent=MAX_STEPS;refresh();});
+document.getElementById('ao-tog').addEventListener('change',e=>{AO=e.target.checked;refresh();});
+document.getElementById('shadow-tog').addEventListener('change',e=>{SHADOW=e.target.checked;refresh();});
+document.getElementById('debug-tog').addEventListener('change',e=>{DEBUG=e.target.checked;refresh();});
 document.getElementById('src-tog').addEventListener('change',e=>{srcPanel.style.display=e.target.checked?'block':'none';});
 pauseBtn.addEventListener('click',()=>{
   paused=!paused;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!gl)return;
+  if(!gl||!U)return;
   if(paused)stop();else start();
 });
 </script>

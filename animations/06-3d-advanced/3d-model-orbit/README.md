@@ -64,6 +64,8 @@ const MVP = multiply(P, M);
 - **Normal matrix**: strictly, normals should be transformed by the inverse-transpose of the model matrix, not the model matrix itself. For uniform scaling (no non-uniform squash/stretch), the model matrix works fine. For non-uniform scale, use `mat3(transpose(inverse(uM)))`.
 - **`prefers-reduced-motion`**: stop the animation loop and show the object in its default orientation. The object should remain visible and interactive for camera control.
 - **Touch/pointer interaction**: use `pointerdown` / `pointermove` / `pointerup` for drag-to-rotate, not `mousedown` — this covers touch without separate event listeners.
+- **Fail loudly**: a shader that does not compile produces a black canvas and no exception, because `COMPILE_STATUS` is only readable if you ask for it. Check it (and `LINK_STATUS`) and show a message; a silent black box is the hardest WebGL bug to diagnose.
+- **Context loss**: the browser can drop a WebGL context on a GPU reset, driver update, or tab restore, and the canvas then stays blank forever. In production, listen for `webglcontextlost` (call `preventDefault()` on it) and rebuild buffers, textures, and programs in `webglcontextrestored`. This demo does not, to keep the render path readable.
 
 ## See also
 - [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scroll position drives the rotation instead of time

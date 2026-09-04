@@ -178,8 +178,12 @@ body{padding-top:46px}
   function toggle(){setFlipped(!card.classList.contains('flipped'));}
 
   // Trigger: click
-  // Hover trigger has no hover on touch devices, so a tap flips there instead
-  card.addEventListener('click',()=>{if(trigger==='click'||!canHover.matches)toggle();});
+  // Hover trigger gives a touch a way in: a tap flips even in hover mode.
+  // Gate on the pointer that actually acted, not on the device — a touch
+  // laptop reports hover:hover, so a media query alone leaves tap dead there.
+  let lastPointer='mouse';
+  card.addEventListener('pointerdown',e=>{lastPointer=e.pointerType;});
+  card.addEventListener('click',()=>{if(trigger==='click'||lastPointer==='touch'||!canHover.matches)toggle();});
   document.getElementById('flip-btn').addEventListener('click',toggle);
   // Keyboard — flip is reachable and operable without a pointer
   card.addEventListener('keydown',e=>{

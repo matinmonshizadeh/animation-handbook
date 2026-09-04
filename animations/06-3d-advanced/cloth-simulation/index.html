@@ -30,7 +30,7 @@
     header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
     header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
     .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;touch-action:none}
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
     .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
     aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
@@ -111,7 +111,13 @@ let SHOW_VERTS=false,SHOW_CONS=false;
 let pts=[],prev=[],pinned=[],constraints=[];
 let dragIdx=-1,dragMouse={x:0,y:0};
 
-function resize(){W=cvs.width=stage.clientWidth;H=cvs.height=stage.clientHeight;}
+// W/H stay in CSS pixels; the backing store is scaled by DPR so the mesh stays crisp.
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  W=stage.clientWidth;H=stage.clientHeight;
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
 
 function initCloth(){
   const w=W*.8,h=H*.65;
@@ -206,6 +212,8 @@ function loop(ts){
 }
 
 function start(){resize();initCloth();if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
+// Mobile fallback: a coarser grid means far fewer constraint solves per frame.
+if(matchMedia('(max-width:600px)').matches){COLS=16;ROWS=12;document.getElementById('res-sel').value='16';}
 document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
 start();
 

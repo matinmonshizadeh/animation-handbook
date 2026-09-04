@@ -212,6 +212,9 @@ function onScroll(){
 }
 
 stageEl.addEventListener('scroll',onScroll,{passive:true});
+// Resizing changes scrollHeight/clientHeight without firing a scroll event,
+// so progress would stay frozen at its old value until the next scroll.
+new ResizeObserver(()=>{if(stageEl.scrollTop>0)onScroll();}).observe(stageEl);
 document.getElementById('mult-sl').addEventListener('input',e=>{
   mult=+e.target.value;document.getElementById('mult-v').textContent=(mult/10).toFixed(1)+'×';onScroll();
 });

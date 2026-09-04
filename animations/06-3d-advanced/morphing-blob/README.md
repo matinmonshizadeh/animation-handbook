@@ -14,7 +14,7 @@ Each blob is a normal SVG `<circle>`. The whole group is passed through a "goo" 
 
 ```html
 <filter id="goo">
-  <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur"/>
+  <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur" result="blur"/>
   <feColorMatrix in="blur" mode="matrix"
     values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
   <feBlend in="SourceGraphic" in2="goo"/>
@@ -28,18 +28,23 @@ The last row of the matrix (`0 0 0 20 -9`) is the trick: it multiplies alpha by 
 if (b.droplet){                    // Pointer Events → works for mouse, pen, touch
   b.x += (pointer.x - b.x) * 0.09; // attraction toward the cursor
   b.y += (pointer.y - b.y) * 0.09;
-} else {
-  b.x = b.bx + Math.sin(time*speed*b.sx + b.px) * b.ax;
-  b.y = b.by + Math.cos(time*speed*b.sy + b.py) * b.ay;
+} else {                           // phase += dt * speed, integrated per frame
+  b.x = b.bx + Math.sin(phase*b.sx + b.px) * b.ax;
+  b.y = b.by + Math.cos(phase*b.sy + b.py) * b.ay;
 }
 ```
+
+The drift phase is integrated (`phase += dt * speed`) rather than computed from
+absolute time. Multiplying the elapsed time by the speed makes every blob jump to
+a new point on its sine path the moment the speed changes; accumulating the phase
+changes the rate and leaves the positions continuous.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Gooeyness (`stdDeviation`) | 10 | Blur radius — higher fuses circles from farther apart and rounds the whole blob |
 | Blob count | 6 | More circles = more complex, lumpier morphing; fewer = calmer |
-| Drift speed | 1.0 | Multiplies the sine time — 0 freezes drift, higher churns faster |
+| Drift speed | 1.0 | Rate the sine phase accumulates — 0 freezes drift, higher churns faster |
 | Contrast row | `20 -9` | The alpha threshold; larger multiplier = crisper edge, smaller = softer/foggier |
 | Droplet lerp | 0.09 | How eagerly the pointer droplet chases the cursor (higher = snappier) |
 

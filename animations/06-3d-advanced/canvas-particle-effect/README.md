@@ -20,8 +20,10 @@ class Particle {
     const d2 = dx * dx + dy * dy;
     if (d2 < 14400 && d2 > 1) {         // within 120px
       const d = Math.sqrt(d2);
-      this.vx += FORCE * (dx / d) / d * 0.8;
-      this.vy += FORCE * (dy / d) / d * 0.8;
+      // (dx, dy) / d points away from the cursor, so subtracting FORCE
+      // makes a negative value repel and a positive value attract.
+      this.vx -= FORCE * (dx / d) / d * 0.8;
+      this.vy -= FORCE * (dy / d) / d * 0.8;
     }
     // Speed cap
     const sp = Math.sqrt(this.vx**2 + this.vy**2);
@@ -57,7 +59,7 @@ for (let i = 0; i < particles.length; i++) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Particle count | 400 | O(n²) connections — above 500 the loop becomes the bottleneck |
+| Particle count | 500 (250 under 600px) | O(n²) connections — above 500 the loop becomes the bottleneck |
 | Connection distance | 100px | Larger = denser mesh; smaller = isolated dots |
 | Mouse force | –0.5 | Negative = repel; positive = attract; 0 = no interaction |
 | Speed | 0.8px/frame | Faster = chaotic; slower = meditative |
@@ -67,6 +69,7 @@ for (let i = 0; i < particles.length; i++) {
 - **Canvas vs DOM**: `<canvas>` is mandatory for 50+ particles. DOM elements at that density create thousands of layout calculations per frame — the browser cannot keep up.
 - **Particles.js / tsParticles**: the dominant production library. Handles everything in this demo plus themes, shape variety, responsive density, and performance at high counts.
 - **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (enable "trails" toggle in the demo).
+- **Device pixel ratio**: size the backing store to `clientWidth * devicePixelRatio` (capped at 2) and scale the context, or sub-pixel dots and 0.5px connection lines blur on retina screens.
 - **`prefers-reduced-motion`**: stop all particle movement. Consider keeping the static dot layout visible as a texture.
 
 ## See also

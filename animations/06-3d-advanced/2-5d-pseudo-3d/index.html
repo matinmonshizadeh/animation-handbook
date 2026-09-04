@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2.5D / Pseudo-3D — Animation Handbook</title>
-  <meta name="description" content="Flat 2D layers at different CSS translateZ depths — mouse movement parallaxes each at a different rate.">
+  <meta name="description" content="Flat 2D layers at seven virtual depths — mouse movement parallaxes each at a different rate.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/2-5d-pseudo-3d/">
   <link rel="icon" type="image/png" href="../../../favicon.png">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="2.5D / Pseudo-3D — Animation Handbook">
-  <meta property="og:description" content="Flat 2D layers at different CSS translateZ depths — mouse movement parallaxes each at a different rate.">
+  <meta property="og:description" content="Flat 2D layers at seven virtual depths — mouse movement parallaxes each at a different rate.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/2-5d-pseudo-3d/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="2.5D / Pseudo-3D — Animation Handbook">
-  <meta name="twitter:description" content="Flat 2D layers at different CSS translateZ depths — mouse movement parallaxes each at a different rate.">
+  <meta name="twitter:description" content="Flat 2D layers at seven virtual depths — mouse movement parallaxes each at a different rate.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "2.5D / Pseudo-3D", "name": "2.5D / Pseudo-3D", "description": "Flat 2D layers at different CSS translateZ depths — mouse movement parallaxes each at a different rate.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/2-5d-pseudo-3d/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 2.5D / Pseudo-3D"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "2.5D / Pseudo-3D", "name": "2.5D / Pseudo-3D", "description": "Flat 2D layers at seven virtual depths — mouse movement parallaxes each at a different rate.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/2-5d-pseudo-3d/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 2.5D / Pseudo-3D"}</script>
   <style>
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
     @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
@@ -98,7 +98,7 @@ body{padding-top:46px}
 <div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../chromatic-aberration/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../ray-marching-sdf/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/2-5d-pseudo-3d/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
 <header>
   <h1>2.5D / Pseudo-3D</h1>
-  <p>Flat 2D layers at different CSS translateZ depths — mouse movement parallaxes each at a different rate.</p>
+  <p>Flat 2D layers at seven virtual depths — mouse movement parallaxes each at a different rate.</p>
 </header>
 <div class="layout">
   <div class="stage" id="stage">
@@ -233,14 +233,26 @@ document.getElementById('mode-sel').addEventListener('change',e=>{
 });
 document.getElementById('str-sl').addEventListener('input',e=>{
   strength=+e.target.value;document.getElementById('str-v').textContent=strength+'px';
+  // A running auto-pan repaints itself next frame; every other state has to be redrawn here
+  // or the new strength wouldn't show until the pointer moved again.
+  if(!raf)applyParallax(mode==='auto'?.25:mx,mode==='auto'?.15:my);
 });
 document.getElementById('labels-tog').addEventListener('change',e=>{
   document.querySelectorAll('.depth-label').forEach(d=>d.style.display=e.target.checked?'block':'none');
 });
 document.getElementById('reset-btn').addEventListener('click',()=>{mx=0;my=0;autoT0=performance.now();mxV.textContent='—';applyParallax(0,0)});
 
-// Hide labels by default; stagger them vertically so the seven layers' labels don't stack on one spot
-document.querySelectorAll('.depth-label').forEach((d,i)=>{d.style.display='none';d.style.top=(4+i*12)+'px'});
+// Hide labels by default; stagger them vertically so the seven layers' labels don't stack on one
+// spot, and inset each by its own maximum camera travel so a panned layer never carries its label
+// out past the clipped edge of the scene.
+const MAX_PAN=+document.getElementById('str-sl').max*.5;
+const SKY_INSET=6; // .sky is inset -6px, so its label starts outside the scene box
+document.querySelectorAll('.depth-label').forEach((d,i)=>{
+  const pad=i===0?SKY_INSET:0;
+  d.style.display='none';
+  d.style.top=(4+i*12+pad)+'px';
+  d.style.right=(6+pad+MAX_PAN*LAYERS[i].depth)+'px';
+});
 </script>
 <script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
