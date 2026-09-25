@@ -78,7 +78,8 @@ Opening the page with `#details` in the URL opens the section directly.
 
 | On the page | Source |
 |---|---|
-| Title, one-line description | The existing `<h1>` and `<p>` in `index.html` (moved into the side column) |
+| Title | The existing `<h1>` in `index.html` (moved into the side column) |
+| One-line description | Rewritten in plain words during migration (the old one often names CSS properties) |
 | Settings | The demo's existing controls in `index.html` (moved into the side column) |
 | Prompt text | New, written into `index.html` inside `<div class="hb-prompt">` |
 | Settings line | Generated live from the controls by the shared script |
@@ -110,8 +111,9 @@ The six-section structure stays. Two sections get a plain-language pass because 
 ### Location and markup
 
 ```html
-<section class="hb-prompt-box" aria-label="Prompt">
-  <div class="hb-prompt">Add a bounce-in entrance animation to [the element you want to animate]. …</div>
+<section class="hb-prompt-box" aria-labelledby="hb-prompt-title">
+  <h2 class="hb-label" id="hb-prompt-title">Prompt</h2>
+  <p class="hb-prompt">Add a bounce-in entrance to [the element you want to animate]. …</p>
 </section>
 ```
 
@@ -130,11 +132,13 @@ prompt is simply visible.
 - Say what to do when the visitor has reduced motion turned on.
 - For hover or drag effects, include the touch-screen equivalent.
 - Stay tool- and framework-neutral. No code, no library names unless the technique needs one.
+- Don't state values that a control sets (duration, distance, number of bounces); the settings line supplies them.
+  End with "Match the settings listed below."
 - 60–130 words.
 
 ### Settings line
 
-Shown live under the preview as `+ your settings: …` and appended to the copied text as
+Shown live under the preview as `Your settings: …` and appended to the copied text as
 `Settings from the demo: Overshoot intensity 60%, Duration 1100ms, Bounces 1× Single, Combine with fade on.`
 
 Built from the controls in the side column:
@@ -151,9 +155,10 @@ Built from the controls in the side column:
 ## Behaviour
 
 - **Plays on arrival:** demos whose stage is empty until a button is pressed play once about 400ms after load.
-  Confirmed so far: `blur-in`, `bounce-in`, `fade-in-out`, `flip-in`, `scale-in`, `slide-in`,
-  `enter-exit-typography`. To check during rollout: `counter-animation`, `reveal-on-scroll`,
-  `sticky-section`, `glitch-text`. Under reduced motion they show their end state instead.
+  In Entrance & Exit that is 12 of the 13 demos (every one whose status starts as "hidden"; Curtain Reveal
+  already plays itself). Outside the pilot, `enter-exit-typography` is confirmed and `counter-animation`,
+  `reveal-on-scroll`, `sticky-section` and `glitch-text` are checked during their category's rollout. Under
+  reduced motion they show their end state instead.
 - **Replay:** the demo marks its existing play or replay control with `data-hb-replay`; the shared script then
   shows the stage's ↻ Replay button and clicks that control. Continuous and interaction-driven demos (ambient
   loops, hover, scroll) show no Replay button.
@@ -183,7 +188,8 @@ Each demo page:
   `<script src="../../../assets/js/handbook.js" defer></script>`
 - replaces its inline `ah-bar` block (styles, markup and copy script) with the new top bar markup
 - moves its `<header>` into the side column and wraps the page in the new layout
-- drops the panel's explanatory `.note` (the README covers it) and any code readouts (6 demos show live code)
+- drops the panel's explanatory `.note` (the README covers it) and hides readouts that show code (6 demos show
+  live code); hidden readouts stay in the page because the demo scripts write to them
 - keeps its controls, state readouts and meaningful action buttons (e.g. Play out) inside **Settings**
 - sets its stage to fill the new stage area (117 demos already size it through `--stage-h`)
 
