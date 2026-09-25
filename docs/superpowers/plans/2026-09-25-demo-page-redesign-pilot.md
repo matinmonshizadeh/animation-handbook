@@ -341,7 +341,7 @@ git commit -m "feat: add the shared demo-page script's README and settings helpe
 - Test: `tests/migrate.test.js`
 
 **Interfaces:**
-- Consumes: nothing from Task 1.
+- Consumes: `escapeHtml` from `assets/js/handbook.js` (Task 1).
 - Produces:
   - `migrate(html: string, cfg: { category: string, name: string }, demo: Demo): string` — throws `Error` whose message starts with the step name when a step does not match exactly once, or `"already migrated"`.
   - `Demo` = `{ slug: string, number: string, prev: { href: string, name: string } | null, next: same | null, autoplay: boolean, attrs?: { [id: string]: string }, edits?: Array<[string, string]>, lede?: string, prompt: string }`
@@ -492,10 +492,7 @@ Create `tools/migrate-demo.js`:
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-
-function escapeHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+const { escapeHtml } = require('../assets/js/handbook.js');
 
 // Replace `find` exactly once; anything else means the page doesn't have the expected shape.
 function replaceOnce(html, find, replacement, step) {
