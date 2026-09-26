@@ -81,3 +81,11 @@ for (const d of converted.filter(c => c.cat === PILOT)) {
     }
   });
 }
+
+test('the home page uses Schibsted Grotesk and the new intro line', () => {
+  const html = read(path.join(ROOT, 'index.html'));
+  assert.ok(html.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
+  assert.ok(html.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
+  for (const old of ['Bricolage', 'PlexMono', 'var(--mono)', '--mono:']) assert.ok(!html.includes(old), `still uses ${old}`);
+  assert.ok(html.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
+});
