@@ -26,11 +26,20 @@
     return escapeHtml(String(s).replace(/`/g, '').replace(/\*\*/g, ''));
   }
 
+  // Allow only relative paths, "#" anchors and http(s) URLs as link targets; anything else
+  // (e.g. a javascript: URL) is rejected and rendered as plain link text instead.
+  function isSafeHref(href) {
+    return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) &&
+      !/^[a-z][a-z0-9+.-]*:/i.test(href.replace(/^https?:/i, ''));
+  }
+
   // Inline Markdown from README prose. Inline code becomes plain text: the site shows no code.
   function inline(md) {
     return escapeHtml(md)
       .replace(/`([^`]+)`/g, '$1')
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/\[([^\]]+)\]\(([^\s]+)\)/g, function (m, label, href) {
+        return isSafeHref(href) ? '<a href="' + href + '">' + label + '</a>' : label;
+      })
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
   }
@@ -132,7 +141,7 @@
   // The demo's current settings in page order, skipping playback controls and anything marked data-hb-skip.
   function readSettings(doc, scope) {
     return Array.prototype.filter.call(scope.querySelectorAll(CONTROLS), function (control) {
-      return !control.closest('[data-hb-skip], [hidden], .btn-row');
+      return !control.closest('[data-hb-skip], [hidden], .btn-row') && control.getClientRects().length > 0;
     }).map(function (control) {
       return { label: labelFor(doc, control), value: valueFor(control) };
     });
@@ -207,6 +216,7 @@
     function copyButton() {
       var button = make(doc, 'button', 'hb-copy', 'Copy prompt');
       button.type = 'button';
+      button.setAttribute('aria-live', 'polite');
       button.addEventListener('click', function () {
         function show(label) {
           button.textContent = label;
@@ -246,6 +256,7 @@
       '</div>');
     details.id = 'details';
     details.hidden = true;
+    details.tabIndex = -1;
     details.setAttribute('aria-label', 'About ' + title);
     details.querySelector('.hb-full-text').textContent = promptText;
     var full = details.querySelector('.hb-full');
@@ -261,7 +272,10 @@
       details.hidden = !open;
       more.setAttribute('aria-expanded', String(open));
       more.textContent = open ? 'Show less ↑' : 'Read more about ' + title + ' ↓';
-      if (open && scroll) details.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+      if (open && scroll) {
+        details.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+        details.focus({ preventScroll: true });
+      }
     }
     setOpen(false, false);
     more.addEventListener('click', function () { setOpen(details.hidden, true); });
@@ -287,14 +301,14 @@
       replayButton.type = 'button';
       replayButton.setAttribute('aria-label', 'Replay the animation');
       replayButton.addEventListener('click', replay);
-      view.appendChild(replayButton);
+      view.insertBefore(replayButton, side);
       if (doc.body.hasAttribute('data-hb-autoplay')) win.setTimeout(function () { replayCtl.click(); }, 400);
     }
 
     var timer = 0;
     function onSettingsChange(e) {
       var target = e.target;
-      if (e.type === 'click' && !target.closest('.seg, .swatches')) return;
+      if ((e.type === 'click' || e.type === 'keyup') && !target.closest('.seg, .swatches')) return;
       if (target.closest('.btn-row, [data-hb-loop]')) return;
       win.setTimeout(refreshLines, 0);
       if (!replayCtl || (loopCtl && loopCtl.checked)) return;
@@ -302,7 +316,7 @@
       timer = win.setTimeout(replay, 250);
     }
     if (settings) {
-      ['input', 'change', 'click'].forEach(function (type) { settings.addEventListener(type, onSettingsChange); });
+      ['input', 'change', 'click', 'keyup'].forEach(function (type) { settings.addEventListener(type, onSettingsChange); });
     }
     refreshLines();
   }

@@ -18,6 +18,13 @@ test('inline shows code as plain text and renders links, bold and italics', () =
   assert.equal(HB.inline('a < b'), 'a &lt; b');
 });
 
+test('inline only links relative, anchor and http(s) URLs', () => {
+  assert.equal(HB.inline('[x](javascript:alert(1))'), 'x');
+  assert.equal(HB.inline('[a](https://example.com/p)'), '<a href="https://example.com/p">a</a>');
+  assert.equal(HB.inline('[b](#top)'), '<a href="#top">b</a>');
+  assert.equal(HB.inline('[c](../scale-in/)'), '<a href="../scale-in/">c</a>');
+});
+
 test('sections splits a README by its ## headings', () => {
   const md = '# Title\r\n\r\n## What it is\r\nLine one\r\nline two\r\n\r\n## When to use it\r\n- A\r\n- B\r\n';
   assert.deepEqual(HB.sections(md), { 'What it is': 'Line one\nline two', 'When to use it': '- A\n- B' });
