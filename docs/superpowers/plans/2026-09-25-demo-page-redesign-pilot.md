@@ -2022,3 +2022,17 @@ Report to the user: the pages converted, the test results, anything that needed 
 
 - Spec coverage: page anatomy (Tasks 3–4), content sources (Tasks 2, 4, 5), README pass (Task 5), prompts and settings line (Tasks 3, 4, 6, 7), behaviour — auto-play, Replay, settings replay, copy fallback, offline (Tasks 4, 9), shared assets (Tasks 1–4), fonts (Tasks 3, 8), home page (Task 8), pilot rollout and verification (Tasks 6, 7, 9). Out of this plan by design: the other six categories, CLAUDE.md/CONTRIBUTING.md updates, deleting the old font files and `samples/demo-page-design.html` (spec rollout steps 3–4, next plan).
 - Spec refinement: the spec listed 7 demos that open empty; the pilot audit found that every Entrance & Exit demo whose status starts as "hidden" opens empty, so 12 of 13 get auto-play (Curtain Reveal's stage already shows its content).
+
+---
+
+## Follow-ups for the next plan (from the pilot's reviews)
+
+Carry these into the plan for the remaining six categories:
+
+- **Before converting more pages:** switch the migration template's `<section class="hb-settings" aria-label="Settings">` to `aria-labelledby` (the visible h2 is announced twice today) and patch the 13 pilot pages in the same commit. Have the tool strip the demos' legacy chrome CSS (`header`, `.layout`, `aside`, `.note` and the control classes) that the shared stylesheet now outranks.
+- **Shared script:** reject protocol-relative `//host` links in `isSafeHref`; make the copy fallback select the full prompt plus the settings line; split `boot()` into named setup functions when it is next touched.
+- **Tests:** generalise the README checks from the pilot list to every converted page and assert that every See also line parses. Commit the verification kit's page check as a reusable script, extended with a 1366×657 size, CSS-hidden controls, keyboard selection and text-input touch targets.
+- **Layout:** at 601–700px wide the 300px side column is wider than the stage; decide a narrower tablet column. The details grid's 760px breakpoint is intentional; record it in CLAUDE.md.
+- **Content:** decide how demos with no settings end their prompt (the tests require "Match the settings listed below."). Update the pilot pages' meta, Open Graph and JSON-LD descriptions, and the home page's JSON-LD wording, to match the new plain summaries. Ask the user whether Curtain Reveal should also play on arrival.
+- **Wrap-up (already in the spec):** update CLAUDE.md and CONTRIBUTING.md (page template, shared assets, prompt guide, fonts, `node --test "tests/*.test.js"`, the migration tool); delete the old font files and `samples/demo-page-design.html`.
+- **Release:** keep this work off `main` until enough categories are converted that the home page's "copy a prompt" line is true, or ship the font switch without that line.
