@@ -21,11 +21,9 @@ const PILOT = '02-entrance-and-exit';
 const PILOT_AUTOPLAY = new Set(['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal',
   'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in']);
 
-test('the converted Entrance & Exit demos include this batch', () => {
-  const done = new Set(converted.filter(d => d.cat === PILOT).map(d => d.slug));
-  for (const slug of ['bounce-in', 'fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal', 'curtain-reveal']) {
-    assert.ok(done.has(slug), `${slug} is converted`);
-  }
+test('every Entrance & Exit demo uses the shared layout', () => {
+  const left = demos.filter(d => d.cat === PILOT && !converted.includes(d)).map(d => d.slug);
+  assert.deepEqual(left, []);
 });
 
 for (const d of converted) {
