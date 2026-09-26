@@ -1700,7 +1700,7 @@ Append these objects to the `demos` array in `tools/migrations/02-entrance-and-e
 }
 ```
 
-Notes for this batch: Curtain Reveal already plays by itself 0.5s after load, so it does not get `data-hb-autoplay`. The `hidden` readouts show CSS code; they stay in the page because the demo scripts write to them. The aria-labels give arrow-only buttons readable names, which the settings line uses.
+Notes for this batch: Curtain Reveal's stage shows its content on arrival (it is not empty), so under the spec's rule it does not get `data-hb-autoplay`; it plays when ↻ Replay or Play reveal is pressed. The `hidden` readouts show CSS code; they stay in the page because the demo scripts write to them. The aria-labels give arrow-only buttons readable names, which the settings line uses.
 
 - [ ] **Step 3: Convert the six pages**
 
@@ -1715,7 +1715,7 @@ Expected: PASS — including the six new per-page checks and their control-name 
 - [ ] **Step 5: Check each page in the browser**
 
 For each of the six pages, run the Page check at 1280×800 and mobile (Verification kit) and confirm no console errors. By hand:
-- Fade In / Fade Out, Slide In, Slide Up Reveal, Scale In, Clip-Path Reveal play on their own after load; Curtain Reveal plays by itself as before
+- Fade In / Fade Out, Slide In, Slide Up Reveal, Scale In, Clip-Path Reveal play on their own after load; Curtain Reveal shows its content and plays when ↻ Replay is pressed
 - Slide Up Reveal's Technique buttons read **Move** / **Clip** and no CSS text shows in the panel; Clip-Path Reveal shows no clip-path value in the panel
 - the settings line uses readable words, e.g. Slide In: `Direction From the top`, Clip-Path Reveal: `Direction (inset) From the left`
 - **Play out** still plays each exit animation and **Reset** still resets
@@ -2021,4 +2021,4 @@ Report to the user: the pages converted, the test results, anything that needed 
 ## Self-review notes
 
 - Spec coverage: page anatomy (Tasks 3–4), content sources (Tasks 2, 4, 5), README pass (Task 5), prompts and settings line (Tasks 3, 4, 6, 7), behaviour — auto-play, Replay, settings replay, copy fallback, offline (Tasks 4, 9), shared assets (Tasks 1–4), fonts (Tasks 3, 8), home page (Task 8), pilot rollout and verification (Tasks 6, 7, 9). Out of this plan by design: the other six categories, CLAUDE.md/CONTRIBUTING.md updates, deleting the old font files and `samples/demo-page-design.html` (spec rollout steps 3–4, next plan).
-- Spec refinement: the spec listed 7 demos that open empty; the pilot audit found that every Entrance & Exit demo whose status starts as "hidden" opens empty, so 12 of 13 get auto-play (Curtain Reveal already plays itself).
+- Spec refinement: the spec listed 7 demos that open empty; the pilot audit found that every Entrance & Exit demo whose status starts as "hidden" opens empty, so 12 of 13 get auto-play (Curtain Reveal's stage already shows its content).

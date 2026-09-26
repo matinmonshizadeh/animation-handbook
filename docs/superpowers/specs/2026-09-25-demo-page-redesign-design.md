@@ -156,7 +156,7 @@ Built from the controls in the side column:
 
 - **Plays on arrival:** demos whose stage is empty until a button is pressed play once about 400ms after load.
   In Entrance & Exit that is 12 of the 13 demos (every one whose status starts as "hidden"; Curtain Reveal
-  already plays itself). Outside the pilot, `enter-exit-typography` is confirmed and `counter-animation`,
+  shows its content on arrival). Outside the pilot, `enter-exit-typography` is confirmed and `counter-animation`,
   `reveal-on-scroll`, `sticky-section` and `glitch-text` are checked during their category's rollout. Under
   reduced motion they show their end state instead.
 - **Replay:** the demo marks its existing play or replay control with `data-hb-replay`; the shared script then
