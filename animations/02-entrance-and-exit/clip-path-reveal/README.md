@@ -1,7 +1,8 @@
 # Clip-Path Reveal
 
 ## What it is
-A clip-path reveal uncovers an element by animating a mask shape from small (or edge-hidden) to fully open. The element is painted in full the entire time — only the visible region grows. Because nothing moves or fades, the content stays crisp and in place while a shape wipes across it, which is what gives the effect its cinematic, editorial feel.
+
+A clip-path reveal uncovers an element by growing a mask shape until the whole element shows. The element is fully drawn the entire time; only the visible part grows. Because nothing moves or fades, the content stays crisp and in place while a shape wipes across it, which gives the effect its cinematic, editorial feel.
 
 ## When to use it
 - Image and media reveals on scroll (a photo wiped open left-to-right)
@@ -37,12 +38,13 @@ const CLIPS = {
 ```
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Shape | inset | `inset` (edge wipe), `circle` / `ellipse` (iris), `polygon` (angled swipe) |
-| Direction | left | For `inset`, which edge the wipe travels from |
-| Duration | 800ms | Reveals read best slower than a fade — the wipe needs to be seen |
-| Easing | `cubic-bezier(.2,.7,.3,1)` | A smooth decel; the wipe eases to a stop rather than snapping |
+| Shape | Inset | Inset wipes in from an edge, Circle and Ellipse open like an iris, Swipe cuts in at an angle |
+| Direction | Left | For the Inset shape, which side the wipe travels in from |
+| Duration | 800ms | A reveal reads best a little slower than a fade, so the wipe can be seen |
+| Easing | Smooth | The wipe slows to a stop instead of snapping |
 
 ## Production notes
 - **Interpolate compatible shapes only.** CSS can animate `inset`→`inset`, `circle`→`circle`, or `polygon`→`polygon` (with the same vertex count), but it cannot tween *between* shape functions. Keep `out` and `in` the same function, as the demo does.

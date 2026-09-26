@@ -1,7 +1,8 @@
 # Letter-by-Letter Stagger
 
 ## What it is
-A letter-by-letter stagger splits a string into individual characters and animates each one on a slightly later schedule, so the phrase assembles as a cascade rather than appearing all at once. The demo offers two implementations of the same idea: a CSS *cascade* driven by per-letter `transition-delay`, and a JS *typewriter* that reveals characters one at a time behind a blinking cursor.
+
+A letter-by-letter stagger animates each character a moment after the previous one, so a phrase assembles as a cascade instead of appearing all at once. The demo shows two versions: a cascade where every letter plays a small entrance, and a typewriter that reveals letters one at a time behind a blinking cursor.
 
 ## When to use it
 - Hero headlines and landing-page titles where the text is the focal point
@@ -34,12 +35,14 @@ Each character is wrapped in its own `<span class="char">` and given a custom pr
 Adding the `.done` class flips every letter to its resting state simultaneously; the staggered `transition-delay` is what spreads the visible motion out over time. The typewriter mode skips transitions entirely and instead uses a chain of `setTimeout` calls to toggle a `.visible` class on each character in sequence.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Per-letter delay (`--stagger`) | 35ms | Gap between successive letters; higher = slower, more theatrical cascade |
-| Duration per letter (`--dur`) | 400ms | How long each individual letter takes to settle |
-| Per-letter animation | Fade up | The transform each letter animates from: fade, scale, or `rotateY` |
-| Total time | `n × stagger + dur` | Full runtime grows linearly with character count |
+| Mode | Cascade | Cascade animates every letter in turn; Typewriter types them out behind a cursor |
+| Per-letter animation | Fade up | The entrance each letter plays in Cascade mode: fade up, fade, scale or rotate |
+| Per-letter delay | 35ms | Gap between letters; higher is slower and more theatrical |
+| Duration per letter | 400ms | How long each letter takes to settle |
+| Show cursor (typewriter) | on | The blinking cursor in Typewriter mode |
 
 ## Production notes
 - **Accessibility**: split text still reads as separate spans to most screen readers, but wrapping the whole phrase in an `aria-label` on the container and hiding the spans with `aria-hidden` guarantees the label is announced as one string. The demo honors `prefers-reduced-motion` by forcing all letters visible with no transition.

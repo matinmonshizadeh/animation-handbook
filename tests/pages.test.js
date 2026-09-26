@@ -50,3 +50,33 @@ for (const d of converted) {
     }
   });
 }
+
+const { sections, table } = require('../assets/js/handbook.js');
+const PILOT_SLUGS = ['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal', 'curtain-reveal',
+  'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in'];
+
+for (const slug of PILOT_SLUGS) {
+  test(`README for ${slug} is ready for the site`, () => {
+    const dir = path.join(ANIM, PILOT, slug);
+    const s = sections(read(path.join(dir, 'README.md')));
+    for (const h of ['What it is', 'When to use it', 'Key parameters', 'See also']) assert.ok(s[h], `section ${h}`);
+    assert.ok(!s['What it is'].includes('`'), 'What it is has no code');
+    assert.ok(!s['Key parameters'].includes('`'), 'Key parameters has no code');
+    assert.ok(table(s['Key parameters']).length > 0, 'Key parameters has rows');
+    for (const [, href] of s['See also'].matchAll(/\]\(([^)\s]+)\)/g)) {
+      assert.ok(isDemoDir(path.resolve(dir, href)), `See also link ${href}`);
+    }
+  });
+}
+
+for (const d of converted.filter(c => c.cat === PILOT)) {
+  test(`${d.slug}: every Key parameters name is a control on the page`, () => {
+    const html = read(path.join(d.dir, 'index.html'));
+    const panel = html.slice(html.indexOf('<section class="hb-settings"'), html.indexOf('<div class="hb-take">')).replace(/<[^>]+>/g, ' ');
+    const rows = sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n').slice(2);
+    for (const row of rows) {
+      const name = (row.split('|')[1] || '').trim();
+      if (name) assert.ok(panel.includes(name), `control label "${name}"`);
+    }
+  });
+}

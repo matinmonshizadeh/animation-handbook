@@ -1,7 +1,8 @@
 # Blur In
 
 ## What it is
-Blur In fades an element into view while transitioning it from a heavy blur to sharp focus, mimicking a camera pulling focus onto a subject. The simultaneous rise in opacity and drop in blur radius reads as cinematic because it echoes how real optics resolve an image, rather than the flat cross-fade of a plain opacity transition.
+
+Blur In fades an element into view while it sharpens from a heavy blur to crisp focus, like a camera pulling focus onto a subject. The rising opacity and falling blur feel cinematic because they echo how a real lens resolves an image, unlike the flat look of a plain fade.
 
 ## When to use it
 - Hero cards, modals, and single focal elements entering a view
@@ -32,12 +33,14 @@ card.classList.add('in');
 The blur-only and fade-only modes exist to show that the two channels are separable — blur alone feels like focus without arrival, fade alone is the ordinary transition. Combined, they read as a lens finding its subject.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Starting blur (`--blur-start`) | 20px | Higher = more dramatic focus pull; over ~30px starts to look like frosted glass |
-| Duration (`--dur`) | 700ms | Blur benefits from a slower curve than a plain fade — the optics feel takes time |
-| Easing (`--ease`) | Ease out | Deceleration mimics a lens settling; linear feels robotic |
-| Upward translate (`--ty`) | -8px | Small `translateY` adds a sense of the element rising into focus |
+| Mode | Blur + Fade | The full effect; Blur only and Fade only show each half on its own |
+| Starting blur | 20px | Higher is a more dramatic focus pull; past about 30px it looks like frosted glass |
+| Duration | 700ms | Blur needs a little longer than a plain fade for the lens feel to land |
+| Easing | Ease out | Slowing down mimics a lens settling; Linear feels robotic |
+| Slight upward drift | on | A small rise while it sharpens, as if it is settling into place |
 
 ## Production notes
 - **GPU cost**: `filter: blur()` is one of the more expensive properties to animate. It forces the element onto its own compositor layer and re-rasterizes each frame. Limit blur-in to a single hero element or a small group — never a long list, and be cautious on low-end mobile.

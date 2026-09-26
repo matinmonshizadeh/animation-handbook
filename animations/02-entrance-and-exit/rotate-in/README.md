@@ -1,7 +1,8 @@
 # Rotate In
 
 ## What it is
-Rotate In spins an element around its center as it enters, usually combined with a scale-up so it reads as *arriving* rather than merely turning in place. Because the rotation is most legible when the shape looks coherent at every angle, the technique is best suited to radially symmetric marks — icons, stars, gears, badges — and poorly suited to text or wide rectangles.
+
+Rotate In spins an element around its center as it enters, usually while it grows from small, so it reads as arriving rather than just turning in place. The spin is easiest to follow when the shape looks right at every angle, so it suits round or symmetric marks such as icons, stars, gears and badges, not text or wide rectangles.
 
 ## When to use it
 - Icon and badge reveals — achievement unlocks, status indicators, loading-to-done transitions
@@ -34,13 +35,16 @@ document.documentElement.style.setProperty('--scale-start',scaleTog.checked?'0':
 Extra `±360°` turns don't change the resting frame — the element always lands at `rotate(0deg)` — but they add complete revolutions to the journey, turning a subtle tilt into a full spin.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Starting rotation (`--rot-start`) | -180° | The angle the element opens from; larger = more spin |
-| Extra full rotations | 0× | Adds complete `±360°` turns without altering the landing frame |
-| Direction | CCW | Sign of the rotation — clockwise or counter-clockwise |
-| Easing (`--ease`) | Springy `cubic-bezier(.34,1.56,.64,1)` | Overshoot makes the spin land rather than glide to a stop |
-| Combine with scale | on | Scaling from 0 turns a spin-in-place into an arrival |
+| Starting rotation | -180° | The angle it starts from; a larger angle means more spin |
+| Extra full rotations | 0× | Adds whole extra turns without changing where it lands |
+| Direction | Counter-clockwise | Which way it spins |
+| Duration | 600ms | Time for the whole spin |
+| Easing | Springy | The overshoot makes the spin land rather than glide to a stop |
+| Combine with scale | on | Growing from small turns a spin into an arrival |
+| Combine with fade | on | Fades it in as it spins |
 
 ## Production notes
 - **Symmetry matters**: rotating text or a rectangle looks like it fell over, not like it entered. The demo deliberately uses a symmetric icon so every intermediate frame reads correctly.

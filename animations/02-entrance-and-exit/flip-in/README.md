@@ -1,7 +1,8 @@
 # Flip In
 
 ## What it is
-Flip In rotates an element from an edge-on flat plane into full view, using CSS 3D transforms to make the card appear to swing toward the viewer like a hinged panel. The defining detail is that `perspective` lives on the *parent* container, not the rotating card — without it, a `rotateY` collapses into a flat horizontal squash with no sense of depth.
+
+Flip In swings an element from edge-on into full view in 3D, like a hinged panel turning toward you. The key detail is that the 3D perspective is set on the element's container, not on the card itself; without it, the turn collapses into a flat squash with no sense of depth.
 
 ## When to use it
 - Card entrances in dashboards, galleries, and onboarding flows
@@ -34,13 +35,16 @@ document.documentElement.style.setProperty('--rot-x',rx);
 `transform-origin` moves the hinge to an edge (top, bottom, left) so the card swings from that side rather than pivoting around its center.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Perspective (`--persp`, on parent) | 1000px | Viewer distance; lower = more dramatic foreshortening, higher = subtle |
-| Starting rotation (`--rot-y` / `--rot-x`) | 90° | The flat-plane angle to open from; 90° starts fully edge-on |
-| Flip axis | Y (horizontal) | Which axis carries the rotation — Y hinge, X hinge, or both |
-| Transform origin | center | Where the hinge sits; an edge origin swings the card from that side |
-| Duration (`--dur`) | 600ms | Springy easing here adds a satisfying settle at the end |
+| Flip axis | Y (horiz) | Which way it swings: around a vertical hinge, a horizontal one, or both |
+| Starting rotation | 90° | The angle it starts from; 90° starts fully edge-on |
+| Perspective | 1000px | How far away the viewer seems; lower is more dramatic, higher is subtler |
+| Duration | 600ms | How long the swing takes; a Springy curve adds a satisfying settle |
+| Easing | Ease out | Slows the swing as it comes to face you |
+| Transform origin | Center | Where the hinge sits; an edge makes it swing from that side |
+| Combine with fade | on | Fades it in while it turns |
 
 ## Production notes
 - **Perspective belongs on the parent**: this is the single most common mistake. Setting `perspective` on the card itself (via `transform: perspective(...)`) applies per-element and won't share a vanishing point across siblings; the container `perspective` property is what creates a coherent 3D scene.

@@ -1,7 +1,8 @@
 # Curtain Reveal
 
 ## What it is
-A curtain reveal is a three-stage transition: an opaque bar slides across content to cover it, pauses, then slides off the far side to expose it. Unlike a clip-path reveal, the content is genuinely hidden behind the moving panel and then uncovered, so the eye registers a distinct before/after moment. It is theatrical by design and suits content that warrants the drama.
+
+A curtain reveal happens in three steps: a solid panel slides across the content to cover it, pauses, then slides off the far side to show it. Unlike a clip-path reveal, the content really is hidden behind the moving panel and then uncovered, so the eye notices a clear before and after. It is theatrical on purpose and suits content that deserves the drama.
 
 ## When to use it
 - Page and section transitions where a colored panel wipes across between views
@@ -33,13 +34,14 @@ setTimeout(() => {                             // stage B: pause
 The `101%` (rather than `100%`) guarantees the bar clears the edge completely with no sub-pixel seam.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Curtain speed | 500ms | Time for one pass (enter or exit); the whole reveal is ~2×speed + pause |
-| Pause between | 300ms | The beat the bar covers everything — this is what makes the change register |
-| Direction | L→R | Horizontal (`ltr`/`rtl`) or vertical (`ttb`/`btt`) travel |
-| Two curtains | off | Split mode: two halves enter from opposite sides and part |
-| Curtain color | dark | The panel color — high contrast with the content heightens the drama |
+| Curtain speed | 500ms | Time for one pass; the whole reveal takes about two passes plus the pause |
+| Pause between | 300ms | The beat where the panel covers everything; it is what makes the change register |
+| Direction | Left to right | Which way the panel travels, across or up and down |
+| Two curtains (split) | off | Two panels meet in the middle, then part |
+| Curtain color | Dark | Strong contrast with the content makes the reveal more dramatic |
 
 ## Production notes
 - **Overshoot the edge with `101%`.** Ending an exit exactly at `100%` can leave a 1px sliver on fractional-DPI displays; the extra percent is the standard fix.

@@ -1,7 +1,8 @@
 # Word-by-Word Reveal
 
 ## What it is
-A word-by-word reveal animates each word of a passage in sequence rather than all together or letter-by-letter. Words are the natural unit of reading, so a stagger of roughly 80–120ms per word tracks how the eye moves through a sentence — slow enough to feel intentional, fast enough not to make the reader wait.
+
+A word-by-word reveal animates each word of a passage in turn, rather than all at once or letter by letter. Words are how people read, so a delay of roughly 80 to 120 milliseconds per word follows the eye through a sentence: slow enough to feel intentional, fast enough that nobody waits.
 
 ## When to use it
 - Multi-line body copy, quotes, and paragraph intros where per-letter would be too busy
@@ -34,12 +35,14 @@ words.forEach((w,wi)=>{
 The "sentence pauses" option adds `si × 200ms` to the delay for each sentence, inserting a beat between lines. Because the index is stored as `delay/stagger`, the CSS math stays a single `calc()` regardless of whether pauses are on.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Per-word delay (`--stagger`) | 80ms | The reading-speed knob; below ~40ms the stagger blurs into one reveal |
-| Duration per word (`--dur`) | 450ms | Settle time for each individual word |
-| Easing (`--ease`) | Smooth `cubic-bezier(.2,.7,.3,1)` | Springy overshoot adds bounce; linear feels mechanical |
-| Sentence pause | off (+200ms) | Extra delay injected between sentences for paragraph reveals |
+| Per-word delay | 80ms | The reading-speed control; below about 40ms the words blur into one reveal |
+| Per-word animation | Fade up | The entrance each word plays |
+| Duration per word | 450ms | How long each word takes to settle |
+| Easing | Smooth | Springy adds a bounce; Linear feels mechanical |
+| Sentence pauses | off | Adds an extra pause between sentences |
 
 ## Production notes
 - **Whitespace preservation**: keeping a real text node (a literal space) between word spans lets the browser wrap and justify normally, which pure `margin-right` spacing cannot do reliably across fonts.

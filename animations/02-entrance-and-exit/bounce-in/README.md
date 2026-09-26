@@ -1,7 +1,8 @@
 # Bounce In
 
 ## What it is
-Bounce In brings an element up from small and low, overshoots its final size and position, then springs back to rest — the motion of something landing with momentum. Crucially, a real bounce is not a single easing curve: it is a series of hand-placed `@keyframes` waypoints, each defining an overshoot and settle, because one `cubic-bezier` can only overshoot once.
+
+Bounce In brings an element up from small and low, overshoots its final size and position, then springs back to rest, like something landing with momentum. A real bounce isn't one smooth curve: it's a few hand-placed steps, each going a little past the target and coming back.
 
 ## When to use it
 - Playful confirmations — a success badge, a "message sent" checkmark, an added-to-cart chip
@@ -31,12 +32,13 @@ kf=`@keyframes bounce-in{
 The generated CSS is injected into a live `<style>` tag, so changing intensity or bounce count rewrites the keyframe rule on the fly. Two- and three-bounce modes simply add more overshoot/undershoot pairs at tighter percentage intervals, each smaller than the last to imitate energy dissipating.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Overshoot intensity | 60% | Scales how far past 1.0 the waypoints reach; 0% = no bounce, 100% = exaggerated |
-| Duration (`--dur`) | 1100ms | Bounces need room to breathe; too short and the springs read as a jitter |
-| Bounces | 1 | Number of overshoot cycles — almost always 1; multiples look cartoonish |
-| Combine with fade | on | Whether opacity starts at 0 or the element is already visible while it bounces |
+| Overshoot intensity | 60% | How far past full size it grows; 0% means no bounce, 100% is exaggerated |
+| Duration | 1100ms | Bounces need room to breathe; too short and the spring reads as a jitter |
+| Bounces | 1× Single | How many times it overshoots; almost always one, since more looks cartoonish |
+| Combine with fade | on | Whether it fades in while it bounces or is visible from the start |
 
 ## Production notes
 - **Keyframes over easing**: an overshoot spring like `cubic-bezier(.34,1.56,.64,1)` gives *one* overshoot. Genuine multi-stage bounce and squash-and-stretch require explicit waypoints — that is the whole reason this technique uses `@keyframes`.

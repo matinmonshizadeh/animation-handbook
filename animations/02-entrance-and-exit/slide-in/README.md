@@ -1,7 +1,8 @@
 # Slide In
 
 ## What it is
-A slide-in translates an element from an off-screen (or off-position) edge into its final resting place using `transform: translate`. The motion has a direction — top, bottom, left, or right — which reads as the element *arriving* from somewhere. Paired with a simultaneous fade, it feels like natural entry; on its own it can feel mechanical.
+
+A slide-in moves an element from a short distance away into its final place. The motion has a direction (from the top, bottom, left or right), so the element seems to arrive from somewhere. Paired with a fade it feels like a natural entrance; on its own it can feel mechanical.
 
 ## When to use it
 - Panels, drawers, and sheets that enter from a screen edge
@@ -34,13 +35,14 @@ root.style.setProperty('--fade', withFade ? '0' : '1');
 ```
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Direction | top | Which edge the element travels from |
-| Distance | 200px | Travel length — short (20–40px) for subtle UI, long for dramatic entrances |
-| Duration | 600ms | Longer distances need longer durations to keep velocity believable |
-| Easing | `ease-out` | Decelerate into place; `cubic-bezier(.34,1.56,.64,1)` adds an overshoot |
-| Combine with fade | on | Slide alone reads mechanical; the fade makes it read as arrival |
+| Direction | Top | Which edge the element travels in from |
+| Distance | 200px | Short distances (20 to 40px) suit subtle interface motion; long ones feel dramatic |
+| Duration | 600ms | Longer distances need more time so the speed still feels believable |
+| Easing | Ease out | Slows down into place; Springy adds a small overshoot |
+| Combine with fade | on | A slide alone looks mechanical; the fade makes it read as an arrival |
 
 ## Production notes
 - **Use `transform`, never `top`/`left`/`margin`.** Translating stays on the compositor; animating layout properties forces reflow every frame and drops frames on mobile.

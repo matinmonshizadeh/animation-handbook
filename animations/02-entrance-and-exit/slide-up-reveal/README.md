@@ -1,7 +1,8 @@
 # Slide Up Reveal
 
 ## What it is
-A slide-up reveal makes a line of text rise into view from behind a fixed clipping boundary, as if emerging from underneath a solid edge. The text moves, but a masked container hides everything below the baseline, so only the arrival is visible. It is the signature typographic entrance for headlines and hero copy.
+
+A slide-up reveal makes a line of text rise into view from behind an invisible edge, as if it is coming up from underneath a surface. The text moves, but everything below the line stays hidden, so only its arrival is visible. It is the classic entrance for headlines and hero copy.
 
 ## When to use it
 - Hero and headline copy on landing pages and case studies
@@ -30,12 +31,14 @@ Multiple lines stagger through a per-line `--d` index multiplied by a `--stagger
 ```
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Technique | translateY | `translateY(110%)` vs `clip-path: inset(100% 0 0 0)` — same look |
-| Duration | 700ms | The rise time per line |
-| Easing | `cubic-bezier(.2,.7,.3,1)` | A smooth decel; springy adds a slight settle |
-| Line stagger | 60ms | Delay between successive lines — 40–80ms reads as a cascade |
+| Technique | Move | Two ways to build it that look identical: moving the text up, or clipping it from below |
+| Duration | 700ms | How long each line takes to rise |
+| Easing | Smooth | Slows smoothly to a stop; Springy adds a slight settle |
+| Line stagger | 60ms | Delay between lines; 40 to 80ms reads as a cascade |
+| Multi-line (3 lines) | on | Shows three lines so you can see the stagger |
 
 ## Production notes
 - **`translateY(110%)`, not `100%`.** The extra 10% covers descenders (g, y, p) and line-height slack so no sliver of the glyph peeks above the boundary before it moves.

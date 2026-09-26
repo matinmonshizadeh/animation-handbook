@@ -1,7 +1,8 @@
 # Scale In / Zoom In
 
 ## What it is
-A scale-in grows an element from a small start value up to its full `scale(1)`, usually with a fade layered on top. The `transform-origin` decides which point stays anchored while the rest expands, so the element appears to pop from a corner, an edge, or its own center. With springy easing the slight overshoot makes the arrival feel physical, as if the element lands into place.
+
+A scale-in grows an element from a little smaller than its final size up to full size, usually while it fades in. The anchor point decides where it grows from: its own center, an edge or a corner. With a springy curve the slight overshoot makes the arrival feel physical, as if the element lands in place.
 
 ## When to use it
 - Modals, dialogs, and popovers zooming up from the control that opened them
@@ -27,13 +28,14 @@ The card starts at `scale(var(--ss))` with `opacity: 0` and transitions both to 
 The default easing is `cubic-bezier(.34,1.56,.64,1)` — its control point above 1 pushes the scale past 1.0 mid-transition before settling, which is the overshoot that reads as a "pop." Changing `--origin` (e.g. to `top left`) re-anchors where that pop expands from.
 
 ## Key parameters
+
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Start scale | 0.80 | Closer to 1 is subtle; below 0.5 reads as a big zoom |
-| Duration | 500ms | Springy easing needs room to overshoot and settle — under 300ms clips the bounce |
-| Easing | Springy `cubic-bezier(.34,1.56,.64,1)` | The overshoot; `ease-out` gives a calmer, flat arrival |
-| Transform origin | center | The anchor point the scale grows from |
-| Combine with fade | on | Prevents the element flashing at full opacity while still tiny |
+| Start scale | 0.80 | Close to 1 is subtle; below 0.5 reads as a big zoom |
+| Duration | 500ms | A springy curve needs room to overshoot and settle; under 300ms cuts the bounce short |
+| Easing | Springy | Adds the overshoot; Ease out gives a calmer arrival |
+| Transform origin | Center | The point the element grows from |
+| Combine with fade | on | Stops the element flashing at full strength while it is still tiny |
 
 ## Production notes
 - **Anchor the origin to the trigger.** A popover that scales from `center` feels disconnected; setting `transform-origin` to the corner nearest its button makes it feel like it grew *out of* that button.
