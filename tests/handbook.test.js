@@ -19,10 +19,11 @@ test('inline shows code as plain text and renders links, bold and italics', () =
 });
 
 test('inline only links relative, anchor and http(s) URLs', () => {
-  assert.equal(HB.inline('[x](javascript:alert(1))'), 'x');
+  assert.ok(!HB.inline('[x](javascript:alert(1))').includes('<a'), 'no link for javascript: URLs');
   assert.equal(HB.inline('[a](https://example.com/p)'), '<a href="https://example.com/p">a</a>');
   assert.equal(HB.inline('[b](#top)'), '<a href="#top">b</a>');
   assert.equal(HB.inline('[c](../scale-in/)'), '<a href="../scale-in/">c</a>');
+  assert.equal(HB.inline('(see [Scale In](../scale-in/))'), '(see <a href="../scale-in/">Scale In</a>)');
 });
 
 test('sections splits a README by its ## headings', () => {

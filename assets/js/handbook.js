@@ -37,7 +37,7 @@
   function inline(md) {
     return escapeHtml(md)
       .replace(/`([^`]+)`/g, '$1')
-      .replace(/\[([^\]]+)\]\(([^\s]+)\)/g, function (m, label, href) {
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, label, href) {
         return isSafeHref(href) ? '<a href="' + href + '">' + label + '</a>' : label;
       })
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
