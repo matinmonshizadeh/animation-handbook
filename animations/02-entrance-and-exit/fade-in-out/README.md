@@ -34,10 +34,8 @@ card.classList.add('in');
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 600ms | Under 150ms barely registers; over a second feels slow for interface elements |
-| Easing | Ease out | Starts fast and settles gently, the natural feel for an entrance |
-| Hold time | 0.8s | How long the element stays visible before Auto-loop fades it out again |
-| Auto-loop | off | Repeats in, hold and out so you can watch it again |
+| Speed | Normal | How long the fade takes: slow is 1000ms, normal 600ms and fast 350ms; under 150ms a fade barely registers |
+| Feel | Smooth | Smooth starts quickly and settles gently, the natural feel for an entrance; Gentle eases in and out; Even keeps one steady pace |
 
 ## Production notes
 - **Animate `opacity`, nothing else.** It is compositor-only, so a fade holds 60fps even on low-end mobile. Fading `visibility` or `display` instead does not animate at all — those are discrete properties.
@@ -46,7 +44,7 @@ card.classList.add('in');
 - **Library equivalents:** GSAP `gsap.to(el, { opacity: 1 })` or the `.fromTo()` form; Framer Motion `animate={{ opacity: 1 }}` with `AnimatePresence` for exit fades; Motion One `animate(el, { opacity: [0, 1] })`.
 
 ## See also
-- [Slide In](../slide-in/) — add directional travel to the fade
-- [Scale In / Zoom In](../scale-in/) — pair a fade with a scale for a physical arrival
-- [Blur In](../blur-in/) — fade combined with a focus pull
-- [Clip-Path Reveal](../clip-path-reveal/) — reveal without changing opacity at all
+- [Slide In](../slide-in/) — travels in from one edge as it fades
+- [Scale In / Zoom In](../scale-in/) — grows from smaller to full size
+- [Blur In](../blur-in/) — sharpens from a blur as it fades in
+- [Clip-Path Reveal](../clip-path-reveal/) — a shape uncovers it, with no fade
