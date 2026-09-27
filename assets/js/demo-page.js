@@ -27,7 +27,8 @@
   }
 
   // Only relative paths, "#" anchors and http(s) URLs are link targets. Anything else, including
-  // protocol-relative "//host" links, is rendered as plain text instead.
+  // protocol-relative "//host" links, is rendered as plain text instead. handbook.js has an older,
+  // looser copy that lets "//host" through; this is the one to keep.
   function isSafeHref(href) {
     href = String(href);
     return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) && !/^\/\//.test(href) &&
@@ -196,16 +197,36 @@
 
     function setUpCopy() {
       var label = copyBtn.querySelector('.hb-copy-label') || copyBtn;
+      var original = label.textContent;
       var timer = 0;
       function show(message, done) {
         label.textContent = message;
         copyBtn.classList.toggle('is-done', done);
         win.clearTimeout(timer);
         timer = win.setTimeout(function () {
-          label.textContent = 'Copy prompt';
+          label.textContent = original;
           copyBtn.classList.remove('is-done');
         }, 1500);
       }
+      // Where the clipboard API is blocked, copy through an off-screen text box so the settings line still comes along.
+      function copyThroughTextBox(textToCopy) {
+        var box = doc.createElement('textarea');
+        box.value = textToCopy;
+        box.setAttribute('readonly', '');
+        box.style.position = 'fixed';
+        box.style.top = '-1000px';
+        box.style.opacity = '0';
+        doc.body.appendChild(box);
+        box.focus({ preventScroll: true });
+        box.select();
+        box.setSelectionRange(0, box.value.length);
+        var copied = false;
+        try { copied = doc.execCommand('copy'); } catch (e) { copied = false; }
+        doc.body.removeChild(box);
+        copyBtn.focus({ preventScroll: true });
+        return copied;
+      }
+      // Last resort: select the prompt so the visitor can copy it with the keyboard.
       function selectInstead() {
         var range = doc.createRange();
         range.selectNodeContents(promptEl);
@@ -214,10 +235,18 @@
         selection.addRange(range);
         show(/Mac|iPhone|iPad/.test(win.navigator.platform || win.navigator.userAgent) ? 'Press ⌘C to copy' : 'Press Ctrl+C to copy', false);
       }
-      copyBtn.addEventListener('click', function () {
-        var clip = win.navigator.clipboard;
-        if (clip && clip.writeText) clip.writeText(copyText()).then(function () { show('Copied', true); }, selectInstead);
+      function fallback(textToCopy) {
+        if (copyThroughTextBox(textToCopy)) show('Copied', true);
         else selectInstead();
+      }
+      copyBtn.addEventListener('click', function () {
+        var textToCopy = copyText();
+        var clip = win.navigator.clipboard;
+        if (clip && clip.writeText) {
+          clip.writeText(textToCopy).then(function () { show('Copied', true); }, function () { fallback(textToCopy); });
+        } else {
+          fallback(textToCopy);
+        }
       });
     }
 
@@ -247,7 +276,7 @@
     // Changing a setting updates the chips and replays the animation shortly after the last change.
     var replayTimer = 0;
     function onSettingsChange(e) {
-      if (e.type === 'click' && !e.target.closest('.seg, .swatches')) return;
+      if (e.type === 'click' && !e.target.closest('.seg button, .swatches button')) return;
       win.setTimeout(refreshChips, 0);
       win.clearTimeout(replayTimer);
       replayTimer = win.setTimeout(replay, 250);
