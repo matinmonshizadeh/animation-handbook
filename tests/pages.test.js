@@ -94,6 +94,8 @@ for (const d of steps) {
     for (const marker of ['data-hb-loop', 'data-hb-slowmo']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
+      const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];
+      assert.ok(!/\schecked\b/.test(input), `${marker} switch starts unchecked`);
     }
     const tryIt = between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
     const main = between(tryIt, '<div class="hb-settings">', '<details class="hb-options">');
