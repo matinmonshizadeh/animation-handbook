@@ -335,7 +335,7 @@ None: leave out the `details.hb-options` block.
   - [Word-by-Word Reveal](../word-by-word-reveal/) — one word at a time, at a reading pace
   - [Fade In / Fade Out](../fade-in-out/) — the whole text fades in at once
 
-  Two link texts change to the pages' real titles: "Letter By Letter Stagger" and "Word By Word Reveal".
+  Two link texts change to the pages' real titles: "Letter-by-Letter Stagger" and "Word-by-Word Reveal" (today they read "Letter By Letter Stagger" and "Word By Word Reveal").
 - **README How it works:** unchanged
 
 ---
@@ -387,7 +387,7 @@ None: leave out the `details.hb-options` block.
   - [Split Text Reveal](../split-text-reveal/) — text breaks into letters, words or lines
   - [Blur In](../blur-in/) — sharpens from a blur as it fades in
 
-  One link text changes to the page's real title: "Split-Text Reveal".
+  One link text changes to the page's real title: "Split Text Reveal" (today it reads "Split-Text Reveal").
 - **README How it works:** unchanged
 
 ---
@@ -439,7 +439,7 @@ None: leave out the `details.hb-options` block.
   - [Split Text Reveal](../split-text-reveal/) — text breaks into letters, words or lines
   - [Fade In / Out](../fade-in-out/) — the whole text fades in at once
 
-  One link text changes to the page's real title: "Split-Text Reveal".
+  One link text changes to the page's real title: "Split Text Reveal" (today it reads "Split-Text Reveal").
 - **README How it works:** snippets unchanged if the new script keeps the name `punctTog` for the Pauses between sentences switch (otherwise rename it in the snippet); in the last paragraph, 'The "sentence pauses" option' becomes 'The Pauses between sentences switch'
 
 ---
