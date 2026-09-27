@@ -38,11 +38,11 @@ root.style.setProperty('--fade', withFade ? '0' : '1');
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Direction | Top | Which edge the element travels in from |
-| Distance | 200px | Short distances (20 to 40px) suit subtle interface motion; long ones feel dramatic |
-| Duration | 600ms | Longer distances need more time so the speed still feels believable |
-| Easing | Ease out | Slows down into place; Springy adds a small overshoot |
-| Combine with fade | on | A slide alone looks mechanical; the fade makes it read as an arrival |
+| Comes in from | Top | Which edge it travels in from |
+| How far it travels | Medium | How far away it starts: short is 50px, medium 200px and far 400px; short distances suit subtle interface motion, long ones feel dramatic |
+| Speed | Normal | How long the slide takes: slow is 1000ms, normal 600ms and fast 350ms; longer distances need more time so the speed still feels believable |
+| Feel | Smooth | Smooth slows down into place; Springy adds a small overshoot; Gentle eases in and out; Even keeps one steady pace |
+| Fades in | on | A slide alone looks mechanical; the fade makes it read as an arrival |
 
 ## Production notes
 - **Use `transform`, never `top`/`left`/`margin`.** Translating stays on the compositor; animating layout properties forces reflow every frame and drops frames on mobile.
@@ -52,7 +52,7 @@ root.style.setProperty('--fade', withFade ? '0' : '1');
 - **Library equivalents:** GSAP `gsap.from(el, { x: 200, autoAlpha: 0 })`; Framer Motion `initial={{ x: 200, opacity: 0 }} animate={{ x: 0, opacity: 1 }}`; Motion One `animate(el, { transform: ['translateX(200px)', 'none'], opacity: [0, 1] })`.
 
 ## See also
-- [Fade In / Fade Out](../fade-in-out/) — the fade this pairs with
-- [Slide Up Reveal](../slide-up-reveal/) — slide constrained behind a clip boundary
-- [Scale In / Zoom In](../scale-in/) — arrival via size instead of position
-- [Bounce In](../bounce-in/) — slide with an elastic settle
+- [Fade In / Fade Out](../fade-in-out/) — the plain fade, with no travel
+- [Slide Up Reveal](../slide-up-reveal/) — text rises from behind an invisible edge
+- [Scale In / Zoom In](../scale-in/) — grows into place instead of moving
+- [Bounce In](../bounce-in/) — lands with a springy bounce
