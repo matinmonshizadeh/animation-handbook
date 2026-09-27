@@ -57,7 +57,9 @@ each page, so a demo that works differently (hover, scroll, drag) can say so ("H
 | Settings in Try it and More options | two per row | two per row from 760px, one per row below | one per row, choices fill the width |
 | Prompt | whole text | whole text | first five lines, then "Show the full prompt" |
 
-Headings scale with `clamp()`. Every button, switch and link is at least 44×44px on phones.
+Headings scale with `clamp()`. Every button, switch and link is at least 44×44px on phones. On short laptop screens
+(601px wide or more and at most 760px tall) the header tightens and the stage can shrink to 260px, so the stage and
+player bar still fit on the first screen.
 
 ---
 
@@ -66,15 +68,17 @@ Headings scale with `clamp()`. Every button, switch and link is at least 44×44p
 - **Plays by itself.** When the page opens, Loop is on and the demo starts looping about 400ms after load. With
   reduced motion turned on, Loop starts off and the demo shows its resting state.
 - **Replay** plays the animation from the start. If Loop is on, it keeps looping from there.
-- **Slow motion** makes the whole animation three times slower, including the demo's own timers; it takes effect
-  from the next play, so the page replays straight away.
+- **Slow motion** makes every movement three times slower: the demo stretches its own durations and the timers that
+  wait for them, while the pauses between loops keep their length. It takes effect from the next play, so the page
+  replays straight away.
 - **Changing a setting** replays the animation about 250ms after the last change, whether or not Loop is on, and
   updates the "Your settings" chips. Each chip reads `<label>: <value>` ("Speed: Normal", "Fades in: on").
 - **More options** is a native `<details>` disclosure; its label reads "More options" when closed and "Fewer options"
   when open. Settings inside it still count in "Your settings" and in the copied prompt while it is closed.
 - **Copy prompt** copies the prompt, a blank line and `Settings from the demo: <label>: <value>, …`. The button says
-  "Copied" for 1.5 seconds. If the clipboard is blocked, the prompt text is selected and the button shows the copy
-  shortcut (Ctrl+C, or ⌘C on a Mac).
+  "Copied" for 1.5 seconds. If the browser blocks the clipboard, the page copies the same text through an off-screen
+  text box; only if that fails too is the prompt selected, with the button showing the copy shortcut (Ctrl+C, or ⌘C
+  on a Mac).
 - **Opened from disk (`file://`):** the demo, settings and prompt work; What it is shows a link to `README.md`
   instead, and Similar animations stays hidden.
 
@@ -213,6 +217,30 @@ The other twelve Entrance & Exit pages stay on the first redesign until the user
   What it is and Similar animations render; touch targets are at least 44px on the phone size.
 
 ---
+
+## Open template questions for the rollout
+
+The final review of the pilot found these. Rotate In does not need them, but the other pages do, so they are settled
+in this spec and in `demo-page.css` / `demo-page.js` before the rollout plan is written.
+
+- **Top bar on phones with both links.** Most pages have Previous and Next; at 375px the names wrap to several lines.
+  On phones, show only the chevrons (the links keep their full names as labels).
+- **Who owns the stage.** The page owns its width, height, border and corners. Overflow, background and alignment
+  belong to the demo: 19 of the 26 scroll-based demos scroll inside `.stage`. Move those into a low-specificity rule
+  and add a height variable for demos that need a different height.
+- **Player bar variants.** Ambient loops use Pause rather than Replay, some scroll demos have "Reset scroll", and
+  hover, click and drag demos are started by the visitor. Define a Pause/Play marker and its autoplay rule, decide
+  whether Slow motion applies to continuous loops, allow pages without a player bar, and relax the "one Replay"
+  page check.
+- **Every control type in Try it.** Markup and styles for sliders (with a shown value such as
+  `<output class="hb-value">`), selects, swatches, colour inputs and radio groups; a label fallback to the nearest
+  `.hb-setting-name`; a page check that every control has a label and every choice group has exactly one pressed
+  button; a console warning when a label or value comes out empty.
+- **Reduced motion.** One rule for what Loop and Slow motion do when the visitor asks for reduced motion.
+- **README checks.** Run the See also and "ready for the site" checks on every guided-steps page, not only Entrance &
+  Exit.
+- **Home page.** Its cards still show each demo's old description; update them to the new one-line descriptions.
+- **Wrap-up.** `tests/pages.test.js` imports `sections` and `table` from `handbook.js`; move them before deleting it.
 
 ## Rollout (after the user approves the pilot)
 
