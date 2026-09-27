@@ -31,11 +31,11 @@ The default easing is `cubic-bezier(.34,1.56,.64,1)` — its control point above
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Start scale | 0.80 | Close to 1 is subtle; below 0.5 reads as a big zoom |
-| Duration | 500ms | A springy curve needs room to overshoot and settle; under 300ms cuts the bounce short |
-| Easing | Springy | Adds the overshoot; Ease out gives a calmer arrival |
-| Transform origin | Center | The point the element grows from |
-| Combine with fade | on | Stops the element flashing at full strength while it is still tiny |
+| Starting size | A bit smaller | How small it starts: a bit smaller is 80% of full size, half size 50% and from nothing 0%; close to full size is subtle, below half reads as a big zoom |
+| Grows from | Center | The point it grows from: the center, the top left corner, the top edge or the bottom edge |
+| Speed | Normal | How long it takes: slow is 800ms, normal 500ms and fast 300ms; a springy curve needs room to overshoot and settle |
+| Feel | Springy | Springy overshoots and settles; Smooth and Gentle arrive more calmly; Even keeps one steady pace |
+| Fades in | on | Stops the element flashing at full strength while it is still tiny |
 
 ## Production notes
 - **Anchor the origin to the trigger.** A popover that scales from `center` feels disconnected; setting `transform-origin` to the corner nearest its button makes it feel like it grew *out of* that button.
@@ -45,7 +45,7 @@ The default easing is `cubic-bezier(.34,1.56,.64,1)` — its control point above
 - **Library equivalents:** GSAP `gsap.from(el, { scale: 0.8, autoAlpha: 0, ease: 'back.out(1.7)' })` — `back.out` is the same overshoot; Framer Motion `initial={{ scale: 0.8, opacity: 0 }}` with a `type: 'spring'` transition; Motion One `animate(el, { transform: ['scale(0.8)', 'none'], opacity: [0, 1] })`.
 
 ## See also
-- [Fade In / Fade Out](../fade-in-out/) — the fade this layers on top of
-- [Bounce In](../bounce-in/) — a more pronounced elastic entrance
-- [Slide In](../slide-in/) — arrival via position instead of size
-- [Flip In](../flip-in/) — arrival via 3D rotation
+- [Fade In / Fade Out](../fade-in-out/) — the plain fade, with no size change
+- [Bounce In](../bounce-in/) — a bigger, springier landing
+- [Slide In](../slide-in/) — travels into place instead of growing
+- [Flip In](../flip-in/) — swings in like a card turning over
