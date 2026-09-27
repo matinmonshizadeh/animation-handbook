@@ -11,7 +11,7 @@ A slide-up reveal makes a line of text rise into view from behind an invisible e
 - Any place a plain fade feels too flat and you want the text to feel *lifted* into place
 
 ## How it works
-There are two ways to achieve the identical visual, and the demo toggles between them. **Method A** wraps each line in an `overflow: hidden` container and pushes the inner text down by `translateY(110%)`; adding `.in` returns it to `0`. **Method B** leaves the text in place and animates a `clip-path: inset()` from fully clipped at the bottom to fully open — no wrapper needed:
+There are two ways to achieve the identical visual, and the Reveal style setting switches between them (Slide is Method A, Wipe is Method B). **Method A** wraps each line in an `overflow: hidden` container and pushes the inner text down by `translateY(110%)`; adding `.in` returns it to `0`. **Method B** leaves the text in place and animates a `clip-path: inset()` from fully clipped at the bottom to fully open — no wrapper needed:
 
 ```css
 /* Method A — translateY inside a clipping wrapper */
@@ -34,11 +34,10 @@ Multiple lines stagger through a per-line `--d` index multiplied by a `--stagger
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Technique | Move | Two ways to build it that look identical: moving the text up, or clipping it from below |
-| Duration | 700ms | How long each line takes to rise |
-| Easing | Smooth | Slows smoothly to a stop; Springy adds a slight settle |
-| Line stagger | 60ms | Delay between lines; 40 to 80ms reads as a cascade |
-| Multi-line (3 lines) | on | Shows three lines so you can see the stagger |
+| Speed | Normal | How long each line takes to rise: slow is 1100ms, normal 700ms and fast 400ms |
+| Delay between lines | Medium | The wait before each next line starts: short is 30ms, medium 60ms and long 120ms; 40 to 80ms reads as a cascade |
+| Reveal style | Slide | Two ways to build it that look almost the same: sliding the text up behind a hidden edge, or wiping it into view in place |
+| Feel | Smooth | Smooth slows to a stop; Springy adds a slight settle; Even keeps one steady pace |
 
 ## Production notes
 - **`translateY(110%)`, not `100%`.** The extra 10% covers descenders (g, y, p) and line-height slack so no sliver of the glyph peeks above the boundary before it moves.
@@ -47,7 +46,7 @@ Multiple lines stagger through a per-line `--d` index multiplied by a `--stagger
 - **Library equivalents:** GSAP's SplitText plugin plus a `y: '110%'` tween is the classic production recipe; Framer Motion animates `y` inside a `overflow-hidden` wrapper with `staggerChildren`; Motion One `animate` with a `delay` derived from index.
 
 ## See also
-- [Split Text Reveal](../split-text-reveal/) — apply this per character or word, not per line
-- [Curtain Reveal](../curtain-reveal/) — a moving bar uncovers content instead of a fixed edge
-- [Clip-Path Reveal](../clip-path-reveal/) — the same clip mechanic on any element
-- [Slide In](../slide-in/) — unclipped directional entry
+- [Split Text Reveal](../split-text-reveal/) — text appears piece by piece, not line by line
+- [Curtain Reveal](../curtain-reveal/) — a colored panel covers it, then slides away
+- [Clip-Path Reveal](../clip-path-reveal/) — a shape uncovers any element
+- [Slide In](../slide-in/) — travels in from any edge, with nothing hiding it
