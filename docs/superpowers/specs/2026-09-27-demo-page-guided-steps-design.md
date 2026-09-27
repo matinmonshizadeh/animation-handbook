@@ -75,8 +75,8 @@ Headings scale with `clamp()`. Every button, switch and link is at least 44×44p
 - **Copy prompt** copies the prompt, a blank line and `Settings from the demo: <label>: <value>, …`. The button says
   "Copied" for 1.5 seconds. If the clipboard is blocked, the prompt text is selected and the button shows the copy
   shortcut (Ctrl+C, or ⌘C on a Mac).
-- **Opened from disk (`file://`):** the demo, settings and prompt work; What it is and Similar animations show a link
-  to `README.md` instead.
+- **Opened from disk (`file://`):** the demo, settings and prompt work; What it is shows a link to `README.md`
+  instead, and Similar animations stays hidden.
 
 ---
 
