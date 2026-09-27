@@ -1,9 +1,10 @@
-// Static checks for demo pages that use the shared layout, their READMEs and the home page.
+// Static checks for demo pages that use the shared layouts, their READMEs and the home page.
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { sections, table } = require('../assets/js/handbook.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -11,24 +12,37 @@ const read = f => fs.readFileSync(f, 'utf8');
 const count = (s, sub) => s.split(sub).length - 1;
 const words = s => s.trim().split(/\s+/).length;
 const isDemoDir = dir => fs.existsSync(path.join(dir, 'index.html'));
+// The part of s from the first `from` up to the next `to` after it ('' when `from` is missing).
+const between = (s, from, to) => {
+  const start = s.indexOf(from);
+  if (start < 0) return '';
+  const end = s.indexOf(to, start + from.length);
+  return s.slice(start, end < 0 ? undefined : end);
+};
 
 const demos = fs.readdirSync(ANIM, { withFileTypes: true }).filter(c => c.isDirectory()).flatMap(c =>
   fs.readdirSync(path.join(ANIM, c.name), { withFileTypes: true }).filter(d => d.isDirectory())
     .map(d => ({ cat: c.name, slug: d.name, dir: path.join(ANIM, c.name, d.name) })));
-const converted = demos.filter(d => read(path.join(d.dir, 'index.html')).includes('<main class="hb-view">'));
+const pageOf = d => read(path.join(d.dir, 'index.html'));
+const converted = demos.filter(d => pageOf(d).includes('<main class="hb-view">'));
+const steps = demos.filter(d => pageOf(d).includes('<main class="hb-page">'));
 
 const PILOT = '02-entrance-and-exit';
 const PILOT_AUTOPLAY = new Set(['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal',
   'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in']);
 
-test('every Entrance & Exit demo uses the shared layout', () => {
-  const left = demos.filter(d => d.cat === PILOT && !converted.includes(d)).map(d => d.slug);
+test('every Entrance & Exit demo uses one of the shared layouts', () => {
+  const left = demos.filter(d => d.cat === PILOT && !converted.includes(d) && !steps.includes(d)).map(d => d.slug);
   assert.deepEqual(left, []);
+});
+
+test('Rotate In uses the guided-steps page', () => {
+  assert.ok(steps.some(d => d.cat === PILOT && d.slug === 'rotate-in'));
 });
 
 for (const d of converted) {
   test(`${d.cat}/${d.slug} uses the shared layout correctly`, () => {
-    const html = read(path.join(d.dir, 'index.html'));
+    const html = pageOf(d);
     assert.ok(html.includes('<link rel="stylesheet" href="../../../assets/css/handbook.css">'), 'shared stylesheet');
     assert.ok(html.includes('<script src="../../../assets/js/handbook.js" defer></script>'), 'shared script');
     assert.match(html, /<body class="hb"( data-hb-autoplay)?>/);
@@ -52,7 +66,60 @@ for (const d of converted) {
   });
 }
 
-const { sections, table } = require('../assets/js/handbook.js');
+for (const d of steps) {
+  test(`${d.cat}/${d.slug} uses the guided-steps page correctly`, () => {
+    const html = pageOf(d);
+    assert.ok(html.includes('<link rel="stylesheet" href="../../../assets/css/demo-page.css">'), 'page stylesheet');
+    assert.ok(html.includes('<script src="../../../assets/js/demo-page.js" defer></script>'), 'page script');
+    assert.match(html, /<body class="hb"( data-hb-autoplay)?>/);
+    for (const old of ['handbook.css', 'handbook.js', 'hb-view', 'hb-side', 'hb-take', 'ah-bar', 'Copy source', 'Read more',
+      'class="note"', 'class="kv"', 'class="lbl"', 'class="btn-row"', 'Bricolage', 'PlexMono']) {
+      assert.ok(!html.includes(old), `old markup left: ${old}`);
+    }
+    for (const part of ['<nav class="hb-bar"', '<main class="hb-page">', '<header class="hb-head">',
+      '<section class="hb-step hb-watch"', '<div class="hb-player">', '<section class="hb-step hb-try"',
+      '<section class="hb-step hb-prompt-step"', '<p class="hb-prompt">', '<ul class="hb-chips">',
+      '<button class="hb-copy" type="button">', '<section class="hb-about"', '<ul class="hb-tags hb-good">',
+      '<ul class="hb-tags hb-avoid">', '<section class="hb-related"', '<footer class="hb-foot">']) {
+      assert.equal(count(html, part), 1, `exactly one ${part}`);
+    }
+    assert.match(html, /<p class="hb-cat">\d{2}\.\d{2} · [^<]+<\/p>/);
+    const prompt = html.match(/<p class="hb-prompt">([^<]*)<\/p>/)[1];
+    assert.ok(words(prompt) >= 60 && words(prompt) <= 130, `prompt has ${words(prompt)} words`);
+    assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
+    assert.ok(!prompt.includes('`'), 'prompt contains no code');
+    const player = between(html, '<div class="hb-player">', '</div>');
+    assert.equal(count(html, 'data-hb-replay'), 1, 'one Replay control');
+    assert.ok(player.includes('data-hb-replay'), 'Replay is in the player bar');
+    for (const marker of ['data-hb-loop', 'data-hb-slowmo']) {
+      assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
+      assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
+    }
+    const tryIt = between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
+    const main = between(tryIt, '<div class="hb-settings">', '<details class="hb-options">');
+    const mainCount = count(main, 'class="hb-setting"');
+    assert.ok(mainCount >= 1 && mainCount <= 3, `${mainCount} main settings`);
+    assert.equal(count(tryIt, 'class="hb-hint"'), count(tryIt, 'class="hb-setting"'), 'every setting has one hint');
+    const good = count(between(html, '<ul class="hb-tags hb-good">', '</ul>'), '<li>');
+    const avoid = count(between(html, '<ul class="hb-tags hb-avoid">', '</ul>'), '<li>');
+    assert.ok(good >= 3 && good <= 5, `${good} Good for tags`);
+    assert.ok(avoid >= 1 && avoid <= 3, `${avoid} Avoid on tags`);
+    for (const [, href] of html.matchAll(/<a href="([^"]+)" rel="(?:prev|next)"/g)) {
+      assert.ok(isDemoDir(path.resolve(d.dir, href)), `pager link ${href}`);
+    }
+  });
+
+  test(`${d.slug}: every Key parameters name is a setting in Try it`, () => {
+    const tryIt = between(pageOf(d), '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"')
+      .replace(/<[^>]+>/g, ' ');
+    const rows = sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n').slice(2);
+    for (const row of rows) {
+      const name = (row.split('|')[1] || '').trim();
+      if (name) assert.ok(tryIt.includes(name), `setting "${name}"`);
+    }
+  });
+}
+
 const PILOT_SLUGS = ['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal', 'curtain-reveal',
   'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in'];
 
@@ -72,7 +139,7 @@ for (const slug of PILOT_SLUGS) {
 
 for (const d of converted.filter(c => c.cat === PILOT)) {
   test(`${d.slug}: every Key parameters name is a control on the page`, () => {
-    const html = read(path.join(d.dir, 'index.html'));
+    const html = pageOf(d);
     const panel = html.slice(html.indexOf('<section class="hb-settings"'), html.indexOf('<div class="hb-take">')).replace(/<[^>]+>/g, ' ');
     const rows = sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n').slice(2);
     for (const row of rows) {
