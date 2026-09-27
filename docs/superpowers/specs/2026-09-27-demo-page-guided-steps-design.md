@@ -53,7 +53,7 @@ each page, so a demo that works differently (hover, scroll, drag) can say so ("H
 | | Desktop (≥ 1025px) | Tablet (601–1024px) | Phone (≤ 600px) |
 |---|---|---|---|
 | Column | 960px max, centred | full width, 24–40px side padding | full width, 16px side padding |
-| Stage height | `clamp(300px, 50vh, 440px)` | same | 300px |
+| Stage height | `clamp(300px, 100svh − 420px, 440px)`, so the stage and player bar fit on a laptop's first screen | same | 300px |
 | Settings in Try it and More options | two per row | two per row from 760px, one per row below | one per row, choices fill the width |
 | Prompt | whole text | whole text | first five lines, then "Show the full prompt" |
 
