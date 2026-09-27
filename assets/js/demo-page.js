@@ -1,9 +1,17 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
+ * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
+ * animations", plays the demo on arrival and replays it when a setting changes.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) { module.exports = api; return; }
   root.DemoPage = api;
+  if (typeof document === 'undefined') return;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { api.boot(document, root); });
+  } else {
+    api.boot(document, root);
+  }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
@@ -85,8 +93,186 @@
     });
   }
 
+  /* ---------- Page behaviour ---------- */
+
+  var CONTROLS = 'input[type=range], input[type=checkbox], select, .seg, .swatches';
+
+  function text(node) { return node ? node.textContent.replace(/\s+/g, ' ').trim() : ''; }
+
+  function labelFor(doc, control) {
+    var own = control.getAttribute('data-hb-label');
+    if (own) return own;
+    var by = control.getAttribute('aria-labelledby');
+    if (by && doc.getElementById(by)) return text(doc.getElementById(by));
+    var wrap = control.closest('label');
+    if (wrap) return text(wrap);
+    var byFor = control.id && doc.querySelector('label[for="' + control.id + '"]');
+    return byFor ? text(byFor) : '';
+  }
+
+  function valueFor(control) {
+    if (control.matches('input[type=range]')) {
+      var row = control.closest('.sr');
+      var shown = row && row.querySelector('.sv');
+      return shown ? text(shown) : (control.getAttribute('aria-valuetext') || control.value);
+    }
+    if (control.matches('input[type=checkbox]')) return control.checked ? 'on' : 'off';
+    if (control.matches('select')) return control.selectedOptions[0] ? text(control.selectedOptions[0]) : control.value;
+    var active = control.querySelector('.on, [aria-pressed="true"]');
+    return active ? (active.getAttribute('aria-label') || text(active)) : '';
+  }
+
+  // A control counts unless it, or anything between it and the scope, is hidden, skipped or
+  // display:none. Controls inside a closed More options still count: <details> hides them another way.
+  function isShown(control, scope, win) {
+    for (var node = control; node && node !== scope; node = node.parentElement) {
+      if (node.hidden || node.hasAttribute('data-hb-skip')) return false;
+      if (win.getComputedStyle(node).display === 'none') return false;
+    }
+    return true;
+  }
+
+  // The demo's current settings in page order, as [{ label, value }].
+  function readSettings(doc, scope, win) {
+    return Array.prototype.filter.call(scope.querySelectorAll(CONTROLS), function (control) {
+      return isShown(control, scope, win);
+    }).map(function (control) {
+      return { label: labelFor(doc, control), value: valueFor(control) };
+    });
+  }
+
+  function boot(doc, win) {
+    var page = doc.querySelector('.hb-page');
+    var promptEl = page && page.querySelector('.hb-prompt');
+    if (!promptEl) return;
+
+    var tryStep = page.querySelector('.hb-try');
+    var chipsBox = page.querySelector('.hb-chips-box');
+    var chips = chipsBox && chipsBox.querySelector('.hb-chips');
+    var copyBtn = page.querySelector('.hb-copy');
+    var replayCtl = page.querySelector('[data-hb-replay]');
+    var loopCtl = page.querySelector('[data-hb-loop]');
+    var slowCtl = page.querySelector('[data-hb-slowmo]');
+    var reduce = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var promptText = text(promptEl);
+
+    function settings() {
+      if (!tryStep) return [];
+      return readSettings(doc, tryStep, win).filter(function (s) { return s.label && s.value; });
+    }
+    function copyText() {
+      var line = settingsLine(settings());
+      return promptText + (line ? '\n\nSettings from the demo: ' + line + '.' : '');
+    }
+    function replay() { if (replayCtl) replayCtl.click(); }
+
+    // The prompt: highlight the part to fill in; on phones show five lines until "Show the full prompt".
+    function setUpPrompt() {
+      promptEl.innerHTML = markFill(promptText);
+      promptEl.id = promptEl.id || 'hb-prompt';
+      promptEl.classList.add('is-clamped');
+      var toggle = doc.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'hb-prompt-more';
+      toggle.setAttribute('aria-controls', promptEl.id);
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.textContent = 'Show the full prompt';
+      toggle.addEventListener('click', function () {
+        var open = !promptEl.classList.toggle('is-clamped');
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.textContent = open ? 'Show less' : 'Show the full prompt';
+      });
+      promptEl.insertAdjacentElement('afterend', toggle);
+    }
+
+    function refreshChips() {
+      if (!chips) return;
+      var items = settings();
+      chips.innerHTML = items.map(function (s) {
+        return '<li>' + escapeHtml(s.label) + ': ' + escapeHtml(s.value) + '</li>';
+      }).join('');
+      chipsBox.hidden = !items.length;
+    }
+
+    function setUpCopy() {
+      var label = copyBtn.querySelector('.hb-copy-label') || copyBtn;
+      var timer = 0;
+      function show(message, done) {
+        label.textContent = message;
+        copyBtn.classList.toggle('is-done', done);
+        win.clearTimeout(timer);
+        timer = win.setTimeout(function () {
+          label.textContent = 'Copy prompt';
+          copyBtn.classList.remove('is-done');
+        }, 1500);
+      }
+      function selectInstead() {
+        var range = doc.createRange();
+        range.selectNodeContents(promptEl);
+        var selection = win.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        show(/Mac|iPhone|iPad/.test(win.navigator.platform || win.navigator.userAgent) ? 'Press ⌘C to copy' : 'Press Ctrl+C to copy', false);
+      }
+      copyBtn.addEventListener('click', function () {
+        var clip = win.navigator.clipboard;
+        if (clip && clip.writeText) clip.writeText(copyText()).then(function () { show('Copied', true); }, selectInstead);
+        else selectInstead();
+      });
+    }
+
+    // What it is and Similar animations from the README. Opened from disk, the README link stays.
+    function loadReadme() {
+      var what = page.querySelector('.hb-what-text');
+      var related = page.querySelector('.hb-related');
+      if (!what || win.location.protocol === 'file:' || !win.fetch) return;
+      win.fetch('README.md').then(function (res) {
+        if (!res.ok) throw new Error('README ' + res.status);
+        return res.text();
+      }).then(function (md) {
+        var s = sections(md);
+        if (s['What it is']) what.innerHTML = paragraphs(s['What it is']);
+        var list = related && related.querySelector('.hb-rel-list');
+        var cards = seeAlso(s['See also']).filter(function (r) { return isSafeHref(r.href); });
+        if (!list || !cards.length) return;
+        list.innerHTML = cards.map(function (r) {
+          var desc = r.desc.replace(/^[a-z]/, function (c) { return c.toUpperCase(); });
+          return '<a class="hb-rel" href="' + escapeHtml(r.href) + '"><b>' + r.name + '</b>' +
+            (desc ? '<span>' + desc + '</span>' : '') + '</a>';
+        }).join('');
+        related.hidden = false;
+      }).catch(function () {});
+    }
+
+    // Changing a setting updates the chips and replays the animation shortly after the last change.
+    var replayTimer = 0;
+    function onSettingsChange(e) {
+      if (e.type === 'click' && !e.target.closest('.seg, .swatches')) return;
+      win.setTimeout(refreshChips, 0);
+      win.clearTimeout(replayTimer);
+      replayTimer = win.setTimeout(replay, 250);
+    }
+
+    setUpPrompt();
+    if (copyBtn) setUpCopy();
+    if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
+    if (slowCtl) slowCtl.addEventListener('change', replay);
+    if (doc.body.hasAttribute('data-hb-autoplay')) {
+      win.setTimeout(function () {
+        if (loopCtl && !(reduce && reduce.matches)) {
+          if (!loopCtl.checked) loopCtl.click();
+        } else {
+          replay();
+        }
+      }, 400);
+    }
+    refreshChips();
+    loadReadme();
+  }
+
   return {
     escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
-    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill
+    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill,
+    readSettings: readSettings, boot: boot
   };
 });

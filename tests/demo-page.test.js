@@ -70,3 +70,8 @@ test('markFill highlights the parts in square brackets and escapes the rest', ()
     'Add it to <mark class="hb-fill">[the icon you want]</mark> &amp; &lt;go&gt;.');
   assert.equal(DP.markFill('No brackets here.'), 'No brackets here.');
 });
+
+test('the module exports boot and readSettings without touching a DOM', () => {
+  assert.equal(typeof DP.boot, 'function');
+  assert.equal(typeof DP.readSettings, 'function');
+});
