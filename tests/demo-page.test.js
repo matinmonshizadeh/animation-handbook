@@ -75,3 +75,10 @@ test('the module exports boot and readSettings without touching a DOM', () => {
   assert.equal(typeof DP.boot, 'function');
   assert.equal(typeof DP.readSettings, 'function');
 });
+
+test('shorten squeezes whitespace and cuts long text with an ellipsis', () => {
+  assert.equal(DP.shorten('  Hello \n  world ', 40), 'Hello world');
+  assert.equal(DP.shorten('abcdefghij', 5), 'abcd…');
+  assert.equal(DP.shorten('abc de', 5), 'abc…');
+  assert.equal(DP.shorten('', 5), '');
+});

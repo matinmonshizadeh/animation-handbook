@@ -19,6 +19,7 @@ const between = (s, from, to) => {
   const end = s.indexOf(to, start + from.length);
   return s.slice(start, end < 0 ? undefined : end);
 };
+const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
 const demos = fs.readdirSync(ANIM, { withFileTypes: true }).filter(c => c.isDirectory()).flatMap(c =>
   fs.readdirSync(path.join(ANIM, c.name), { withFileTypes: true }).filter(d => d.isDirectory())
@@ -26,6 +27,7 @@ const demos = fs.readdirSync(ANIM, { withFileTypes: true }).filter(c => c.isDire
 const pageOf = d => read(path.join(d.dir, 'index.html'));
 const converted = demos.filter(d => pageOf(d).includes('<main class="hb-view">'));
 const steps = demos.filter(d => pageOf(d).includes('<main class="hb-page">'));
+const HOME = read(path.join(ROOT, 'index.html'));
 
 const PILOT = '02-entrance-and-exit';
 const PILOT_AUTOPLAY = new Set(['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal',
@@ -71,7 +73,9 @@ for (const d of steps) {
     const html = pageOf(d);
     assert.ok(html.includes('<link rel="stylesheet" href="../../../assets/css/demo-page.css">'), 'page stylesheet');
     assert.ok(html.includes('<script src="../../../assets/js/demo-page.js" defer></script>'), 'page script');
-    assert.match(html, /<body class="hb"( data-hb-autoplay)?>/);
+    const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?>/);
+    assert.ok(body, 'the body declares the page kind');
+    const kind = body[1];
     for (const old of ['handbook.css', 'handbook.js', 'hb-view', 'hb-side', 'hb-take', 'ah-bar', 'Copy source', 'Read more',
       'class="note"', 'class="kv"', 'class="lbl"', 'class="btn-row"', 'Bricolage', 'PlexMono']) {
       assert.ok(!html.includes(old), `old markup left: ${old}`);
@@ -89,8 +93,10 @@ for (const d of steps) {
     assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
     assert.ok(!prompt.includes('`'), 'prompt contains no code');
     const player = between(html, '<div class="hb-player">', '</div>');
-    assert.equal(count(html, 'data-hb-replay'), 1, 'one Replay control');
-    assert.ok(player.includes('data-hb-replay'), 'Replay is in the player bar');
+    if (kind === 'once') {
+      assert.equal(count(html, 'data-hb-replay'), 1, 'one Replay control');
+      assert.ok(player.includes('data-hb-replay'), 'Replay is in the player bar');
+    }
     for (const marker of ['data-hb-loop', 'data-hb-slowmo']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
@@ -111,6 +117,36 @@ for (const d of steps) {
     }
   });
 
+  test(`${d.slug}: every setting has a label and every choice group has one choice made`, () => {
+    const tryIt = between(pageOf(d), '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
+    for (const [, cls, attrs, inner] of tryIt.matchAll(/<div class="(seg|swatches)"([^>]*)>([\s\S]*?)<\/div>/g)) {
+      const labelledBy = (attrs.match(/aria-labelledby="([^"]+)"/) || [])[1];
+      assert.ok(/role="group"/.test(attrs), `a ${cls} group has role="group"`);
+      assert.ok(labelledBy && tryIt.includes(`id="${labelledBy}"`), `a ${cls} group is labelled`);
+      assert.equal(count(inner, 'aria-pressed="true"'), 1, `${labelledBy} has exactly one choice made`);
+    }
+    for (const [, name, attrs] of tryIt.matchAll(/<(input|select|textarea)\b([^>]*)>/g)) {
+      if (/type="checkbox"/.test(attrs)) continue;
+      const id = (attrs.match(/\sid="([^"]+)"/) || [])[1];
+      assert.ok(id && new RegExp(`<label[^>]*\\sfor="${id}"`).test(tryIt), `${name} ${id || '(no id)'} has a label`);
+    }
+    assert.equal(count(tryIt, 'type="checkbox"'), count(tryIt, 'class="hb-switch-row"'), 'every switch sits in a labelled switch row');
+  });
+
+  test(`${d.slug}: README is ready for the site`, () => {
+    const s = sections(read(path.join(d.dir, 'README.md')));
+    for (const h of ['What it is', 'When to use it', 'Key parameters', 'See also']) assert.ok(s[h], `section ${h}`);
+    assert.ok(!s['What it is'].includes('`'), 'What it is has no code');
+    assert.ok(!s['Key parameters'].includes('`'), 'Key parameters has no code');
+    assert.ok(table(s['Key parameters']).length > 0, 'Key parameters has rows');
+    const links = [...s['See also'].matchAll(/^\s*[-*]\s+\[[^\]]+\]\(([^)\s]+)\)(.*)$/gm)];
+    assert.ok(links.length > 0, 'See also has links');
+    for (const [, href, rest] of links) {
+      assert.ok(isDemoDir(path.resolve(d.dir, href)), `See also link ${href}`);
+      assert.match(rest, /^\s*[—–-]\s*\S/, `See also ${href} has a short description`);
+    }
+  });
+
   test(`${d.slug}: every Key parameters name is a setting in Try it`, () => {
     const tryIt = between(pageOf(d), '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"')
       .replace(/<[^>]+>/g, ' ');
@@ -120,26 +156,27 @@ for (const d of steps) {
       if (name) assert.ok(tryIt.includes(name), `setting "${name}"`);
     }
   });
+
+  test(`${d.slug}: the home page card uses the page's description`, () => {
+    const lede = decode(pageOf(d).match(/<p class="hb-lede">([^<]*)<\/p>/)[1]);
+    const entry = HOME.match(new RegExp(`\\['${d.slug}','(?:[^'\\\\]|\\\\.)*','((?:[^'\\\\]|\\\\.)*)'\\]`));
+    assert.ok(entry, 'home page entry');
+    assert.equal(entry[1].replace(/\\'/g, "'"), lede);
+  });
 }
 
-const PILOT_SLUGS = ['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal', 'curtain-reveal',
-  'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in'];
-
-for (const slug of PILOT_SLUGS) {
-  test(`README for ${slug} is ready for the site`, () => {
-    const dir = path.join(ANIM, PILOT, slug);
-    const s = sections(read(path.join(dir, 'README.md')));
+for (const d of converted.filter(c => c.cat === PILOT)) {
+  test(`README for ${d.slug} is ready for the site`, () => {
+    const s = sections(read(path.join(d.dir, 'README.md')));
     for (const h of ['What it is', 'When to use it', 'Key parameters', 'See also']) assert.ok(s[h], `section ${h}`);
     assert.ok(!s['What it is'].includes('`'), 'What it is has no code');
     assert.ok(!s['Key parameters'].includes('`'), 'Key parameters has no code');
     assert.ok(table(s['Key parameters']).length > 0, 'Key parameters has rows');
     for (const [, href] of s['See also'].matchAll(/\]\(([^)\s]+)\)/g)) {
-      assert.ok(isDemoDir(path.resolve(dir, href)), `See also link ${href}`);
+      assert.ok(isDemoDir(path.resolve(d.dir, href)), `See also link ${href}`);
     }
   });
-}
 
-for (const d of converted.filter(c => c.cat === PILOT)) {
   test(`${d.slug}: every Key parameters name is a control on the page`, () => {
     const html = pageOf(d);
     const panel = html.slice(html.indexOf('<section class="hb-settings"'), html.indexOf('<div class="hb-take">')).replace(/<[^>]+>/g, ' ');
@@ -152,9 +189,8 @@ for (const d of converted.filter(c => c.cat === PILOT)) {
 }
 
 test('the home page uses Schibsted Grotesk and the new intro line', () => {
-  const html = read(path.join(ROOT, 'index.html'));
-  assert.ok(html.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
-  assert.ok(html.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
-  for (const old of ['Bricolage', 'PlexMono', 'var(--mono)', '--mono:']) assert.ok(!html.includes(old), `still uses ${old}`);
-  assert.ok(html.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
+  assert.ok(HOME.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
+  assert.ok(HOME.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
+  for (const old of ['Bricolage', 'PlexMono', 'var(--mono)', '--mono:']) assert.ok(!HOME.includes(old), `still uses ${old}`);
+  assert.ok(HOME.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
 });

@@ -94,9 +94,15 @@
     });
   }
 
+  // Text squeezed onto one line and cut to max characters (ending with an ellipsis), for chips.
+  function shorten(text, max) {
+    var s = String(text).replace(/\s+/g, ' ').trim();
+    return s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s;
+  }
+
   /* ---------- Page behaviour ---------- */
 
-  var CONTROLS = 'input[type=range], input[type=checkbox], select, .seg, .swatches';
+  var CONTROLS = 'input[type=range], input[type=checkbox], input[type=text], textarea, select, .seg, .swatches';
 
   function text(node) { return node ? node.textContent.replace(/\s+/g, ' ').trim() : ''; }
 
@@ -108,15 +114,18 @@
     var wrap = control.closest('label');
     if (wrap) return text(wrap);
     var byFor = control.id && doc.querySelector('label[for="' + control.id + '"]');
-    return byFor ? text(byFor) : '';
+    if (byFor) return text(byFor);
+    var setting = control.closest('.hb-setting');
+    return setting ? text(setting.querySelector('.hb-setting-name')) : '';
   }
 
   function valueFor(control) {
     if (control.matches('input[type=range]')) {
-      var row = control.closest('.sr');
-      var shown = row && row.querySelector('.sv');
+      var setting = control.closest('.hb-setting');
+      var shown = setting && setting.querySelector('.hb-value');
       return shown ? text(shown) : (control.getAttribute('aria-valuetext') || control.value);
     }
+    if (control.matches('input[type=text], textarea')) return shorten(control.value, 40);
     if (control.matches('input[type=checkbox]')) return control.checked ? 'on' : 'off';
     if (control.matches('select')) return control.selectedOptions[0] ? text(control.selectedOptions[0]) : control.value;
     var active = control.querySelector('.on, [aria-pressed="true"]');
@@ -138,7 +147,7 @@
     return Array.prototype.filter.call(scope.querySelectorAll(CONTROLS), function (control) {
       return isShown(control, scope, win);
     }).map(function (control) {
-      return { label: labelFor(doc, control), value: valueFor(control) };
+      return { label: labelFor(doc, control), value: valueFor(control), control: control };
     });
   }
 
@@ -193,6 +202,14 @@
         return '<li>' + escapeHtml(s.label) + ': ' + escapeHtml(s.value) + '</li>';
       }).join('');
       chipsBox.hidden = !items.length;
+    }
+
+    // For page authors: a control without a label or a value is left out of the chips and the copied prompt.
+    function warnIncomplete() {
+      if (!tryStep || !win.console) return;
+      readSettings(doc, tryStep, win).forEach(function (s) {
+        if (!s.label || !s.value) win.console.warn('Your settings: this control has no ' + (s.label ? 'value' : 'label') + ' and is left out', s.control);
+      });
     }
 
     function setUpCopy() {
@@ -296,12 +313,13 @@
       }, 400);
     }
     refreshChips();
+    warnIncomplete();
     loadReadme();
   }
 
   return {
     escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
-    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill,
+    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill, shorten: shorten,
     readSettings: readSettings, boot: boot
   };
 });

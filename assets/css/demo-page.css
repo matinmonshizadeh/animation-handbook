@@ -56,9 +56,12 @@ body.hb [hidden]{display:none!important}
 /* Step 1: stage and player bar. 420px is roughly everything above and below the stage on the
    first screen, so on a laptop the stage and the player bar are both visible on arrival.
    The height is declared twice: browsers that know svh use the second, others keep the vh one. */
-.hb-page .stage{box-sizing:border-box;width:100%;min-width:0;min-height:0;margin:0;flex:none;
-  height:clamp(300px,calc(100vh - 420px),440px);height:clamp(300px,calc(100svh - 420px),440px);
-  border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden}
+.hb-page .stage{box-sizing:border-box;width:100%;min-width:0;margin:0;flex:none;
+  height:var(--hb-stage-h,clamp(300px,calc(100vh - 420px),440px));height:var(--hb-stage-h,clamp(300px,calc(100svh - 420px),440px));
+  border:1px solid rgba(255,255,255,.1);border-radius:12px}
+/* Overflow belongs to the demo: this default has zero specificity, so a demo's own .stage rule wins
+   (scroll demos scroll inside their stage). A demo that needs another height sets --hb-stage-h or --hb-stage-h-phone. */
+:where(.hb-page .stage){min-height:0;overflow:hidden}
 .hb-page .stage.hb-dots{background-image:radial-gradient(rgba(255,255,255,.075) 1px,transparent 1.5px);background-size:24px 24px;background-position:center}
 .hb-player{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .hb-play,.hb-toggle{box-sizing:border-box;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;
@@ -94,6 +97,16 @@ body.hb [hidden]{display:none!important}
 .hb-options .hb-less,.hb-options[open] .hb-more-label{display:none}
 .hb-options[open] .hb-less{display:inline}
 .hb-options>.hb-settings{margin-top:16px}
+.hb-setting-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.hb-value{font:600 15px/1.3 var(--hb-font);color:var(--hb-accent);white-space:nowrap}
+.hb-page .hb-setting input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--hb-accent);cursor:pointer}
+.hb-select,.hb-text{box-sizing:border-box;width:100%;min-height:44px;padding:0 12px;border:1px solid var(--hb-edge);border-radius:8px;
+  background:var(--hb-panel);color:var(--hb-ink);font:500 16px/1.3 var(--hb-font)}
+textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
+.hb-page .swatches{display:flex;flex-wrap:wrap;gap:10px}
+.hb-page .swatches button{box-sizing:border-box;width:44px;height:44px;padding:0;border:2px solid transparent;border-radius:50%;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);cursor:pointer}
+.hb-page .swatches button[aria-pressed="true"]{border-color:var(--hb-ink);box-shadow:inset 0 0 0 3px var(--hb-bg)}
 
 /* Step 3: the prompt card */
 .hb-card{display:flex;flex-direction:column;gap:20px;padding:clamp(18px,3vw,28px);border:1px solid rgba(255,255,255,.12);border-radius:12px;background:var(--hb-panel)}
@@ -139,6 +152,8 @@ body.hb [hidden]{display:none!important}
   .hb-play:hover,.hb-toggle:hover,.hb-switch-row:hover{border-color:var(--hb-edge-2)}
   .hb-page .seg button:hover{border-color:rgba(255,255,255,.34);color:var(--hb-ink)}
   .hb-page .seg button.on:hover,.hb-page .seg button[aria-pressed="true"]:hover{border-color:var(--hb-accent);color:var(--hb-accent)}
+  .hb-page .swatches button:not([aria-pressed="true"]):hover{border-color:var(--hb-edge-2)}
+  .hb-select:hover,.hb-text:hover{border-color:var(--hb-edge-2)}
   .hb-options>summary:hover,.hb-prompt-more:hover{color:color-mix(in srgb,var(--hb-accent) 70%,#fff)}
   .hb-copy:hover{background:#fff}
   .hb-rel:hover{border-color:color-mix(in srgb,var(--hb-accent) 55%,transparent)}
@@ -157,11 +172,13 @@ body.hb [hidden]{display:none!important}
   .hb-lede{font-size:17px}
   .hb-step-head h2{font-size:22px}
   .hb-watch{gap:12px}
-  .hb-page .stage{height:clamp(260px,calc(100vh - 330px),440px);height:clamp(260px,calc(100svh - 330px),440px)}
+  .hb-page .stage{height:var(--hb-stage-h,clamp(260px,calc(100vh - 330px),440px));height:var(--hb-stage-h,clamp(260px,calc(100svh - 330px),440px))}
 }
 @media(max-width:600px){
   .hb-bar .hb-dir{display:none}
-  .hb-page .stage{height:300px}
+  .hb-page .stage{height:var(--hb-stage-h-phone,300px)}
+  /* With both Previous and Next, phones show only the two chevrons; each link keeps its full name as its label */
+  .hb-pager:has(a + a) a > span{display:none}
   .hb-step-head{gap:12px}
   .hb-num{width:30px;height:30px;font-size:15px}
   .hb-step-head p{font-size:15px}
