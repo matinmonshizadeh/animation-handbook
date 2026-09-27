@@ -180,8 +180,10 @@ anywhere on the site; the category colours; the reduced-motion rules.
 | Fades in | switch | on | Softens the first moment. |
 
 - **Loop:** spin in, pause, spin out, pause, repeat. Slow motion stretches the spins, not the pauses.
-- **Stage:** the demo's icon grows from 120px to 150px; the "Landed" caption and the Status and Rotation readouts are
-  removed.
+- **Stage:** the demo's icon becomes a symmetric amber star badge, as in the approved mockup, and grows from 120px to
+  150px; the "Landed" caption and the Status and Rotation readouts are removed.
+- **Player bar on phones:** Replay takes the first row and the two switches share the second, because the three do
+  not fit on one line at phone widths.
 - **Good for:** Icons · Badges and stars · Logos · Small decorations. **Avoid on:** Text · Wide boxes and cards.
 - **Description:** "Spins into place while it grows. Best for icons, stars and badges." The page's meta, Open Graph
   and JSON-LD descriptions use the same sentence.
