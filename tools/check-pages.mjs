@@ -106,6 +106,7 @@ const pending = new Map();
 const listeners = new Set();
 function send(method, params = {}) {
   return new Promise((resolve, reject) => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) { reject(new Error(`${method}: Chrome is not connected`)); return; }
     const id = ++nextId;
     pending.set(id, msg => (msg.error ? reject(new Error(`${method}: ${msg.error.message}`)) : resolve(msg.result)));
     ws.send(JSON.stringify({ id, method, params }));
@@ -144,7 +145,7 @@ try {
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
-    const name = `${parts[parts.length - 2].slice(0, 2)}-${parts[parts.length - 1]}`;
+    const name = parts.length > 1 ? `${parts[parts.length - 2].slice(0, 2)}-${parts[parts.length - 1]}` : parts[0];
     for (const setup of SETUPS) {
       errors.length = 0;
       const problems = [];
