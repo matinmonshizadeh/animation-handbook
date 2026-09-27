@@ -220,8 +220,8 @@ The other twelve Entrance & Exit pages stay on the first redesign until the user
 
 ## Open template questions for the rollout
 
-The final review of the pilot found these. Rotate In does not need them, but the other pages do, so they are settled
-in this spec and in `demo-page.css` / `demo-page.js` before the rollout plan is written.
+The final review of the pilot found these. Rotate In does not need them, but the other pages do. They are settled in
+`2026-09-27-demo-page-rollout-design.md`.
 
 - **Top bar on phones with both links.** Most pages have Previous and Next; at 375px the names wrap to several lines.
   On phones, show only the chevrons (the links keep their full names as labels).
