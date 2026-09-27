@@ -68,8 +68,11 @@ body.hb [hidden]{display:none!important}
 .hb-switch{appearance:none;-webkit-appearance:none;flex:none;width:32px;height:20px;margin:0;border-radius:999px;cursor:pointer;
   background:radial-gradient(circle at 10px 50%,var(--hb-ink) 6.5px,transparent 7px) rgba(255,255,255,.22)}
 .hb-switch:checked{background:radial-gradient(circle at 22px 50%,#0b0b0d 6.5px,transparent 7px) var(--hb-accent)}
-.hb-toggle:has(:focus-visible),.hb-switch-row:has(:focus-visible){outline:2px solid var(--hb-accent);outline-offset:3px}
-.hb-toggle .hb-switch:focus-visible,.hb-switch-row .hb-switch:focus-visible{outline:none}
+/* The label draws the focus ring for its switch; browsers without :has() keep the switch's own ring */
+@supports selector(:has(*)){
+  .hb-toggle:has(:focus-visible),.hb-switch-row:has(:focus-visible){outline:2px solid var(--hb-accent);outline-offset:3px}
+  .hb-toggle .hb-switch:focus-visible,.hb-switch-row .hb-switch:focus-visible{outline:none}
+}
 
 /* Step 2: settings */
 .hb-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px}
@@ -144,6 +147,17 @@ body.hb [hidden]{display:none!important}
 
 @media(max-width:759px){
   .hb-settings,.hb-about{grid-template-columns:minmax(0,1fr)}
+}
+/* Short laptop screens (1366×768 leaves about 650px of page): a tighter header and a shorter stage
+   keep the stage and the player bar on the first screen. */
+@media(min-width:601px) and (max-height:760px){
+  .hb-page{padding-top:20px;gap:24px}
+  .hb-head{gap:6px}
+  .hb-page h1{font-size:44px}
+  .hb-lede{font-size:17px}
+  .hb-step-head h2{font-size:22px}
+  .hb-watch{gap:12px}
+  .hb-page .stage{height:clamp(260px,calc(100vh - 330px),440px);height:clamp(260px,calc(100svh - 330px),440px)}
 }
 @media(max-width:600px){
   .hb-bar .hb-dir{display:none}
