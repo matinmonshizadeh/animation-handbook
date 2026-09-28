@@ -34,6 +34,9 @@ const keyParameters = d => sections(read(path.join(d.dir, 'README.md')))['Key pa
 
 const ENTRANCE_EXIT = '02-entrance-and-exit';
 
+// The Pause button of a loop page, exactly as in the template; {MODE} is '' (the page pauses itself) or '="css"'.
+const PAUSE = '<button class="hb-play" type="button" id="btn-pause" data-hb-pause{MODE} data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>';
+
 test('every Entrance & Exit demo uses the guided-steps page', () => {
   const left = demos.filter(d => d.cat === ENTRANCE_EXIT && !steps.includes(d)).map(d => d.slug);
   assert.deepEqual(left, []);
@@ -75,12 +78,12 @@ for (const d of steps) {
     }
     if (kind === 'loop') {
       assert.equal(count(html, 'data-hb-pause'), 1, 'one Pause control');
-      assert.match(player, /<button class="hb-play" type="button" id="btn-pause" data-hb-pause(?:="css")? data-state="playing">/,
-        'Pause is in the player bar and starts in the playing state');
+      assert.ok(['', '="css"'].some(mode => player.includes(PAUSE.replace('{MODE}', mode))),
+        'the Pause button is in the player bar exactly as in the template, starting in the playing state');
       assert.equal(count(html, 'data-hb-replay') + count(html, 'data-hb-loop') + count(html, 'data-hb-autoplay'), 0,
         'a loop has no Replay, Loop or autoplay');
     }
-    for (const marker of ['data-hb-loop', 'data-hb-slowmo']) {
+    for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
       const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];

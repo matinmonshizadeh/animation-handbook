@@ -210,7 +210,7 @@ async function loopProblems(reduced) {
   const problems = [];
   if (reduced) {
     if (await state() !== 'paused') problems.push('the loop does not start paused under reduced motion');
-    else if (await stageChanges(1500)) problems.push('the stage moves while paused under reduced motion');
+    else if (await stageChanges(4000)) problems.push('the stage moves while paused under reduced motion');
     await press();
     if (!(await stageChanges(4000))) problems.push('Play does not start the loop under reduced motion');
     return problems;
@@ -218,11 +218,11 @@ async function loopProblems(reduced) {
   if (!(await stageChanges(4000))) return ['the loop is not moving'];
   await press();
   await sleep(1500);
-  if (await stageChanges(1500)) problems.push('Pause does not stop the stage');
+  if (await stageChanges(4000)) problems.push('Pause does not stop the stage');
   await press();
   if (!(await stageChanges(4000))) problems.push('Play does not start the stage again');
   if (await evaluate(`!!document.querySelector('[data-hb-slowmo="css"]')`)) {
-    const rates = () => evaluate(`document.querySelector('.hb-page .stage').getAnimations({ subtree: true }).map(a => a.playbackRate)`);
+    const rates = () => evaluate(`new Promise(done => requestAnimationFrame(() => done(document.querySelector('.hb-page .stage').getAnimations({ subtree: true }).map(a => a.playbackRate))))`);
     const toggle = () => evaluate(`document.querySelector('[data-hb-slowmo]').click()`);
     await toggle();
     await sleep(200);

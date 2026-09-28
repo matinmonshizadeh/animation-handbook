@@ -376,6 +376,7 @@
     if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
     if (slowCtl && stage && stage.getAnimations && slowCtl.getAttribute('data-hb-slowmo') === 'css') {
       slowCtl.addEventListener('change', function () { if (!slowing) slowStage(); });
+      if (slowCtl.checked) slowStage();
     }
     followReducedMotion();
     if (reduce && reduce.addEventListener) reduce.addEventListener('change', followReducedMotion);
