@@ -22,7 +22,8 @@ How to read a section:
   let timer=0, next=null, due=0, left=0, held=[], paused=false;
   function wait(fn,ms){ clearTimeout(timer); next=fn; if(paused){ left=ms; return; } due=performance.now()+ms; timer=setTimeout(()=>{ next=null; fn(); },ms); }
   function freeze(){ paused=true; clearTimeout(timer); if(next) left=Math.max(0,due-performance.now()); held=stage.getAnimations({subtree:true}).filter(a=>a.playState==='running'); held.forEach(a=>a.pause()); }
-  function thaw(){ paused=false; held.forEach(a=>{ if(a.playState==='paused') a.play(); }); held=[]; if(next) wait(next,left); }
+  // A transition that Pause caught at or past its end is finished, not played: play() would rewind it to the start.
+  function thaw(){ paused=false; held.forEach(a=>{ if(a.playState!=='paused') return; if(a.currentTime>=a.effect.getComputedTiming().endTime) a.finish(); else a.play(); }); held=[]; if(next) wait(next,left); }
   document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
   ```
 
