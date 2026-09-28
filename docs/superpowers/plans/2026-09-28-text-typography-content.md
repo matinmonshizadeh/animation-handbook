@@ -53,7 +53,10 @@ None: leave out the `details.hb-options` block.
 
   > Add an enter-and-exit text sequence to [the short phrases you want to show]. Show one phrase at a time in the same place: each phrase comes in, holds still long enough to be read, then leaves before the next one arrives. Give each phrase its own way in and out, such as sliding, growing, blurring or wiping, and let each exit lead into the next entrance so the sequence feels connected. Leave the last phrase on screen when the sequence ends. Screen readers should hear each phrase as it appears. If the visitor has reduced motion turned on, swap the phrases without movement. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > Enter/exit typography shows short phrases one at a time in the same place. Each phrase comes in, holds still long enough to be read, then leaves before the next one arrives. Every phrase has its own way in and out, such as sliding, growing, blurring or wiping, and the last one stays on screen when the sequence ends.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -269,7 +272,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a scramble effect to [your headline or short phrase]. Each letter should start as a random character and keep flickering through random characters until it locks into the real letter. Lock the letters in reading order, from left to right, so the text becomes readable bit by bit, as if it is being decoded. Capital letters scramble most cleanly. Screen readers should hear the final text once, never the random characters. If the visitor has reduced motion turned on, show the final text immediately. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > Scramble text shows every letter as a random character that keeps changing, then locks each one into the real letter. The letters lock one after another from left to right, so the text becomes readable bit by bit, as if a hidden message is being decoded. The random characters can be symbols, letters of the alphabet, numbers, Japanese characters or a mix.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -557,7 +563,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a marquee to [the text or items you want to scroll]. The text should scroll sideways in an endless loop with no visible jump: place two identical copies side by side, each at least as wide as the space it scrolls through, and move them by exactly one copy's width before starting over. Put a small mark between the repeats. Rows can run in opposite directions for a decorative band. Pointing at a row should stop it so people can read it, and a tap should do the same on touch screens. Screen readers should not announce the moving text again and again. If the visitor has reduced motion turned on, keep the text still. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > A marquee scrolls a line of text sideways without end, like a news ticker. The text is repeated, and the row moves by exactly the width of one copy before starting over, so an identical copy is always in place and the restart cannot be seen. In the demo, three rows scroll at the same pace, the middle one the other way, and pointing at a row or tapping it stops just that row.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
