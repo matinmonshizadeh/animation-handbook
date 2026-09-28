@@ -17,7 +17,7 @@ Each character is wrapped in its own `<span class="char">` and given a custom pr
 [...text].forEach((c,i)=>{
   const s=document.createElement('span');
   s.className='char';s.style.setProperty('--i',i);
-  s.textContent=c===' '?' ':c; // a lone plain space would collapse inside its inline-block
+  s.textContent=c===' '?'\u00a0':c; // a lone plain space would collapse inside its inline-block
   target.appendChild(s);
 });
 ```

@@ -27,13 +27,18 @@ JavaScript splits the text and gives each unit an `--i` index custom property. C
 The split assigns the index as it builds the spans:
 
 ```js
-[...text].forEach(c => {
-  if (c === ' ') { target.appendChild(document.createTextNode(' ')); return; }
-  const s = document.createElement('span');
-  s.className = 'unit';
-  s.style.setProperty('--i', unitIdx++);   // drives its transition-delay
-  s.textContent = c;
-  target.appendChild(s);
+text.split(/\s+/).filter(Boolean).forEach((word, wi, all) => {
+  const w = document.createElement('span');
+  w.className = 'unit-word';                 // keeps the word's letters on one line
+  [...word].forEach(c => {
+    const s = document.createElement('span');
+    s.className = 'unit';
+    s.style.setProperty('--i', unitIdx++);   // drives its transition-delay
+    s.textContent = c;
+    w.appendChild(s);
+  });
+  target.appendChild(w);
+  if (wi < all.length - 1) target.appendChild(document.createTextNode(' '));
 });
 ```
 

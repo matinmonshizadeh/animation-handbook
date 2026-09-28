@@ -25,7 +25,7 @@ words.forEach((w,wi)=>{
 ```
 
 ```css
-.word{display:inline-block;margin-right:0.28em;opacity:0;
+.word{display:inline-block;opacity:0;
   transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),
              transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
 [data-anim="fade-up"] .word{transform:translateY(0.4em)}

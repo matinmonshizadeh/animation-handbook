@@ -40,8 +40,8 @@
     [data-mode="lines"] .unit-inner{display:block;transform:translateY(100%);transition:transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
     .splitting.in[data-mode="lines"] .unit-inner{transform:none}
     [data-mode="lines"] .unit{opacity:1}
-    /* word spacing */
-    [data-mode="words"] .unit{margin-right:0.28em}
+    /* Letters mode: the letters of one word sit in one box that never breaks, so lines break only between words */
+    .unit-word{display:inline-block;white-space:nowrap}
     [data-mode="chars"] .unit{margin-right:0.01em}
     @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}[data-mode="lines"] .unit{opacity:0}.splitting.in .unit{opacity:1}}
   </style>
@@ -201,10 +201,14 @@
     target.innerHTML='';
     if(mode==='chars'){
       let unitIdx=0;
-      [...text].forEach(c=>{
-        if(c===' '){target.appendChild(document.createTextNode(' '));return;}
-        const s=document.createElement('span');s.className='unit';s.style.setProperty('--i',unitIdx++);
-        s.textContent=c;target.appendChild(s);
+      text.split(/\s+/).filter(Boolean).forEach((word,wi,all)=>{
+        const w=document.createElement('span');w.className='unit-word';
+        [...word].forEach(c=>{
+          const s=document.createElement('span');s.className='unit';s.style.setProperty('--i',unitIdx++);
+          s.textContent=c;w.appendChild(s);
+        });
+        target.appendChild(w);
+        if(wi<all.length-1)target.appendChild(document.createTextNode(' '));
       });
     } else {
       let units=[];
