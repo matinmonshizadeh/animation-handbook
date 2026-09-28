@@ -1,7 +1,7 @@
 # Scramble / Glitch Text
 
 ## What it is
-Scramble text (also called glitch text or decode text) cycles each character through random symbols before "locking" to its true value. Characters settle sequentially from left to right, so the word is progressively decoded — the first character locks first, making the reveal directional and readable. The effect evokes decryption, hacking, and sci-fi terminal aesthetics.
+Scramble text shows every letter as a random character that keeps changing, then locks each one into the real letter. The letters lock one after another from left to right, so the text becomes readable bit by bit, as if a hidden message is being decoded. The random characters can be symbols, letters of the alphabet, numbers, Japanese characters or a mix.
 
 ## When to use it
 - Tech products, cybersecurity tools, and developer-facing sites
@@ -15,32 +15,38 @@ Each character of the target string gets its own `<span>`. A `setInterval` loop 
 ```js
 function scramble(el, targetText) {
   const chars = '!@#$%^&*<>{}[]|/\\?=+-_~`';
-  const locked = new Array(targetText.length).fill(false);
   let lockedCount = 0;
 
-  // Build one span per character
-  const spans = [...targetText].map((c, i) => {
-    if (c === ' ') { el.appendChild(document.createTextNode(' ')); return null; }
-    const s = document.createElement('span');
-    s.textContent = chars[Math.floor(Math.random() * chars.length)];
-    el.appendChild(s);
-    return s;
+  // One span per letter; each word's letters sit in one span.unit-word, which keeps the word on one line
+  const spans = [];
+  targetText.split(' ').filter(Boolean).forEach((word, wi, words) => {
+    const w = document.createElement('span');
+    w.className = 'unit-word';
+    [...word].forEach(c => {
+      const s = document.createElement('span');
+      s.dataset.char = c;                                  // the letter it locks to
+      s.textContent = chars[Math.floor(Math.random() * chars.length)];
+      w.appendChild(s);
+      spans.push(s);
+    });
+    el.appendChild(w);
+    if (wi < words.length - 1) el.appendChild(document.createTextNode(' '));
   });
+  const locked = new Array(spans.length).fill(false);
 
   // Settle each character after a staggered delay
   spans.forEach((s, i) => {
-    if (!s) return;
     setTimeout(() => {
-      s.textContent = targetText[i];
+      s.textContent = s.dataset.char;
       locked[i] = true;
-      if (++lockedCount === spans.filter(Boolean).length) onDone();
+      if (++lockedCount === spans.length) onDone();
     }, settleDelay * i + settleDelay);
   });
 
   // Cycle random chars on unlocked positions
   const interval = setInterval(() => {
     spans.forEach((s, i) => {
-      if (s && !locked[i]) s.textContent = chars[Math.floor(Math.random() * chars.length)];
+      if (!locked[i]) s.textContent = chars[Math.floor(Math.random() * chars.length)];
     });
   }, cycleMs);
 
@@ -52,10 +58,10 @@ function scramble(el, targetText) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Cycle speed | 40ms | How fast random chars swap — faster = more chaotic; slower = more legible |
-| Settle delay per char | 70ms | Gap between each character locking — controls how "fast" the decode reads left-to-right |
-| Character set | Symbols | Symbols feel hacker; katakana (Matrix-style) feels cinematic; alphabetic feels more like autocorrect |
-| Total duration | auto | `settleDelay × charCount` — adjust settle delay to control total animation length |
+| Random characters | Symbols | What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked |
+| Delay between letters | Medium | The wait between one letter locking and the next: short is 40ms, medium 70ms and long 120ms; it sets how fast the decoding travels |
+| Flicker speed | Normal | How often the random characters change: slow every 65ms, normal every 40ms and fast every 25ms; faster looks more chaotic |
+| Your text | DECODE THE MESSAGE | The text that is decoded, shown in capitals |
 
 ## Production notes
 - **Left-to-right settle order**: characters settle in reading order so the word becomes readable progressively, not all at once. Random or simultaneous settling is harder to read and loses the "decoding" narrative.
@@ -66,6 +72,6 @@ function scramble(el, targetText) {
 - **`aria-label` pattern**: set `aria-label` to the final decoded text at the start so screen readers announce the correct content, not the scrambled intermediate state.
 
 ## See also
-- [Typewriter Effect](../typewriter-effect/) — character-by-character reveal with natural typing rhythm
-- [Kinetic Typography](../kinetic-typography/) — phrase-level motion that could use scramble as one of its enter techniques
-- [Text Morphing](../text-morphing/) — word-to-word character transition, a smoother alternative
+- [Typewriter Effect](../typewriter-effect/) — text typed one character at a time
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
