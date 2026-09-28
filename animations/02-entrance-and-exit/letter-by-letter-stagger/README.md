@@ -38,11 +38,12 @@ Adding the `.done` class flips every letter to its resting state simultaneously;
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Mode | Cascade | Cascade animates every letter in turn; Typewriter types them out behind a cursor |
-| Per-letter animation | Fade up | The entrance each letter plays in Cascade mode: fade up, fade, scale or rotate |
-| Per-letter delay | 35ms | Gap between letters; higher is slower and more theatrical |
-| Duration per letter | 400ms | How long each letter takes to settle |
-| Show cursor (typewriter) | on | The blinking cursor in Typewriter mode |
+| Style | Cascade | Cascade animates every letter in turn; Typewriter types them out |
+| Delay between letters | Medium | The gap between letters: short is 20ms, medium 35ms and long 80ms; higher is slower and more theatrical |
+| How each letter appears | Fade up | In Cascade, the entrance each letter plays: fade up, fade, grow or flip |
+| Speed | Normal | In Cascade, how long each letter takes to settle: slow is 650ms, normal 400ms and fast 250ms |
+| Blinking cursor | on | In Typewriter, a blinking cursor leads the letters |
+| Your text | Hello, world. | The phrase that is animated, up to 60 characters |
 
 ## Production notes
 - **Accessibility**: split text still reads as separate spans to most screen readers, but wrapping the whole phrase in an `aria-label` on the container and hiding the spans with `aria-hidden` guarantees the label is announced as one string. The demo honors `prefers-reduced-motion` by forcing all letters visible with no transition.
@@ -53,6 +54,6 @@ Adding the `.done` class flips every letter to its resting state simultaneously;
 - **Motion One**: pass an array of elements to `animate()` with a `delay: stagger(0.035)` helper.
 
 ## See also
-- [Word-by-Word Reveal](../word-by-word-reveal/) — the same stagger at word granularity, better for longer text
-- [Split-Text Reveal](../split-text-reveal/) — related text-splitting entrance patterns
-- [Blur In](../blur-in/) — a per-letter blur makes an effective cascade transform
+- [Word-by-Word Reveal](../word-by-word-reveal/) — one word at a time, better for longer text
+- [Split Text Reveal](../split-text-reveal/) — text breaks into letters, words or lines
+- [Blur In](../blur-in/) — sharpens from a blur as it fades in
