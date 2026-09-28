@@ -194,8 +194,8 @@
     vars.setProperty('--stagger',stag()+'ms');
     vars.setProperty('--ease',ease);
   }
-  // Rebuilds the split pieces from the current mode and text. Runs immediately when Split into or
-  // Your text changes (so the stage never shows a stale split), and again on every play.
+  // Rebuilds the split pieces, hidden, from the current mode and text. Runs at the start of every play,
+  // and at once when Split into or Your text changes so the stage never shows a stale split.
   function split(){
     target.classList.remove('in');
     const text=txtIn.value||'Design beyond the obvious';
@@ -225,10 +225,8 @@
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
   function playLen(){return target.querySelectorAll('.unit').length*stag()+dur()}
   function revealIn(){
-    // snap back to hidden without a transition so every play reveals the pieces again
-    target.style.setProperty('transition','none','important');
-    target.classList.remove('in');void target.offsetWidth;
-    target.style.removeProperty('transition');
+    // rebuild the pieces hidden, then show them after a reflow, so every play reveals them from the start
+    split();void target.offsetWidth;
     target.classList.add('in');
   }
   // One play reveals the pieces. While Loop is on it then holds, hides them again, waits and plays

@@ -183,9 +183,9 @@
     vars.setProperty('--dur',dur()+'ms');
     vars.setProperty('--stagger',stag()+'ms');
   }
-  // Rebuilds the letters (and the cursor, in Typewriter) from the current style, cursor choice and
-  // text. Runs immediately when Style, Blinking cursor or Your text changes, so the stage never shows
-  // a stale phrase, and again whenever a play clears the letters back to hidden.
+  // Rebuilds the letters (and the cursor, in Typewriter), hidden, from the current style, cursor choice and
+  // text. Runs at the start of every Cascade play and when the Loop clears the phrase, and at once when
+  // Style, Blinking cursor or Your text changes so the stage never shows a stale phrase.
   function buildSpans(){
     target.classList.remove('done');
     const text=txtIn.value||'Hello, world.';
@@ -208,8 +208,8 @@
     return mode==='cascade'?n*stag()+dur():n*stag();
   }
   function playCascade(){
-    // snap back to hidden without a transition so every play settles in again
-    target.classList.remove('done');void target.offsetWidth;
+    // rebuild the letters hidden, then show them after a reflow, so every play settles them in from the start
+    buildSpans();void target.offsetWidth;
     target.classList.add('done');
   }
   function playTypewriter(){

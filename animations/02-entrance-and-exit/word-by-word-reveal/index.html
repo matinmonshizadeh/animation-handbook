@@ -183,12 +183,13 @@ Software made with care.</textarea>
     vars.setProperty('--stagger',stag()+'ms');
     vars.setProperty('--ease',ease);
   }
-  // Rebuilds the words (and the sentence breaks) from the current text, stagger and sentence-pause
-  // choice. Runs immediately when Delay between words, Pauses between sentences or Your text changes,
-  // so the stage never shows a stale split, and again whenever a play clears the words back to hidden.
+  // Rebuilds the words (and the sentence breaks), hidden, from the current text, stagger and sentence-pause
+  // choice. Runs at the start of every play, and at once when Delay between words, Pauses between sentences
+  // or Your text changes so the stage never shows a stale split.
   // --i is stored as delay/stagger using the plain (unmultiplied) stagger value, so slow motion — which
   // only stretches the CSS --stagger — scales the sentence-pause bonus along with the per-word delay.
   function buildWords(){
+    target.classList.remove('in');
     target.innerHTML='';target.dataset.anim=anim;
     const sentences=(txtIn.value||'').split('\n').filter(Boolean);
     let idx=0;
@@ -213,10 +214,8 @@ Software made with care.</textarea>
     return maxIdx*stag()+dur();
   }
   function revealIn(){
-    // snap back to hidden without a transition so every play reveals the words again
-    target.style.setProperty('transition','none','important');
-    target.classList.remove('in');void target.offsetWidth;
-    target.style.removeProperty('transition');
+    // rebuild the words hidden, then show them after a reflow, so every play reveals them from the start
+    buildWords();void target.offsetWidth;
     target.classList.add('in');
   }
   // One play reveals the words in turn. While Loop is on it then holds, hides them again, waits and
