@@ -123,6 +123,7 @@ in the player bar; Replay, Pause, Play and Show me still work when the visitor p
    See also line ends with one plain phrase.
 7. Old layout removed: headers and asides of the original layout, `.note`, readouts, "Copy source", the first
    redesign's `hb-view` markup and `handbook.css`/`handbook.js` links.
+8. Stage text uses the site font; only effects about typing keep a typewriter font.
 
 ---
 
