@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Text on a Path — Animation Handbook</title>
-  <meta name="description" content="An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.">
+  <meta name="description" content="Text travels along a wave, an arc or a circle. Best for badges and seals.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,152 +12,198 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Text on a Path — Animation Handbook">
-  <meta property="og:description" content="An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.">
+  <meta property="og:description" content="Text travels along a wave, an arc or a circle. Best for badges and seals.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Text on a Path — Animation Handbook">
-  <meta name="twitter:description" content="An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.">
+  <meta name="twitter:description" content="Text travels along a wave, an arc or a circle. Best for badges and seals.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text on a Path", "name": "Text on a Path", "description": "An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text on a Path"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text on a Path", "name": "Text on a Path", "description": "Text travels along a wave, an arc or a circle. Best for badges and seals.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text on a Path"}</script>
   <style>
-    :root{
-      --bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;
-      --ui-text:#f4f4f2;--ui-muted:#77777e;
-      --disp:'Arial Narrow','Segoe UI',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
-      --stage-h:520px;
-    }
+    :root{--ui-accent:#ff6f8b}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;
-      background:radial-gradient(circle at 50% 45%,#101018,#04060c);display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
-    svg{width:100%;height:100%;max-width:640px}
-    .flow-text{font-family:var(--disp);font-weight:800;font-size:34px;letter-spacing:2px;fill:var(--ui-text)}
+    .stage{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#101018,#04060c);padding:16px;overflow:hidden}
+    .stage svg{width:100%;height:100%;max-width:640px}
+    .flow-text{font-weight:800;font-size:34px;letter-spacing:2px;fill:#f4f4f2}
     .guide{fill:none;stroke:var(--ui-accent);stroke-width:1.5;stroke-dasharray:5 6;opacity:.5;transition:opacity .2s}
     .guide.hidden{opacity:0}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:44px;text-align:right;color:var(--ui-text)}
-    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
-    input[type=text]:focus{border-color:var(--ui-accent)}
-    .seg{display:flex;gap:6px}
-    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px;border-radius:4px;cursor:pointer;min-height:44px}
-    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent)}
-    @media(hover:hover){.seg button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .div{height:1px;background:var(--ui-border)}
     @media(prefers-reduced-motion:reduce){.guide{transition:none}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:340px}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=3">
+  <script src="../../../assets/js/demo-page.js?v=3" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../glitch-text/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../wavy-text/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/05-text-typography/text-on-path/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Text on a Path</h1>
-  <p>An SVG textPath binds a string to a curve, and animating startOffset scrolls the text along it.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" aria-label="animated text following a curved path">
-      <defs>
-        <path id="curve" d="M20,180 C120,60 240,300 340,180 S560,60 620,180"/>
-      </defs>
-      <use href="#curve" class="guide" id="guide"/>
-      <text class="flow-text">
-        <textPath href="#curve" id="tp" startOffset="0%">FOLLOW THE CURVE · </textPath>
-      </text>
-    </svg>
-  </div>
-  <aside>
-    <p class="note">The path is defined once in defs. textPath lays glyphs along it, and each frame we advance startOffset so the string appears to travel down the curve.</p>
-    <div class="lbl">Text</div>
-    <input type="text" id="text-inp" value="FOLLOW THE CURVE · " maxlength="40">
-    <div class="lbl">Path shape</div>
-    <div class="seg" id="shape">
-      <button data-shape="wave" class="on">Wave</button>
-      <button data-shape="arc">Arc</button>
-      <button data-shape="circle">Circle</button>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../glitch-text/" rel="prev" aria-label="Previous: Glitch Text"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Glitch Text</span></a><a href="../wavy-text/" rel="next" aria-label="Next: Wavy Text"><span><span class="hb-dir">Next: </span>Wavy Text</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.13 · Text &amp; Typography</p>
+    <h1>Text on a Path</h1>
+    <p class="hb-lede">Text travels along a wave, an arc or a circle. Best for badges and seals.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-    <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="0" max="100" value="40" step="5"><span class="sv" id="spd-sv">40</span></div>
-    <div class="div"></div>
-    <label class="tog"><input type="checkbox" id="guide-ck" checked> Show guide path</label>
-  </aside>
-</div>
+    <div class="stage">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" aria-label="animated text following a curved path">
+        <defs>
+          <path id="curve" d="M20,180 C120,60 240,300 340,180 S560,60 620,180"/>
+        </defs>
+        <use href="#curve" class="guide" id="guide"/>
+        <text class="flow-text">
+          <textPath href="#curve" id="tp" startOffset="0%">FOLLOW THE CURVE · </textPath>
+        </text>
+      </svg>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Path shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-shape="wave" class="on" aria-pressed="true">Wave</button>
+          <button type="button" data-shape="arc" aria-pressed="false">Arc</button>
+          <button type="button" data-shape="circle" aria-pressed="false">Circle</button>
+        </div>
+        <p class="hb-hint">The curve the text follows.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-speed="0.25" aria-pressed="false">Slow</button>
+          <button type="button" data-speed="0.4" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-speed="0.65" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the text travels along the curve.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the path</span><input class="hb-switch" type="checkbox" role="switch" id="guide-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">A dashed line marks the curve under the text.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-setting-name" for="text-inp">Your text</label>
+          <input class="hb-text" type="text" id="text-inp" value="FOLLOW THE CURVE · " maxlength="40" autocomplete="off">
+          <p class="hb-hint">End with a mark such as · so the repeats read well.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add text that travels along a curve to [your short phrase]. Define the curve once and attach the text to it so every letter sits on the line, then keep moving the point where the text starts so the letters travel along the curve like a ticker bent into shape. Repeat the phrase, with a separator such as a dot, until it covers the whole curve, and wrap around by exactly one copy so the loop has no jump. Keep the curve gentle enough that letters do not crowd on sharp bends. If the visitor has reduced motion turned on, show the text still on the curve. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Badges and seals</li><li>Playful titles</li><li>Decorations</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Key information</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const tp=document.getElementById('tp');
-const curve=document.getElementById('curve');
-const guide=document.getElementById('guide');
-const reduce=matchMedia('(prefers-reduced-motion:reduce)');
-const PATHS={
-  wave:'M20,180 C120,60 240,300 340,180 S560,60 620,180',
-  arc:'M20,300 Q320,20 620,300',
-  circle:'M320,60 a120,120 0 1,1 -0.1,0'
-};
-const inp=document.getElementById('text-inp');
-let offset=0,speed=0.4,raf=null,unit=100;
+  const tp=document.getElementById('tp');
+  const curve=document.getElementById('curve');
+  const guide=document.getElementById('guide');
+  const txtIn=document.getElementById('text-inp');
+  const slowTog=document.getElementById('slow-tog');
+  const PATHS={
+    wave:'M20,180 C120,60 240,300 340,180 S560,60 620,180',
+    arc:'M20,300 Q320,20 620,300',
+    circle:'M320,60 a120,120 0 1,1 -0.1,0'
+  };
+  let offset=0,speed=0.4,raf=null,unit=100;
 
-// Glyphs past the end of the path are not drawn, so repeat the string until it
-// covers the path plus one extra copy, then wrap the offset over that one copy.
-// One copy's length is measured as (two copies - one copy) so collapsed
-// leading/trailing spaces cancel out and the wrap point lines up exactly.
-function measure(){ const n=tp.getNumberOfChars(); return n?tp.getSubStringLength(0,n):0; }
-function fill(){
-  const s=inp.value||' ';
-  tp.textContent=s; const one=measure();
-  tp.textContent=s+s; const two=measure();
-  unit=Math.max((two-one)/curve.getTotalLength()*100,1);
-  tp.textContent=s.repeat(Math.ceil(100/unit)+1);
-}
-function loop(){
-  if(reduce.matches){raf=null;return;}
-  offset=(offset+speed)%unit;
-  tp.setAttribute('startOffset',(offset-unit)+'%');
-  raf=requestAnimationFrame(loop);
-}
-function start(){ if(reduce.matches||raf)return; raf=requestAnimationFrame(loop); }
-reduce.addEventListener('change',start);
+  // Glyphs past the end of the path are not drawn, so repeat the string until it
+  // covers the path plus one extra copy, then wrap the offset over that one copy.
+  // One copy's length is measured as (two copies - one copy) so collapsed
+  // leading/trailing spaces cancel out and the wrap point lines up exactly.
+  function measure(){ const n=tp.getNumberOfChars(); return n?tp.getSubStringLength(0,n):0; }
+  function fill(){
+    const s=txtIn.value||' ';
+    tp.textContent=s; const one=measure();
+    tp.textContent=s+s; const two=measure();
+    unit=Math.max((two-one)/curve.getTotalLength()*100,1);
+    tp.textContent=s.repeat(Math.ceil(100/unit)+1);
+  }
+  function step(){ return slowTog.checked?speed/3:speed; }
+  function loop(){
+    offset=(offset+step())%unit;
+    tp.setAttribute('startOffset',(offset-unit)+'%');
+    raf=requestAnimationFrame(loop);
+  }
+  function start(){ if(raf)return; raf=requestAnimationFrame(loop); }
 
-inp.addEventListener('input',fill);
-document.getElementById('spd-sl').addEventListener('input',e=>{
-  speed=+e.target.value/100;
-  document.getElementById('spd-sv').textContent=e.target.value;
-});
-document.getElementById('guide-ck').addEventListener('change',e=>{
-  guide.classList.toggle('hidden',!e.target.checked);
-});
-document.querySelectorAll('#shape button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('#shape button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    curve.setAttribute('d',PATHS[b.dataset.shape]);
-    fill();
+  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses
+  // the loop on arrival, which this listener must catch. loop() requests exactly one next frame and stores it
+  // in raf; Pause cancels that frame and clears raf, and Play calls start(), which continues from the current
+  // offset. start() keeps its if(raf)return guard, so Play never starts a second loop.
+  document.addEventListener('hb:pause',e=>{
+    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    else start();
   });
-});
-fill();
-start();
+
+  txtIn.addEventListener('input',fill);
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('shape-seg',d=>{curve.setAttribute('d',PATHS[d.shape]);fill()});
+  choices('speed-seg',d=>{speed=+d.speed});
+  document.getElementById('guide-tog').addEventListener('change',e=>{
+    guide.classList.toggle('hidden',!e.target.checked);
+  });
+
+  fill();
+  start();
+  if(document.fonts)document.fonts.ready.then(fill); // the site font can still be loading when fill() first runs
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

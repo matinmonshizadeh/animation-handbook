@@ -1,7 +1,7 @@
 # Text on a Path
 
 ## What it is
-Text on a path lets a string of type follow an arbitrary curve instead of a straight baseline. In SVG this is done with `<textPath>`, which binds a `<text>` element to a `<path>`. Animating the `startOffset` attribute slides the string along that path, so the letters appear to travel down the curve like a ticker bent into a shape.
+Text on a path lets a line of type follow a curve instead of a straight line. The curve is defined once and the text is attached to it, so every letter sits on the line. Moving the point where the text starts along the curve makes the letters travel along it, like a ticker bent into a shape.
 
 ## When to use it
 - Circular badges, seals, and stamps where text wraps a ring
@@ -32,10 +32,10 @@ Switching path shape swaps the `d` attribute on the same `<path>` — the text r
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | 0.4%/frame | How far `startOffset` advances each frame; higher = faster scroll |
-| Path shape | wave | The `d` geometry: wave (cubic), arc (quadratic), or circle (elliptical arc) |
-| Show guide | on | Renders the underlying path as a dashed stroke for reference |
-| Text | user string | Append a separator (` · `) so the loop reads continuously when it wraps |
+| Path shape | Wave | The curve the text follows: a wave, an arc or a full circle |
+| Speed | Normal | How far the text moves each frame: slow is 0.25%, normal 0.4% and fast 0.65% of the path |
+| Shows the path | on | Draws the curve as a dashed line under the text |
+| Your text | FOLLOW THE CURVE · | The phrase that travels; end it with a separator so the repeats read on |
 
 ## Production notes
 - **Accessibility**: SVG text stays real, selectable text and is read in DOM order — add `aria-label` on the `<svg>` describing the phrase, since the animated offset can split a word visually at the wrap point.
@@ -44,6 +44,6 @@ Switching path shape swaps the `d` attribute on the same `<path>` — the text r
 - **Library equivalents**: GSAP's MotionPathPlugin animates elements (not just text) along a path with autorotation; D3 exposes `path` generators handy for data-driven curves. For circular type specifically, CSS `writing-mode` tricks exist but `<textPath>` remains the most flexible.
 
 ## See also
-- [Marquee / Ticker](../marquee-ticker/) — the straight-line cousin of path-scrolled text
-- [Kinetic Typography](../kinetic-typography/) — motion-driven type layouts
-- [Text Morphing](../text-morphing/) — animating between letterforms rather than along a path
+- [Marquee / Ticker](../marquee-ticker/) — text scrolls along a straight line
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
