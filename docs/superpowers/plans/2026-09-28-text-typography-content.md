@@ -842,7 +842,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Text travels along a wave, an arc or a circle. Best for badges and seals.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** The page starts its loop at load (`start()`). On each animation frame, `loop()` moves the text along the path by Speed (`offset=(offset+speed)%unit`). The page listens for `hb:pause`:
+- **Sequence:** The page starts its loop at load (`start()`). On each animation frame, `loop(now)` moves the text along the path by Speed for each 1/60 s that passed (`offset=(offset+speed*dt/FRAME)%unit`, with `dt` clamped to 50ms and reset on Play). The page listens for `hb:pause`:
   - `paused` true: `cancelAnimationFrame(raf)` and `raf=null`;
   - `paused` false: `start()`, which carries on from the current offset.
 
