@@ -740,7 +740,7 @@ None: leave out the `details.hb-options` block.
   - [Scramble / Glitch Text](../scramble-text/) — random symbols lock into the real text
   - [Typewriter Effect](../typewriter-effect/) — text typed one character at a time
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** replace the "Length mismatch" bullet, which describes letters swapping in place (this demo never does that), with: "**Length mismatch**: this demo sidesteps it — the whole old word leaves before the new one arrives, so words of any length work. A morph that swaps letters in place has to fade the extra letters in or out with opacity only, so the letters around them do not jump." The other bullets stay.
 - **Category line:** `05.07 · Text &amp; Typography`
 - **Pager:** Previous: Marquee / Ticker (`../marquee-ticker/`) · Next: Text Gradient Animation (`../text-gradient-animation/`)
 
