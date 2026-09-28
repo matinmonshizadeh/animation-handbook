@@ -33,14 +33,20 @@ const keyParameters = d => sections(read(path.join(d.dir, 'README.md')))['Key pa
   .filter(l => /^\s*\|/.test(l)).slice(2).map(row => (row.split('|')[1] || '').trim()).filter(Boolean);
 
 const ENTRANCE_EXIT = '02-entrance-and-exit';
+// Categories whose demos have all moved to the guided-steps page. A demo here that lost <main class="hb-page">
+// would otherwise drop out of every check below without any failure. Add a category when its last demo is converted.
+const CONVERTED = [ENTRANCE_EXIT, '05-text-typography'];
 
 // The Pause button of a loop page, exactly as in the template; {MODE} is '' (the page pauses itself) or '="css"'.
 const PAUSE = '<button class="hb-play" type="button" id="btn-pause" data-hb-pause{MODE} data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>';
 
-test('every Entrance & Exit demo uses the guided-steps page', () => {
-  const left = demos.filter(d => d.cat === ENTRANCE_EXIT && !steps.includes(d)).map(d => d.slug);
-  assert.deepEqual(left, []);
-});
+for (const cat of CONVERTED) {
+  test(`every ${cat} demo uses the guided-steps page`, () => {
+    const inCategory = demos.filter(d => d.cat === cat);
+    assert.ok(inCategory.length > 0, `${cat} has demos`);
+    assert.deepEqual(inCategory.filter(d => !steps.includes(d)).map(d => d.slug), []);
+  });
+}
 
 test('Rotate In uses the guided-steps page', () => {
   assert.ok(steps.some(d => d.cat === ENTRANCE_EXIT && d.slug === 'rotate-in'));
@@ -75,6 +81,7 @@ for (const d of steps) {
     if (kind === 'once') {
       assert.equal(count(html, 'data-hb-replay'), 1, 'one Replay control');
       assert.ok(player.includes('data-hb-replay'), 'Replay is in the player bar');
+      assert.ok(body[2], 'a plays-once page plays on arrival (data-hb-autoplay on the body)');
     }
     if (kind === 'loop') {
       assert.equal(count(html, 'data-hb-pause'), 1, 'one Pause control');
