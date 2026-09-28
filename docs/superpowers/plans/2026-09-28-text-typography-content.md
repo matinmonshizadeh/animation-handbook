@@ -614,6 +614,7 @@ None: leave out the `details.hb-options` block.
   - The slide's `done()` sets it back to `false`. So does `start()`, because its `run++` aborts a slide without calling `done()`.
   - `done()` schedules the next hold (`timer=setTimeout(cycle,hold)`) only while the loop is not paused. `start()` follows the same rule: while paused it shows the first word and schedules nothing.
 
+  **Superseded (owner decision "Pause stops at once"):** the page uses the preamble's wait()/freeze()/thaw() helper; the Pause/Play lines below describe the first design and no longer apply.
   The page listens for `hb:pause`:
   - `paused` true: `clearTimeout(timer)`. This clears the hold timer only; the slide's own timers are not stored in `timer`. A slide already under way finishes, and its `done()` schedules nothing.
   - `paused` false: if `sliding` is true, do nothing; the slide's `done()` will schedule the next hold. If it is false, `clearTimeout(timer)`, then `timer=setTimeout(cycle,hold)`. Only one chain of timers ever runs, so the next Pause always stops the loop.
@@ -689,6 +690,7 @@ None: leave out the `details.hb-options` block.
   - The morph's callback sets it back to `false`. So does `start()`, because its `clearTimeout(morphTimer)` can abort a morph without calling the callback.
   - The morph's callback schedules the 100ms step to `cycle()` only while the loop is not paused. `start()` follows the same rule: while paused it shows the first word and schedules nothing.
 
+  **Superseded (owner decision "Pause stops at once"):** the page uses the preamble's wait()/freeze()/thaw() helper; the Pause/Play lines below describe the first design and no longer apply.
   The page listens for `hb:pause`:
   - `paused` true: if `morphing` is true, do nothing now; the morph finishes and its callback schedules nothing. Clearing `morphTimer` here would stop the morph halfway, with the letters out of sight. If `morphing` is false, `clearTimeout(morphTimer)`, which clears the hold or the 100ms step.
   - `paused` false: if `morphing` is true, do nothing; the morph's callback will schedule the next step. Calling `cycle()` here would start a second chain, and its `showWord()` check would also put the old word back mid-morph. If it is false, `clearTimeout(morphTimer)`, then `cycle()`, so the next morph comes after one hold.
@@ -916,6 +918,7 @@ None: leave out the `details.hb-options` block.
 
   The loop is one `setTimeout` chain. `step()` applies the next preset, then sets `stepTimer` for the next `step()`, after Speed + 800ms.
 
+  **Superseded (owner decision "Pause stops at once"):** the page uses the preamble's wait()/freeze()/thaw() helper; the Pause/Play lines below describe the first design and no longer apply.
   The page listens for `hb:pause`:
   - `paused` true: `clearTimeout(stepTimer)`. A morph under way finishes; it is a CSS transition.
   - `paused` false: `clearTimeout(stepTimer)`, then `step()`, which applies the next preset at once and schedules the one after.
