@@ -161,7 +161,8 @@
   let timer=0,next=null,due=0,left=0,held=[],paused=false;
   function wait(fn,ms){clearTimeout(timer);next=fn;if(paused){left=ms;return}due=performance.now()+ms;timer=setTimeout(()=>{next=null;fn()},ms)}
   function freeze(){paused=true;clearTimeout(timer);if(next)left=Math.max(0,due-performance.now());held=stage.getAnimations({subtree:true}).filter(a=>a.playState==='running');held.forEach(a=>a.pause())}
-  function thaw(){paused=false;held.forEach(a=>{if(a.playState==='paused')a.play()});held=[];if(next)wait(next,left)}
+  // A transition that Pause caught at or past its end is finished, not played: play() would rewind it to the start.
+  function thaw(){paused=false;held.forEach(a=>{if(a.playState!=='paused')return;if(a.currentTime>=a.effect.getComputedTiming().endTime)a.finish();else a.play()});held=[];if(next)wait(next,left)}
   document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
 
   // Applies the next preset, then schedules the step after it. --morph-dur is set fresh on every call, so a
@@ -177,12 +178,14 @@
     wait(step,d+800);
   }
 
-  // Applied to the word on screen at once, so the change shows even while paused.
+  // Applied to the word on screen at once, so the change shows even while paused: a tilt that would ease in is
+  // finished on the spot, while the held weight transitions stay frozen and Play carries on from there.
   leanTog.addEventListener('change',()=>{
     vars.setProperty('--slnt',leanTog.checked?current.slnt:0);
+    if(paused)vfText.getAnimations().filter(a=>a.transitionProperty==='transform').forEach(a=>a.finish());
   });
   txtIn.addEventListener('input',()=>{
-    vfText.textContent=txtIn.value||'Type';
+    vfText.textContent=txtIn.value.trim()?txtIn.value:'Type';
   });
 
   function choices(id,pick){

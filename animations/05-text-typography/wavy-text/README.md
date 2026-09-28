@@ -15,7 +15,7 @@ JavaScript splits the string into one `<span>` per character and stamps each wit
 ```js
 [...str].forEach((ch,i)=>{
   const s=document.createElement('span');
-  s.textContent=ch===' '?' ':ch;
+  s.textContent=ch;
   s.style.setProperty('--i',i);
   wave.appendChild(s);
 });
