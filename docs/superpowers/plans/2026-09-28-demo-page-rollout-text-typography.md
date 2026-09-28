@@ -44,7 +44,7 @@
 **Interfaces:**
 - Produces: the word-keeping pattern (letters of one word inside one `span` that cannot break) that Tasks 4–10 reuse for any text they split into letters.
 
-Today the words in Split Text Reveal (Words mode) and Word-by-Word Reveal are separated by a space *and* a `margin-right:0.28em`, so the gaps look loose; in Split Text's Letters mode every letter is its own inline block, so a line can break in the middle of a word; and the Letter-by-Letter README shows a raw non-breaking space where the page's source has the escape `' '`.
+Today the words in Split Text Reveal (Words mode) and Word-by-Word Reveal are separated by a space *and* a `margin-right:0.28em`, so the gaps look loose; in Split Text's Letters mode every letter is its own inline block, so a line can break in the middle of a word; and the Letter-by-Letter README shows a raw non-breaking space where the page's source has the escape `'\u00a0'`.
 
 - [ ] **Step 1: Split Text Reveal — one space between words, words kept whole**
 
@@ -120,10 +120,10 @@ In `word-by-word-reveal/index.html`, change `.word{display:inline-block;margin-r
 
 - [ ] **Step 3: Letter-by-Letter README escape**
 
-In `letter-by-letter-stagger/README.md` line 20, the character between the quotes after `c===' '?` is a raw non-breaking space (bytes `C2 A0`). Replace the quoted raw character with the six characters ` ` so the line reads exactly as in the page's source:
+In `letter-by-letter-stagger/README.md` line 20, the character between the quotes after `c===' '?` is a raw non-breaking space (bytes `C2 A0`). Replace the quoted raw character with the six characters `\u00a0` so the line reads exactly as in the page's source:
 
 ```js
-  s.textContent=c===' '?' ':c; // a lone plain space would collapse inside its inline-block
+  s.textContent=c===' '?'\u00a0':c; // a lone plain space would collapse inside its inline-block
 ```
 
 Confirm with `LC_ALL=C grep -c $'\xc2\xa0' animations/02-entrance-and-exit/letter-by-letter-stagger/README.md` (prints `0`).
