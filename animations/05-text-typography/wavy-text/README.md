@@ -1,7 +1,7 @@
 # Wavy Text
 
 ## What it is
-Wavy text sends a vertical sine wave rolling across a word. Each character bobs up and down on the same keyframe, but neighbouring letters are offset in time, so the peak of the motion travels from the first letter to the last — like a flag ripple or a row of buoys lifted by a passing swell.
+Wavy text sends a wave rolling across a word. Every letter bobs up and down with the same motion, but each one starts a moment after the letter before it, so the highest point travels from the first letter to the last, like a flag rippling or a row of buoys lifted by a passing swell.
 
 ## When to use it
 - Playful headlines and logotypes for games, kids' products, or casual brands
@@ -33,24 +33,24 @@ JavaScript splits the string into one `<span>` per character and stamps each wit
 }
 ```
 
-Only `transform` animates, so the effect stays on the compositor and runs at 60fps. Amplitude, duration, and stagger are all CSS variables the controls rewrite live.
+Only `transform` animates, so the effect stays on the compositor and runs at 60fps. Wave height, Speed and Delay between letters set these three CSS variables.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Amplitude | 16px | Vertical travel of each letter; larger = taller wave |
-| Wave speed | 1.6s | Duration of one bob cycle; shorter = faster ripple |
-| Stagger | 60ms | Delay between adjacent letters; larger = longer, more visible wave |
-| Text | user string | The word split into spans; spaces are preserved as gaps |
+| Wave height | Medium | How far each letter travels: low is 8px, medium 16px and high 28px; larger makes a taller wave |
+| Speed | Normal | How long one rise and fall takes: slow is 2.6s, normal 1.6s and fast 1s |
+| Delay between letters | Medium | The gap between neighbouring letters: short is 30ms, medium 60ms and long 120ms; longer delays stretch the wave |
+| Your text | Wavy | The word that waves, up to 14 letters |
 
 ## Production notes
 - **Accessibility**: splitting text into spans destroys the readable word for assistive tech. The demo sets `aria-label` on the container and `aria-hidden="true"` on each fragment, so screen readers announce the whole word once instead of spelling it out letter by letter.
-- **Reduced motion**: under `@media (prefers-reduced-motion: reduce)` the span animation and transform are disabled, leaving flat, static text. Vestibular users get no bobbing.
+- **Reduced motion**: under reduced motion the demo starts paused, so the letters stay still until the visitor presses Play. In production, keep the letters still for these visitors.
 - **Layout**: use `display:inline-block` on the spans (bare inline elements ignore `transform`) and `white-space:pre` on the container so spaces don't collapse. Emoji and combining characters can break naive `[...str]` splitting — segment with `Intl.Segmenter` if the text is user-supplied.
 - **Library equivalents**: GSAP SplitText handles the character splitting and offers a `stagger` option on its tweens; Splitting.js emits `--char-index` custom properties equivalent to the `--i` here, letting you drive the same effect in pure CSS.
 
 ## See also
-- [Kinetic Typography](../kinetic-typography/) — the broader family of per-letter motion
-- [Typewriter Effect](../typewriter-effect/) — another per-character reveal technique
-- [Text Morphing](../text-morphing/) — animating letterforms rather than their position
-- [Variable Font Morph](../variable-font-morph/) — animating type via font axes
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Typewriter Effect](../typewriter-effect/) — text typed one character at a time
+- [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
+- [Variable Font Morph](../variable-font-morph/) — the letters change weight and lean
