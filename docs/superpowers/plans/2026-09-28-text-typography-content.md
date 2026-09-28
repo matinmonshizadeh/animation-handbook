@@ -15,6 +15,18 @@ How to read a section:
 - **Stage text** drops Georgia, Arial Narrow and italics, so it uses the site font. Phrases and sentences get `font-weight:700`, as on the Entrance & Exit text stages. Single display words get `800`, unless the section says otherwise. Small grey stage text uses `#8a8a92`, which is 5.9:1 on the stages' `#04060c`. The old `#77777e` is 4.6:1 there, but only 4.0:1 over the `hb-dots` dots.
 - **`hb-dots`** is left off where the stage has its own radial gradient, because `hb-dots` replaces the stage's background image.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows (05.01 Kinetic Typography to 05.14 Wavy Text). This is how the Entrance & Exit pages are numbered.
+- **Pause stops at once (owner decision, 2026-09-28).** On the page loops (Rotate Word Carousel, Text Morphing, Variable Font Morph), Pause freezes the loop exactly where it is, even halfway through a change, and Play continues from that point. This replaces "a step under way finishes" and the `sliding` / `morphing` "under way" flags in those sections. Each page keeps one pending timer at a time and freezes it with the time it had left, and freezes the stage's running transitions:
+
+  ```js
+  // Pause freezes the step under way: its transitions stop where they are and its timer keeps the time it had left.
+  let timer=0, next=null, due=0, left=0, held=[], paused=false;
+  function wait(fn,ms){ clearTimeout(timer); next=fn; if(paused){ left=ms; return; } due=performance.now()+ms; timer=setTimeout(()=>{ next=null; fn(); },ms); }
+  function freeze(){ paused=true; clearTimeout(timer); if(next) left=Math.max(0,due-performance.now()); held=stage.getAnimations({subtree:true}).filter(a=>a.playState==='running'); held.forEach(a=>a.pause()); }
+  function thaw(){ paused=false; held.forEach(a=>{ if(a.playState==='paused') a.play(); }); held=[]; if(next) wait(next,left); }
+  document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
+  ```
+
+  Every timer of the loop goes through `wait()`, so there is always exactly one chain and Play can never start a second one. A setting or typed text that restarts the loop while paused (`start()`) clears `timer` and `next`, shows the first word at rest, and schedules the next step with `wait()`, which only records it; Play then continues from there. `stage` is the page's `.hb-page .stage`.
 
 ---
 
