@@ -30,17 +30,17 @@ card.classList.remove('in');void card.offsetWidth;
 card.classList.add('in');
 ```
 
-The blur-only and fade-only modes exist to show that the two channels are separable — blur alone feels like focus without arrival, fade alone is the ordinary transition. Combined, they read as a lens finding its subject.
+The Blur only and Fade only choices of What changes exist to show that the two channels are separable — blur alone feels like focus without arrival, fade alone is the ordinary transition. Combined, they read as a lens finding its subject.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Mode | Blur + Fade | The full effect; Blur only and Fade only show each half on its own |
-| Starting blur | 20px | Higher is a more dramatic focus pull; past about 30px it looks like frosted glass |
-| Duration | 700ms | Blur needs a little longer than a plain fade for the lens feel to land |
-| Easing | Ease out | Slowing down mimics a lens settling; Linear feels robotic |
-| Slight upward drift | on | A small rise while it sharpens, as if it is settling into place |
+| How blurry it starts | Medium | How much blur it starts with: slight is 8px, medium 20px and heavy 35px; past about 30px it looks like frosted glass |
+| Speed | Normal | How long it takes: slow is 1100ms, normal 700ms and fast 400ms; blur needs a little longer than a plain fade for the lens feel to land |
+| What changes | Blur and fade | The full effect; Blur only and Fade only show each half on its own |
+| Feel | Smooth | Smooth slows down like a lens settling; Gentle eases in and out; Even feels robotic |
+| Drifts up | on | A small rise while it sharpens, as if it is settling into place; only with Blur and fade |
 
 ## Production notes
 - **GPU cost**: `filter: blur()` is one of the more expensive properties to animate. It forces the element onto its own compositor layer and re-rasterizes each frame. Limit blur-in to a single hero element or a small group — never a long list, and be cautious on low-end mobile.
@@ -51,6 +51,6 @@ The blur-only and fade-only modes exist to show that the two channels are separa
 - **Motion One / GSAP**: both animate the `filter` string directly; GSAP needs no plugin for CSS filters.
 
 ## See also
-- [Fade In / Out](../fade-in-out/) — the opacity channel on its own
-- [Scale In](../scale-in/) — another single-element focal entrance
-- [Flip In](../flip-in/) — a more three-dimensional arrival for the same hero slot
+- [Fade In / Out](../fade-in-out/) — the fade on its own, with no blur
+- [Scale In](../scale-in/) — grows from smaller to full size
+- [Flip In](../flip-in/) — swings in like a card turning over
