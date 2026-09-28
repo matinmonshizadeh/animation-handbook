@@ -1,6 +1,7 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
  * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
- * animations", plays the demo on arrival and replays it when a setting changes.
+ * animations", plays the demo on arrival, replays it when a setting changes, and
+ * greys out Loop and Slow motion under reduced motion.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -299,14 +300,45 @@
       replayTimer = win.setTimeout(replay, 250);
     }
 
+    // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched
+    // on, and a note in the player bar says why. Replay still plays the demo's gentle version.
+    var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
+    var motionNote = null;
+    function followReducedMotion() {
+      var reduced = !!(reduce && reduce.matches);
+      playerSwitches.forEach(function (sw) {
+        if (reduced) sw.checked = false;
+        sw.disabled = reduced;
+        var label = sw.closest('label.hb-toggle');
+        if (label) label.classList.toggle('is-disabled', reduced);
+      });
+      if (reduced && !motionNote && playerSwitches.length) {
+        var names = [loopCtl && 'Loop', slowCtl && 'Slow motion'].filter(Boolean);
+        motionNote = doc.createElement('p');
+        motionNote.className = 'hb-player-note';
+        motionNote.textContent = names.join(' and ') + (names.length > 1 ? ' are' : ' is') +
+          ' off because your device is set to reduce motion.';
+        var last = playerSwitches[playerSwitches.length - 1];
+        (last.closest('label.hb-toggle') || last).insertAdjacentElement('afterend', motionNote);
+      } else if (!reduced && motionNote) {
+        motionNote.parentNode.removeChild(motionNote);
+        motionNote = null;
+      }
+    }
+
     setUpPrompt();
     if (copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
     if (slowCtl) slowCtl.addEventListener('change', replay);
+    followReducedMotion();
+    if (reduce && reduce.addEventListener) reduce.addEventListener('change', followReducedMotion);
+    else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
         if (loopCtl && !(reduce && reduce.matches)) {
-          if (!loopCtl.checked) loopCtl.click();
+          // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.
+          if (loopCtl.checked) replay();
+          else loopCtl.click();
         } else {
           replay();
         }

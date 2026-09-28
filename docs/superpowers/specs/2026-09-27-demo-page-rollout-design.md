@@ -22,8 +22,8 @@ that spec's "Open template questions for the rollout" and adds what the other ki
 
 | Kind | About | Step 1 title | Default help line | Player bar | On arrival | With reduced motion |
 |---|---|---|---|---|---|---|
-| **Plays once** | 20 | Watch it | It plays by itself. Turn on slow motion to see each part of the movement. | Replay · Loop · Slow motion | Loop switches on (Replay once when there is no Loop) | Loop stays off; Replay runs once so the stage is not empty |
-| **Loops** | 30 | Watch it | It moves by itself. Pause it to look closely. | Pause · Slow motion | nothing (it is already moving) | starts paused; Play is one press away |
+| **Plays once** | 20 | Watch it | It plays by itself. Turn on slow motion to see each part of the movement. | Replay · Loop · Slow motion | Loop switches on (Replay once when there is no Loop) | Loop and Slow motion are shown switched off and cannot be switched on, with a note; Replay runs once so the stage is not empty |
+| **Loops** | 30 | Watch it | It moves by itself. Pause it to look closely. | Pause · Slow motion | nothing (it is already moving) | starts paused; Play is one press away; Slow motion is shown switched off and cannot be switched on, with a note |
 | **Scroll** | 27 | Scroll it | Scroll inside the box, or press Play and it scrolls for you. | Play · Back to top | Play once: the box scrolls to its end over about six seconds | no automatic scroll; Play still works |
 | **Do it** | 50 | Hover it · Click it · Drag it · Press Tab (per page) | Written per page, e.g. "Point at a card, or tap it on a phone." | Show me · Reset (when the demo has a state to reset) | Show me once | no automatic run; Show me still works |
 
@@ -103,8 +103,8 @@ in the same `.hb-setting`. If a label or value still comes out empty, the shared
 ## Reduced motion
 
 Covered in the kinds table: plays-once pages play their reduced version once; loops start paused; scroll and do-it
-pages do nothing on arrival. The Loop, Slow motion, Pause, Play and Show me controls always work when the visitor
-presses them.
+pages do nothing on arrival. Loop and Slow motion are shown switched off and cannot be switched on, with a short note
+in the player bar; Replay, Pause, Play and Show me still work when the visitor presses them.
 
 ---
 
