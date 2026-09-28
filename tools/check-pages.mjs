@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 // Browser check for guided-steps demo pages: a development tool, not part of the site.
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
-// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page folder>...
-//   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit/fade-in-out
-// Each page is loaded at five screen setups; problems are printed and screenshots saved. Console warnings count as
-// problems too (the page script warns about settings that have no label or value). Exit code 1 on any problem.
+// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder>...
+//   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
+// A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at five screen
+// setups; problems are printed and screenshots saved, by default into hb-check in the temp folder (emptied at the
+// start of each run). Console warnings count as problems too (the page script warns about settings that have no
+// label or value). On plays-once pages the desktop run also checks that Replay and a setting change visibly move
+// the stage. Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const LOAD_TIMEOUT = 20000;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const args = process.argv.slice(2);
 function option(name, fallback) {
   const i = args.indexOf(name);
@@ -21,23 +26,37 @@ function option(name, fallback) {
   return value;
 }
 const BASE = option('--base', 'http://127.0.0.1:8731').replace(/\/$/, '');
-const OUT = option('--out', mkdtempSync(join(tmpdir(), 'hb-check-')));
-const pages = args.map(p => p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/'));
+const givenOut = option('--out', '');
+const OUT = givenOut || join(tmpdir(), 'hb-check');
+const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
+// A category folder (no index.html, but page folders inside) is expanded to its pages, so the call works
+// in shells that do not expand wildcards, such as PowerShell.
+const pages = args.map(p => p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/'))
+  .flatMap(p => {
+    if (isPage(p) || !existsSync(join(ROOT, p))) return [p];
+    const inside = readdirSync(join(ROOT, p), { withFileTypes: true })
+      .filter(d => d.isDirectory() && isPage(p + d.name)).map(d => `${p}${d.name}/`).sort();
+    return inside.length ? inside : [p];
+  });
 if (!pages.length) {
-  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page folder>...');
+  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder>...');
   process.exit(2);
+}
+if (!givenOut) {
+  try { rmSync(OUT, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); }
+  catch { console.error(`Could not empty ${OUT}; screenshots from an earlier run may remain.`); }
 }
 mkdirSync(OUT, { recursive: true });
 
 const SETUPS = [
-  { name: 'desktop', width: 1280, height: 800, full: true },
+  { name: 'desktop', width: 1280, height: 800, full: true, moves: true },
   { name: 'laptop', width: 1366, height: 657 },
   { name: 'tablet', width: 768, height: 1024 },
   { name: 'phone', width: 375, height: 812, mobile: true, scale: 2 },
   { name: 'phone-reduced', width: 375, height: 812, mobile: true, scale: 2, reduce: true }
 ];
 
-// Runs inside the page. Returns the page kind, the Loop switch state and the problems found.
+// Runs inside the page. Returns the page kind, the Loop switch state, the player switches and the problems found.
 const CHECK = `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
@@ -62,7 +81,9 @@ const CHECK = `(() => {
   if (!what || !what.querySelector('p')) problems.push('What it is is missing');
   else if (what.querySelector('a[href="README.md"]')) problems.push('What it is did not load from the README');
   const loop = document.querySelector('[data-hb-loop]');
-  return { kind: document.body.dataset.hbKind || '', loop: loop ? loop.checked : null, problems };
+  const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
+    ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));
+  return { kind: document.body.dataset.hbKind || '', loop: loop ? loop.checked : null, switches, problems };
 })()`;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -75,8 +96,10 @@ function removeProfile() {
 }
 // Port 0: Chrome picks a free port and writes it into DevToolsActivePort in its profile folder,
 // so a Chrome left over from an earlier run can never be picked up by mistake.
-const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--remote-debugging-port=0',
-  `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+// No LCD text: text that gets its own layer during a transition (even one that does not move it) would
+// otherwise be drawn with different antialiasing, and the stage comparisons would see a change nobody can see.
+const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
+  '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 const chromeExited = new Promise(resolve => chrome.once('exit', resolve));
 chrome.once('error', err => {
   console.error(`Could not start Chrome at ${CHROME} (${err.message}). Set CHROME to its path.`);
@@ -117,6 +140,54 @@ function failPending(reason) {
   pending.clear();
 }
 const evaluate = async expression => (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })).result.value;
+
+// The stage's rectangle as a PNG (base64), so two moments of the demo can be compared.
+async function stageShot() {
+  const box = await evaluate(`(() => { const b = document.querySelector('.hb-page .stage').getBoundingClientRect();
+    return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height }; })()`);
+  return (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+}
+
+// Waits 3 s for the demo to settle, then (for slower demos) until two captures 250ms apart match.
+async function settledShot() {
+  await sleep(3000);
+  let shot = await stageShot();
+  for (let i = 0; i < 10; i++) {
+    await sleep(250);
+    const next = await stageShot();
+    if (next === shot) break;
+    shot = next;
+  }
+  return shot;
+}
+
+// Plays-once pages: with Loop off and the demo settled, pressing Replay and changing a setting must each
+// change what the stage shows shortly afterwards (the shared script replays 250ms after a change).
+async function movementProblems() {
+  const ready = await evaluate(`(() => {
+    const loop = document.querySelector('[data-hb-loop]');
+    if (loop && loop.checked) loop.click();
+    return !!document.querySelector('.hb-page .stage') && !!document.querySelector('[data-hb-replay]');
+  })()`);
+  if (!ready) return ['no stage or Replay button to check'];
+  const problems = [];
+  const settled = await settledShot();
+  await evaluate(`document.querySelector('[data-hb-replay]').click()`);
+  await sleep(120);
+  if (await stageShot() === settled) problems.push('Replay does not visibly move the stage');
+  const settledAgain = await settledShot();
+  const clicked = await evaluate(`(() => {
+    const choice = [...document.querySelectorAll('.hb-try .seg button')]
+      .find(b => b.getAttribute('aria-pressed') !== 'true' && b.getClientRects().length);
+    if (choice) choice.click();
+    return !!choice;
+  })()`);
+  if (clicked) {
+    await sleep(370);
+    if (await stageShot() === settledAgain) problems.push('changing a setting does not replay the stage');
+  }
+  return problems;
+}
 
 let failures = 0;
 try {
@@ -163,9 +234,15 @@ try {
         await sleep(2000);
         const result = await evaluate(CHECK);
         problems.push(...result.problems);
-        if (result.kind === 'once' && result.loop !== null) {
-          if (setup.reduce && result.loop) problems.push('Loop switched on under reduced motion');
-          if (!setup.reduce && !result.loop) problems.push('did not start playing on arrival (Loop is off)');
+        if (result.kind === 'once' && result.loop !== null && !setup.reduce && !result.loop) {
+          problems.push('did not start playing on arrival (Loop is off)');
+        }
+        // Under reduced motion Loop and Slow motion must be shown switched off and unable to be switched on.
+        if (setup.reduce) {
+          for (const s of result.switches) {
+            if (s.checked) problems.push(`${s.name} is on under reduced motion`);
+            else if (!s.disabled) problems.push(`${s.name} can be switched on under reduced motion`);
+          }
         }
         const shot = await send('Page.captureScreenshot', { format: 'png' });
         writeFileSync(join(OUT, `${name}-${setup.name}.png`), Buffer.from(shot.data, 'base64'));
@@ -175,6 +252,7 @@ try {
             clip: { x: 0, y: 0, width: setup.width, height: Math.ceil(cssContentSize.height), scale: 1 } });
           writeFileSync(join(OUT, `${name}-${setup.name}-full.png`), Buffer.from(full.data, 'base64'));
         }
+        if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }
