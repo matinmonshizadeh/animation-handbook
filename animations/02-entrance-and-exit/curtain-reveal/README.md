@@ -31,27 +31,26 @@ setTimeout(() => {                             // stage B: pause
 }, dur);
 ```
 
-The `101%` (rather than `100%`) guarantees the bar clears the edge completely with no sub-pixel seam.
+Both sides uses two half-width panels that start off opposite edges, meet in the middle and go back. The `101%` (rather than `100%`) guarantees the bar clears the edge completely with no sub-pixel seam.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Curtain speed | 500ms | Time for one pass; the whole reveal takes about two passes plus the pause |
-| Pause between | 300ms | The beat where the panel covers everything; it is what makes the change register |
-| Direction | Left to right | Which way the panel travels, across or up and down |
-| Two curtains (split) | off | Two panels meet in the middle, then part |
-| Curtain color | Dark | Strong contrast with the content makes the reveal more dramatic |
+| Comes in from | Left | Which way the panel travels; Both sides sends two panels that meet in the middle, then part |
+| Speed | Normal | Time for one pass: slow is 800ms, normal 500ms and fast 300ms; the whole reveal takes about two passes plus the pause |
+| Pause while covered | Short | How long the panel covers everything: none, short (300ms) or long (800ms); the pause is what makes the change register |
+| Curtain color | Dark | The panel's color; strong contrast with the content makes the reveal more dramatic |
 
 ## Production notes
 - **Overshoot the edge with `101%`.** Ending an exit exactly at `100%` can leave a 1px sliver on fractional-DPI displays; the extra percent is the standard fix.
 - **The content behind is never hidden from the DOM** — only visually covered. If the reveal gates *loading*, swap the underlying content during the `pause` stage while the bar hides the switch, so users never see the change happen.
-- **Guard against re-entry.** The demo uses a `busy` flag so a second trigger can't start a new sequence mid-animation and desync the timers — important for any multi-stage, timer-driven effect.
-- **Reduced motion:** the demo disables the curtain transitions under `prefers-reduced-motion`; consider revealing the content immediately instead of playing the cover/uncover theatre for those users.
+- **Guard against re-entry.** Each play clears the timers of the one before, so a second trigger can't start a new sequence mid-animation and desync the stages — important for any multi-stage, timer-driven effect.
+- **Reduced motion:** a play skips the cover-and-uncover pass entirely under `prefers-reduced-motion` — the content simply stays visible the whole time, so the panel never flashes across it.
 - **Library equivalents:** GSAP timelines are the natural fit — `.to(curtain, { x: 0 }).to(curtain, { x: '101%' }, '+=0.3')` chains the stages with a built-in pause; Framer Motion sequences variants via `AnimatePresence`; Motion One's `animate` accepts a keyframe array with `offset` and `delay` to script the three beats.
 
 ## See also
-- [Clip-Path Reveal](../clip-path-reveal/) — uncover by masking, without an opaque moving bar
-- [Slide Up Reveal](../slide-up-reveal/) — a single clipped line rising into view
-- [Slide In](../slide-in/) — the plain translate this dramatizes
-- [Split Text Reveal](../split-text-reveal/) — staggered per-unit reveals for text
+- [Clip-Path Reveal](../clip-path-reveal/) — a shape uncovers it, with no panel
+- [Slide Up Reveal](../slide-up-reveal/) — text rises from behind an invisible edge
+- [Slide In](../slide-in/) — travels into place from one edge
+- [Split Text Reveal](../split-text-reveal/) — text appears piece by piece
