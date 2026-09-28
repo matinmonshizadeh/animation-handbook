@@ -24,8 +24,10 @@
     :root{--ui-accent:#ff6f8b;--cursor-color:#ff6f8b}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;background:#04060c;padding:clamp(24px,4vw,48px)}
-    .type-wrap{width:100%;max-width:520px}
-    .type-text{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace;font-size:clamp(22px,3.5vw,38px);line-height:1.4;color:#fff;min-height:2.8em;word-break:break-word}
+    .type-wrap{width:100%;max-width:640px;display:grid}
+    .type-wrap>.type-text{grid-area:1/1;min-width:0}
+    .type-ghost{visibility:hidden}
+    .type-text{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace;font-size:clamp(20px,3vw,28px);line-height:1.4;color:#fff;min-height:2.8em;word-break:break-word}
     .cursor{display:inline-block;width:3px;height:1.1em;vertical-align:text-bottom;margin-left:2px;animation:blink 1s step-end infinite}
     .cursor.block{width:0.55em;height:1.1em;background:var(--cursor-color);opacity:.9}
     .cursor.pipe{width:2px;background:var(--cursor-color)}
@@ -55,6 +57,8 @@
     </div>
     <div class="stage hb-dots hb-grow">
       <div class="type-wrap">
+        <div class="type-text type-ghost" id="type-ghost-full" aria-hidden="true"></div>
+        <div class="type-text type-ghost" id="type-ghost-retyped" aria-hidden="true"></div>
         <div class="type-text" id="type-out" aria-live="polite"></div>
       </div>
     </div>
@@ -161,6 +165,7 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const typeOut=document.getElementById('type-out');
+  const ghostFull=document.getElementById('type-ghost-full'),ghostRetyped=document.getElementById('type-ghost-retyped');
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const retypeTog=document.getElementById('retype-tog'),jitterTog=document.getElementById('jitter-tog');
@@ -169,7 +174,16 @@
   const DEFAULT_TEXT='Typography is the art and craft of arranging type. Good type communicates before it decorates.';
   let spd=50,shape='pipe',cursor=null,timers=[];
 
-  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // Drops a timer's id once it fires, so `timers` only ever holds ones still pending (not every id ever
+  // scheduled) — Loop can run for a long time without the array growing without bound.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+  }
   function mul(){return slowTog.checked?3:1}
   // Slow motion stretches every per-character delay after the person-like variation is added.
   function jitter(base){
@@ -185,6 +199,13 @@
   function render(shown){
     typeOut.textContent=shown;
     typeOut.appendChild(cursor);
+  }
+  // Reserves the stage's height for the tallest text this play could show, so nothing moves while it
+  // types: an invisible copy of the finished text, and, when Deletes and retypes is on, of the retyped
+  // ending too (deleting and retyping always ends up back at the full text, plus " — always.").
+  function syncGhosts(text){
+    ghostFull.textContent=text;
+    ghostRetyped.textContent=retypeTog.checked?text+' — always.':'';
   }
 
   function typeChars(text,done){
@@ -225,7 +246,8 @@
   // then starts again is decided right after that hold, from Loop's value at that moment, so switching Loop
   // off during the hold still leaves the text shown. Reduced motion shows the full text at once and stops.
   function cycle(){
-    const text=txtIn.value||DEFAULT_TEXT;
+    const text=txtIn.value.trim()||DEFAULT_TEXT;
+    syncGhosts(text);
     cursor=makeCursor();
     if(!motionOk){render(text);return;}
     typeChars(text,()=>{
@@ -251,6 +273,7 @@
     if(c)c.className='cursor '+shape;
   });
   choices('cursor-color-sw',d=>{vars.setProperty('--cursor-color',d.c)});
+  syncGhosts(txtIn.value.trim()||DEFAULT_TEXT);
 </script>
 </body>
 </html>

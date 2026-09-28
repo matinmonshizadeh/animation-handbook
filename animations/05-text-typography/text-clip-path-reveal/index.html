@@ -179,10 +179,19 @@ Always.</textarea>
     vars.setProperty('--line-dur',lineDur()+'ms');
     vars.setProperty('--ease',ease);
   }
-  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // Drops a timer's id once it fires, so `timers` only ever holds ones still pending (not every id ever
+  // scheduled) — Loop can run for a long time without the array growing without bound.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+  }
 
   // Rebuilds the lines hidden from the current text and direction. Runs directly on every keystroke in
-  // Your lines, so the stage always shows the right lines, and again at the start of every play.
+  // Your lines, so the stage never shows stale lines, and again at the start of every play.
   function buildLines(){
     const rows=linesIn.value.split('\n').map(l=>l.trim()).filter(Boolean);
     const useRows=rows.length?rows:DEFAULT_LINES;
