@@ -23,7 +23,7 @@ The stage sets `perspective`, establishing a shared vanishing point for its chil
 .card.in{opacity:1;transform:rotateY(0deg) rotateX(0deg)}
 ```
 
-The axis controls decide which rotation carries the starting angle — Y for a horizontal hinge, X for a vertical one, or both for a corner flip:
+The Swing direction setting decides which rotation carries the starting angle: Sideways uses rotateY (an upright hinge, like a door), Up and down uses rotateX (a flat hinge, like a flap) and Diagonal uses both:
 
 ```js
 const ry=axis==='X'?'0deg':rot+'deg';
@@ -32,19 +32,19 @@ document.documentElement.style.setProperty('--rot-y',ry);
 document.documentElement.style.setProperty('--rot-x',rx);
 ```
 
-`transform-origin` moves the hinge to an edge (top, bottom, left) so the card swings from that side rather than pivoting around its center.
+The Hinge setting moves transform-origin to an edge (top, bottom, left) so the card swings from that side rather than pivoting around its center.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Flip axis | Y (horiz) | Which way it swings: around a vertical hinge, a horizontal one, or both |
-| Starting rotation | 90° | The angle it starts from; 90° starts fully edge-on |
-| Perspective | 1000px | How far away the viewer seems; lower is more dramatic, higher is subtler |
-| Duration | 600ms | How long the swing takes; a Springy curve adds a satisfying settle |
-| Easing | Ease out | Slows the swing as it comes to face you |
-| Transform origin | Center | Where the hinge sits; an edge makes it swing from that side |
-| Combine with fade | on | Fades it in while it turns |
+| Swing direction | Sideways | Which way it swings: sideways around an upright hinge like a door, up and down like a flap, or diagonally |
+| Hinge | Center | Where it turns from; an edge makes it swing from that side |
+| Speed | Normal | How long the swing takes: slow is 1000ms, normal 600ms and fast 350ms |
+| How far it turns | ¼ turn | The angle it starts from: a little (45°), a quarter turn (90°, edge-on) or half a turn (180°, facing away) |
+| 3D depth | Medium | How close the viewer seems: subtle is 2000px, medium 1000px and strong 400px; closer is more dramatic |
+| Feel | Smooth | Smooth slows the swing as it comes to face you; Springy adds a settle; Gentle eases in and out; Even keeps one steady pace |
+| Fades in | on | Fades it in while it turns |
 
 ## Production notes
 - **Perspective belongs on the parent**: this is the single most common mistake. Setting `perspective` on the card itself (via `transform: perspective(...)`) applies per-element and won't share a vanishing point across siblings; the container `perspective` property is what creates a coherent 3D scene.
@@ -55,6 +55,6 @@ document.documentElement.style.setProperty('--rot-x',rx);
 - **GSAP**: set `transformPerspective` (or `perspective` on the container) and tween `rotationY`; GSAP's 3D handling is built in.
 
 ## See also
-- [Scale In](../scale-in/) — a flatter, 2D entrance for the same card slot
-- [Rotate In](../rotate-in/) — 2D spin rather than a 3D hinge
-- [Blur In](../blur-in/) — a non-spatial focal entrance alternative
+- [Scale In](../scale-in/) — grows into place, flat on the page
+- [Rotate In](../rotate-in/) — spins flat instead of turning in 3D
+- [Blur In](../blur-in/) — sharpens from a blur as it fades in
