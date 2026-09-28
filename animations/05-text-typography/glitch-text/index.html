@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Glitch Text — Animation Handbook</title>
-  <meta name="description" content="Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.">
+  <meta name="description" content="Text tears into red and cyan strips like a broken signal. Best for bold titles.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,32 +12,21 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Glitch Text — Animation Handbook">
-  <meta property="og:description" content="Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.">
+  <meta property="og:description" content="Text tears into red and cyan strips like a broken signal. Best for bold titles.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Glitch Text — Animation Handbook">
-  <meta name="twitter:description" content="Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.">
+  <meta name="twitter:description" content="Text tears into red and cyan strips like a broken signal. Best for bold titles.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Glitch Text", "name": "Glitch Text", "description": "Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Glitch Text"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Glitch Text", "name": "Glitch Text", "description": "Text tears into red and cyan strips like a broken signal. Best for bold titles.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Glitch Text"}</script>
   <style>
-    :root{
-      --bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;
-      --ui-text:#f4f4f2;--ui-muted:#77777e;
-      --disp:'Arial Narrow','Segoe UI',system-ui,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
-      --stage-h:520px;--offset:4px;--speed:2.4s;
-    }
+    :root{--ui-accent:#ff6f8b;--offset:4px;--speed:2.4s}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;
-      background:radial-gradient(circle at 50% 40%,#141018,#04060c);display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden}
-    /* Glitch text: three stacked copies via ::before/::after clones */
+    .stage{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#141018,#04060c);padding:24px;overflow:hidden}
+    /* Glitch text: two colored copies via ::before/::after clones, sliced by an animated clip-path */
     .glitch{
-      position:relative;font-family:var(--disp);font-weight:800;
+      position:relative;font-weight:800;
       font-size:clamp(28px,min(12vw,120vw/var(--n,6)),120px);line-height:1;letter-spacing:-.02em;color:#fff;
       text-transform:uppercase;white-space:nowrap;-webkit-user-select:none;user-select:none;
     }
@@ -61,134 +50,212 @@
       40%{clip-path:inset(80% 0 8% 0)}60%{clip-path:inset(30% 0 45% 0)}
       80%{clip-path:inset(5% 0 85% 0)}100%{clip-path:inset(50% 0 30% 0)}
     }
-    /* hover-trigger mode: layers hold still until pointer enters */
-    .paused .glitch::before,.paused .glitch::after{animation-play-state:paused}
-    @media(hover:hover){.paused:hover .glitch::before,.paused:hover .glitch::after{animation-play-state:running}}
-    .paused.active .glitch::before,.paused.active .glitch::after{animation-play-state:running}
+    /* Glitches only on hover: the copies hold still until the stage is hovered, or tapped active on touch */
+    .hover-only .glitch::before,.hover-only .glitch::after{animation-play-state:paused}
+    @media(hover:hover){.hover-only:hover .glitch::before,.hover-only:hover .glitch::after{animation-play-state:running}}
+    .hover-only.active .glitch::before,.hover-only.active .glitch::after{animation-play-state:running}
     /* toggling this class restarts the pseudo-element animations (reshuffles phase) */
     .glitch.reset::before,.glitch.reset::after{animation:none}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:44px;text-align:right;color:var(--ui-text)}
-    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
-    input[type=text]:focus{border-color:var(--ui-accent)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .div{height:1px;background:var(--ui-border)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:360px}}
-    @media(prefers-reduced-motion:reduce){
-      .glitch::before,.glitch::after{animation:none!important;clip-path:none!important}
-    }
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=3">
+  <script src="../../../assets/js/demo-page.js?v=3" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../rotate-word-carousel/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../text-on-path/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/05-text-typography/glitch-text/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Glitch Text</h1>
-  <p>Two color-split copies of a headline are sliced by animated clip-path bands that jump on a jittery timeline.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="glitch" id="glitch" data-text="GLITCH">GLITCH</div>
-  </div>
-  <aside>
-    <p class="note">RGB-split: a red and a cyan clone sit behind the white text, offset sideways. Horizontal clip-path slices reveal random bands, and re-randomizing them each cycle makes the tear look non-repeating.</p>
-    <div class="lbl">Text</div>
-    <input type="text" id="text-inp" value="GLITCH" maxlength="12">
-    <div class="lbl">RGB offset</div>
-    <div class="sr"><input type="range" id="off-sl" min="0" max="12" value="4" step="1"><span class="sv" id="off-sv">4px</span></div>
-    <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="1" max="12" value="8" step="1"><span class="sv" id="spd-sv">2.4s</span></div>
-    <div class="lbl">Intensity</div>
-    <div class="sr"><input type="range" id="int-sl" min="0" max="100" value="60" step="5"><span class="sv" id="int-sv">60%</span></div>
-    <div class="div"></div>
-    <label class="tog"><input type="checkbox" id="hover-ck"> Hover-trigger only</label>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../rotate-word-carousel/" rel="prev" aria-label="Previous: Rotate Word Carousel"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Rotate Word Carousel</span></a><a href="../text-on-path/" rel="next" aria-label="Next: Text on a Path"><span><span class="hb-dir">Next: </span>Text on a Path</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.12 · Text &amp; Typography</p>
+    <h1>Glitch Text</h1>
+    <p class="hb-lede">Text tears into red and cyan strips like a broken signal. Best for bold titles.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="glitch" id="glitch" data-text="GLITCH">GLITCH</div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="offset-lbl">Color split</p>
+        <div class="seg" id="offset-seg" role="group" aria-labelledby="offset-lbl">
+          <button type="button" data-offset="2" aria-pressed="false">Small</button>
+          <button type="button" data-offset="4" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-offset="8" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How far the red and cyan copies sit from the word.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-dur="3.8" aria-pressed="false">Slow</button>
+          <button type="button" data-dur="2.4" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-dur="1.4" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the torn strips jump around.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="intensity-lbl">Glitch strength</p>
+        <div class="seg" id="intensity-seg" role="group" aria-labelledby="intensity-lbl">
+          <button type="button" data-intensity="0.3" aria-pressed="false">Mild</button>
+          <button type="button" data-intensity="0.6" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-intensity="0.9" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Stronger shakes more and tears more often.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Glitches only on hover</span><input class="hb-switch" type="checkbox" role="switch" id="hover-tog" autocomplete="off"></label>
+          <p class="hb-hint">Holds still until you point at it or tap it.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-setting-name" for="text-inp">Your text</label>
+          <input class="hb-text" type="text" id="text-inp" value="GLITCH" maxlength="12" autocomplete="off">
+          <p class="hb-hint">Short words work best, up to 12 letters.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a glitch effect to [your headline or short word]. Place two copies of the text behind it, one tinted red and one tinted cyan, shifted to either side, and show only thin horizontal strips of each copy, changing which strips show so the colors seem to tear away from the letters like a broken video signal. Every so often, nudge the whole word sideways for a moment and reshuffle the strips so the pattern never repeats. Keep it below a few flickers per second and avoid full-screen flashes. If it only glitches on hover, a tap should start and stop it on touch screens. If the visitor has reduced motion turned on, keep the word still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Bold titles</li><li>Music and games</li><li>Error pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Calm brands</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const glitch=document.getElementById('glitch');
-const stage=document.getElementById('stage');
-const root=document.documentElement;
-const reduceMQ=matchMedia('(prefers-reduced-motion:reduce)');
-let intensity=0.6,jitterTimer=null,dur=2.4;
+  const glitch=document.getElementById('glitch');
+  const stage=document.getElementById('stage');
+  const vars=document.documentElement.style;
+  const txtIn=document.getElementById('text-inp');
+  const hoverTog=document.getElementById('hover-tog');
+  const slowTog=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion:reduce)');
+  let intensity=0.6,dur=2.4,jitterTimer=null;
 
-// Re-randomize the clip-path keyframes so each burst of slices differs.
-function rand(max){return Math.floor(Math.random()*max)}
-function reslice(){
-  if(reduceMQ.matches){glitch.style.transform='';jitterTimer=null;return}
-  // amplitude of the tear scales with intensity: low intensity = thin, rare bands
-  const spread=Math.round(intensity*40);
-  const jitter=(intensity*6).toFixed(1);
-  // in hover-trigger mode the jitter only runs while the stage is hovered / tapped active
-  const live=!stage.classList.contains('paused')||stage.matches(':hover')||stage.classList.contains('active');
-  if(live){
-    // nudge the whole element sideways for a frame to sell the tear
-    glitch.style.transform=`translateX(${(Math.random()*2-1)*jitter}px)`;
-    // occasionally restart the clone animations at a random point on their timeline
-    if(Math.random()<intensity){
-      glitch.style.setProperty('--phase',(-Math.random()*dur).toFixed(2)+'s');
-      glitch.classList.add('reset');void glitch.offsetWidth;glitch.classList.remove('reset');
+  function rand(max){return Math.floor(Math.random()*max)}
+
+  // Runs on its own timer: nudges the word sideways and, by chance, restarts the color copies at a
+  // random point so the tear never repeats. It always ends by scheduling its own next call, so only
+  // one call is ever pending; hb:pause below clears that pending call before pausing or restarting it.
+  function reslice(){
+    if(reduceMQ.matches){glitch.style.transform='';jitterTimer=null;return}
+    const spread=Math.round(intensity*40);
+    const jitter=(intensity*6).toFixed(1);
+    // in hover-only mode the jitter only runs while the stage is hovered / tapped active
+    const live=!stage.classList.contains('hover-only')||stage.matches(':hover')||stage.classList.contains('active');
+    if(live){
+      // nudge the whole element sideways for a frame to sell the tear
+      glitch.style.transform=`translateX(${(Math.random()*2-1)*jitter}px)`;
+      // occasionally restart the clone animations at a random point on their timeline
+      if(Math.random()<intensity){
+        glitch.style.setProperty('--phase',(-Math.random()*dur).toFixed(2)+'s');
+        glitch.classList.add('reset');void glitch.offsetWidth;glitch.classList.remove('reset');
+        // Slow motion: the restarted copies would run at full speed for a frame before the shared
+        // script's own loop catches them, so slow them here too, right away.
+        if(slowTog.checked)glitch.getAnimations({subtree:true}).forEach(a=>{a.playbackRate=1/3});
+      }
+    }else{
+      glitch.style.transform='';
     }
-  }else{
-    glitch.style.transform='';
+    const wait=120+rand(spread*8+60);
+    jitterTimer=setTimeout(reslice,slowTog.checked?wait*3:wait);
   }
-  jitterTimer=setTimeout(reslice,120+rand(spread*8+60));
-}
 
-// The CSS formula is viewport-based; measure against the real stage width and shrink further if needed.
-function fit(){
-  glitch.style.fontSize='';
-  const avail=stage.clientWidth-48,w=glitch.scrollWidth;
-  if(w>avail)glitch.style.fontSize=Math.max(16,parseFloat(getComputedStyle(glitch).fontSize)*avail/w)+'px';
-}
-document.getElementById('text-inp').addEventListener('input',e=>{
-  const t=(e.target.value.trim()||'GLITCH');glitch.textContent=t;glitch.dataset.text=t;
-  glitch.style.setProperty('--n',t.length); // longer words shrink so they stay inside the stage
+  // Registered at the top level, before the shared script (which is deferred) can run: paused stops the
+  // jitter timer and any shake in progress; unpausing clears it too, then starts the chain again.
+  document.addEventListener('hb:pause',e=>{
+    clearTimeout(jitterTimer);
+    if(e.detail.paused)glitch.style.transform='';
+    else reslice();
+  });
+
+  // The CSS formula is viewport-based; measure against the real stage width and shrink further if needed.
+  function fit(){
+    glitch.style.fontSize='';
+    const avail=stage.clientWidth-48,w=glitch.scrollWidth;
+    if(w>avail)glitch.style.fontSize=Math.max(16,parseFloat(getComputedStyle(glitch).fontSize)*avail/w)+'px';
+  }
+  txtIn.addEventListener('input',e=>{
+    const t=e.target.value.trim()||'GLITCH';
+    glitch.textContent=t;glitch.dataset.text=t;
+    glitch.style.setProperty('--n',t.length); // longer words shrink so they stay inside the stage
+    fit();
+  });
+  addEventListener('resize',fit);
   fit();
-});
-addEventListener('resize',fit);
-fit();
-document.getElementById('off-sl').addEventListener('input',e=>{
-  root.style.setProperty('--offset',e.target.value+'px');
-  document.getElementById('off-sv').textContent=e.target.value+'px';
-});
-document.getElementById('spd-sl').addEventListener('input',e=>{
-  // higher slider = faster = shorter duration (invert)
-  dur=(14-+e.target.value)*0.4;
-  root.style.setProperty('--speed',dur.toFixed(1)+'s');
-  document.getElementById('spd-sv').textContent=dur.toFixed(1)+'s';
-});
-document.getElementById('int-sl').addEventListener('input',e=>{
-  intensity=+e.target.value/100;
-  document.getElementById('int-sv').textContent=e.target.value+'%';
-});
-document.getElementById('hover-ck').addEventListener('change',e=>{
-  stage.classList.toggle('paused',e.target.checked);
-  stage.classList.remove('active');
-});
-// touch has no hover: a tap on the stage toggles the hover-trigger state instead
-stage.addEventListener('pointerdown',e=>{
-  if(e.pointerType!=='mouse'&&stage.classList.contains('paused'))stage.classList.toggle('active');
-});
-if(!reduceMQ.matches)reslice();
-reduceMQ.addEventListener('change',e=>{if(!e.matches&&jitterTimer===null)reslice()});
+
+  hoverTog.addEventListener('change',()=>{
+    stage.classList.toggle('hover-only',hoverTog.checked);
+    stage.classList.remove('active');
+  });
+  // touch has no hover: a tap on the stage toggles the hover-only state instead
+  stage.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='mouse'&&stage.classList.contains('hover-only'))stage.classList.toggle('active');
+  });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('offset-seg',d=>{vars.setProperty('--offset',d.offset+'px')});
+  choices('speed-seg',d=>{dur=+d.dur;vars.setProperty('--speed',d.dur+'s')});
+  choices('intensity-seg',d=>{intensity=+d.intensity});
+
+  if(!reduceMQ.matches)reslice();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

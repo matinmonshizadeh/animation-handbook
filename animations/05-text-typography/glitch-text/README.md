@@ -1,7 +1,7 @@
 # Glitch Text
 
 ## What it is
-Glitch text simulates a corrupted video signal on a headline. A white base layer sits between a red-shifted copy and a cyan-shifted copy, and horizontal `clip-path` bands slice each copy so ragged strips of color tear away from the letters. The effect reads as digital malfunction — datamosh, VHS dropout, a signal losing sync.
+Glitch text makes a headline look like a broken video signal. A red copy and a cyan copy of the word sit just to either side of it, and only thin horizontal strips of each copy show, changing all the time, so strips of color seem to tear away from the letters. It reads as a digital fault: a signal losing sync, or a tape dropping out.
 
 ## When to use it
 - Hero headlines for cyberpunk, hacker, or music/streetwear brands
@@ -26,23 +26,24 @@ The visible text is duplicated twice with `content: attr(data-text)` on `::befor
 }
 ```
 
-A small JS loop re-triggers the animation and nudges the element's `translateX` at irregular intervals, so the tear never settles into an obvious loop. Hover-trigger mode simply toggles `animation-play-state` via a `:hover` rule gated behind `@media (hover: hover)`.
+A small JS loop re-triggers the animation and nudges the element's `translateX` at irregular intervals, so the tear never settles into an obvious loop. The Glitches only on hover setting toggles `animation-play-state` through a `:hover` rule gated behind `@media (hover: hover)`, and a tap toggles it on touch screens.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| RGB offset | 4px | Horizontal gap between the red and cyan copies — larger = more separation |
-| Speed | 2.4s | Cycle duration of the `clip-path` keyframes; shorter = more frantic |
-| Intensity | 60% | Probability and amplitude of the JS jitter re-triggers |
-| Trigger | continuous | `continuous` runs always; `hover-trigger` pauses until pointer enters |
+| Color split | Medium | How far the red and cyan copies sit from the word: small is 2px, medium 4px and large 8px |
+| Speed | Normal | How long the strips take to run through their pattern: slow is 3.8s, normal 2.4s and fast 1.4s; shorter looks more frantic |
+| Glitch strength | Medium | How hard the word shakes and how often the strips reshuffle: mild, medium or strong |
+| Glitches only on hover | off | Holds the word still until you point at it; on touch screens a tap starts and stops it |
+| Your text | GLITCH | The word that glitches, up to 12 letters, shown in capitals |
 
 ## Production notes
 - **Accessibility**: the glitch is one element with real text content, so it stays selectable and readable to screen readers. When you build the effect from split spans instead, add `aria-label` on the container and `aria-hidden="true"` on the fragments so assistive tech reads the word once.
-- **Reduced motion**: the demo disables the slice animation and the JS jitter under `@media (prefers-reduced-motion: reduce)`, leaving a static RGB split — still on-brand, no flashing.
+- **Reduced motion**: the demo starts paused. Once played, it only slides the colored strips; the sideways shake and the random restarts stay off. In production, show these visitors the still word.
 - **Seizure safety**: keep the jitter below a few hertz and avoid full-frame flashes. Rapid, high-contrast strobing can trigger photosensitive reactions.
 - **Library equivalents**: GSAP's timeline with random `clip-path` tweens gives frame-precise control; Splitting.js can shard the text for per-character glitching. Framer Motion can drive the offsets via `useAnimationFrame`.
 
 ## See also
-- [Scramble Text](../scramble-text/) — another "signal corruption" text treatment
-- [Text Clip-Path Reveal](../text-clip-path-reveal/) — clip-path used to reveal rather than tear
-- [Kinetic Typography](../kinetic-typography/) — broader motion-driven type patterns
+- [Scramble / Glitch Text](../scramble-text/) — random symbols lock into the real text
+- [Text Clip-Path Reveal](../text-clip-path-reveal/) — lines of text are uncovered one by one
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
