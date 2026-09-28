@@ -888,7 +888,7 @@ None: leave out the `details.hb-options` block.
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Path shape | Wave | The curve the text follows: a wave, an arc or a full circle |
-  | Speed | Normal | How far the text moves each frame: slow is 0.25%, normal 0.4% and fast 0.65% of the path |
+  | Speed | Normal | How far the text moves every sixtieth of a second: slow is 0.25%, normal 0.4% and fast 0.65% of the path (15%, 24% and 39% a second) |
   | Shows the path | on | Draws the curve as a dashed line under the text |
   | Your text | FOLLOW THE CURVE · | The phrase that travels; end it with a separator so the repeats read on |
 
