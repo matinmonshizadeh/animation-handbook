@@ -1,7 +1,7 @@
 # Outline to Fill
 
 ## What it is
-Outline-to-fill starts text as hollow letterforms — a visible stroke with a transparent interior — then fills the characters with color. The transition reads as text being "inked in," giving it a sculptural, hand-crafted quality. Two implementation approaches exist: a clip-path reveal (directional, like paint being applied from one side) and an opacity crossfade (simultaneous, like ink bleeding in uniformly).
+Outline to fill starts text as hollow letters, with only the outline of each letter showing, then fills them with color, so the text looks as if it is being inked in. There are two ways to do it, and the demo shows both: a wipe that fills the letters from one side, like paint, and a fade that fills them everywhere at once, like ink soaking in.
 
 ## When to use it
 - Hero words on posters and editorial-style sites where the letterforms themselves are the visual
@@ -76,10 +76,13 @@ For the opacity crossfade variant (no clip-path):
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Fill duration | 900ms | 400ms = snappy; 1500ms = slow and dramatic |
-| Stroke width | 2px | Thinner reads as precise/elegant; thicker reads as bold/graphic |
-| Direction | Bottom-up | Bottom-up reads as being filled like a container; left-right reads like writing |
-| Easing | ease-in-out | Symmetrical ease gives a smooth start and end |
+| Fill direction | Bottom up | Where the wipe starts: the bottom, the top, the left, the right or the middle; bottom up reads like filling a container, left to right like writing. The fade has no direction |
+| Speed | Normal | How long the fill takes: slow is 1500ms, normal 900ms and fast 550ms |
+| Outline thickness | Medium | How wide the outline is: thin is 1px, medium 2px and thick 4px; thin looks precise, thick looks bold |
+| Feel | Gentle | Gentle eases in and out; Smooth slows to a stop; Even keeps one steady pace |
+| Outline color | Pink | The color of the letters' outline |
+| Fill color | Pink | The color that fills the letters |
+| Your text | OUTLINE | The word that fills, up to 10 letters, shown in capitals |
 
 ## Production notes
 - **`-webkit-text-stroke` is non-standard**: it is supported in all modern browsers (Chrome, Firefox, Safari, Edge) but is not in the CSS specification. The standard alternative is `text-shadow` with a spread — less crisp but more compatible. For production, test the stroke rendering in your target browsers and font size.
@@ -88,6 +91,6 @@ For the opacity crossfade variant (no clip-path):
 - **GSAP**: animate `clipPath` on the fill layer element directly. `gsap.to(fillLayer, { clipPath: 'inset(0%)', duration: 0.9, ease: 'power2.inOut' })`.
 
 ## See also
-- [Text Gradient Animation](../text-gradient-animation/) — fills text with a moving gradient instead of a solid color
-- [Text Clip-Path Reveal](../text-clip-path-reveal/) — the same clip-path reveal technique applied to full lines of text
-- [Clip-Path Reveal](../../02-entrance-and-exit/clip-path-reveal/) — the general-purpose element clip-path reveal
+- [Text Gradient Animation](../text-gradient-animation/) — colors flow through the letters instead
+- [Text Clip-Path Reveal](../text-clip-path-reveal/) — whole lines are uncovered the same way
+- [Clip-Path Reveal](../../02-entrance-and-exit/clip-path-reveal/) — a shape uncovers any element
