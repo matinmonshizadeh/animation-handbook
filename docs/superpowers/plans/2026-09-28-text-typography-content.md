@@ -847,7 +847,7 @@ None: leave out the `details.hb-options` block.
   - `paused` false: `start()`, which carries on from the current offset.
 
   No second loop can start. `start()` keeps its `if(raf)return` guard; only its `reduce.matches` part goes. `loop()` requests exactly one next frame and stores it in `raf`, and Pause cancels that frame and sets `raf=null`. So Play, even pressed twice, never runs two loops.
-- **Slow motion:** while the switch is on, divides the step per frame by 3, from the next frame.
+- **Slow motion:** while the switch is on, divides the step per 1/60 s by 3, from the next frame.
 - **Reduced motion:** the page's own checks go (`reduce.matches` in `loop()` and in `start()`, and the `reduce` change listener). The text starts still, because the shared script pauses the loop on arrival, and it moves after Play. The CSS rule `.guide{transition:none}` stays.
 - **Stage font:** site font. `.flow-text` drops `var(--disp)` and keeps weight 800 (the SVG text inherits the site font).
 - **Stage:** only the SVG stays (path, dashed guide and text).
@@ -860,7 +860,7 @@ None: leave out the `details.hb-options` block.
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Path shape | Choice buttons | Wave · Arc · Circle | Wave | The curve the text follows. | the path's `d`: `PATHS.wave` / `PATHS.arc` / `PATHS.circle`, then `fill()` |
-| Speed | Choice buttons | Slow · Normal · Fast | Normal | How fast the text travels along the curve. | `speed`: 0.25 / 0.4 / 0.65 (% of the path per frame) |
+| Speed | Choice buttons | Slow · Normal · Fast | Normal | How fast the text travels along the curve. | `speed`: 0.25 / 0.4 / 0.65 (% of the path per 1/60 s, time-based) |
 
 **More options**
 
