@@ -56,10 +56,10 @@
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
     <div class="stage hb-dots hb-grow">
-      <div class="type-wrap">
+      <div class="type-wrap" id="type-wrap" role="img">
         <div class="type-text type-ghost" id="type-ghost-full" aria-hidden="true"></div>
         <div class="type-text type-ghost" id="type-ghost-retyped" aria-hidden="true"></div>
-        <div class="type-text" id="type-out" aria-live="polite"></div>
+        <div class="type-text" id="type-out" aria-hidden="true"></div>
       </div>
     </div>
     <div class="hb-player">
@@ -164,7 +164,7 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const typeOut=document.getElementById('type-out');
+  const typeWrap=document.getElementById('type-wrap'),typeOut=document.getElementById('type-out');
   const ghostFull=document.getElementById('type-ghost-full'),ghostRetyped=document.getElementById('type-ghost-retyped');
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
@@ -203,9 +203,13 @@
   // Reserves the stage's height for the tallest text this play could show, so nothing moves while it
   // types: an invisible copy of the finished text, and, when Deletes and retypes is on, of the retyped
   // ending too (deleting and retyping always ends up back at the full text, plus " — always.").
+  // The typed text changes with every keystroke, so it is hidden from screen readers; the wrapper is one image
+  // labelled with the finished text instead, which they read once.
   function syncGhosts(text){
+    const retyped=text+' — always.';
     ghostFull.textContent=text;
-    ghostRetyped.textContent=retypeTog.checked?text+' — always.':'';
+    ghostRetyped.textContent=retypeTog.checked?retyped:'';
+    typeWrap.setAttribute('aria-label',retypeTog.checked?retyped:text);
   }
 
   function typeChars(text,done){
