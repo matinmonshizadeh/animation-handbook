@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff6f8b;--morph-dur:400ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;position:relative;background:#08080a;overflow:hidden}
+    .stage{position:relative;background:#08080a;padding:32px;overflow:hidden}
     .morph-word{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:0;font-size:clamp(56px,9vw,100px)}
     .morph-char{
       font-weight:700;
@@ -176,101 +176,109 @@ SOUND</textarea>
   const vars=document.documentElement.style;
   const slowTog=document.getElementById('slow-tog');
   const wordsIn=document.getElementById('words-inp');
-  let dir='up',morphDur=400,stag=0,hold=1500,wordIdx=0,morphTimer=null,morphing=false,paused=false;
+  const DEFAULT_WORDS=['OCEAN','RIVER','STORM','LIGHT','SOUND'];
+  let dir='up',morphDur=400,stag=0,hold=1500,wordIdx=0;
+  // Captured once at the start of each morph (startMorph), then reused by every phase of that same morph, so a
+  // setting change mid-morph never mismatches the exit and entry sides or the waits' durations.
+  let curDir='up',stepDur=morphDur,stepStag=stag,nextIdx=0,nextWordVal='';
 
-  function getWords(){return wordsIn.value.split('\n').map(w=>w.trim().toUpperCase()).filter(Boolean)}
+  function getWords(){
+    const words=wordsIn.value.split('\n').map(w=>w.trim().toUpperCase()).filter(Boolean);
+    return words.length?words:DEFAULT_WORDS; // an empty or blank list falls back to the defaults
+  }
   function curDur(){return slowTog.checked?morphDur*3:morphDur}
   function curStag(){return slowTog.checked?stag*3:stag}
 
-  // The CSS formula is viewport-based; measure against the real stage width and shrink further if needed,
-  // so a long typed word still fits instead of being cut off at the stage edge.
+  // The CSS formula is viewport-based; measure against the room inside the stage's own side padding and
+  // shrink further if needed, so a long typed word still fits instead of being cut off at the stage edge.
   function fit(){
     wordEl.style.fontSize='';
-    const room=stage.clientWidth-64;
+    const pad=getComputedStyle(stage);
+    const room=stage.clientWidth-parseFloat(pad.paddingLeft)-parseFloat(pad.paddingRight);
     if(wordEl.offsetWidth>room)wordEl.style.fontSize=Math.max(16,parseFloat(getComputedStyle(wordEl).fontSize)*room/wordEl.offsetWidth)+'px';
   }
 
   function showWord(word){
     wordEl.innerHTML='';
-    word.split('').forEach((c,i)=>{
-      const s=document.createElement('span');
-      s.className='morph-char';
-      s.textContent=c;
-      if(stag>0)s.style.transitionDelay=(stag*i)+'ms';
-      wordEl.appendChild(s);
+    word.split('').forEach(c=>{
+      const span=document.createElement('span');
+      span.className='morph-char';
+      span.textContent=c;
+      wordEl.appendChild(span);
     });
     fit();
   }
 
-  // Slides the current letters out, then builds the next word's letters off-screen and slides them in.
-  // Slow motion stretches --morph-dur and the per-letter delay, so both waits below stretch with them;
-  // the 60ms and 50ms parts stay the same either way.
-  function morphTo(toWord,done){
-    const d=curDur(),s=curStag();
-    vars.setProperty('--morph-dur',d+'ms');
-    const fromChars=[...wordEl.querySelectorAll('.morph-char')];
-    const outClass='out-'+dir;
-    fromChars.forEach((c,i)=>{
-      c.style.transitionDelay=(s>0?s*i:0)+'ms';
-      c.classList.add(outClass);
+  // Pause freezes the step under way: its transitions stop where they are and its timer keeps the time it had
+  // left. Every timer of the loop goes through wait(), so there is always exactly one chain and Play can
+  // never start a second one.
+  let timer=0,next=null,due=0,left=0,held=[],paused=false;
+  function wait(fn,ms){clearTimeout(timer);next=fn;if(paused){left=ms;return}due=performance.now()+ms;timer=setTimeout(()=>{next=null;fn()},ms)}
+  function freeze(){paused=true;clearTimeout(timer);if(next)left=Math.max(0,due-performance.now());held=stage.getAnimations({subtree:true}).filter(a=>a.playState==='running');held.forEach(a=>a.pause())}
+  function thaw(){
+    paused=false;
+    held.forEach(a=>{
+      if(a.playState!=='paused')return;
+      // play() on an animation that has already reached its end rewinds it to the start, so one that ended
+      // while its pause was still pending (Pause pressed in the last frame of a transition) is finished instead
+      if(a.currentTime>=a.effect.getComputedTiming().endTime)a.finish();else a.play();
     });
-    const exitDur=d+(s*(fromChars.length-1));
-    morphTimer=setTimeout(()=>{
-      wordEl.innerHTML='';
-      const enterDir={up:'enter-from-below',down:'enter-from-above',left:'enter-from-right',right:'enter-from-left'}[dir];
-      const toChars=[];
-      toWord.split('').forEach((c,i)=>{
-        const s2=document.createElement('span');s2.className='morph-char '+enterDir;
-        if(s>0)s2.style.transitionDelay=(s*i)+'ms';
-        s2.textContent=c;wordEl.appendChild(s2);toChars.push(s2);
-      });
-      fit();
-      void wordEl.offsetWidth;
-      toChars.forEach(c=>c.classList.remove(enterDir));
-      const enterDur=d+(s*(toChars.length-1));
-      morphTimer=setTimeout(done,enterDur+50);
-    },exitDur+60);
+    held=[];
+    if(next)wait(next,left);
   }
+  document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
 
-  // Shows the current word, then (once Time on each word has passed) starts a morph to the next word.
-  // The morph's own callback schedules the next cycle() after a short 100ms gap. The list repeats forever.
-  function cycle(){
-    const words=getWords();if(words.length<2)return;
-    if(wordIdx>=words.length)wordIdx=0; // word list shortened mid-cycle
-    morphTimer=setTimeout(()=>{
-      morphing=true;
-      const next=(wordIdx+1)%words.length;
-      morphTo(words[next],()=>{
-        wordIdx=next;
-        morphing=false;
-        if(!paused)morphTimer=setTimeout(cycle,100);
-      });
-    },hold);
+  // One morph, in four waited phases: the hold on the current word, the letters leaving, the next word's
+  // letters arriving, then a 100ms gap before the next hold. Slow motion stretches --morph-dur and the letter
+  // delay, so the two transition waits stretch with them; the 60ms and 50ms parts, the hold and the 100ms
+  // gap stay the same either way.
+  function startMorph(){
+    const words=getWords();
+    if(words.length<2)return;
+    nextIdx=(wordIdx+1)%words.length;
+    nextWordVal=words[nextIdx];
+    curDir=dir;
+    stepDur=curDur();
+    stepStag=curStag();
+    vars.setProperty('--morph-dur',stepDur+'ms');
+    const fromChars=[...wordEl.querySelectorAll('.morph-char')];
+    fromChars.forEach((c,i)=>{
+      c.style.transitionDelay=(stepStag*i)+'ms';
+      c.classList.add('out-'+curDir);
+    });
+    wait(afterExit,stepDur+stepStag*(fromChars.length-1)+60);
+  }
+  function afterExit(){
+    wordEl.innerHTML='';
+    const enterDir={up:'enter-from-below',down:'enter-from-above',left:'enter-from-right',right:'enter-from-left'}[curDir];
+    const toChars=[];
+    nextWordVal.split('').forEach((c,i)=>{
+      const span=document.createElement('span');
+      span.className='morph-char '+enterDir;
+      if(stepStag>0)span.style.transitionDelay=(stepStag*i)+'ms';
+      span.textContent=c;
+      wordEl.appendChild(span);
+      toChars.push(span);
+    });
+    wordIdx=nextIdx;
+    fit();
+    void wordEl.offsetWidth;
+    toChars.forEach(c=>c.classList.remove(enterDir));
+    wait(afterEnter,stepDur+stepStag*(toChars.length-1)+50);
+  }
+  function afterEnter(){
+    wait(afterGap,100);
+  }
+  function afterGap(){
+    wait(startMorph,hold);
   }
 
   function start(){
-    clearTimeout(morphTimer);morphing=false;wordIdx=0;
-    const words=getWords();
-    if(!words.length){wordEl.innerHTML='';return}
-    showWord(words[0]);
-    if(!paused)cycle();
+    clearTimeout(timer);next=null;
+    wordIdx=0;
+    showWord(getWords()[0]);
+    wait(startMorph,hold); // while paused, wait() only records this; Play resumes from a fresh hold
   }
-
-  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses
-  // the loop on arrival, which this listener must catch. morphTimer holds whichever wait is current (the
-  // hold, either half of a morph, or the 100ms gap), so clearing it always cancels the right thing. Pausing
-  // mid-morph does nothing here — clearing morphTimer then would strand the letters out of sight — the morph
-  // finishes on its own and its callback schedules nothing. Unpausing mid-morph also does nothing here; the
-  // morph's callback will schedule the next step once it sees the loop is no longer paused.
-  document.addEventListener('hb:pause',e=>{
-    paused=e.detail.paused;
-    if(paused){
-      if(!morphing)clearTimeout(morphTimer);
-    }else if(!morphing){
-      clearTimeout(morphTimer);
-      cycle();
-    }
-  });
 
   wordsIn.addEventListener('input',start);
   addEventListener('resize',fit);

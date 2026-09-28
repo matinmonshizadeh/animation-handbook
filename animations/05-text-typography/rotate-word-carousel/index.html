@@ -26,7 +26,7 @@
     .stage{display:flex;align-items:center;justify-content:center;background:#04060c;padding:32px;overflow:hidden}
     .headline{font-weight:700;font-size:clamp(22px,3.5vw,42px);line-height:1.3;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
     .static-line{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:0.2em}
-    .static-text{white-space:nowrap;color:rgba(255,255,255,.75)}
+    .static-text{color:rgba(255,255,255,.75)}
     .rot-container{position:relative;display:inline-block;overflow:hidden;vertical-align:middle}
     .rot-word{
       display:block;
@@ -67,7 +67,7 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-    <div class="stage hb-dots hb-grow">
+    <div class="stage hb-dots hb-grow" id="stage">
       <div class="headline" id="headline">
         <div class="static-line">
           <span class="static-text" id="static-text">We craft for</span>
@@ -183,6 +183,7 @@ Startups</textarea>
 <script>
   const rotWord=document.getElementById('rot-word');
   const staticText=document.getElementById('static-text');
+  const stage=document.getElementById('stage');
   const vars=document.documentElement.style;
   const slowTog=document.getElementById('slow-tog');
   const colorTog=document.getElementById('color-tog');
@@ -193,9 +194,16 @@ Startups</textarea>
   const enterClasses=['enter-below','enter-above','enter-left','enter-right'];
   const outMap={up:'out-up',down:'out-down',left:'out-left',right:'out-right'};
   const enterMap={up:'enter-below',down:'enter-above',left:'enter-right',right:'enter-left'};
-  let dir='up',rotDur=400,hold=2000,wordIdx=0,timer=null,run=0,sliding=false,paused=false;
+  const DEFAULT_WORDS=['Designers','Developers','Humans','Teams','Startups'];
+  let dir='up',rotDur=400,hold=2000,wordIdx=0;
+  // Captured once at the start of each slide (startSlide), then reused by every phase of that same slide, so a
+  // setting change mid-slide never mismatches the exit and entry sides or the two waits' durations.
+  let curDir='up',stepDur=rotDur,nextIdx=0,nextWordVal='';
 
-  function getWords(){return wordsIn.value.split('\n').map(w=>w.trim()).filter(Boolean)}
+  function getWords(){
+    const words=wordsIn.value.split('\n').map(w=>w.trim()).filter(Boolean);
+    return words.length?words:DEFAULT_WORDS; // an empty or blank list falls back to the defaults
+  }
   function dur(){return slowTog.checked?rotDur*3:rotDur}
 
   function setColor(el,i){
@@ -204,46 +212,63 @@ Startups</textarea>
     else el.style.color='var(--word-color)';
   }
 
-  // One slide: the current word leaves, the next word is swapped in off-screen (transition off) and then
-  // slides to rest. Slow motion stretches --rot-dur and the two timers below that wait for it; the 20ms
-  // step between the swap and the entry transition stays the same either way.
-  function transitionTo(nextWord,nextIdx,done){
-    const d=dur(),id=run;
-    vars.setProperty('--rot-dur',d+'ms');
-    rotWord.classList.add(outMap[dir]);
-    setTimeout(()=>{
-      if(id!==run)return; // a restart superseded this transition
-      rotWord.textContent=nextWord;
-      setColor(rotWord,nextIdx);
-      // jump to the entry side without transitioning from the exit side
-      rotWord.style.transition='none';
-      rotWord.classList.remove(...outClasses,...enterClasses);
-      rotWord.classList.add(enterMap[dir]);
-      void rotWord.offsetWidth;
-      rotWord.style.transition='';
-      setTimeout(()=>{
-        if(id!==run)return;
-        rotWord.classList.remove(...enterClasses);
-        setTimeout(()=>{if(id===run)done()},d+50);
-      },20);
-    },d+30);
-  }
-
-  // A slide, then done() marks it finished and, while not paused, schedules the next one after `hold`.
-  function cycle(){
-    const words=getWords();if(words.length<2)return;
-    const next=(wordIdx+1)%words.length;
-    sliding=true;
-    transitionTo(words[next],next,()=>{
-      wordIdx=next;
-      sliding=false;
-      if(!paused)timer=setTimeout(cycle,hold);
+  // Pause freezes the step under way: its transition stops where it is and its timer keeps the time it had
+  // left. Every timer of the loop goes through wait(), so there is always exactly one chain and Play can
+  // never start a second one.
+  let timer=0,next=null,due=0,left=0,held=[],paused=false;
+  function wait(fn,ms){clearTimeout(timer);next=fn;if(paused){left=ms;return}due=performance.now()+ms;timer=setTimeout(()=>{next=null;fn()},ms)}
+  function freeze(){paused=true;clearTimeout(timer);if(next)left=Math.max(0,due-performance.now());held=stage.getAnimations({subtree:true}).filter(a=>a.playState==='running');held.forEach(a=>a.pause())}
+  function thaw(){
+    paused=false;
+    held.forEach(a=>{
+      if(a.playState!=='paused')return;
+      // play() on an animation that has already reached its end rewinds it to the start, so one that ended
+      // while its pause was still pending (Pause pressed in the last frame of a transition) is finished instead
+      if(a.currentTime>=a.effect.getComputedTiming().endTime)a.finish();else a.play();
     });
+    held=[];
+    if(next)wait(next,left);
+  }
+  document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
+
+  // One slide, in four waited phases: exit transition, an instant snap to the entry side (needs a tick to
+  // register before it can transition), entry transition, then the hold before the next slide. Slow motion
+  // stretches --rot-dur and the two transition waits; the 20ms step and the hold stay the same either way.
+  function startSlide(){
+    const words=getWords();
+    if(words.length<2)return;
+    nextIdx=(wordIdx+1)%words.length;
+    nextWordVal=words[nextIdx];
+    curDir=dir;
+    stepDur=dur();
+    vars.setProperty('--rot-dur',stepDur+'ms');
+    rotWord.classList.add(outMap[curDir]);
+    wait(afterExit,stepDur+30);
+  }
+  function afterExit(){
+    rotWord.textContent=nextWordVal;
+    wordIdx=nextIdx; // update as soon as the incoming word is shown, so a color change mid-entry uses it
+    setColor(rotWord,wordIdx);
+    // jump to the entry side without transitioning from the exit side
+    rotWord.style.transition='none';
+    rotWord.classList.remove(...outClasses,...enterClasses);
+    rotWord.classList.add(enterMap[curDir]);
+    void rotWord.offsetWidth;
+    rotWord.style.transition='';
+    wait(afterSnap,20);
+  }
+  function afterSnap(){
+    rotWord.classList.remove(...enterClasses);
+    wait(afterEnter,stepDur+50);
+  }
+  function afterEnter(){
+    wait(startSlide,hold);
   }
 
   function start(){
-    clearTimeout(timer);wordIdx=0;run++;sliding=false;
-    const words=getWords();if(!words.length)return;
+    clearTimeout(timer);next=null;
+    wordIdx=0;
+    const words=getWords();
     // snap back to rest without replaying the exit slide in reverse
     rotWord.style.transition='none';
     rotWord.classList.remove(...outClasses,...enterClasses);
@@ -251,23 +276,8 @@ Startups</textarea>
     rotWord.style.transition='';
     rotWord.textContent=words[0];
     setColor(rotWord,0);
-    if(!paused)timer=setTimeout(cycle,hold);
+    wait(startSlide,hold); // while paused, wait() only records this; Play resumes from a fresh hold
   }
-
-  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses
-  // the loop on arrival, which this listener must catch. Paused clears only the hold timer — a slide already
-  // under way finishes and its own done() schedules nothing. Unpausing mid-slide does nothing here; the
-  // slide's done() will schedule the next hold once it sees the loop is no longer paused. Only one chain of
-  // timers ever runs, so the next Pause always stops the loop.
-  document.addEventListener('hb:pause',e=>{
-    paused=e.detail.paused;
-    if(paused){
-      clearTimeout(timer);
-    }else if(!sliding){
-      clearTimeout(timer);
-      timer=setTimeout(cycle,hold);
-    }
-  });
 
   sentenceIn.addEventListener('input',e=>{staticText.textContent=e.target.value});
   wordsIn.addEventListener('input',start);
