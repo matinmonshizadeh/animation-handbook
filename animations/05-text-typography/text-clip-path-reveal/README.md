@@ -1,7 +1,7 @@
 # Text Clip-Path Reveal
 
 ## What it is
-A text clip-path reveal conceals a fully-rendered headline behind a mask and progressively expands that mask to uncover the text. The text is laid out at full quality from the first frame — kerning, ligatures, and spacing are all computed before the animation starts. Only visibility changes, never the text itself. This makes it superior to character-stagger approaches for preserving typographic precision.
+A text clip-path reveal uncovers a headline one line at a time, as if a hidden window opens across each line. Every letter sits in its final place from the start; only the visible part of each line grows. Because the text itself never moves, its spacing stays exactly as designed, which is hard to keep when each letter is animated on its own.
 
 ## When to use it
 - Multi-line display headlines that should read as a single composed unit
@@ -54,10 +54,11 @@ All resolve to `inset(0 0% 0 0)` when revealed — a single `.revealed` class ha
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Line duration | 700ms | 300ms = snappy swipe; 1200ms = cinematic wipe |
-| Stagger | 180ms | Gap between lines starting — 100–200ms feels like a natural cascade |
-| Easing | ease-out | Deceleration makes the reveal feel physical; linear feels mechanical |
-| Direction | Left→Right | Matches reading direction; RTL matches RTL scripts; TTB works for display headers |
+| Starts from | Left | The side each line's wipe begins on: left follows the reading order, right suits right-to-left scripts, top works for display headings |
+| Speed | Normal | How long each line takes to uncover: slow is 1100ms, normal 700ms and fast 400ms |
+| Delay between lines | Medium | The wait before each next line starts: short is 100ms, medium 180ms and long 300ms; 100 to 200ms reads as a natural cascade |
+| Feel | Smooth | Smooth slows to a stop, which feels physical; Gentle eases in and out; Even feels mechanical |
+| Your lines | Good design / Is honest / Always. | The headline, one line per row |
 
 ## Production notes
 - **No layout shift**: unlike character stagger, clip-path reveal has zero impact on layout — the text is always in its final position, just hidden. This means no reflows and no risk of line-break changes mid-animation.
@@ -67,6 +68,6 @@ All resolve to `inset(0 0% 0 0)` when revealed — a single `.revealed` class ha
 - **Intersection Observer pairing**: in production, trigger the reveal when the headline scrolls into view using `IntersectionObserver`. The demo triggers on load/replay; combine with the [Reveal on Scroll](../../01-scroll-based/reveal-on-scroll/) pattern for scroll-triggered variants.
 
 ## See also
-- [Clip-Path Reveal](../../02-entrance-and-exit/clip-path-reveal/) — the same technique applied to arbitrary elements, not specifically text
-- [Curtain Reveal](../../02-entrance-and-exit/curtain-reveal/) — a colored overlay slides over then off, instead of unmasking the element directly
-- [Enter/Exit Typography](../enter-exit-typography/) — clip reveal as one of several possible enter choreographies
+- [Clip-Path Reveal](../../02-entrance-and-exit/clip-path-reveal/) — a shape uncovers any element
+- [Curtain Reveal](../../02-entrance-and-exit/curtain-reveal/) — a colored panel covers it, then slides away
+- [Enter/Exit Typography](../enter-exit-typography/) — each phrase comes in, holds and leaves
