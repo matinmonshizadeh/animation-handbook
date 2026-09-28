@@ -24,11 +24,11 @@
     :root{--ui-accent:#ff6f8b}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;background:#04060c;padding:clamp(20px,4vw,48px)}
-    .scramble-text{width:100%;max-width:720px;min-height:1.4em;font-size:clamp(28px,5vw,60px);font-weight:700;letter-spacing:0.04em;line-height:1.2;color:#fff;text-align:center}
+    .scramble-text{width:100%;max-width:720px;min-height:1.4em;font-size:clamp(24px,5vw,60px);font-weight:700;letter-spacing:0.04em;line-height:1.2;color:#fff;text-align:center}
     .scramble-text .char{display:inline-block;transition:color 60ms}
     .scramble-text .char.locked{color:#fff}
     .scramble-text .char.scrambling{color:#5f9a5f}
-    /* Letters mode: the letters of one word sit in one box that never breaks */
+    /* Each word's letters sit in one box that cannot break, so lines wrap only between words */
     .unit-word{display:inline-block;white-space:nowrap}
     @media(prefers-reduced-motion:reduce){.scramble-text .char{transition:none!important;color:#fff!important}}
   </style>
@@ -53,7 +53,7 @@
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
     <div class="stage hb-dots hb-grow">
-      <div class="scramble-text" id="scramble-out" aria-live="polite" aria-label="Scrambling text"></div>
+      <div class="scramble-text" id="scramble-out" aria-label="Scrambling text"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
@@ -159,7 +159,7 @@
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const txtIn=document.getElementById('txt-in');
   const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)');
-  let charset='symbols',settleMs=70,cycleMs=40,timers=[],cycleTimer=null,cycleFn=null;
+  let charset='symbols',settleMs=70,cycleMs=40,timers=[],cycleTimer=null;
 
   function randChar(cs){return cs[Math.floor(Math.random()*cs.length)]}
   function settleDur(){return slowTog.checked?settleMs*3:settleMs}
@@ -210,19 +210,18 @@
         if(lockedCount===total){
           clearInterval(cycleTimer);cycleTimer=null;
           out.setAttribute('aria-label',text);
-          if(!loopTog.checked)return;
-          later(cycle,1200);
+          // Loop is re-checked here, when the hold actually ends, not when it starts: switching Loop
+          // off during the 1200ms hold must not still trigger one more scramble.
+          later(()=>{if(loopTog.checked)cycle()},1200);
         }
       },settleDur()*i+settleDur());
     });
 
-    // Cycle random chars on unlocked letters; charset is read per tick so a change applies live
-    cycleFn=()=>{const cs=CHARSETS[charset];spans.forEach((s,i)=>{if(!locked[i])s.textContent=randChar(cs);});};
+    // Cycle random chars on unlocked letters; charset is read per tick so a change applies live.
+    // The settle callback above always clears this interval once the last letter locks (and play()
+    // clears it otherwise), so it never needs a fallback timer of its own.
+    const cycleFn=()=>{const cs=CHARSETS[charset];spans.forEach((s,i)=>{if(!locked[i])s.textContent=randChar(cs);});};
     cycleTimer=setInterval(cycleFn,cycleDur());
-
-    const totalTime=settleDur()*total+settleDur();
-    const thisTimer=cycleTimer;
-    later(()=>{if(cycleTimer===thisTimer){clearInterval(cycleTimer);cycleTimer=null;}},totalTime+cycleDur()*2);
   }
   function play(){
     timers.forEach(clearTimeout);timers=[];
