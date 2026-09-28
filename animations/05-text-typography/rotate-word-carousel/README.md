@@ -1,7 +1,7 @@
 # Rotate Word Carousel
 
 ## What it is
-A rotate word carousel keeps a sentence almost entirely static while cycling one keyword through a list of alternatives. The pattern reads as: "We build [Websites / Apps / Brands / Systems]." Only the bracketed word animates — sliding out as the current word and sliding in as the next. This is the dominant hero headline pattern on agency, freelance, and SaaS landing pages.
+A rotating word keeps a sentence still while one word in it keeps changing: "We craft for Designers" becomes "We craft for Developers", then "We craft for Humans". The current word slides out of sight and the next one slides in from the other side, so each change is easy to notice while the rest of the line stays readable. It is a common headline on the home pages of studios and software products.
 
 ## When to use it
 - Hero headlines that address multiple audiences: "Built for [Designers / Developers / Teams]"
@@ -73,10 +73,12 @@ setInterval(() => {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Hold duration | 2000ms | How long each word stays visible — 1.5–3s is the readable range |
-| Transition duration | 400ms | 200ms = snappy; 600ms = deliberate |
-| Direction | Up/down | Up = word scrolls up like a slot machine; Left/right = word slides horizontally |
-| Color per word | Per-word accent | Unique color per word draws more attention to the change; uniform is calmer |
+| Slide direction | Up | Up and down move the word like a slot machine; left and right slide it sideways |
+| Speed | Normal | How long each slide takes: slow is 650ms, normal 400ms and fast 250ms |
+| Time on each word | Medium | How long each word stays: short is 1200ms, medium 2000ms and long 3200ms; 1.5 to 3 seconds is the readable range |
+| Different color per word | on | A new color for each word draws attention to the change; one color is calmer |
+| Your sentence | We craft for | The part of the headline that stays still |
+| Your words, one per line | Designers, Developers, Humans, Teams, Startups | The words that take turns |
 
 ## Production notes
 - **Only one word should rotate**: multiple cycling sections in a single headline create chaos. The static context is what makes the rotating word legible — "We build for [X]" works because "We build for" never changes.
@@ -87,6 +89,6 @@ setInterval(() => {
 - **Typed.js, Motion One**: both have built-in word cycling APIs. Typed.js (`strings: [...]` with `backSpeed`) is the most widely used.
 
 ## See also
-- [Text Morphing](../text-morphing/) — character-level transitions between words rather than whole-word slides
-- [Enter/Exit Typography](../enter-exit-typography/) — full-phrase cycling with enter and exit on the entire headline
-- [Typewriter Effect](../typewriter-effect/) — an alternative word-reveal pattern that types characters one by one
+- [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
+- [Enter/Exit Typography](../enter-exit-typography/) — whole phrases come in, hold and leave
+- [Typewriter Effect](../typewriter-effect/) — text typed one character at a time
