@@ -1,7 +1,7 @@
 # Typewriter Effect
 
 ## What it is
-The typewriter effect reveals text character by character, mimicking the cadence of someone typing. A blinking cursor at the insertion point reinforces the illusion. Adding subtle per-character timing variance — random ±20ms jitter — turns a mechanical loop into something that feels genuinely hand-typed, because human typing is never perfectly uniform.
+The typewriter effect shows text one character at a time, as if someone is typing it, with a blinking cursor just after the last character. Small random differences in the time between keystrokes make it feel typed by a person rather than a machine, because real typing is never perfectly even.
 
 ## When to use it
 - Hero headlines on developer tools, terminal-themed, or hacker-aesthetic sites
@@ -68,10 +68,12 @@ function deleteBack(from, to, callback) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed per char | 50ms | 20ms = fast/robotic; 80–120ms = natural pace; 200ms = slow/deliberate |
-| Jitter range | ±20ms | 0 = robotic uniform; ±40ms = very human but erratic |
-| Delete speed | ~30ms | Faster than type speed — deleting feels more decisive than typing |
-| Cursor style | pipe | Block cursor reads as terminal; pipe reads as text editor; underscore reads as DOS |
+| Speed | Normal | The time between keystrokes: slow is 80ms, normal 50ms and fast 30ms; about 80 to 120ms feels like a natural pace |
+| Cursor shape | Line | A block reads as a terminal, a line as a text editor, an underscore as an old computer screen |
+| Deletes and retypes | off | Types the text, backs up over the last word at about 30ms a character, then types it again with a new ending |
+| Types like a person | on | Moves each keystroke up to 20ms earlier or later so the rhythm is uneven, like real typing |
+| Cursor color | Pink | The cursor's color; pick one that stands out from the text |
+| Your text | Two sample sentences | The text that is typed; short lines work best |
 
 ## Production notes
 - **Long text is exhausting**: the typewriter effect works on short hero copy (under ~15 words). A full paragraph typed character-by-character forces users to wait for content they could read instantly. Reserve it for dramatic reveals, not body text.
@@ -81,6 +83,6 @@ function deleteBack(from, to, callback) {
 - **Typed.js**: the canonical library for this effect. Handles multiple strings, backspace, loops, smart backspace (delete only the differing suffix), and HTML tags in strings. Worth using in production rather than rolling your own.
 
 ## See also
-- [Scramble / Glitch Text](../scramble-text/) — a different character-reveal approach: random cycling before settling
-- [Rotate Word Carousel](../rotate-word-carousel/) — cycling through words without character-by-character reveal
-- [Enter/Exit Typography](../enter-exit-typography/) — phrase-level enter/exit without character-level timing
+- [Scramble / Glitch Text](../scramble-text/) — random symbols lock into the real text
+- [Rotate Word Carousel](../rotate-word-carousel/) — one word in a sentence keeps changing
+- [Enter/Exit Typography](../enter-exit-typography/) — each phrase comes in, holds and leaves
