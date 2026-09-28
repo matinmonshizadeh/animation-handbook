@@ -49,6 +49,6 @@ The generated CSS is injected into a live `<style>` tag, so changing Bounce stre
 - **GSAP**: `Bounce.out` / `Elastic.out` eases, or a `.fromTo()` with overshoot values, cover this without a manual keyframe block.
 
 ## See also
-- [Scale In](../scale-in/) — grows into place without the bounce
+- [Scale In / Zoom In](../scale-in/) — grows into place without the bounce
 - [Rotate In](../rotate-in/) — spins into place while it grows
 - [Slide In](../slide-in/) — travels into place from one edge

@@ -71,8 +71,9 @@ for (const d of converted) {
 for (const d of steps) {
   test(`${d.cat}/${d.slug} uses the guided-steps page correctly`, () => {
     const html = pageOf(d);
-    assert.ok(html.includes('<link rel="stylesheet" href="../../../assets/css/demo-page.css">'), 'page stylesheet');
-    assert.ok(html.includes('<script src="../../../assets/js/demo-page.js" defer></script>'), 'page script');
+    // The shared files carry a version so visitors do not get a cached older copy after publishing.
+    assert.match(html, /<link rel="stylesheet" href="\.\.\/\.\.\/\.\.\/assets\/css\/demo-page\.css\?v=\d+">/, 'page stylesheet');
+    assert.match(html, /<script src="\.\.\/\.\.\/\.\.\/assets\/js\/demo-page\.js\?v=\d+" defer><\/script>/, 'page script');
     const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?>/);
     assert.ok(body, 'the body declares the page kind');
     const kind = body[1];

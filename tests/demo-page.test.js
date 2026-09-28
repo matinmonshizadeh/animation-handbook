@@ -82,3 +82,12 @@ test('shorten squeezes whitespace and cuts long text with an ellipsis', () => {
   assert.equal(DP.shorten('abc de', 5), 'abc…');
   assert.equal(DP.shorten('', 5), '');
 });
+
+test('quoteText wraps typed text in quotes and keeps the 40-character cut inside them', () => {
+  assert.equal(DP.quoteText('Hello, world.', 40), '"Hello, world."');
+  assert.equal(DP.quoteText('We build interfaces\nthat disappear.', 40), '"We build interfaces that disappear."');
+  const long = DP.quoteText('a'.repeat(50), 40);
+  assert.equal(long, '"' + 'a'.repeat(39) + '…"');
+  assert.equal(long.length, 42);
+  assert.equal(DP.quoteText(' \n ', 40), '');
+});

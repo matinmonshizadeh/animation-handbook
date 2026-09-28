@@ -51,6 +51,6 @@ The Blur only and Fade only choices of What changes exist to show that the two c
 - **Motion One / GSAP**: both animate the `filter` string directly; GSAP needs no plugin for CSS filters.
 
 ## See also
-- [Fade In / Out](../fade-in-out/) — the fade on its own, with no blur
-- [Scale In](../scale-in/) — grows from smaller to full size
+- [Fade In / Fade Out](../fade-in-out/) — the fade on its own, with no blur
+- [Scale In / Zoom In](../scale-in/) — grows from smaller to full size
 - [Flip In](../flip-in/) — swings in like a card turning over

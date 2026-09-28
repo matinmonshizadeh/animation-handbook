@@ -101,6 +101,12 @@
     return s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s;
   }
 
+  // Typed text as a setting value: shortened as above, then wrapped in quotes ('' when there is no text).
+  function quoteText(text, max) {
+    var s = shorten(text, max);
+    return s ? '"' + s + '"' : '';
+  }
+
   /* ---------- Page behaviour ---------- */
 
   var CONTROLS = 'input[type=range], input[type=checkbox], input[type=text], textarea, select, .seg, .swatches';
@@ -126,7 +132,7 @@
       var shown = setting && setting.querySelector('.hb-value');
       return shown ? text(shown) : (control.getAttribute('aria-valuetext') || control.value);
     }
-    if (control.matches('input[type=text], textarea')) return shorten(control.value, 40);
+    if (control.matches('input[type=text], textarea')) return quoteText(control.value, 40);
     if (control.matches('input[type=checkbox]')) return control.checked ? 'on' : 'off';
     if (control.matches('select')) return control.selectedOptions[0] ? text(control.selectedOptions[0]) : control.value;
     var active = control.querySelector('.on, [aria-pressed="true"]');
@@ -292,9 +298,11 @@
     }
 
     // Changing a setting updates the chips and replays the animation shortly after the last change.
+    // Text fields already replay on every input, so the change event they fire when left is ignored.
     var replayTimer = 0;
     function onSettingsChange(e) {
       if (e.type === 'click' && !e.target.closest('.seg button, .swatches button')) return;
+      if (e.type === 'change' && e.target.matches('input[type=text], textarea')) return;
       win.setTimeout(refreshChips, 0);
       win.clearTimeout(replayTimer);
       replayTimer = win.setTimeout(replay, 250);
@@ -352,6 +360,6 @@
   return {
     escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
     paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill, shorten: shorten,
-    readSettings: readSettings, boot: boot
+    quoteText: quoteText, readSettings: readSettings, boot: boot
   };
 });

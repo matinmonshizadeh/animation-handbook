@@ -41,7 +41,7 @@ Multiple lines stagger through a per-line `--d` index multiplied by a `--stagger
 
 ## Production notes
 - **`translateY(110%)`, not `100%`.** The extra 10% covers descenders (g, y, p) and line-height slack so no sliver of the glyph peeks above the boundary before it moves.
-- **Pick the method by tradeoff.** `translateY` inside a wrapper composites slightly cheaper and animates more smoothly, but needs the extra `.line-wrap` element. `clip-path` needs no wrapper and keeps the text as a single selectable block, at a marginally higher paint cost — the demo notes both look identical to users.
+- **Pick the method by tradeoff.** `translateY` inside a wrapper composites slightly cheaper and animates more smoothly, but needs the extra `.line-wrap` element. `clip-path` needs no wrapper and keeps the text as a single selectable block, at a marginally higher paint cost. To users, both look the same.
 - **Reduced motion:** the demo strips the transform and clip entirely under `prefers-reduced-motion`, falling back to a plain opacity fade so nothing slides.
 - **Library equivalents:** GSAP's SplitText plugin plus a `y: '110%'` tween is the classic production recipe; Framer Motion animates `y` inside a `overflow-hidden` wrapper with `staggerChildren`; Motion One `animate` with a `delay` derived from index.
 

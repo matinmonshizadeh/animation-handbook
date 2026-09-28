@@ -57,5 +57,5 @@ A negative starting angle spins clockwise into place and a positive one counter-
 
 ## See also
 - [Flip In](../flip-in/) — swings in like a card turning over
-- [Scale In](../scale-in/) — grows from small, with no spin
+- [Scale In / Zoom In](../scale-in/) — grows from small, with no spin
 - [Bounce In](../bounce-in/) — lands with a springy bounce

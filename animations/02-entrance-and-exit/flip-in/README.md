@@ -2,7 +2,7 @@
 
 ## What it is
 
-Flip In swings an element from edge-on into full view in 3D, like a hinged panel turning toward you. The key detail is that the 3D perspective is set on the element's container, not on the card itself; without it, the turn collapses into a flat squash with no sense of depth.
+Flip In swings an element from a turned-away angle into full view in 3D, like a hinged panel turning toward you. The key detail is that the 3D perspective is set on the element's container, not on the card itself; without it, the turn collapses into a flat squash with no sense of depth.
 
 ## When to use it
 - Card entrances in dashboards, galleries, and onboarding flows
@@ -55,6 +55,6 @@ The Hinge setting moves transform-origin to an edge (top, bottom, left) so the c
 - **GSAP**: set `transformPerspective` (or `perspective` on the container) and tween `rotationY`; GSAP's 3D handling is built in.
 
 ## See also
-- [Scale In](../scale-in/) — grows into place, flat on the page
+- [Scale In / Zoom In](../scale-in/) — grows into place, flat on the page
 - [Rotate In](../rotate-in/) — spins flat instead of turning in 3D
 - [Blur In](../blur-in/) — sharpens from a blur as it fades in

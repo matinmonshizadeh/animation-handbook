@@ -63,8 +63,8 @@ The page owns the stage's width, border, corners and height; the demo owns every
 
 - Height: `var(--hb-stage-h, clamp(300px, 100svh − 420px, 440px))` on computers and tablets,
   `var(--hb-stage-h-phone, 300px)` on phones, with the short-screen rule from the pilot. A demo that needs a
-  different height sets `--hb-stage-h` or `--hb-stage-h-phone` (for example `auto` with its own `min-height` when
-  typed text has to fit).
+  different height sets `--hb-stage-h` or `--hb-stage-h-phone`. A stage whose text the visitor can change adds the
+  shared class `hb-grow`: at least the usual height, and taller when the text needs it.
 - Overflow, background, alignment and perspective belong to the demo. The shared default `overflow: hidden` is
   written with zero specificity (`:where(...)`), so a demo's own `.stage` rule wins. This keeps scroll demos (19 of
   the 26 scroll inside `.stage`), Accordion, Pull to Refresh, Smooth Scroll's comparison mode and Flip In's
@@ -93,7 +93,7 @@ three main settings, playback is not a setting, no readouts). Each type of contr
 | Slider | `label.hb-setting-name[for]`, the `input[type=range]`, and `output.hb-value[for]` showing the value in plain words or friendly units ("Slow", "0.6 s", "40%") | the `output.hb-value` text |
 | Menu | `label.hb-setting-name[for]` and `select.hb-select` | the chosen option's text |
 | Colour | `.swatches` of buttons with `aria-pressed` and a colour name as `aria-label` (colour pickers become named swatches) | the colour's name |
-| Text | `label.hb-setting-name[for]` and `input.hb-text` or `textarea.hb-text` | the text, cut to 40 characters |
+| Text | `label.hb-setting-name[for]` and `input.hb-text` or `textarea.hb-text` | the text in quotes, cut to 40 characters inside them |
 
 Radio groups become choice buttons. When a control has no label of its own, the reader uses the `.hb-setting-name`
 in the same `.hb-setting`. If a label or value still comes out empty, the shared script logs a console warning.

@@ -56,4 +56,4 @@ The Pauses between sentences switch adds `si × 200ms` to the delay for each sen
 ## See also
 - [Letter-by-Letter Stagger](../letter-by-letter-stagger/) — one letter at a time, for short phrases
 - [Split Text Reveal](../split-text-reveal/) — text breaks into letters, words or lines
-- [Fade In / Out](../fade-in-out/) — the whole text fades in at once
+- [Fade In / Fade Out](../fade-in-out/) — the whole text fades in at once

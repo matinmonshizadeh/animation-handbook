@@ -2,7 +2,7 @@
 
 ## What it is
 
-A letter-by-letter stagger animates each character a moment after the previous one, so a phrase assembles as a cascade instead of appearing all at once. The demo shows two versions: a cascade where every letter plays a small entrance, and a typewriter that reveals letters one at a time behind a blinking cursor.
+A letter-by-letter stagger animates each character a moment after the previous one, so a phrase assembles as a cascade instead of appearing all at once. The demo shows two versions: a cascade where every letter plays a small entrance, and a typewriter that reveals letters one at a time, with an optional blinking cursor.
 
 ## When to use it
 - Hero headlines and landing-page titles where the text is the focal point
@@ -17,7 +17,7 @@ Each character is wrapped in its own `<span class="char">` and given a custom pr
 [...text].forEach((c,i)=>{
   const s=document.createElement('span');
   s.className='char';s.style.setProperty('--i',i);
-  s.textContent=c===' '?' ':c;
+  s.textContent=c===' '?' ':c; // a lone plain space would collapse inside its inline-block
   target.appendChild(s);
 });
 ```
