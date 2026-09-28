@@ -191,16 +191,16 @@
     phraseEl.classList.add(p.enter);
   }
 
-  // Plays phrase i: enter, hold, exit, then the next phrase starts 120ms later. The last phrase stays
-  // on screen after its hold; while Loop is on it exits too and the play restarts from the first phrase.
+  // Plays phrase i: enter, hold, exit, then the next phrase starts 120ms later. The last phrase always
+  // holds; whether it then exits and restarts is decided right after the hold, from Loop's value at that
+  // moment, so switching Loop off during the hold still lets the phrase stay on screen.
   function step(i){
     apply();
     showPhrase(i);
+    const p=PHRASES[i],last=i===PHRASES.length-1;
     later(()=>{
-      const last=i===PHRASES.length-1;
-      if(last&&(!loopTog.checked||!motionOk))return;
-      const p=PHRASES[i];
       later(()=>{
+        if(last&&(!loopTog.checked||!motionOk))return;
         phraseEl.classList.remove(p.enter);
         phraseEl.classList.add(p.exit);
         later(()=>later(()=>step(last?0:i+1),120),exitDur()+50);
