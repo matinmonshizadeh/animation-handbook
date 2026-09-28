@@ -1,7 +1,7 @@
 # Enter/Exit Typography
 
 ## What it is
-Enter/exit typography treats each phrase as a three-act sequence: it enters the frame, holds long enough to be read, then exits to make way for the next. This is the full lifecycle of on-screen text in broadcast, presentation, and storytelling contexts. The key insight is that the exit is as important as the entry — the direction and character of each phrase's departure creates continuity with the next phrase's arrival.
+Enter/exit typography shows short phrases one at a time in the same place. Each phrase comes in, holds still long enough to be read, then leaves before the next one arrives. Every phrase has its own way in and out, such as sliding, growing, blurring or wiping, and the last one stays on screen when the sequence ends.
 
 ## When to use it
 - Sequential brand statements and manifesto sections
@@ -41,23 +41,14 @@ Each enter/exit pair is a `@keyframes` rule:
 @keyframes xSL { from { opacity:1; transform:translateX(0) }    to { opacity:0; transform:translateX(60px) } }
 ```
 
-The sequences loop by resetting `idx` to 0 after the last phrase:
-
-```js
-function cycle(idx = 0) {
-  show(PHRASES[idx], () => {
-    cycle((idx + 1) % PHRASES.length);
-  });
-}
-```
+One play shows the phrases in order and leaves the last one on screen. While Loop is on, the last phrase exits too and the play starts again from the first.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Enter duration | 500ms | Fast entry (300ms) = energetic; slow entry (800ms) = deliberate |
-| Hold duration | 2000ms | Must exceed reading time: ~200ms per word minimum |
-| Exit duration | 400ms | Usually shorter than enter — departure is punctuation, not the main event |
-| Enter/exit pairing | Thematic | Matching directions (exit left → enter from left) implies continuation; mismatched implies contrast |
+| Entrance speed | Normal | How long each phrase takes to arrive: slow is 800ms, normal 500ms and fast 300ms; fast feels energetic, slow feels deliberate |
+| Time on each phrase | Medium | How long each phrase holds still: short is 1200ms, medium 2000ms and long 3200ms; it must be longer than it takes to read the phrase |
+| Exit speed | Normal | How long each phrase takes to leave: slow is 650ms, normal 400ms and fast 250ms; exits are usually shorter than entrances |
 
 ## Production notes
 - **Hold duration is the most important parameter**: the animation is wasted if phrases don't have enough time to be read. A 5-word phrase needs at least 1000ms hold, preferably 1500–2000ms. Test by reading the phrase aloud at a comfortable pace — if you can't finish before the exit starts, extend the hold.
@@ -67,6 +58,6 @@ function cycle(idx = 0) {
 - **Framer Motion**: `<AnimatePresence>` handles enter/exit lifecycles for React components elegantly. Each phrase is conditionally rendered and gets `initial`, `animate`, and `exit` props.
 
 ## See also
-- [Kinetic Typography](../kinetic-typography/) — the same pattern with per-phrase choreography choices driven by the copy's meaning
-- [Rotate Word Carousel](../rotate-word-carousel/) — a single word within a static sentence cycling through a list
-- [Text Morphing](../text-morphing/) — character-level transitions rather than full-phrase enter/exit
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Rotate Word Carousel](../rotate-word-carousel/) — one word in a sentence keeps changing
+- [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
