@@ -43,11 +43,12 @@ Per-unit animation is swappable via `data-anim` (fade-up, fade, scale, rotate); 
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Split mode | Words | Characters give the finest cascade, words a readable rhythm, lines a block reveal |
-| Animation per unit | Fade up | The small entrance each piece plays: fade up, fade, scale or rotate |
-| Stagger delay | 30ms | Delay between pieces; small values ripple, large values feel deliberate |
-| Duration per unit | 500ms | How long each piece takes to animate |
-| Easing | Smooth | The curve each piece uses; Springy adds a small settle |
+| Split into | Words | Letters give the finest cascade, words a readable rhythm, lines a block reveal |
+| How each piece appears | Fade up | The small entrance each piece plays: fade up, fade, grow or flip |
+| Delay between pieces | Medium | The wait between pieces: short is 10ms, medium 30ms and long 100ms; small values ripple, large values feel deliberate |
+| Speed | Normal | How long each piece takes: slow is 800ms, normal 500ms and fast 300ms |
+| Feel | Smooth | The curve each piece uses; Springy adds a small settle, Even keeps one steady pace |
+| Your text | Design beyond the obvious | The text that is split and revealed |
 
 ## Production notes
 - **Total time = units × stagger + duration.** Character mode on a long string multiplies fast — 40 chars × 30ms + 500ms is nearly 1.7s. Cap the stagger or switch to words/lines for longer copy so the tail does not drag.
@@ -57,7 +58,7 @@ Per-unit animation is swappable via `data-anim` (fade-up, fade, scale, rotate); 
 - **Library equivalents:** Splitting.js and GSAP's SplitText both do the DOM splitting for you (SplitText also handles the ARIA and re-split-on-resize); Framer Motion uses `staggerChildren` on a parent variant with child `motion.span`s; Motion One's `stagger()` helper generates the per-element delay.
 
 ## See also
-- [Slide Up Reveal](../slide-up-reveal/) — the clipped line-rise this reuses in `lines` mode
-- [Letter By Letter Stagger](../letter-by-letter-stagger/) — char-split cascade in depth
-- [Word By Word Reveal](../word-by-word-reveal/) — word-split cascade in depth
-- [Fade In / Fade Out](../fade-in-out/) — the un-staggered baseline
+- [Slide Up Reveal](../slide-up-reveal/) — whole lines rise from behind an invisible edge
+- [Letter-by-Letter Stagger](../letter-by-letter-stagger/) — one letter at a time, or typed out
+- [Word-by-Word Reveal](../word-by-word-reveal/) — one word at a time, at a reading pace
+- [Fade In / Fade Out](../fade-in-out/) — the whole text fades in at once
