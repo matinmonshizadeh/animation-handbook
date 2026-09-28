@@ -1,7 +1,7 @@
 # Marquee / Ticker
 
 ## What it is
-A marquee is text (or any content) that scrolls continuously in one direction without pausing. The seamless loop is achieved by duplicating the content so that when the first copy exits, the second copy has arrived at exactly the same position — making the reset invisible. Marquees are used for news tickers, brand statements, infinite scroll walls, and ambient content that doesn't demand focus.
+A marquee scrolls a line of text sideways without end, like a news ticker. The text is repeated, and the row moves by exactly the width of one copy before starting over, so an identical copy is always in place and the restart cannot be seen. In the demo, three rows scroll at the same pace, the middle one the other way, and pointing at a row or tapping it stops just that row.
 
 ## When to use it
 - Scrolling news tickers and sports scores
@@ -65,12 +65,13 @@ Reverse direction by animating from `-50%` to `0`:
 ```
 
 ## Key parameters
-| Parameter | Typical range | Effect |
-|-----------|--------------|--------|
-| Speed | 40–150px/sec | News tickers: 40–60; branded rails: 80–120; dramatic: 150+ |
-| Font size | 24–96px | Large type (60–96px) is the dominant agency pattern; smaller for news tickers |
-| Gap between items | 32–80px | Breathing room between repetitions — use a separator character (· ★ —) |
-| Direction | LTR or RTL | Convention: left-to-right for Western text; RTL for Arabic/Hebrew |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Speed | Normal | How fast the text travels: slow is 50px, normal 80px and fast 130px per second; news tickers run slower, brand strips faster |
+| Text size | Medium | Small is 32px, medium 48px and large 64px; large type is the usual choice for brand strips |
+| Space between items | Medium | The space around each repeat of the text and its separator: tight is 24px, medium 48px and wide 80px |
+| Separator | Sparkle ✦ | The mark between repeats: a dot, a star, a dash or a sparkle |
+| Your text | Animation Handbook | The text that scrolls |
 
 ## Production notes
 - **Duplicate once, not more**: duplicating twice is enough for any viewport width as long as one copy is wider than the viewport. More duplicates waste DOM. If your text is very short, add more repetitions within each copy rather than more copies.
@@ -82,5 +83,6 @@ Reverse direction by animating from `-50%` to `0`:
 - **Swiper.js** has an `autoplay` + `loop` mode that handles marquee behavior with touch support and accessibility built in.
 
 ## See also
-- [Rotate Word Carousel](../rotate-word-carousel/) — single cycling word rather than continuous horizontal scroll
-- [Kinetic Typography](../kinetic-typography/) — text that moves with narrative intent rather than ambient looping
+- [Rotate Word Carousel](../rotate-word-carousel/) — one word in a sentence keeps changing
+- [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Text on a Path](../text-on-path/) — text scrolls along a curve instead

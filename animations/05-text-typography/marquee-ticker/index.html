@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marquee / Ticker — Animation Handbook</title>
-  <meta name="description" content="Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.">
+  <meta name="description" content="Text scrolls sideways in an endless loop, with no seam. Best for news tickers.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/marquee-ticker/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,108 +12,157 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Marquee / Ticker — Animation Handbook">
-  <meta property="og:description" content="Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.">
+  <meta property="og:description" content="Text scrolls sideways in an endless loop, with no seam. Best for news tickers.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/marquee-ticker/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Marquee / Ticker — Animation Handbook">
-  <meta name="twitter:description" content="Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.">
+  <meta name="twitter:description" content="Text scrolls sideways in an endless loop, with no seam. Best for news tickers.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Marquee / Ticker", "name": "Marquee / Ticker", "description": "Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/marquee-ticker/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Marquee / Ticker"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Marquee / Ticker", "name": "Marquee / Ticker", "description": "Text scrolls sideways in an endless loop, with no seam. Best for news tickers.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/marquee-ticker/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Marquee / Ticker"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff6f8b;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--marq-spd:80px;--marq-size:48px;--marq-gap:48px}
+    :root{--ui-accent:#ff6f8b;--marq-size:48px;--marq-gap:48px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#08080a;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:0}
-    /* Marquee row */
-    .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid var(--ui-border);position:relative}
+    .stage{display:flex;flex-direction:column;justify-content:center;background:#08080a}
+    .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.09);position:relative}
     .marq-row:last-child{border-bottom:none}
     .marq-row.accent{background:rgba(255,111,139,.05)}
     .marq-track{display:flex;width:max-content;white-space:nowrap;animation:marqL linear infinite}
     .marq-track.rev{animation-name:marqR}
-    @media(hover:hover){.marq-row:hover .marq-track{animation-play-state:paused}.marq-row:hover .pause-hint{opacity:1}}
+    @media(hover:hover){.marq-row:hover .marq-track{animation-play-state:paused}}
     .marq-row.paused .marq-track{animation-play-state:paused}
-    .marq-row.paused .pause-hint{opacity:1}
     @keyframes marqL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
     @keyframes marqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
-    .marq-item{font-family:Georgia,'Times New Roman',serif;font-size:var(--marq-size);font-style:italic;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
+    .marq-item{font-size:var(--marq-size);font-weight:700;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
     .marq-item.rev-row{color:rgba(255,255,255,.6)}
     .sep{color:var(--ui-accent);font-style:normal;font-size:.6em;opacity:.7}
-    /* Pause indicator */
-    .pause-hint{position:absolute;z-index:1;right:12px;top:50%;transform:translateY(-50%);font-size:9px;letter-spacing:1px;color:var(--ui-muted);opacity:0;transition:opacity .2s;pointer-events:none;background:var(--ui-bg);padding:3px 8px;border-radius:3px}
-    /* Panel */
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:44px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    input[type=text]{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:4px;width:100%;min-height:44px;outline:none}
-    input[type=text]:focus{border-color:var(--ui-accent)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:380px}}
-    @media(prefers-reduced-motion:reduce){.marq-track{animation-play-state:paused!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=3">
+  <script src="../../../assets/js/demo-page.js?v=3" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../text-clip-path-reveal/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../text-morphing/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/05-text-typography/marquee-ticker/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Marquee / Ticker</h1>
-  <p>Continuous horizontal scroll with duplicated content — the seam is invisible at the loop point.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <!-- built by JS -->
-  </div>
-  <aside>
-    <p class="note">Animate exactly the width of ONE copy. At -50% translateX, the second copy is in the first's original position — the reset is invisible. Hover pauses.</p>
-    <div class="lbl">Speed (px/sec)</div>
-    <div class="sr"><input type="range" id="spd-sl" min="20" max="200" value="80" step="10"><span class="sv" id="spd-v">80</span></div>
-    <div class="lbl">Font Size</div>
-    <div class="sr"><input type="range" id="size-sl" min="24" max="96" value="48" step="4"><span class="sv" id="size-v">48px</span></div>
-    <div class="lbl">Gap Between Items</div>
-    <div class="sr"><input type="range" id="gap-sl" min="16" max="96" value="48" step="4"><span class="sv" id="gap-v">48px</span></div>
-    <div class="lbl">Separator</div>
-    <select id="sep-sel">
-      <option value="·">Bullet ·</option>
-      <option value="★">Star ★</option>
-      <option value="—">Dash —</option>
-      <option value="✦" selected>Asterisk ✦</option>
-    </select>
-    <div class="div"></div>
-    <div class="lbl">Marquee Text</div>
-    <input type="text" id="text-inp" value="Animation Handbook">
-    <button class="rst" id="apply-btn">↺ Apply</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../text-clip-path-reveal/" rel="prev" aria-label="Previous: Text Clip-Path Reveal"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Text Clip-Path Reveal</span></a><a href="../text-morphing/" rel="next" aria-label="Next: Text Morphing"><span><span class="hb-dir">Next: </span>Text Morphing</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.06 · Text &amp; Typography</p>
+    <h1>Marquee / Ticker</h1>
+    <p class="hb-lede">Text scrolls sideways in an endless loop, with no seam. Best for news tickers.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it, or point at a row (tap it on a phone) to stop just that row.</p></div>
+    </div>
+    <div class="stage hb-dots" id="stage"></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-spd="50" aria-pressed="false">Slow</button>
+          <button type="button" data-spd="80" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-spd="130" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the text travels.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Text size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-size="32" aria-pressed="false">Small</button>
+          <button type="button" data-size="48" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-size="64" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">Large type is the usual choice for brand strips.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="gap-lbl">Space between items</p>
+        <div class="seg" id="gap-seg" role="group" aria-labelledby="gap-lbl">
+          <button type="button" data-gap="24" aria-pressed="false">Tight</button>
+          <button type="button" data-gap="48" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-gap="80" aria-pressed="false">Wide</button>
+        </div>
+        <p class="hb-hint">The space around the text and the separator.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="sep-lbl">Separator</p>
+          <div class="seg" id="sep-seg" role="group" aria-labelledby="sep-lbl">
+            <button type="button" data-sep="·" aria-pressed="false">Dot ·</button>
+            <button type="button" data-sep="★" aria-pressed="false">Star ★</button>
+            <button type="button" data-sep="—" aria-pressed="false">Dash —</button>
+            <button type="button" data-sep="✦" class="on" aria-pressed="true">Sparkle ✦</button>
+          </div>
+          <p class="hb-hint">The mark between repeats of the text.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-setting-name" for="text-inp">Your text</label>
+          <input class="hb-text" type="text" id="text-inp" value="Animation Handbook" autocomplete="off">
+          <p class="hb-hint">Type your own words to see them scroll.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a marquee to [the text or items you want to scroll]. The text should scroll sideways in an endless loop with no visible jump: place two identical copies side by side, each at least as wide as the space it scrolls through, and move them by exactly one copy's width before starting over. Put a small mark between the repeats. Rows can run in opposite directions for a decorative band. Pointing at a row should stop it so people can read it, and a tap should do the same on touch screens. Screen readers should not announce the moving text again and again. If the visitor has reduced motion turned on, keep the text still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>News tickers</li><li>Brand strips</li><li>Client lists</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Important messages</li><li>Long sentences</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
-
+  const vars=document.documentElement.style;
+  const txtIn=document.getElementById('text-inp');
   const noHover=matchMedia('(hover:none)');
+  let spd=80,sep='✦';
 
   function makeItem(text,sep,reverse){
     const item=document.createElement('div');item.className='marq-item'+(reverse?' rev-row':'');
@@ -125,7 +174,6 @@ body{padding-top:46px}
 
   function buildRow(text,sep,reverse,className){
     const row=document.createElement('div');row.className='marq-row'+(className?' '+className:'');
-    const hint=document.createElement('div');hint.className='pause-hint';hint.textContent='PAUSED';row.appendChild(hint);
     const track=document.createElement('div');track.className='marq-track'+(reverse?' rev':'');track.setAttribute('aria-live','off');
     row.appendChild(track);
     stage.appendChild(row);
@@ -139,10 +187,7 @@ body{padding-top:46px}
     return row;
   }
 
-  function getContent(){
-    return document.getElementById('text-inp').value||'Animation Handbook';
-  }
-  function getSep(){return document.getElementById('sep-sel').value}
+  function getContent(){return txtIn.value||'Animation Handbook'}
 
   // Fraction of the loop a track has completed (0-1), so a duration change or rebuild can resume in place
   function progressOf(track){
@@ -150,7 +195,6 @@ body{padding-top:46px}
     return an&&d&&an.currentTime!=null?(an.currentTime%d)/d:0;
   }
   function updateSpeed(track,frac){
-    const spd=+document.getElementById('spd-sl').value;
     const oneCopy=track.scrollWidth/2; // -50% travel distance
     if(frac==null)frac=progressOf(track);
     track.durMs=Math.round(oneCopy/spd*1000);
@@ -160,7 +204,7 @@ body{padding-top:46px}
   }
 
   function rebuild(){
-    const text=getContent();const sep=getSep();
+    const text=getContent();
     const frac=progressOf(stage.querySelector('.marq-track'));
     stage.innerHTML='';
     buildRow(text,sep,false,'');
@@ -171,33 +215,29 @@ body{padding-top:46px}
 
   function refreshSpeeds(){
     document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t));
-    document.documentElement.style.setProperty('--marq-spd',document.getElementById('spd-sl').value+'px');
   }
 
-  document.getElementById('spd-sl').addEventListener('input',e=>{
-    document.getElementById('spd-v').textContent=e.target.value;refreshSpeeds();
-  });
-  document.getElementById('size-sl').addEventListener('input',e=>{
-    document.getElementById('size-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--marq-size',e.target.value+'px');refreshSpeeds();
-  });
-  document.getElementById('gap-sl').addEventListener('input',e=>{
-    document.getElementById('gap-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--marq-gap',e.target.value+'px');refreshSpeeds();
-  });
-  // Width changes alter how many repeats a row needs: rebuild once the slider settles
-  document.getElementById('size-sl').addEventListener('change',rebuild);
-  document.getElementById('gap-sl').addEventListener('change',rebuild);
-  document.getElementById('apply-btn').addEventListener('click',rebuild);
-  document.getElementById('sep-sel').addEventListener('change',rebuild);
+  txtIn.addEventListener('input',rebuild);
+
   let resizeTimer,lastW=innerWidth;
   addEventListener('resize',()=>{
     if(innerWidth===lastW)return; // ignore mobile address-bar height changes
     lastW=innerWidth;clearTimeout(resizeTimer);resizeTimer=setTimeout(rebuild,150);
   });
 
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{spd=+d.spd;refreshSpeeds()});
+  choices('size-seg',d=>{vars.setProperty('--marq-size',d.size+'px');rebuild()});
+  choices('gap-seg',d=>{vars.setProperty('--marq-gap',d.gap+'px');rebuild()});
+  choices('sep-seg',d=>{sep=d.sep;rebuild()});
+
   rebuild();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
