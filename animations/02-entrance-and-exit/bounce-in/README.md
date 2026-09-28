@@ -11,7 +11,7 @@ Bounce In brings an element up from small and low, overshoots its final size and
 - Any single element small enough that an energetic entrance won't feel heavy
 
 ## How it works
-The card animates via a named keyframe rather than a transition. Each stop scales past 1 and pulls back under it, translating the vertical overshoot at the same time. The overshoot amounts are computed from an intensity slider so the waypoints stay proportional:
+The card animates via a named keyframe rather than a transition. Each stop scales past 1 and pulls back under it, translating the vertical overshoot at the same time. The overshoot amounts are computed from the Bounce strength choice (an intensity of 30, 60 or 100) so the waypoints stay proportional:
 
 ```js
 const t=intensity/100;
@@ -29,16 +29,16 @@ kf=`@keyframes bounce-in{
 .card.in{animation:bounce-in var(--dur) ease forwards}
 ```
 
-The generated CSS is injected into a live `<style>` tag, so changing intensity or bounce count rewrites the keyframe rule on the fly. Two- and three-bounce modes simply add more overshoot/undershoot pairs at tighter percentage intervals, each smaller than the last to imitate energy dissipating.
+The generated CSS is injected into a live `<style>` tag, so changing Bounce strength or Number of bounces rewrites the keyframe rule on the fly. Two- and three-bounce modes simply add more overshoot/undershoot pairs at tighter percentage intervals, each smaller than the last to imitate energy dissipating.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Overshoot intensity | 60% | How far past full size it grows; 0% means no bounce, 100% is exaggerated |
-| Duration | 1100ms | Bounces need room to breathe; too short and the spring reads as a jitter |
-| Bounces | 1× Single | How many times it overshoots; almost always one, since more looks cartoonish |
-| Combine with fade | on | Whether it fades in while it bounces or is visible from the start |
+| Bounce strength | Medium | How far past full size it grows: soft about 5%, medium 9% and strong 15%, with smaller dips back under |
+| Number of bounces | One | How many times it overshoots; almost always one, since more looks cartoonish |
+| Speed | Normal | How long it takes: slow is 1800ms, normal 1100ms and fast 650ms; too short and the spring reads as a jitter |
+| Fades in | on | Whether it fades in while it bounces or is visible from the start |
 
 ## Production notes
 - **Keyframes over easing**: an overshoot spring like `cubic-bezier(.34,1.56,.64,1)` gives *one* overshoot. Genuine multi-stage bounce and squash-and-stretch require explicit waypoints — that is the whole reason this technique uses `@keyframes`.
@@ -49,6 +49,6 @@ The generated CSS is injected into a live `<style>` tag, so changing intensity o
 - **GSAP**: `Bounce.out` / `Elastic.out` eases, or a `.fromTo()` with overshoot values, cover this without a manual keyframe block.
 
 ## See also
-- [Scale In](../scale-in/) — the same scale entrance without the overshoot
-- [Rotate In](../rotate-in/) — pairs a springy ease with a spin for icons
-- [Slide In](../slide-in/) — positional entrance that also benefits from spring easing
+- [Scale In](../scale-in/) — grows into place without the bounce
+- [Rotate In](../rotate-in/) — spins into place while it grows
+- [Slide In](../slide-in/) — travels into place from one edge
