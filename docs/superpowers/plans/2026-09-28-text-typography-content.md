@@ -91,7 +91,7 @@ None: leave out the `details.hb-options` block.
   - The sub-line's 200ms delay is multiplied by 3 as well.
   - The holds, the 120ms gaps and the 800ms wait stay (they are still divided by Speed).
 - **Reduced motion:** the demo's rule stays (`.kw` gets no animation, so the phrases swap without movement). Replay plays the sequence once.
-- **Stage font:** site font. `.kw` drops Georgia and gets `font-weight:800`. `.kw.sub` drops `font-family:monospace` but keeps its capitals and letter spacing, and its grey becomes `#8a8a92`.
+- **Stage font:** site font. `.kw` drops Georgia and gets `font-weight:800`. `.kw.sub` drops `font-family:monospace` and gets its own `font-weight:600`, the weight of the site's small spaced capitals (such as the category line). It is also a `.kw`, so without this it would take the 800. It keeps its capitals and letter spacing, and its grey becomes `#8a8a92`.
 - **Stage:** only the phrase stays (`#phrase`). The counter ("1 / 6"), the progress bar (`.beat-bar`) and the Phrase and State readouts go. `hb-dots`: yes. Default height.
 
 **Main settings**
@@ -116,7 +116,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a kinetic typography sequence to [the short phrases you want to show]. Show one phrase at a time and give each an entrance and an exit that fit its meaning: a heavy word can drop in large, a soft word can simply fade, a quick word can slide. Hold each phrase long enough to be read, and use size and color so the key words stand out. Leave the final phrase on screen when the sequence ends. Screen readers should hear each phrase as plain text. If the visitor has reduced motion turned on, show the phrases without movement. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > Kinetic typography is text in motion, where the way each word moves matches what it means. A short sequence shows one phrase at a time, and each phrase gets its own way in and out: a heavy word can drop in large, a soft word can simply fade. It comes from film titles and motion graphics, where moving words tell a story on their own.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -271,7 +274,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Random characters | Symbols | What the letters flicker through: symbols feel like hacking, Japanese katakana like a film, the alphabet and numbers like a code being broken |
+  | Random characters | Symbols | What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked |
   | Delay between letters | Medium | The wait between one letter locking and the next: short is 40ms, medium 70ms and long 120ms; it sets how fast the decoding travels |
   | Flicker speed | Normal | How often the random characters change: slow every 65ms, normal every 40ms and fast every 25ms; faster looks more chaotic |
   | Your text | DECODE THE MESSAGE | The text that is decoded, shown in capitals |
@@ -313,7 +316,7 @@ None: leave out the `details.hb-options` block.
 ## text-clip-path-reveal — Text Clip-Path Reveal
 
 - **Kind:** once. The lines are uncovered and stay shown; Loop repeats it.
-- **Description:** Each line of a headline is uncovered in turn. Best for display headlines.
+- **Description:** Each line of a headline is uncovered in turn. Best for big headlines.
 - **Watch it help line:** default
 - **Player bar:** Replay · Loop · Slow motion
 - **Sequence:** Every play rebuilds the lines hidden (`buildLines()`, then `void headline.offsetWidth`). Line i gets `revealed` 50 + i × Delay between lines ms after the play starts, and uncovers over Speed. While Loop is on, the lines hold 1200ms after the last line finishes, then the next play starts: the lines vanish at once and are uncovered again. Today's loop timer is 50 + delay × (lines − 1) + Speed + 1200ms. Switching Loop off lets the lines finish shown.
@@ -335,7 +338,7 @@ None: leave out the `details.hb-options` block.
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Feel | Choice buttons | Smooth · Gentle · Even | Smooth | Smooth slows at the end; Even keeps one pace. | `--ease`: `ease-out` / `ease-in-out` / `linear` |
-| Your lines | Text box (`textarea.hb-text`) | any text, one line per row | Good design / Is honest / Always. (three rows) | Put each line on a row of its own. | `linesIn.value`, then `buildLines()` on input (blank rows are skipped) |
+| Your lines | Text box (`textarea.hb-text`) | any text, one line per row | Good design / Is honest / Always. (three rows) | Put each line on a row of its own. | `linesIn.value`, then `buildLines()` on input (blank rows are skipped; when no row has text, the three default lines are used) |
 
 - **Removed:**
   - Replay and Auto-loop. The player bar replaces them.
@@ -349,7 +352,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a line-by-line reveal to [your multi-line headline]. Lay out every line in its final place from the start, then uncover each line with a wipe that grows from one side until the whole line shows, starting each line a moment after the one above so the headline cascades in. Nothing moves or changes size; only the visible part of each line grows, so the letter spacing stays exactly as designed. A wipe that slows down as it finishes looks calmer than one that stops abruptly. The text must stay readable by screen readers the whole time. If the visitor has reduced motion turned on, show all the lines at once. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > A text clip-path reveal uncovers a headline one line at a time, as if a hidden window opens across each line. Every letter sits in its final place from the start; only the visible part of each line grows. Because the text itself never moves, its spacing stays exactly as designed, which is hard to keep when each letter is animated on its own.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -418,7 +424,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a typewriter effect to [your tagline or short text]. The text should appear one character at a time, as if someone is typing it, with a blinking cursor always just after the last character. Unless the settings turn it off, vary the time between keystrokes slightly so it feels typed by a person rather than a machine. When the settings include it, back up over the last word and type a new ending. Keep it to short text, because long text is slow to wait for. Screen readers should hear the full text once, not each character. If the visitor has reduced motion turned on, show the full text immediately. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > The typewriter effect shows text one character at a time, as if someone is typing it, with a blinking cursor just after the last character. Small random differences in the time between keystrokes make it feel typed by a person rather than a machine, because real typing is never perfectly even.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -449,11 +458,15 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** The two colored copies (`::before` and `::after`) loop their strip animations forever (`@keyframes slice` and `slice2`, over Speed). The page's `reslice()` runs on its own timer: 120ms plus a random extra of up to about 60 + 320 × Glitch strength ms, as today. It nudges the word sideways and, with a chance equal to Glitch strength, restarts the copies at a random point (through `--phase` and the `reset` class). The page listens for `hb:pause`:
   - `paused` true: `clearTimeout(jitterTimer)` and `glitch.style.transform=''`;
-  - `paused` false: `reslice()`.
+  - `paused` false: `clearTimeout(jitterTimer)`, then `reslice()`.
+
+  No second chain of timers can start. `reslice()` runs all at once and ends by setting `jitterTimer` for its own next call, so only one timer is ever pending. Pause clears that timer, and Play clears it again before calling `reslice()`.
 - **Slow motion:** css. While it is on, the page also does two things:
   - it triples `reslice()`'s wait;
   - right after it restarts the copies, it sets their new animations to a third of their speed itself (`glitch.getAnimations({subtree:true})`). This way no restarted copy runs at full speed for a frame before the shared script catches it.
-- **Reduced motion:** the demo's reduced-motion CSS rule goes, because it stopped the strips and Play must be able to move them. `reslice()` keeps its early return under reduced motion, so after Play the strips slide but the word does not shake or restart.
+- **Reduced motion:** the demo's reduced-motion CSS rule goes, because it stopped the strips and Play must be able to move them. `reslice()` keeps its early return under reduced motion, so after Play the strips slide but the word does not shake or restart. `reslice()` still does not start at load under reduced motion, as today (`if(!reduceMQ.matches)reslice()`).
+
+  The page's own `reduceMQ` change listener goes, as on Text on a Path. If it stayed, turning reduced motion off while the loop is paused would start the shake on a paused stage. Once reduced motion is off, the shake comes back at the next Play.
 - **Stage font:** site font. `.glitch` drops `var(--disp)` (Arial Narrow) and keeps weight 800.
 - **Stage:** only the word stays; `fit()` and `--n` stay too. `hb-dots`: no, because the stage keeps its radial gradient, which `hb-dots` would replace. Default height.
 
@@ -510,7 +523,7 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** loop. The rows scroll forever.
 - **Description:** Text scrolls sideways in an endless loop, with no seam. Best for news tickers.
-- **Watch it help line:** It moves by itself. Point at a row, or tap it, to stop just that row.
+- **Watch it help line:** It moves by itself. Pause it, or point at a row (tap it on a phone) to stop just that row.
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** The three rows scroll forever (`@keyframes marqL`; the middle row uses `marqR` and runs the other way). Each row's duration is one copy's width ÷ Speed, so all rows move at the same pace. Pointing at a row stops it (inside `@media (hover: hover)`, as today), and on touch screens a tap stops or restarts it. There are no page timers; the resize rebuild is not part of the loop.
 - **Slow motion:** css
@@ -530,7 +543,7 @@ None: leave out the `details.hb-options` block.
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Separator | Choice buttons | "Dot ·" · "Star ★" · "Dash —" · "Sparkle ✦" | Sparkle ✦ | The mark between repeats of the text. | `sep`: `'·'` / `'★'` / `'—'` / `'✦'`, then `rebuild()` |
+| Separator | Choice buttons (this row lists them with commas, because · is one of the marks) | Dot ·, Star ★, Dash —, Sparkle ✦ | Sparkle ✦ | The mark between repeats of the text. | `sep`: `'·'` / `'★'` / `'—'` / `'✦'`, then `rebuild()` |
 | Your text | Text (`input.hb-text`) | any text | Animation Handbook | Type your own words to see them scroll. | `txtIn.value`, then `rebuild()` on input (an empty field falls back to "Animation Handbook") |
 
 - **Removed:**
@@ -572,9 +585,16 @@ None: leave out the `details.hb-options` block.
 - **Description:** One word in a sentence keeps swapping for the next. Best for hero headlines.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** The page starts its loop at load (today's `start()`). Every Time on each word, `transitionTo()` does three things: it slides the word out (Speed), swaps it for the next word at the entry side with the transition off, then slides that word in (Speed). The list repeats forever. The page listens for `hb:pause`:
-  - `paused` true: clear the hold timer (`timer`). A slide already under way finishes, and its `done()` schedules nothing while the loop is paused.
-  - `paused` false: schedule the next slide after one hold (`timer=setTimeout(cycle,hold)`).
+- **Sequence:** The page starts its loop at load (today's `start()`). Every Time on each word, the hold timer calls `cycle()`, which starts a slide. `transitionTo()` slides the word out (Speed), swaps it for the next word at the entry side with the transition off, then slides that word in (Speed). The slide's own `done()` callback then schedules the next hold. The list repeats forever.
+
+  A `sliding` flag keeps Play from starting a second chain of timers while a slide is still running:
+  - `cycle()` sets `sliding=true` when it starts a slide.
+  - The slide's `done()` sets it back to `false`. So does `start()`, because its `run++` aborts a slide without calling `done()`.
+  - `done()` schedules the next hold (`timer=setTimeout(cycle,hold)`) only while the loop is not paused. `start()` follows the same rule: while paused it shows the first word and schedules nothing.
+
+  The page listens for `hb:pause`:
+  - `paused` true: `clearTimeout(timer)`. This clears the hold timer only; the slide's own timers are not stored in `timer`. A slide already under way finishes, and its `done()` schedules nothing.
+  - `paused` false: if `sliding` is true, do nothing; the slide's `done()` will schedule the next hold. If it is false, `clearTimeout(timer)`, then `timer=setTimeout(cycle,hold)`. Only one chain of timers ever runs, so the next Pause always stops the loop.
 - **Slow motion:** while the switch is on, multiplies `--rot-dur` by 3, from the next slide. The two timers inside `transitionTo()` that wait for it become Speed × 3 + 30ms and Speed × 3 + 50ms. Time on each word and the 20ms step stay.
 - **Reduced motion:** the demo's rule stays: the words swap without sliding, one per Time on each word.
 - **Stage font:** site font. `.headline` drops Georgia and gets `font-weight:700`, and `.rot-word` drops the italic.
@@ -608,7 +628,10 @@ None: leave out the `details.hb-options` block.
 
   > Add a rotating word to [your headline, with the word that should change]. Keep the rest of the sentence still and swap only that one word: the current word slides out of sight and the next one slides in from the opposite side, clipped by an invisible box so it seems to come from behind the text. Hold each word long enough to read, then move on, repeating the list forever. Words of similar length keep the sentence from jumping. Screen readers should hear each new word once. If the visitor has reduced motion turned on, swap the words without sliding. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > A rotating word keeps a sentence still while one word in it keeps changing: "We craft for Designers" becomes "We craft for Developers", then "We craft for Humans". The current word slides out of sight and the next one slides in from the other side, so each change is easy to notice while the rest of the line stays readable. It is a common headline on the home pages of studios and software products.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -637,13 +660,29 @@ None: leave out the `details.hb-options` block.
 - **Description:** One word changes into the next, letter by letter. Best for short labels.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** The page starts its loop at load (today's `start()`). The word holds for Time on each word. Then `morphTo()` slides its letters out (Speed, each letter Delay between letters after the one before), builds the next word's letters on the far side and slides them in. 100ms later the next hold starts. The list repeats forever. The page listens for `hb:pause`:
-  - `paused` true: a morph under way finishes and then schedules nothing; otherwise the page clears the hold timer (`morphTimer`). Keep a flag for "a morph is under way", because `morphTimer` holds every step.
-  - `paused` false: `cycle()`, so the next morph comes after one hold.
+- **Sequence:** The page starts its loop at load (today's `start()`). `cycle()` shows the word and sets the hold timer, and the word holds for Time on each word. The hold timer's callback then starts a morph: `morphTo()` slides the current letters out (Speed, each letter Delay between letters after the one before), then builds the next word's letters on the far side and slides them in. The morph's own callback then sets a 100ms timer that calls `cycle()` again. The list repeats forever. `morphTimer` holds each of these timers in turn: the hold, the morph's two steps, then the 100ms step.
+
+  A `morphing` flag keeps Pause and Play from starting a second chain of timers while a morph is still running:
+  - The hold timer's callback sets `morphing=true` just before it calls `morphTo()`.
+  - The morph's callback sets it back to `false`. So does `start()`, because its `clearTimeout(morphTimer)` can abort a morph without calling the callback.
+  - The morph's callback schedules the 100ms step to `cycle()` only while the loop is not paused. `start()` follows the same rule: while paused it shows the first word and schedules nothing.
+
+  The page listens for `hb:pause`:
+  - `paused` true: if `morphing` is true, do nothing now; the morph finishes and its callback schedules nothing. Clearing `morphTimer` here would stop the morph halfway, with the letters out of sight. If `morphing` is false, `clearTimeout(morphTimer)`, which clears the hold or the 100ms step.
+  - `paused` false: if `morphing` is true, do nothing; the morph's callback will schedule the next step. Calling `cycle()` here would start a second chain, and its `showWord()` check would also put the old word back mid-morph. If it is false, `clearTimeout(morphTimer)`, then `cycle()`, so the next morph comes after one hold.
 - **Slow motion:** while the switch is on, multiplies `--morph-dur` and the letter delays by 3, from the next morph. The two timers in `morphTo()` that wait for them become 3 × (Speed + delay × (letters − 1)) + 60ms and 3 × (Speed + delay × (letters − 1)) + 50ms. Time on each word and the 100ms gap stay.
 - **Reduced motion:** the demo's rule stays: the words swap without sliding.
 - **Stage font:** site font. `.morph-char` drops Georgia and gets `font-weight:700`.
-- **Stage:** only the word stays. The "Morphing" caption, the dots (`.cycle-dots`) and the Current word readout go. `hb-dots`: yes. Default height. The word is one line that never wraps, so neither `hb-grow` nor the `.unit-word` pattern applies. `.morph-char` gets `white-space:pre`, so a space typed inside a word keeps its width.
+- **Stage:** only the word stays.
+  - The "Morphing" caption, the dots (`.cycle-dots`) and the Current word readout go.
+  - `hb-dots`: yes. Default height.
+  - The word is one line that never wraps, so neither `hb-grow` nor the `.unit-word` pattern applies. `.morph-char` gets `white-space:pre`, so a space typed inside a word keeps its width.
+  - **Long words shrink to fit, as on Glitch Text and Wavy Text.** Today the letters are at least 56px, so an 8–10-letter word is cut off at 375px wide.
+    - `.morph-char`'s `font-size:clamp(56px,9vw,100px)` moves to `.morph-word`, and the letters inherit it.
+    - A `fit()` clears `wordEl.style.fontSize` and measures `room = stage.clientWidth - 64`, which is the stage's 32px padding on each side.
+    - When `wordEl.offsetWidth` is wider than `room`, `fit()` sets `wordEl.style.fontSize` to `Math.max(16, parseFloat(getComputedStyle(wordEl).fontSize) * room / wordEl.offsetWidth) + 'px'`.
+    - `fit()` runs at the end of `showWord()`, and in `morphTo()` right after the new letters are added, before `void wordEl.offsetWidth`. It also runs on `resize`.
+    - `.morph-word` is absolutely positioned and does not wrap, so its `offsetWidth` is the whole word's width.
 
 **Main settings**
 
@@ -671,9 +710,12 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Short labels · Status words · Hero headlines · **Avoid on:** Long words · Sentences
 - **Prompt:**
 
-  > Add a letter-by-letter morph to [the word that should change, and the words it cycles through]. Split each word into letters. To change words, slide the current letters out of sight in one direction while the next word's letters slide in from the opposite side; a small delay between letters, when the settings include one, sends the change across the word like a wave. Hold each word long enough to read, then morph to the next and repeat the list. Words of similar length look cleanest, and extra letters can simply fade in or out. Screen readers should hear each new word once, not its letters. If the visitor has reduced motion turned on, swap the words without movement. Match the settings listed below.
+  > Add a letter-by-letter morph to [the word that should change, and the words it cycles through]. Split each word into letters. To change words, slide the current letters out of sight in one direction, then slide the next word's letters in from the opposite side; a small delay between letters, when the settings include one, sends the change across the word like a wave. Hold each word long enough to read, then morph to the next and repeat the list. Words of similar length look cleanest. Screen readers should hear each new word once, not its letters. If the visitor has reduced motion turned on, swap the words without movement. Match the settings listed below.
 
-- **README What it is:** keep
+- **README What it is:** rewritten:
+
+  > Text morphing changes one word into the next, letter by letter. The letters of the current word slide out of sight, then the letters of the next word slide in from the opposite side; a small delay between letters can send each change across the word like a wave. Each word stays still long enough to read before the next change.
+
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
@@ -781,6 +823,8 @@ None: leave out the `details.hb-options` block.
 - **Sequence:** The page starts its loop at load (`start()`). On each animation frame, `loop()` moves the text along the path by Speed (`offset=(offset+speed)%unit`). The page listens for `hb:pause`:
   - `paused` true: `cancelAnimationFrame(raf)` and `raf=null`;
   - `paused` false: `start()`, which carries on from the current offset.
+
+  No second loop can start. `start()` keeps its `if(raf)return` guard; only its `reduce.matches` part goes. `loop()` requests exactly one next frame and stores it in `raf`, and Pause cancels that frame and sets `raf=null`. So Play, even pressed twice, never runs two loops.
 - **Slow motion:** while the switch is on, divides the step per frame by 3, from the next frame.
 - **Reduced motion:** the page's own checks go (`reduce.matches` in `loop()` and in `start()`, and the `reduce` change listener). The text starts still, because the shared script pauses the loop on arrival, and it moves after Play. The CSS rule `.guide{transition:none}` stays.
 - **Stage font:** site font. `.flow-text` drops `var(--disp)` and keeps weight 800 (the SVG text inherits the site font).
@@ -848,9 +892,13 @@ None: leave out the `details.hb-options` block.
   - This is today's list on the site font's 400–900 weights, with the Casual values removed.
   - The fourth preset moves from 400 to 500, so that with Leans as it changes off no step repeats the one before.
 
+  The loop is one `setTimeout` chain. `step()` applies the next preset, then sets `stepTimer` for the next `step()`, after Speed + 800ms.
+
   The page listens for `hb:pause`:
-  - `paused` true: clear the step timer; a morph under way finishes.
-  - `paused` false: step at once, then carry on.
+  - `paused` true: `clearTimeout(stepTimer)`. A morph under way finishes; it is a CSS transition.
+  - `paused` false: `clearTimeout(stepTimer)`, then `step()`, which applies the next preset at once and schedules the one after.
+
+  No second chain can start. A step finishes at once: it only sets two CSS variables, and the CSS transition draws the morph with no callback of its own. So no step is ever still running with a callback that could schedule another timer. Pause clears the one pending timer, and Play clears it again before stepping, so only one timer is ever pending.
 - **Slow motion:** while the switch is on, multiplies `--morph-dur` by 3, and the step wait becomes 3 × Speed + 800ms, from the next step. The 800ms rest stays.
 - **Reduced motion:** the demo's rule `.vf-text{transition:none!important}` stays. After Play, the word jumps from style to style instead of morphing, one step per interval.
 - **Stage font:** site font, as the plan requires. `.vf-text` drops the `Recursive` stack and uses Schibsted Grotesk, which every page already loads and which is variable in weight from 400 to 900.
@@ -899,11 +947,54 @@ None: leave out the `details.hb-options` block.
   - [Text Gradient Animation](../text-gradient-animation/) — colors flow through the letters instead
   - [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
   - [Outline to Fill](../outline-to-fill/) — hollow letters fill with color
-- **README How it works:** the snippets must match the new code:
-  - **First CSS snippet:** drop `font-family: 'Recursive', sans-serif;`. The rule becomes `font-weight: 400; font-variation-settings: 'wght' 400; transition: font-weight 600ms cubic-bezier(.4, 0, .2, 1), font-variation-settings 600ms cubic-bezier(.4, 0, .2, 1);`, and the `:hover` rule becomes `font-weight: 800; font-variation-settings: 'wght' 800;`.
-  - **JS snippet:** becomes `function apply(wght, slnt)`. It sets `--wght` (comment: 400–900 for the site font) and `--slnt` (comment: 0 to –15, drawn as a tilt), and the `--CASL` line goes.
-  - **Second CSS snippet:** becomes `font-weight: var(--wght); font-variation-settings: 'wght' var(--wght); transform: skewX(calc(var(--slnt) * 1deg));`, with a comment that the site font has no slant axis.
-  - **Loop snippet:** its `PRESETS` lose `CASL` (`{ wght: 400, slnt: 0 }, { wght: 900, slnt: 0 }, { wght: 700, slnt: -15 }`), the call becomes `apply(p.wght, p.slnt)`, and the 1400 gets the comment "Speed + an 800ms rest".
+- **README How it works:** the four snippets are replaced so they match the new code. The prose between them stays.
+  - The first CSS snippet becomes:
+
+    ```css
+    .headline {
+      font-weight: 400;
+      font-variation-settings: 'wght' 400;
+      transition: font-weight 600ms cubic-bezier(.4, 0, .2, 1),
+                  font-variation-settings 600ms cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .headline:hover {
+      font-weight: 800;
+      font-variation-settings: 'wght' 800;
+    }
+    ```
+
+  - The JS snippet becomes:
+
+    ```js
+    function apply(wght, slnt) {
+      const el = document.documentElement;
+      el.style.setProperty('--wght', wght);   // 400–900 for the site font
+      el.style.setProperty('--slnt', slnt);   // 0 to –15, drawn as a tilt
+    }
+    ```
+
+  - The second CSS snippet becomes:
+
+    ```css
+    .headline {
+      font-weight: var(--wght);
+      font-variation-settings: 'wght' var(--wght);
+      transform: skewX(calc(var(--slnt) * 1deg));   /* the site font has no slant axis */
+    }
+    ```
+
+  - The loop snippet becomes the block below. Each preset now holds only a weight and a slant, in that order, so spreading `Object.values` still passes them to `apply(wght, slnt)`:
+
+    ```js
+    const PRESETS = [
+      { wght: 400, slnt:   0 },
+      { wght: 900, slnt:   0 },
+      { wght: 700, slnt: -15 },
+    ];
+    let i = 0;
+    setInterval(() => { apply(...Object.values(PRESETS[i++ % PRESETS.length])); }, 1400);   // Speed + an 800ms rest
+    ```
 - **README Production notes:** replace the "Font loading" bullet with: "**Font loading**: the demo uses the site's own font, Schibsted Grotesk, which every page already loads and which is variable in weight from 400 to 900, so the weight morphs smoothly offline. It has no slant axis, so the lean is a `skewX()` tilt. A font with more axes gives you more to morph: Recursive, for example, adds Casual and slant axes. Self-host it with `@font-face` and `font-display: swap`." The rest is unchanged.
 - **Category line:** `05.04 · Text &amp; Typography`
 - **Pager:** Previous: Scramble / Glitch Text (`../scramble-text/`) · Next: Text Clip-Path Reveal (`../text-clip-path-reveal/`)
