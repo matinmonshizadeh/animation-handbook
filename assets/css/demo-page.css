@@ -23,16 +23,19 @@ body.hb :focus-visible{outline:2px solid var(--hb-accent);outline-offset:3px}
 body.hb [hidden]{display:none!important}
 .hb-ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* Top bar */
-.hb-bar{position:sticky;top:0;z-index:50;box-sizing:border-box;height:var(--hb-bar);display:flex;align-items:center;justify-content:space-between;gap:12px;
+/* Top bar: always one line. "Animation Handbook" keeps its full text and never shrinks; the pager shrinks instead,
+   and a page name that does not fit is cut with an ellipsis (the link keeps the full name in its aria-label). */
+.hb-bar{position:sticky;top:0;z-index:50;box-sizing:border-box;height:var(--hb-bar);display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px;
   padding:0 clamp(8px,3vw,40px);background:rgba(11,11,13,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--hb-line)}
 .hb-bar a{display:inline-flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 8px;border-radius:8px;color:var(--hb-dim);
-  text-decoration:none;font:500 15px/1 var(--hb-font)}
-.hb-bar .hb-home{color:var(--hb-ink);font-weight:700;font-size:16px;letter-spacing:-.01em}
+  text-decoration:none;font:500 15px/1 var(--hb-font);white-space:nowrap}
+.hb-bar .hb-home{flex:none;color:var(--hb-ink);font-weight:700;font-size:16px;letter-spacing:-.01em}
 .hb-mark{width:26px;height:26px;flex:none}
 .hb-mark .g{fill:var(--hb-bg);stroke:var(--hb-ink);stroke-width:1.8}
 .hb-mark .b{fill:var(--hb-ink)}
-.hb-pager{display:flex;gap:4px}
+.hb-pager{display:flex;gap:4px;min-width:0}
+/* The page name inside a pager link: cut with an ellipsis; the taller line box keeps descenders from being clipped */
+.hb-pager a > span{min-width:0;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
 .hb-bar .hb-ic{width:16px;height:16px}
 
 /* The page: one centred column */
@@ -76,6 +79,8 @@ body.hb [hidden]{display:none!important}
 /* Pause on loop pages: a pause icon while the demo moves, a play icon while it is paused */
 [data-hb-pause] .hb-i-play,[data-hb-pause][data-state="paused"] .hb-i-pause{display:none}
 [data-hb-pause][data-state="paused"] .hb-i-play{display:inline}
+/* Pause and Play keep one width, so the Slow motion switch beside the button does not move when it is pressed */
+[data-hb-pause]{justify-content:center;min-width:112px}
 /* data-hb-pause="css": the shared script puts hb-paused on the stage, which holds every CSS animation on it */
 .hb-page .stage.hb-paused,.hb-page .stage.hb-paused::before,.hb-page .stage.hb-paused::after,
 .hb-page .stage.hb-paused *,.hb-page .stage.hb-paused *::before,.hb-page .stage.hb-paused *::after{animation-play-state:paused!important}
@@ -176,6 +181,16 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
 @media(max-width:759px){
   .hb-settings,.hb-about{grid-template-columns:minmax(0,1fr)}
 }
+/* Tablets and phones: the "Previous: " / "Next: " words go, so two page names fit beside the home link */
+@media(max-width:1024px){
+  .hb-bar .hb-dir{display:none}
+}
+/* The narrowest phones (down to 320px): the full home link and the two chevron links only fit on one line with a little
+   less spacing and type. The home link keeps all its text. */
+@media(max-width:359px){
+  .hb-bar{gap:4px;padding:0 8px}
+  .hb-bar .hb-home{font-size:15px}
+}
 /* Short laptop screens (1366×768 leaves about 650px of page): a tighter header and a shorter stage
    keep the stage and the player bar on the first screen. */
 @media(min-width:601px) and (max-height:760px){
@@ -188,7 +203,6 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-page .stage{height:var(--hb-stage-h,clamp(260px,calc(100vh - 330px),440px));height:var(--hb-stage-h,clamp(260px,calc(100svh - 330px),440px))}
 }
 @media(max-width:600px){
-  .hb-bar .hb-dir{display:none}
   .hb-page .stage{height:var(--hb-stage-h-phone,300px)}
   .hb-page .stage.hb-grow{min-height:300px}
   /* With both Previous and Next, phones show only the two chevrons; each link keeps its full name as its label */
