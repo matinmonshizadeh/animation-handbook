@@ -1,7 +1,7 @@
 # Kinetic Typography
 
 ## What it is
-Kinetic typography is the practice of animating text so that its motion reinforces its meaning. Rather than animating text as a generic UI element, each word or phrase is choreographed — scale, trajectory, timing, and rhythm are all chosen to serve the specific copy. It originates from motion graphics and broadcast design but has migrated to web via CSS animations and canvas-based tools.
+Kinetic typography is text in motion, where the way each word moves matches what it means. A short sequence shows one phrase at a time, and each phrase gets its own way in and out: a heavy word can drop in large, a soft word can simply fade. It comes from film titles and motion graphics, where moving words tell a story on their own.
 
 ## When to use it
 - Opening sequences and splash screens where brand personality is established
@@ -27,10 +27,10 @@ function showPhrase(i) {
 
 function run(idx = 0) {
   showPhrase(idx);
+  const last = idx === PHRASES.length - 1;
+  if (last && !loop) return;               // the final phrase stays on screen
   setTimeout(() => {
-    exitPhrase(idx, () => {
-      if (idx + 1 < PHRASES.length) run(idx + 1);
-    });
+    exitPhrase(idx, () => run((idx + 1) % PHRASES.length));
   }, ENTER_DUR + PHRASES[idx].hold);
 }
 ```
@@ -45,19 +45,16 @@ Each enter and exit is a standalone `@keyframes` rule:
 @keyframes kExitUp     { from { opacity:1; transform:translateY(0) } to { opacity:0; transform:translateY(-50px) } }
 ```
 
-Playback speed is controlled via a CSS custom property used in every `calc()`:
+The Speed setting is a CSS custom property used in every `calc()`; the timers divide by the same value:
 
 ```css
 .enter-scale { animation-duration: calc(600ms / var(--spd)); }
 ```
 
 ## Key parameters
-| Parameter | Typical range | Effect |
-|-----------|--------------|--------|
-| Enter duration | 400–800ms | Fast entries feel punchy; slow entries feel deliberate |
-| Hold duration | 1000–2500ms | Must be long enough to read the phrase; subtitle reading speed is ~200ms/word |
-| Exit duration | 300–500ms | Exits are usually shorter than entries — departure is less important than arrival |
-| Playback speed | 0.5×–2× | Multiply all durations by inverse of speed factor |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Speed | Normal | The pace of the whole sequence: slow plays it at 0.6× speed, normal at 1× and fast at 1.7×; entrances, holds and exits all scale together |
 
 ## Production notes
 - **Copy-first choreography**: the motion should be chosen for the words, not the other way around. Soft/gentle words dissolve; heavy words slam in; fragile words flutter. Generic enters and exits applied uniformly undermine the whole technique.
@@ -67,6 +64,6 @@ Playback speed is controlled via a CSS custom property used in every `calc()`:
 - **`prefers-reduced-motion`**: show all phrases simultaneously or show only the final phrase — don't suppress the text itself.
 
 ## See also
-- [Enter/Exit Typography](../enter-exit-typography/) — the same enter→hold→exit pattern focused on prose storytelling
-- [Rotate Word Carousel](../rotate-word-carousel/) — a single cycling word rather than full phrase sequences
-- [Text Clip-Path Reveal](../text-clip-path-reveal/) — one of the enter techniques used here as a standalone pattern
+- [Enter/Exit Typography](../enter-exit-typography/) — each phrase comes in, holds and leaves
+- [Rotate Word Carousel](../rotate-word-carousel/) — one word in a sentence keeps changing
+- [Text Clip-Path Reveal](../text-clip-path-reveal/) — lines of text are uncovered one by one
