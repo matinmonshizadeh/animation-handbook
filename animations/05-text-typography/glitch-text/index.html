@@ -186,14 +186,16 @@
   function rand(max){return Math.floor(Math.random()*max)}
 
   // Runs on its own timer: nudges the word sideways and, by chance, restarts the color copies at a
-  // random point so the tear never repeats. It always ends by scheduling its own next call, so only
-  // one call is ever pending; hb:pause below clears that pending call before pausing or restarting it.
+  // random point so the tear never repeats. Except under reduced motion, where it stops, it ends by
+  // scheduling its own next call, so only one call is ever pending; hb:pause below clears that pending
+  // call before pausing or restarting it.
   function reslice(){
     if(reduceMQ.matches){glitch.style.transform='';jitterTimer=null;return}
     const spread=Math.round(intensity*40);
     const jitter=(intensity*6).toFixed(1);
-    // in hover-only mode the jitter only runs while the stage is hovered / tapped active
-    const live=!stage.classList.contains('hover-only')||stage.matches(':hover')||stage.classList.contains('active');
+    // in hover-only mode the jitter only runs while the stage is hovered / tapped active; a touch screen
+    // keeps :hover on the stage after a tap, so only a device that can hover counts as hovering
+    const live=!stage.classList.contains('hover-only')||(matchMedia('(hover:hover)').matches&&stage.matches(':hover'))||stage.classList.contains('active');
     if(live){
       // nudge the whole element sideways for a frame to sell the tear
       glitch.style.transform=`translateX(${(Math.random()*2-1)*jitter}px)`;
@@ -234,6 +236,7 @@
   });
   addEventListener('resize',fit);
   fit();
+  if(document.fonts)document.fonts.ready.then(fit); // the site font can still be loading when fit() first runs
 
   hoverTog.addEventListener('change',()=>{
     stage.classList.toggle('hover-only',hoverTog.checked);

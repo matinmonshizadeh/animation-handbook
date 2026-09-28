@@ -24,7 +24,7 @@
     :root{--ui-accent:#ff6f8b;--marq-size:48px;--marq-gap:48px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;flex-direction:column;justify-content:center;background:#08080a}
-    .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.09);position:relative}
+    .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.09)}
     .marq-row:last-child{border-bottom:none}
     .marq-row.accent{background:rgba(255,111,139,.05)}
     .marq-track{display:flex;width:max-content;white-space:nowrap;animation:marqL linear infinite}
@@ -35,7 +35,7 @@
     @keyframes marqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
     .marq-item{font-size:var(--marq-size);font-weight:700;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
     .marq-item.rev-row{color:rgba(255,255,255,.6)}
-    .sep{color:var(--ui-accent);font-style:normal;font-size:.6em;opacity:.7}
+    .sep{color:var(--ui-accent);font-size:.6em;opacity:.7}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=3">
   <script src="../../../assets/js/demo-page.js?v=3" defer></script>
@@ -162,7 +162,7 @@
   const vars=document.documentElement.style;
   const txtIn=document.getElementById('text-inp');
   const noHover=matchMedia('(hover:none)');
-  let spd=80,sep='✦';
+  let spd=80,separator='✦';
 
   function makeItem(text,sep,reverse){
     const item=document.createElement('div');item.className='marq-item'+(reverse?' rev-row':'');
@@ -207,9 +207,9 @@
     const text=getContent();
     const frac=progressOf(stage.querySelector('.marq-track'));
     stage.innerHTML='';
-    buildRow(text,sep,false,'');
-    buildRow(text,sep,true,'accent');
-    buildRow(text+' '+sep+' '+text,sep,false,'');
+    buildRow(text,separator,false,'');
+    buildRow(text,separator,true,'accent');
+    buildRow(text+' '+separator+' '+text,separator,false,'');
     document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t,frac));
   }
 
@@ -235,9 +235,10 @@
   choices('speed-seg',d=>{spd=+d.spd;refreshSpeeds()});
   choices('size-seg',d=>{vars.setProperty('--marq-size',d.size+'px');rebuild()});
   choices('gap-seg',d=>{vars.setProperty('--marq-gap',d.gap+'px');rebuild()});
-  choices('sep-seg',d=>{sep=d.sep;rebuild()});
+  choices('sep-seg',d=>{separator=d.sep;rebuild()});
 
   rebuild();
+  if(document.fonts)document.fonts.ready.then(rebuild); // the site font can still be loading when the rows are first measured
 </script>
 </body>
 </html>
