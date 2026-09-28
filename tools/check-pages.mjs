@@ -200,9 +200,9 @@ async function stageChanges(ms) {
   return false;
 }
 
-// Loop pages: the stage keeps changing, holds still after Pause (a step already under way may finish first) and moves
-// again after Play. Under reduced motion the loop starts paused and Play still starts it. With data-hb-slowmo="css",
-// Slow motion must slow every animation on the stage and turning it off must restore the speed.
+// Loop pages: the stage keeps changing, holds still at once after Pause and moves again after Play. Under reduced
+// motion the loop starts paused and Play still starts it. With data-hb-slowmo="css", Slow motion must slow every
+// animation on the stage and turning it off must restore the speed.
 async function loopProblems(reduced) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-pause]')`))) return ['no Pause button to check'];
   const state = () => evaluate(`document.querySelector('[data-hb-pause]').getAttribute('data-state')`);
@@ -217,7 +217,7 @@ async function loopProblems(reduced) {
   }
   if (!(await stageChanges(4000))) return ['the loop is not moving'];
   await press();
-  await sleep(1500);
+  await sleep(300);
   if (await stageChanges(4000)) problems.push('Pause does not stop the stage');
   await press();
   if (!(await stageChanges(4000))) problems.push('Play does not start the stage again');
