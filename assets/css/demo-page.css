@@ -71,7 +71,14 @@ body.hb [hidden]{display:none!important}
 /* Under reduced motion the shared script switches Loop and Slow motion off, greys them out and adds a note */
 .hb-toggle.is-disabled{opacity:.45;cursor:not-allowed}
 .hb-toggle.is-disabled .hb-switch{cursor:not-allowed}
-.hb-player-note{flex-basis:100%;margin:0;font:400 13px/1.4 var(--hb-font);color:var(--hb-muted)}
+/* The note sits beside the controls when there is room, so it does not push the page down */
+.hb-player-note{flex:1 1 240px;margin:0;font:400 13px/1.4 var(--hb-font);color:var(--hb-muted)}
+/* Pause on loop pages: a pause icon while the demo moves, a play icon while it is paused */
+[data-hb-pause] .hb-i-play,[data-hb-pause][data-state="paused"] .hb-i-pause{display:none}
+[data-hb-pause][data-state="paused"] .hb-i-play{display:inline}
+/* data-hb-pause="css": the shared script puts hb-paused on the stage, which holds every CSS animation on it */
+.hb-page .stage.hb-paused,.hb-page .stage.hb-paused::before,.hb-page .stage.hb-paused::after,
+.hb-page .stage.hb-paused *,.hb-page .stage.hb-paused *::before,.hb-page .stage.hb-paused *::after{animation-play-state:paused!important}
 
 /* Switches: a checkbox drawn as a track and knob (gradients, so no pseudo-elements on the input) */
 .hb-switch{appearance:none;-webkit-appearance:none;flex:none;width:32px;height:20px;margin:0;border-radius:999px;cursor:pointer;
@@ -190,9 +197,10 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-num{width:30px;height:30px;font-size:15px}
   .hb-step-head p{font-size:15px}
   /* Three controls do not fit on one line at phone widths: Replay takes the first row, the two switches share the
-     second, and the reduced-motion note gets a row of its own */
+     second, and the reduced-motion note gets a row of its own. On a loop page Pause and Slow motion share one row. */
   .hb-player{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .hb-play,.hb-player-note{grid-column:1/-1}
+  .hb-player:has(> [data-hb-pause] + .hb-toggle) > .hb-play{grid-column:auto}
   .hb-play,.hb-toggle{justify-content:center;gap:8px;padding:0 12px;font-size:14px}
   .hb-page .seg button{flex:1 0 auto;padding:0 10px}
   .hb-prompt{font-size:16px;line-height:1.6}

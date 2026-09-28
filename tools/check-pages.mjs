@@ -7,7 +7,8 @@
 // setups; problems are printed and screenshots saved, by default into hb-check in the temp folder (emptied at the
 // start of each run). Console warnings count as problems too (the page script warns about settings that have no
 // label or value). On plays-once pages the desktop run also checks that Replay and a setting change visibly move
-// the stage. Exit code 1 on any problem.
+// the stage; on loop pages it checks that the stage moves, that Pause stops it and Play starts it again, and the
+// reduced-motion run checks that the loop starts paused. Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -189,6 +190,51 @@ async function movementProblems() {
   return problems;
 }
 
+// True when the stage shows something different from its first capture within ms milliseconds.
+async function stageChanges(ms) {
+  const first = await stageShot();
+  for (const end = Date.now() + ms; Date.now() < end;) {
+    await sleep(200);
+    if (await stageShot() !== first) return true;
+  }
+  return false;
+}
+
+// Loop pages: the stage keeps changing, holds still after Pause (a step already under way may finish first) and moves
+// again after Play. Under reduced motion the loop starts paused and Play still starts it. With data-hb-slowmo="css",
+// Slow motion must slow every animation on the stage and turning it off must restore the speed.
+async function loopProblems(reduced) {
+  if (!(await evaluate(`!!document.querySelector('[data-hb-pause]')`))) return ['no Pause button to check'];
+  const state = () => evaluate(`document.querySelector('[data-hb-pause]').getAttribute('data-state')`);
+  const press = () => evaluate(`document.querySelector('[data-hb-pause]').click()`);
+  const problems = [];
+  if (reduced) {
+    if (await state() !== 'paused') problems.push('the loop does not start paused under reduced motion');
+    else if (await stageChanges(1500)) problems.push('the stage moves while paused under reduced motion');
+    await press();
+    if (!(await stageChanges(4000))) problems.push('Play does not start the loop under reduced motion');
+    return problems;
+  }
+  if (!(await stageChanges(4000))) return ['the loop is not moving'];
+  await press();
+  await sleep(1500);
+  if (await stageChanges(1500)) problems.push('Pause does not stop the stage');
+  await press();
+  if (!(await stageChanges(4000))) problems.push('Play does not start the stage again');
+  if (await evaluate(`!!document.querySelector('[data-hb-slowmo="css"]')`)) {
+    const rates = () => evaluate(`document.querySelector('.hb-page .stage').getAnimations({ subtree: true }).map(a => a.playbackRate)`);
+    const toggle = () => evaluate(`document.querySelector('[data-hb-slowmo]').click()`);
+    await toggle();
+    await sleep(200);
+    const slow = await rates();
+    if (!slow.length || slow.some(r => r >= 1)) problems.push('Slow motion does not slow the stage');
+    await toggle();
+    await sleep(200);
+    if ((await rates()).some(r => r !== 1)) problems.push('turning Slow motion off does not restore the speed');
+  }
+  return problems;
+}
+
 let failures = 0;
 try {
   ws = new WebSocket(await pageSocket());
@@ -253,6 +299,7 @@ try {
           writeFileSync(join(OUT, `${name}-${setup.name}-full.png`), Buffer.from(full.data, 'base64'));
         }
         if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
+        if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }

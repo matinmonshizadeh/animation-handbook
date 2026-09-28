@@ -91,3 +91,12 @@ test('quoteText wraps typed text in quotes and keeps the 40-character cut inside
   assert.equal(long.length, 42);
   assert.equal(DP.quoteText(' \n ', 40), '');
 });
+
+test('motionNote says what reduced motion changes in the player bar', () => {
+  assert.equal(DP.motionNote({ loop: true, slow: true }), 'Loop and Slow motion are off because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ loop: true }), 'Loop is off because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ slow: true }), 'Slow motion is off because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ pause: true, slow: true }), 'It starts paused and Slow motion is off because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ pause: true }), 'It starts paused because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({}), '');
+});

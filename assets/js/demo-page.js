@@ -1,7 +1,8 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
  * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
- * animations", plays the demo on arrival, replays it when a setting changes, and
- * greys out Loop and Slow motion under reduced motion.
+ * animations", plays the demo on arrival, replays it when a setting changes, runs
+ * Pause and CSS slow motion on loop pages, and follows reduced motion (Loop and
+ * Slow motion greyed out, loops start paused).
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -107,6 +108,16 @@
     return s ? '"' + s + '"' : '';
   }
 
+  // The reduced-motion note for the player bar, from what the bar holds ({ loop, slow, pause } as booleans);
+  // '' when reduced motion changes nothing there.
+  function motionNote(has) {
+    var off = [has.loop && 'Loop', has.slow && 'Slow motion'].filter(Boolean);
+    var parts = [];
+    if (has.pause) parts.push('It starts paused');
+    if (off.length) parts.push(off.join(' and ') + (off.length > 1 ? ' are' : ' is') + ' off');
+    return parts.length ? parts.join(' and ') + ' because your device is set to reduce motion.' : '';
+  }
+
   /* ---------- Page behaviour ---------- */
 
   var CONTROLS = 'input[type=range], input[type=checkbox], input[type=text], textarea, select, .seg, .swatches';
@@ -170,6 +181,9 @@
     var replayCtl = page.querySelector('[data-hb-replay]');
     var loopCtl = page.querySelector('[data-hb-loop]');
     var slowCtl = page.querySelector('[data-hb-slowmo]');
+    var pauseCtl = page.querySelector('[data-hb-pause]');
+    var stage = page.querySelector('.stage');
+    var player = page.querySelector('.hb-player');
     var reduce = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var promptText = text(promptEl);
 
@@ -308,10 +322,32 @@
       replayTimer = win.setTimeout(replay, 250);
     }
 
-    // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched
-    // on, and a note in the player bar says why. Replay still plays the demo's gentle version.
+    // Loops: Pause stops the demo and Play starts it again. With data-hb-pause="css" a class on the stage holds its
+    // CSS animations; the "hb:pause" event goes out either way, so a page that runs its own timers can stop them.
+    var paused = false;
+    function setPaused(next) {
+      paused = next;
+      pauseCtl.setAttribute('data-state', paused ? 'paused' : 'playing');
+      var label = pauseCtl.querySelector('.hb-pause-label');
+      if (label) label.textContent = paused ? 'Play' : 'Pause';
+      if (stage && pauseCtl.getAttribute('data-hb-pause') === 'css') stage.classList.toggle('hb-paused', paused);
+      doc.dispatchEvent(new win.CustomEvent('hb:pause', { detail: { paused: paused } }));
+    }
+
+    // Slow motion with data-hb-slowmo="css": while it is on, every CSS animation and transition on the stage runs at a
+    // third of its speed, including ones that start later. Without the value, the page slows its own timings.
+    var slowing = false;
+    function slowStage() {
+      var rate = slowCtl.checked ? 1 / 3 : 1;
+      stage.getAnimations({ subtree: true }).forEach(function (a) { if (a.playbackRate !== rate) a.playbackRate = rate; });
+      slowing = slowCtl.checked;
+      if (slowing) win.requestAnimationFrame(slowStage);
+    }
+
+    // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
+    // loop starts paused, and a note in the player bar says why. Replay and Play still work.
     var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
-    var motionNote = null;
+    var noteEl = null;
     function followReducedMotion() {
       var reduced = !!(reduce && reduce.matches);
       playerSwitches.forEach(function (sw) {
@@ -320,17 +356,16 @@
         var label = sw.closest('label.hb-toggle');
         if (label) label.classList.toggle('is-disabled', reduced);
       });
-      if (reduced && !motionNote && playerSwitches.length) {
-        var names = [loopCtl && 'Loop', slowCtl && 'Slow motion'].filter(Boolean);
-        motionNote = doc.createElement('p');
-        motionNote.className = 'hb-player-note';
-        motionNote.textContent = names.join(' and ') + (names.length > 1 ? ' are' : ' is') +
-          ' off because your device is set to reduce motion.';
-        var last = playerSwitches[playerSwitches.length - 1];
-        (last.closest('label.hb-toggle') || last).insertAdjacentElement('afterend', motionNote);
-      } else if (!reduced && motionNote) {
-        motionNote.parentNode.removeChild(motionNote);
-        motionNote = null;
+      if (reduced && pauseCtl && !paused) setPaused(true);
+      var note = reduced ? motionNote({ loop: !!loopCtl, slow: !!slowCtl, pause: !!pauseCtl }) : '';
+      if (note && !noteEl && player) {
+        noteEl = doc.createElement('p');
+        noteEl.className = 'hb-player-note';
+        noteEl.textContent = note;
+        player.appendChild(noteEl);
+      } else if (!note && noteEl) {
+        noteEl.parentNode.removeChild(noteEl);
+        noteEl = null;
       }
     }
 
@@ -338,6 +373,10 @@
     if (copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
     if (slowCtl) slowCtl.addEventListener('change', replay);
+    if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
+    if (slowCtl && stage && stage.getAnimations && slowCtl.getAttribute('data-hb-slowmo') === 'css') {
+      slowCtl.addEventListener('change', function () { if (!slowing) slowStage(); });
+    }
     followReducedMotion();
     if (reduce && reduce.addEventListener) reduce.addEventListener('change', followReducedMotion);
     else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
@@ -360,6 +399,6 @@
   return {
     escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
     paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill, shorten: shorten,
-    quoteText: quoteText, readSettings: readSettings, boot: boot
+    quoteText: quoteText, motionNote: motionNote, readSettings: readSettings, boot: boot
   };
 });

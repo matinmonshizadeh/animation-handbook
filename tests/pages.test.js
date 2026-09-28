@@ -73,6 +73,13 @@ for (const d of steps) {
       assert.equal(count(html, 'data-hb-replay'), 1, 'one Replay control');
       assert.ok(player.includes('data-hb-replay'), 'Replay is in the player bar');
     }
+    if (kind === 'loop') {
+      assert.equal(count(html, 'data-hb-pause'), 1, 'one Pause control');
+      assert.match(player, /<button class="hb-play" type="button" id="btn-pause" data-hb-pause(?:="css")? data-state="playing">/,
+        'Pause is in the player bar and starts in the playing state');
+      assert.equal(count(html, 'data-hb-replay') + count(html, 'data-hb-loop') + count(html, 'data-hb-autoplay'), 0,
+        'a loop has no Replay, Loop or autoplay');
+    }
     for (const marker of ['data-hb-loop', 'data-hb-slowmo']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
@@ -173,6 +180,11 @@ for (const d of steps) {
     assert.equal(entry[1].replace(/\\'/g, "'"), lede);
   });
 }
+
+test('every guided-steps page links the same version of the shared files', () => {
+  const versions = new Set(steps.flatMap(d => [...pageOf(d).matchAll(/demo-page\.(?:css|js)\?v=(\d+)/g)].map(m => m[1])));
+  assert.equal(versions.size, 1, `versions in use: ${[...versions].join(', ')}`);
+});
 
 test('the home page uses Schibsted Grotesk and the new intro line', () => {
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
