@@ -205,10 +205,22 @@
     c1Setting.hidden=!isCustom;
     c2Setting.hidden=!isCustom;
   });
-  choices('speed-seg',d=>{vars.setProperty('--grad-dur',d.dur)});
+  // How far through its pass (0 to 1) an animation is. It is read from the animation itself, so it also holds
+  // while the animation is paused or slowed down.
+  function progressOf(a){
+    const dur=a.effect.getComputedTiming().duration;
+    return a.currentTime!=null&&dur>0?(a.currentTime%dur)/dur:0;
+  }
+  // A new --grad-dur keeps the time already played, not the progress, so the colors would jump to another point
+  // of the pass. Put each animation back at the progress it had, measured against the new duration.
+  choices('speed-seg',d=>{
+    const kept=gradText.getAnimations().map(a=>[a,progressOf(a)]);
+    vars.setProperty('--grad-dur',d.dur);
+    kept.forEach(([a,progress])=>{a.currentTime=progress*parseFloat(d.dur)*1000});
+  });
   choices('c1-sw',d=>{vars.setProperty('--c1',d.c)});
   choices('c2-sw',d=>{vars.setProperty('--c2',d.c)});
-  txtIn.addEventListener('input',()=>{gradText.textContent=txtIn.value||'Flow'});
+  txtIn.addEventListener('input',()=>{gradText.textContent=txtIn.value.trim()||'Flow'});
 </script>
 </body>
 </html>

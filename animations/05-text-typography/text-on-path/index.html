@@ -156,7 +156,9 @@
     arc:'M20,300 Q320,20 620,300',
     circle:'M320,60 a120,120 0 1,1 -0.1,0'
   };
-  let offset=0,speed=0.4,raf=null,unit=100;
+  const DEFAULT_TEXT='FOLLOW THE CURVE · ';
+  const FRAME=1000/60; // the speeds are a share of the path per 1/60 s, so a 120 Hz screen is no faster than a 60 Hz one
+  let offset=0,speed=0.4,raf=null,last=null,unit=100;
 
   // Glyphs past the end of the path are not drawn, so repeat the string until it
   // covers the path plus one extra copy, then wrap the offset over that one copy.
@@ -164,24 +166,34 @@
   // leading/trailing spaces cancel out and the wrap point lines up exactly.
   function measure(){ const n=tp.getNumberOfChars(); return n?tp.getSubStringLength(0,n):0; }
   function fill(){
-    const s=txtIn.value||' ';
+    // a blank field falls back to the default phrase; a typed phrase is kept as typed, including its trailing space
+    const s=txtIn.value.trim()?txtIn.value:DEFAULT_TEXT;
     tp.textContent=s; const one=measure();
     tp.textContent=s+s; const two=measure();
     unit=Math.max((two-one)/curve.getTotalLength()*100,1);
     tp.textContent=s.repeat(Math.ceil(100/unit)+1);
+    // The copy length and the number of copies just changed. Keep the start point within one copy and write it
+    // now: loop() would do it, but it is not running while paused, and a stale start point can leave the end of the curve empty.
+    offset%=unit;
+    tp.setAttribute('startOffset',(offset-unit)+'%');
   }
-  function step(){ return slowTog.checked?speed/3:speed; }
-  function loop(){
-    offset=(offset+step())%unit;
+  function step(dt){ return (slowTog.checked?speed/3:speed)*dt/FRAME; }
+  function loop(now){
+    // The first frame after start() has no earlier frame to measure from, so it stays put; a long gap
+    // between frames (a background tab) counts for at most 50 ms.
+    const dt=last===null?0:Math.min(now-last,50);
+    last=now;
+    offset=(offset+step(dt))%unit;
     tp.setAttribute('startOffset',(offset-unit)+'%');
     raf=requestAnimationFrame(loop);
   }
-  function start(){ if(raf)return; raf=requestAnimationFrame(loop); }
+  function start(){ if(raf)return; last=null; raf=requestAnimationFrame(loop); }
 
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses
   // the loop on arrival, which this listener must catch. loop() requests exactly one next frame and stores it
   // in raf; Pause cancels that frame and clears raf, and Play calls start(), which continues from the current
-  // offset. start() keeps its if(raf)return guard, so Play never starts a second loop.
+  // offset and forgets the time of the last frame, so the pause is not counted as movement. start() keeps its
+  // if(raf)return guard, so Play never starts a second loop.
   document.addEventListener('hb:pause',e=>{
     if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
     else start();
