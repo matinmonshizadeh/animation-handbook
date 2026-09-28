@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clip-Path Reveal — Animation Handbook</title>
-  <meta name="description" content="A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.">
+  <meta name="description" content="A growing shape uncovers it while it stays still. Best for images and banners.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,135 +12,160 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Clip-Path Reveal — Animation Handbook">
-  <meta property="og:description" content="A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.">
+  <meta property="og:description" content="A growing shape uncovers it while it stays still. Best for images and banners.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Clip-Path Reveal — Animation Handbook">
-  <meta name="twitter:description" content="A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.">
+  <meta name="twitter:description" content="A growing shape uncovers it while it stays still. Best for images and banners.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Clip-Path Reveal", "name": "Clip-Path Reveal", "description": "A shape mask expands to uncover the element — content is fully rendered the whole time, just progressively visible.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/", "inLanguage": "en", "articleSection": "Entrance & Exit", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Entrance & Exit, Clip-Path Reveal"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Clip-Path Reveal", "name": "Clip-Path Reveal", "description": "A growing shape uncovers it while it stays still. Best for images and banners.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/", "inLanguage": "en", "articleSection": "Entrance & Exit", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Entrance & Exit, Clip-Path Reveal"}</script>
   <style>
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#5fd88a;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--dur:800ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    :root{--ui-accent:#5fd88a;--dur:800ms;--ease:cubic-bezier(.2,.7,.3,1)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+    .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d}
     .surface{width:min(400px,80%);aspect-ratio:4/3;border-radius:12px;overflow:hidden;position:relative;
       clip-path:var(--cp-out,inset(0 100% 0 0));transition:clip-path var(--dur) var(--ease);will-change:clip-path}
     .surface.in{clip-path:var(--cp-in,inset(0 0% 0 0))}
     .surface-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a2a4a 0%,#0d3a5c 40%,#1a4a3a 70%,#2a3a1a 100%)}
     .surface-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(88,166,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,.08) 1px,transparent 1px);background-size:40px 40px}
-    .surface-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+    .surface-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:monospace;text-align:center}
     .surface-label{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.5}
-    .surface-title{font-size:clamp(22px,4vw,36px);font-weight:bold;color:#fff}
-    .clip-outline{position:absolute;inset:0;pointer-events:none;border:2px dashed var(--ui-accent);opacity:0;transition:opacity .3s;border-radius:12px}
-    .clip-outline.show{opacity:.6}
+    .surface-title{font-size:clamp(22px,4vw,36px);font-weight:bold}
     @media(prefers-reduced-motion:reduce){.surface{opacity:0;transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text);font-size:9px;max-width:130px;text-align:right;word-break:break-all}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:38px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .seg{display:flex;gap:3px;flex-wrap:wrap}
-    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
-    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:rgba(95,216,138,.12)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .btn-row{display:flex;gap:6px}
-    button.act{flex:1;background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 6px;border-radius:4px;cursor:pointer;min-height:44px}
-    button.act.pri{border-color:var(--ui-accent);color:var(--ui-accent)}
-    @media(hover:hover){button.act:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:480px}.stage{flex:none}.seg button{min-height:44px}}
   </style>
-<link rel="stylesheet" href="../../../assets/css/handbook.css">
-<script src="../../../assets/js/handbook.js" defer></script>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css">
+  <script src="../../../assets/js/demo-page.js" defer></script>
 </head>
-<body class="hb" data-hb-autoplay>
-<nav class="hb-bar" aria-label="Animation Handbook"><a class="hb-home" href="../../../">← <span>Animation Handbook</span></a><span class="hb-pager"><a href="../scale-in/" rel="prev" aria-label="Previous: Scale In / Zoom In">‹ <span class="hb-name">Scale In / Zoom In</span></a><a href="../curtain-reveal/" rel="next" aria-label="Next: Curtain Reveal"><span class="hb-name">Curtain Reveal</span> ›</a></span></nav>
-<main class="hb-view">
-  <div class="stage">
-    <div class="surface" id="surface">
-      <div class="surface-bg"></div>
-      <div class="surface-grid"></div>
-      <div class="surface-text">
-        <div class="surface-label">Clip-Path Reveal</div>
-        <div class="surface-title">Unmasked</div>
+<body class="hb" data-hb-kind="once" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scale-in/" rel="prev" aria-label="Previous: Scale In / Zoom In"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Scale In / Zoom In</span></a><a href="../curtain-reveal/" rel="next" aria-label="Next: Curtain Reveal"><span><span class="hb-dir">Next: </span>Curtain Reveal</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">02.05 · Entrance &amp; Exit</p>
+    <h1>Clip-Path Reveal</h1>
+    <p class="hb-lede">A growing shape uncovers it while it stays still. Best for images and banners.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="surface" id="surface">
+        <div class="surface-bg"></div>
+        <div class="surface-grid"></div>
+        <div class="surface-text">
+          <div class="surface-label">Clip-Path Reveal</div>
+          <div class="surface-title">Unmasked</div>
+        </div>
       </div>
-      <div class="clip-outline" id="outline"></div>
     </div>
-  </div>
-  <aside class="hb-side">
-    <header class="hb-head">
-      <p class="hb-cat">02.05 · Entrance &amp; Exit</p>
-      <h1>Clip-Path Reveal</h1>
-      <p class="hb-lede">A shape uncovers the element while it stays perfectly still.</p>
-    </header>
-    <section class="hb-settings" aria-label="Settings">
-      <h2 class="hb-label">Settings</h2>
-    <div class="lbl">State</div>
-    <div class="kv"><span>Status</span><span class="v" id="st">hidden</span></div>
-    <div class="kv" hidden><span>clip-path</span><span class="v" id="cp-val">—</span></div>
-    <div class="div"></div>
-    <div class="lbl">Shape</div>
-    <div class="seg" id="shape-seg">
-      <button data-s="inset" class="on">Inset</button>
-      <button data-s="circle">Circle</button>
-      <button data-s="ellipse">Ellipse</button>
-      <button data-s="polygon">Swipe</button>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop><span>Loop</span></label>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo><span>Slow motion</span></label>
     </div>
-    <div class="lbl" id="dir-head" style="margin-top:2px">Direction (inset)</div>
-    <div class="seg" id="dir-seg">
-      <button data-d="left" class="on" aria-label="From the left">←</button>
-      <button data-d="right" aria-label="From the right">→</button>
-      <button data-d="top" aria-label="From the top">↑</button>
-      <button data-d="bottom" aria-label="From the bottom">↓</button>
-      <button data-d="center" aria-label="From the center">⊙</button>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and the animation plays again.</p></div>
     </div>
-    <div><div class="lbl" id="dur-lbl">Duration</div>
-      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="800" step="50"><span class="sv" id="dur-v">800ms</span></div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-shape="inset" class="on" aria-pressed="true">Edge wipe</button>
+          <button type="button" data-shape="circle" aria-pressed="false">Circle</button>
+          <button type="button" data-shape="ellipse" aria-pressed="false">Oval</button>
+        </div>
+        <p class="hb-hint">The shape that opens to reveal it.</p>
+      </div>
+      <div class="hb-setting" id="dir-setting">
+        <p class="hb-setting-name" id="dir-lbl">Starts from</p>
+        <div class="seg" id="dir-seg" role="group" aria-labelledby="dir-lbl">
+          <button type="button" data-dir="left" class="on" aria-pressed="true">Left</button>
+          <button type="button" data-dir="right" aria-pressed="false">Right</button>
+          <button type="button" data-dir="top" aria-pressed="false">Top</button>
+          <button type="button" data-dir="bottom" aria-pressed="false">Bottom</button>
+          <button type="button" data-dir="center" aria-pressed="false">Center</button>
+        </div>
+        <p class="hb-hint">Which side the wipe begins on.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1300" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="800" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="500" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">A reveal reads best a little slower than a fade.</p>
+      </div>
     </div>
-    <div><div class="lbl">Easing</div>
-      <select id="ease-sel">
-        <option value="linear">Linear</option>
-        <option value="ease-out">Ease out</option>
-        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
-        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
-      </select>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="feel-lbl">Feel</p>
+          <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+            <button type="button" data-ease="cubic-bezier(.2,.7,.3,1)" class="on" aria-pressed="true">Smooth</button>
+            <button type="button" data-ease="linear" aria-pressed="false">Even</button>
+          </div>
+          <p class="hb-hint">Smooth slows at the end; Even keeps one pace.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
-    <label class="tog" for="outline-tog"><input type="checkbox" id="outline-tog" data-hb-skip><span>Show clip-path boundary</span></label>
-    <div class="div"></div>
-    <label class="tog" for="loop-tog"><input type="checkbox" id="loop-tog" data-hb-skip data-hb-loop><span>Auto-loop</span></label>
-    <div class="btn-row">
-      <button class="act pri" id="btn-in" data-hb-replay aria-label="Reveal">Play in</button>
-      <button class="act" id="btn-out" aria-label="Hide">Play out</button>
-      <button class="act" id="btn-rst" data-hb-reset aria-label="Reset">Reset</button>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a mask reveal to [the image or block you want to reveal]. The element should stay completely still and fully drawn while a shape uncovers it, like a window opening: an edge wipe that starts from one side or from the center, or a circle or oval that opens from the middle. Nothing moves, fades or changes size; only the visible area grows until the whole element shows. A wipe that slows down as it finishes looks calmer than one that stops abruptly. The content must stay accessible even while part of it is hidden. If the visitor has reduced motion turned on, show it fully without the wipe. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
     </div>
-    </section>
-    <div class="hb-take">
-      <section class="hb-prompt-box" aria-labelledby="hb-prompt-title">
-        <h2 class="hb-label" id="hb-prompt-title">Prompt</h2>
-        <p class="hb-prompt">Add a mask reveal to [the image or block you want to reveal]. The element should stay completely still and fully drawn while a shape uncovers it, like a window opening: an edge wipe that travels in from one side, a circle or ellipse that opens from the middle, or an angled swipe. Nothing moves, fades or changes size; only the visible area grows until the whole element shows. Let the wipe slow down as it finishes instead of stopping abruptly. The content must stay accessible even while part of it is hidden. If the visitor has reduced motion turned on, show it fully without the wipe. Match the settings listed below.</p>
-      </section>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
     </div>
-  </aside>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Images</li><li>Banners</li><li>Full-width panels</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Small buttons</li><li>Form fields</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
 </main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const surface=document.getElementById('surface'),outline=document.getElementById('outline');
-  const stEl=document.getElementById('st'),cpVal=document.getElementById('cp-val');
-  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
-  const easeSel=document.getElementById('ease-sel'),outlineTog=document.getElementById('outline-tog');
-  const loopTog=document.getElementById('loop-tog');
+  const surface=document.getElementById('surface');
+  const vars=document.documentElement.style;
+  const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
+  const dirSetting=document.getElementById('dir-setting');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let shape='inset',dir='left',dur=800,looping=false,loopTimer=null,animTimer=null;
+  let shape='inset',dir='left',ms=800,ease='cubic-bezier(.2,.7,.3,1)',timers=[];
 
   const CLIPS={
     inset:{
@@ -150,55 +175,57 @@
       bottom:{out:'inset(0 0 100% 0)',  in:'inset(0 0 0% 0)'},
       center:{out:'inset(50% 50%)',     in:'inset(0%)'},
     },
-    circle:{out:'circle(0% at 50% 50%)',    in:'circle(75% at 50% 50%)'},
+    circle:{out:'circle(0% at 50% 50%)',      in:'circle(75% at 50% 50%)'},
     ellipse:{out:'ellipse(0% 0% at 50% 50%)', in:'ellipse(80% 70% at 50% 50%)'},
-    polygon:{out:'polygon(0 0, 0 0, 0 100%, 0 100%)', in:'polygon(0 0, 100% 0, 100% 100%, 0 100%)'},
   };
-
   function getClips(){return shape==='inset'?CLIPS.inset[dir]:CLIPS[shape]}
-
+  function dur(){return slowTog.checked?ms*3:ms}
   function applyClips(){
     const c=getClips();
-    document.documentElement.style.setProperty('--cp-out',c.out);
-    document.documentElement.style.setProperty('--cp-in',c.in);
-    cpVal.textContent=c.out;
+    vars.setProperty('--cp-out',c.out);
+    vars.setProperty('--cp-in',c.in);
   }
+  function apply(){
+    vars.setProperty('--dur',dur()+'ms');
+    vars.setProperty('--ease',ease);
+    applyClips();
+  }
+  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function revealIn(){
+    // snap to the hidden clip of the current shape without a transition, so changing shape
+    // or starting side never tweens between two clip shapes
+    surface.style.setProperty('transition','none','important');
+    surface.classList.remove('in');void surface.offsetWidth;
+    surface.style.removeProperty('transition');
+    surface.classList.add('in');
+  }
+  // One play reveals the surface. While Loop is on it then holds, hides it again, waits and plays
+  // again; switching Loop off lets the surface finish revealed. Slow motion stretches the reveal, not the waits.
+  function cycle(){
+    apply();revealIn();
+    if(!loopTog.checked||!motionOk)return;
+    later(()=>{
+      if(!loopTog.checked)return;
+      surface.classList.remove('in');
+      later(cycle,dur()+400);
+    },dur()+800);
+  }
+  function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
-  // Re-arm the hidden state without tweening old clip -> new clip (inset top -> inset left would flash a partial reveal)
-  function resetHidden(){
-    clearTimeout(animTimer);surface.style.transition='none';applyClips();surface.classList.remove('in');
-    void surface.offsetWidth;surface.style.transition='';stEl.textContent='hidden';
+  document.getElementById('btn-play').addEventListener('click',play);
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
   }
-  function _trigger(cls){
-    clearTimeout(animTimer);surface.classList.remove('in');void surface.offsetWidth;
-    if(cls==='in'){surface.classList.add('in');cpVal.textContent=getClips().in;}
-    else cpVal.textContent=getClips().out;
-    stEl.textContent=cls==='in'?'playing in':'playing out';
-    animTimer=setTimeout(()=>stEl.textContent=cls==='in'?'visible':'hidden',dur);
-  }
-  function stopLoop(){looping=false;clearTimeout(loopTimer);clearTimeout(animTimer);loopTog.checked=false}
-  function loop(){_trigger('in');loopTimer=setTimeout(()=>{_trigger('out');loopTimer=setTimeout(()=>{if(looping)loop()},dur+400)},dur+800)}
-
-  document.getElementById('btn-in').addEventListener('click',()=>{stopLoop();_trigger('in')});
-  document.getElementById('btn-out').addEventListener('click',()=>{stopLoop();_trigger('out')});
-  document.getElementById('btn-rst').addEventListener('click',()=>{stopLoop();clearTimeout(animTimer);surface.classList.remove('in');stEl.textContent='hidden';cpVal.textContent=getClips().out});
-  loopTog.addEventListener('change',()=>{looping=loopTog.checked;if(looping&&motionOk)loop();else stopLoop()});
-  document.querySelectorAll('#shape-seg button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#shape-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    shape=b.dataset.s;
-    const dirHead=document.getElementById('dir-head');
-    document.getElementById('dir-seg').style.display=shape==='inset'?'flex':'none';
-    dirHead.style.display=shape==='inset'?'block':'none';
-    resetHidden();
-  }));
-  document.querySelectorAll('#dir-seg button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    dir=b.dataset.d;resetHidden();
-  }));
-  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms';document.documentElement.style.setProperty('--dur',dur+'ms')});
-  easeSel.addEventListener('change',()=>document.documentElement.style.setProperty('--ease',easeSel.value));
-  outlineTog.addEventListener('change',()=>outline.classList.toggle('show',outlineTog.checked));
-  applyClips();
+  choices('shape-seg',d=>{shape=d.shape;dirSetting.hidden=shape!=='inset'});
+  choices('dir-seg',d=>{dir=d.dir});
+  choices('speed-seg',d=>{ms=+d.ms});
+  choices('feel-seg',d=>{ease=d.ease});
+  apply();
 </script>
 </body>
 </html>

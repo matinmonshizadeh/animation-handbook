@@ -33,7 +33,6 @@ const CLIPS = {
   },
   circle:  { out: 'circle(0% at 50% 50%)',      in: 'circle(75% at 50% 50%)' },
   ellipse: { out: 'ellipse(0% 0% at 50% 50%)',  in: 'ellipse(80% 70% at 50% 50%)' },
-  polygon: { out: 'polygon(0 0, 0 0, 0 100%, 0 100%)', in: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' },
 };
 ```
 
@@ -41,10 +40,10 @@ const CLIPS = {
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Shape | Inset | Inset wipes in from an edge, Circle and Ellipse open like an iris, Swipe cuts in at an angle |
-| Direction | Left | For the Inset shape, which side the wipe travels in from |
-| Duration | 800ms | A reveal reads best a little slower than a fade, so the wipe can be seen |
-| Easing | Smooth | The wipe slows to a stop instead of snapping |
+| Shape | Edge wipe | Edge wipe uncovers it from one side or from the center; Circle and Oval open from the middle like an iris |
+| Starts from | Left | For the edge wipe, where the reveal begins: left, right, top, bottom or center |
+| Speed | Normal | How long the reveal takes: slow is 1300ms, normal 800ms and fast 500ms; a reveal reads best a little slower than a fade |
+| Feel | Smooth | Smooth slows to a stop instead of snapping; Even keeps one steady pace |
 
 ## Production notes
 - **Interpolate compatible shapes only.** CSS can animate `inset`→`inset`, `circle`→`circle`, or `polygon`→`polygon` (with the same vertex count), but it cannot tween *between* shape functions. Keep `out` and `in` the same function, as the demo does.
@@ -54,7 +53,7 @@ const CLIPS = {
 - **Library equivalents:** GSAP `gsap.to(el, { clipPath: 'inset(0 0% 0 0)' })`; Framer Motion animate the `clipPath` string; Motion One `animate(el, { clipPath: [...] })`. GSAP's older approach used `-webkit-clip-path` for Safari — modern targets no longer need the prefix.
 
 ## See also
-- [Curtain Reveal](../curtain-reveal/) — an opaque bar covers then uncovers, hiding content while masked
-- [Slide Up Reveal](../slide-up-reveal/) — the same clip idea scoped to a single text line
-- [Split Text Reveal](../split-text-reveal/) — per-unit reveals for type
-- [Fade In / Fade Out](../fade-in-out/) — the simpler reveal this replaces when you want a shape
+- [Curtain Reveal](../curtain-reveal/) — a colored panel covers it, then slides away
+- [Slide Up Reveal](../slide-up-reveal/) — text rises from behind an invisible edge
+- [Split Text Reveal](../split-text-reveal/) — text appears piece by piece
+- [Fade In / Fade Out](../fade-in-out/) — a plain fade instead of a shape
