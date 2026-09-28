@@ -1,4 +1,4 @@
-// Static checks for demo pages that use the shared layouts, their READMEs and the home page.
+// Static checks for the guided-steps demo pages, their READMEs and the home page.
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -25,48 +25,23 @@ const demos = fs.readdirSync(ANIM, { withFileTypes: true }).filter(c => c.isDire
   fs.readdirSync(path.join(ANIM, c.name), { withFileTypes: true }).filter(d => d.isDirectory())
     .map(d => ({ cat: c.name, slug: d.name, dir: path.join(ANIM, c.name, d.name) })));
 const pageOf = d => read(path.join(d.dir, 'index.html'));
-const converted = demos.filter(d => pageOf(d).includes('<main class="hb-view">'));
 const steps = demos.filter(d => pageOf(d).includes('<main class="hb-page">'));
 const HOME = read(path.join(ROOT, 'index.html'));
+const tryItOf = html => between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
+// The raw first column of the README's Key parameters table.
+const keyParameters = d => sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n')
+  .filter(l => /^\s*\|/.test(l)).slice(2).map(row => (row.split('|')[1] || '').trim()).filter(Boolean);
 
-const PILOT = '02-entrance-and-exit';
-const PILOT_AUTOPLAY = new Set(['fade-in-out', 'slide-in', 'slide-up-reveal', 'scale-in', 'clip-path-reveal',
-  'split-text-reveal', 'letter-by-letter-stagger', 'word-by-word-reveal', 'blur-in', 'flip-in', 'bounce-in', 'rotate-in']);
+const ENTRANCE_EXIT = '02-entrance-and-exit';
 
-test('every Entrance & Exit demo uses one of the shared layouts', () => {
-  const left = demos.filter(d => d.cat === PILOT && !converted.includes(d) && !steps.includes(d)).map(d => d.slug);
+test('every Entrance & Exit demo uses the guided-steps page', () => {
+  const left = demos.filter(d => d.cat === ENTRANCE_EXIT && !steps.includes(d)).map(d => d.slug);
   assert.deepEqual(left, []);
 });
 
 test('Rotate In uses the guided-steps page', () => {
-  assert.ok(steps.some(d => d.cat === PILOT && d.slug === 'rotate-in'));
+  assert.ok(steps.some(d => d.cat === ENTRANCE_EXIT && d.slug === 'rotate-in'));
 });
-
-for (const d of converted) {
-  test(`${d.cat}/${d.slug} uses the shared layout correctly`, () => {
-    const html = pageOf(d);
-    assert.ok(html.includes('<link rel="stylesheet" href="../../../assets/css/handbook.css">'), 'shared stylesheet');
-    assert.ok(html.includes('<script src="../../../assets/js/handbook.js" defer></script>'), 'shared script');
-    assert.match(html, /<body class="hb"( data-hb-autoplay)?>/);
-    for (const legacy of ['ah-bar', 'ah-copy', 'ah-inject', 'Copy source', 'Bricolage', 'PlexMono', 'class="note"', 'class="layout"']) {
-      assert.ok(!html.includes(legacy), `legacy markup left: ${legacy}`);
-    }
-    for (const part of ['<nav class="hb-bar"', '<main class="hb-view">', '<aside class="hb-side">', '<section class="hb-settings"', '<p class="hb-prompt">']) {
-      assert.equal(count(html, part), 1, `exactly one ${part}`);
-    }
-    assert.match(html, /<p class="hb-cat">\d{2}\.\d{2} · [^<]+<\/p>/);
-    const prompt = html.match(/<p class="hb-prompt">([^<]*)<\/p>/)[1];
-    assert.ok(words(prompt) >= 60 && words(prompt) <= 130, `prompt has ${words(prompt)} words`);
-    assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
-    assert.ok(!prompt.includes('`'), 'prompt contains no code');
-    assert.equal(count(html, 'data-hb-replay'), 1, 'one replay control');
-    assert.ok(count(html, 'data-hb-reset') <= 1, 'at most one reset control');
-    if (d.cat === PILOT) assert.equal(html.includes('data-hb-autoplay'), PILOT_AUTOPLAY.has(d.slug), 'autoplay flag');
-    for (const [, href] of html.matchAll(/<a href="([^"]+)" rel="(?:prev|next)"/g)) {
-      assert.ok(isDemoDir(path.resolve(d.dir, href)), `pager link ${href}`);
-    }
-  });
-}
 
 for (const d of steps) {
   test(`${d.cat}/${d.slug} uses the guided-steps page correctly`, () => {
@@ -104,7 +79,7 @@ for (const d of steps) {
       const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];
       assert.ok(!/\schecked\b/.test(input), `${marker} switch starts unchecked`);
     }
-    const tryIt = between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
+    const tryIt = tryItOf(html);
     const main = between(tryIt, '<div class="hb-settings">', '<details class="hb-options">');
     const mainCount = count(main, 'class="hb-setting"');
     assert.ok(mainCount >= 1 && mainCount <= 3, `${mainCount} main settings`);
@@ -119,8 +94,11 @@ for (const d of steps) {
   });
 
   test(`${d.slug}: every setting has a label and every choice group has one choice made`, () => {
-    const tryIt = between(pageOf(d), '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
-    for (const [, cls, attrs, inner] of tryIt.matchAll(/<div class="(seg|swatches)"([^>]*)>([\s\S]*?)<\/div>/g)) {
+    const tryIt = tryItOf(pageOf(d));
+    // A choice group is a div whose class list includes seg or swatches, wherever the class attribute sits.
+    const groups = [...tryIt.matchAll(/<div\b(?=[^>]*\sclass="(?:[^"]*\s)?(seg|swatches)(?:\s[^"]*)?")([^>]*)>([\s\S]*?)<\/div>/g)];
+    assert.equal(groups.length, count(tryIt, 'role="group"'), 'every group in Try it is a choice group that is checked here');
+    for (const [, cls, attrs, inner] of groups) {
       const labelledBy = (attrs.match(/aria-labelledby="([^"]+)"/) || [])[1];
       assert.ok(/role="group"/.test(attrs), `a ${cls} group has role="group"`);
       assert.ok(labelledBy && tryIt.includes(`id="${labelledBy}"`), `a ${cls} group is labelled`);
@@ -148,14 +126,44 @@ for (const d of steps) {
     }
   });
 
-  test(`${d.slug}: every Key parameters name is a setting in Try it`, () => {
-    const tryIt = between(pageOf(d), '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"')
-      .replace(/<[^>]+>/g, ' ');
-    const rows = sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n').slice(2);
-    for (const row of rows) {
-      const name = (row.split('|')[1] || '').trim();
-      if (name) assert.ok(tryIt.includes(name), `setting "${name}"`);
+  test(`${d.slug}: Try it and the README Key parameters name the same settings`, () => {
+    const tryIt = tryItOf(pageOf(d));
+    const names = [...tryIt.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
+      .map(m => decode((m[2] ?? m[3]).trim()));
+    const keys = keyParameters(d);
+    assert.ok(names.length > 0, 'Try it has settings');
+    for (const name of names) assert.ok(keys.includes(name), `Try it setting "${name}" is in Key parameters`);
+    for (const key of keys) assert.ok(names.includes(key), `Key parameter "${key}" is a setting in Try it`);
+  });
+
+  test(`${d.slug}: See also links use the titles of the pages they open`, () => {
+    const seeAlso = sections(read(path.join(d.dir, 'README.md')))['See also'];
+    for (const [, name, href] of seeAlso.matchAll(/^\s*[-*]\s+\[([^\]]+)\]\(([^)\s]+)\)/gm)) {
+      const h1 = read(path.join(path.resolve(d.dir, href), 'index.html')).match(/<h1>([^<]*)<\/h1>/);
+      assert.ok(h1, `${href} has a title`);
+      assert.equal(name, decode(h1[1]), `See also ${href}`);
     }
+  });
+
+  test(`${d.slug}: the meta, Open Graph, Twitter and JSON-LD descriptions match the lede`, () => {
+    const html = pageOf(d);
+    const lede = decode(html.match(/<p class="hb-lede">([^<]*)<\/p>/)[1]);
+    for (const tag of ['name="description"', 'property="og:description"', 'name="twitter:description"']) {
+      const meta = html.match(new RegExp(`<meta ${tag} content="([^"]*)">`));
+      assert.ok(meta, `<meta ${tag}> is there`);
+      assert.equal(decode(meta[1]), lede, tag);
+    }
+    const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    assert.ok(ld, 'JSON-LD is there');
+    assert.equal(JSON.parse(ld[1]).description, lede, 'JSON-LD description');
+  });
+
+  test(`${d.slug}: the player switches and every Try it field have autocomplete="off"`, () => {
+    const html = pageOf(d);
+    const player = between(html, '<div class="hb-player">', '</div>');
+    const fields = [...player.matchAll(/<input\b[^>]*>/g), ...tryItOf(html).matchAll(/<(?:input|select|textarea)\b[^>]*>/g)].map(m => m[0]);
+    assert.ok(fields.length > 0, 'the page has fields');
+    for (const field of fields) assert.match(field, /\sautocomplete="off"/, field);
   });
 
   test(`${d.slug}: the home page card uses the page's description`, () => {
@@ -163,29 +171,6 @@ for (const d of steps) {
     const entry = HOME.match(new RegExp(`\\['${d.slug}','(?:[^'\\\\]|\\\\.)*','((?:[^'\\\\]|\\\\.)*)'\\]`));
     assert.ok(entry, 'home page entry');
     assert.equal(entry[1].replace(/\\'/g, "'"), lede);
-  });
-}
-
-for (const d of converted.filter(c => c.cat === PILOT)) {
-  test(`README for ${d.slug} is ready for the site`, () => {
-    const s = sections(read(path.join(d.dir, 'README.md')));
-    for (const h of ['What it is', 'When to use it', 'Key parameters', 'See also']) assert.ok(s[h], `section ${h}`);
-    assert.ok(!s['What it is'].includes('`'), 'What it is has no code');
-    assert.ok(!s['Key parameters'].includes('`'), 'Key parameters has no code');
-    assert.ok(table(s['Key parameters']).length > 0, 'Key parameters has rows');
-    for (const [, href] of s['See also'].matchAll(/\]\(([^)\s]+)\)/g)) {
-      assert.ok(isDemoDir(path.resolve(d.dir, href)), `See also link ${href}`);
-    }
-  });
-
-  test(`${d.slug}: every Key parameters name is a control on the page`, () => {
-    const html = pageOf(d);
-    const panel = html.slice(html.indexOf('<section class="hb-settings"'), html.indexOf('<div class="hb-take">')).replace(/<[^>]+>/g, ' ');
-    const rows = sections(read(path.join(d.dir, 'README.md')))['Key parameters'].split('\n').slice(2);
-    for (const row of rows) {
-      const name = (row.split('|')[1] || '').trim();
-      if (name) assert.ok(panel.includes(name), `control label "${name}"`);
-    }
   });
 }
 
