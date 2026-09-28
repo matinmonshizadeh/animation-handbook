@@ -32,17 +32,18 @@ words.forEach((w,wi)=>{
 .splitting.in .word{opacity:1;transform:none;filter:none}
 ```
 
-The "sentence pauses" option adds `si × 200ms` to the delay for each sentence, inserting a beat between lines. Because the index is stored as `delay/stagger`, the CSS math stays a single `calc()` regardless of whether pauses are on.
+The Pauses between sentences switch adds `si × 200ms` to the delay for each sentence, inserting a beat between lines. Because the index is stored as `delay/stagger`, the CSS math stays a single `calc()` regardless of whether pauses are on.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Per-word delay | 80ms | The reading-speed control; below about 40ms the words blur into one reveal |
-| Per-word animation | Fade up | The entrance each word plays |
-| Duration per word | 450ms | How long each word takes to settle |
-| Easing | Smooth | Springy adds a bounce; Linear feels mechanical |
-| Sentence pauses | off | Adds an extra pause between sentences |
+| Delay between words | Medium | The reading-speed control: short is 40ms, medium 80ms and long 150ms; below about 40ms the words blur into one reveal |
+| How each word appears | Fade up | The entrance each word plays: fade up, fade, grow, blur or flip |
+| Speed | Normal | How long each word takes to settle: slow is 700ms, normal 450ms and fast 270ms |
+| Feel | Smooth | Smooth slows each word into place; Springy adds a bounce; Even feels mechanical |
+| Pauses between sentences | off | Adds an extra pause between sentences |
+| Your text | Three sample sentences | The passage that is revealed, one sentence per line |
 
 ## Production notes
 - **Whitespace preservation**: keeping a real text node (a literal space) between word spans lets the browser wrap and justify normally, which pure `margin-right` spacing cannot do reliably across fonts.
@@ -53,6 +54,6 @@ The "sentence pauses" option adds `si × 200ms` to the delay for each sentence, 
 - **Motion One**: `stagger(0.08)` passed as the `delay` option to `animate()`.
 
 ## See also
-- [Letter-by-Letter Stagger](../letter-by-letter-stagger/) — the finer-grained sibling, for short headlines
-- [Split-Text Reveal](../split-text-reveal/) — general text-splitting entrance techniques
-- [Fade In / Out](../fade-in-out/) — the base opacity transition each word uses
+- [Letter-by-Letter Stagger](../letter-by-letter-stagger/) — one letter at a time, for short phrases
+- [Split Text Reveal](../split-text-reveal/) — text breaks into letters, words or lines
+- [Fade In / Out](../fade-in-out/) — the whole text fades in at once
