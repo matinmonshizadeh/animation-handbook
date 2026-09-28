@@ -169,7 +169,7 @@ All 129 techniques, each linked to its live demo.
 - **[Kinetic Typography](animations/05-text-typography/kinetic-typography/)** — Phrases enter, transform, and exit in a choreographed timeline — motion reinforces meaning.
 - **[Typewriter Effect](animations/05-text-typography/typewriter-effect/)** — Characters appear one at a time with a blinking cursor — natural timing variance makes it feel human.
 - **[Scramble / Glitch Text](animations/05-text-typography/scramble-text/)** — Characters cycle randomly before locking left-to-right — decryption and sci-fi aesthetic.
-- **[Variable Font Morph](animations/05-text-typography/variable-font-morph/)** — CSS font-variation-settings animates weight, slant, and casual axes of a variable font.
+- **[Variable Font Morph](animations/05-text-typography/variable-font-morph/)** — CSS font-variation-settings smoothly changes a word's weight in a variable font and, when set, leans it over by tilting it.
 - **[Text Clip-Path Reveal](animations/05-text-typography/text-clip-path-reveal/)** — Lines reveal via expanding clip-path mask — preserves kerning and typographic spacing exactly.
 - **[Marquee / Ticker](animations/05-text-typography/marquee-ticker/)** — Continuous horizontal scroll with seamless loop — duplicated content makes the reset invisible.
 - **[Text Morphing](animations/05-text-typography/text-morphing/)** — One word transitions into another character by character — each letter slides out as the next slides in.

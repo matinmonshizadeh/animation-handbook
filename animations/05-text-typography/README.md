@@ -9,7 +9,7 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Kinetic Typography](kinetic-typography/) | Phrases enter, transform, and exit in a choreographed timeline |
 | [Typewriter Effect](typewriter-effect/) | Characters appear one at a time with a blinking cursor and natural timing variance |
 | [Scramble / Glitch Text](scramble-text/) | Characters cycle randomly before locking left-to-right — decryption aesthetic |
-| [Variable Font Morph](variable-font-morph/) | CSS font-variation-settings animates weight, slant, and casual axes |
+| [Variable Font Morph](variable-font-morph/) | CSS font-variation-settings smoothly changes a word's weight and, when set, leans it over by tilting it |
 | [Text Clip-Path Reveal](text-clip-path-reveal/) | Lines reveal via expanding clip-path — preserves kerning and typographic spacing |
 | [Marquee / Ticker](marquee-ticker/) | Continuous horizontal scroll with seamless loop via duplicated content |
 | [Text Morphing](text-morphing/) | One word transitions into another character by character |
