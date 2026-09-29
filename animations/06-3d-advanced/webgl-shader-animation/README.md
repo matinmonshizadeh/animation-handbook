@@ -1,7 +1,7 @@
 # WebGL Shader Animation
 
 ## What it is
-WebGL shader animations run entirely on the GPU — a fragment shader executes once per pixel per frame, producing the full visual from mathematical functions alone. The vertex shader is trivial (a fullscreen quad); all the creative work happens in the fragment shader. This is the model behind Shadertoy: each demo is one fragment shader, no geometry.
+A shader animation draws a moving picture entirely on the graphics chip. One small program runs for every pixel, every frame, and works out that pixel's color from its position and the time, so the whole pattern is made of math, with no images. Each of the four patterns in the demo is one such program.
 
 ## When to use it
 - Full-canvas animated backgrounds that need GPU-level performance
@@ -24,9 +24,12 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.ST
 gl.enableVertexAttribArray(aPos);
 gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
+let t = 0, last = 0;
 function render(ts) {
+  if (last) t += Math.min(ts - last, 100) / 1000 * speed;   // add up time, so a new speed never jumps
+  last = ts;
   gl.uniform2f(uRes, W, H);
-  gl.uniform1f(uT, ts / 1000 * speed);
+  gl.uniform1f(uT, t);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   requestAnimationFrame(render);
 }
@@ -64,10 +67,9 @@ float voronoi(vec2 p) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Time speed | 1.0× | Multiplier on `uT` uniform — faster = more energetic animation |
-| Hue shift | 0° | Rotates the entire color palette without rewriting the shader |
-| Mouse interaction | off | Feeds a normalised `M` uniform into the shader — each preset uses it differently |
-| Device pixel ratio | ≤2 (≤1.5 on mobile) | Backing-store multiplier. Capped, because fill cost scales with its square |
+| Pattern | Plasma | Plasma adds up sine waves into flowing color; Waves bends striped color; Cells splits the plane into cells around moving points; Kaleidoscope mirrors one slice around the middle |
+| Speed | Normal | How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times |
+| Reacts to the pointer | off | Each pattern bends around the pointer or a finger in its own way; in Kaleidoscope the pointer sets the number of slices |
 
 ## Production notes
 - **Always check `COMPILE_STATUS` and `LINK_STATUS`.** A shader that fails to compile throws nothing and logs nothing — `gl.drawArrays` just quietly draws nothing and you get a black canvas. Read `getShaderInfoLog` / `getProgramInfoLog` and put the message somewhere a human will see it. This demo renders the compile log into the stage; break a shader on purpose and you get the GLSL error, not a black box.
@@ -79,6 +81,6 @@ float voronoi(vec2 p) {
 - **Mouse uniform**: add `uniform vec2 uMouse` and pass `e.clientX / W, e.clientY / H` to make any shader interactive without rewriting the core algorithm.
 
 ## See also
-- [Fluid Simulation](../fluid-simulation/) — SDF-based shader, same fullscreen-quad approach
-- [Ray Marching / SDF Scene](../ray-marching-sdf/) — most complex application of the same shader pattern
-- [Noise-Based Motion](../noise-based-motion/) — canvas equivalent of procedural animated patterns
+- [Fluid / Liquid Simulation](../fluid-simulation/) — blobs drawn by the same one-surface shader setup
+- [Ray Marching / SDF Scene](../ray-marching-sdf/) — a whole 3D scene drawn by one shader
+- [Noise-Based Motion](../noise-based-motion/) — moving patterns drawn on a 2D canvas instead
