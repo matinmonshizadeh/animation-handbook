@@ -30,13 +30,8 @@
     .fg-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
     .fg-title{font-size:clamp(16px,2.2vw,22px);font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
     .fg-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6}
-    /* On phones and short screens the stage is small, so the card shrinks to leave the shapes in view */
-    @media(max-width:600px),(max-height:760px){
-      .fg-card{padding:12px 14px}
-      .fg-eyebrow{margin-bottom:4px}
-      .fg-title{margin-bottom:0}
-      .fg-body{display:none}
-    }
+    /* On phones and short screens the card shrinks to leave the shapes in view */
+    @media(max-width:600px),(max-height:760px){.fg-card{padding:12px 14px}.fg-eyebrow{margin-bottom:4px}.fg-title{margin-bottom:0}.fg-body{display:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=3">
   <script src="../../../assets/js/demo-page.js?v=3" defer></script>
@@ -227,8 +222,7 @@
     return{el,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0};
   }
 
-  // Writes every shape's position, turn and opacity for the current t. It runs on every frame, at the end of rebuild()
-  // so the shapes are in place at load, and after a setting changes while the loop is paused.
+  // Writes each shape's position, turn and opacity for t: every frame, after rebuild(), and after a setting changes while paused
   function place(){
     elements.forEach(e=>{
       let x=e.bx/100*W+Math.sin(e.freq*t+e.phase)*e.amp;
@@ -250,8 +244,7 @@
     place();
   }
 
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again.
-  // Each frame moves t and each shape's turn by a step, or a third of it in slow motion.
+  // One pending frame at a time: Pause cancels it, Play starts one loop again. A frame moves t and each turn one step (a third in slow motion).
   function loop(){
     raf=requestAnimationFrame(loop);
     const k=slowTog.checked?1/3:1;
@@ -261,16 +254,14 @@
   }
   function start(){if(raf)return;raf=requestAnimationFrame(loop)}
 
-  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
-  // loop on arrival, which this listener must catch. The shapes on screen stay where they are while paused.
+  // Top level, so it is there before the shared script (deferred) pauses the loop on arrival under reduced motion. Paused shapes stay put.
   document.addEventListener('hb:pause',e=>{
     paused=e.detail.paused;
     if(paused){cancelAnimationFrame(raf);raf=null}
     else start();
   });
 
-  // The shapes sit at a share of the stage's size, so a real change of the stage's size places them again at once,
-  // playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
+  // A real change of the stage's size places the shapes again, playing or paused; the same size (a phone's address bar) does nothing
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
@@ -293,8 +284,7 @@
   }
   // While paused, a setting that changes how the shapes look places them again so the change shows
   function still(){if(paused)place()}
-  // The settings that build the shapes do it only when the choice really changes, so pressing the same choice again
-  // does not scatter a new arrangement
+  // The settings that build the shapes ignore a press on the choice already made, so it does not scatter a new arrangement
   choices('count-seg',d=>{if(+d.n===COUNT)return;COUNT=+d.n;rebuild()});
   choices('speed-seg',d=>{SPD=+d.spd;still()});
   choices('range-seg',d=>{if(+d.px===RANGE)return;RANGE=+d.px;rebuild()});

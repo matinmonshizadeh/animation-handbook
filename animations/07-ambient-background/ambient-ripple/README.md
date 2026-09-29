@@ -25,7 +25,7 @@ class Ring {
   update(now) {
     const progress = (now - this.born) / this.duration; // 0 → 1
     this.r = MAX_RADIUS * progress;
-    this.opacity = (1 - progress) * 0.6;   // fade out as it expands
+    this.opacity = (1 - progress) * 0.5;   // fade out as it expands
   }
 
   draw(ctx) {
