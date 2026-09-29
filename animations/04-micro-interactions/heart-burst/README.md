@@ -1,7 +1,7 @@
 # Heart / Like Burst
 
 ## What it is
-A like button that celebrates the moment of liking. Tapping toggles the liked state: the heart plays a pop — a quick scale overshoot — and fills with color, while a short-lived spray of small hearts and dots bursts outward from its center and fades. Un-liking simply reverts the color with no burst. The pattern was popularized by Twitter's heart and is now a standard reward micro-interaction.
+A like button that celebrates the moment you like something. The heart quickly squashes, overshoots and settles as it fills with color, while tiny hearts and dots burst out from its center and fade. Unliking just removes the color, with no celebration.
 
 ## When to use it
 - Like / favorite / react buttons in feeds, galleries, and comment threads
@@ -40,10 +40,8 @@ The `-1` bias on initial `vy` makes the burst lean upward before gravity pulls i
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Particle count | 18 | More reads as bigger celebration; above ~40 it gets busy and costs frames |
-| Burst spread | 90px | Scales initial velocity, so how far particles travel before fading |
-| Pop keyframes | 0.8 → 1.25 → 0.92 → 1 | The overshoot curve. Peak >1.3 looks rubbery |
-| Fade rate | 0.022/frame | Life drain per frame — sets burst lifetime (~700ms at 60fps) |
+| Number of hearts | Some | How many pieces burst out: few is 10, some 18 and many 32; above about 40 it gets busy and costs frames |
+| How far they fly | Medium | How far the pieces travel before they fade: short, medium or far |
 
 ## Production notes
 - **Canvas over DOM particles**: 18–40 short-lived DOM `<span>`s per tap creates layout/GC churn if the user spams the button. One canvas with an array of plain objects stays flat and cheap.
@@ -55,7 +53,7 @@ The `-1` bias on initial `vy` makes the burst lean upward before gravity pulls i
 - **Framer Motion / Lottie**: Framer's `AnimatePresence` can drive DOM particles for small counts; many production apps instead ship a pre-rendered Lottie burst for pixel-consistent art across platforms.
 
 ## See also
-- [Button Press Scale](../button-press-scale/) — the scale-overshoot mechanic behind the heart pop
-- [Badge Pulse](../badge-pulse/) — another attention-reward micro-interaction
-- [Checkmark Draw](../checkmark-draw/) — success feedback without a particle system
-- [Click / Tap Ripple](../click-ripple/) — a calmer tactile confirmation from the tap point
+- [Button Press Scale](../button-press-scale/) — the squash and spring behind the heart's pop
+- [Notification Badge Pulse](../badge-pulse/) — a badge pulses to catch the eye
+- [Checkmark Draw](../checkmark-draw/) — success shown without a burst
+- [Click / Tap Ripple](../click-ripple/) — a calmer response from the spot you press
