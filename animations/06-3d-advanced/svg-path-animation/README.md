@@ -1,7 +1,7 @@
 # SVG Path Animation
 
 ## What it is
-SVG path animation uses `stroke-dasharray` and `stroke-dashoffset` to reveal an SVG stroke progressively from one end to the other, giving the impression of a path being drawn in real time. The path is always fully rendered in the DOM — only its visibility changes. This makes the technique accessible (the final shape is always present for screen readers) and easily reversible (animate offset back to hide).
+An SVG path animation makes a line drawing appear as if drawn by hand. Each line is hidden behind a dash exactly as long as the line, and sliding that dash away uncovers the line from one end to the other. The whole drawing is in the page from the start, with a label, so screen readers can always find it.
 
 ## When to use it
 - Illustrated icon or logo reveals that "draw in" on page load
@@ -21,11 +21,10 @@ path.style.strokeDasharray  = length;
 path.style.strokeDashoffset = length;    // fully hidden
 path.style.transition = 'none';
 
-// Force browser to register the hidden state, then animate
-requestAnimationFrame(() => requestAnimationFrame(() => {
-  path.style.transition = `stroke-dashoffset 1500ms ease-out`;
-  path.style.strokeDashoffset = 0;       // fully revealed
-}));
+// Make the browser apply the hidden state, then animate
+path.getBoundingClientRect();
+path.style.transition = 'stroke-dashoffset 1500ms ease-out';
+path.style.strokeDashoffset = 0;         // fully revealed
 ```
 
 For multiple paths in sequence, stagger the transitions with a delay per path:
@@ -35,12 +34,13 @@ paths.forEach((path, i) => {
   const len = path.getTotalLength();
   path.style.strokeDasharray  = len;
   path.style.strokeDashoffset = len;
-  path.style.transitionDelay  = `${i * 300}ms`;
+  path.style.transition = 'none';
 
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    path.style.transition = `stroke-dashoffset 700ms ease-out ${i * 300}ms`;
+  setTimeout(() => {
+    path.getBoundingClientRect();       // apply the hidden state first
+    path.style.transition = 'stroke-dashoffset 700ms ease-out';
     path.style.strokeDashoffset = 0;
-  }));
+  }, i * 300);
 });
 ```
 
@@ -56,10 +56,13 @@ path.addEventListener('transitionend', () => {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 1500ms | Faster = snappy; slower = deliberate hand-drawing feel |
-| Easing | ease-out | Matches natural drawing speed (fast start, slow finish); linear = mechanical |
-| Stroke width | 2px | Thinner = precise/technical; thicker = bold/illustrative |
-| Stagger delay | 300ms | Gap between sequential path starts |
+| Drawing | Icon | What is drawn: a house with a star, a flowing signature, or a circle logo |
+| Speed | Normal | How long each line takes to draw: slow is 2400ms, normal 1500ms and fast 900ms; each next line starts after 30% of that |
+| Line thickness | Medium | Thin is 1px, medium 2px and thick 4px; thin looks precise, thick looks bold |
+| Feel | Smooth | Smooth slows at the end, like a hand finishing a stroke; Gentle eases in and out; Even keeps one pace |
+| Line color | Blue | The color of the lines, and of the fill |
+| Starts from the other end | off | Draws each line from its end back to its start |
+| Fills in at the end | off | Fills the shapes with a light tint of the line color once the lines are drawn |
 
 ## Production notes
 - **`getTotalLength()` is required**: hardcoding `stroke-dasharray` breaks when the path changes. Always measure at runtime. For SVGs loaded asynchronously, measure after the element is added to the DOM.
@@ -69,6 +72,6 @@ path.addEventListener('transitionend', () => {
 - **Framer Motion**: `<motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} />` — `pathLength` is a 0–1 shorthand that internally manages `dasharray`/`dashoffset`.
 
 ## See also
-- [Checkmark Draw](../../04-micro-interactions/checkmark-draw/) — the same technique applied to UI success states
-- [Text Clip-Path Reveal](../../05-text-typography/text-clip-path-reveal/) — a conceptually similar progressive reveal for text
-- [Outline to Fill](../../05-text-typography/outline-to-fill/) — SVG stroke → fill transition for text
+- [Checkmark Draw](../../04-micro-interactions/checkmark-draw/) — the same technique for a success tick
+- [Text Clip-Path Reveal](../../05-text-typography/text-clip-path-reveal/) — lines of text uncovered one by one
+- [Outline to Fill](../../05-text-typography/outline-to-fill/) — hollow letters fill with color
