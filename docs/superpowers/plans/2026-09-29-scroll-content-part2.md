@@ -501,9 +501,9 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Step 1:** Scroll it · help line: default
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
-- **What scrolling shows:** the cue "Scroll down ↓"; then the picture (a moonlit lake between mountains) reaches the top of the box and holds still while its window opens outward in step with the scroll, its rounded corners squaring off, until the picture fills the box. A faint outline stays where the window began. Over the last eighth of the opening, the caption "Through the Portal" fades in. Scrolling back closes the window again. Then the cue "The page moves on ↓" scrolls in.
+- **What scrolling shows:** the cue "Scroll down ↓"; then the picture (a moonlit lake between mountains: a round full moon, two ranges of dark mountains and the lake with the moon's reflection, all in view on every box from a 3.7:1 laptop box to a phone; see the recomposed drawing under Stage) reaches the top of the box and holds still while its window opens outward in step with the scroll, its rounded corners squaring off, until the picture fills the box. A faint outline stays where the window began, and fades out over the last eighth of the opening while the caption "Through the Portal" fades in, so the outline never crosses the caption text. Scrolling back closes the window again. Then the cue "The page moves on ↓" scrolls in.
 - **Scroll distance and Play:** a 60cqh lead-in, the 250cqh section with its sticky frame 100cqh tall, and a 60cqh lead-out: 2.7 box heights of scrolling. The window opens during 1.5 of them, about 3.3 of Play's six seconds.
-- **Reduced motion:** nothing scrolls by itself. As today, the full picture and its caption show from the start and do not change as the box scrolls (the demo's CSS rule and the `motionOk` early return stay).
+- **Reduced motion:** nothing scrolls by itself. As today, the full picture and its caption show from the start and do not change as the box scrolls (the demo's CSS rule and the `motionOk` early return stay). The starting-frame outline is hidden then (`.frame-border{opacity:0!important}` in the same rule): the caption is on from the start, and on a short box the outline would cross it.
 - **Stage font:** site font. The caption title (`.cap-title`, today's `#caption h2`) uses `font-weight:700` (was `bold`).
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d`, with `aria-label="A picture that opens up as you scroll"`. `position:relative` also makes the window start opening as soon as the picture reaches the top: today `zoomSec.offsetTop` is measured from the top of the page.
@@ -512,7 +512,15 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - The picture's `svg` gets `role="img"` and `aria-label="A lake under a full moon, between dark mountains"`.
   - The caption holds no heading (rule B13): `<h2>Through the Portal</h2><p>Scroll to exit</p>` becomes `<p class="cap-title">Through the Portal</p><p class="cap-sub">Keep scrolling</p>`. The `#caption h2` rule becomes `#caption .cap-title` and the `#caption p` rule becomes `#caption .cap-sub`, each with the same values (the small line stays 11px, a caption label).
   - `#zoom-img` keeps `clip-path:inset(30% round 16px)` and the frame keeps `inset:28%`, which match the defaults.
-  - Script: `update()` keeps the inset, radius and caption maths; the readout line goes, and the clip no longer checks the removed portal switch.
+  - **The outline gives way to the caption (Task 11 fix round 1, 2026-09-30).** The reviewer found the outline drawn over the caption text on short boxes (its bottom edge crosses the title at 258px and 325px with Medium, and the title or the small line with Large at 258px to 438px). `#frame` now comes before `#caption` in the DOM, so the caption is drawn over it, and `update()` sets `frameBorder.style.opacity` to 1 minus the caption's opacity, so the outline is gone once the caption is fully in (the switch's own `#frame` opacity and its 0.4s fade are untouched). Moving `#frame` alone was not enough: rendered, the line still ran along the title from behind.
+  - **The drawing is recomposed (Task 11 fix round 1, 2026-09-30; the owner's pick, option B).** Under `preserveAspectRatio="xMidYMid slice"` (kept) a wide box shows only the middle band of the 800×600 drawing: viewBox y 192–408 on a 958×258 box (3.7:1), y 164–436 on 958×325 and y 142–458 on 958×378. The old drawing had the moon at y 62–118 and the lake below y 420, so no laptop or desktop box ever showed the moon and at most a strip of lake, while the `aria-label` and the words above describe a lake under a full moon. The recomposition is a coordinate-only edit of the same drawing (same gradients, colours and shapes, and no stretching, so the moon stays round):
+    - the sky rect ends at y 345 (was 420); the moon and its glow move to `cy` 218 (was 90), the moon to `r` 24 (was 28) and the glow to `r` 70 (was 80);
+    - both mountain polygons stand on y 345 (was 420) with their heights halved: distant peaks at y 245–300 (were 220–330), near ones at y 275–315 (were 280–360);
+    - the water rect starts at y 345 (`height` 255); the shimmer lines are at y 365, 385 and 410 (were 440, 460 and 485); the reflection ellipses at `cy` 372 and 395 (were 470 and 500);
+    - the stars at (760,130) and (50,180) go, and five stars at (90,205), (250,226), (380,199), (470,232) and (740,236) fill the band; the other six stay.
+    - The moon (y 194–242) and the mountains (y 245–345) lie wholly inside y 192–408, and so does the top of the lake (y 345–408), so the widest box (3.7:1) keeps all three. The starting window still shows mountains at every setting.
+    - Measured in headless Chrome, fully open, box sizes inside the border, distances from the top edge of the box: 958×258 (1280×590): moon 57px across and round, 2px down; distant peaks 63px, near peaks 99px; lake 75px tall. 958×325 (1366×657): moon 35px down, lake 109px. 958×378 (1280×800): moon 62px down, lake 135px. 705×438 (768×1024): moon 42px across, lake 180px. 745×258 (a phone held sideways, 812×375): moon 45px across, lake 87px. 341×298 and 286×298 (phones): moon 24px across, lake 127px. The moon is a 1:1 circle at every size, both reflection ellipses are inside the box, and the caption never covers the moon. Under the starting window (Small / Medium / Large) the mountains fill 82–100% / 31–81% / 15–56% of what shows, at every size.
+  - Script: `update()` keeps the inset, radius and caption maths; the readout line goes, and the clip no longer checks the removed portal switch. It also sets the outline's fade, as above.
   - Phone rules: none. Today's mobile block held only the stage height and the aside.
   - `hb-dots`: no. Default height.
 
@@ -527,7 +535,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Shows the starting frame | Switch | on / off | on | A faint outline marks where the window began. | `frameEl.style.opacity`: `'1'` / `'0'` |
+| Shows the starting frame | Switch | on / off | on | A faint outline marks where the window began. | `frameEl.style.opacity`: `'1'` / `'0'` (the outline inside it also fades out with the caption, as under Stage) |
 
 - **Removed:**
   - The note, and the Section readout.
@@ -550,15 +558,15 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   |-----------|---------|--------|
   | Starting window | Medium | How much of the picture shows at first: small is a window a fifth of the box wide, medium two fifths and large three fifths |
   | Corners | Rounded | How round the window's corners are at the start: square, 16px or 32px; they straighten as the window opens |
-  | Shows the starting frame | on | A faint outline stays where the window began, so you can see how far it has opened |
+  | Shows the starting frame | on | A faint outline stays where the window began, so you can see how far it has opened; it fades out as the caption fades in |
 
 - **README See also:** the last link's text changes from "Parallax Depth of Field" to the page's real title.
   - [Sticky Section](../sticky-section/) — the pinning this effect is built on
   - [Scrub Animation](../scrub-animation/) — scroll position drives the movement, both ways
   - [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a big cover changes shape as you scroll
   - [Parallax Depth-of-Field](../parallax-depth-of-field/) — layers move and blur for depth as you scroll
-- **README How it works:** in the snippet, the three lines from `zoomImg.style.clipPath = portalTog.checked` to its `: ` alternative become one line: ``zoomImg.style.clipPath = `inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;``. The rest is unchanged.
-- **README Production notes:** unchanged
+- **README How it works:** in the snippet, the three lines from `zoomImg.style.clipPath = portalTog.checked` to its `: ` alternative become one line: ``zoomImg.style.clipPath = `inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;``. Fix round 1: the caption line becomes three lines that also fade the outline, `const cap = p > 0.88 ? ((p - 0.88) / 0.12).toFixed(3) : '0';`, `caption.style.opacity = cap;` and `frameBorder.style.opacity = (1 - cap).toFixed(3);` (with a short comment), and the sentence after the snippet adds ", and the faint starting-frame outline fades out over the same stretch, so it never crosses the caption". The rest is unchanged. No README line describes the drawing itself.
+- **README Production notes:** unchanged, except that the Reduced motion bullet now reads "shows the caption immediately and hides the starting-frame outline" (fix round 1).
 - **Category line:** `01.19 · Scroll-Based`
 - **Pager:** Previous: Section Wipe (`../section-wipe/`) · Next: Scroll Image Sequence (`../scroll-image-sequence/`)
 

@@ -20,24 +20,26 @@ const radius = lerp(brStart, 0, p);       // 16px → 0  (corners square off)
 
 zoomImg.style.clipPath = `inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;
 
-caption.style.opacity = p > 0.88 ? ((p - 0.88) / 0.12).toFixed(3) : '0';
+const cap = p > 0.88 ? ((p - 0.88) / 0.12).toFixed(3) : '0';
+caption.style.opacity = cap;
+frameBorder.style.opacity = (1 - cap).toFixed(3);   // the starting-frame outline gives way to the caption
 ```
 
-Clipping rather than scaling is the crucial choice: `clip-path` reveals more of the *existing* image at full resolution, so nothing blurs or pixelates the way a `transform: scale()` zoom would. The caption fades in only over the final 12% of the scroll, once the image is essentially full-bleed.
+Clipping rather than scaling is the crucial choice: `clip-path` reveals more of the *existing* image at full resolution, so nothing blurs or pixelates the way a `transform: scale()` zoom would. The caption fades in only over the final 12% of the scroll, once the image is essentially full-bleed, and the faint starting-frame outline fades out over the same stretch, so it never crosses the caption.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Starting window | Medium | How much of the picture shows at first: small is a window a fifth of the box wide, medium two fifths and large three fifths |
 | Corners | Rounded | How round the window's corners are at the start: square, 16px or 32px; they straighten as the window opens |
-| Shows the starting frame | on | A faint outline stays where the window began, so you can see how far it has opened |
+| Shows the starting frame | on | A faint outline stays where the window began, so you can see how far it has opened; it fades out as the caption fades in |
 
 ## Production notes
 - **Clip, don't scale**: `clip-path: inset()` reveals real pixels, keeping the image sharp at every step. A `scale()` zoom enlarges a fixed render and softens. Use clipping when the whole image is present and you're uncovering it.
 - **`will-change: clip-path`**: set on the image so the browser prepares for the animating clip. Animating `clip-path` is compositor-friendly on modern engines but still benefits from the hint.
 - **Sticky provides the pin**: the image holds still via `position: sticky` while the tall section scrolls; the clip is the only thing changing, which keeps the effect cheap.
 - **`round` keyword**: `inset(x% round Ypx)` combines the crop and rounded corners in one property, so both animate together off a single progress value.
-- **Reduced motion**: under `prefers-reduced-motion` the CSS forces `clip-path: inset(0%)` and shows the caption immediately — the reader gets the final full image with no fly-in.
+- **Reduced motion**: under `prefers-reduced-motion` the CSS forces `clip-path: inset(0%)`, shows the caption immediately and hides the starting-frame outline — the reader gets the final full image with no fly-in.
 - **Library equivalents**: GSAP ScrollTrigger with `scrub` tweening `clipPath` is the direct equivalent and adds easing; Framer Motion animates the `clipPath` style off a `useTransform` of scroll progress in React.
 
 ## See also
