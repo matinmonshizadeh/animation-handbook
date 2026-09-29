@@ -77,7 +77,7 @@ function deleteBack(from, to, callback) {
 
 ## Production notes
 - **Long text is exhausting**: the typewriter effect works on short hero copy (under ~15 words). A full paragraph typed character-by-character forces users to wait for content they could read instantly. Reserve it for dramatic reveals, not body text.
-- **`aria-live="polite"`**: screen readers should not read each character as it types — add `aria-live="polite"` on the container so the screen reader waits for a pause before announcing, or use `aria-label` with the full final text.
+- **Screen readers**: they should hear the full text once, not each character as it types. Do not put `aria-live` on the element being typed (it would announce every keystroke); hide the typed element with `aria-hidden="true"` and give its wrapper `role="img"` with an `aria-label` holding the full final text, as the demo does.
 - **Looping and rotation**: the "type, delete, retype" loop (cycling between multiple phrases) is the most common production pattern. Each phrase is typed, held briefly, then deleted before the next starts.
 - **Performance**: `setTimeout` is accurate enough; `requestAnimationFrame` is overkill for typewriter timing and introduces unnecessary complexity.
 - **Typed.js**: the canonical library for this effect. Handles multiple strings, backspace, loops, smart backspace (delete only the differing suffix), and HTML tags in strings. Worth using in production rather than rolling your own.
