@@ -432,7 +432,7 @@ None: leave out the `details.hb-options` block.
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d`, with `aria-label="A stack of project cards"`.
   - `.spacer{height:25cqh}`, `.run-out{height:30cqh}`, and `.card__content{height:calc(100cqh - 12px - (var(--numcards) - 1) * var(--peek))}` (were in `var(--stage-h)`, with a 24px foot; measured: the same deck and the same CSS scroll timeline). The foot under the deepest card becomes 12px, so every card is 12px taller.
-  - The card text is rewritten as plain project cards (today's cards explain the code). `ALL_CARDS` keeps each card's number, `ac` and `vis`, with this text:
+  - The card text is rewritten as plain project cards (today's cards explain the code). `ALL_CARDS` keeps each card's number and `vis`, and its `ac` except for four that are darkened (see "On white" below), with this text:
 
     | Card | Title | Kind (sub) | Line (body) |
     |---|---|---|---|
@@ -448,7 +448,18 @@ None: leave out the `details.hb-options` block.
   - The big faded number becomes a watermark (owner decision 5): it keeps its 52px size and its opacity .1 but leaves the text column's flow, `.card-num{position:absolute;top:clamp(8px,3cqh,16px);right:clamp(12px,2.5vw,24px);margin:0;line-height:1}` with `.card__text{position:relative}`, and each number gets `aria-hidden="true"` in `buildCards()` (shared rule 12).
   - `.card__text` padding follows the box's height: `padding:clamp(14px,6cqh,32px) clamp(18px,3vw,32px)` (was `clamp(18px,3vw,32px)` all round; `6cqh` is 6% of the box).
   - On the shortest cards the one-line text hides, so the title, the kind and the button fit. `measure()` works out a card's height, `stage.clientHeight - 12 - (numCards - 1) * peekPx`, and toggles the class `short` on `#cards` when it is under 170px, with `#cards.short .card-body{display:none}`. `measure()` already runs after `buildCards()`, after a change of Edge that shows and on `resize`. The line hides only with seven cards and the Large edge (in the 258px and 288px boxes of short laptop windows and on phones), and with five cards and the Large edge or seven and Medium in the 258px box.
-  - On white: `.card-sub` and `.card-body` drop their opacity and use `#5f5f66` (today about 2.9:1 and 3.9:1; the new grey is 6.3:1).
+  - On white: `.card-sub` and `.card-body` drop their opacity and use `#5f5f66` (today about 2.9:1 and 3.9:1; the new grey is 6.3:1). The button label is 11px text too, and each card's `ac` sets both its text and its border. Four of today's seven `ac` colours are under 4.5:1 on the white card: `#c07030` 3.75:1 (Harbor House, the card a visitor sees on arrival), `#5a8a38` 4.10:1, `#9a7820` 4.13:1 and `#3a8a60` 4.21:1. Those four are darkened within their own hue (about 4.6:1) and the other three stay; only the label's text and border change, the `vis` gradients do not. `ALL_CARDS` takes these `ac` values:
+
+    | Card | `ac` (label text and border) | On white |
+    |---|---|---|
+    | 01 | `#aa632b` (was `#c07030`) | 4.64:1 |
+    | 02 | `#37835b` (was `#3a8a60`) | 4.61:1 |
+    | 03 | `#3a70a8` | 5.17:1 |
+    | 04 | `#90701e` (was `#9a7820`) | 4.64:1 |
+    | 05 | `#548034` (was `#5a8a38`) | 4.65:1 |
+    | 06 | `#8a3a68` | 7.28:1 |
+    | 07 | `#3a5aa0` | 6.67:1 |
+
   - Phone rules (under 600px), in place of today's `grid-template-columns:1fr;grid-template-rows:1fr 140px`, which pushes the coloured half out of the 300px box: `.card__content{grid-template-columns:1fr;grid-template-rows:1fr}`, `.card__visual{display:none}` and `.card__text{gap:6px}`.
   - Measured, all 12 combinations of Number of cards and Edge that shows fit their text at every size: 1280×800, 1366×657, 1280×640, 1280×620, 1280×590, 768×1024, 610×1000 and 375px and 320px phones. The tightest is seven cards with the Large edge in the 258px box: 2px to spare, with its line hidden. No `container-type` is used on the cards (shared rule 5).
   - The debug badge goes, with its markup in `buildCards()`.
