@@ -18,15 +18,20 @@ The tooltip is positioned absolutely relative to the trigger, initially invisibl
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) scale(0.95);
-  background: #1e2433;
-  border: 1px solid #21262d;
+  transform-origin: bottom center;
+  background: #1c1c22;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #f4f4f2;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 11px;
+  line-height: 1.5;
+  width: max-content;
+  max-width: 200px;
+  z-index: 10;
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms ease, transform 150ms ease;
-  white-space: nowrap;
 }
 
 .tooltip.visible {
