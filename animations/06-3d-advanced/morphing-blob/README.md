@@ -57,7 +57,7 @@ instead of 0.09.
 The pointer's position is turned into the drawing's own units with the SVG's screen
 matrix (`svg.getScreenCTM().inverse()`), so the droplet stays under the pointer
 however the SVG is scaled and centred, also beside the drawing on a wide stage. The
-`viewBox` is a 340-unit box around the blob's middle (`30 30 340 340`) with
+`viewBox` is a 360-unit box around the blob's middle (`20 20 360 360`) with
 `preserveAspectRatio="xMidYMid meet"`: the circles wander up to about 190 units from
 the middle, so the box shows them almost always, and the whole box fits whatever the
 shape of the stage.
