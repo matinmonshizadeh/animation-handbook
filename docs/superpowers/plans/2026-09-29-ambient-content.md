@@ -9,7 +9,7 @@ How to read a section:
 - **Sets in the demo** lists one value per choice, in the same order as the choices. A Speed row sets the script's variable and the CSS variable it names.
 - **Shown only when …** in the Control column means the setting's whole `div.hb-setting` gets the `hidden` attribute while it has no effect, so it also drops out of "Your settings".
 - Switches in Try it keep their default in the markup (`checked` when the default is on), as on Rotate In. Only the player bar's Slow motion starts unchecked.
-- **Watch it help line: default** means the loop line from the Text & Typography plan: "It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement." (with Slow motion), or "It moves by itself. Pause it to look closely." (without). The Try it help line is always the loop line, "Change a setting and see the difference as it moves."
+- **Watch it help line: default** means the loop line from the Text & Typography plan: "It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement." (with Slow motion), or "It moves by itself. Pause it to look closely." (without). The Try it help line is always the loop line, "Change a setting and see the difference as it moves." A page's own Watch it help line must stay on one line on laptops, or the player bar drops below the first screen: at most about 880px in the site font at 16px (the default line is 736px).
 - **Pause (css)** means `data-hb-pause="css"` and **Pause (page)** means `data-hb-pause` without a value. The same goes for Slow motion and `data-hb-slowmo`.
 - **Speed** always reads Slow · Normal · Fast, and today's default stays Normal. For a duration (a cycle, a fade, a ring's life), Slow is about 1.6 times and Fast about 0.6 times the default; for a rate (pixels or steps per frame, steps a second), it is the other way round.
 - **Number of …** turns a count into named steps. Where the demo draws fewer on phones, the hint and the README say so.
@@ -498,7 +498,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
 - **Kind:** loop. A leak comes every few seconds, at random, forever.
 - **Description:** Warm light washes in from a corner at random times. Best for photo sites.
-- **Watch it help line:** Leaks come by themselves, a few seconds apart at random. Pause it to look closely, or turn on slow motion to see each leak fade in and out.
+- **Watch it help line:** Leaks come at random, a few seconds apart. Pause it to look closely, or turn on slow motion to see each leak fade.
 - **Player bar:** Pause (css) · Slow motion (page)
 - **Sequence:** the leak is one chain of timers, and every timer goes through the helper's `wait()`, so there is only ever one pending timer:
   - `flash()` sets this leak's fade time `d` (Speed, or 3 × Speed while Slow motion is on) as `--leak-dur`, and sets `--leak-peak` to Brightness × (0.75 to 1, at random).
@@ -1118,7 +1118,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
 - **Kind:** loop. The dots drift and link forever.
 - **Description:** Drifting dots link up with lines whenever they come close. Best for tech sites.
-- **Watch it help line:** It moves by itself, and the dots gather toward your pointer or finger. Pause it to look closely, or turn on slow motion to see each part of the movement.
+- **Watch it help line:** It moves by itself, and the dots gather toward your pointer or finger. Pause it to look closely, or turn on slow motion.
 - **Player bar:** Pause (page) · Slow motion (page)
 - **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `step()`, then `draw()`:
   - `step()` moves every dot by its velocity × Speed.
