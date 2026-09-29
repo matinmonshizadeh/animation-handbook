@@ -1081,7 +1081,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - `advance()` adds Speed × 0.01 to `t`. For Rings, it also grows every ring by Speed × 2, adds a ring every 0.5 of `t`, and drops rings past the edge; this is today's `updateRings()`, moved out of the drawing.
   - `draw()` paints the background and the chosen pattern for the current `t`; this is today's `render()` without `updateRings()`.
 
-  **The first picture:** the page calls `draw()` at load (the polygons at `t` 0). Choosing Rings seeds six rings spread across the stage (today's `still()` picture, which only reduced motion saw), so the pattern shows at once, playing or paused; choosing another pattern clears the rings, as today.
+  **The first picture:** the page calls `draw()` at load (the polygons at `t` 0). Choosing Rings seeds six rings spread across the stage (today's `still()` picture, which only reduced motion saw), so the pattern shows at once, playing or paused; choosing another pattern clears the rings, as today. The rings on screen are coloured by their place in the list, spread across Number of shapes: ring `i` of `n` gets colour `floor(i × CX / n)`, so the same choice always gives the same picture and a bigger count shows more of the colour range even where only the inner rings fit the stage (a wide, short stage). With the default Medium the six seeded rings are colours 0 to 5, as in today's picture.
 
   **While paused,** every setting change calls `draw()`; `repaint()` becomes `draw()`. After a real resize (see the preamble), `resize()` calls `draw()` at once, playing or paused.
 
@@ -1098,7 +1098,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 |---|---|---|---|---|---|
 | Pattern | Choice buttons | Polygons · Rings · Bars · Lines | Polygons | Four patterns, each an endless loop. | `PRESET`: 0 / 1 / 2 / 3 (Rings also seeds six rings) |
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | Slow feels calm; keep it slow behind content. | `SPD`: 0.35 / 0.6 / 1.0 |
-| Number of shapes | Choice buttons | Few · Medium · Many | Medium | More shapes make a busier pattern. | `CX`: 3 / 6 / 10 |
+| Number of shapes | Choice buttons | Few · Medium · Many | Medium | More shapes make a busier pattern. | `CX`: 3 / 6 / 10 (on Rings the rings on screen are coloured again at once by the rule under "The first picture") |
 
 **More options**
 
