@@ -35,6 +35,8 @@ function randomGap() {
 setTimeout(flash, randomGap());
 ```
 
+The demo opens on a leak at its peak rather than a dark stage: it lights the glow, finishes the fade at once (`leak.getAnimations().forEach(a => a.finish())`) and starts the chain with `setTimeout(fadeOut, randomGap())`, so the first leak holds for one gap before it fades out.
+
 **Gradient for a top-left corner leak**:
 
 ```css
