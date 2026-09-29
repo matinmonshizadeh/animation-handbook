@@ -27,15 +27,20 @@
     /* Animated gradient blobs behind everything */
     .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.75;animation:blob-move var(--blob-spd) ease-in-out infinite alternate}
     .b1{width:280px;height:280px;background:#58a6ff;top:-80px;left:-60px;animation-delay:0s}
-    .b2{width:220px;height:220px;background:#d2a8ff;bottom:-60px;right:40px;animation-delay:-3s}
-    .b3{width:200px;height:200px;background:#56d364;top:30%;left:40%;animation-delay:-5s}
-    .b4{width:160px;height:160px;background:#ffa657;bottom:20%;left:-40px;animation-delay:-2s}
+    .b2{width:220px;height:220px;background:#d2a8ff;bottom:-60px;right:40px;animation-delay:calc(var(--blob-spd) * -.375)}
+    .b3{width:200px;height:200px;background:#56d364;top:30%;left:40%;animation-delay:calc(var(--blob-spd) * -.625)}
+    .b4{width:160px;height:160px;background:#ffa657;bottom:20%;left:-40px;animation-delay:calc(var(--blob-spd) * -.25)}
     @keyframes blob-move{
       0%{transform:translate(0,0) scale(1)}
       33%{transform:translate(40px,-30px) scale(1.1)}
       66%{transform:translate(-20px,40px) scale(.95)}
       100%{transform:translate(30px,10px) scale(1.05)}
     }
+    /* A faint pattern of soft white dots between the colors and the glass: the blurred colors alone leave the glass nothing to soften, so Light, Medium and Heavy frost would look alike. It fades out toward the edges of the stage. */
+    .stage::after{content:"";position:absolute;inset:0;--dots:rgba(255,255,255,.28);--dot-r:16px;--dot-pitch:56px;--fade:68%;
+      background:radial-gradient(circle,var(--dots) 0 var(--dot-r),transparent calc(var(--dot-r) + 2px)) 0 0/var(--dot-pitch) var(--dot-pitch);
+      -webkit-mask-image:radial-gradient(ellipse closest-side,#000 var(--fade),transparent);
+      mask-image:radial-gradient(ellipse closest-side,#000 var(--fade),transparent)}
     /* Glass cards: all three share the glass; the middle one breathes and the right one shifts its tint */
     .glass-card{position:relative;z-index:1;width:clamp(140px,22%,180px);min-height:200px;border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;gap:8px;
       background:var(--tint);
@@ -43,6 +48,8 @@
       -webkit-backdrop-filter:blur(var(--blur)) saturate(1.8);
       border:1px solid rgba(255,255,255,.18);
       box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2)}
+    /* A see-through dark layer under the text (behind it, above the tint and the blurred backdrop) keeps the words readable over the bright colors */
+    .glass-card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(6,8,14,.54);z-index:-1}
     .glass-card.g2{animation:blur-breath 4s ease-in-out infinite}
     .glass-card.g3{animation:tint-cycle 8s linear infinite}
     /* !important so Frost's Off also beats the blur-breath keyframes on card 2 */
@@ -54,12 +61,13 @@
     @keyframes tint-cycle{
       0%{background:rgba(88,166,255,var(--glass-op))}25%{background:rgba(86,211,100,var(--glass-op))}50%{background:rgba(210,168,255,var(--glass-op))}75%{background:rgba(255,166,87,var(--glass-op))}100%{background:rgba(88,166,255,var(--glass-op))}
     }
-    .card-tag{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+    .card-tag{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.88)}
     .card-title{font-size:clamp(13px,1.8vw,16px);font-weight:700;color:#fff;line-height:1.2}
-    .card-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6;margin-top:4px}
+    .card-body{font-size:13px;color:rgba(255,255,255,.92);line-height:1.6;margin-top:4px}
     /* Phones: the three cards share one row, so all of them show on the shorter stage */
     @media(max-width:600px){
       .blob{filter:blur(36px)}
+      .stage::after{--dots:rgba(255,255,255,.42);--dot-r:20px;--dot-pitch:64px;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent)}
       .stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:center;align-items:stretch;gap:8px;padding:12px}
       .glass-card{width:auto;min-width:0;min-height:0;padding:12px 8px;border-radius:12px;gap:6px}
       .card-title{font-size:13px}
@@ -182,7 +190,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add frosted glass to [the cards or panels you want to style]. Give each card a see-through tinted background, blur whatever sits behind it, and add a thin light edge, so it looks like frosted glass. Put colorful shapes that drift slowly behind the cards, because glass over a plain background just looks grey. A card can also breathe, its blur growing and fading, or slowly change its tint. Blurring what is behind costs a lot, so keep the glass to small cards and blur the background shapes less on phones. If the visitor has reduced motion turned on, keep everything still. Match the settings listed below.</p>
+      <p class="hb-prompt">Add frosted glass to [the cards or panels you want to style]. Give each card a see-through tinted background, blur whatever sits behind it, and add a thin light edge. Put colorful shapes that drift slowly behind the cards, with a faint pattern of dots over them, because glass over plain color looks grey and shows no frost. Put a see-through dark layer inside each card under its text so the words stay readable. A card can also breathe, its blur growing and fading, or slowly change its tint. Blurring costs a lot, so keep the glass to small cards and blur the shapes less on phones. If the visitor has reduced motion turned on, keep everything still. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -216,6 +224,7 @@
 <script>
   const root=document.documentElement.style;
   const stage=document.getElementById('stage');
+  let secs=8;
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -229,7 +238,14 @@
     if(d.blur!=='off')root.setProperty('--blur',d.blur);
   });
   choices('op-seg',d=>{root.setProperty('--glass-op',d.op)});
-  choices('speed-seg',d=>{root.setProperty('--blob-spd',d.spd)});
+  // The blobs' clocks are rescaled with the new length (their delays are fractions of it), so each blob stays where it is;
+  // the two card animations have fixed lengths and are left alone
+  choices('speed-seg',d=>{
+    const next=parseFloat(d.spd);
+    document.querySelectorAll('.blob').forEach(el=>el.getAnimations().forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs}));
+    secs=next;
+    root.setProperty('--blob-spd',d.spd);
+  });
   choices('tint-sw',d=>{
     const r=parseInt(d.color.slice(1,3),16);
     const g=parseInt(d.color.slice(3,5),16);

@@ -49,6 +49,31 @@ Three CSS properties create the glass effect:
 }
 ```
 
+**A pattern behind the glass** makes the frost visible. Colors that are already a soft blur leave the glass nothing to soften, so Light, Medium and Heavy frost would look alike. The demo puts a faint pattern of white dots between the colors and the cards. Each card blurs the dots behind it: Off leaves them sharp, Light softens them and Heavy smears them almost away. The pattern fades out toward the edges of the stage, so most of the stage still reads as soft color:
+
+```css
+.stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0 16px, transparent 18px) 0 0 / 56px 56px;
+  mask-image: radial-gradient(ellipse closest-side, #000 68%, transparent);
+}
+```
+
+**A dark layer under the text** keeps the words readable. Bright colors pass behind the glass, and white text over them can fall well under the 4.5:1 contrast that small text needs. Each card has a see-through dark layer that sits above the tint and the blurred backdrop and below the text (the card's `z-index` gives the layer's `z-index: -1` a place inside the card):
+
+```css
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(6, 8, 14, 0.54);
+  z-index: -1;
+}
+```
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
@@ -63,7 +88,10 @@ Three CSS properties create the glass effect:
 - **`backdrop-filter` is GPU-expensive**: the browser must capture a snapshot of everything behind the element and blur it every frame. On large glass surfaces or low-end hardware this causes frame drops. Keep glass cards small; avoid full-screen glass overlays.
 - **`-webkit-` prefix still required**: Safari needs `-webkit-backdrop-filter` even in 2024. Include both the prefixed and unprefixed property.
 - **The backdrop must have content**: `backdrop-filter` blurs what is behind the element. If the background is a solid color, the blur does nothing — the glass looks like dirty plastic. Colorful, high-contrast content behind the glass is required for the effect to be visible.
+- **Frost needs detail behind it to show**: a blur of soft color changes little as the amount grows, so a Frost setting can look as if it does nothing. Put something with edges behind the glass, such as a pattern, shapes or an image, as the demo does with its dots.
+- **Keep the text readable**: measure the contrast of the text against what is really behind it, at several moments of the animation, not against the tint. The demo darkens the glass under the text with a see-through layer, so every text stays at 4.5:1 or better, even over the brightest colors.
 - **Dark mode**: glassmorphism requires a dark-enough background to read as glass rather than a white haze. The effect works better on dark themes.
+- **Changing the length of a running animation**: a new `animation-duration` puts a running CSS animation at a different point of its cycle, so it jumps. The demo makes its negative delays fractions of the duration and multiplies each blob's `currentTime` by the new length divided by the old one, so a change of Speed keeps every blob where it is.
 - **Compare with the blur off**: the demo's Frost setting has an Off choice. If the page is noticeably faster without the blur, reconsider the design.
 
 ## See also
