@@ -223,11 +223,12 @@
     steps.forEach((s,i)=>s.classList.toggle('done',i<doneSteps));
     stepLabel.textContent=doneSteps+' / 5';
   }
-  // Ends any slide and empties all three displays at once; the steps skip their colour change for the reset.
-  function resetDisplays(){
+  // Ends any slide and puts all three displays at p at once: 0 to start a fill, the result under reduced motion.
+  // The steps skip their colour change for it, so a replay never shows them fading out or back in.
+  function resetDisplays(p){
     linearFill.classList.remove('indet');
     steps.forEach(s=>{s.style.transition='none'});
-    setProgress(0);
+    setProgress(p);
     void stepEl.offsetWidth;
     steps.forEach(s=>{s.style.transition=''});
   }
@@ -243,11 +244,11 @@
     cancelAnimationFrame(animRaf);animRaf=null;
     const move=speed();
     vars.setProperty('--prog-dur',move+'ms');
-    resetDisplays();
+    resetDisplays(reduceMotion.matches?target:0);
     stage.setAttribute('aria-label','Progress filling to '+target+'%');
     const slide=indetTog.checked;
     if(slide)startIndet(move*2);
-    if(reduceMotion.matches){setProgress(target);return}
+    if(reduceMotion.matches)return;
     const start=performance.now();
     function tick(now){
       const t=Math.min(Math.max((now-start)/move,0),1);
@@ -276,7 +277,7 @@
   choices('feel-seg',d=>{ease=EASE[d.ease]||EASE['ease-out']});
   choices('color-sw',d=>{vars.setProperty('--prog-color',d.c)});
   vars.setProperty('--prog-dur',speed()+'ms');
-  if(reduceMotion.matches)setProgress(target); // reduced motion: the first picture is the finished one
+  if(reduceMotion.matches)resetDisplays(target); // reduced motion: the first picture is the finished one
 </script>
 </body>
 </html>
