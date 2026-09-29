@@ -148,23 +148,19 @@
   const fill=document.getElementById('fill'),hint=document.getElementById('hint'),nativeChk=document.getElementById('native-tog');
   const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
-  let target=0,current=0,ease=0.09,maxScroll=0,viewH=0,mode='',raf=0,showTimer=0,runFrom=0,wasNative=false;
-  let dragging=false,startY=0,startTarget=0;
+  let target=0,current=0,ease=0.09,maxScroll=0,viewH=0,mode='',raf=0,dragging=false,startY=0,startTarget=0;
+  let showTimer=0,returning=false,runFrom=0,wasNative=false; // a Show me run: its timer, its glide back, where it began
 
-  // The visitor pressed, typed, scrolled or touched inside the stage: the flick's return never runs and the content
-  // stops where it is. Only the timer of a run under way is cleared, so this is safe to hear again and again.
+  // The visitor pressed, typed, scrolled or touched inside the stage: a Show me run under way (waiting to return, or gliding
+  // back) stops and the content stays where it is. Nothing happens when no run is under way, so this is safe to hear again.
   document.addEventListener('hb:input',()=>{
-    if(!showTimer)return;
-    clearTimeout(showTimer);showTimer=0;
+    if(!showTimer&&!returning)return;
+    clearTimeout(showTimer);showTimer=0;returning=false;
     if(mode==='smooth')target=current;
   });
 
   // Layout reads live here: at the start, after the site font loads (the cards' height depends on it) and on resize.
-  function measure(){
-    viewH=viewport.clientHeight;
-    maxScroll=Math.max(0,content.scrollHeight-viewH);
-    target=clamp(target,0,maxScroll);
-  }
+  function measure(){viewH=viewport.clientHeight;maxScroll=Math.max(0,content.scrollHeight-viewH);target=clamp(target,0,maxScroll)}
   // The rail's fill rides a transform, so painting it costs no layout
   function paint(pos){
     const p=maxScroll>0?clamp(pos/maxScroll,0,1):0;
@@ -180,6 +176,7 @@
     if(Math.abs(target-current)<0.1)current=target;
     draw(current);
     if(current!==target)raf=requestAnimationFrame(loop);
+    else returning=false;
   }
   function kick(){if(!raf&&mode==='smooth')raf=requestAnimationFrame(loop)}
 
@@ -242,7 +239,7 @@
 
   // Either way a run that was under way is over, and the content stays where it is
   function useNative(on){
-    clearTimeout(showTimer);showTimer=0;
+    clearTimeout(showTimer);showTimer=0;returning=false;
     if(mode===(on?'native':'smooth'))return;
     if(on)enableNative();else enableSmooth();
   }
@@ -263,18 +260,18 @@
 
   // Show me: one flick and back. The content goes one and a half boxes away (up instead when it is past the middle), and
   // after a beat returns to where it began. In the glide mode that sets the target; with Normal scrolling it jumps.
-  function moveTo(pos){if(mode==='smooth'){target=pos;kick()}else viewport.scrollTop=pos}
+  function sendTo(pos){if(mode==='smooth'){target=pos;kick()}else viewport.scrollTop=pos}
   document.getElementById('btn-demo').addEventListener('click',()=>{
     const again=showTimer; // pressed during a flick: it begins again from the same place
-    clearTimeout(showTimer);
+    clearTimeout(showTimer);returning=false;
     measure();
     const from=again?runFrom:mode==='smooth'?target:viewport.scrollTop;
     runFrom=from;
-    moveTo(clamp(from>maxScroll/2?from-viewH*1.5:from+viewH*1.5,0,maxScroll));
-    showTimer=setTimeout(()=>{moveTo(from);showTimer=0},1600);
+    sendTo(clamp(from>maxScroll/2?from-viewH*1.5:from+viewH*1.5,0,maxScroll));
+    showTimer=setTimeout(()=>{sendTo(from);showTimer=0;returning=mode==='smooth'},1600);
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{
-    clearTimeout(showTimer);showTimer=0;
+    clearTimeout(showTimer);showTimer=0;returning=false;
     target=current=0;
     if(mode==='smooth')content.style.transform='translate3d(0,0,0)';else viewport.scrollTop=0;
     paint(0);
