@@ -522,10 +522,10 @@ None: leave out the `details.hb-options` block.
 - **Try it:** none (the rollout spec: this demo has no settings). The page has steps 1 and 2.
 - **Scroller:** the stage.
 - **What scrolling shows:** four tinted zones in turn, each with a small label.
-  1. "Fades in": a heading and a line of text fade in while any part of the zone is in the box, and hide once the zone has gone above or below it.
-  2. "Follows the scroll": a square turns half a turn, grows and changes colour as the zone's top rises from 80% to 20% down the box, and turns back when you scroll back.
+  1. "Fades in": a heading and a line of text fade in while any part of that text is in the box, and hide once it has gone above or below it. Scrolling back up, the fade starts as the text's bottom edge comes into the box, so it is seen.
+  2. "Follows the scroll": a square turns half a turn, grows and changes colour as the square itself rises from 80% to 25% down the box (its centre), and turns back when you scroll back. It starts turning fully inside the box and stays inside it for the whole turn.
   3. "Pinned": a card holds still in the middle of the box while the zone scrolls past it, and its text steps through three stages.
-  4. "Steps": five dots light up one by one as the zone rises.
+  4. "Steps": five dots light up one by one as the row of dots rises from 80% to 25% down the box (its centre): the first lights with the row about three quarters of the way down, the last about a third of the way down, and none before the row is in view.
   Then a closing line: "That's the end · scroll back up to see each zone again".
 - **Scroll distance and Play:** zones 1, 2 and 4 at 90cqh, zone 3 at 200cqh and a 100cqh run-out: 4.7 box heights of scrolling (1,776px at 1280×800, 1,400px on a phone). Play shows each zone for about a second and holds the pinned card for about 1.3 seconds, a little under half a second per stage.
 - **Reduced motion:** nothing scrolls by itself. As today, zone 1's text appears and disappears without the fade (`.reveal-content{transition:none}`); the square, the card and the dots still follow the visitor's own scrolling.
@@ -533,8 +533,8 @@ None: leave out the `details.hb-options` block.
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d`, with `aria-label="Four scroll zones"`.
   - Sizes: `.zone{min-height:90cqh}` (550px in a 620px stage today); `.z3{min-height:200cqh}`; `.pin-card{top:calc(50cqh - 70px)}`; `.run-out{height:100cqh}`.
-  - Zone labels (`.zone-tag`, 11px, was 9px): "Fades in", "Follows the scroll", "Pinned", "Steps" (were "Fade on Enter", "Scrub", "Pin + Scrub", "Snap").
-  - Zone 1: the heading reads "Fades in on arrival" and the text "This text fades in when its zone scrolls into the box, and hides again once the zone has gone." (today's text names onEnter and onLeave). `.reveal-sub` becomes 14px (was 13px).
+  - Zone labels (`.zone-tag`, 11px, was 9px): "Fades in", "Follows the scroll", "Pinned", "Steps" (were "Fade on Enter", "Scrub", "Pin + Scrub", "Snap"). Their `opacity:.8` goes: text faded below 4.5:1 is fixed in its section, and with it the four labels measure 4.22, 4.31, 4.22 and 3.47:1 (text and tinted background both fade over the zone), without it 5.74, 5.86, 5.75 and 4.68:1.
+  - Zone 1: the heading reads "Fades in on arrival" and the text "This text fades in when its zone scrolls into the box, and hides again once the zone has gone." (today's text names onEnter and onLeave). `.reveal-sub` becomes 14px (was 13px). The fade is keyed to the text's own layout box (`#reveal`, by `offsetTop` and `offsetHeight`, which its 30px translate before it fades in does not change): active while any part of that box is in the box, not while any part of the zone is. Keyed to the zone, the text turned active when the zone's bottom edge came into the box, with the text still 84–138px above it, so scrolling back up showed no fade. On load, after Back to top and when Play restarts, the text is in the box at once and fades in as before.
   - Zone 2: the caption reads "The square turns, grows and changes color as you scroll." The "progress: 0%" readout under the square goes.
   - Zone 3: `PIN_STEPS` becomes:
 
@@ -548,8 +548,8 @@ None: leave out the `details.hb-options` block.
   - Zone 4: the caption reads "Scroll on to light up the dots, one at a time." The "0 / 5 lit" readout goes.
   - The two captions' inline styles move into a `.zone-cap` rule (13px, `var(--ui-muted)`, the zone 2 caption with `margin-bottom:4px`).
   - The run-out reads "That's the end · scroll back up to see each zone again" in the cue style (shared rule 14): sentence case (its `text-transform:uppercase` goes), `text-align:center;padding:0 24px`, 13px `#8a8a92` with `letter-spacing:.1em`, without the opacity .5 (today 10px capitals at about 2:1, left-aligned against the edge on phones).
-  - Every zone's window is reached at every size: after zone 4 the one-box run-out lets zone 4's top rise well past 20% of the box, so all five dots light, and the pinned card's three stages fit inside zone 3's span (shared rule 4). In the 258px box of a 1280×590 window the zones are 232px, zone 2's content 187px, and the pinned card sits 60–196px down the box (measured; phones 80–238px of 298).
-  - Script: `update()` keeps the zone states, zone 1's class, the square, the card steps and the dots. The pills, the callback log and the progress readout go, with `logEvent()`, `NAMES`, `prevState`, `primed`, `cbEvents` and `EMPTY_LOG`. `measure()` also runs after `document.fonts.ready`.
+  - Every zone's window is reached at every size, and happens where the visitor can see it (the binding rule: the effect is seen during Play and while scrolling by hand). The square and the row of dots each follow their own centre from 80% to 25% down the box: `clamp((scrollTop - (centre - 0.8 * box)) / (0.55 * box), 0, 1)`. A window keyed to the zone's top (80% to 20%, as the old page had it) ran about half a box too early, because a zone is 90% of the box tall and centres its content: dot 1 lit with the row 61–96px below the box, the row came into view with two or three dots already lit, and the square started turning below the box. An end line of 20% would also leave the finished square 7px above the 258px box; 25% keeps it inside (measured in boxes of 258–438px and on phones: dot 1 lights with the row centre at 74–75% down the box, dot 5 at 30–31%; the square starts turning at 161–252px of the 258px box and is done at 6–123px, inside the box for the whole turn). After zone 4 the one-box run-out lets the row rise well past 25% of the box, so all five dots light, and the pinned card's three stages fit inside zone 3's span (shared rule 4). In the 258px box of a 1280×590 window the zones are 232px, zone 2's content 154px (170px on phones, where its caption wraps) and the pinned card, 136px tall with two lines of text at every width, sits 59–195px down the box (measured; phones 79–215px of 298).
+  - Script: `update()` keeps the zone states, zone 1's class, the square, the card steps and the dots. The pills, the callback log and the progress readout go, with `logEvent()`, `NAMES`, `prevState`, `primed`, `cbEvents` and `EMPTY_LOG`. `measure()` also runs after `document.fonts.ready`, measures the zone tops against the stage's inner edge (`clientTop`, the 1px border) so they match `scrollTop`, and caches the place of the text (`#reveal`), the centre of the square and the centre of the row of dots from their layout boxes (the zone top plus `offsetTop`; `offsetHeight` for the height and the centre), not from their on-screen rectangles, which the turn, the scale and the 30px translate change.
   - `hb-dots`: no. Default height.
 - **Removed:**
   - The note, the Scroll progress readout, the Zone status pills and the Callback log.
@@ -570,7 +570,7 @@ None: leave out the `details.hb-options` block.
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Zone height | 90% of the box (zone 3: twice the box) | How much scrolling each zone takes |
-  | Follow window | From 80% to 20% down the box | Zones 2 and 4 play while the zone's top rises between these two lines, so they start just after the zone appears |
+  | Follow window | From 80% to 25% down the box | The square in zone 2 and the row of dots in zone 4 play while their own centre rises between these two lines, so each plays in full view |
   | Pinned span | Zone 3's height less one box | How long the card holds still; its three stages share it equally |
   | Run-out | One box height | Space after the last zone, so it can finish and leave |
 
@@ -579,12 +579,14 @@ None: leave out the `details.hb-options` block.
   - [Pin Animation](../pin-animation/) — one part holds still while its text changes
   - [Reveal on Scroll](../reveal-on-scroll/) — cards appear as they cross a line
 - **README How it works:**
-  - "A change of state is a callback. Which one depends on the direction the state moved:" becomes "A change of state is a callback. Which one depends on the direction the state moved (the demo shows them through zone 1, which fades in on enter and hides on leave):".
+  - "A change of state is a callback. Which one depends on the direction the state moved:" becomes "A change of state is a callback. Which one depends on the direction the state moved (the demo shows them through the text in zone 1, which fades in on enter and hides on leave):".
   - In that snippet, `log(ev); prev[i] = s;` becomes `prev[i] = s;   // run the zone's enter or leave animation for ev`.
+  - In the sentence before the scrub snippet, "it resolves to 0 before the zone and 1 after it — so a zone you skipped past still ends up in its finished state:" becomes "it resolves to 0 before its window and 1 after it — so a zone you skipped past still ends up in its finished state. The window belongs to the piece that animates (the square, the row of dots), not to the zone around it: here a zone is nearly a box tall and centres its content, so a window keyed to the zone's top would run half a box before the piece could be seen:". In the snippet, the two lines `// enter window: 0 as the zone top passes 80% down the viewport, 1 at 20%` and `const p = clamp((stage.scrollTop - (top[i] - 0.8 * viewport)) / (0.6 * viewport), 0, 1);` become `// follow window: 0 as the piece's centre passes 80% down the box, 1 at 25%`, `// (centre: the middle of its layout box, measured against the stage and cached like the zone tops)` and `const p = clamp((stage.scrollTop - (centre - 0.8 * viewport)) / (0.55 * viewport), 0, 1);`.
   - The rest is unchanged.
-- **README Production notes:** two bullets lose the removed log and readout:
+- **README Production notes:** two bullets lose the removed log and readout, and a third names the piece's window:
   - "**Prime the state before logging callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: this log opened claiming zone 1 had fired `onEnterBack` and zones 2–4 `onLeaveBack`, before any scrolling." becomes "**Prime the state before firing callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: zone 1 would fire `onEnterBack` and zones 2–4 `onLeaveBack` before any scrolling." Its last sentence stays.
   - In "**Leave a run-out after the last trigger.**", "— the snap dots here were stuck at 0/5 forever." becomes "— without it, the dots in zone 4 could never all light up."
+  - In "**Anchor the scrub to where the section *enters*, not to where it reaches the top.**", after "here that moved each trigger roughly 0.8 of a viewport earlier." comes: "Anchor it to the piece that animates, too: a zone that is nearly a box tall and centres its content puts the piece half a box below the zone's top, so the demo uses `start: "center 80%"` / `end: "center 25%"` on the square and on the row of dots, and the animation plays where it can be seen."
   - The rest is unchanged.
 - **Category line:** `01.07 · Scroll-Based`
 - **Pager:** Previous: Stacking Cards (`../stacking-cards/`) · Next: Scrub Animation (`../scrub-animation/`)

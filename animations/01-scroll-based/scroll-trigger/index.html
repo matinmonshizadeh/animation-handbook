@@ -159,9 +159,9 @@
 <script>
   const stage = document.getElementById('stage');
   const zones = ['zone1', 'zone2', 'zone3', 'zone4'].map(id => document.getElementById(id));
-  const reveal = document.getElementById('reveal'), swatch = document.getElementById('swatch');
+  const reveal = document.getElementById('reveal'), swatch = document.getElementById('swatch'), dotRow = document.getElementById('dots');
   const pinStep = document.getElementById('pin-step'), pinTitle = document.getElementById('pin-title'), pinBody = document.getElementById('pin-body');
-  const dots = [...document.getElementById('dots').children];
+  const dots = [...dotRow.children];
   const PIN_STEPS = [
     ['Step 1 of 3', 'Held in place', 'The card stops here while the page keeps scrolling.'],
     ['Step 2 of 3', 'Changing', 'Its text changes as you scroll through the zone.'],
@@ -171,30 +171,37 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const G = {}, set = (k, v, fn) => { if (G[k] !== v) { G[k] = v; fn(v); } };
 
-  /* Zone geometry, cached. Each top is measured against the stage's own box, in the same coordinates as
-     scrollTop, whichever ancestor the browser treats as the offset parent. */
-  let ZT = [], ZH = [], VH = 1;
+  /* Geometry, cached. Every position is in the same coordinates as scrollTop. A zone's top is measured against the
+     stage's own box, whichever ancestor the browser treats as the offset parent. A piece inside a zone is placed by
+     its layout box (offsetTop, offsetHeight), which a transform does not change: the square is turned and scaled,
+     and the text sits 30px low until it has faded in. */
+  let ZT = [], ZH = [], VH = 1, TEXT = 0, TEXT_H = 0, SQUARE = 0, ROW = 0;
   function measure() {
     // clientTop: the stage's own border sits above the first pixel of its content
     const sTop = stage.getBoundingClientRect().top + stage.clientTop, sy = stage.scrollTop;
     ZT = zones.map(z => Math.round(z.getBoundingClientRect().top - sTop + sy));
     ZH = zones.map(z => z.offsetHeight);
     VH = stage.clientHeight;
+    const top = (el, i) => ZT[i] + zones[i].clientTop + el.offsetTop;
+    TEXT = top(reveal, 0); TEXT_H = reveal.offsetHeight;
+    SQUARE = top(swatch, 1) + swatch.offsetHeight / 2;   // the middle of the square
+    ROW = top(dotRow, 3) + dotRow.offsetHeight / 2;      // the middle of the row of dots
   }
-  const zoneState = i => {
+  // Where a stretch of the scroll content stands against the box: not reached yet, in the box, or already behind it
+  const spanState = (top, h) => {
     const vt = stage.scrollTop;
-    if (vt + VH <= ZT[i]) return 'idle';
-    if (vt >= ZT[i] + ZH[i]) return 'past';
+    if (vt + VH <= top) return 'idle';
+    if (vt >= top + h) return 'past';
     return 'active';
   };
 
-  /* Scrub window, in GSAP's terms `start:"top 80%"` / `end:"top 20%"` — progress
-     begins once the zone's top has risen to 80% down the box (just after it
-     appears) and completes as it settles near the top. Measuring from the zone top
-     alone held progress at 0 until the section had already scrolled fully into
-     view — roughly 0.8 of a box late. */
-  const START = 0.8, END = 0.2;
-  const scrub = i => clamp((stage.scrollTop - (ZT[i] - START * VH)) / ((START - END) * VH), 0, 1);
+  /* Follow window, in GSAP's terms `start:"center 80%"` / `end:"center 25%"` of the piece that animates: progress
+     begins once its centre has risen to 80% down the box, while the whole piece is in view, and completes at 25%,
+     which leaves the finished square (1.3 times its size) inside even the smallest box. The window belongs to the
+     piece, not to its zone: a zone is nearly a box tall and centres its content, so a window keyed to the zone's
+     top ran about half a box before the piece could be seen. */
+  const START = 0.8, END = 0.25;
+  const follow = mid => clamp((stage.scrollTop - (mid - START * VH)) / ((START - END) * VH), 0, 1);
   /* A pinned zone scrubs over the distance it is held, not over the window in
      which it enters: 0 as its top meets the container top, 1 as its bottom
      meets the bottom. Driving zone 3 with the enter window ran all three steps
@@ -207,10 +214,10 @@
        inactive ones left stale state behind: zone 2 never animated if you jumped
        past it, and zone 3 still read "Step 3 of 3" back at the top. The clamped
        progress resolves to 0 before a zone and 1 after it, so both ends settle. */
-    // Zone 1 — fades in while any part of the zone is in the box
-    set('reveal', zoneState(0) === 'active', v => reveal.classList.toggle('active', v));
-    // Zone 2 — follows the scroll
-    set('p2', Math.round(scrub(1) * 200) / 200, v => {
+    // Zone 1 — the text fades in while any part of it is in the box
+    set('reveal', spanState(TEXT, TEXT_H) === 'active', v => reveal.classList.toggle('active', v));
+    // Zone 2 — the square follows the scroll
+    set('p2', Math.round(follow(SQUARE) * 200) / 200, v => {
       swatch.style.transform = `rotate(${lerp(0, 180, v)}deg) scale(${lerp(1, 1.3, v)})`;
       swatch.style.filter = `hue-rotate(${lerp(0, 120, v)}deg)`;
     });
@@ -218,8 +225,8 @@
     set('p3', Math.min(2, Math.floor(pinScrub(2) * 3)), v => {
       pinStep.textContent = PIN_STEPS[v][0]; pinTitle.textContent = PIN_STEPS[v][1]; pinBody.textContent = PIN_STEPS[v][2];
     });
-    // Zone 4 — five dots light up one by one
-    set('p4', Math.round(scrub(3) * 5), v => dots.forEach((d, i) => d.classList.toggle('lit', i < v)));
+    // Zone 4 — five dots light up one by one as the row rises
+    set('p4', Math.round(follow(ROW) * 5), v => dots.forEach((d, i) => d.classList.toggle('lit', i < v)));
     ticking = false;
   }
   stage.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, { passive: true });
