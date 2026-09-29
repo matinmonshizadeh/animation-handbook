@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Success Confetti — Animation Handbook</title>
-  <meta name="description" content="Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.">
+  <meta name="description" content="Confetti bursts from the button when a task is done. Best for big moments.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/success-confetti/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,131 +12,224 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Success Confetti — Animation Handbook">
-  <meta property="og:description" content="Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.">
+  <meta property="og:description" content="Confetti bursts from the button when a task is done. Best for big moments.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/success-confetti/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Success Confetti — Animation Handbook">
-  <meta name="twitter:description" content="Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.">
+  <meta name="twitter:description" content="Confetti bursts from the button when a task is done. Best for big moments.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Success Confetti", "name": "Success Confetti", "description": "Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/success-confetti/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Success Confetti"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Success Confetti", "name": "Success Confetti", "description": "Confetti bursts from the button when a task is done. Best for big moments.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/success-confetti/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Success Confetti"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--ok:#3fb950;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#ff9d5c;--ok:#3fb950}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{position:relative;flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;overflow:hidden;touch-action:manipulation}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;touch-action:manipulation;background:#0b0b0d}
     canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-    .order-btn{position:relative;z-index:2;background:var(--ui-accent);color:#1a0e05;border:none;cursor:pointer;font-family:var(--disp);font-weight:700;font-size:clamp(14px,1.8vw,17px);padding:18px 40px;min-height:56px;border-radius:12px;transition:transform .12s,background .3s;-webkit-tap-highlight-color:transparent}
+    .order-btn{position:relative;z-index:2;background:var(--ui-accent);color:#1a0e05;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:clamp(14px,1.8vw,17px);padding:18px 40px;min-height:56px;border-radius:12px;transition:transform .12s,background .3s;-webkit-tap-highlight-color:transparent}
     .order-btn:active{transform:scale(.96)}
     .order-btn.done{background:var(--ok);color:#04140a}
     .order-btn .check{display:inline-block;margin-right:8px;opacity:0;width:0;transition:opacity .3s}
     .order-btn.done .check{opacity:1;width:auto}
-    .sub{font-size:11px;color:var(--ui-muted);z-index:2;text-align:center}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:52px;text-align:right;color:var(--ui-text)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}.stage,aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px}}
+    /* The site focus ring is drawn inside the button. On the orange and the green fill it is as light as the fill, so it turns dark. */
+    .hb-page .stage .order-btn:focus-visible{outline-color:#0b0b0d}
     @media(prefers-reduced-motion:reduce){.order-btn:active{transform:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../heart-burst/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../skeleton-loader/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/success-confetti/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Success Confetti</h1>
-  <p>Completing an action fires a canvas confetti burst — rectangles launched outward with gravity, spin, and fade.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cv"></canvas>
-    <button class="order-btn" id="btn"><span class="check">✓</span><span id="btn-lbl">Place order</span></button>
-    <div class="sub" id="sub">Click to complete — click again to replay</div>
-  </div>
-  <aside>
-    <p class="note">Each confetto is a rotating rectangle with its own velocity, angular spin, and gravity. They launch upward and outward from the button, then decelerate, fall, and fade — retired once off-screen or faded out.</p>
-    <div class="lbl2">Particle Count</div>
-    <div class="sr"><input type="range" id="cnt-sl" min="30" max="220" value="120" step="10"><span class="sval" id="cnt-v">120</span></div>
-    <div class="lbl2">Spread (deg)</div>
-    <div class="sr"><input type="range" id="spr-sl" min="30" max="180" value="110" step="5"><span class="sval" id="spr-v">110°</span></div>
-    <div class="lbl2">Gravity</div>
-    <div class="sr"><input type="range" id="grv-sl" min="10" max="60" value="28" step="1"><span class="sval" id="grv-v">0.28</span></div>
-    <div class="div"></div>
-    <div class="kv"><span>Live particles</span><span class="v" id="live-v">0</span></div>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../heart-burst/" rel="prev" aria-label="Previous: Heart / Like Burst"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Heart / Like Burst</span></a><a href="../skeleton-loader/" rel="next" aria-label="Next: Skeleton Loader"><span><span class="hb-dir">Next: </span>Skeleton Loader</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.08 · Micro-Interactions</p>
+    <h1>Success Confetti</h1>
+    <p class="hb-lede">Confetti bursts from the button when a task is done. Best for big moments.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Place order (again for another burst), or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <canvas id="cv" aria-hidden="true"></canvas>
+      <button class="order-btn" type="button"><span class="check" aria-hidden="true">✓</span><span id="btn-lbl">Place order</span></button>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="amount-lbl">Amount of confetti</p>
+        <div class="seg" id="amount-seg" role="group" aria-labelledby="amount-lbl">
+          <button type="button" data-n="60" aria-pressed="false">Some</button>
+          <button type="button" data-n="120" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-n="200" aria-pressed="false">Lots</button>
+        </div>
+        <p class="hb-hint">More pieces look fuller but cost more on phones.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="spread-lbl">Spread</p>
+        <div class="seg" id="spread-seg" role="group" aria-labelledby="spread-lbl">
+          <button type="button" data-deg="60" aria-pressed="false">Narrow</button>
+          <button type="button" data-deg="110" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-deg="170" aria-pressed="false">Wide</button>
+        </div>
+        <p class="hb-hint">Narrow shoots up like a fountain; wide fills a dome.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="fall-lbl">Fall speed</p>
+        <div class="seg" id="fall-seg" role="group" aria-labelledby="fall-lbl">
+          <button type="button" data-g="0.15" aria-pressed="false">Floaty</button>
+          <button type="button" data-g="0.28" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-g="0.45" aria-pressed="false">Heavy</button>
+        </div>
+        <p class="hb-hint">How quickly the pieces fall back down.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a confetti burst to [the action that completes something important, such as placing an order]. When it succeeds, turn the button into a clear success state with a check mark and a short confirmation, and fire small colored rectangles from the button: they shoot upward in a fan, spin, slow down, fall and fade. Save it for real milestones, not everyday clicks. Draw the pieces on one layer and stop drawing once the last one has faded or fallen out of view. If the visitor has reduced motion turned on, show the success state without the confetti. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Orders placed</li><li>Sign-ups finished</li><li>Milestones</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Everyday clicks</li><li>Serious tasks</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const stage=document.getElementById('stage'),btn=document.getElementById('btn'),
-      cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const COLORS=['#ff9d5c','#ff5470','#3fb950','#58a6ff','#ffd166','#c792ea'];
-let particles=[],raf=null,dpr=Math.min(window.devicePixelRatio||1,2);
-let pCount=120,spreadDeg=110,gravity=0.28;
+  const stage=document.querySelector('.stage'),btn=document.querySelector('.order-btn'),check=btn.querySelector('.check'),
+        lbl=document.getElementById('btn-lbl'),cv=document.getElementById('cv'),ctx=cv.getContext('2d'),
+        reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const COLORS=['#ff9d5c','#ff5470','#3fb950','#58a6ff','#ffd166','#c792ea'];
+  let particles=[],raf=null,dpr=1,pCount=120,spreadDeg=110,gravity=0.28,runTimers=[];
 
-function resize(){cv.width=stage.clientWidth*dpr;cv.height=stage.clientHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
-resize();new ResizeObserver(resize).observe(stage);
+  // The canvas has one pixel per screen pixel (two at most per CSS pixel), so the pieces stay sharp on dense screens.
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=Math.round(stage.clientWidth*dpr);cv.height=Math.round(stage.clientHeight*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();new ResizeObserver(resize).observe(stage);
 
-function fire(){
-  const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
-  const ox=b.left+b.width/2-s.left;          // origin x at button center
-  const cy=b.top+b.height/2-s.top;           // origin y at button center
-  const half=(spreadDeg*Math.PI/180)/2;
-  for(let i=0;i<pCount;i++){
-    // Base direction is straight up (-90deg), fanned by the spread angle
-    const ang=-Math.PI/2+(Math.random()*2-1)*half;
-    const speed=6+Math.random()*7;
-    particles.push({x:ox,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
-      w:6+Math.random()*6,h:3+Math.random()*5,rot:Math.random()*Math.PI,
-      spin:(Math.random()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1});
+  function fire(){
+    if(dpr!==Math.min(window.devicePixelRatio||1,2))resize();
+    const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
+    const ox=b.left+b.width/2-s.left;          // origin x at button center
+    const cy=b.top+b.height/2-s.top;           // origin y at button center
+    const half=(spreadDeg*Math.PI/180)/2;
+    for(let i=0;i<pCount;i++){
+      // Base direction is straight up (-90deg), fanned by the spread angle
+      const ang=-Math.PI/2+(Math.random()*2-1)*half;
+      const speed=6+Math.random()*7;
+      particles.push({x:ox,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
+        w:6+Math.random()*6,h:3+Math.random()*5,rot:Math.random()*Math.PI,
+        spin:(Math.random()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1});
+    }
+    if(!raf)raf=requestAnimationFrame(tick);
   }
-  if(!raf)raf=requestAnimationFrame(tick);
-}
-function tick(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  particles=particles.filter(p=>p.life>0&&p.y<stage.clientHeight+40);
-  document.getElementById('live-v').textContent=particles.length;
-  for(const p of particles){
-    p.vy+=gravity;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.spin;p.life-=0.008;
-    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-    ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
-    ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+  function tick(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    particles=particles.filter(p=>p.life>0&&p.y<stage.clientHeight+40);
+    for(const p of particles){
+      p.vy+=gravity;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.spin;p.life-=0.008;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+    }
+    ctx.globalAlpha=1;
+    raf=particles.length?requestAnimationFrame(tick):null;
   }
-  ctx.globalAlpha=1;
-  if(particles.length)raf=requestAnimationFrame(tick);else raf=null;
-}
-btn.addEventListener('click',()=>{
-  btn.classList.add('done');
-  document.getElementById('btn-lbl').textContent='Order placed';
-  document.getElementById('sub').textContent=reduce?'Completed — confetti disabled by reduced-motion':'Click again to replay';
-  if(!reduce)fire();
-});
-document.getElementById('cnt-sl').addEventListener('input',e=>{pCount=+e.target.value;document.getElementById('cnt-v').textContent=pCount;});
-document.getElementById('spr-sl').addEventListener('input',e=>{spreadDeg=+e.target.value;document.getElementById('spr-v').textContent=spreadDeg+'°';});
-document.getElementById('grv-sl').addEventListener('input',e=>{gravity=+e.target.value/100;document.getElementById('grv-v').textContent=gravity.toFixed(2);});
+
+  // Placing the order turns the button green with a check and, unless the visitor asks for reduced motion, fires the confetti.
+  // The click and Show me both come through here; the button stays done, so every further click fires another burst.
+  function place(){
+    btn.classList.add('done');
+    lbl.textContent='Order placed';
+    if(!reduce.matches)fire();
+  }
+  function back(){
+    btn.classList.remove('done');
+    lbl.textContent='Place order';
+  }
+  btn.addEventListener('click',place);
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move + hold ms; this page has no Slow motion, so nothing is tripled.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
+  // A run starts from the arrival state, put there without animating: the transitions are turned off, the button is put back, a reflow
+  // makes it stick, and the transitions come back. Confetti still in the air goes too.
+  function toRest(){
+    [btn,check].forEach(el=>{el.style.transition='none'});
+    back();
+    particles=[];ctx.clearRect(0,0,cv.width,cv.height);
+    void btn.offsetWidth;
+    [btn,check].forEach(el=>{el.style.transition=''});
+  }
+  // The order is placed after 300ms of rest, and the button goes back once the 2.1 s burst and 400ms more of rest have passed.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    later(place,0,300);
+    later(back,2100,700);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the button stays as it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('amount-seg',d=>{pCount=+d.n});
+  choices('spread-seg',d=>{spreadDeg=+d.deg});
+  choices('fall-seg',d=>{gravity=+d.g});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
