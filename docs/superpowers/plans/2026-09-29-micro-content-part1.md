@@ -695,7 +695,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** A band of light sweeps over gray placeholders. Best for loading screens.
 - **Watch it help line:** default
 - **Player bar:** Pause (css) · Slow motion (css)
-- **Sequence:** the band sweeps across the card and the row forever (`@keyframes shimmer` on each `::after`, over Speed). No page timers.
+- **Sequence:** the band sweeps across the card and the row forever (`@keyframes shimmer` on each `::after`, over Speed). Each cycle of Speed carries the band across twice: the tile is twice as wide as the block and its position travels four block widths, so a band crosses every half of Speed (every 1.2s at Slow, 0.75s at Normal, 0.45s at Fast). No page timers.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule goes (it stopped the sweep and dimmed the band, and Play must move it). Paused on arrival, the sweep holds at its start. There, the band's bright middle lies on each placeholder's right edge, so half of the band shows, still, brightening toward that edge.
 - **Stage font:** the stage has no text.
@@ -703,14 +703,15 @@ None: leave out the `details.hb-options` block.
   - The card keeps its round avatar, its two header lines, its image block and its two text lines. The image block (`.sk-img`) becomes 56px tall with `margin:10px 0 2px`.
   - The second list row goes: it looks the same as the first, and with both rows and the image the stage would not fit the phone height.
   - The stage gets `padding:16px` and `gap:12px`, and the card `padding:14px`. The row keeps its own padding.
+  - The card and the row must not shrink: `.stage>*{flex-shrink:0}`. On a stage shorter than the content (a phone held sideways, or a window under about 620px tall, gives 260 to 288px) the flex column would squeeze the card, and its `overflow:hidden` would cut off the last text line. With the rule they keep their full height (176px and 66px) and use the stage's padding instead, ending 2px inside a 260px stage.
   - The note under the settings goes.
-  - `hb-dots`: yes. Measured: 288px of the 298px inside the phone stage, and the same on laptops. Keeping the image at its full 100px would need about 326px even with one row.
+  - `hb-dots`: yes. Measured: 286px of the 298px inside the phone stage (the image's 2px bottom margin merges into the next line's 9px top margin), and the same on laptops. Keeping the image at its full 100px would need about 330px even with one row.
 
 **Main settings**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Speed | Choice buttons | Slow · Normal · Fast | Normal | One sweep every one or two seconds feels calm. | `--shim-dur`: 2400ms / 1500ms / 900ms |
+| Speed | Choice buttons | Slow · Normal · Fast | Normal | One sweep every half second to a second feels calm. | `--shim-dur`: 2400ms / 1500ms / 900ms |
 | Brightness | Choice buttons | Soft · Medium · Bright | Medium | How strong the band of light is. | `--shim-bright`: 0.12 / 0.25 / 0.45 |
 | Highlight angle | Choice buttons | Upright · Slanted · Diagonal | Upright | The slant of the band as it sweeps across. | `--shim-angle`: 90deg / 115deg / 135deg |
 
@@ -739,7 +740,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Speed | Normal | How long one sweep takes: slow is 2.4s, normal 1.5s and fast 0.9s; under about 0.8s it feels frantic |
+  | Speed | Normal | How often the light crosses: slow every 1.2s, normal every 0.75s and fast every 0.45s; more often than about every 0.4s it feels frantic |
   | Brightness | Medium | How strong the band of light is: soft, medium or bright; soft is subtle, bright suits a branded screen |
   | Highlight angle | Upright | Upright sweeps a straight band; Slanted and Diagonal tilt it; keep one angle across the whole page |
   | Highlight color | White | White works on any placeholder; blue or gold suit branded screens |
@@ -748,7 +749,7 @@ None: leave out the `details.hb-options` block.
   - [Skeleton Loader](../skeleton-loader/) — the placeholders pulse instead
   - [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
   - [Progress Animation](../progress-animation/) — a bar that shows how much is done
-- **README How it works:** the sentence before the snippet, "A `::after` pseudo-element containing a translucent gradient is positioned absolutely over the skeleton block and translated from `-100%` to `+200%`:", becomes "A `::after` pseudo-element holding a translucent gradient covers each skeleton block, and its background position slides from one side to the other:". The snippet and the rest are unchanged.
+- **README How it works:** the sentence before the snippet, "A `::after` pseudo-element containing a translucent gradient is positioned absolutely over the skeleton block and translated from `-100%` to `+200%`:", becomes "A `::after` pseudo-element holding a translucent gradient covers each skeleton block, and its background position slides from one side to the other:". The snippet and the rest are unchanged, except that the sentence after the snippet gets one more sentence: "The tile is twice as wide as the block and its position travels four block widths per cycle, so the band crosses twice in each `--shim-dur`: every 0.75s at the default 1.5s."
 - **README Production notes:** the "Combining with pulse" bullet becomes: "**Combining with pulse**: pick one — a pulse and a shimmer together are redundant and visually loud." The rest is unchanged.
 - **Category line:** `04.10 · Micro-Interactions`
 - **Pager:** Previous: Skeleton Loader (`../skeleton-loader/`) · Next: Loading Spinner (`../loading-spinner/`)
@@ -767,6 +768,7 @@ None: leave out the `details.hb-options` block.
 - **Stage font:** site font. `.spin-label` becomes 11px, keeping its capitals, its letter spacing and its `--ui-muted` grey.
 - **Stage:** the six cells stay, with their labels (Ring, Orbit, Arc, Bounce, Pulse, Square).
   - The grid keeps three columns on every screen: the phone rule that made two columns goes, because three rows would not fit the phone stage.
+  - The columns are `repeat(3,minmax(0,1fr))`, not `repeat(3,1fr)`: with plain `1fr` a cell cannot shrink below its content, so at Large the three cells need 258px and the grid is only 254px wide on a 320px phone, which runs it 4px into the stage's padding and 2px off centre. With `minmax(0,1fr)` the cells are an equal 76.7px with 16px on each side; the 52px spinner and the longest label then overhang the cell's content box by less than a pixel per side, inside the cell's 12px padding.
   - `.grid` gets `gap:12px`, `.spin-cell` `padding:12px`, and the stage `padding:16px`.
   - `hb-dots`: yes. Measured: about 225px at Medium size and 250px at Large, on phones (320px wide included) and laptops, with no cell overflowing.
 
