@@ -1,7 +1,7 @@
 # Canvas Particle Effect
 
 ## What it is
-A canvas particle effect renders hundreds to thousands of small moving dots on a 2D `<canvas>` element. Particles drift autonomously, optionally connect to nearby neighbors with thin lines (the classic "connected dots" pattern), and react to mouse proximity through repulsion or attraction. It is a common ambient effect on tech product and SaaS landing pages.
+A canvas particle effect draws hundreds of small dots on one canvas and moves them every frame. Each dot drifts in its own direction and bounces off the edges, thin lines join dots that come close, and the pointer pushes nearby dots away or pulls them in. It is the connected-dots background seen on many tech sites.
 
 ## When to use it
 - Hero section backgrounds that need movement without distracting from foreground content
@@ -39,40 +39,49 @@ class Particle {
 **Connections** — O(n²) distance check per frame:
 
 ```js
+// Every link goes into one of six paths by its opacity; each path is stroked once
+const paths = Array.from({ length: 6 }, () => new Path2D());
 for (let i = 0; i < particles.length; i++) {
   for (let j = i + 1; j < particles.length; j++) {
     const dx = particles[i].x - particles[j].x;
     const dy = particles[i].y - particles[j].y;
     const d2 = dx*dx + dy*dy;
     if (d2 < DIST * DIST) {
-      const opacity = (1 - d2 / (DIST * DIST)) * 0.4;
-      ctx.strokeStyle = `rgba(88, 166, 255, ${opacity})`;
-      ctx.beginPath();
-      ctx.moveTo(particles[i].x, particles[i].y);
-      ctx.lineTo(particles[j].x, particles[j].y);
-      ctx.stroke();
+      const k = Math.min(5, Math.floor((1 - d2 / (DIST * DIST)) * 6));
+      paths[k].moveTo(particles[i].x, particles[i].y);
+      paths[k].lineTo(particles[j].x, particles[j].y);
     }
   }
 }
+ctx.lineWidth = 0.5;
+paths.forEach((path, k) => {
+  ctx.strokeStyle = `rgba(88, 166, 255, ${(k + 0.5) / 6 * 0.4})`;
+  ctx.stroke(path);
+});
 ```
+
+Stroking each link on its own costs one draw call per line, thousands a frame; grouping the links into six opacity steps draws them all in six calls, with no visible difference.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Particle count | 500 (250 under 600px) | O(n²) connections — above 500 the loop becomes the bottleneck |
-| Connection distance | 100px | Larger = denser mesh; smaller = isolated dots |
-| Mouse force | –0.5 | Negative = repel; positive = attract; 0 = no interaction |
-| Speed | 0.8px/frame | Faster = chaotic; slower = meditative |
+| Pointer effect | Push | What the pointer or a finger does to dots within 120px: pushes them away, pulls them in, or nothing |
+| Number of particles | Medium | Few is 250, medium 500 and many 800 dots on computers; tablets draw 60, 90 and 120, and phones 30, 45 and 60, which keeps them smooth |
+| Link distance | Medium | How close two dots must be to join with a line: short is 70px, medium 100px and long 150px; none draws no lines |
+| Speed | Normal | How fast the dots drift: slow is 0.5, normal 0.8 and fast 1.3 (the fastest dots' pixels a frame); slow feels calm, fast looks busy |
+| Color | Blue | The color of the dots and lines |
+| Trails | off | Each dot leaves a fading streak, because the canvas is only partly cleared between frames |
 
 ## Production notes
 - **O(n²) limit**: distance checks between all pairs scale quadratically. Above ~500 particles the loop drops frames. Fix: spatial partitioning (quadtree, uniform grid) reduces checks to O(n log n). For 1000+ particles, switch to WebGL.
+- **Phones and tablets**: the demo draws 30 to 60 dots on screens 600px wide or less and 60 to 120 up to 1024px, and strokes the links in six batches instead of one call per line.
 - **Canvas vs DOM**: `<canvas>` is mandatory for 50+ particles. DOM elements at that density create thousands of layout calculations per frame — the browser cannot keep up.
 - **Particles.js / tsParticles**: the dominant production library. Handles everything in this demo plus themes, shape variety, responsive density, and performance at high counts.
-- **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (enable "trails" toggle in the demo).
+- **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (turn on Trails in the demo).
 - **Device pixel ratio**: size the backing store to `clientWidth * devicePixelRatio` (capped at 2) and scale the context, or sub-pixel dots and 0.5px connection lines blur on retina screens.
 - **`prefers-reduced-motion`**: stop all particle movement. Consider keeping the static dot layout visible as a texture.
 
 ## See also
-- [GPGPU Particle System](../gpgpu-particle-system/) — GPU-computed variant that handles 100k+ particles
-- [Noise-Based Motion](../noise-based-motion/) — organically-moving dots driven by Perlin noise instead of physics
-- [Fluid Simulation](../fluid-simulation/) — SDF metaballs for a liquid-merging particle aesthetic
+- [GPGPU Particle System](../gpgpu-particle-system/) — tens of thousands of particles moved on the graphics chip
+- [Noise-Based Motion](../noise-based-motion/) — dots moved by smooth noise instead of physics
+- [Particle Constellation](../../07-ambient-background/particle-constellation/) — calmer linked dots, as a background
