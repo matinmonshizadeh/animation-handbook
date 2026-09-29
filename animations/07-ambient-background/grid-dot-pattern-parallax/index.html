@@ -47,9 +47,10 @@
       background-size:var(--dot-gap) var(--dot-gap);
       display:none
     }
-    /* Light under the pointer and the ring that replaces it: both are placed with transform */
+    /* Light under the pointer and the ring that replaces it: both are placed with transform. The ring sits above the card
+       (z-index 11 against its 10), because the stage hides the system pointer there too */
     .spotlight{position:absolute;left:0;top:0;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,.06) 0%,transparent 70%);pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s;z-index:4}
-    .cursor{position:absolute;left:0;top:0;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(88,166,255,.5);pointer-events:none;transform:translate(-50%,-50%);z-index:10;display:none}
+    .cursor{position:absolute;left:0;top:0;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(88,166,255,.5);pointer-events:none;transform:translate(-50%,-50%);z-index:11;display:none}
     /* Layer 2 (sparse) */
     .pattern-layer2{position:absolute;inset:-10%;opacity:.4;display:none;will-change:transform}
     .pat-layer2{width:100%;height:100%;background-image:radial-gradient(circle,var(--dot-color) calc(var(--dot-size)*1.5),transparent 0);background-size:calc(var(--dot-gap)*2.5) calc(var(--dot-gap)*2.5)}
@@ -220,9 +221,11 @@
   // Ring and light sit at the pointer through transform, centred on it
   const put=(el,x,y)=>{el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`};
 
-  // The grid at the drift's clock: strength is a share of the stage, and the two axes drift out of step
+  // The grid at the drift's clock: strength is a share of the stage, and the two axes drift out of step. The second layer
+  // goes half as far, as it does for the pointer.
   function place(){
-    move(layer1,-Math.sin(clock*.0002)*str*.01*W*.4,-Math.cos(clock*.00014)*str*.01*H*.3);
+    const x=-Math.sin(clock*.0002)*str*.01*W*.4,y=-Math.cos(clock*.00014)*str*.01*H*.3;
+    move(layer1,x,y);move(layer2,x/2,y/2);
   }
   // loop() keeps exactly one frame requested in raf. The first frame after a start has no earlier frame to measure from,
   // so it adds no time; a long gap between frames (a background tab) counts for at most 50 ms.
@@ -259,8 +262,11 @@
   // Pointer events: a mouse steers the grid while it hovers, a finger or pen while it is down. A tap on a phone sends
   // no mouse pointer, so it never leaves a ring or a light behind.
   const at=e=>{const r=stage.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-  // The grid shifts against the pointer: up to half the chosen share of the stage each way
-  const against=(x,y)=>[-(x/W-.5)*str*.01*W,-(y/H-.5)*str*.01*H];
+  // The grid shifts against the pointer, up to half the chosen share of the stage each way; the second layer goes half as far
+  function steer(x,y){
+    const dx=-(x/W-.5)*str*.01*W,dy=-(y/H-.5)*str*.01*H;
+    move(layer1,dx,dy);move(layer2,dx/2,dy/2);
+  }
   function mouseIn(){hasMouse=true;ring.style.display='block';stop()}
 
   stage.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')mouseIn()});
@@ -274,7 +280,7 @@
     fingers.add(e.pointerId);stop();
     // A pen has no implicit capture, so ask for it: the lift is heard even outside the stage
     try{stage.setPointerCapture(e.pointerId)}catch(_){}
-    if(!paused)move(layer1,...against(...at(e)));
+    if(!paused)steer(...at(e));
   });
   stage.addEventListener('pointermove',e=>{
     const [x,y]=at(e);
@@ -282,11 +288,10 @@
       if(!hasMouse)mouseIn();
       put(ring,x,y);                           // the ring replaces the system pointer, so it follows even while paused
       if(paused)return;
-      const [dx,dy]=against(x,y);
-      move(layer1,dx,dy);move(layer2,dx/2,dy/2);
+      steer(x,y);
       if(spotOn){put(light,x,y);light.style.opacity='1'}
     }else if(fingers.has(e.pointerId)&&!paused){
-      move(layer1,...against(x,y));
+      steer(x,y);
     }
   });
   // A finger or pen is up when the browser says so, or when the capture asked for above is gone; lifting twice is harmless

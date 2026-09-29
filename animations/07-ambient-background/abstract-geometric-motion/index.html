@@ -103,7 +103,7 @@
           </div>
           <p class="hb-hint">The set of colors the shapes use.</p>
         </div>
-        <div class="hb-setting">
+        <div class="hb-setting" id="thick-setting">
           <label class="hb-switch-row"><span>Thicker lines</span><input class="hb-switch" type="checkbox" role="switch" id="thick-tog" autocomplete="off"></label>
           <p class="hb-hint">Bolder lines that stand out more.</p>
         </div>
@@ -151,7 +151,7 @@
 <script>
   const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
   const stage=document.querySelector('.stage');
-  const slowTog=document.getElementById('slow-tog');
+  const slowTog=document.getElementById('slow-tog'),thickSetting=document.getElementById('thick-setting');
   const BG='#020408';
   const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   let W=0,H=0,raf=null,lastT=null,paused=false;
@@ -304,6 +304,7 @@
   choices('pat-seg',d=>{
     if(+d.idx===PRESET)return;
     PRESET=+d.idx;
+    thickSetting.hidden=PRESET===2;   // Bars are filled shapes with no lines, so Thicker lines changes nothing there; it keeps its choice
     rings=[];
     if(PRESET===1)seedRings();
     draw();
@@ -312,7 +313,7 @@
   choices('num-seg',d=>{
     if(+d.n===CX)return;
     CX=+d.n;
-    rings.forEach(r=>{r.c=Math.floor(Math.random()*CX);});   // the rings on screen take colors from the new range at once
+    rings.forEach((r,i)=>{r.c=i%CX;});   // the rings on screen take their colors from the new range at once, as seedRings() deals them
     draw();
   });
   choices('pal-seg',d=>{PAL=d.pal;draw();});
