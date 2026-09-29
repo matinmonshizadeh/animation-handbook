@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Horizontal Scroll — Animation Handbook</title>
-  <meta name="description" content="Vertical scroll translates a horizontal track — a pin section provides the scroll budget.">
+  <meta name="description" content="Scroll down and a row of panels slides sideways. Best for portfolios.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/horizontal-scroll/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,160 +12,148 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Horizontal Scroll — Animation Handbook">
-  <meta property="og:description" content="Vertical scroll translates a horizontal track — a pin section provides the scroll budget.">
+  <meta property="og:description" content="Scroll down and a row of panels slides sideways. Best for portfolios.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/horizontal-scroll/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Horizontal Scroll — Animation Handbook">
-  <meta name="twitter:description" content="Vertical scroll translates a horizontal track — a pin section provides the scroll budget.">
+  <meta name="twitter:description" content="Scroll down and a row of panels slides sideways. Best for portfolios.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Horizontal Scroll", "name": "Horizontal Scroll", "description": "Vertical scroll translates a horizontal track — a pin section provides the scroll budget.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/horizontal-scroll/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Horizontal Scroll"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Horizontal Scroll", "name": "Horizontal Scroll", "description": "Scroll down and a row of panels slides sideways. Best for portfolios.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/horizontal-scroll/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Horizontal Scroll"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--panels:5}
+    :root{--ui-accent:#6ea8ff;--panels:5}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;position:relative;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    /* 100cqh is one stage height: the stage is the size container, so the pinned frame is exactly one box tall at every size */
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
-    /* Intro / outro spacers */
-    .spacer{height:calc(var(--stage-h) * 0.6);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.3;letter-spacing:2px}
-    /* The pin section — tall to provide scroll budget */
-    #pin-section{height:calc(var(--stage-h) * var(--panels));position:relative}
+    /* Lead-in and lead-out */
+    .spacer{height:60cqh;display:flex;align-items:center;justify-content:center;padding:0 24px;font-size:13px;color:#8a8a92;letter-spacing:.1em;text-align:center}
+    /* The pin section is tall, to provide the scroll budget */
+    #pin-section{height:calc(100cqh * var(--panels));position:relative}
     /* Sticky inner */
-    #pin-inner{position:sticky;top:0;height:var(--stage-h);overflow:hidden}
+    #pin-inner{position:sticky;top:0;height:100cqh;overflow:hidden}
     /* Horizontal track */
     #h-track{display:flex;height:100%;will-change:transform;width:calc(var(--panels) * 100%)}
-    .panel{flex:0 0 calc(100% / var(--panels));height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,60px)}
-    .panel-num{font-size:clamp(60px,10vw,100px);font-weight:bold;opacity:.1;line-height:1;margin-bottom:12px}
-    .panel-title{font-size:clamp(22px,3.5vw,36px);font-weight:bold;margin-bottom:14px}
-    .panel-body{font-size:clamp(12px,1.4vw,14px);opacity:.6;line-height:1.7;max-width:480px}
-    .panel-tag{font-size:10px;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;opacity:.5}
-    /* Panel progress dots */
-    #panel-dots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:none}
-    .dot{width:6px;height:6px;border-radius:50%;background:var(--ui-border);transition:background .3s,transform .3s}
-    .dot.on{background:var(--ui-accent);transform:scale(1.3)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .jlist{display:flex;flex-direction:column;gap:3px}
-    .jbtn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:9px;padding:7px 8px;border-radius:4px;cursor:pointer;text-align:left;width:100%;min-height:36px}
-    .jbtn.on{border-color:var(--ui-accent);color:var(--ui-accent)}
-    @media(hover:hover){.jbtn:hover{border-color:var(--ui-accent)}}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:none}aside{width:100%}:root{--stage-h:480px}.panel{padding:24px}.jbtn{min-height:44px}button.rst{min-height:44px}}
-    @media(prefers-reduced-motion:reduce){#h-track{transition:none!important}.dot{transition:none}}
+    .panel{flex:0 0 calc(100% / var(--panels));height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,4vw,48px);background:var(--bg)}
+    .panel-num{font-size:clamp(48px,6vw,80px);font-weight:700;opacity:.1;line-height:1;margin-bottom:12px}
+    .panel-title{font-size:clamp(22px,2.4vw,32px);font-weight:700;line-height:1.2;margin-bottom:14px;color:var(--ac)}
+    .panel-body{font-size:clamp(14px,1.2vw,16px);line-height:1.6;color:#d6d6da;max-width:480px}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../stagger-reveal/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../sticky-section/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/horizontal-scroll/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Horizontal Scroll</h1>
-  <p>Vertical scroll translates a horizontal track — a pin section provides the scroll budget.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="spacer">↓ scroll to enter</div>
-    <div id="pin-section">
-      <div id="pin-inner">
-        <div id="h-track"></div>
-        <div id="panel-dots"></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../stagger-reveal/" rel="prev" aria-label="Previous: Stagger Reveal"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Stagger Reveal</span></a><a href="../sticky-section/" rel="next" aria-label="Next: Sticky Section"><span><span class="hb-dir">Next: </span>Sticky Section</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.14 · Scroll-Based</p>
+    <h1>Horizontal Scroll</h1>
+    <p class="hb-lede">Scroll down and a row of panels slides sideways. Best for portfolios.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="Panels that slide sideways as you scroll">
+      <p class="spacer">Scroll down ↓</p>
+      <div id="pin-section">
+        <div id="pin-inner">
+          <div id="h-track">
+            <div class="panel" style="--bg:linear-gradient(135deg,#0d2b3e,#1a3a5c);--ac:#79c0ff">
+              <div class="panel-num" aria-hidden="true">01</div>
+              <div class="panel-title">Scroll down, move sideways</div>
+              <div class="panel-body">The panels sit side by side in one long strip. As you scroll down, the strip slides left, one panel at a time.</div>
+            </div>
+            <div class="panel" style="--bg:linear-gradient(135deg,#2d1b3d,#3d2a5c);--ac:#d2a8ff">
+              <div class="panel-num" aria-hidden="true">02</div>
+              <div class="panel-title">The box holds still</div>
+              <div class="panel-body">While the strip slides, the section around it stays pinned in place, so the page seems to pause.</div>
+            </div>
+            <div class="panel" style="--bg:linear-gradient(135deg,#1e3a1e,#2d5c2d);--ac:#56d364">
+              <div class="panel-num" aria-hidden="true">03</div>
+              <div class="panel-title">Your scroll does the work</div>
+              <div class="panel-body">There is no sideways scrolling to learn. The ordinary scroll you already use moves everything.</div>
+            </div>
+            <div class="panel" style="--bg:linear-gradient(135deg,#3d2000,#5c3400);--ac:#ffa657">
+              <div class="panel-num" aria-hidden="true">04</div>
+              <div class="panel-title">Scroll back, it slides back</div>
+              <div class="panel-body">The strip follows your scroll exactly, so scrolling up brings the earlier panels back.</div>
+            </div>
+            <div class="panel" style="--bg:linear-gradient(135deg,#1a3a3a,#2a5c5c);--ac:#a5d6ff">
+              <div class="panel-num" aria-hidden="true">05</div>
+              <div class="panel-title">Then the page moves on</div>
+              <div class="panel-body">Once the last panel is in view, the section lets go and the page scrolls on as normal.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="spacer">The page moves on ↓</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a horizontal scroll section to [the panels or projects you want to show]. Place the panels side by side in one long strip inside a section that is several screens tall. As the visitor scrolls down through that section, pin its inner frame in place and slide the strip to the left in step with the scroll, so scrolling down moves the panels sideways; once the last panel is in view, release the frame and let the page scroll on. Give the strip an explicit width so it can move. Keep the visitor's own scrolling, touch included, so scrolling back up slides the panels back. If the visitor has reduced motion turned on, keep the strip tied exactly to their scrolling, with no easing or snapping added.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own panels.</p>
       </div>
     </div>
-    <div class="spacer">↓ released</div>
-  </div>
-  <aside>
-    <p class="note">A tall section provides the scroll budget. translateX = −progress × (trackWidth − stageWidth). Two formulas — pin distance and horizontal offset — do all the work.</p>
-    <div class="lbl">Progress</div>
-    <div class="kv"><span>Overall scroll</span><span class="v" id="sc-pct">0%</span></div>
-    <div class="kv"><span>Track progress</span><span class="v" id="tr-pct">0%</span></div>
-    <div class="kv"><span>Panel</span><span class="v" id="panel-id">—</span></div>
-    <div class="div"></div>
-    <div class="lbl">Jump to panel</div>
-    <div class="jlist" id="jlist"></div>
-    <div class="div"></div>
-    <button class="rst" id="rst">Reset scroll</button>
-  </aside>
-</div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Portfolios</li><li>Timelines</li><li>Product features</li><li>Step-by-step tours</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Forms</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const PANELS=[
-    {title:'Pin & Translate',   body:'The outer container is taller than the viewport. The inner container sticks. Translating the horizontal track converts vertical scroll into horizontal motion.',bg:'linear-gradient(135deg,#0d2b3e,#1a3a5c)',ac:'#79c0ff'},
-    {title:'One Scroll Input',  body:'A single scrollTop value drives everything. No separate horizontal scroll container, no wheel hijacking. The user\'s native scroll behaviour is preserved.',        bg:'linear-gradient(135deg,#2d1b3d,#3d2a5c)',ac:'#d2a8ff'},
-    {title:'Panel Jump Links',  body:'Clicking a panel in the sidebar computes the scroll position that centers it: panelIndex × scrollBudget / (panels − 1). Smooth scroll does the rest.',          bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',ac:'#56d364'},
-    {title:'Exit Detection',    body:'Panel index = Math.round(trackProgress × (panels − 1)). As the track progress crosses 0.5, 1.5, 2.5... panel transitions fire without any event listener.',  bg:'linear-gradient(135deg,#3d2000,#5c3400)',ac:'#ffa657'},
-    {title:'Momentum & Snapping',body:'GSAP ScrollTrigger adds optional snapping to the nearest panel. Lenis and Locomotive Scroll provide momentum-based easing for a physical feel.',             bg:'linear-gradient(135deg,#1a3a3a,#2a5c5c)',ac:'#58a6ff'},
-  ];
-  const stage=document.getElementById('stage'),track=document.getElementById('h-track');
-  const scPct=document.getElementById('sc-pct'),trPct=document.getElementById('tr-pct'),panelId=document.getElementById('panel-id');
-  const dotsEl=document.getElementById('panel-dots'),jlist=document.getElementById('jlist');
+  const stage=document.getElementById('stage'),track=document.getElementById('h-track'),pinSection=document.getElementById('pin-section');
   let ticking=false;
-
-  PANELS.forEach((p,i)=>{
-    const el=document.createElement('div');el.className='panel';
-    el.style.background=p.bg;
-    el.innerHTML=`<div class="panel-num">0${i+1}</div>
-      <div class="panel-tag" style="color:${p.ac}">Panel ${String(i+1).padStart(2,'0')}</div>
-      <div class="panel-title" style="color:${p.ac}">${p.title}</div>
-      <div class="panel-body">${p.body}</div>`;
-    track.appendChild(el);
-    const dot=document.createElement('div');dot.className='dot';dotsEl.appendChild(dot);
-    const btn=document.createElement('button');btn.className='jbtn';
-    btn.textContent=`0${i+1} ${p.title}`;
-    btn.addEventListener('click',()=>{
-      const pin=document.getElementById('pin-section');
-      const budget=pin.offsetHeight-stage.clientHeight;
-      const soft=matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth';
-      stage.scrollTo({top:pin.offsetTop+Math.round(i/(PANELS.length-1)*budget),behavior:soft});
-    });
-    jlist.appendChild(btn);
-  });
-
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 
   function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
-    scPct.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const pin=document.getElementById('pin-section');
-    const budget=pin.offsetHeight-stage.clientHeight;
-    const progress=clamp((st-pin.offsetTop)/budget,0,1);
+    const budget=pinSection.offsetHeight-stage.clientHeight;
+    const progress=clamp((stage.scrollTop-pinSection.offsetTop)/budget,0,1);
     const maxShift=track.offsetWidth-stage.clientWidth;
     track.style.transform=`translateX(${(-progress*maxShift).toFixed(2)}px)`;
-    trPct.textContent=Math.round(progress*100)+'%';
-    const panel=Math.min(Math.round(progress*(PANELS.length-1)),PANELS.length-1);
-    panelId.textContent=`0${panel+1} — ${PANELS[panel].title}`;
-    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===panel));
-    document.querySelectorAll('.jbtn').forEach((b,i)=>b.classList.toggle('on',i===panel));
     ticking=false;
   }
+  function schedule(){if(!ticking){requestAnimationFrame(update);ticking=true}}
 
-  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  window.addEventListener('resize',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}});
-  document.getElementById('rst').addEventListener('click',()=>{stage.scrollTop=0;update()});
+  stage.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule);
   update();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
