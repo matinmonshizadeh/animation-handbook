@@ -139,7 +139,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   ```
 
   The rest is unchanged.
-- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The rest is unchanged.
+- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The `pointer-events: none` bullet becomes "**`pointer-events: none`** on the tooltip keeps it from catching the pointer, so it never blocks the item or its neighbours; the cost is that the pointer cannot rest on the tooltip itself, which the WCAG bullet covers." The rest is unchanged.
 - **Category line:** `04.16 · Micro-Interactions`
 - **Pager:** Previous: Notification Badge Pulse (`../badge-pulse/`) · Next: Drawer / Panel Slide (`../drawer-slide/`)
 
@@ -429,9 +429,9 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
     - Inside it, a new `.shape` element carries today's Circle and Square rules: its size `var(--follower-size)`, its fill and its corners. `no-blend` still turns its fill to today's `rgba(255,157,92,.5)`. It is centred with `transform:translate(-50%,-50%)` and has `transition:transform .2s ease,border-radius .2s ease` in place of today's `width`/`height` transitions.
     - Growing over a button scales the shape: `#follower.expanded .shape{transform:translate(-50%,-50%) scale(2.5)}`.
     - The square's corners become `1.6px` (4px ÷ 2.5) while expanded, so they still read as 4px.
-    - **The Ring shape is drawn as an SVG circle stroke instead of a border.** A border cannot keep 2px: Chrome snaps border widths to whole device pixels. A `.8px` border scaled 2.5 times is 2.5px at 1×, 1.25px at 2× and 1.67px at 3× (today's ring is 2px everywhere), and it dips to about 1px in the first frames of the grow. My earlier "tried in Chrome" note missed this, because I looked at a single screen. `vector-effect:non-scaling-stroke` does not undo a CSS scale either (it drew about 5px). An SVG stroke is not snapped:
+    - **The Ring shape is drawn as an SVG circle stroke instead of a border.** A border cannot keep 2px: Chrome snaps border widths to whole device pixels. A `.8px` border scaled 2.5 times is 2.5px at 1×, 1.25px at 2× and 1.67px at 3× (today's ring is 2px everywhere), and it dips to about 1px in the first frames of the grow. `vector-effect:non-scaling-stroke` does not undo a CSS scale either (it drew about 5px). An SVG stroke is not snapped:
       - `.shape` holds `<svg aria-hidden="true"><circle/></svg>`, shown only for the Ring shape: `#follower .shape svg{display:none;position:absolute;inset:0;width:100%;height:100%;overflow:visible}` and `#follower.ring .shape svg{display:block}`. The ring's `.shape` has no border and no background, with Flips the colors under it on or off.
-      - `#follower .shape circle{cx:50%;cy:50%;r:calc(50% - 1px);fill:none;stroke:#fff;stroke-width:2;transition:stroke-width .2s ease}` and `#follower.expanded .shape circle{stroke-width:.8}` use the same duration and easing as the scale. So the grown ring is 2px again; the review measured exactly 2.00px at 1× and 2×, at rest and grown.
+      - `#follower .shape circle{cx:50%;cy:50%;r:calc(50% - 1px);fill:none;stroke:#fff;stroke-width:2;transition:stroke-width .2s ease,r .2s ease}` and `#follower.expanded .shape circle{stroke-width:.8;r:calc(50% - .4px)}` use the same duration and easing as the scale. So the grown ring is 2px thick again, and its outer edge stays on the shape's edge: a 40px outer radius for the 32px dot, as today.
       - Mid-grow the ring can be up to about 0.45px thicker for a moment, because the thinning stroke and the growing scale multiply: (2 − 1.2e) × (1 + 1.5e) peaks at 2.45px halfway through.
       - With Flips the colors under it off, the ring keeps today's look: `#follower.no-blend.ring circle{fill:rgba(255,157,92,.5);stroke:var(--ui-accent)}`.
   - `hb-dots`: no, because the four areas fill the stage. Default height.
@@ -663,7 +663,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Three lines turn into an X as the menu opens. Best for mobile menus.
 - **Step 1 help line:** Press the button to open the menu and again to close it, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the button again closes the menu.
-- **Show me:** `toRest()` closes the menu at once, without the transitions. Today's click handler becomes a `toggle()` function, which the button and the run both call. Then:
+- **Show me:** `toRest()` closes the menu at once, with the transitions of the lines, the menu, its items and `.pair` switched off, so pressing Show me while the menu is open does not leave the button raised through the run. Today's click handler becomes a `toggle()` function, which the button and the run both call. Then:
   - at once: `toggle()` opens: the lines cross, and the menu drops in;
   - `later(toggle, Speed + 210, 1200)`: `toggle()` closes (the 210ms is the last menu item's delay), and the run ends. About 2.1 s from press to rest at the defaults.
 
@@ -678,10 +678,11 @@ None: leave out the `details.hb-options` block.
     - `.menu.show` gets `opacity:1;transform:none;visibility:visible;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s`, so the closed menu is hidden from screen readers too.
     - The items keep their staggered slide and fade.
   - **The button stays centred at rest, as today, with transforms only.**
-    - The button and the menu are wrapped in a new `.pair`: a centred flex column with `gap:20px`, in place of the stage's 28px gap. The stage centres the pair.
+    - The button and the menu are wrapped in a new `.pair`: a centred flex column with `width:100%` and `gap:20px`, in place of the stage's 28px gap. The stage centres the pair. Without `width:100%` the pair would shrink to the 76px button, and the menu's `width:100%;max-width:280px` would shrink with it. With it, the menu is 280px wide on computers, 277px on a 375px phone and 222px on a 320px phone.
     - At rest the pair is moved down by half of the menu and its gap, so the button sits in the middle: `.pair{transform:translateY(calc(50% - 38px));transition:transform var(--dur) var(--ease)}`. Here 50% is half the pair's own height, and 38px is half the 76px button.
     - When the menu opens, `.pair:has(> .menu.show){transform:none}` slides the pair up with the same timing as the menu's fade and slide. So the pair re-centres as it does today, where the button rises as the menu grows.
   - `.menu` gets `flex-shrink:0` (today's has none). The pair is 278px tall (76 + 20 + 182), so the open menu and the button are centred in the 300px phone stage. Today the open menu is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured).
+  - Short laptop windows get a 260px stage from the shared stylesheet, where the open pair (278px) would be cut off 9px at the top and the bottom. `@media (max-height:640px){.pair{gap:12px}.menu ul{gap:4px}.menu li{padding:10px 14px}}` makes it 252px, which fits the 258px inside the stage with 4px to spare at each end (measured in a 1366×580 window). The stage's height does not change.
   - The old phone rule (`height:auto;min-height:400px`) goes.
   - `hb-dots`: yes. Default height.
 
