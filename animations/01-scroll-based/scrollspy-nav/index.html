@@ -157,7 +157,7 @@
   const doc=document.getElementById('doc'),content=document.getElementById('content'),nav=document.getElementById('spy-nav'),ind=document.getElementById('spy-ind');
   const smoothTog=document.getElementById('smooth-tog');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let tops=[],maxScroll=0,active=-1,activation=.35,targetLock=-1,glideFrame=0,ticking=false,indH=-1,lastTop=0,pressing=false;
+  let tops=[],maxScroll=0,active=-1,activation=.35,targetLock=-1,glideFrame=0,ticking=false,indH=-1,lastTop=0,pressing=false,missed=false;
 
   const secEls=SECTIONS.map((s,i)=>{
     const el=document.createElement('section');
@@ -186,7 +186,7 @@
   // When the menu itself scrolls (a strip on phones, a tall menu on a short sideways screen) show the active link by setting
   // the menu's own scroll position; scrollIntoView() would scroll the page too.
   function showInMenu(i){
-    if(pressing)return;                   // never move the links from under a finger
+    if(pressing){missed=true;return}      // never move the links from under a finger
     const l=links[i];
     if(nav.scrollWidth>nav.clientWidth)nav.scrollLeft=l.offsetLeft-(nav.clientWidth-l.offsetWidth)/2;
     if(nav.scrollHeight>nav.clientHeight)nav.scrollTop=l.offsetTop-(nav.clientHeight-l.offsetHeight)/2;
@@ -239,10 +239,11 @@
     if(e.isTrusted&&(type==='wheel'||!e.target.closest('.spy-link')))endGlide();
   },{passive:true}));
   ['btn-scroll','btn-top'].forEach(id=>document.getElementById(id).addEventListener('click',endGlide));
-  nav.addEventListener('pointerdown',()=>{pressing=true});
-  function letGo(){if(pressing){pressing=false;showInMenu(active)}}
-  addEventListener('pointercancel',letGo);
-  addEventListener('pointerup',()=>setTimeout(letGo,400));   // the click that follows a press lets go itself
+  nav.addEventListener('pointerdown',()=>{pressing=true;missed=false});
+  addEventListener('pointercancel',()=>{pressing=false});     // the browser took the touch to pan the menu: leave it where the visitor puts it
+  addEventListener('pointerup',()=>setTimeout(()=>{           // the click that follows a press lets go itself
+    if(pressing){pressing=false;if(missed)showInMenu(active)}
+  },400));
 
   nav.addEventListener('click',e=>{
     const link=e.target.closest('.spy-link');if(!link)return;
