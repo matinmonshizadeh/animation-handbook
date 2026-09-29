@@ -1,7 +1,7 @@
 # Scanline Effect
 
 ## What it is
-Scanlines are the horizontal dark lines produced by CRT (cathode-ray tube) monitors, where the electron beam sweeps left-to-right line by line, leaving a visible gap between each row of phosphor. In digital design, scanlines are added intentionally as a CSS repeating gradient pattern to evoke retrowave, '80s synthwave, or '90s sci-fi UI aesthetics. A moving sweep beam that brightens as it passes adds a dynamic cinematic quality.
+Scanlines are the thin dark lines between the rows of light on an old tube television or computer monitor. Laying them over a design as a repeating stripe pattern gives it the look of a retro screen from the 80s or 90s. A soft band of light sweeping slowly down the screen adds movement, and darkened corners suggest the curved glass.
 
 ## When to use it
 - Retrowave, cyberpunk, or synthwave themed UIs
@@ -27,7 +27,7 @@ Scanlines are the horizontal dark lines produced by CRT (cathode-ray tube) monit
 }
 ```
 
-The `line-gap` CSS custom property in the demo allows the density to be adjusted: `4px` is standard CRT density; `8px` is coarser and more stylized.
+The demo's Line spacing setting changes this gap (`--line-gap`): `2px` is dense, `4px` is standard CRT density and `8px` is coarser and more stylized.
 
 **Moving sweep beam** — a tall gradient strip animated with `translateY`:
 
@@ -71,13 +71,16 @@ travel without JavaScript measuring the stage.
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Line gap | 4px | 2px = dense vintage CRT; 4px = standard; 8px = stylized/coarse |
-| Line darkness | 0.15 | 0.05 = barely visible; 0.25 = strong retro; 0.5 = overpowering |
-| Beam speed | 4s | Faster = action/alert; slower = cinematic sci-fi |
-| Beam brightness | 0.08–0.12 | Keep it subtle — the beam should be felt, not seen clearly |
+| Line spacing | Medium | The distance between lines: tight is 2px, medium 4px and wide 8px; 4px looks like a standard old screen |
+| Line darkness | Medium | How dark the lines are: light is 8%, medium 15% and dark 30%; darker looks more retro but lowers contrast |
+| Moving beam | on | A soft band of light sweeps down the screen, again and again |
+| Beam speed | Normal | How long the beam takes to cross the screen: slow is 6.4s, normal 4s and fast 2.4s |
+| Beam brightness | Medium | How bright the beam is: faint is 6%, medium 12% and bright 24%; it should be felt more than seen |
+| Dark corners | off | A soft vignette darkens the corners, like the curved glass of an old screen |
+| Glowing text | off | A soft glow around the letters, like light spreading on an old screen |
 
 ## Production notes
-- **Purely CSS**: no JavaScript required for the scanline or beam effects. Only the panel controls use JS.
+- **Purely CSS**: no JavaScript required for the scanline or beam effects. Only the demo's settings use JavaScript.
 - **`pointer-events: none`**: the scanline overlay must not intercept mouse events. Always add `pointer-events: none` to overlay elements.
 - **Performance**: `repeating-linear-gradient` is composited as a texture on first render and cached. It does not repaint on each frame — it's essentially free. The `translateY` beam animation runs on the compositor thread.
 - **Phosphor glow**: real CRT phosphors emit light that spreads slightly, creating a soft "halo" around bright text. CSS `text-shadow: 0 0 8px currentColor` approximates this. Keep it subtle — heavy glow degrades legibility.
@@ -85,6 +88,6 @@ travel without JavaScript measuring the stage.
 - **Retrowave aesthetic**: combines well with [Grain Overlay](../grain-overlay/) (for texture), [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) (for color fringing), and dark neon color palettes.
 
 ## See also
-- [Grain Overlay](../grain-overlay/) — texture overlay for analog warmth
-- [Light Leak](../light-leak/) — warm analog overlay for a film camera aesthetic
-- [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) — RGB channel split for glitch/retro look
+- [Grain / Film Noise Overlay](../grain-overlay/) — a flickering texture of fine grain
+- [Light Leak](../light-leak/) — warm light washes in, like a film camera flaw
+- [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) — colors split at the edges, like a broken signal
