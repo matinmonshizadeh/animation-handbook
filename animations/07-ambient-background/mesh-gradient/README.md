@@ -1,7 +1,7 @@
 # Mesh Gradient Animation
 
 ## What it is
-A mesh gradient is a field of overlapping, heavily blurred radial gradients that create the appearance of hand-painted color washes. Individual gradient circles are invisible beneath the blur — what remains is pure color bleeding organically across the canvas. Slowly drifting these circles with CSS keyframes produces an ambient effect that looks like a living Impressionist painting. This is the visual language of Stripe, Linear, and many modern SaaS brands.
+A mesh gradient is a background of large circles of color, blurred so heavily that their edges disappear and they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
 
 ## When to use it
 - Marketing hero sections where the brand palette must feel premium and hand-crafted
@@ -48,13 +48,22 @@ Each blob is an absolutely-positioned `<div>` with a radial gradient background 
 - `screen` — adds RGB values, making overlaps brighter and more saturated
 - `overlay` — darkens darks, brightens brights; high contrast effect
 
+Heavy blur is the costly part on phones, so the demo halves it on small screens:
+
+```css
+@media (max-width: 600px) {
+  .blob { filter: blur(calc(var(--blob-blur) * .5)); }
+}
+```
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Blur amount | 80px | The central parameter — below 40px the circles show; above 120px is pure wash |
-| Blob count | 4–5 | More = richer; too many (8+) blend into uniformity |
-| Cycle duration | 40s | Long enough that users never see the loop; `alternate` direction doubles effective duration |
-| Opacity | 0.75 | Lower = more muted; higher = more vivid; `mix-blend-mode: screen` amplifies this |
+| Blur | Medium | How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Phones use half |
+| Speed | Normal | How long each blob takes to drift one way: slow is 64s, normal 40s and fast 24s |
+| Colors | Cool | The blob colors: cool, warm, sunset, synthwave or earth tones |
+| Number of blobs | 4 | Three, four or five blobs; more make a richer mix |
+| Blend | Plain | How overlapping blobs mix: plain stacks them (normal blending), lighter brightens the overlap (screen), deeper darkens it and deepens the colors (overlay) |
 
 ## Production notes
 - **`filter: blur()` on GPU**: heavy blur is GPU-accelerated in modern browsers but creates a compositing layer per blurred element. Four blurred blobs = four compositing layers. On low-RAM devices, this stacks up — test on mobile.
@@ -64,6 +73,6 @@ Each blob is an absolutely-positioned `<div>` with a radial gradient background 
 - **`animation-delay` with negative values**: a negative delay (e.g., `-10s`) starts the animation mid-cycle, preventing all blobs from starting at the same position and looking synchronized.
 
 ## See also
-- [Animated Gradient Background](../animated-gradient-background/) — the simpler, single-gradient animated approach
-- [Aurora](../aurora/) — directional vertical bands rather than radial blobs
-- [Breathing Glow](../breathing-glow/) — a single centered radial glow that pulses
+- [Animated Gradient Background](../animated-gradient-background/) — one gradient that slowly shifts
+- [Aurora / Northern Lights](../aurora/) — tall bands of color instead of round blobs
+- [Breathing / Pulsing Glow](../breathing-glow/) — a single glow that grows and shrinks
