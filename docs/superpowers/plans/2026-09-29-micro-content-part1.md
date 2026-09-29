@@ -628,7 +628,7 @@ None: leave out the `details.hb-options` block.
 ## skeleton-loader — Skeleton Loader
 
 - **Kind:** once. One play shows the pulsing placeholders, then the real content fades in and stays; Loop repeats it.
-- **Description:** Grey shapes hold the place of content while it loads. Best for feeds and cards.
+- **Description:** Gray shapes hold the place of content while it loads. Best for feeds and cards.
 - **Watch it help line:** default
 - **Player bar:** Replay · Loop · Slow motion
 - **Sequence:** every play is today's `startLoad()` without its progress bar.
@@ -664,11 +664,11 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Feeds · Cards · Lists · Dashboards · **Avoid on:** Very short waits · Unknown layouts
 - **Prompt:**
 
-  > Add a skeleton loading state to [the card, list or panel whose content loads]. While it loads, show grey blocks in the shapes and sizes of the content that is coming, such as a round avatar, lines of text and an image, and let them pulse between dimmer and brighter. When the content is ready, swap the blocks for it and fade it in. Match the shapes closely, because a skeleton that does not fit the content makes the page jump when it arrives. If the visitor has reduced motion turned on, keep the blocks still. Match the settings listed below.
+  > Add a skeleton loading state to [the card, list or panel whose content loads]. While it loads, show gray blocks in the shapes and sizes of the content that is coming, such as a round avatar, lines of text and an image, and let them pulse between dimmer and brighter. When the content is ready, swap the blocks for it and fade it in. Match the shapes closely, because a skeleton that does not fit the content makes the page jump when it arrives. If the visitor has reduced motion turned on, keep the blocks still. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
-  > A skeleton loader shows grey placeholder shapes in the layout of the content that is on its way. The blocks pulse gently to show that loading is going on, and the real content fades in over them when it arrives. Because people see the shape of what is coming, the wait feels shorter than it does with a blank area or a spinner.
+  > A skeleton loader shows gray placeholder shapes in the layout of the content that is on its way. The blocks pulse gently to show that loading is going on, and the real content fades in over them when it arrives. Because people see the shape of what is coming, the wait feels shorter than it does with a blank area or a spinner.
 
 - **README Key parameters:**
 
@@ -692,7 +692,7 @@ None: leave out the `details.hb-options` block.
 ## shimmer-effect — Shimmer Effect
 
 - **Kind:** loop. The band of light sweeps forever.
-- **Description:** A band of light sweeps over grey placeholders. Best for loading screens.
+- **Description:** A band of light sweeps over gray placeholders. Best for loading screens.
 - **Watch it help line:** default
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** the band sweeps across the card and the row forever (`@keyframes shimmer` on each `::after`, over Speed). No page timers.
@@ -729,11 +729,11 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Feeds · Cards · Lists · Image galleries · **Avoid on:** Very short waits · Busy pages
 - **Prompt:**
 
-  > Add a shimmer to [the skeleton placeholders on your loading screen]. Lay a band of light over each placeholder and sweep it across in one direction, again and again, so the grey shapes look like content streaming in. Every placeholder on the page should shimmer in the same direction, and each one must clip the band to its own edges so it never spills out. Keep the band see-through so it works on any placeholder color. If the visitor has reduced motion turned on, keep the placeholders still. Match the settings listed below.
+  > Add a shimmer to [the skeleton placeholders on your loading screen]. Lay a band of light over each placeholder and sweep it across in one direction, again and again, so the gray shapes look like content streaming in. Every placeholder on the page should shimmer in the same direction, and each one must clip the band to its own edges so it never spills out. Keep the band see-through so it works on any placeholder color. If the visitor has reduced motion turned on, keep the placeholders still. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
-  > A shimmer is a band of light that sweeps across grey placeholder shapes again and again while content loads. Where a pulse fades every block up and down together, a shimmer travels in one direction, so the placeholders look like content streaming in.
+  > A shimmer is a band of light that sweeps across gray placeholder shapes again and again while content loads. Where a pulse fades every block up and down together, a shimmer travels in one direction, so the placeholders look like content streaming in.
 
 - **README Key parameters:**
 
@@ -807,7 +807,7 @@ None: leave out the `details.hb-options` block.
 
 - **README See also:**
   - [Progress Animation](../progress-animation/) — a bar that shows how much is done
-  - [Skeleton Loader](../skeleton-loader/) — grey shapes stand in for the content
+  - [Skeleton Loader](../skeleton-loader/) — gray shapes stand in for the content
   - [Checkmark Draw](../checkmark-draw/) — the success sign once the wait is over
 - **README How it works:** unchanged
 - **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: under reduced motion the demo starts paused, so the spinners stay still until the visitor presses Play. In production, reduce the spinner to a simple opacity pulse, or hide it and rely on an `aria-live` announcement." The rest is unchanged.
@@ -884,7 +884,7 @@ None: leave out the `details.hb-options` block.
 
 - **README See also:**
   - [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
-  - [Skeleton Loader](../skeleton-loader/) — grey shapes stand in for the content
+  - [Skeleton Loader](../skeleton-loader/) — gray shapes stand in for the content
   - [Checkmark Draw](../checkmark-draw/) — the success sign once it reaches the end
   - [Progress Bar](../../01-scroll-based/progress-bar/) — a bar that fills as you scroll
 - **README How it works:** the linear-bar part must match the new code. The ring and sliding-bar parts are unchanged.
