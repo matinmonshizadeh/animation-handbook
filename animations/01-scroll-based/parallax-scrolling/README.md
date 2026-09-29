@@ -4,11 +4,11 @@
 
 ## What it is
 
-Parallax scrolling moves background layers slower than foreground layers as the
-user scrolls, creating an illusion of 3D depth on a flat screen. The effect
-exploits motion parallax: nearby objects appear to move more than distant ones
-as the observer moves. Each layer is assigned a speed multiplier; slower
-multipliers simulate greater distance.
+Parallax scrolling moves the far layers of a scene less than the near ones as
+you scroll, so a flat picture seems to have depth. It copies what you see from a
+train window: nearby things rush past while distant hills barely move. Each
+layer gets its own speed, and how far apart those speeds are decides how deep
+the scene feels.
 
 ## When to use it
 
@@ -19,13 +19,14 @@ multipliers simulate greater distance.
 
 ## How it works
 
-Each layer has a speed multiplier `s ∈ [0, 1.5]`. On scroll, a single
-`requestAnimationFrame` callback normalises `scrollTop` to a 0–1 progress
-value and scales a fixed travel budget by the layer's speed:
+Each layer has a speed multiplier `s` between 0 and 1.5, set by the Depth
+setting. On scroll, a single `requestAnimationFrame` callback normalises
+`scrollTop` to a 0–1 progress value and scales a fixed travel budget by the
+layer's speed:
 
 ```js
 const progress = scrollTop / (scrollHeight - clientHeight); // 0 → 1
-const offset   = progress * MAX_PARALLAX * speed;           // MAX_PARALLAX = 150px
+const offset   = progress * MAX_PARALLAX * speed;           // MAX_PARALLAX = a quarter of the box's height
 layer.el.style.transform = `translate3d(0, ${offset}px, 0)`;
 ```
 
@@ -40,12 +41,7 @@ ratio between speeds determines how convincing the illusion is.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Sky speed | 10% | Near-zero drift — 15px total |
-| Ridgeline speed | 30% | Slow drift — 45px total |
-| Treeline speed | 60% | Mid-distance drift — 90px total |
-| Foreground speed | 100% | Full travel budget — 150px total |
-| `MAX_PARALLAX` | 150px | Travel at speed 1.0 across the whole scroll range |
-| Scene height | 1800px | Scroll track inside a 600px stage (400px under 600px wide) |
+| Depth | Normal | The speeds of the sky, ridge, trees and grass: normal is 10%, 30%, 60% and 100%; shallow 50%, 65%, 80% and 100%; deep 0%, 25%, 70% and 150%; flat moves all four together. At 100% a layer travels a quarter of the box's height over the whole scroll |
 
 ## Production notes
 
@@ -62,15 +58,10 @@ ratio between speeds determines how convincing the illusion is.
   for simple cases.
 - **Accessibility:** respect `prefers-reduced-motion: reduce`. When the user
   has requested reduced motion, hold every layer at zero offset and show the
-  static scene — but keep the numeric readouts tracking the scroll, so the
-  panel isn't reporting stale values. Apply `will-change: auto` in the
-  reduced-motion media query to
-  avoid unnecessary layer promotion.
+  static scene, and apply `will-change: auto` in the reduced-motion media
+  query to avoid unnecessary layer promotion.
 
 ## See also
 
-- [Parallax Depth-of-Field](../parallax-depth-of-field/) — the same depth
-  technique with blur applied per layer based on focal-plane distance rather
-  than translation speed.
-- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — takes speed-ratio
-  depth further by making columns scroll in opposite directions.
+- [Parallax Depth-of-Field](../parallax-depth-of-field/) — the same layers, with a moving focus that blurs them
+- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — columns move against each other as you scroll
