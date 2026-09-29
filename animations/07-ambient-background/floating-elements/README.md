@@ -1,7 +1,7 @@
 # Floating Elements
 
 ## What it is
-Floating elements are small geometric shapes — circles, squares, rings, triangles — that drift across a background on independent sine-wave paths. Each shape has a unique amplitude, frequency, and phase, so no two shapes ever move in synchrony. The effect is the canonical "SaaS landing page background particles" — tasteful, geometric, and ambient without being distracting. The critical design principle is independence: synchronized shapes look like a screensaver; independent shapes look like a living atmosphere.
+Floating elements are small, see-through shapes, such as circles, squares or rings, that drift slowly around a background. Each shape follows its own smooth, looping path, with its own speed, distance and starting point, so no two ever move in step. That independence is what makes it look like a living background rather than a screensaver.
 
 ## When to use it
 - Hero backgrounds on SaaS, fintech, and tech product landing pages
@@ -62,13 +62,19 @@ if (mouse.x > 0) {
 }
 ```
 
+The pointer's position is taken from `pointerdown` as well as `pointermove`, so on a touch screen a finger resting on the stage pushes the shapes too.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Count | 8 | 4–12 is the ambient range; above 20 becomes visually busy |
-| Drift range | 50px | How far each shape wanders from its base position |
-| Drift speed | 0.5 | Higher = busier, more active; lower = barely noticeable |
-| Opacity pulse | On | Shapes fade slightly during their loop — adds organic depth |
+| Number of shapes | Medium | Few is 5, medium 8 and many 14; 5 to 12 feels calm, more gets busy |
+| Speed | Normal | How fast the shapes drift: slow is 0.3, normal 0.5 and fast 0.8 |
+| How far they drift | Medium | How far each shape wanders from its place: short is up to 30px, medium 50px and long 90px |
+| Shapes | Mixed | Circles, squares, rings or a mix |
+| Colors | Cool | Cool blues and purples, warm oranges and reds, grays, or bright neon |
+| Shapes turn | on | Each shape slowly spins at its own rate as it drifts |
+| Fades in and out | on | Each shape slowly brightens and dims, adding depth |
+| Shapes avoid the pointer | off | Shapes within 120px of the pointer, or of a finger, slide aside |
 
 ## Production notes
 - **`requestAnimationFrame` not CSS `animation`**: individual `@keyframes` per element would require generating unique keyframe names. The JS loop is cleaner for this parameterized approach.
@@ -78,6 +84,6 @@ if (mouse.x > 0) {
 - **Particle.js / tsParticles**: handles this effect with configuration options, collision detection, and network links. Use in production when you need more than basic floating.
 
 ## See also
-- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — physics-based particles with O(n²) connections
-- [Ambient Ripple](../ambient-ripple/) — radial expansion rather than freeform drift
-- [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — Perlin noise driving organic field motion
+- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — many particles that link up and react to the pointer
+- [Ambient Ripple Effect](../ambient-ripple/) — rings spreading out instead of shapes drifting
+- [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion
