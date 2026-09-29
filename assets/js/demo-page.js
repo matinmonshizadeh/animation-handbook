@@ -1,8 +1,9 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
  * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
  * animations", plays the demo on arrival, replays it when a setting changes, runs
- * Pause and CSS slow motion on loop pages, and follows reduced motion (Loop and
- * Slow motion greyed out, loops start paused).
+ * Pause and CSS slow motion on loop pages, presses Show me on do-it pages and tells
+ * the page when the visitor takes over ("hb:input"), and follows reduced motion
+ * (Loop and Slow motion greyed out, loops start paused).
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -184,6 +185,7 @@
     var pauseCtl = page.querySelector('[data-hb-pause]');
     var stage = page.querySelector('.stage');
     var player = page.querySelector('.hb-player');
+    var demoCtl = page.querySelector('[data-hb-demo]');
     var reduce = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var promptText = text(promptEl);
 
@@ -344,6 +346,16 @@
       if (slowing) win.requestAnimationFrame(slowStage);
     }
 
+    // Do-it pages: the visitor's own press, key, wheel or touch inside the stage is sent as "hb:input", so the page
+    // can stop a Show me run that is under way and leave the visitor in control.
+    function setUpVisitorInput() {
+      ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (type) {
+        stage.addEventListener(type, function (e) {
+          if (e.isTrusted) doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
+        }, { capture: true, passive: true });
+      });
+    }
+
     // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
     // loop starts paused, and a note in the player bar says why. Replay and Play still work.
     var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
@@ -374,6 +386,7 @@
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
     if (slowCtl) slowCtl.addEventListener('change', replay);
     if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
+    if (demoCtl && stage) setUpVisitorInput();
     if (slowCtl && stage && stage.getAnimations && slowCtl.getAttribute('data-hb-slowmo') === 'css') {
       slowCtl.addEventListener('change', function () { if (!slowing) slowStage(); });
       if (slowCtl.checked) slowStage();
@@ -383,6 +396,7 @@
     else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
+        if (demoCtl) { if (!(reduce && reduce.matches)) demoCtl.click(); return; }
         if (loopCtl && !(reduce && reduce.matches)) {
           // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.
           if (loopCtl.checked) replay();

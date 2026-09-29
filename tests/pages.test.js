@@ -101,7 +101,16 @@ for (const d of steps) {
       assert.equal(count(html, 'data-hb-replay') + count(html, 'data-hb-loop') + count(html, 'data-hb-autoplay'), 0,
         'a loop has no Replay, Loop or autoplay');
     }
-    for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause']) {
+    if (kind === 'do') {
+      assert.equal(count(html, 'data-hb-demo'), 1, 'one Show me control');
+      assert.ok(player.includes('<button class="hb-play" type="button" id="btn-demo" data-hb-demo>'), 'Show me is in the player bar');
+      assert.ok(count(html, 'data-hb-reset') <= 1 && count(player, 'data-hb-reset') === count(html, 'data-hb-reset'),
+        'at most one Reset, in the player bar');
+      for (const other of ['data-hb-replay', 'data-hb-loop', 'data-hb-pause', 'data-hb-autoscroll', 'data-hb-top']) {
+        assert.equal(count(html, other), 0, `a do-it page has no ${other}`);
+      }
+    }
+    for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause', 'data-hb-demo', 'data-hb-reset']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
       const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];

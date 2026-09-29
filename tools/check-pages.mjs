@@ -8,8 +8,11 @@
 // hb-check in the temp folder (emptied at the start of each run). Console warnings count as problems too (the page
 // script warns about settings that have no label or value). On plays-once pages the desktop run also checks that
 // Replay and a setting change visibly move the stage; on loop pages it checks that the stage moves, that Pause stops
-// it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. The 320px
-// phone runs the page checks (overflow, small targets, chips, README) and takes screenshots, and nothing more.
+// it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. On do-it
+// pages the desktop and reduced-motion runs press Show me and check that it visibly moves the stage (the desktop run
+// waits for the run on arrival to end first), and the reduced-motion run checks that nothing moves before it is
+// pressed. The 320px phone runs the page checks (overflow, small targets, chips, README) and takes screenshots, and
+// nothing more.
 // Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -244,6 +247,21 @@ async function loopProblems(reduced) {
   return problems;
 }
 
+// Do-it pages: Show me must visibly move the stage within 1.6 s, and under reduced motion the page must not move by
+// itself. Show me runs on arrival, so the desktop check first waits for that run to end.
+async function demoProblems(reduced) {
+  if (!(await evaluate(`!!document.querySelector('[data-hb-demo]')`))) return ['no Show me button to check'];
+  const problems = [];
+  if (reduced && await stageChanges(1500)) problems.push('the stage moves by itself under reduced motion');
+  if (!reduced) await sleep(5000);
+  const rest = await stageShot();
+  await evaluate(`document.querySelector('[data-hb-demo]').click()`);
+  let moved = false;
+  for (let i = 0; i < 8 && !moved; i++) { await sleep(200); moved = (await stageShot()) !== rest; }
+  if (!moved) problems.push('Show me does not visibly move the stage');
+  return problems;
+}
+
 let failures = 0;
 try {
   ws = new WebSocket(await pageSocket());
@@ -309,6 +327,7 @@ try {
         }
         if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
         if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
+        if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }
