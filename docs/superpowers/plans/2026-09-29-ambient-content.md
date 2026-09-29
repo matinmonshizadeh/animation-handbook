@@ -976,17 +976,19 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - `dx = -sin(clock × 0.0002) × Strength × W × 0.4`
   - `dy = -cos(clock × 0.00014) × Strength × H × 0.3`
 
+  The second layer is placed at half of that, `dx / 2` and `dy / 2`, as the mouse already places it. Today only a mouse moved it, so it stood still during the drift and on touch screens, and its hint ("A sparser layer moves half as far") was true for a mouse only.
+
   Today the frame time was used directly, so a pause would jump the grid on Play.
 
   **The pointer takes over,** through Pointer Events in place of today's mouse and touch events (CLAUDE.md asks drags to use Pointer Events):
-  - **Mouse:** `pointerenter` with `pointerType === 'mouse'` stops the drift and shows the cursor ring (`hasMouse = true`). `pointermove` from the mouse shifts the grid, the second layer, the ring and the light, as today's `mousemove` does. `pointerleave` from the mouse hides the ring and the light and starts the drift again, from its clock.
-  - **Finger or pen:** `pointerdown` stops the drift and shifts the grid toward it; `pointermove` while it is down shifts the grid (the first layer only, as today's `touchmove`); `pointerup` and `pointercancel` start the drift again. These replace today's four touch listeners.
+  - **Mouse:** `pointerenter` with `pointerType === 'mouse'` stops the drift and shows the cursor ring (`hasMouse = true`). `pointermove` from the mouse shifts the grid, the second layer, the ring and the light, as today's `mousemove` does. `pointerleave` from the mouse hides the ring and the light and starts the drift again, from its clock; both layers follow it.
+  - **Finger or pen:** `pointerdown` stops the drift and shifts the grid against it, by the same rule as the mouse; `pointermove` while it is down shifts it the same way; the second layer goes half as far each time (today's `touchmove` moved the first layer only); `pointerup` and `pointercancel` start the drift again, and both layers follow it. These replace today's four touch listeners.
   - **Scrolling:** the stage gets `touch-action:pan-y`, as on 2.5D / Pseudo-3D. A sideways drag stays with the page and steers the grid, while a vertical swipe still scrolls the page (the browser then sends `pointercancel`, and the drift starts again).
   - Only a mouse starts the hover state, so a tap on a phone never shows the cursor ring or the light.
 
   Each restart happens only while not paused, and Play restarts the drift only when no mouse is over the stage (`hasMouse`). While paused, pointer moves no longer move the grid, the second layer or the light; the cursor ring still follows the mouse, because the stage hides the system cursor.
 
-  **The first picture:** at load the page places the grid where the drift starts (`clock` 0) before the first frame, so Play after a pause on arrival does not jump. A Strength change or a resize while paused places it again for the current `clock`.
+  **The first picture:** at load the page places both layers where the drift starts (`clock` 0) before the first frame, so Play after a pause on arrival does not jump. A Strength change or a resize while paused places both again for the current `clock`.
 
   The unused `.auto-drift` class and its `@keyframes auto-pan` go (nothing ever adds the class).
 - **Slow motion:** none (see Player bar).
@@ -995,6 +997,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage:** both pattern layers, the light, the cursor ring and the centred card stay.
   - Card text: eyebrow "Dot grid parallax"; title "Move your pointer or finger across it" (was "Move your mouse across the stage"); body "The grid shifts slightly against your pointer: depth you feel more than see." (was "… opposite to your cursor — a depth illusion so subtle you almost don't notice it.").
   - The stage's own rule keeps `cursor:none` (the ring replaces the system cursor over the stage) and gets `touch-action:pan-y` (see Sequence).
+  - The ring is drawn above the card (`z-index` 11, the card's is 10), because the stage hides the system pointer over the card too.
   - `hb-dots`: no (the stage is itself a dot grid). Default height.
 - **Phone fallback:** none needed. Two tiled background layers are moved with `transform` only (0.4 ms a frame, measured on today's phone stage).
 
@@ -1081,6 +1084,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   **The first picture:** the page calls `draw()` at load (the polygons at `t` 0). Choosing Rings seeds six rings spread across the stage (today's `still()` picture, which only reduced motion saw), so the pattern shows at once, playing or paused; choosing another pattern clears the rings, as today.
 
   **While paused,** every setting change calls `draw()`; `repaint()` becomes `draw()`. After a real resize (see the preamble), `resize()` calls `draw()` at once, playing or paused.
+
+  **Thicker lines** is hidden while Pattern is Bars: Bars are filled shapes with no lines, so the switch would change nothing there. Its choice is kept while it is hidden, it comes back with the other patterns, and it is out of "Your settings" while hidden.
 - **Slow motion:** while the switch is on, `advance()` adds a third of the usual step to `t` and to each ring's growth, from the next frame.
 - **Reduced motion:** the `RM` checks and `still()` go (see the preamble).
 - **Stage font:** no text on the stage.
@@ -1100,7 +1105,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Colors | Choice buttons | Cool · Warm · Neon · Gray | Cool | The set of colors the shapes use. | `PAL`: `'cool'` / `'warm'` / `'neon'` / `'mono'` |
-| Thicker lines | Switch | on / off | off | Bolder lines that stand out more. | `CONTRAST` true / false (line width 1.5 / 0.8) |
+| Thicker lines | Switch; shown only when Pattern is not Bars | on / off | off | Bolder lines that stand out more. | `CONTRAST` true / false (line width 1.5 / 0.8) |
 
 - **Removed:**
   - The note.
