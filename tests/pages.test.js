@@ -73,6 +73,29 @@ function assertShowMeAndReset(kind, html, player) {
   if (kind === 'do') assert.ok(bar.includes(SHOW_ME + RESET), 'on a do-it page the Reset button comes right after Show me');
 }
 
+// Play, Back to top and the scroller belong to scroll pages, and only to them: the shared script presses Play before anything
+// else on arrival, so a stray one on another kind of page would quietly replace that page's own arrival. `html` is the whole
+// page, `player` its player bar and `autoplay` whether the body asks for the run on arrival.
+function assertScrollControls(kind, html, player, autoplay) {
+  if (kind !== 'scroll') {
+    for (const marker of ['data-hb-autoscroll', 'data-hb-top', 'data-hb-scroller']) {
+      assert.equal(count(html, marker), 0, `only a scroll page has ${marker}`);
+    }
+    return;
+  }
+  // A scroll page shows itself once on arrival: the shared script presses Play when the body asks for autoplay.
+  assert.ok(autoplay, 'a scroll page scrolls once on arrival (data-hb-autoplay on the body)');
+  assert.equal(count(html, 'data-hb-autoscroll'), 1, 'one Play control');
+  assert.equal(count(html, 'data-hb-top'), 1, 'one Back to top control');
+  assert.ok(player.includes('id="btn-scroll" data-hb-autoscroll') && player.includes('id="btn-top" data-hb-top'),
+    'Play and Back to top are in the player bar');
+  assert.ok(count(html, 'data-hb-scroller') <= 1, 'at most one scroller');
+  // A scroll page has none of the other player controls; Slow motion is one of them (Play's speed is fixed).
+  for (const other of ['data-hb-replay', 'data-hb-loop', 'data-hb-pause', 'data-hb-demo', 'data-hb-slowmo']) {
+    assert.equal(count(html, other), 0, `a scroll page has no ${other}`);
+  }
+}
+
 for (const cat of CONVERTED) {
   test(`every ${cat} demo uses the guided-steps page`, () => {
     const inCategory = demos.filter(d => d.cat === cat);
@@ -141,16 +164,7 @@ for (const d of steps) {
         assert.equal(count(html, other), 0, `a do-it page has no ${other}`);
       }
     }
-    if (kind === 'scroll') {
-      assert.equal(count(html, 'data-hb-autoscroll'), 1, 'one Play control');
-      assert.equal(count(html, 'data-hb-top'), 1, 'one Back to top control');
-      assert.ok(player.includes('id="btn-scroll" data-hb-autoscroll') && player.includes('id="btn-top" data-hb-top'),
-        'Play and Back to top are in the player bar');
-      assert.ok(count(html, 'data-hb-scroller') <= 1, 'at most one scroller');
-      for (const other of ['data-hb-replay', 'data-hb-loop', 'data-hb-pause', 'data-hb-demo']) {
-        assert.equal(count(html, other), 0, `a scroll page has no ${other}`);
-      }
-    }
+    assertScrollControls(kind, html, player, !!body[2]);
     assertShowMeAndReset(kind, html, player);
     for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause', 'data-hb-demo', 'data-hb-reset', 'data-hb-autoscroll', 'data-hb-top']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
@@ -294,6 +308,45 @@ test('Show me belongs to do-it pages and Reset to do-it and loop pages, each exa
   }
 });
 
+// The Play, Back to top and scroller rules run on every page above. These cases run them on made-up pages, so the scroll
+// kind is covered before a scroll page exists.
+test('Play, Back to top and the scroller belong to scroll pages, and a scroll page runs once on arrival with no other player control', () => {
+  const PLAY_BUTTON = '<button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll>Play</button>';
+  const TOP_BUTTON = '<button class="hb-play" type="button" id="btn-top" data-hb-top>Back to top</button>';
+  const REPLAY = '<button class="hb-play" type="button" id="btn-play" data-hb-replay>Replay</button>';
+  const LOOP = '<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>';
+  const SLOW = '<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>';
+  const pageOf = (bar, stage = '') => `<div class="stage">${stage}</div>\n    <div class="hb-player">\n      ${bar.join('\n      ')}\n    </div>`;
+  const run = (kind, html, autoplay = true) => assertScrollControls(kind, html, between(html, '<div class="hb-player">', '</div>'), autoplay);
+  const ok = (kind, html) => assert.doesNotThrow(() => run(kind, html), `a ${kind} page passes`);
+  const notOk = (message, kind, html, autoplay) => assert.throws(() => run(kind, html, autoplay), err => err.message.startsWith(message), `${kind}: ${message}`);
+
+  const scrollPage = pageOf([PLAY_BUTTON, TOP_BUTTON]);
+  ok('scroll', scrollPage);
+  ok('scroll', pageOf([PLAY_BUTTON, TOP_BUTTON], '<div data-hb-scroller></div>')); // the stage holds its own scroller
+
+  notOk('a scroll page scrolls once on arrival (data-hb-autoplay on the body)', 'scroll', scrollPage, false);
+  notOk('one Play control', 'scroll', pageOf([TOP_BUTTON]));
+  notOk('one Play control', 'scroll', pageOf([PLAY_BUTTON, PLAY_BUTTON.replace('btn-scroll', 'btn-scroll-2'), TOP_BUTTON]));
+  notOk('one Back to top control', 'scroll', pageOf([PLAY_BUTTON]));
+  notOk('Play and Back to top are in the player bar', 'scroll', `<div class="stage">${PLAY_BUTTON}</div>\n<div class="hb-player">\n${TOP_BUTTON}\n</div>`);
+  notOk('at most one scroller', 'scroll', pageOf([PLAY_BUTTON, TOP_BUTTON], '<div data-hb-scroller></div><div data-hb-scroller></div>'));
+  // A scroll page has none of the other player controls; Slow motion is one of them (Play's speed is fixed).
+  for (const [marker, control] of [['data-hb-replay', REPLAY], ['data-hb-loop', LOOP], ['data-hb-pause', PAUSE.replace('{MODE}', '')],
+    ['data-hb-demo', SHOW_ME], ['data-hb-slowmo', SLOW]]) {
+    notOk(`a scroll page has no ${marker}`, 'scroll', pageOf([PLAY_BUTTON, TOP_BUTTON, control]));
+  }
+
+  // Only scroll pages have these markers: the shared script presses Play before anything else on arrival, so a stray one on
+  // another kind of page would quietly replace that page's own arrival.
+  for (const kind of ['once', 'loop', 'do']) {
+    ok(kind, pageOf([REPLAY]));
+    notOk('only a scroll page has data-hb-autoscroll', kind, pageOf([REPLAY, PLAY_BUTTON]));
+    notOk('only a scroll page has data-hb-top', kind, pageOf([REPLAY, TOP_BUTTON]));
+    notOk('only a scroll page has data-hb-scroller', kind, pageOf([REPLAY], '<div data-hb-scroller></div>'));
+  }
+});
+
 test('every guided-steps page links the same version of the shared files', () => {
   const versions = new Set(steps.flatMap(d => [...pageOf(d).matchAll(/demo-page\.(?:css|js)\?v=(\d+)/g)].map(m => m[1])));
   assert.equal(versions.size, 1, `versions in use: ${[...versions].join(', ')}`);
@@ -310,6 +363,14 @@ test('the shared stylesheet draws the focus ring inward inside the stage, beatin
   assert.ok(rulesFor(inward).some(rule => /(^|;)\s*outline-offset:\s*-3px\s*(;|$)/.test(rule.body)), 'a focus ring inside the stage is drawn 3px inward');
   assert.ok(outranks(specificity(inward), specificity(site[0].selector)),
     `${inward} (${specificity(inward)}) must outrank ${site[0].selector} (${specificity(site[0].selector)})`);
+});
+
+test('the shared stylesheet turns CSS scroll snapping off on a box that Play is scrolling', () => {
+  // While Play scrolls a box the shared script marks it data-hb-autoscrolling; with snapping on, every step would snap to the
+  // nearest snap point and the box would jump from card to card. !important, so that a snap type the page sets on the box
+  // itself (inline, or in its own style) does not win, and nothing has to be remembered and written back afterwards.
+  assert.ok(rulesFor('[data-hb-autoscrolling]').some(rule => /(^|;)\s*scroll-snap-type:\s*none\s*!important\s*(;|$)/.test(rule.body)),
+    'a box marked data-hb-autoscrolling has scroll-snap-type: none !important');
 });
 
 test('the shared stylesheet keeps choice buttons at least 44px wide', () => {

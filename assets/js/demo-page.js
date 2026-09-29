@@ -361,23 +361,19 @@
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
-    // seconds), from the top when it is already at the end. The visitor's own wheel, touch, press or key input anywhere
-    // in the stage stops it, and so does Back to top, which jumps the box to the top.
+    // seconds), from the top when it is already at the end. The visitor's own wheel, touch, press, key or click input
+    // anywhere in the stage stops it, and so does Back to top, which jumps the box to the top.
     var FULL_SCROLL_MS = 6000;
     var scrollFrame = 0;
-    var snapKept = null;
-    // While the scroll runs, CSS scroll snapping is off on the scroller (its own inline value is kept), or every step
-    // would snap and the box would jump from one snap point to the next. It goes back on when the scroll ends, is
-    // stopped or Back to top is pressed, and the browser then settles on the nearest snap point by itself.
-    function snapOff() {
-      if (snapKept !== null || win.getComputedStyle(scroller).scrollSnapType === 'none') return;
-      snapKept = scroller.style.scrollSnapType;
-      scroller.style.scrollSnapType = 'none';
-    }
-    function snapOn() {
-      if (snapKept === null) return;
-      scroller.style.scrollSnapType = snapKept;
-      snapKept = null;
+    // While the scroll runs the box carries data-hb-autoscrolling, and the shared stylesheet turns CSS scroll snapping off
+    // for it (or every step would snap and the box would jump from one snap point to the next). The mark goes when the
+    // scroll ends, is stopped or Back to top is pressed, and the page's own snap type applies again: the browser settles
+    // the box on the nearest snap point by itself. Nothing is remembered or written back, so a snap type the page sets
+    // during a run is simply what applies afterwards.
+    function mark(on) {
+      if (scroller.hasAttribute('data-hb-autoscrolling') === on) return;
+      if (on) scroller.setAttribute('data-hb-autoscrolling', '');
+      else scroller.removeAttribute('data-hb-autoscrolling');
     }
     function cancelFrame() {
       if (scrollFrame) win.cancelAnimationFrame(scrollFrame);
@@ -385,14 +381,14 @@
     }
     function stopScroll() {
       cancelFrame();
-      snapOn();
+      mark(false);
     }
     function scrollBox(top) { scroller.scrollTo({ top: top, behavior: 'instant' }); }
     function autoscroll() {
-      cancelFrame(); // not stopScroll(): pressing Play during a run keeps snapping off, so the box does not snap in between
+      cancelFrame(); // not stopScroll(): the mark stays through a second press of Play, so nothing snaps in between
       var end = scroller.scrollHeight - scroller.clientHeight;
-      if (end <= 0) { snapOn(); return; }
-      snapOff();
+      if (end <= 0) { mark(false); return; }
+      mark(true);
       if (scroller.scrollTop >= end - 2) scrollBox(0);
       var pos = scroller.scrollTop, last = 0, speed = end / FULL_SCROLL_MS;
       function step(now) {
@@ -400,17 +396,21 @@
         last = now;
         scrollBox(pos);
         scrollFrame = pos < end ? win.requestAnimationFrame(step) : 0;
-        if (!scrollFrame) snapOn();
+        if (!scrollFrame) mark(false);
       }
       scrollFrame = win.requestAnimationFrame(step);
     }
     function setUpScroll() {
       scrollCtl.addEventListener('click', autoscroll);
       if (topCtl) topCtl.addEventListener('click', function () { stopScroll(); scrollBox(0); });
-      // On the stage, not the scroller: a menu or button beside an inner scroller is the visitor's input too.
-      var heard = stage || scroller;
-      ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (type) {
-        heard.addEventListener(type, function (e) { if (e.isTrusted) stopScroll(); }, { passive: true });
+      // The visitor's own input anywhere in the stage stops a run (a menu or button beside an inner scroller counts), and on
+      // the scroller itself when it is not inside the stage. Capture phase, so a widget that stops the propagation of its
+      // events cannot hide them; click is there for activations that come with no pointer or key event.
+      var heard = stage && stage.contains(scroller) ? [stage] : [stage, scroller].filter(Boolean);
+      heard.forEach(function (el) {
+        ['wheel', 'touchstart', 'pointerdown', 'keydown', 'click'].forEach(function (type) {
+          el.addEventListener(type, function (e) { if (e.isTrusted) stopScroll(); }, { capture: true, passive: true });
+        });
       });
     }
 
