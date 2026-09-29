@@ -66,16 +66,20 @@ for (const d of steps) {
       assert.ok(!html.includes(old), `old markup left: ${old}`);
     }
     for (const part of ['<nav class="hb-bar"', '<main class="hb-page">', '<header class="hb-head">',
-      '<section class="hb-step hb-watch"', '<div class="hb-player">', '<section class="hb-step hb-try"',
+      '<section class="hb-step hb-watch"', '<div class="hb-player">',
       '<section class="hb-step hb-prompt-step"', '<p class="hb-prompt">', '<ul class="hb-chips">',
       '<button class="hb-copy" type="button">', '<section class="hb-about"', '<ul class="hb-tags hb-good">',
       '<ul class="hb-tags hb-avoid">', '<section class="hb-related"', '<footer class="hb-foot">']) {
       assert.equal(count(html, part), 1, `exactly one ${part}`);
     }
+    // Try it is optional: a demo with no settings leaves the whole step out.
+    assert.ok(count(html, '<section class="hb-step hb-try"') <= 1, 'at most one Try it step');
+    const hasTry = html.includes('<section class="hb-step hb-try"');
     assert.match(html, /<p class="hb-cat">\d{2}\.\d{2} · [^<]+<\/p>/);
     const prompt = html.match(/<p class="hb-prompt">([^<]*)<\/p>/)[1];
     assert.ok(words(prompt) >= 60 && words(prompt) <= 130, `prompt has ${words(prompt)} words`);
-    assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
+    if (hasTry) assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
+    else assert.ok(!prompt.includes('Match the settings listed below.'), 'a page without settings does not point to them');
     assert.ok(!prompt.includes('`'), 'prompt contains no code');
     const player = between(html, '<div class="hb-player">', '</div>');
     if (kind === 'once') {
@@ -96,11 +100,13 @@ for (const d of steps) {
       const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];
       assert.ok(!/\schecked\b/.test(input), `${marker} switch starts unchecked`);
     }
-    const tryIt = tryItOf(html);
-    const main = between(tryIt, '<div class="hb-settings">', '<details class="hb-options">');
-    const mainCount = count(main, 'class="hb-setting"');
-    assert.ok(mainCount >= 1 && mainCount <= 3, `${mainCount} main settings`);
-    assert.equal(count(tryIt, 'class="hb-hint"'), count(tryIt, 'class="hb-setting"'), 'every setting has one hint');
+    if (hasTry) {
+      const tryIt = tryItOf(html);
+      const main = between(tryIt, '<div class="hb-settings">', '<details class="hb-options">');
+      const mainCount = count(main, 'class="hb-setting"');
+      assert.ok(mainCount >= 1 && mainCount <= 3, `${mainCount} main settings`);
+      assert.equal(count(tryIt, 'class="hb-hint"'), count(tryIt, 'class="hb-setting"'), 'every setting has one hint');
+    }
     const good = count(between(html, '<ul class="hb-tags hb-good">', '</ul>'), '<li>');
     const avoid = count(between(html, '<ul class="hb-tags hb-avoid">', '</ul>'), '<li>');
     assert.ok(good >= 3 && good <= 5, `${good} Good for tags`);
@@ -111,6 +117,7 @@ for (const d of steps) {
   });
 
   test(`${d.slug}: every setting has a label and every choice group has one choice made`, () => {
+    if (!pageOf(d).includes('<section class="hb-step hb-try"')) return; // no settings, no Try it step
     const tryIt = tryItOf(pageOf(d));
     // A choice group is a div whose class list includes seg or swatches, wherever the class attribute sits.
     const groups = [...tryIt.matchAll(/<div\b(?=[^>]*\sclass="(?:[^"]*\s)?(seg|swatches)(?:\s[^"]*)?")([^>]*)>([\s\S]*?)<\/div>/g)];
@@ -144,6 +151,7 @@ for (const d of steps) {
   });
 
   test(`${d.slug}: Try it and the README Key parameters name the same settings`, () => {
+    if (!pageOf(d).includes('<section class="hb-step hb-try"')) return; // no settings, no Try it step
     const tryIt = tryItOf(pageOf(d));
     const names = [...tryIt.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
       .map(m => decode((m[2] ?? m[3]).trim()));
@@ -179,7 +187,7 @@ for (const d of steps) {
     const html = pageOf(d);
     const player = between(html, '<div class="hb-player">', '</div>');
     const fields = [...player.matchAll(/<input\b[^>]*>/g), ...tryItOf(html).matchAll(/<(?:input|select|textarea)\b[^>]*>/g)].map(m => m[0]);
-    assert.ok(fields.length > 0, 'the page has fields');
+    if (html.includes('<section class="hb-step hb-try"')) assert.ok(fields.length > 0, 'the page has fields');
     for (const field of fields) assert.match(field, /\sautocomplete="off"/, field);
   });
 
