@@ -17,8 +17,8 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Feel** uses the Entrance & Exit names: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out), Springy (goes a little past, then settles) and Even (one steady speed) is `linear`. The exact curve behind each name is in the row, because several pages have their own in-out or springy curve.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows: `04.16 · Micro-Interactions` (Tooltip Reveal) to `04.29 · Micro-Interactions` (Pull to Refresh).
 - **Accent:** every page keeps `--ui-accent:#ff9d5c`, which all 29 pages of the category already use.
-- **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92` (the site's own muted grey), as on the converted Entrance & Exit pages. The old `#77777e` is 4.2:1 on the demo cards' `#111114`; the new grey is 5.5:1 there and 5.7:1 on the stage's `#0b0b0d`. Text sizes stay as they are, as on those pages.
-- **Stage font:** every stage uses the site font. The shared stylesheet already maps `--disp` and `--mono` to it; each section still names the stage rules whose `font-family` goes (as the Text & Typography sheet did), including every literal `monospace`, which the shared stylesheet cannot map.
+- **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92` (the site's own muted grey), as on the converted Entrance & Exit pages. The old `#77777e` is 4.2:1 on the demo cards' `#111114` and 4.4:1 on the stage's `#0b0b0d`; the new grey is 5.5:1 and 5.7:1. Stage text below 11px goes up to 11px, as in Part 1; each section names the rules this changes. Other sizes stay.
+- **Stage font:** every stage uses the site font. The shared stylesheet already maps `--disp` and `--mono` to it; each section still names the stage rules whose font changes (as the Text & Typography sheet did), including every literal `monospace`, which the shared stylesheet cannot map. On plain elements the `font-family` just goes. Stage buttons and inputs get `font-family:inherit` instead, as in Part 1, because a form control does not take the page's font by itself; the shared stylesheet sets no font on them.
 - **Stage:** the page owns the stage's height, border and corners, so each demo's `.stage` rule loses `height`, `min-height`, `--stage-h`, `flex`, `min-width`, `border` and `border-radius`, and keeps what its content needs (display, alignment, gap, padding, background, `position`, `overflow`). A `.stage-wrap` wrapper goes. The old phone block goes, except the rules a section keeps. `hb-dots` is used on plain dark stages and left off where the stage paints its own full background; each section says which. No page here takes typed text as a setting, so none uses `hb-grow`.
 
 ## Do-it pages: Show me, Reset and `hb:input`
@@ -75,7 +75,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Slow motion:** css. The run's wait before hiding uses Speed × k.
 - **Reduced motion:** the demo's rule stays: the tooltip fades without growing.
 - **Touch:** today's `touchstart` toggle stays: a tap shows or hides an item's tooltip at once.
-- **Stage font:** site font. `.help-input` drops `font-family:var(--mono)`.
+- **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the four items stay: the gear button (tooltip below), the cut-off text (tooltip above), the Username field (tooltip to its right) and the avatar (tooltip above).
   - The "Total shown" readout goes, so `show()` no longer counts.
   - Two rules of the old phone block stay, in a block of their own: the cut-off text is at least 44px tall with `line-height:24px`, and the field's side tooltip flips below the field (with its arrow). That block's media query becomes `max-width:720px` instead of 600px: the side tooltip (up to 200px wide) is cut off at the stage's right edge on screens from 601px to about 670px wide.
@@ -144,7 +144,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Slow motion:** css. The run's wait before closing uses Opening speed × k.
 - **Reduced motion:** the demo's rule stays: the drawer and the dimming appear and disappear without sliding or fading.
 - **Touch:** the swipe to close already uses Pointer Events (`pointerdown` on the drawer, `pointerup` on the document, 50px toward its edge).
-- **Stage font:** site font. `.hamburger` drops `font-family:monospace`; its ☰ comes from the system's fallback font, as it does today.
+- **Stage font:** site font. `.hamburger` gets `font-family:inherit` (was `monospace`), and so does `.close-btn`. The ☰ comes from the system's fallback font, as it does today.
 - **Stage:** the small app screen stays: the header with the menu button and "Atlas App", the grey content lines, the dimming layer and the drawer.
   - The State readout goes.
   - The drawer's list keeps four items (Home, Gallery, About, Contact). "Settings", pinned to the bottom, goes, and `.drawer-body`'s padding becomes 12px (was 16px). Measured: five items need 268px and the side drawer has 221px on a phone and 248px on a short laptop, so the list scrolled; four need 212px.
@@ -217,7 +217,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   On `hb:input`: `stopDemo()` only. The window stays open, and the visitor closes it.
 - **Slow motion:** css. The window's grow and fade and the dimming slow down. The run's wait before closing uses Speed × k.
 - **Reduced motion:** the demo's rule stays: the window appears at full size and disappears without growing or fading.
-- **Stage font:** site font. `.trig-btn`, `.modal-close` and `.modal-confirm` drop `font-family:monospace`.
+- **Stage font:** site font. `.trig-btn`, `.modal-close` and `.modal-confirm` get `font-family:inherit` (was `monospace`).
 - **Stage:** the five buttons, the dimming layer, the window and the origin dot stay; the Origin readout goes.
   - The window's text becomes plain words. The title "Confirm action" stays. The body becomes "This window grew out of the button you pressed, so it feels connected to where it came from." Today's body names the CSS property.
   - The window is centred with `inset:0;margin:auto;height:fit-content` in place of `top:50%;left:50%` and the two negative margins. The old `margin-top:-80px` guessed its height: on a phone it sat 70px from the top and 42px from the bottom. `openModal()` measures with `offsetLeft` and `offsetTop`, which still give its laid-out corner.
@@ -320,7 +320,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   On `hb:input` (a press, or a wheel or touch that scrolls the box): `stopDemo()` only. The answer stays open.
 - **Slow motion:** css. The height or grid-row change, the arrow's turn and the text fade slow down. The run's wait before closing uses Speed × k.
 - **Reduced motion:** the demo's rule stays: answers open and close at once, without fading.
-- **Stage font:** site font. `.acc-trigger` drops `font-family:monospace`.
+- **Stage font:** site font. `.acc-trigger` gets `font-family:inherit` (was `monospace`).
 - **Stage:** the five questions stay, and the stage scrolls: its own rule keeps `overflow:auto`, because open answers can make the list taller than the stage.
   - The questions and answers are rewritten in plain words, because today's name CSS properties and quote code:
     1. "What is an accordion?" — "A stack of headings that each open to show more below them. It keeps a long page short and easy to scan."
@@ -480,7 +480,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   On `hb:input`: `stopDemo()`. If the field still holds the run's "abc123", it is emptied and `clearState()` runs, so the visitor starts from a clean field.
 - **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down. The run's wait after the shake uses Speed × k.
 - **Reduced motion:** the demo's rule stays: no shake, but the red border and the message still show.
-- **Stage font:** site font. The card's title, `.field input` and `.submit` drop their `var(--disp)` / `var(--mono)`.
+- **Stage font:** site font. The card's title drops `var(--disp)`; `.field input` and `.submit` get `font-family:inherit` (were `var(--mono)` and `var(--disp)`). `.field label` (10px) and `.msg` (10.5px) go up to 11px.
 - **Stage:** the sign-in card stays, with its field, message and Sign in button.
   - The hint line inside the card ("Password is letmein. Try a wrong value…") goes; its words move to the help line.
   - The card's `<h2>` becomes `<p class="card-title">` with the same look (the rule `.card h2` becomes `.card-title`), so the page's headings stay Watch it, Try it and Copy the prompt.
@@ -550,7 +550,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: a dismissed row is removed at once (its `reduce` branch), and the spring back has no transition.
 - **Touch:** already Pointer Events with pointer capture; `touch-action:pan-y` on the cards lets the page scroll up and down.
-- **Stage font:** site font. `.reveal` and `.avatar` drop `font-family:var(--disp)`.
+- **Stage font:** site font. `.reveal` and `.avatar` drop `font-family:var(--disp)`. `.meta .s` goes up to 11px (was 10px).
 - **Stage:** the message list stays, with four messages instead of five. Measured: five 66px rows need 362px, which overflows the 300px phone stage by 31px at the top and bottom and the 327px short-laptop stage by 17px; four need 288px.
   - "Theo Grant — Re: invoice — all sorted" goes.
   - "Kai Morgan — Deploy is green, shipping it" becomes "Kai Morgan — Booked the tickets for June", in plain words.
@@ -680,7 +680,7 @@ None: leave out the `details.hb-options` block.
   On `hb:input`: `stopDemo()` only.
 - **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down. The run's wait uses Speed × k.
 - **Reduced motion:** the demo's rule stays: the icon and the card switch at once.
-- **Stage font:** site font (no rule to change).
+- **Stage font:** site font (no font rule to change). The card's `.face .st` ("preview card") goes up to 11px (was 9px).
 - **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do.
   - To fit, `--toggle-size` becomes `clamp(72px,12vw,104px)` (the Toggle Size slider goes; see Removed), the card's width becomes `min(220px,80%)` (was `min(260px,80%)`) and the stage's `gap` becomes `clamp(20px,4vh,40px)` (was `clamp(28px,5vh,52px)`). Measured: today the button and the card need 327px on a short laptop, which fills the 327px stage from edge to edge, and 311px on a phone, which overflows its 300px stage. After the change they take about 296px on a short laptop and 270px on a phone.
   - The card's face texts stay; the card is `aria-hidden`, as today.
@@ -744,7 +744,7 @@ None: leave out the `details.hb-options` block.
   - A real press of Copy during the confirmation takes over the same timer, as today. `hb:input` has nothing to stop.
 - **Slow motion:** css. The icon change, the label change, the colour change and the pulse slow down. The revert timer is a hold and keeps its length.
 - **Reduced motion:** the demo's rule stays: the icon and label swap without movement or pulse.
-- **Stage font:** site font. `pre` and `.copy-btn` drop `font-family:var(--mono)`; `pre` itself goes (see Stage).
+- **Stage font:** site font. `.copy-btn` gets `font-family:inherit` (was `var(--mono)`); `pre` goes with the snippet (see Stage).
 - **Stage:** rewritten, because the page shows no code. Today the stage shows a five-line JavaScript snippet ("snippet.js").
   - It becomes an invite code: a small box with the label "Your invite code" (`--ui-muted`, 12px) and the code "MOTION-2026" (20px, weight 700), with the Copy button beside it. The box and the button sit in a centred row that wraps on narrow screens.
   - The code element keeps `id="snippet"`, so Copy copies "MOTION-2026".
@@ -882,7 +882,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, the bar is hidden, and a timer dismisses each one.
 - **Touch:** already Pointer Events: a drag past 35% of its width or a tap dismisses a toast. Holding a finger on a toast pauses its countdown (the `paused` class). Pointing at a toast pauses it too, inside `@media (hover: hover)`, as today.
-- **Stage font:** site font. `.toast .ic` and `.toast .ti` drop `font-family:var(--disp)`.
+- **Stage font:** site font. `.toast .ic` and `.toast .ti` drop `font-family:var(--disp)`; `.toast .x` and the new `.send` get `font-family:inherit`. `.toast .ms` goes up to 11px (was 10.5px).
 - **Stage:** the corner stack stays.
   - The hint "Trigger a toast →" pointed at the old panel, so it goes, and so do the script's lines that hide and show it. The old panel's "Trigger toast" button moves onto the stage in the hint's place (absolutely centred, as the hint was, under the toasts), as `<button class="send" id="send" type="button">Send a toast</button>`. It keeps the old button's look (accent background, dark text, at least 44px tall) and calls `spawn()`, so the demo still works without the panel.
   - When four toasts stack on a phone they can cover the button; a tap on a toast closes it.
@@ -954,7 +954,7 @@ None: leave out the `details.hb-options` block.
   The run uses `move()` and `paint()`, not `select()`, which would move the keyboard focus. On `hb:input`: `stopDemo()` only.
 - **Slow motion:** css. The slide and the labels' colour change slow down. The run's wait uses Speed × k.
 - **Reduced motion:** the demo's rule stays: the highlight jumps.
-- **Stage font:** site font. `.seg-opt` drops `font-family:var(--mono)`.
+- **Stage font:** site font. `.seg-opt` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the control stays; the "Selected" readout goes.
   - The control's class `seg` becomes `seg-track`, and the rules `.seg`, `.seg.underline .seg-ind` and `.seg.underline .seg-opt[aria-checked="true"]` follow, as does the script's `classList.toggle('underline', …)`. The shared stylesheet styles `.hb-page .seg` and its buttons as Try it choice buttons (borders, gaps, 15px text), which would restyle the demo; this was seen in the browser. `.seg-opt` and `.seg-ind` keep their names.
   - The stage's own `min-height` and its old phone rule go. Its padding `clamp(28px,6vw,64px) 20px` stays.
@@ -1026,7 +1026,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: the list snaps back without its tween, and new items appear without sliding in.
 - **Touch:** already Pointer Events, claimed only at the top of the list, with `touchmove` blocked once the pull is claimed. The list still scrolls normally.
-- **Stage font:** site font (no rule to change).
+- **Stage font:** site font (no font rule to change). `.indicator` and `.meta .s` go up to 11px (were 10px).
 - **Stage:** the list scrolls inside its own box. The stage's own rule keeps `position:relative;overflow:hidden` and adds `display:flex;flex-direction:column`.
   - The stage becomes a small app screen. At the top is a header bar with the title "Updates" and, at its right, a Refresh button: a ↻ icon, `aria-label="Refresh"`, 44×44px, calling `startRefresh()`. It is today's "↻ Refresh now" moved from the old panel onto the stage; the README calls it the keyboard way to refresh.
   - Below the header, a `.feed` box (`position:relative;flex:1;overflow:hidden`) holds the indicator and the scroller, which move into it unchanged. The indicator therefore comes down from under the header.
