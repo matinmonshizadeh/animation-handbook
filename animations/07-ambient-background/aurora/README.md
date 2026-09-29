@@ -1,7 +1,7 @@
 # Aurora / Northern Lights
 
 ## What it is
-Aurora borealis is rendered in the browser as a set of tall, vertically-oriented color bands that drift horizontally and deform slightly as they move, simulating the curtain-like waviness of real auroras. The effect uses overlapping, heavily-blurred gradient divs whose positions are animated with CSS keyframes that include translation, skewing, and scaling — the combination produces the characteristic shimmer. No WebGL is required; pure CSS creates a convincing atmospheric illusion.
+An aurora background imitates the northern lights with a few tall bands of color that sway slowly across a night sky. Each band fades away at the top and bottom and is softly blurred, and each one drifts sideways and leans a little on its own cycle, so the curtains of light never move together. The browser draws it all with no script.
 
 ## When to use it
 - Hero sections on apps with a Nordic, atmospheric, or space theme
@@ -41,6 +41,8 @@ Each aurora band is an element spanning the full stage width, positioned near th
 }
 ```
 
+On phones the demo halves the blur, `@media (max-width: 600px) { .band { filter: blur(18px); } }`, which keeps the bands as soft on the smaller stage.
+
 **Real aurora color chemistry**:
 - Green — oxygen atoms at ~100km altitude (most common)
 - Blue/purple — nitrogen molecules at lower altitudes
@@ -50,20 +52,21 @@ Each aurora band is an element spanning the full stage width, positioned near th
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Band count | 2–3 | 2 creates clarity; 5 creates a richer, more layered sky |
-| Blur amount | 35px | Lower = crisper band edges; higher = more diffuse wash |
-| Cycle duration | 30s | The ambient mindset: long cycle, imperceptible reset |
-| `skewY` range | ±1.5° | The subtle skew is what gives the "waving curtain" character |
+| Number of bands | 2 | How many bands of light: two look clear, five make a richer, layered sky |
+| Speed | Normal | How long each band takes to sway through its cycle: slow is 48s, normal 30s and fast 18s |
+| Colors | Green | Which colors come first: green and blue (the most common aurora), purple and pink, or red and pink (rare); more bands add the other colors |
+| Brightness | Medium | How strongly the bands glow: dim is 50%, medium 75% and bright 100% |
+| Stars in the sky | off | Adds 120 twinkling stars behind the bands |
 
 ## Production notes
 - **No WebGL needed**: CSS keyframes are sufficient for this effect at desktop resolutions. For smooth animation on mobile, reduce blur and band count.
 - **`overflow: hidden` is mandatory**: bands extend 30% beyond each edge (for drift headroom). Without overflow clipping, they're visible outside the stage.
 - **`animation-delay` offsets**: give each band a unique negative delay so they start at different phases. Without this, all bands drift together, which looks mechanical.
-- **Star layer pairing**: adding a star background behind the aurora dramatically increases realism — the aurora appears to float in front of the night sky. See the demo's star toggle.
+- **Star layer pairing**: adding a star background behind the aurora dramatically increases realism — the aurora appears to float in front of the night sky. See the demo's Stars in the sky switch.
 - **Performance**: each blurred element creates a GPU compositing layer. 5 blurred bands + a star canvas is the practical limit on mid-range mobile.
 - **Three.js approach**: for fully custom aurora with 3D depth and noise-driven shapes, render a plane mesh with a custom GLSL shader that samples 3D noise for the waveform and color distribution.
 
 ## See also
-- [Mesh Gradient](../mesh-gradient/) — similar blurred-layer approach, radial rather than vertical
-- [Starfield](../starfield/) — the star background that pairs naturally with aurora
-- [Animated Gradient Background](../animated-gradient-background/) — simpler single-gradient approach
+- [Mesh Gradient Animation](../mesh-gradient/) — round blobs of color instead of tall bands
+- [Starfield / Space Particles](../starfield/) — stars stream toward you out of the dark
+- [Animated Gradient Background](../animated-gradient-background/) — one gradient that slowly shifts
