@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scrub Animation — Animation Handbook</title>
-  <meta name="description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
+  <meta name="description" content="Scroll plays it forward and back, like dragging a video. Best for product tours.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,53 +12,42 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Scrub Animation — Animation Handbook">
-  <meta property="og:description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
+  <meta property="og:description" content="Scroll plays it forward and back, like dragging a video. Best for product tours.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Scrub Animation — Animation Handbook">
-  <meta name="twitter:description" content="The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.">
+  <meta name="twitter:description" content="Scroll plays it forward and back, like dragging a video. Best for product tours.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrub Animation", "name": "Scrub Animation", "description": "The animation has no duration. Scroll position is the playhead — seek it anywhere, forward or back.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrub Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrub Animation", "name": "Scrub Animation", "description": "Scroll plays it forward and back, like dragging a video. Best for product tours.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrub-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrub Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;
-          --ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;
-          --disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;
-           border:1px solid var(--ui-border);border-radius:8px}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
     /* .track supplies the scroll budget; .pinned holds the scene still inside it */
-    .track{height:calc(var(--stage-h) * 3)}
-    .pinned{position:sticky;top:0;height:var(--stage-h);display:flex;flex-direction:column;
+    .track{height:300cqh}
+    .pinned{position:sticky;top:0;height:100cqh;display:flex;flex-direction:column;
             justify-content:center;gap:18px;padding:clamp(14px,3vw,26px)}
-    .flight{width:100%}
+    /* overflow:visible keeps a label over the top of the curve from being cut when the drawing is small; a flex item with
+       overflow:visible would not shrink below its full size, hence min-height:0 */
+    .flight{width:100%;overflow:visible;min-height:0}
     .rail{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2;stroke-dasharray:5 7;stroke-linecap:round}
     .trail{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round}
     .mark{fill:var(--ui-border)}
     .mark.done{fill:var(--ui-accent)}
     /* paint-order draws a background-coloured outline first, so a label stays legible
-       where the curve passes behind it */
-    .mark-label{font-size:9px;fill:var(--ui-muted);font-family:var(--mono);
-                paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+       where the curve passes behind it; its size and outline width are set in buildMarks() */
+    .mark-label{fill:var(--ui-muted);paint-order:stroke;stroke:var(--bg);stroke-linejoin:round}
     .plane{fill:var(--ui-accent)}
     .halo{fill:var(--ui-accent);opacity:.14}
 
-    /* seek bar — the whole point: scroll is a playhead, not a play button */
+    /* the playhead: scroll is a position, not a play button */
     .player{border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-bg);padding:14px 16px}
     .player-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px}
-    .frame{font-family:var(--disp);font-weight:700;font-size:clamp(18px,3vw,26px);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
-    .frame span{color:var(--ui-muted);font-size:12px;font-family:var(--mono);font-weight:400}
-    .dir{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ui-muted);
+    .frame{font-weight:700;font-size:clamp(18px,3vw,26px);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+    .frame span{color:var(--ui-muted);font-size:12px;font-weight:400}
+    .dir{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ui-muted);
          border:1px solid var(--ui-border);border-radius:20px;padding:4px 10px;white-space:nowrap}
     .dir.fwd{color:var(--ui-accent);border-color:var(--ui-accent)}
     .dir.rev{color:#f0883e;border-color:#f0883e}
@@ -66,208 +55,226 @@
     .seek-fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px;background:var(--ui-accent)}
     .seek-head{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;
                background:var(--ui-text);border:3px solid var(--ui-accent)}
-    .ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--ui-muted)}
-
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);
-          border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text);font-variant-numeric:tabular-nums}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sr .sv{width:38px;text-align:right;color:var(--ui-text);font-variant-numeric:tabular-nums}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);
-           font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .div{height:1px;background:var(--ui-border)}
-    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);
-           font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){
-      .layout{flex-direction:column}aside{width:100%}
-      /* in a column container `flex:1` makes flex-basis the height and overrides --stage-h */
-      .stage{flex:none;width:100%}:root{--stage-h:480px}
-    }
+    .ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ui-muted)}
     @media(prefers-reduced-motion:reduce){.halo{display:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-trigger/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../pin-animation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scrub-animation/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Scrub Animation</h1>
-  <p>The animation has no duration. Scroll position <em>is</em> the playhead — seek it anywhere, forward or back.</p>
-</header>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scroll-trigger/" rel="prev" aria-label="Previous: ScrollTrigger Animation"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>ScrollTrigger Animation</span></a><a href="../pin-animation/" rel="next" aria-label="Next: Pin Animation"><span><span class="hb-dir">Next: </span>Pin Animation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.08 · Scroll-Based</p>
+    <h1>Scrub Animation</h1>
+    <p class="hb-lede">Scroll plays it forward and back, like dragging a video. Best for product tours.</p>
+  </header>
 
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="track">
-      <div class="pinned">
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, down and back up, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A plane on a flight route">
+      <div class="track">
+        <div class="pinned">
 
-        <svg class="flight" viewBox="0 0 620 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-          <!-- The curve IS the timeline. Drawing the whole route up front means you can
-               always see where the current frame sits inside the animation. -->
-          <path id="rail" class="rail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
-          <path id="trail" class="trail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
-          <g id="marks"></g>
-          <g id="flyer">
-            <circle class="halo" r="17"/>
-            <path class="plane" d="M 13 0 L -9 -8 L -4 0 L -9 8 Z"/>
-          </g>
-        </svg>
+          <svg class="flight" viewBox="0 0 620 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <!-- The curve IS the timeline. Drawing the whole route up front means you can
+                 always see where the current frame sits inside the animation. -->
+            <path id="rail" class="rail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
+            <path id="trail" class="trail" d="M 45 205 C 165 205 150 45 280 45 S 435 200 575 78"/>
+            <g id="marks"></g>
+            <g id="flyer">
+              <circle class="halo" r="17"/>
+              <path class="plane" d="M 13 0 L -9 -8 L -4 0 L -9 8 Z"/>
+            </g>
+          </svg>
 
-        <div class="player">
-          <div class="player-top">
-            <div class="frame" id="frame">000<span> / 120</span></div>
-            <div class="dir" id="dir">idle</div>
+          <div class="player">
+            <div class="player-top">
+              <div class="frame" id="frame" role="img" aria-label="Frame 0 of 120">000<span> / 120</span></div>
+              <div class="dir" id="dir" aria-hidden="true">Still</div>
+            </div>
+            <div class="seek">
+              <div class="seek-fill" id="seek-fill"></div>
+              <div class="seek-head" id="seek-head"></div>
+            </div>
+            <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
           </div>
-          <div class="seek">
-            <div class="seek-fill" id="seek-fill"></div>
-            <div class="seek-head" id="seek-head"></div>
-          </div>
-          <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+
         </div>
-
       </div>
     </div>
-  </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
 
-  <aside>
-    <p class="note">A scrubbed animation is a <em>position</em>, not a playback. Nothing is playing — every scroll offset maps to one exact frame. Drag Seek below and you get those same frames without scrolling at all: scroll is simply one way to move the playhead.</p>
-    <div><div class="lbl">Playhead</div>
-      <div class="tbl">
-        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
-        <div class="kv"><span>Frame</span><span class="v" id="frame-kv">000 / 120</span></div>
-        <div class="kv"><span>Direction</span><span class="v" id="dir-kv">idle</span></div>
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="linear" class="on" aria-pressed="true">Even</button>
+          <button type="button" data-ease="inOut" aria-pressed="false">Gentle</button>
+          <button type="button" data-ease="out" aria-pressed="false">Smooth</button>
+          <button type="button" data-ease="in" aria-pressed="false">Slow start</button>
+        </div>
+        <p class="hb-hint">Even follows the scroll exactly; the others reshape it.</p>
       </div>
     </div>
-    <div class="div"></div>
-    <div><div class="lbl" id="seek-lbl">Seek</div>
-      <div class="sr"><input type="range" id="seek-sl" aria-labelledby="seek-lbl" min="0" max="1000" value="0"><span class="sv" id="seek-val">0%</span></div>
-    </div>
-    <div><div class="lbl" id="ease-lbl">Easing</div>
-      <select id="ease-sel" aria-labelledby="ease-lbl">
-        <option value="linear">linear — 1:1 with scroll</option>
-        <option value="inOut">ease in-out</option>
-        <option value="out">ease out</option>
-        <option value="in">ease in</option>
-      </select>
-    </div>
-    <div class="div"></div>
-    <button id="reset-btn">Reset playhead</button>
-  </aside>
-</div>
+  </section>
 
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a scroll-scrubbed animation to [your illustration or product explainer]. Hold the scene in view while the visitor scrolls through a taller section, and turn how far they have scrolled into a progress value from 0 to 1. Draw the whole route up front, place the moving object at the point on it that matches the progress, facing along the path, and fill in the part already travelled. Nothing plays on a timer: scrolling back simply moves it back. Shape the progress with the easing given in the settings. If the visitor has reduced motion turned on, drop decorative effects but keep the object following the scroll. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Product tours</li><li>Explainers</li><li>Step-by-step diagrams</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Short sections</li><li>Key information</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const $=id=>document.getElementById(id);
-  const stage=$('stage'),rail=$('rail'),trail=$('trail'),flyer=$('flyer'),marks=$('marks');
-  const frameEl=$('frame'),dirEl=$('dir'),seekFill=$('seek-fill'),seekHead=$('seek-head');
-  const progKv=$('scroll-prog'),frameKv=$('frame-kv'),dirKv=$('dir-kv');
-  const seekSl=$('seek-sl'),seekVal=$('seek-val'),easeSel=$('ease-sel');
-  const FRAMES=120;
-  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
-  const G={},set=(k,v,fn)=>{if(G[k]!==v){G[k]=v;fn(v)}};
+  const $ = id => document.getElementById(id);
+  const stage = $('stage'), rail = $('rail'), trail = $('trail'), flyer = $('flyer'), marks = $('marks');
+  const frameEl = $('frame'), dirEl = $('dir'), seekFill = $('seek-fill'), seekHead = $('seek-head');
+  const FRAMES = 120, SVG_NS = 'http://www.w3.org/2000/svg';
+  const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+  const G = {}, set = (k, v, fn) => { if (G[k] !== v) { G[k] = v; fn(v); } };
 
-  const EASES={linear:t=>t,
-    inOut:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
-    out:t=>1-Math.pow(1-t,3),
-    in:t=>t*t*t};
+  const EASES = {
+    linear: t => t,
+    inOut: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    out: t => 1 - Math.pow(1 - t, 3),
+    in: t => t * t * t };
+  let ease = 'linear';   // the curve the Feel setting picked
 
   // Layout reads happen here only — never per frame, where they would force a reflow.
-  let LEN=1,MAXS=1;
-  function measure(){
-    LEN=rail.getTotalLength();
-    MAXS=Math.max(1,stage.scrollHeight-stage.clientHeight);
-    trail.style.strokeDasharray=LEN;
+  let LEN = 1, MAXS = 1;
+  function measure() {
+    LEN = rail.getTotalLength();
+    MAXS = Math.max(1, stage.scrollHeight - stage.clientHeight);
+    trail.style.strokeDasharray = LEN;
     buildMarks();
   }
 
-  function buildMarks(){
-    marks.innerHTML='';
-    for(let i=0;i<=4;i++){
-      const pt=rail.getPointAtLength(LEN*i/4);
-      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      c.setAttribute('class','mark');c.setAttribute('r','4');
-      c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y);
-      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-      t.setAttribute('class','mark-label');t.setAttribute('x',pt.x);t.setAttribute('y',pt.y-12);
-      t.setAttribute('text-anchor','middle');t.textContent=i*25+'%';
-      marks.append(c,t);
+  // The drawing scales to fit the box, so a label sized in drawing units would shrink with it. k is how many drawing
+  // units make one screen pixel, which keeps every label at 12px on screen, 14px above its mark.
+  function buildMarks() {
+    const ctm = rail.getScreenCTM();
+    const k = ctm && ctm.a > 0 ? 1 / ctm.a : 1;
+    marks.innerHTML = '';
+    for (let i = 0; i <= 4; i++) {
+      const pt = rail.getPointAtLength(LEN * i / 4);
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('class', 'mark'); c.setAttribute('r', '4');
+      c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y);
+      const t = document.createElementNS(SVG_NS, 'text');
+      t.setAttribute('class', 'mark-label'); t.setAttribute('x', pt.x); t.setAttribute('y', pt.y - 14 * k);
+      t.setAttribute('text-anchor', 'middle');
+      t.style.fontSize = 12 * k + 'px'; t.style.strokeWidth = 3 * k + 'px';
+      t.textContent = i * 25 + '%';
+      marks.append(c, t);
     }
+    delete G.marks; // the new circles start unlit; the next render lights the ones already passed
   }
 
-  let lastScroll=0,idleTimer=null,ticking=false;
+  let lastScroll = 0, idleTimer = null, ticking = false;
 
-  function render(p){
-    const e=EASES[easeSel.value](p);
+  function render(p) {
+    const e = EASES[ease](p);
     // Position and heading both come from the path itself, so the drawn trail and the
     // moving plane can never disagree about where the current frame is.
-    const d=LEN*e,pt=rail.getPointAtLength(d);
-    const ahead=rail.getPointAtLength(Math.min(LEN,d+1.5));
-    const behind=rail.getPointAtLength(Math.max(0,d-1.5));
-    const angle=Math.atan2(ahead.y-behind.y,ahead.x-behind.x)*180/Math.PI;
-    set('fly',`${pt.x.toFixed(1)},${pt.y.toFixed(1)},${angle.toFixed(1)}`,
-        ()=>flyer.setAttribute('transform',`translate(${pt.x} ${pt.y}) rotate(${angle})`));
-    set('trail',Math.round(d*10)/10,v=>trail.style.strokeDashoffset=LEN-v);
+    const d = LEN * e, pt = rail.getPointAtLength(d);
+    const ahead = rail.getPointAtLength(Math.min(LEN, d + 1.5));
+    const behind = rail.getPointAtLength(Math.max(0, d - 1.5));
+    const angle = Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * 180 / Math.PI;
+    set('fly', `${pt.x.toFixed(1)},${pt.y.toFixed(1)},${angle.toFixed(1)}`,
+        () => flyer.setAttribute('transform', `translate(${pt.x} ${pt.y}) rotate(${angle})`));
+    set('trail', Math.round(d * 10) / 10, v => trail.style.strokeDashoffset = LEN - v);
 
-    const frame=Math.round(e*FRAMES),pct=Math.round(p*100);
-    set('frame',frame,v=>{
-      const s=String(v).padStart(3,'0');
-      frameEl.innerHTML=`${s}<span> / ${FRAMES}</span>`;
-      frameKv.textContent=`${s} / ${FRAMES}`;
+    const frame = Math.round(e * FRAMES), pct = Math.round(p * 100);
+    // The number changes on almost every frame, so it is an image with a label, not a live region
+    set('frame', frame, v => {
+      frameEl.firstChild.nodeValue = String(v).padStart(3, '0');
+      frameEl.setAttribute('aria-label', `Frame ${v} of ${FRAMES}`);
     });
-    set('pct',pct,v=>{
-      progKv.textContent=v+'%';
-      seekFill.style.width=v+'%';
-      seekHead.style.left=v+'%';
-      seekVal.textContent=v+'%';
-      if(document.activeElement!==seekSl)seekSl.value=v*10;
-    });
-    set('marks',Math.floor(e*4+1e-6),v=>{
-      [...marks.querySelectorAll('.mark')].forEach((c,i)=>c.classList.toggle('done',i<=v));
+    set('pct', pct, v => { seekFill.style.width = v + '%'; seekHead.style.left = v + '%'; });
+    set('marks', Math.floor(e * 4 + 1e-6), v => {
+      [...marks.querySelectorAll('.mark')].forEach((c, i) => c.classList.toggle('done', i <= v));
     });
   }
 
-  function setDir(d){
-    set('dir',d,v=>{
-      dirEl.textContent=v==='fwd'?'scrubbing':v==='rev'?'rewinding':'idle';
-      dirEl.className='dir'+(v==='idle'?'':' '+v);
-      dirKv.textContent=v==='fwd'?'forward':v==='rev'?'reverse':'idle';
+  function setDir(d) {
+    set('dir', d, v => {
+      dirEl.textContent = v === 'fwd' ? 'Forward' : v === 'rev' ? 'Backward' : 'Still';
+      dirEl.className = 'dir' + (v === 'idle' ? '' : ' ' + v);
     });
   }
 
-  function update(){
-    const st=stage.scrollTop;
-    if(st!==lastScroll){
-      setDir(st>lastScroll?'fwd':'rev');lastScroll=st;
-      clearTimeout(idleTimer);idleTimer=setTimeout(()=>setDir('idle'),260);
+  function update() {
+    const st = stage.scrollTop;
+    if (st !== lastScroll) {
+      setDir(st > lastScroll ? 'fwd' : 'rev'); lastScroll = st;
+      clearTimeout(idleTimer); idleTimer = setTimeout(() => setDir('idle'), 260);
     }
-    render(clamp(st/MAXS,0,1));
-    ticking=false;
+    render(clamp(st / MAXS, 0, 1));
+    ticking = false;
   }
 
-  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  // Seeking and scrolling are the same act — the slider just moves the same playhead.
-  seekSl.addEventListener('input',()=>{stage.scrollTop=(seekSl.value/1000)*MAXS;update()});
-  easeSel.addEventListener('change',()=>{for(const k in G)delete G[k];update()});
-  $('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;lastScroll=0;setDir('idle');update()});
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
+  stage.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, { passive: true });
 
-  measure();update();
+  function choices(id, pick) {
+    const buttons = document.querySelectorAll('#' + id + ' button');
+    buttons.forEach(b => b.addEventListener('click', () => {
+      buttons.forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      pick(b.dataset);
+    }));
+  }
+  choices('feel-seg', d => { ease = d.ease; for (const k in G) delete G[k]; update(); });
+
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { measure(); update(); }, 150); });
+
+  measure(); update();
+  // The drawing's size depends on the panel's text, which depends on the site font
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); update(); });
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

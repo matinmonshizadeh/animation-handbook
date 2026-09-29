@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ScrollTrigger Animation — Animation Handbook</title>
-  <meta name="description" content="Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.">
+  <meta name="description" content="Animations start, follow and pin at set scroll points. Best for landing pages.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-trigger/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,32 +12,23 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="ScrollTrigger Animation — Animation Handbook">
-  <meta property="og:description" content="Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.">
+  <meta property="og:description" content="Animations start, follow and pin at set scroll points. Best for landing pages.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-trigger/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ScrollTrigger Animation — Animation Handbook">
-  <meta name="twitter:description" content="Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.">
+  <meta name="twitter:description" content="Animations start, follow and pin at set scroll points. Best for landing pages.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "ScrollTrigger Animation", "name": "ScrollTrigger Animation", "description": "Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-trigger/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, ScrollTrigger Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "ScrollTrigger Animation", "name": "ScrollTrigger Animation", "description": "Animations start, follow and pin at set scroll points. Best for landing pages.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-trigger/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, ScrollTrigger Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#6ea8ff;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
-    .zone{min-height:550px;padding:32px 24px;border-top:1px dashed;border-bottom:1px dashed;position:relative;display:flex;flex-direction:column;justify-content:center}
-    .zone-tag{position:absolute;top:10px;left:12px;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;opacity:.8}
-    .run-out{height:var(--stage-h);display:flex;align-items:center;justify-content:center;
-             font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ui-muted);opacity:.5}
+    .zone{min-height:90cqh;padding:32px 24px;border-top:1px dashed;border-bottom:1px dashed;position:relative;display:flex;flex-direction:column;justify-content:center}
+    .zone-tag{position:absolute;top:10px;left:12px;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+    .run-out{height:100cqh;display:flex;align-items:center;justify-content:center;padding:0 24px;text-align:center;
+             font-size:13px;letter-spacing:.1em;color:var(--ui-muted)}
     .z1{background:rgba(88,166,255,.06);border-color:rgba(88,166,255,.25)}
     .z2{background:rgba(191,145,243,.06);border-color:rgba(191,145,243,.25)}
     .z3{background:rgba(63,185,80,.06);border-color:rgba(63,185,80,.25)}
@@ -46,226 +37,196 @@
     .z2 .zone-tag{background:rgba(191,145,243,.15);color:#bf91f3}
     .z3 .zone-tag{background:rgba(63,185,80,.15);color:#3fb950}
     .z4 .zone-tag{background:rgba(248,81,73,.15);color:#f85149}
+    .zone-mid{text-align:center}
+    .zone-cap{font-size:13px;color:var(--ui-muted);margin-bottom:4px}
     /* Zone 1 */
     .reveal-content{opacity:0;transform:translateY(30px);transition:opacity .5s,transform .5s}
     .reveal-content.active{opacity:1;transform:none}
     @media(prefers-reduced-motion:reduce){.reveal-content{transition:none}}
     .reveal-title{font-size:clamp(18px,3vw,26px);font-weight:bold;margin-bottom:8px}
-    .reveal-sub{font-size:13px;color:var(--ui-muted);line-height:1.6}
+    .reveal-sub{font-size:14px;color:var(--ui-muted);line-height:1.6}
     /* Zone 2 */
     .swatch{width:90px;height:90px;border-radius:12px;background:var(--ui-accent);will-change:transform,filter;margin:24px auto}
-    /* Zone 3 — two viewports tall so the card has a span to stay pinned across,
+    /* Zone 3 — two boxes tall so the card has a span to stay pinned across,
        and anchored to the zone top so the pin engages as the zone arrives. */
-    .z3{min-height:calc(var(--stage-h) * 2);justify-content:flex-start}
-    .pin-card{position:sticky;top:calc(var(--stage-h) / 2 - 70px);background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px;max-width:340px;margin:0 auto}
+    .z3{min-height:200cqh;justify-content:flex-start}
+    .pin-card{position:sticky;top:calc(50cqh - 70px);width:100%;max-width:340px;margin:0 auto;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px}
     .pin-step{font-size:12px;color:var(--ui-accent);margin-bottom:6px}
     .pin-title{font-size:16px;font-weight:bold}
-    .pin-body{font-size:12px;color:var(--ui-muted);margin-top:8px;line-height:1.6}
+    .pin-body{font-size:14px;color:var(--ui-muted);margin-top:8px;line-height:1.6}
     /* Zone 4 */
-    .snap-dots-z4{display:flex;gap:14px;justify-content:center;margin:20px 0}
-    .snap-dot{width:10px;height:10px;border-radius:50%;background:var(--ui-border);transition:background .2s,transform .2s}
-    .snap-dot.lit{transform:scale(1.5)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .pills{display:flex;flex-direction:column;gap:3px}
-    .pill{font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid var(--ui-border);color:var(--ui-muted)}
-    .pill.active{border-color:var(--ui-accent);color:var(--ui-accent)}
-    .pill.past{border-color:var(--ui-border);color:var(--ui-muted);opacity:.45}
-    .div{height:1px;background:var(--ui-border)}
-    .cb-log{display:flex;flex-direction:column;gap:2px;font-size:9px;color:var(--ui-muted);font-family:monospace;min-height:70px}
-    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}
-      /* in a column container `flex:1` makes flex-basis the height and overrides --stage-h */
-      .stage{flex:none;width:100%}:root{--stage-h:480px}}
+    .dots{display:flex;gap:14px;justify-content:center;margin-top:20px}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--ui-border);transition:background .2s,transform .2s}
+    .dot.lit{background:#f85149;transform:scale(1.5)}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../stacking-cards/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../scrub-animation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scroll-trigger/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>ScrollTrigger Animation</h1>
-  <p>Lifecycle callbacks — onEnter, onLeave, onEnterBack, onLeaveBack — demonstrated with vanilla JS.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="zone z1" id="zone1">
-      <span class="zone-tag">Fade on Enter</span>
-      <div class="reveal-content" id="reveal">
-        <div class="reveal-title">Enter to Reveal</div>
-        <div class="reveal-sub">This content fades in when the zone enters the viewport, and resets when it leaves. That is the onEnter / onLeave lifecycle in action.</div>
-      </div>
-    </div>
-    <div class="zone z2" id="zone2">
-      <span class="zone-tag">Scrub</span>
-      <div style="text-align:center">
-        <div style="font-size:12px;color:var(--ui-muted);margin-bottom:4px">Scroll position drives rotation, scale, and hue</div>
-        <div class="swatch" id="swatch"></div>
-        <div style="font-size:11px;color:var(--ui-muted)" id="scrub-val">progress: 0%</div>
-      </div>
-    </div>
-    <div class="zone z3" id="zone3">
-      <span class="zone-tag">Pin + Scrub</span>
-      <div class="pin-card" id="pin-card">
-        <div class="pin-step" id="pin-step">Step 1 of 3</div>
-        <div class="pin-title" id="pin-title">Initialize</div>
-        <div class="pin-body" id="pin-body">The trigger fires. The animation begins. State is set.</div>
-      </div>
-    </div>
-    <div class="zone z4" id="zone4">
-      <span class="zone-tag">Snap</span>
-      <div style="text-align:center">
-        <div style="font-size:12px;color:var(--ui-muted);margin-bottom:4px">Scroll to light up snap points</div>
-        <div class="snap-dots-z4" id="snap-dots-z4">
-          <div class="snap-dot" style="--c:#f85149"></div>
-          <div class="snap-dot" style="--c:#f85149"></div>
-          <div class="snap-dot" style="--c:#f85149"></div>
-          <div class="snap-dot" style="--c:#f85149"></div>
-          <div class="snap-dot" style="--c:#f85149"></div>
-        </div>
-        <div style="font-size:11px;color:var(--ui-muted)" id="snap-val">0 / 5 lit</div>
-      </div>
-    </div>
-    <!-- Without a viewport's worth of run-out the last zone can never scroll past
-         the top, so it could never finish its scrub or fire onLeave. -->
-    <div class="run-out">all zones exited · scroll back up to replay</div>
-  </div>
-  <aside>
-    <p class="note">ScrollTrigger isn't an animation type — it's the MECHANISM that fires animations at the right scroll position. The four zones below show its core behaviors. In production, GSAP's ScrollTrigger plugin handles all of this.</p>
-    <div><div class="lbl">Scroll progress</div>
-      <div class="kv"><span>Overall</span><span class="v" id="scroll-prog">0%</span></div>
-    </div>
-    <div><div class="lbl">Zone status</div>
-      <div class="pills">
-        <div class="pill" id="pill1">Zone 1 · Fade on Enter · idle</div>
-        <div class="pill" id="pill2">Zone 2 · Scrub · idle</div>
-        <div class="pill" id="pill3">Zone 3 · Pin + Scrub · idle</div>
-        <div class="pill" id="pill4">Zone 4 · Snap · idle</div>
-      </div>
-    </div>
-    <div class="div"></div>
-    <div><div class="lbl">Callback log</div><div class="cb-log" id="cb-log"><span style="color:var(--ui-border)">— no events yet —</span></div></div>
-    <button id="reset-btn">Reset scroll</button>
-  </aside>
-</div>
-<script>
-  const stage=document.getElementById('stage'),scrollProg=document.getElementById('scroll-prog');
-  const zone1=document.getElementById('zone1'),zone2=document.getElementById('zone2');
-  const zone3=document.getElementById('zone3'),zone4=document.getElementById('zone4');
-  const reveal=document.getElementById('reveal'),swatch=document.getElementById('swatch');
-  const scrubVal=document.getElementById('scrub-val');
-  const pinStep=document.getElementById('pin-step'),pinTitle=document.getElementById('pin-title'),pinBody=document.getElementById('pin-body');
-  const snapDots4=[...document.getElementById('snap-dots-z4').children],snapVal=document.getElementById('snap-val');
-  const pills=[document.getElementById('pill1'),document.getElementById('pill2'),document.getElementById('pill3'),document.getElementById('pill4')];
-  const cbLog=document.getElementById('cb-log'),EMPTY_LOG=cbLog.innerHTML;
-  const PIN_STEPS=[['Step 1 of 3','Initialize','The trigger fires. The animation begins. State is set.'],['Step 2 of 3','Process','Scroll-linked progress drives every value. Each pixel is intentional.'],['Step 3 of 3','Complete','The trigger fires onLeave. State is captured. Callback logged.']];
-  let ticking=false,prevState=[null,null,null,null],cbEvents=[],primed=false;
-  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  const G={},set=(k,v,fn)=>{if(G[k]!==v){G[k]=v;fn(v)}};
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../stacking-cards/" rel="prev" aria-label="Previous: Stacking Cards"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Stacking Cards</span></a><a href="../scrub-animation/" rel="next" aria-label="Next: Scrub Animation"><span><span class="hb-dir">Next: </span>Scrub Animation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.07 · Scroll-Based</p>
+    <h1>ScrollTrigger Animation</h1>
+    <p class="hb-lede">Animations start, follow and pin at set scroll points. Best for landing pages.</p>
+  </header>
 
-  /* Zone geometry, cached. offsetTop is measured from the nearest positioned
-     ancestor — here body, since .stage is static — while scrollTop is measured
-     from the scroll container's content origin. Comparing the two directly put
-     every trigger 109px late. Measure against the stage's own box instead. */
-  const ZONES=[zone1,zone2,zone3,zone4];
-  let ZT=[],ZH=[],VH=1,MAXS=1;
-  function measure(){
-    const sTop=stage.getBoundingClientRect().top,sy=stage.scrollTop;
-    ZT=ZONES.map(z=>Math.round(z.getBoundingClientRect().top-sTop+sy));
-    ZH=ZONES.map(z=>z.offsetHeight);
-    VH=stage.clientHeight;
-    MAXS=Math.max(1,stage.scrollHeight-stage.clientHeight);
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="Four scroll zones">
+      <div class="zone z1" id="zone1">
+        <span class="zone-tag">Fades in</span>
+        <div class="reveal-content" id="reveal">
+          <div class="reveal-title">Fades in on arrival</div>
+          <div class="reveal-sub">This text fades in when its zone scrolls into the box, and hides again once the zone has gone.</div>
+        </div>
+      </div>
+      <div class="zone z2" id="zone2">
+        <span class="zone-tag">Follows the scroll</span>
+        <div class="zone-mid">
+          <div class="zone-cap">The square turns, grows and changes color as you scroll.</div>
+          <div class="swatch" id="swatch"></div>
+        </div>
+      </div>
+      <div class="zone z3" id="zone3">
+        <span class="zone-tag">Pinned</span>
+        <div class="pin-card" id="pin-card">
+          <div class="pin-step" id="pin-step">Step 1 of 3</div>
+          <div class="pin-title" id="pin-title">Held in place</div>
+          <div class="pin-body" id="pin-body">The card stops here while the page keeps scrolling.</div>
+        </div>
+      </div>
+      <div class="zone z4" id="zone4">
+        <span class="zone-tag">Steps</span>
+        <div class="zone-mid">
+          <div class="zone-cap">Scroll on to light up the dots, one at a time.</div>
+          <div class="dots" id="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        </div>
+      </div>
+      <!-- Without a box's worth of run-out the last zone can never scroll past the top,
+           so it could never finish its scrub. -->
+      <div class="run-out">That's the end · scroll back up to see each zone again</div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add scroll-triggered animations to [the sections of your page]. Split the page into zones and work out from the scroll position whether each zone is still ahead, on screen or already passed. Fade a zone's content in when the zone arrives and hide it again when it has gone. Tie another animation's progress to how far the visitor has scrolled through its zone, so it plays forward and back with the scroll. Pin one card in place while its text steps through a few stages, and light up a row of dots in steps. Leave some space after the last zone so it can finish. If the visitor has reduced motion turned on, show content without fading it.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own sections.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Landing pages</li><li>Product pages</li><li>Feature sections</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Short pages</li><li>Forms</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage = document.getElementById('stage');
+  const zones = ['zone1', 'zone2', 'zone3', 'zone4'].map(id => document.getElementById(id));
+  const reveal = document.getElementById('reveal'), swatch = document.getElementById('swatch');
+  const pinStep = document.getElementById('pin-step'), pinTitle = document.getElementById('pin-title'), pinBody = document.getElementById('pin-body');
+  const dots = [...document.getElementById('dots').children];
+  const PIN_STEPS = [
+    ['Step 1 of 3', 'Held in place', 'The card stops here while the page keeps scrolling.'],
+    ['Step 2 of 3', 'Changing', 'Its text changes as you scroll through the zone.'],
+    ['Step 3 of 3', 'Let go', 'Scroll on and the card moves away with the page.']];
+  let ticking = false;
+  const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const G = {}, set = (k, v, fn) => { if (G[k] !== v) { G[k] = v; fn(v); } };
+
+  /* Zone geometry, cached. Each top is measured against the stage's own box, in the same coordinates as
+     scrollTop, whichever ancestor the browser treats as the offset parent. */
+  let ZT = [], ZH = [], VH = 1;
+  function measure() {
+    // clientTop: the stage's own border sits above the first pixel of its content
+    const sTop = stage.getBoundingClientRect().top + stage.clientTop, sy = stage.scrollTop;
+    ZT = zones.map(z => Math.round(z.getBoundingClientRect().top - sTop + sy));
+    ZH = zones.map(z => z.offsetHeight);
+    VH = stage.clientHeight;
   }
-  const zoneState=i=>{const vt=stage.scrollTop;
-    if(vt+VH<=ZT[i])return'idle'; if(vt>=ZT[i]+ZH[i])return'past'; return'active'};
+  const zoneState = i => {
+    const vt = stage.scrollTop;
+    if (vt + VH <= ZT[i]) return 'idle';
+    if (vt >= ZT[i] + ZH[i]) return 'past';
+    return 'active';
+  };
 
   /* Scrub window, in GSAP's terms `start:"top 80%"` / `end:"top 20%"` — progress
-     begins once the zone's top has risen to 80% down the viewport (just after it
+     begins once the zone's top has risen to 80% down the box (just after it
      appears) and completes as it settles near the top. Measuring from the zone top
-     alone, as this did before, held progress at 0 until the section had already
-     scrolled fully into view — roughly 0.8 of a viewport late. */
-  const START=0.8,END=0.2;
-  const scrub=i=>clamp((stage.scrollTop-(ZT[i]-START*VH))/((START-END)*VH),0,1);
+     alone held progress at 0 until the section had already scrolled fully into
+     view — roughly 0.8 of a box late. */
+  const START = 0.8, END = 0.2;
+  const scrub = i => clamp((stage.scrollTop - (ZT[i] - START * VH)) / ((START - END) * VH), 0, 1);
   /* A pinned zone scrubs over the distance it is held, not over the window in
      which it enters: 0 as its top meets the container top, 1 as its bottom
      meets the bottom. Driving zone 3 with the enter window ran all three steps
      while the card was still below the fold, so it sat on "Step 3 of 3" for the
      entire time it was pinned. */
-  const pinScrub=i=>clamp((stage.scrollTop-ZT[i])/Math.max(1,ZH[i]-VH),0,1);
-  function logEvent(msg){cbEvents=[msg,...cbEvents].slice(0,5);cbLog.innerHTML=cbEvents.map(e=>`<span>${e}</span>`).join('')}
-  const NAMES=['Fade on Enter','Scrub','Pin + Scrub','Snap'];
+  const pinScrub = i => clamp((stage.scrollTop - ZT[i]) / Math.max(1, ZH[i] - VH), 0, 1);
 
-  function update(){
-    const st=stage.scrollTop;
-    set('prog',Math.round(st/MAXS*100),v=>scrollProg.textContent=v+'%');
-    const states=[0,1,2,3].map(zoneState);
-    states.forEach((s,i)=>{
-      set('pill'+i,s,v=>{
-        pills[i].textContent=`Zone ${i+1} · ${NAMES[i]} · ${v}`;
-        pills[i].className='pill'+(v==='active'?' active':v==='past'?' past':'');
-      });
-      // The first pass only records where things start. Without this the log
-      // opened claiming zone 1 fired onEnterBack and zones 2-4 fired onLeaveBack,
-      // none of which had happened.
-      if(!primed){prevState[i]=s;return}
-      if(s!==prevState[i]){
-        const ev=s==='active'?(prevState[i]==='idle'?'onEnter':'onEnterBack'):(s==='past'?'onLeave':'onLeaveBack');
-        logEvent(`${ev.endsWith('Back')?'↑':'↓'} zone ${i+1} · ${ev}`);
-        prevState[i]=s;
-      }
-    });
-    primed=true;
-
+  function update() {
     /* Every zone is evaluated on every frame, not only while active. Skipping the
        inactive ones left stale state behind: zone 2 never animated if you jumped
        past it, and zone 3 still read "Step 3 of 3" back at the top. The clamped
        progress resolves to 0 before a zone and 1 after it, so both ends settle. */
-    // Zone 1 — fade on enter
-    set('reveal',states[0]==='active',v=>reveal.classList.toggle('active',v));
-    // Zone 2 — scrub
-    const p2=scrub(1);
-    set('p2',Math.round(p2*200)/200,v=>{
-      swatch.style.transform=`rotate(${lerp(0,180,v)}deg) scale(${lerp(1,1.3,v)})`;
-      swatch.style.filter=`hue-rotate(${lerp(0,120,v)}deg)`;
-      scrubVal.textContent=`progress: ${Math.round(v*100)}%`;
+    // Zone 1 — fades in while any part of the zone is in the box
+    set('reveal', zoneState(0) === 'active', v => reveal.classList.toggle('active', v));
+    // Zone 2 — follows the scroll
+    set('p2', Math.round(scrub(1) * 200) / 200, v => {
+      swatch.style.transform = `rotate(${lerp(0, 180, v)}deg) scale(${lerp(1, 1.3, v)})`;
+      swatch.style.filter = `hue-rotate(${lerp(0, 120, v)}deg)`;
     });
-    // Zone 3 — pin + scrub
-    const p3=pinScrub(2);
-    set('p3',Math.min(2,Math.floor(p3*3)),v=>{
-      pinStep.textContent=PIN_STEPS[v][0];pinTitle.textContent=PIN_STEPS[v][1];pinBody.textContent=PIN_STEPS[v][2];
+    // Zone 3 — pinned, three stages
+    set('p3', Math.min(2, Math.floor(pinScrub(2) * 3)), v => {
+      pinStep.textContent = PIN_STEPS[v][0]; pinTitle.textContent = PIN_STEPS[v][1]; pinBody.textContent = PIN_STEPS[v][2];
     });
-    // Zone 4 — snap
-    const p4=scrub(3);
-    set('p4',Math.round(p4*5),v=>{
-      snapDots4.forEach((d,i)=>{d.classList.toggle('lit',i<v);d.style.background=i<v?'#f85149':'var(--ui-border)'});
-      snapVal.textContent=`${v} / 5 lit`;
-    });
-    ticking=false;
+    // Zone 4 — five dots light up one by one
+    set('p4', Math.round(scrub(3) * 5), v => dots.forEach((d, i) => d.classList.toggle('lit', i < v)));
+    ticking = false;
   }
-  stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  document.getElementById('reset-btn').addEventListener('click',()=>{
-    stage.scrollTop=0;cbEvents=[];cbLog.innerHTML=EMPTY_LOG;primed=false;measure();update();
-  });
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
-  measure();update();
+  stage.addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, { passive: true });
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { measure(); update(); }, 150); });
+  measure(); update();
+  // The zones' heights come from the box, but the text inside them depends on the site font
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); update(); });
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

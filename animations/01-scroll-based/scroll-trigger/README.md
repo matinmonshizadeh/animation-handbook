@@ -4,7 +4,7 @@
 
 ## What it is
 
-ScrollTrigger is not an animation type — it is a mechanism that fires animations at precise scroll positions. It defines scroll zones and exposes a lifecycle: `onEnter` (zone enters viewport), `onLeave` (zone exits at top), `onEnterBack` (zone re-enters from top on scroll-up), `onLeaveBack` (zone exits at bottom on scroll-up). This demo implements the concept in vanilla JS from scroll position alone, showing four core behaviors: fade on enter, scrub with scroll, pin and scrub, and snap to points. In production, GSAP's ScrollTrigger plugin handles all of this.
+Scroll triggers start, follow or hold animations at chosen points as you scroll. Each zone of a page is either still ahead, on screen or already passed, and moving between those states starts or reverses its animation. The demo shows four common uses: fading content in as it arrives, tying an animation to the scroll, pinning a card while it changes, and lighting up steps. In production the GSAP ScrollTrigger plugin handles all of this; the demo does it by hand.
 
 ## When to use it
 
@@ -27,13 +27,13 @@ const state = i => {
 };
 ```
 
-A change of state is a callback. Which one depends on the direction the state moved:
+A change of state is a callback. Which one depends on the direction the state moved (the demo shows them through zone 1, which fades in on enter and hides on leave):
 
 ```js
 if (s !== prev[i]) {
   const ev = s === 'active' ? (prev[i] === 'idle' ? 'onEnter' : 'onEnterBack')
                             : (s === 'past'       ? 'onLeave' : 'onLeaveBack');
-  log(ev); prev[i] = s;
+  prev[i] = s;   // run the zone's enter or leave animation for ev
 }
 ```
 
@@ -59,13 +59,10 @@ const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport), 0, 1);
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Zone start | zone top, measured against the stage | Where the trigger fires. Must be in the scroll container's coordinate space, not `offsetTop` |
-| Zone height | 550px (zone 3: two viewports) | The span over which a zone counts as active |
-| Pin offset | half a viewport, less half the card | Where `position: sticky` holds the card inside the scroll container |
-| Scrub start | `top 80%` | Zone top at 80% down the viewport — just after the section appears |
-| Scrub end | `top 20%` | Zone top near the viewport top; the animation finishes as the section settles |
-| Run-out | one viewport | Trailing space so the final zone can exit and fire `onLeave` |
-| Pin span | zone height − viewport | The scroll distance the pinned card is held for, and the range zone 3 scrubs across |
+| Zone height | 90% of the box (zone 3: twice the box) | How much scrolling each zone takes |
+| Follow window | From 80% to 20% down the box | Zones 2 and 4 play while the zone's top rises between these two lines, so they start just after the zone appears |
+| Pinned span | Zone 3's height less one box | How long the card holds still; its three stages share it equally |
+| Run-out | One box height | Space after the last zone, so it can finish and leave |
 
 ## Production notes
 
@@ -73,9 +70,9 @@ const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport), 0, 1);
 - **`IntersectionObserver` vs. scroll events.** IO is the right tool for lifecycle callbacks (enter/leave); scroll-position arithmetic is right for scrubbing. This demo derives both from scroll position so the two stay in lockstep — with IO the callback and the scrub can disagree by a frame.
 - **Anchor the scrub to where the section *enters*, not to where it reaches the top.** Measuring progress as `scrollTop − zoneTop` keeps it at zero until the section's top has climbed all the way to the top of the viewport — by which point the reader has watched a full screen of it sit motionless, and the animation only plays as it leaves. That reads as a broken or badly late trigger. GSAP's default `start: "top 80%"` / `end: "top 20%"` begins just after the section appears and finishes as it settles; here that moved each trigger roughly 0.8 of a viewport earlier.
 - **`offsetTop` is not in the scroll container's coordinate space.** It is measured from the nearest *positioned* ancestor, which for a plain `overflow: scroll` panel is usually `body` — so it includes every pixel of page chrome above the container, while `scrollTop` starts at zero inside it. Comparing them directly put every trigger here 109px late. Measure the zone against the container's own box instead.
-- **Prime the state before logging callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: this log opened claiming zone 1 had fired `onEnterBack` and zones 2–4 `onLeaveBack`, before any scrolling. Record the initial state on the first pass and only emit transitions after that.
+- **Prime the state before firing callbacks.** Comparing the first frame's state against a `null` starting value manufactures events that never happened: zone 1 would fire `onEnterBack` and zones 2–4 `onLeaveBack` before any scrolling. Record the initial state on the first pass and only emit transitions after that.
 - **Evaluate every trigger each frame, not just the active ones.** Updating a zone only while it is active leaves whatever value it happened to stop on — jump past a zone and its scrub never runs at all, and scrolling back to the top left the pinned card still reading "Step 3 of 3". Clamped progress resolves to 0 before a zone and 1 after it, so both ends settle correctly on their own.
-- **Leave a run-out after the last trigger.** A final zone with nothing beneath it can never scroll past the top, so it can neither finish its scrub nor fire `onLeave` — the snap dots here were stuck at 0/5 forever. One viewport of trailing space is enough.
+- **Leave a run-out after the last trigger.** A final zone with nothing beneath it can never scroll past the top, so it can neither finish its scrub nor fire `onLeave` — without it, the dots in zone 4 could never all light up. One viewport of trailing space is enough.
 - **A pinned zone needs somewhere to be pinned.** `position: sticky` does nothing when the element's containing block is shorter than the scroll container — there is no overflow to hold it across. Zone 3 is deliberately two viewports tall so the card has one viewport of travel to stay fixed through; without that it scrolled straight past like any other card, and its three steps had all fired before it was on screen. Sticky also fails silently if any ancestor between it and the scroller has `overflow: hidden`.
 - **Scrub and `will-change`.** For elements that update on every scroll frame, declare `will-change: transform` before the first frame to avoid promotion jank.
 - **Snap-to-point** requires detecting scroll silence. A debounce timer (100–200ms) after the last scroll event is the reliable pattern; there is no native "scroll ended" event in most browser contexts.
@@ -83,5 +80,6 @@ const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport), 0, 1);
 
 ## See also
 
-- [Scrub Animation](../scrub-animation/) — a full scrub-driven product disassembly using the same scroll-as-progress model.
-- [Pin Animation](../pin-animation/) — demonstrates the "pin" behavior from the same ScrollTrigger concept.
+- [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
+- [Pin Animation](../pin-animation/) — one part holds still while its text changes
+- [Reveal on Scroll](../reveal-on-scroll/) — cards appear as they cross a line
