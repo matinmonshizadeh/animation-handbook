@@ -193,7 +193,7 @@ void main(){
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const RUN_MS=3000;
-let W=0,H=0,gl,prog,U={},raf=null,lastT=0,wasPhone=false,glErr='';
+let W=0,H=0,gl,prog,U={},raf=null,lastT=0,startT=0,wasPhone=false,glErr='';
 let TYPE=0,STR=8,RAD=0.25,DECAY=0.5,ANIMATE=true;
 // The distortion is centred on (mouseX, mouseY), in canvas pixels. It is drawn at full strength while active (the pointer is on
 // the picture or Show me is running) and fades by DECAY once it is not. demoStart is when the Show me run began, 0 when none is.
@@ -253,7 +253,7 @@ function render(ts){
   const dt=ts-lastT;
   if(dt>=15){
     lastT=ts;
-    phase+=dt*.003;if(phase>Math.PI*10)phase-=Math.PI*10;
+    phase+=(ts-startT)*.003;if(phase>Math.PI*10)phase-=Math.PI*10;startT=ts;
     if(demoStart){
       const p=Math.min(1,Math.max(0,(ts-demoStart)/RUN_MS));
       point(W*(.2+.6*p),H*(.5+.18*Math.sin(2*Math.PI*p)));
@@ -265,9 +265,9 @@ function render(ts){
   raf=(active||amp>0||demoStart)?requestAnimationFrame(render):null;
 }
 // Starts the loop again after it stopped; the clock restarts so the ripple phase does not jump.
-function wake(){if(raf!==null||!gl)return;lastT=performance.now();raf=requestAnimationFrame(render);}
+function wake(){if(raf!==null||!gl)return;lastT=startT=performance.now();raf=requestAnimationFrame(render);}
 // While the loop is stopped a setting or a resize draws the picture once, so the change shows.
-function poke(){if(raf===null&&gl)draw();}
+function redraw(){if(raf===null&&gl)draw();}
 
 // The visitor's pointer, a finger and Show me all move the distortion through point().
 function point(x,y){mouseX=x;mouseY=y;active=true;amp=1;}
@@ -317,11 +317,11 @@ function choices(id,pick){
     pick(b.dataset);
   }));
 }
-choices('type-seg',d=>{TYPE=+d.type;document.getElementById('ripple-set').hidden=TYPE!==0;poke();});
-choices('str-seg',d=>{STR=+d.str;poke();});
-choices('rad-seg',d=>{RAD=+d.rad;poke();});
+choices('type-seg',d=>{TYPE=+d.type;document.getElementById('ripple-set').hidden=TYPE!==0;redraw();});
+choices('str-seg',d=>{STR=+d.str;redraw();});
+choices('rad-seg',d=>{RAD=+d.rad;redraw();});
 choices('dec-seg',d=>{DECAY=+d.decay;});
-document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.target.checked;poke();});
+document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.target.checked;redraw();});
 </script>
 </body>
 </html>
