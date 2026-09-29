@@ -1,7 +1,7 @@
 # Ray Marching / SDF Scene
 
 ## What it is
-Ray marching renders a 3D scene entirely inside a fragment shader without any mesh geometry. Instead of triangles, shapes are defined as Signed Distance Functions (SDFs) — mathematical functions that return the distance from any point in space to the nearest surface. A ray is cast for each pixel; the shader advances the ray forward by the SDF value at each step (which is always safe — the SDF guarantees no overshoot), repeating until the ray hits a surface or exits the scene. Everything visible is pure math.
+Ray marching draws a 3D scene without any 3D models. Each shape is a formula that gives the distance to its surface, and for every pixel the shader steps a ray forward by that distance until it touches something, then lights that point. Because the shapes are formulas, they can melt together, be carved out of each other or repeat forever.
 
 ## When to use it
 - Complex animated 3D shapes that are difficult to model as meshes (fractals, boolean blends, organic morphs)
@@ -66,11 +66,12 @@ vec3 getNormal(vec3 p) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Max steps | 48 (32 on mobile) | More steps = finer detail on concave surfaces, but lower FPS |
-| Resolution scale | 0.7× under 600px, DPR capped at 1.5× above | Cost is per pixel, so the backing store — not the scene — sets the frame time |
-| Step scale | 0.9× | Multiplying by <1 trades performance for accuracy on thin features |
-| Epsilon (hit distance) | 0.001 | Smaller = sharper surface but more steps required |
-| Smooth-min k | 0.3–0.5 | Controls blend radius between shapes |
+| Scene | Blend | Blend melts a sphere, a box and a ring together; Cut-out carves a box out of a sphere, with a small ball inside; Endless repeats a carved box across the floor without end |
+| Camera speed | Normal | How fast the camera circles the shapes: once in about 18 seconds at slow, 10 at normal and 6 at fast |
+| Soft shadows | off | Casts a second ray toward the light from every surface point, for soft shadows; the most costly option |
+| Corner shading | on | Darkens creases and corners where surfaces meet, by testing a few points just above each surface |
+| Detail | Medium | The most steps a ray may take: low is 24, medium 48 and high 96; phones take two thirds as many |
+| Step count view | off | Colors each pixel by how many steps its ray took: edges and near misses take the most |
 
 ## Production notes
 - **Shadertoy convention**: uniforms are `iTime`, `iResolution`, `iMouse`. Porting Shadertoy code to WebGL requires renaming these to your own uniform names and adding the WebGL boilerplate (vertex shader + quad).
@@ -80,6 +81,6 @@ vec3 getNormal(vec3 p) {
 - **Three.js alternative**: Three.js with `ShaderMaterial` passes the same uniforms to the same fragment shader — the GLSL is identical, only the WebGL boilerplate changes.
 
 ## See also
-- [Volumetric Smoke](../volumetric-smoke/) — ray marching that accumulates density rather than finding surface hits
-- [WebGL Shader Animation](../webgl-shader-animation/) — simpler fragment shaders on the same fullscreen-quad setup
-- [Fluid Simulation](../fluid-simulation/) — SDF metaballs as a 2D application of the same SDF principle
+- [Volumetric Smoke / 3D Noise](../volumetric-smoke/) — rays that add up smoke instead of stopping at a surface
+- [WebGL Shader Animation](../webgl-shader-animation/) — simpler shaders on the same setup
+- [Fluid / Liquid Simulation](../fluid-simulation/) — the same melting of shapes, in 2D
