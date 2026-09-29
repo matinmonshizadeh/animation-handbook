@@ -50,12 +50,15 @@ float smokeDensity(vec3 p, float t) {
   float r = length(p.xz);
   // smoothstep needs edge0 < edge1, so the upper falloff is inverted rather than reversed
   float src = exp(-r * 3.0) * smoothstep(-0.2, 0.6, p.y) * (1.0 - smoothstep(1.0, 1.8, p.y));
+  if (src < 0.001) return 0.0;  // nothing to add here, so skip the noise
   float n = fbm(p * 1.4 + vec3(windDrift, rise, 0.0));
   return max(0.0, n - 0.45) * src * density;
 }
 ```
 
 `rise` grows every frame by the frame's time × the speed, on the page, so changing the speed never makes the smoke jump.
+
+Wherever `src` has faded to almost nothing the function returns before the noise, so the five noise samples are only taken where there can be smoke. That, together with the smaller canvas described under Mobile cost, keeps the demo smooth on laptops and phones.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -69,7 +72,7 @@ float smokeDensity(vec3 p, float t) {
 
 ## Production notes
 - **Precision**: the `sin`-based hash multiplies by 43758.5, which overflows the usable range of a 16-bit `mediump` float and collapses the noise to flat blocks on many mobile GPUs. Request `highp` in the fragment shader (guarded by `GL_FRAGMENT_PRECISION_HIGH`) or swap the hash for an integer-free variant with a smaller multiplier.
-- **Mobile cost**: this is fill-rate bound — every fragment runs `steps x (fbm + 3 shadow taps)`. Honouring a 3x phone DPR would multiply the cost ninefold, so the demo caps the backing store at 0.75 CSS pixels and the march at 48 steps below 600px, and never exceeds 1 CSS pixel on desktop.
+- **Mobile cost**: this is fill-rate bound — every fragment runs up to `steps x (fbm + 3 shadow taps)`, so the demo trims it three ways. `smokeDensity` returns before the noise wherever the plume has faded out. The backing store is capped at about 90,000 pixels and the browser scales it up to the stage, which suits soft smoke; it never exceeds 1 CSS pixel per fragment either. On phones (screens 600px wide or less, or 500px tall or less when held sideways) the backing store is also at most 0.75 of the stage and the march at most 48 steps. Honouring a 3x phone DPR would multiply the cost ninefold.
 - **Context loss**: a GPU reset, a backgrounded tab on mobile, or a driver hiccup fires `webglcontextlost`. Without a listener the canvas goes permanently black with no error. Preventing the default event and rebuilding shaders and buffers on `webglcontextrestored` is the production path; this demo takes the simpler route of stopping the loop and showing a message.
 - **Step count vs quality**: each additional march step increases pixel cost linearly. 32 steps is generally sufficient for soft smoke; use 64 only for hero-quality renders. Add blue-noise dithering to random-offset each ray's start, breaking up banding artifacts at low step counts. The offset has to be a fraction of a *full step* to help — jittering by a few thousandths of a unit is invisible.
 - **Shadow rays**: the 3-step shadow march adds 3× extra density samples per lit pixel. Toggle off on low-end devices. For production, pre-compute a voxelized shadow map and sample it instead.
