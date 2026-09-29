@@ -43,6 +43,7 @@ Eleven pages move their picture with `requestAnimationFrame`: Grain / Film Noise
 - **While paused,** a setting change draws the picture again so the change shows: without moving anything, or, on Flow Field and Matrix Rain, as a fresh settled picture (their trails need steps to show a change). This is the loop rule "changing a setting while paused shows the new setting without starting the loop again". The sections name the function that draws.
 - **Resizes:** a page acts on a resize only when its stage's size has really changed. It compares the stage's `clientWidth` and `clientHeight` with the size it last drew for, and otherwise does nothing. Phones fire `resize` whenever the address bar slides in or out, and Matrix Rain's `ResizeObserver` reports once as soon as it starts watching; without the check, each of those would clear the canvas or start the picture again from scratch. After a real change, the page draws its picture again at once, playing or paused (the sections name the function).
 - **Slow motion (page):** while the switch is on, each frame moves things a third of the usual step, or adds a third of the frame's time to the page's clock, or (Matrix Rain, Grain / Film Noise Overlay) waits three times as long between steps. It takes effect from the next frame.
+- **The same choice again:** a press on the choice already made does nothing where it would deal or draw again (a new arrangement of stars, shapes, dots, particles, columns, rings or grain, or a re-planned wait). The handler returns before it changes anything, so a paused picture changes only when a setting really changes. A choice that only sets a value or a CSS variable is harmless to press twice, so it has no guard.
 - The fps badges and FPS readouts go.
 
 ## Reduced motion for full-stage effects
@@ -62,7 +63,7 @@ What stays is the still picture: while the loop is paused on arrival, every stag
 
 ## Heavy effects and their phone fallbacks
 
-CLAUDE.md asks for 60 fps on a mid-range phone, and a reduced-quality fallback on phones for heavy effects (heavy blur, many particles). Each section has a **Phone fallback** line: what the demo already does, or the smallest change that keeps it smooth. "On phones" means a stage narrower than 600px, which is how the demos already decide (`W<600`), or `@media(max-width:600px)` for CSS.
+CLAUDE.md asks for 60 fps on a mid-range phone, and a reduced-quality fallback on phones for heavy effects (heavy blur, many particles). Each section has a **Phone fallback** line: what the demo already does, or the smallest change that keeps it smooth. "On phones" means phones and short screens, by the viewport rule `(max-width:600px),(max-height:500px)`, so a phone turned sideways counts too (its stage is about 745px wide, which a test of the stage's width missed). The script fallbacks read it with `matchMedia`. Grain / Film Noise Overlay reads it every frame, so it needs no listener; the others read it where they build the picture, and a change listener builds it again when a window crosses the rule while the stage keeps its size. Starfield / Space Particles, Matrix Rain and Plasma Field guard that listener (it does nothing when the count or size the rule gives is unchanged, and `addListener` covers old browsers); Particle Constellation and Flow Field deal their dots or particles again at every crossing. The CSS blur fallbacks (Mesh Gradient Animation and Aurora / Northern Lights) keep `@media(max-width:600px)` on purpose: halving the blur looks as soft only where the stage is less than half as wide as a laptop's, and a sideways phone's is not (half the blur would show the edges of the blobs and bands there: a blur-to-size ratio of 0.09, against 0.14 on a laptop). The cards have their own rule, under "Cards and captions on the stage".
 
 The canvas numbers come from a scratch measurement: headless Chrome at 375×812 with pixel ratio 2, the CPU slowed four times (roughly a mid-range phone), the stage set to 351×300 (a phone stage), recording how long each animation-frame callback runs. They show the demo's own work per frame, against a budget of about 16 ms, not the graphics chip's. So for the blur pages (Mesh Gradient Animation, Aurora / Northern Lights) the fallback follows their READMEs' own advice, less blur on phones, rather than a number.
 
@@ -177,8 +178,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend
   - [Breathing / Pulsing Glow](../breathing-glow/) — one soft glow grows and shrinks
   - [Aurora / Northern Lights](../aurora/) — bands of color sway like the northern lights
-- **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README How it works:** the names match the settings and Bright bands is described. "**Position shift**" becomes "**Sliding** (a position shift)"; "**Hue rotation**" becomes "**Color wheel** (a hue rotation)", and its lead-in ends "— apply a rotating filter to a static gradient:". After the filter note, add: "**Bright bands** runs the same sliding animation on a gradient with brighter colors between dark ends (`background-size: 300% 300%`), over one and a half times the cycle." The snippets are unchanged.
+- **README Production notes:** the first bullet ends "…is a CSS animation, with no `requestAnimationFrame` and no canvas." The "Compositor-thread animation" bullet was wrong (`background-position` repaints every frame) and becomes "**It repaints every frame**: `background-position` is not a property the compositor can animate by itself, so the browser repaints the gradient on every frame (no layout, though). Over a full hero this is usually fine; for the cheapest version, paint the gradient on an oversized layer and slide it with `transform: translate()`, which the compositor runs without repainting." The "Performance" bullet becomes "**Performance**: on low-end devices a large repainting gradient can cost frames; `will-change: background-position` does not stop the repaint, the `transform` version does." The rest is unchanged.
 - **Category line:** `07.01 · Ambient &amp; Background`
 - **Pager:** Previous: none · Next: Mesh Gradient Animation (`../mesh-gradient/`)
 
@@ -197,7 +198,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage:** the blobs and the card stay.
   - Card text: eyebrow "Mesh gradient"; title "Organic color without sharp edges"; body "Heavy blur melts round blobs into soft washes of color, the look Stripe made popular." (was "Heavy blur dissolves gradient boundaries into painterly washes. …").
   - `hb-dots`: no. Default height.
-- **Phone fallback:** none today. Smallest change: on phones the blobs are blurred half as much, `@media(max-width:600px){.blob{filter:blur(calc(var(--blob-blur) * .5))}}`. The phone stage is less than half as wide, and the blobs are sized in percent of it, so they look just as soft, while each frame blurs a much smaller area. Heavy blur is the cost here: up to five blurred layers are redrawn every frame.
+- **Phone fallback:** none today. Smallest change: on phones the blobs are blurred half as much, `@media(max-width:600px){.blob{filter:blur(calc(var(--blob-blur) * .5))}}`. The phone stage is less than half as wide, and the blobs are sized in percent of it, so they look just as soft, while each frame blurs a much smaller area. Heavy blur is the cost here: up to five blurred layers are redrawn every frame. The rule stays width-only on purpose (see "Heavy effects and their phone fallbacks"); the card has its own rule.
 
 **Main settings**
 
@@ -243,7 +244,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Animated Gradient Background](../animated-gradient-background/) — one gradient that slowly shifts
   - [Aurora / Northern Lights](../aurora/) — tall bands of color instead of round blobs
   - [Breathing / Pulsing Glow](../breathing-glow/) — a single glow that grows and shrinks
-- **README How it works:** keep the snippets. After the blend-mode list, add: "Heavy blur is the costly part on phones, so the demo halves it on small screens:" and this snippet:
+- **README How it works:** keep the snippets, but the first paragraph says what the demo does: each blob is "an absolutely-positioned round `<div>` filled with one color and softened with `filter: blur()`" (not "with a radial gradient background"), and heavy blur "dissolves the circle's hard edge into a wash of color" (not "the gradient's hard edges into pure color wash"). After the blend-mode list, add: "Heavy blur is the costly part on phones, so the demo halves it on small screens:" and this snippet:
 
   ```css
   @media (max-width: 600px) {
@@ -270,7 +271,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage:** the sky, the stars layer, the bands, the horizon strip and the card stay.
   - Card text: eyebrow "Aurora" (its green `rgba(0,220,100,.7)` stays: 5.5:1); title "Charged particles. Magnetic fields. Light."; body "Green is oxygen high in the sky; red is rarer, and higher still." (was a longer line in kilometres, which ran to five lines on phones).
   - `hb-dots`: no. Default height.
-- **Phone fallback:** none today. Smallest change: on phones the bands are blurred half as much, `@media(max-width:600px){.band{filter:blur(18px)}}` (35px today). The phone stage is less than half as wide, so the bands look as soft, and each frame blurs far fewer pixels. The README already advises less blur on mobile.
+- **Phone fallback:** none today. Smallest change: on phones the bands are blurred half as much, `@media(max-width:600px){.band{filter:blur(18px)}}` (35px today). The phone stage is less than half as wide, so the bands look as soft, and each frame blurs far fewer pixels. The README already advises less blur on mobile. The rule stays width-only on purpose (see "Heavy effects and their phone fallbacks"); the card has its own rule.
 
 **Main settings**
 
@@ -317,7 +318,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Starfield / Space Particles](../starfield/) — stars stream toward you out of the dark
   - [Animated Gradient Background](../animated-gradient-background/) — one gradient that slowly shifts
 - **README How it works:** keep the snippet. After it, add: "On phones the demo halves the blur, `@media (max-width: 600px) { .band { filter: blur(18px); } }`, which keeps the bands as soft on the smaller stage." The color list stays.
-- **README Production notes:** in the "Star layer pairing" bullet, "See the demo's star toggle." becomes "See the demo's Stars in the sky switch." The rest is unchanged.
+- **README Production notes:** in the "Star layer pairing" bullet, "See the demo's star toggle." becomes "See the demo's Stars in the sky switch." In the "Performance" bullet, "a star canvas" becomes "a star layer" (the stars are elements, not a canvas). The rest is unchanged.
 - **Category line:** `07.03 · Ambient &amp; Background`
 - **Pager:** Previous: Mesh Gradient Animation (`../mesh-gradient/`) · Next: Grain / Film Noise Overlay (`../grain-overlay/`)
 
@@ -333,7 +334,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - When the time since the last grain frame reaches the interval, 1000 ÷ How often it changes, it draws new grain: `drawCanvasGrain()` for Random dots, or `seed++` on the `feTurbulence` for Noise filter.
   - The fps measurement and both readouts go from `loop()`.
   - At load the page draws one grain frame at once (today's `loop(performance.now())` did the same), then calls `start()`. So a loop paused on arrival shows still grain over the scene.
-  - Pause and Play as in the preamble. While paused, a setting change that alters the grain's look (Grain size, Colored grain, Grain source) draws one new grain frame; Strength and Blend are CSS and show at once. After a real resize (see the preamble), `resize()` draws a grain frame at once, playing or paused; today it did so only while paused, so a playing page showed no grain until the next change came round.
+  - Pause and Play as in the preamble. While paused, a setting change that alters the grain's look (Grain size, Colored grain, Grain source) draws one new grain frame (a press on the choice already made does nothing); Strength and Blend are CSS and show at once. After a real resize (see the preamble), `resize()` draws a grain frame at once, playing or paused; today it did so only while paused, so a playing page showed no grain until the next change came round.
 - **Slow motion:** while the switch is on, the interval between grain frames is multiplied by 3 (Like film, 24 a second, becomes 8), from the next frame.
 - **Reduced motion:** the page's own checks go (`reduceMQ` in `loop()`, `resize()` and the setting handlers, `renderStatic()`, and the `reduceMQ` change listener), as in the preamble.
 - **Stage font:** site font.
@@ -341,9 +342,15 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - `.hero-label` becomes 11px (was 10px), with `color:rgba(88,166,255,.85)` (was .5: 2.6:1).
   - `.hero-p` becomes 13px (was 12px), with `color:rgba(255,255,255,.72)` (was .5).
 - **Stage:** the scene (the "Atlas Studio" hero mock-up) and both grain layers (canvas and SVG filter) stay; the fps badge goes. The mobile rule `height:auto;min-height:400px` goes: the hero mock-up fits the 300px phone stage (about 225px with its padding). `hb-dots`: no. Default height.
+- **The Noise filter is as strong as the dots.** The filter's own noise is faint, half-see-through gray: at full layer opacity it changed the picture by a spread of 2.8 (per-pixel standard deviation of the change, luma 0–255) against 17.6 for Random dots, and at the real Faint, Light and Strong by 0.38, 0.46 and 0.56 against 0.72, 1.38 and 2.74. It is built as follows:
+  - the SVG that holds it is a zero-size one (`.grain-svg{position:absolute;width:0;height:0}`), not `display:none`, from which some browsers draw no filter;
+  - the `<filter>` carries `color-interpolation-filters="sRGB"`; without it, the zero-size SVG's filter runs in linear light and brightens the stage (by about 11 levels at full layer opacity, measured);
+  - after `<feColorMatrix type="saturate" values="0"/>` comes an `<feComponentTransfer>` that makes the noise opaque and stretches its contrast: `feFuncR`, `feFuncG` and `feFuncB` with `type="linear" slope="3" intercept="-1"`, and `feFuncA` with `type="linear" slope="0" intercept="1"`.
+
+  Measured on the page in Chrome (1280×800): the spread at full opacity is 15.5 against 17.6 for the dots, and at Faint, Light and Strong 0.68, 1.23 and 2.50 against 0.73, 1.39 and 2.74, with the same small shift as the dots (about +0.5 levels): no brightening.
 - **Phone fallback:** today the grain canvas is drawn at CSS pixels, not device pixels (a quarter to a ninth of the pixels on a phone). Two small changes:
   1. **Colored grain per dot.** Colored grain picks its three colors once per grain dot, like gray grain, instead of for every pixel. Today it ignores Grain size and picks three random numbers for every pixel, twelve times as many as gray grain at Medium size: 25 ms a frame, 35 fps, measured.
-  2. **At most 24 changes a second on phones.** On stages narrower than 600px the grain changes at most 24 times a second (`frameInterval` at least 1000/24 ms), so Every frame looks like Like film there. Fine grain at every frame measured 12.7 ms with 21 ms peaks, too close to the budget.
+  2. **At most 24 changes a second on phones.** On phones and short screens (the viewport rule above; `interval()` reads it every frame, so it needs no listener) the grain changes at most 24 times a second (`frameInterval` at least 1000/24 ms), so Every frame looks like Like film there, on a phone turned sideways too. Fine grain at every frame measured 12.7 ms with 21 ms peaks, too close to the budget.
 
 **Main settings**
 
@@ -413,8 +420,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
     }
   ```
 
-  The rest is unchanged.
-- **README Production notes:** add a bullet after "Reduced update rate is intentional": "**Phones**: the demo changes the grain at most 24 times a second on screens narrower than 600px, and draws the canvas at CSS pixels rather than device pixels; drawing every dot is the costly part." The rest is unchanged.
+  In the SVG snippet, `<svg style="display:none">` becomes `<svg width="0" height="0" style="position:absolute">`, the `<filter>` gets `color-interpolation-filters="sRGB"`, and after the `feColorMatrix` line comes the `feComponentTransfer` block with the three `feFunc` lines (`type="linear" slope="3" intercept="-1"`) and `feFuncA` (`slope="0" intercept="1"`). After the HTML snippet, add: "The raw noise is faint, half-transparent gray; the component transfer makes it opaque and stretches its contrast, so it shows as strongly as drawn dots at the same opacity." The rest is unchanged.
+- **README Production notes:** add a bullet after "Reduced update rate is intentional": "**Phones**: the demo changes the grain at most 24 times a second on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways), and draws the canvas at CSS pixels rather than device pixels; drawing every dot is the costly part." The rest is unchanged.
 - **Category line:** `07.04 · Ambient &amp; Background`
 - **Pager:** Previous: Aurora / Northern Lights (`../aurora/`) · Next: Scanline Effect (`../scanline/`)
 
@@ -627,7 +634,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   setTimeout(flash, randomGap());
   ```
 
-  In the CSS snippet, add `transition: opacity var(--leak-dur) ease-in-out;` to `.leak`, and after it the rule `.leak.active { opacity: var(--leak-peak); }`. The sentence before the JS snippet stays.
+  In the CSS snippet, add `transition: opacity var(--leak-dur) ease-in-out;` to `.leak`, and after it the rule `.leak.active { opacity: var(--leak-peak); }`. The sentence before the JS snippet stays. After the JS snippet, add: "The demo opens on a leak at its peak rather than a dark stage: it lights the glow, finishes the fade at once (`leak.getAnimations().forEach(a => a.finish())`) and starts the chain with `setTimeout(fadeOut, randomGap())`, so the first leak holds for one gap before it fades out."
 - **README Production notes:** unchanged
 - **Category line:** `07.06 · Ambient &amp; Background`
 - **Pager:** Previous: Scanline Effect (`../scanline/`) · Next: Starfield / Space Particles (`../starfield/`)
@@ -652,7 +659,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage:** the canvas and the card stay; the fps badge goes.
   - Card text: eyebrow "Starfield"; title "Infinite depth from a single point"; body "Small, slow stars in the middle grow and speed up toward the edge." (was "… — perspective through motion.").
   - `hb-dots`: no. Default height.
-- **Phone fallback:** none today (the canvas caps the pixel ratio at 2). Smallest change: `initStars()` builds at most 300 stars on stages narrower than 600px, so Many shows 300 there. Measured on a phone stage: 300 stars take about 9 ms a frame, and 600 take 12 ms with 18 ms peaks (51 fps).
+- **Phone fallback:** none today (the canvas caps the pixel ratio at 2). Smallest change: `initStars()` builds at most 300 stars on phones and short screens (the viewport rule above), so Many shows 300 there, on a phone turned sideways too. A guarded change listener builds the stars again (`initStars()`, then `paint(false)`) when a window crosses the rule while the stage keeps its size and the count changes. Measured on a phone stage: 300 stars take about 9 ms a frame, and 600 take 12 ms with 18 ms peaks (51 fps).
 
 **Main settings**
 
@@ -700,8 +707,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Aurora / Northern Lights](../aurora/) — bands of light that pair with a night sky
   - [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — particles that link up and react to the pointer
   - [Floating Elements](../floating-elements/) — shapes that drift slowly on their own paths
-- **README How it works:** unchanged
-- **README Production notes:** add a bullet after "Canvas vs DOM": "**Phones**: the demo draws at most 300 stars on screens narrower than 600px; each star is a separate fill, so the count is the main cost." The rest is unchanged.
+- **README How it works:** the Star snippet matches the demo's speed rule and size. In `update()`, `this.dist += this.speed;` comes first, then `const ratio = …`, then `this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge`, and the reset branch also sets `this.speed = (Math.random() * 0.6 + 0.2) * BASE_SPEED;`. In `draw()`, `1 + ratio * 2` becomes `1 + ratio * 1.5`. The rest is unchanged.
+- **README Production notes:** add a bullet after "Canvas vs DOM": "**Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost." The rest is unchanged.
 - **Category line:** `07.07 · Ambient &amp; Background`
 - **Pager:** Previous: Light Leak (`../light-leak/`) · Next: Breathing / Pulsing Glow (`../breathing-glow/`)
 
@@ -805,6 +812,10 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
   **The first picture:** `initSources()` first empties `rings`, then gives each source three rings born 0.3, 0.6 and 0.9 ring lives ago (today's `paintStatic()` picture, which only reduced motion saw), and the page draws one frame at load. So the stage opens with ripples already spreading, and a loop paused on arrival shows them. Emptying `rings` first means a resize or a new Number of sources never piles new rings on the old ones.
 
+  **Speed keeps each ring's progress.** A ring's radius and fade come from its age over its life, so a new Speed alone would send every ring on screen to another point of its spread. The Speed choice first gives each ring on screen the new life at the same progress (`r.dur = newLife; r.born = clock - progress * newLife`), then sets `LIFE`, so the picture stays as it is and only the pace changes, moving or paused.
+
+  **Time between ripples plans the waits under way again.** A source's next ring is due at its `nextEmit`, drawn under the old gap, so without this a change from Long to Short could take up to about seven seconds to show (5s, up to 40% longer with Uneven timing). A source whose next ring is due later than a new random gap away is brought forward to within one: `s.nextEmit = Math.min(s.nextEmit, clock + Math.random() * gap())`. A press on the choice already made does nothing, and neither does a press on the Number of sources already chosen (`initSources()` would deal the picture again).
+
   **While paused,** every setting change calls `draw()`, so a new color, size or thickness shows at once; a new Number of sources calls `initSources()` first. This replaces today's `document`-wide `input` and `change` listeners, which repainted `paintStatic()`. **After a real resize** (see the preamble), `resize()` calls `initSources()` and `draw()`, playing or paused.
 - **Slow motion:** while the switch is on, `clock` advances by a third of each frame's time, and the sources drift a third of a step. Rings grow, fade and are sent out three times slower. From the next frame.
 - **Reduced motion:** the page's `REDUCED` checks and `paintStatic()` go (see the preamble).
@@ -825,15 +836,15 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Speed | Choice buttons | Slow · Normal · Fast | Normal | How long each ring takes to spread and fade. | `LIFE`: 4s / 2.5s / 1.5s |
-| Time between ripples | Choice buttons | Short · Medium · Long | Medium | How often each spot sends out a new ring. | `INTERVAL`: 1.8s / 3s / 5s |
+| Speed | Choice buttons | Slow · Normal · Fast | Normal | How long each ring takes to spread and fade. | `LIFE`: 4s / 2.5s / 1.5s (each ring on screen keeps how far along it is) |
+| Time between ripples | Choice buttons | Short · Medium · Long | Medium | How often each spot sends out a new ring. | `INTERVAL`: 1.8s / 3s / 5s (the waits under way are planned again; a choice already chosen does nothing) |
 | Ripple size | Choice buttons | Small · Medium · Large | Medium | How far each ring spreads before it fades. | `MAX_R`: 100px / 160px / 250px |
 
 **More options**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Number of sources | Choice buttons | 1 · 3 · 5 | 3 | One spot feels focused; five feel like rain. | `SRCS`: 1 / 3 / 5, then `initSources()` |
+| Number of sources | Choice buttons | 1 · 3 · 5 | 3 | One spot feels focused; five feel like rain. | `SRCS`: 1 / 3 / 5, then `initSources()` (a choice already chosen does nothing) |
 | Ring thickness | Choice buttons | Thin · Medium · Thick | Medium | The width of each ring's line. | `THICK`: 1 / 1.5 / 3 (px) |
 | Ring color | Swatches | Pink · White · Blue · Purple · Green · Orange | Blue | The color of the rings. | `COLOR`: [255,111,139] / [244,244,242] / [88,166,255] / [210,168,255] / [86,211,100] / [255,166,87] |
 | Uneven timing | Switch | on / off | on | Slightly random gaps feel natural, not mechanical. | `IRR` true / false |
@@ -875,8 +886,9 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - In the `Ring` constructor, the comment on `this.born = now;` becomes `// the page's own clock, which stops while paused`, and the comment on the next line goes.
   - In `update`, the fade `(1 - progress) * 0.6` becomes `(1 - progress) * 0.5`, the value the demo draws.
   - In `scheduleEmit`, `performance.now()` becomes `clock`.
+  - In the drift snippet, `source.x += source.vx;` and `source.y += source.vy;` become `source.x += source.vx * k;   // k is 1, or a third in slow motion` and `source.y += source.vy * k;`.
   - After the first snippet, add: "`now` is the page's own clock: each frame adds the time since the last one (a third of it in slow motion), and it stops while the animation is paused, so rings freeze in place and carry on without jumping."
-- **README Production notes:** unchanged
+- **README Production notes:** the "Ring density calibration" bullet, which said there are always about three rings from each source on screen, becomes "**Ring density calibration**: with the defaults (three sources, a ring every 3s, each living 2.5s) each source has at most one ring out most of the time, so two or three rings are on screen at once, with short quiet spells. Shorter gaps or longer lives overlap more rings; single, evenly spaced rings look like a clock, too many look frantic." The rest is unchanged.
 - **Category line:** `07.09 · Ambient &amp; Background`
 - **Pager:** Previous: Breathing / Pulsing Glow (`../breathing-glow/`) · Next: Floating Elements (`../floating-elements/`)
 
@@ -893,7 +905,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - when Shapes turn is on, it turns each shape by its own step (`e.rot += e.rotSpd`);
   - then `place()` writes every shape's `transform` and `opacity` for the current `t`, as today's loop body does, including the push away from the pointer.
 
-  `place()` also runs at the end of `rebuild()`. So the shapes are in place at load, playing or paused; today they sit in the stage's top-left corner until the first frame. It also runs after any setting change while paused.
+  `place()` also runs at the end of `rebuild()`. So the shapes are in place at load, playing or paused; today they sit in the stage's top-left corner until the first frame. It also runs after any setting change while paused. The four settings that rebuild the shapes (Number of shapes, How far they drift, Shapes and Colors) ignore a press on the choice already made, so it does not scatter a new arrangement.
 - **Slow motion:** while the switch is on, each frame adds a third of the usual step to `t` and to each shape's turn, from the next frame.
 - **Reduced motion:** the page's `REDUCE` checks and the rule `.el{animation:none!important;transition:none!important}` go (see the preamble).
 - **Stage font:** site font, on the card as in the preamble.
@@ -1077,8 +1089,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** Shapes turn, spread and flow in a calm, endless pattern. Best for music players.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `advance()`, then `draw()`:
-  - `advance()` adds Speed × 0.01 to `t`. For Rings, it also grows every ring by Speed × 2, adds a ring every 0.5 of `t`, and drops rings past the edge; this is today's `updateRings()`, moved out of the drawing.
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `advance(k)`, then `draw()`. `k` is the frame's time in 60 Hz frames: the time since the last frame (at most 50ms, and nothing on the first frame after a start) divided by 1000/60, and a third of that in slow motion. So one 60 Hz frame is one step, and a faster or slower screen keeps the same speed:
+  - `advance(k)` adds Speed × 0.01 × `k` to `t`, and moves the bars' and dashes' own counters with it (`barX` by 40 × Speed and `dashPhase` by 30 × Speed each time `t` grows by 1, so a Speed change never makes them jump). For Rings, it also grows every ring by Speed × 2 × `k`, adds a ring every 0.5 of `t`, and drops rings past the edge; this is today's `updateRings()`, moved out of the drawing.
   - `draw()` paints the background and the chosen pattern for the current `t`; this is today's `render()` without `updateRings()`.
 
   **The first picture:** the page calls `draw()` at load (the polygons at `t` 0). Choosing Rings seeds six rings spread across the stage (today's `still()` picture, which only reduced motion saw), so the pattern shows at once, playing or paused; choosing another pattern clears the rings, as today. The rings on screen are coloured by their place in the list, spread across Number of shapes: ring `i` of `n` gets colour `floor(i × CX / n)`, so the same choice always gives the same picture and a bigger count shows more of the colour range even where only the inner rings fit the stage (a wide, short stage). With the default Medium the six seeded rings are colours 0 to 5, as in today's picture.
@@ -1086,7 +1098,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   **While paused,** every setting change calls `draw()`; `repaint()` becomes `draw()`. After a real resize (see the preamble), `resize()` calls `draw()` at once, playing or paused.
 
   **Thicker lines** is hidden while Pattern is Bars: Bars are filled shapes with no lines, so the switch would change nothing there. Its choice is kept while it is hidden, it comes back with the other patterns, and it is out of "Your settings" while hidden.
-- **Slow motion:** while the switch is on, `advance()` adds a third of the usual step to `t` and to each ring's growth, from the next frame.
+- **Slow motion:** while the switch is on, `k` is a third of what it would be, so `t`, each ring's growth, the bars and the dashes all move a third of the usual step, from the next frame.
 - **Reduced motion:** the `RM` checks and `still()` go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas. The four pattern tabs that sat on top of the stage (`.preset-tabs`, `.ptab`) move to Try it as Pattern. `hb-dots`: no. Default height.
@@ -1130,7 +1142,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   |-----------|---------|--------|
   | Pattern | Polygons | Turning polygons, rings spreading from the center, sliding bars, or wavy lines with flowing color |
   | Speed | Normal | How fast everything moves: slow is 0.35, normal 0.6 and fast 1; keep it below 1 behind content |
-  | Number of shapes | Medium | How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many) |
+  | Number of shapes | Medium | How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many); on Rings it sets how many colors the rings use |
   | Colors | Cool | Cool blues, warm ambers, bright neon or grays |
   | Thicker lines | off | Draws the lines 1.5px wide instead of 0.8px, so the shapes stand out more |
 
@@ -1139,7 +1151,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [WebGL Shader Animation](../../06-3d-advanced/webgl-shader-animation/) — patterns drawn by the graphics card
   - [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** the "Infinite seamless looping" bullet, which said no preset uses `%`, becomes "**Infinite seamless looping**: nothing restarts. Every preset draws from values that only grow (`t`, and the bars' and dashes' own counters), and the bars wrap around the stage with `%`, so there is no reset moment." The rest is unchanged.
 - **Category line:** `07.12 · Ambient &amp; Background`
 - **Pager:** Previous: Grid / Dot Pattern Parallax (`../grid-dot-pattern-parallax/`) · Next: Particle Constellation (`../particle-constellation/`)
 
@@ -1168,7 +1180,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Reduced motion:** the demo's rule `.fps-badge,#pause-btn{display:none}` and the `reduce` checks go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas; the fps badge goes. `hb-dots`: no. Default height.
-- **Phone fallback:** today: at most 60 dots on stages narrower than 600px (`effCount()`), because every pair of dots is tested for a link, so the cost grows with the square of the count; and the canvas draws at CSS pixels, not device pixels. Keep both. Measured on a phone stage: 9.5 ms a frame with 15 ms peaks.
+- **Phone fallback:** today: at most 60 dots on phones and short screens (the viewport rule above, read in `init()`; a change listener deals the dots again when a window crosses the rule), because every pair of dots is tested for a link, so the cost grows with the square of the count; and the canvas draws at CSS pixels, not device pixels. Keep both. Measured on a phone stage: 9.5 ms a frame with 15 ms peaks.
 - **Touch:** the stage's `pointerdown` also sets the pointer's position (today only `pointermove` does, so a tap did nothing), so a finger resting on the stage draws the dots toward it. `pointerleave` still clears it.
 
 **Main settings**
@@ -1239,12 +1251,12 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
   **The first picture:** `prerender()` (40 frames at once) runs at load and after every real resize, for every visitor; today only reduced motion saw it. So the stage opens with trails already drawn, and a loop paused on arrival shows them. "Real" matters here: phones fire `resize` each time the address bar slides (about every 130ms while it moves), and restarting the field and redrawing 40 frames each time would visibly jump; `resize()` returns at once unless the stage's size changed (see the preamble).
 
-  **While paused,** a setting change runs `prerender()`, so the change shows; Number of particles calls `init()` first. The picture moves on by those 40 steps, but the loop stays paused.
+  **While paused,** a setting change runs `prerender()`, so the change shows; Number of particles calls `init()` first. The picture moves on by those 40 steps, but the loop stays paused. Speed changes no picture: it keeps the one on screen and takes effect once the loop plays.
 - **Slow motion:** while the switch is on, each frame moves the particles a third of a step (`SPD / 3`) and adds a third of 0.01 to `t`, from the next frame. The trail fade stays per frame, so the trails look shorter while it is on. Stretching the fade too would leave marks that never fade (the README's warning about very low trail values).
 - **Reduced motion:** the `reduce` checks and the rule `.fps-badge{display:none}` go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas; the fps badge goes. `hb-dots`: no. Default height.
-- **Phone fallback:** today: at most 500 particles on stages narrower than 600px (`effCount()`), and the canvas draws at CSS pixels. Keep both. Measured on a phone stage: 500 particles take 3.3 ms a frame, and even 1,400 took 6.8 ms. The README names fill rate on the graphics chip, which this measurement cannot see, as the real limit on phones.
+- **Phone fallback:** today: at most 500 particles on phones and short screens (the viewport rule above, read in `init()`; a change listener deals the particles again when a window crosses the rule), and the canvas draws at CSS pixels. Keep both. Measured on a phone stage: 500 particles take 3.3 ms a frame, and even 1,400 took 6.8 ms. The README names fill rate on the graphics chip, which this measurement cannot see, as the real limit on phones.
 
 **Main settings**
 
@@ -1303,7 +1315,9 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** A glowing grid rolls toward you under a striped sun. Best for music and games.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) adds Speed × 0.02 to `offset` and redraws the sky, the sun and the grid (`frame()`). **The first picture:** `frame()` runs at load. **While paused,** a setting change calls `frame()`. After a real resize (see the preamble), `frame()` runs at once, playing or paused.
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) adds Speed × 0.02 to `offset` and redraws the sky, the sun and the grid (`frame()`). **The first picture:** `frame()` runs at load. **While paused,** Number of lines and Grid color call `frame()` at once, playing or paused; Speed draws nothing, and the floor carries on from where it is. After a real resize (see the preamble), `frame()` runs at once, playing or paused.
+
+  **The sun** is a half disc filled with a vertical gradient and striped with seven gaps in the sky's dark color across its lower half, wider toward the horizon: `for(let i=0;i<7;i++)ctx.fillRect(cx-rad,cy-rad*.55+i*rad*.08,rad*2,rad*(.015+i*.009))`. The earlier loop began 15% of the radius above the horizon and stepped 16% of it, so six of its seven gaps fell below the sun's base, outside the clipped half disc, and only one showed, though the Description, lede, prompt and README all say "striped". Counted on the sun's centre line at 1280×800, 1366×657, 375×812 and 812×375: seven stripes, against one.
 - **Slow motion:** while the switch is on, each frame adds a third of the usual step to `offset`, from the next frame.
 - **Reduced motion:** the `reduce` checks and the rule `.fps-badge{display:none}` go (see the preamble).
 - **Stage font:** no text on the stage.
@@ -1351,7 +1365,7 @@ None: leave out the `details.hb-options` block.
   - [Grid / Dot Pattern Parallax](../grid-dot-pattern-parallax/) — a flat grid that shifts against the pointer
   - [Animated Gradient Background](../animated-gradient-background/) — a gradient like the sky's, moving on its own
 - **README How it works:** unchanged
-- **README Production notes:** the "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene." The rest is unchanged.
+- **README Production notes:** the "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene." The rest is unchanged, except the "CSS alternative" bullet, whose claim that an animated `background-position` offloads to the compositor was wrong; it becomes "**CSS alternative**: this can also be built with a `transform: perspective()` plane and a repeating linear-gradient scrolled toward the viewer. Scrolling it with `background-position` repaints every frame; sliding an oversized plane one grid square with `transform: translateY()` and jumping back lets the compositor run it. The canvas version wins on control over per-line fade and glow."
 - **Category line:** `07.15 · Ambient &amp; Background`
 - **Pager:** Previous: Flow Field (`../flow-field/`) · Next: Matrix Rain (`../matrix-rain/`)
 
@@ -1370,7 +1384,7 @@ None: leave out the `details.hb-options` block.
 
   The `visibilitychange` stop and restart stay, and restart only while not paused.
 
-  **The first picture:** `paintStatic()` (enough steps to fill the canvas) runs at load for every visitor, after `resize()`; today only reduced motion saw it. So the stage opens full of rain, and a loop paused on arrival shows it.
+  **The first picture:** `paintStatic()` runs at load for every visitor, after `resize()`; today only reduced motion saw it. So the stage opens showing rain, and a loop paused on arrival shows it. It looks like rain in full flow, not a wall of characters: the columns are dealt afresh over a whole cycle, each drop starting at a random row from two screens above the top to one screen below the bottom (`Math.floor(Math.random() * 3 * rows - 2 * rows)`, with `rows = H / fontSize`), on a black canvas, and then one screen of steps runs (`Math.ceil(rows)`). The result has bright heads with fading tails and about a third of the columns still dark (33–37% with nothing lit, against none for the earlier picture), like steady rain, so nothing thins when Play is pressed. Measured as the share of the canvas whose green channel is above 40 (eight loads each on a desktop, a phone and a sideways phone): 7.4%, 7.0% and 7.8% on arrival and 7.7%, 7.0% and 6.5% one to three seconds after Play, against 16.1%, 17.6% and 19.2% on arrival and about 7% after Play for the earlier picture (columns dealt above the top, one and a half screens of steps). A reduced-motion visitor keeps this picture until Play.
 
   **While paused,** a change to Characters, Trail length or Glowing leaders repaints with `paintStatic()`. Speed shows once it plays.
 
@@ -1382,7 +1396,7 @@ None: leave out the `details.hb-options` block.
 - **Stage font:** site font. `step()` sets `ctx.font` to `fontSize + 'px ' + FONT`, where `FONT` is the page's font family, read once (`getComputedStyle(document.body).fontFamily`), in place of the old `--mono` variable. The characters fall; they are not typed, so the typewriter font does not apply. The Japanese characters come from the system's fallback font, as the site font has none.
 - **Stage:** only the canvas; the fps badge goes, and so does the `.stage-wrap` around the stage. `hb-dots`: no. Default height.
 - **Phone fallback:** today, and kept:
-  - columns are at least 14px apart on stages narrower than 600px (11px elsewhere), so there are fewer of them;
+  - columns are at least 14px apart on phones and short screens (the viewport rule above; 11px elsewhere), so there are fewer of them, and a guarded change listener starts the rain over when a window crosses the rule and the column count changes;
   - the canvas caps the pixel ratio at 2;
   - the glow blur is only on each column's leading character.
 
@@ -1433,7 +1447,7 @@ None: leave out the `details.hb-options` block.
   - [Starfield / Space Particles](../starfield/) — another canvas background of moving points
   - [Scanline Effect](../scanline/) — dark lines for the same old-terminal mood
   - [Synthwave Grid](../synthwave-grid/) — a neon grid for a retro-future backdrop
-- **README How it works:** unchanged
+- **README How it works:** two corrections to match the demo. In the sentence on the translucent rectangle, "each frame" becomes "each step"; in the snippet, `drops[i] = 0;  // recycle randomly` becomes `drops[i] = Math.floor(Math.random() * -20);  // back above the top, at random`. The rest is unchanged.
 - **README Production notes:** the "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing a screen of rain drawn at once, until the visitor presses Play. In production, show these visitors a still frame." The rest is unchanged.
 - **Category line:** `07.16 · Ambient &amp; Background`
 - **Pager:** Previous: Synthwave Grid (`../synthwave-grid/`) · Next: Plasma Field (`../plasma/`)
@@ -1450,12 +1464,12 @@ None: leave out the `details.hb-options` block.
   - Today's Pause only stopped the clock, while the loop kept drawing the same picture sixty times a second. Now Pause cancels the frame, and Play (`start()`) carries on from the same clock.
   - The `visibilitychange` stop and start stay, and start only while not paused.
   - **The first picture:** `resize()` always ends with `draw(clock)` (today only under reduced motion), so the field shows at load and after every real resize (see the preamble) or Detail change, playing or paused. A Detail change calls `resize()` directly; the window's `resize` event goes through the size check first.
-  - **While paused,** Pattern size and Colors call `draw(clock)`.
+  - **While paused,** Pattern size and Colors call `draw(clock)`, and Detail calls `resize()`, which draws: all of them at once, playing or paused. Speed draws nothing: the field stays where it is and only its pace changes, from the next frame.
 - **Slow motion:** while the switch is on, the clock advances by a third of each frame's time, from the next frame.
 - **Reduced motion:** the `reduce` checks go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas; the `.stage-wrap` around the stage goes. The stage's own height, `--stage-h:min(64vh,600px)` (52vh on phones), goes. `hb-dots`: no. Default height.
-- **Phone fallback:** today the field is computed as a small picture (Detail sets its width) and scaled up, and the canvas caps the pixel ratio at 1.5. Smallest change: on stages narrower than 600px, `resize()` uses a picture at most 140px wide, so High looks like Medium there. In `resize()`, which measures the canvas box as `r`, that is `bw = r.width < 600 ? Math.min(quality, 140) : quality`, and `bh` then comes from `bw` instead of `quality`: `bh = Math.max(1, Math.round(bw * (r.height / r.width)))`. A 140px picture on a 343px stage is already sharper than on a laptop. Measured on a phone stage: Medium takes 6.9 ms a frame, and High 13.2 ms with 19 ms peaks.
+- **Phone fallback:** today the field is computed as a small picture (Detail sets its width) and scaled up, and the canvas caps the pixel ratio at 1.5. Smallest change: on phones and short screens (the viewport rule above), `resize()` uses a picture at most 140px wide, so High looks like Medium there. `pictureWidth()` returns `phone.matches ? Math.min(quality, 140) : quality`, `resize()` takes `bw` from it, and `bh` then comes from `bw` instead of `quality`: `bh = Math.max(1, Math.round(bw * H / Math.max(W, 1)))`. A guarded change listener calls `resize()` when a window crosses the rule and the width changes. A 140px picture on a 343px stage is already sharper than on a laptop. Measured on a phone stage: Medium takes 6.9 ms a frame, and High 13.2 ms with 19 ms peaks.
 
 **Main settings**
 
@@ -1500,6 +1514,6 @@ None: leave out the `details.hb-options` block.
   - [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend
   - [Aurora / Northern Lights](../aurora/) — bands of color sway like the northern lights
 - **README How it works:** unchanged
-- **README Production notes:** add a bullet after the first: "On screens narrower than 600px the demo caps the buffer at 140 pixels wide; a phone's stage is small enough that it looks the same." The rest is unchanged.
+- **README Production notes:** add a bullet after the first: "On phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways) the demo caps the buffer at 140 pixels wide; a phone's stage is small enough that it looks the same." The "Precompute what you can" bullet becomes "Precompute what you can: the radial distance of each pixel only changes with the size, so it is computed once; the row, column and diagonal sines change with time, so they are computed once per frame for each row and column rather than for every pixel, leaving one sine per pixel in the inner loop." The rest is unchanged.
 - **Category line:** `07.17 · Ambient &amp; Background`
 - **Pager:** Previous: Matrix Rain (`../matrix-rain/`) · Next: none
