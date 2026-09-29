@@ -56,8 +56,8 @@ function scheduleEmit(source) {
 
 ```js
 function updateSource(source) {
-  source.x += source.vx;
-  source.y += source.vy;
+  source.x += source.vx * k;   // k is 1, or a third in slow motion
+  source.y += source.vy * k;
   // Bounce at boundaries
   if (source.x < W * 0.05 || source.x > W * 0.95) source.vx *= -1;
   if (source.y < H * 0.1  || source.y > H * 0.9)  source.vy *= -1;
@@ -78,7 +78,7 @@ function updateSource(source) {
 
 ## Production notes
 - **This is not the click ripple**: the click ripple ([Click / Tap Ripple](../../04-micro-interactions/click-ripple/)) responds to user input and confirms an action. The ambient ripple is passive and decorative — it fires automatically and continuously without any user interaction.
-- **Ring density calibration**: at 3 sources with a 3s interval and 2.5s ring duration, there are always ~3 rings on screen from each source simultaneously. This "continuous" effect is the sweet spot — single rings look like a clock; too many look frantic.
+- **Ring density calibration**: with the defaults (three sources, a ring every 3s, each living 2.5s) each source has at most one ring out most of the time, so two or three rings are on screen at once, with short quiet spells. Shorter gaps or longer lives overlap more rings; single, evenly spaced rings look like a clock, too many look frantic.
 - **Canvas vs SVG vs CSS**: canvas is best here because the ring count is variable and positions are dynamic. SVG animation for 15+ simultaneous animated elements creates expensive SMIL calculations. CSS `@keyframes` cannot easily spawn elements dynamically.
 - **IntersectionObserver pause**: these loops run continuously — always pause them when the element is off-screen to avoid draining battery on long pages.
 - **Accessibility**: the animation is purely decorative. Pause on `prefers-reduced-motion` and remove the canvas entirely if needed — no content is lost.
