@@ -1,7 +1,7 @@
 # Skeleton Loader
 
 ## What it is
-A skeleton loader is a set of placeholder shapes — gray blocks matching the layout of real content — displayed while data loads. The blocks pulse subtly to signal active loading. Unlike a spinner, a skeleton tells the user what shape of content is coming, which measurably reduces perceived wait time even when actual load time is identical.
+A skeleton loader shows gray placeholder shapes in the layout of the content that is on its way. The blocks pulse gently to show that loading is going on, and the real content fades in over them when it arrives. Because people see the shape of what is coming, the wait feels shorter than it does with a blank area or a spinner.
 
 ## When to use it
 - Social feeds, cards, and lists where content arrives from an API
@@ -46,10 +46,9 @@ The content element needs `opacity: 0; transition: opacity 400ms ease` to fade i
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Pulse speed | 1.5s | 1–2s is the natural breathing range; faster feels anxious |
-| Min opacity | 0.5 | Lower = more dramatic pulse; 0.4–0.6 is subtle |
-| Shape fidelity | Medium | Match line heights, avatar sizes, image ratios exactly for best effect |
-| Content fade | 400ms | Instant swap feels jarring; 300–500ms is smooth |
+| Pulse speed | Normal | How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; one to two seconds feels calm, faster feels anxious |
+| Pulse strength | Medium | How far the blocks fade between pulses: soft, medium or strong; a soft pulse is enough |
+| Loading time | Medium | How long the placeholders show before the content fades in: short is 1s, medium 2s and long 3.5s |
 
 ## Production notes
 - **Shape matching matters**: a skeleton that doesn't match the incoming content causes layout shift and undermines the effect. Measure real content dimensions and match them.
@@ -60,6 +59,6 @@ The content element needs `opacity: 0; transition: opacity 400ms ease` to fade i
 - **Pairing**: skeleton + shimmer (see [Shimmer Effect](../shimmer-effect/)) is the most polished loading state — pulse for structure, shimmer for motion.
 
 ## See also
-- [Shimmer Effect](../shimmer-effect/) — gradient sweep enhancement for skeleton loaders
-- [Loading Spinner](../loading-spinner/) — alternative for unknown-duration loads
-- [Progress Animation](../progress-animation/) — alternative when total progress is known
+- [Shimmer Effect](../shimmer-effect/) — a band of light sweeps across the placeholders
+- [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
+- [Progress Animation](../progress-animation/) — a bar that shows how much is done
