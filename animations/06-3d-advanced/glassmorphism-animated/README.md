@@ -1,7 +1,7 @@
 # Glassmorphism Animated
 
 ## What it is
-Glassmorphism is a UI style where interface elements appear as frosted glass — semi-transparent, blurred backgrounds with subtle light borders. The CSS `backdrop-filter: blur()` property applies the blur to whatever is rendered behind the element. Animating the background blobs, blur intensity, or frost tint color adds a living quality to glass panels that static glassmorphism lacks.
+Glassmorphism styles a card as frosted glass: a see-through tint, a blur of whatever sits behind it, and a thin light edge. It only works when something colorful moves behind the glass, so the demo drifts soft color blobs behind three cards: one with a still frost, one whose blur breathes, and one whose tint slowly changes.
 
 ## When to use it
 - SaaS dashboards and product landing pages where glass cards display metrics or features
@@ -52,19 +52,21 @@ Three CSS properties create the glass effect:
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Blur intensity | 12px | 4–8px = subtle; 16–24px = heavy frost; above 30px degrades text legibility |
-| Glass opacity | 0.12 | 0.05 = nearly invisible tint; 0.25 = heavily tinted |
-| Blob speed | 8s | Faster blob motion = more active glass content; slower = calm |
-| Border opacity | 0.18 | The subtle edge is what sells "glass" — reducing to 0 makes it look plastic |
+| Frost | Medium | How strongly the glass blurs what is behind it: light is 6px, medium 12px and heavy 20px; off shows the cards with no blur, to compare |
+| Tint strength | Medium | How much color the glass adds: faint is 6%, medium 12% and strong 25% |
+| Speed | Normal | How long the colors behind take to drift through one path: slow is 13s, normal 8s and fast 5s |
+| Tint color | Blue | The color of the glass |
+| Breathing frost | on | The middle card's blur grows from 8px to 20px and back every 4 seconds |
+| Shifting tint | on | The right card's tint moves through blue, green, purple and orange every 8 seconds |
 
 ## Production notes
 - **`backdrop-filter` is GPU-expensive**: the browser must capture a snapshot of everything behind the element and blur it every frame. On large glass surfaces or low-end hardware this causes frame drops. Keep glass cards small; avoid full-screen glass overlays.
 - **`-webkit-` prefix still required**: Safari needs `-webkit-backdrop-filter` even in 2024. Include both the prefixed and unprefixed property.
 - **The backdrop must have content**: `backdrop-filter` blurs what is behind the element. If the background is a solid color, the blur does nothing — the glass looks like dirty plastic. Colorful, high-contrast content behind the glass is required for the effect to be visible.
 - **Dark mode**: glassmorphism requires a dark-enough background to read as glass rather than a white haze. The effect works better on dark themes.
-- **Disable for performance audit**: the demo includes a toggle to disable `backdrop-filter`. Use this to compare performance — if the site is noticeably faster without it, reconsider the design.
+- **Compare with the blur off**: the demo's Frost setting has an Off choice. If the page is noticeably faster without the blur, reconsider the design.
 
 ## See also
-- [WebGL Shader Animation](../webgl-shader-animation/) — GPU-based alternative for animated backgrounds
-- [Noise-Based Motion](../noise-based-motion/) — canvas-based animated background
-- [Modal Expand](../../04-micro-interactions/modal-expand/) — glassmorphism is often applied to modal overlays
+- [Mesh Gradient Animation](../../07-ambient-background/mesh-gradient/) — soft color blobs drifting as a background
+- [WebGL Shader Animation](../webgl-shader-animation/) — moving color drawn on the graphics chip
+- [Modal Expand](../../04-micro-interactions/modal-expand/) — a dialog, where frosted glass often appears
