@@ -13,7 +13,7 @@ How to read a section:
 - **Watch it help line: default** means the kind's line: plays once "It plays by itself. Turn on slow motion to see each part of the movement."; loop with Slow motion "It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement."
 - **Pause (css)** means `data-hb-pause="css"`; **Slow motion (css)** means `data-hb-slowmo="css"` and **Slow motion (page)** `data-hb-slowmo` without a value.
 - **Speed** always reads Slow · Normal · Fast; today's default is Normal, Slow is about 1.6 times and Fast about 0.6 times the default duration.
-- **Feel** uses the plain names of the earlier sheets: Smooth (slows to a stop), Springy (goes a little past, then settles), Gentle (eases in and out), Even (one steady speed). The exact curve behind each name is in the row; where a page's old default was another curve, Smooth keeps that curve so the default look does not change.
+- **Feel** uses the names shared with Part 2: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out) is `ease-in-out`, Springy (goes a little past, then settles) and Even (one steady speed) is `linear`. A page's own old default curve keeps its exact value under the nearest name (`ease` under Smooth, `cubic-bezier(.4,0,.2,1)` under Gentle), so the default look does not change. The exact curve behind each name is in the row.
 - **Swatches** use the Text & Typography palette, in this order, with the colour's name as each button's `aria-label`: Pink `#ff6f8b` · White `#f4f4f2` · Blue `#58a6ff` · Purple `#d2a8ff` · Green `#56d364` · Orange `#ffa657`. A section says when it leaves a colour out or keeps the demo's own colours.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows: `04.01 · Micro-Interactions` (Hover State Animation) to `04.15 · Micro-Interactions` (Notification Badge Pulse).
 - **Accent:** every page keeps `--ui-accent:#ff9d5c`, the colour all the Micro-Interactions pages already use.
@@ -32,14 +32,16 @@ How to read a section:
 
 **Body and player bar.** `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Step 1 is titled as the section says (Hover it · Click it · Press Tab) with the section's help line. The player bar holds the Show me button, then the Reset button where the section has one, then the Slow motion switch where the section has one, all exactly as in the do-it/scroll plan (Show me `id="btn-demo"`, Reset `id="btn-reset"`, Slow motion as on Rotate In with `id="slow-tog"`).
 
-**Show me** plays one example of the interaction (the section gives each step and its timing, 2 to 4 seconds at Normal) and returns the demo to rest. Pressing it again restarts the run from rest. The run keeps all its timers in one list, so it can always be stopped completely:
+**Show me** plays one example of the interaction (the section gives each step, 2 to 4 seconds at the default settings) and returns the demo to rest. Pressing it again restarts the run from rest. The run keeps all its timers in one list, so it can always be stopped completely. Every timer of a run goes through `later(fn, move, hold)`, which waits `move*(slow?3:1) + (hold||0)` ms. `move` is the stage's movement up to that step: the transitions and animations it waits for, which follow the settings (for example Speed). `hold` is the time the stage rests up to that step. Both are counted from the moment Show me is pressed. Slow motion triples the movement and never the holds, so a slowed run takes about three times its movement plus the same holds:
 
 ```js
 // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+// later(fn, move, hold) waits move*(slow?3:1) + (hold||0) ms: Slow motion triples the movement, never the hold.
 const slowTog=document.getElementById('slow-tog');      // only on pages with Slow motion
 let runTimers=[];
-function later(fn,ms){
-  const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, ms*(slowTog&&slowTog.checked?3:1));
+function later(fn,move,hold){
+  const slow=!!(slowTog&&slowTog.checked);
+  const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, move*(slow?3:1)+(hold||0));
   runTimers.push(id);
 }
 function running(){ return runTimers.length>0; }
@@ -48,17 +50,23 @@ document.getElementById('btn-demo').addEventListener('click',()=>{ stopRun(); /*
 document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
 ```
 
-The times in a section are the delays from the moment Show me is pressed (Normal speed, Slow motion off).
+Each section writes its timeline as these `later()` calls, with the time each step happens at the default settings with Slow motion off, and the length of a slowed run. The demo's own timers (Checkmark Draw's loading wait) are holds too; they do not go through `later()` and keep their length. The two plays-once pages use the pruning `later(fn, wait)` of the Text & Typography pages (Text Clip-Path Reveal's, where a fired timer leaves `timers`) and stretch their movement durations themselves, as their sections say. `later(fn, move, hold)` is only the do-it pages' Show me helper.
 
-**Stopping a run.** The shared script sends `hb:input` when the visitor presses, types, scrolls or touches inside the stage; a run under way stops at once and leaves the visitor in control. Two kinds of visitor input send no `hb:input`, so the page listens for them itself, only while a run is under way: pointing (the two hover pages stop on a trusted `pointermove` over the stage) and a Tab press that moves the focus into the stage from outside (Focus Ring stops on `focusin` inside the stage). Each section says what "stops" also undoes.
+**A run starts from rest.** When the visitor left the demo changed, `toRest()` puts it back as it is on arrival without animating: the pieces' transitions are turned off inline, the resting state is set, `void el.offsetWidth` forces a reflow, and the inline transitions are cleared. This is Part 2's rule.
+
+**Stopping a run.** The shared script sends `hb:input` when the visitor presses, types, scrolls or touches inside the stage; a run under way stops at once and leaves the visitor in control. Two kinds of visitor input send no `hb:input`, so the page listens for them itself, only while a run is under way:
+- pointing: the two hover pages stop on a trusted `pointermove` over the stage;
+- a Tab press that moves the focus into the stage from outside: Focus Ring and Form Field Morph stop on a trusted `focusin` inside the stage. Their runs move no focus, so every `focusin` there is the visitor's.
+
+Each section says what "stops" also undoes.
 
 **Pretend hover and focus.** A script cannot make `:hover`, `:active`, `:focus-visible` or `:focus-within` match, so the run puts the class `is-demo` on the item it points at or focuses. Every style the run plays is written for both: the real state (hover only inside `@media (hover: hover)`, as today) and `.is-demo`, which sits outside the hover media query so the run also plays on touch screens. The run never moves the real focus.
 
 **Hover and tap.** Hover rules stay inside `@media (hover: hover)`, and every hover has the tap equivalent the section names.
 
-**Reset** appears only where the demo keeps a state after the visitor's own interaction. It stops a run under way and returns the demo to its starting state.
+**Reset** is on a page only where the visitor can leave the demo changed in a way its own controls cannot undo in one step (Part 2's rule). In this half that is Checkmark Draw, whose finished button stays disabled, and Notification Badge Pulse, whose cleared badges have no control to bring them back. Reset calls `stopRun()`, then puts the demo back as it is on arrival. Everywhere else a second press of the same control undoes the change, and Show me starts from rest anyway.
 
-**Slow motion on do-it pages** is "css": while it is on, the shared script slows every CSS animation and transition on the stage to a third of its speed, including the visitor's own hovers and presses. The run's timers are multiplied by 3 while the switch is on (inside `later()` above, read when each timer is set), so the run keeps its shape. Canvas steps and the demo's own sequence timers are slowed only where the section says.
+**Slow motion on do-it pages** is "css": while it is on, the shared script slows every CSS animation and transition on the stage to a third of its speed, including the visitor's own hovers and presses. `later()` triples the movement part of the run's timers and never the holds (read when each timer is set). Canvas steps are slowed only where the section says.
 
 ## Reduced motion
 
@@ -72,7 +80,9 @@ The times in a section are the delays from the moment Show me is pressed (Normal
 - The page owns the stage's size, border and corners. The old `--stage-h`, the stage's `height`, `flex`, `min-width`, `border` and `border-radius`, and the phone rules that made the stage `height:auto` go. The demo's own `.stage` rule keeps its background, its flex centring, `position:relative` and `overflow:hidden` where it has them, and the padding and gap its section gives.
 - Heights were measured with the site font on the phone stage (343×300, and 288×300 at 320px wide) and the laptop stage (960×327, which is what a 1366×657 screen gets). Every stage in this half fits the default height, so no page sets `--hb-stage-h`, and none takes typed text that grows, so none uses `hb-grow`. The measured height of each stage's content is in its section.
 - **Site font on controls:** stage buttons, inputs, selects and textareas get `font-family:inherit`, because form controls do not take the page font by themselves.
-- **Small grey stage text** uses `#8a8a92`, which is 5.7:1 on the stages' `#0b0b0d`; the old `#77777e` is 4.4:1. Stage text below 11px goes up to 11px.
+- **Focus looks on the stage:** the shared stylesheet draws the site's focus ring on every focused element (`body.hb :focus-visible`, specificity 0,2,1). A stage control with its own focus look beats the site ring with a stronger selector: Focus Ring's rings, Form Field Morph's fields and Toggle / Switch Slide's track. A control without one keeps the site ring.
+- **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92`, as in Part 2 (the site's own muted grey), so every stage rule that uses it changes at once. It is 5.7:1 on the stage's `#0b0b0d` and 5.5:1 on the cards' `#111114`; the old `#77777e` is 4.4:1 and 4.2:1. Stage text below 11px goes up to 11px.
+- **Movement uses transform and opacity** (CLAUDE.md). Hover State's underline and lift move from `width` and `box-shadow` to `transform` and `opacity`. Button Press Scale's shadow stops animating and switches at once. Transitions on properties that never change (Toggle's knob shadow, Checkmark's button width) are dropped. One exception stays: Progress Animation's bar still fills by `width`, because that fill is the technique its README teaches (see its section).
 - **`hb-dots`:** yes on every stage in this half (each has a plain dark background).
 
 ---
@@ -81,15 +91,23 @@ The times in a section are the delays from the moment Show me is pressed (Normal
 
 - **Kind:** do — a hover effect: the visitor points at the cards, and Show me points at them in turn.
 - **Description:** Six ways a card can react when you point at it. Best for buttons and cards.
-- **Step 1:** Hover it — help line: "Point at each card, or press and hold one on a phone."
+- **Step 1:** Hover it — help line: "Point at a card (press and hold it on a phone), or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: nothing stays changed once the pointer leaves.
 - **What the visitor does:** pointing at a card plays its change (inside `@media (hover: hover)`, as today); pressing a card shows the same change while it is held (`:active`, as today), which is the tap equivalent on touch screens.
-- **Show me:** points at the six cards in reading order. Card i gets `is-demo` at i × 500ms and loses it 450ms later, so each change plays in and back out; the run ends at rest at 3000ms. Stops on `hb:input` and on the visitor's own `pointermove` over the stage; stopping removes `is-demo` from every card. The CSS gives each card's change to `.is-demo` as well as to `:hover` and `:active` (for example `.h-scale:active,.h-scale.is-demo{transform:scale(1.03)}`, outside the hover media query).
+- **Show me:** points at the six cards in reading order.
+  - Card i (0 to 5) gets `is-demo` with `later(on, i*dur, i*320)` and loses it with `later(off, (i+1)*dur, i*320+270)`, where `dur` is Speed. Each change plays in, holds 270ms and plays back out, and the next card starts 50ms after.
+  - At the defaults the cards go on at 0, 500, 1000, 1500, 2000 and 2500ms, each for 450ms. The run is at rest by about 3.1 s, or about 5.7 s with Slow motion.
+  - Stops on `hb:input` and on the visitor's own `pointermove` over the stage; stopping removes `is-demo` from every card.
+  - The CSS gives each card's change to `.is-demo` as well as to `:hover` and `:active`, outside the hover media query (for example `.h-scale:active,.h-scale.is-demo{transform:scale(1.03)}`).
 - **Reset:** none.
-- **Slow motion:** css. The run's timers are multiplied by 3 while it is on.
+- **Slow motion:** css. `later()` triples each card's movement (Speed), not its 270ms and 50ms holds.
 - **Reduced motion:** the demo's rule stays: the cards change look at once, without the transition. Show me still switches each card's look on and off in turn.
 - **Stage font:** site font. `.hcard-name` and `.card-link` get `font-size:15px` and `font-weight:700`.
 - **Stage:** the six cards stay, two to a row on every screen (the phone rule that made one column goes). The small "Technique 1" to "Technique 6" labels go, and the names become plain: "Color change", "Grow", "Lift", "Underline" (the link text of the underline card), "Arrow nudge" (with its →) and "Sweep". `.hgrid` gets `gap:10px`; `.hcard` gets `min-height:72px` and `padding:14px 12px`; the stage gets `padding:16px`. The wrapper `div` around the grid keeps `width:100%`. `hb-dots`: yes. Measured: 270px on a phone, 284px at 320px, 270px on a laptop.
+  - Two changes move to transform and opacity (see the preamble). Today the underline grows by `width` and the lift adds a `box-shadow`.
+  - The underline: `.h-underline .card-link::after` gets `width:100%`, `transform:scaleX(0)` and `transform-origin:left`, and a `transform` transition. It grows with `transform:scaleX(1)` on hover, `:active` and `.is-demo`.
+  - The lift: `.h-lift` gets `overflow:visible` and keeps only its `translateY(-4px)`, with a `transform` transition. Its shadow moves to `.h-lift::after` (`content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 8px 24px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)`), which fades in (`opacity:1`) on hover, `:active` and `.is-demo`.
+  - The reduced-motion rule also lists `.h-lift::after`.
 
 **Main settings**
 
@@ -138,12 +156,17 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a click effect: the visitor presses a button, and Show me presses the three buttons in turn.
 - **Description:** A ripple spreads out from the spot you press. Best for buttons and list items.
-- **Step 1:** Click it — help line: "Click or tap anywhere on a button, and watch where the ripple starts."
+- **Step 1:** Click it — help line: "Click or tap anywhere on a button, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: every ripple fades away by itself.
 - **What the visitor does:** pressing a button (`pointerdown`, so mouse, touch and pen alike, as today) spawns a ripple at the press point, or at the button's middle when Starts from is The middle.
-- **Show me:** presses each button once, top to bottom, at 0ms, 700ms and 1400ms, each at a different point so the start point shows: a quarter of the way across the first button, three quarters across the second and the middle of the third, all at half height. Each press calls `spawnRipple(btn, {clientX, clientY})` with that point taken from the button's `getBoundingClientRect()` at the moment of the press, so Starts from and every other setting apply. The last ripple fades by 2000ms. A single press lasts only 0.6 seconds, so the run presses all three buttons, one press each. Stops on `hb:input`; ripples already spreading finish by themselves.
+- **Show me:** presses each button once, top to bottom, each at a different point so the start point shows: a quarter of the way across the first button, three quarters across the second, and the middle of the third, all at half height.
+  - Button i (0 to 2) is pressed with `later(press, i*dur, i*100)`, where `dur` is Speed: each ripple plays, then 100ms pass before the next press.
+  - Each press calls `spawnRipple(btn, {clientX, clientY})` with that point, taken from the button's `getBoundingClientRect()` at the moment of the press, so Starts from and every other setting apply.
+  - At the defaults the presses come at 0, 700 and 1400ms, and the last ripple has faded by 2000ms, or about 5.6 s with Slow motion.
+  - A single press lasts only 0.6 seconds, so the run presses all three buttons, one press each.
+  - Stops on `hb:input`; ripples already spreading finish by themselves.
 - **Reset:** none.
-- **Slow motion:** css (the ripple is a `@keyframes` animation on the stage). The run's timers are multiplied by 3 while it is on.
+- **Slow motion:** css (the ripple is a `@keyframes` animation on the stage). `later()` triples each ripple's time (Speed), not the 100ms between presses.
 - **Reduced motion:** the demo's rule changes. Today it shortens the ripple to 1ms, which shows nothing at all, and Show me must still visibly work. Under reduced motion the ripple no longer grows: it appears at full size and only fades out, over Speed, so the press shows as a soft flash across the button. The rule becomes `.ripple{animation-name:ripple-fade}` with `@keyframes ripple-fade{from{transform:scale(var(--ripple-scale))}to{transform:scale(var(--ripple-scale));opacity:0}}` (the ripple keeps its start opacity, and `animationend` still removes it). `.rbtn{transition:none!important}` stays.
 - **Stage font:** site font. `.rbtn` gets `font-family:inherit` in place of `monospace`.
 - **Stage:** the three buttons stay. Their labels become "Primary button", "Secondary button" and "Outline button" (was "Primary Action", "Secondary Action", "Ghost / Outline"). The counters (`.cnt-row`) go. The stage gets `padding:24px` and `gap:20px`. `hb-dots`: yes. Measured: 246px on phones and laptops.
@@ -202,21 +225,27 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — the rollout's "Press Tab" page: the visitor moves through the form with the Tab key, and Show me moves the ring through its four items.
 - **Description:** A ring closes in around the item the Tab key reaches. Best for forms and menus.
-- **Step 1:** Press Tab — help line: "Click the first field, then press Tab to move through the form. On a phone, press Show me."
+- **Step 1:** Press Tab — help line: "Click the first field and press Tab to move through the form, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset (see Removed).
 - **What the visitor does:** the Tab key moves the real focus through the text field, the menu, the button and the link, and each one draws its ring on `:focus-visible`, as today. A mouse click on the menu, the button or the link shows no ring; the text field shows one on click too, because browsers treat a field you type in as keyboard focus.
-- **Show me:** draws the ring on the four items in turn with `is-demo`: the text field at 0ms, the menu at 600ms, the button at 1200ms and the link at 1800ms, each losing it when the next one gets it; the last ring goes at 2400ms, back to rest. At the start the run also blurs a stage item that has the real focus. The run never moves the real focus. Moving it would take a keyboard or screen-reader user's place on the page when Show me runs on arrival, scroll the page, and open the on-screen keyboard on phones, so the ring is drawn the way the other do-it pages draw a pretend hover. The four ring-style rules and the reduced-motion rule each list `.focusable.is-demo` beside `.focusable:focus-visible`, so the same `ring-in` animation plays. Stops on `hb:input` and on `focusin` inside the stage (a Tab press into the form sends no `hb:input`); stopping removes `is-demo` from all four items.
+- **Show me:** draws the ring on the four items in turn with `is-demo`: the text field, the menu, the button and the link.
+  - Item i (0 to 3) gets `is-demo` with `later(ring, i*ringDur, i*460)`, and the item before it loses it at the same moment. The last one loses it with `later(end, 4*ringDur, 4*460)`, back to rest. `ringDur` is Speed: each ring closes in, then holds 460ms.
+  - At the defaults the ring moves at 0, 600, 1200 and 1800ms and goes at 2400ms, or about 3.5 s with Slow motion.
+  - At the start the run also blurs a stage item that has the real focus.
+  - The run never moves the real focus (owner decision). Moving it would take a keyboard or screen-reader user's place on the page when Show me runs on arrival, scroll the page, and open the on-screen keyboard on phones. So the ring is drawn the way the other do-it pages draw a pretend hover.
+  - The four ring-style rules and the reduced-motion rule each list `.focusable.is-demo` beside `.focusable:focus-visible`, so the same `ring-in` animation plays.
+  - Stops on `hb:input` and on a trusted `focusin` inside the stage (a Tab press into the form sends no `hb:input`); stopping removes `is-demo` from all four items.
 - **Reset:** none.
-- **Slow motion:** css (the `ring-in` keyframes and the border transition). The run's timers are multiplied by 3 while it is on.
+- **Slow motion:** css (the `ring-in` keyframes and the border transition). `later()` triples each ring's closing-in (Speed), not the 460ms holds.
 - **Reduced motion:** the demo's rule stays, extended to the `is-demo` rings: the ring shows at once, without closing in. Show me still moves the ring from item to item.
 - **Stage font:** site font. `.focusable`, `.form-btn` and `.form-link` get `font-family:inherit` in place of `monospace`.
-- **Stage:** the form stays: Full name, Country, Submit Form and Forgot password?. The step strip above it (`.tab-indicator`, "1 · Text" to "4 · Link") goes, because it is a readout of where the focus is. The field labels become 11px and `#8a8a92`. `.form` gets `gap:12px` and the stage `padding:16px`. `hb-dots`: yes. Measured: 286px on phones and laptops.
+- **Stage:** the form stays: Full name, Country, Submit Form and Forgot password?. The step strip above it (`.tab-indicator`, "1 · Text" to "4 · Link") goes, because it is a readout of where the focus is. The field labels become 11px; their grey is `--ui-muted`. `.form` gets `gap:12px` and the stage `padding:16px`. The ring-style rules (specificity 0,3,0) already beat the site's focus ring. `hb-dots`: yes. Measured: 286px on phones and laptops.
 
 **Main settings**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Ring style | Choice buttons | Solid · Dashed · Glow · Double | Solid | Glow adds a soft halo; Double draws two rings. | the form's class: `ring-solid` / `ring-dashed` / `ring-glow` / `ring-dual` |
+| Ring style | Choice buttons | Solid · Dashed · Glow · Wide | Solid | Glow adds a soft halo; Wide fills the gap with color. | the form's class: `ring-solid` / `ring-dashed` / `ring-glow` / `ring-dual` |
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | How quickly the ring closes in around the item. | `--ring-dur`: 220ms / 140ms / 80ms |
 | Ring thickness | Choice buttons | Thin · Medium · Thick | Medium | Thicker rings are easier to spot. | `--ring-w`: 1px / 2px / 4px |
 
@@ -229,7 +258,7 @@ None: leave out the `details.hb-options` block.
 - **Removed:**
   - The note, the "Click in stage, then press Tab." line and the step strip on the stage.
   - The Reset focus button. Clicking it already takes the focus off the form, so it did nothing more, and the Show me run never moves the real focus.
-  - The Ring Style menu. It becomes Ring style ("Dual ring" becomes Double).
+  - The Ring Style menu. It becomes Ring style. "Dual ring" becomes Wide, because it draws one thick band: its shadow fills the gap up to the outline, leaving only a thin dark line next to the item.
   - The Ring Width, Ring Offset and Duration sliders. They become Ring thickness, Ring gap and Speed.
 - **Good for:** Forms · Buttons · Links · Menus · **Avoid on:** Non-interactive items
 - **Prompt:**
@@ -244,7 +273,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Ring style | Solid | Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo; Double adds a second ring with a dark gap between |
+  | Ring style | Solid | Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo; Wide fills the gap between the item and the ring, making one thick band |
   | Speed | Normal | How long the ring takes to close in: slow is 220ms, normal 140ms and fast 80ms; fast enough not to feel delayed, slow enough to see |
   | Ring thickness | Medium | Thin is 1px, medium 2px and thick 4px; 2px or more is easy to see |
   | Ring gap | Small | The space between the ring and the item: none, 3px or 6px; 2 to 4px looks natural |
@@ -264,15 +293,19 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a press effect: the visitor presses a button, and Show me presses the three buttons in turn.
 - **Description:** Shrinks as you press it and springs back as you let go. Best for main buttons.
-- **Step 1:** Click it — help line: "Press a button and hold it, then let go. A tap works too."
+- **Step 1:** Click it — help line: "Press and hold a button, then let go, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: a button always returns to full size when it is let go.
 - **What the visitor does:** pressing a button adds `pressed` (`pointerdown`, or Space and Enter), and letting go removes it (`pointerup`, or the key coming up), as today; `pointercancel` lets go too. Touch works the same way.
-- **Show me:** presses each button once, top to bottom: `pressed` goes on Confirm at 0ms and comes off at 400ms, on Save Draft at 800ms and off at 1200ms, on Cancel at 1600ms and off at 2000ms; the last spring-back ends at about 2200ms. Stops on `hb:input`; stopping removes `pressed` from every button. The shared script sends `hb:input` before the button's own `pointerdown` handler runs, so the visitor's own press still takes effect.
+- **Show me:** presses each button once, top to bottom (Confirm, Save Draft, Cancel).
+  - Button i (0 to 2) goes down (`pressed` on) with `later(down, i*(pd+rd), i*540)` and comes up with `later(up, i*(pd+rd)+pd, i*540+320)`. `pd` is Press speed and `rd` Release speed: each press shrinks, holds 320ms and springs back, and 220ms pass before the next press.
+  - At the defaults the buttons go down at 0, 800 and 1600ms and come up 400ms later each. The run is at rest by about 2.2 s, or about 3.7 s with Slow motion.
+  - Stops on `hb:input`; stopping removes `pressed` from every button. The shared script sends `hb:input` before the button's own `pointerdown` handler runs, so the visitor's own press still takes effect.
 - **Reset:** none.
-- **Slow motion:** css. The run's timers are multiplied by 3 while it is on.
-- **Reduced motion:** the demo's rule stays: the button snaps to its pressed size and back, without the transition. Show me still presses each button in turn.
+- **Slow motion:** css. `later()` triples each press and spring-back (Press speed and Release speed), not the 320ms and 220ms holds.
+- **Reduced motion:** the demo's rule stays: the button changes to its pressed size and back at once, without the transition. Show me still presses each button in turn.
 - **Stage font:** site font. `.pbtn` gets `font-family:inherit` in place of `monospace`.
 - **Stage:** the three buttons stay (Confirm, Save Draft, Cancel). Their `aria-label`s go, so each button's name is its visible text ("Save" did not match "Save Draft"). The press counters (`.cnt-row`) go. The stage gets `padding:24px`. `hb-dots`: yes. Measured: 274px on phones and laptops.
+  - The buttons' transitions keep only `transform`; `box-shadow` leaves them (see the preamble). The smaller pressed shadow now switches at once, while the size change keeps its timing.
 
 **Main settings**
 
@@ -280,7 +313,7 @@ None: leave out the `details.hb-options` block.
 |---|---|---|---|---|---|
 | Press depth | Choice buttons | Light · Medium · Deep | Medium | How much the button shrinks while held down. | `--press-scale`: 0.97 / 0.95 / 0.9 |
 | Release speed | Choice buttons | Slow · Normal · Fast | Normal | How long it takes to spring back. | `--release-dur`: 300ms / 180ms / 110ms |
-| Release feel | Choice buttons | Springy · Smooth · Even | Springy | Springy goes a little past full size, then settles. | `--release-ease`: `cubic-bezier(.34,1.56,.64,1)` / `cubic-bezier(.2,.7,.3,1)` / `linear` |
+| Release feel | Choice buttons | Springy · Smooth · Even | Springy | Springy goes a little past full size, then settles. | `--release-ease`: `cubic-bezier(.34,1.56,.64,1)` / `ease-out` / `linear` |
 
 **More options**
 
@@ -291,11 +324,11 @@ None: leave out the `details.hb-options` block.
 - **Removed:**
   - The note, the press counters and the Total presses readout.
   - The Press Scale, Press Duration and Release Duration sliders. They become Press depth, Press speed and Release speed.
-  - The Release Easing menu. It becomes Release feel. Ease out goes: it looks nearly the same as Smooth.
+  - The Release Easing menu. It becomes Release feel. Ease out becomes Smooth, and the menu's own "Smooth" curve (`cubic-bezier(.2,.7,.3,1)`) goes, because it looks nearly the same as Ease out.
 - **Good for:** Main buttons · Icon buttons · Mobile apps · **Avoid on:** Links in text · Large cards
 - **Prompt:**
 
-  > Add press feedback to [the buttons you want to feel tactile]. While a button is held down it shrinks, as if pushed in, and when it is let go it returns to full size. A press that is quicker than the release feels most like a real button. Respond to mouse, touch and pen presses and to Space and Enter on the keyboard, and let go cleanly if a press turns into a scroll, so no button stays stuck down. Change only the button's size so nothing around it moves. If the visitor has reduced motion turned on, skip the shrinking. Match the settings listed below.
+  > Add press feedback to [the buttons you want to feel tactile]. While a button is held down it shrinks, as if pushed in, and when it is let go it returns to full size. A press that is quicker than the release feels most like a real button. Respond to mouse, touch and pen presses and to Space and Enter on the keyboard, and let go cleanly if a press turns into a scroll, so no button stays stuck down. Change only the button's size so nothing around it moves. If the visitor has reduced motion turned on, change the size at once, without animating it. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -315,7 +348,7 @@ None: leave out the `details.hb-options` block.
   - [Hover State Animation](../hover-state/) — items react before they are clicked
   - [Checkmark Draw](../checkmark-draw/) — a tick draws itself once the task is done
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this." The rest is unchanged.
 - **Category line:** `04.04 · Micro-Interactions`
 - **Pager:** Previous: Focus Ring Animation (`../focus-ring/`) · Next: Magnetic Button (`../magnetic-button/`)
 
@@ -324,20 +357,27 @@ None: leave out the `details.hb-options` block.
 ## magnetic-button — Magnetic Button
 
 - **Kind:** do — a hover effect: the visitor moves the pointer near the button, and Show me moves a pretend pointer around it.
-- **Description:** Leans toward the pointer, then springs home. Best for a single key button.
-- **Step 1:** Hover it — help line: "Move the pointer close to the button. On a phone, touch near it."
+- **Description:** Leans toward the pointer, then springs home. Best for one main button.
+- **Step 1:** Hover it — help line: "Move the pointer close to the button (touch near it on a phone), or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: the button always springs home.
 - **What the visitor does:**
   - With a mouse: moving over the stage pulls the button toward the pointer while it is within Reach, and leaving the stage or the reach sends it home (inside the `(hover: hover)` branch, as today).
   - The tap equivalent, new (today a touch screen only changes a hint): on a touch, `pointerdown` on the stage pulls the button toward the finger, `pointermove` while the finger is down follows it, and `pointerup` or `pointercancel` sends it home. These handlers act only when `e.pointerType` is not `"mouse"`. The stage keeps `touch-action:manipulation`, so a swipe still scrolls the page, which cancels the touch and sends the button home.
   - Pressing the button still shrinks it slightly (`pressed`), as today.
   - The pull is one function that takes a point on the stage (today's `pointermove` body): the mouse, the touch and Show me all call it.
-- **Show me:** moves a pretend pointer around the button, calling the pull function with points measured from the button's centre: up and to the left (−0.55 × Reach, −0.35 × Reach) at 0ms, to the right (+0.6 × Reach, +0.1 × Reach) at 700ms, and below (−0.1 × Reach, +0.5 × Reach) at 1400ms. At 2100ms it sends the button home (`reset()`), which settles by about 2650ms. Stops on `hb:input` and on the visitor's own mouse `pointermove` over the stage; stopping sends the button home, and the visitor's own pointer pulls it again straight away if it is within reach.
+- **Show me:** moves a pretend pointer around the button, calling the pull function with three points.
+  - The points are fixed offsets from the button's resting centre, taken once when the run starts from its layout box: `offsetLeft + offsetWidth/2` and `offsetTop + offsetHeight/2`, with the stage as offset parent. The pull's transform never moves the layout box.
+  - The offsets are up and to the left (−0.55 × Reach, −0.35 × Reach), to the right (+0.6 × Reach, +0.1 × Reach) and below (−0.1 × Reach, +0.5 × Reach).
+  - The pull function itself still measures from the button's current, moved position, as it does for the real pointer.
+  - Point k (0 to 2) is pulled toward with `later(pull, k*550, k*150)`, and the button is sent home with `later(reset, 1650, 450)`. 550ms is the button's glide (its transition), and each point holds 150ms.
+  - At the defaults the pulls come at 0, 700 and 1400ms, and the button is sent home at 2100ms and settles by about 2650ms, or about 7 s with Slow motion.
+  - Stops on `hb:input` and on the visitor's own mouse `pointermove` over the stage. In the stage's `pointermove` handler, a run under way is stopped first (`stopRun()`, which sends the button home), and the pull runs after it, so the visitor's pointer takes over at once.
 - **Reset:** none.
-- **Slow motion:** css (the button's and label's `.55s` transform transitions). The run's timers are multiplied by 3 while it is on.
-- **Reduced motion:** the demo's rule stays: the button still follows, with a short linear move instead of the springy one. Show me still moves it to each point.
+- **Slow motion:** css (the button's and label's `.55s` transform transitions). `later()` triples each 550ms glide, not the 150ms holds.
+- **Reduced motion:** the demo's rule stays: the button still follows, with a short, even move (`.12s linear`) instead of the slow glide. Show me still moves it to each point.
 - **Stage font:** site font. `.mag` drops `var(--disp)` and keeps `font-weight:700`.
 - **Stage:** only the button stays ("Get Started"). The dashed radius ring (`.ring`) and the hint under the button (`.hint`) go. `hb-dots`: yes. Measured: 65px of content, centred.
+  - The label's class `lbl` becomes `mag-label` in the CSS (`.mag .mag-label` and the reduced-motion rule), the markup and the script's lookup, because the page checks reject `class="lbl"` (an old panel class).
 
 **Main settings**
 
@@ -357,7 +397,7 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Hero buttons · Portfolio sites · One key action · **Avoid on:** Forms · Rows of buttons
 - **Prompt:**
 
-  > Add a magnetic effect to [the one button you want to stand out]. When the pointer comes within reach, pull the button part of the way toward it, more strongly the closer it gets, and move its label a little further so the label seems to float above the button. When the pointer leaves, let the button spring back to its place. Move it only with transforms so the layout never shifts, and use it on one or two buttons at most. On touch screens, pull the button toward the finger while it touches and send it home when it lifts. If the visitor has reduced motion turned on, move it without the springy overshoot. Match the settings listed below.
+  > Add a magnetic effect to [the one button you want to stand out]. When the pointer comes within reach, pull the button part of the way toward it, more strongly the closer it gets, and move its label a little further so the label seems to float above the button. When the pointer leaves, let the button spring back to its place. Move it only with transforms so the layout never shifts, and use it on one or two buttons at most. On touch screens, pull the button toward the finger while it touches and send it home when it lifts. If the visitor has reduced motion turned on, move it quickly and evenly instead of letting it glide. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -375,7 +415,7 @@ None: leave out the `details.hb-options` block.
   - [Hover State Animation](../hover-state/) — simpler ways to react to the pointer
   - [Cursor Follower](../cursor-follower/) — a shape that follows the pointer around
 - **README How it works:** the last sentence, "On touch devices (no hover), the magnet is skipped entirely and the button only does a press-scale on tap.", becomes "On touch screens, which cannot hover, the same pull follows a finger while it touches the stage, and the button springs home when the finger lifts." The rest is unchanged; the label's 0.35 multiplier and the return easing, which leave the Key parameters table, are already described there.
-- **README Production notes:** the "Gate on hover capability" bullet becomes: "**Gate on hover capability**: bind the hover magnet only where `window.matchMedia('(hover: hover)').matches`. On touch screens `pointermove` fires only while a finger is down, so pull toward the touch point while it is down and send the button home when it lifts, or fall back to a plain press-scale." The rest is unchanged.
+- **README Production notes:** the "Gate on hover capability" bullet becomes: "**Gate on hover capability**: bind the hover magnet only where `window.matchMedia('(hover: hover)').matches`. On touch screens `pointermove` fires only while a finger is down, so pull toward the touch point while it is down and send the button home when it lifts, or fall back to a plain press-scale." The "Reduced motion" bullet becomes: "**Reduced motion**: shorten the transition to a quick, even move, so the button still follows the pointer without the slow glide." The rest is unchanged.
 - **Category line:** `04.05 · Micro-Interactions`
 - **Pager:** Previous: Button Press Scale (`../button-press-scale/`) · Next: Toggle / Switch Slide (`../toggle-switch/`)
 
@@ -385,34 +425,40 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a click effect: the visitor flips a switch, and Show me flips each switch and back.
 - **Description:** The knob slides across as the switch turns on or off. Best for settings.
-- **Step 1:** Click it — help line: "Click or tap a switch to turn it on or off."
-- **Player bar:** Show me · Reset · Slow motion (css).
+- **Step 1:** Click it — help line: "Click or tap a switch to turn it on or off, or press Show me."
+- **Player bar:** Show me · Slow motion (css). No Reset (owner decision): a second click flips a switch back, and Show me starts from the arrival state.
 - **What the visitor does:** clicking or tapping a switch (or pressing Space on it) flips its checkbox, and the CSS `:checked` rules slide the knob and colour the track, as today.
-- **Show me:** flips each switch and flips it back, from whatever state it is in: Notifications at 0ms, Appearance at 400ms and Auto-save at 800ms, then back in the same order at 1600ms, 2000ms and 2400ms. It sets each checkbox's `checked` directly (no `change` event is needed now that the status readout is gone). Every switch ends where it started, by about 2600ms. Stops on `hb:input`; the switches stay as they are.
-- **Reset:** stops a run and puts the switches back to their starting states, sliding: Notifications on, Appearance off, Auto-save on.
-- **Slow motion:** css. The run's timers are multiplied by 3 while it is on.
+- **Show me:** starts from rest. `toRest()` puts the switches back as they are on arrival (Notifications on, Appearance off, Auto-save on) without animating. Then the run flips each switch and flips it back.
+  - Switch i (0 to 2) flips with `later(flip, i*dur, i*200)` and flips back with `later(back, (3+i)*dur, 1000+i*200)`, where `dur` is Speed. Each slide takes Speed, 200ms pass between switches, and all three rest 600ms before they flip back.
+  - At the defaults they flip at 0, 400 and 800ms and back at 1600, 2000 and 2400ms. The run is at rest by about 2.6 s, or about 5 s with Slow motion.
+  - The run sets each checkbox's `checked` directly (no `change` event is needed now that the status readout is gone).
+  - Stops on `hb:input`; the switches stay as they are.
+- **Reset:** none.
+- **Slow motion:** css. `later()` triples each slide (Speed), not the 200ms and 600ms holds.
 - **Reduced motion:** the demo's rule stays: the knob jumps and the track colour changes over 0.1s. Show me still flips each switch.
 - **Stage font:** site font. `.tog-label` gets `font-size:15px` and `font-weight:600`.
 - **Stage:** the three switches and their names stay (Notifications, Appearance, Auto-save). The grey lines under the names (`.tog-sub`) go; the third one ("Elastic release overshoot") would be wrong with Springy knob off. The On/Off status readout (`.status-row`) goes. `hb-dots`: yes. Measured: 270px on phones and laptops.
+  - Keyboard focus: the checkbox is invisible (`opacity:0` and no size), so a Tab press showed nothing. The track now shows it, as the switch's own focus look (see the preamble): `.sw input:focus-visible ~ .sw-track{outline:2px solid var(--ui-accent);outline-offset:2px}`.
+  - The knob's transitions keep only `transform`: `box-shadow` and `background` leave them, because neither changes.
 
 **Main settings**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | Fast feels mechanical; slow can feel sluggish. | `--tog-dur`: 320ms / 200ms / 120ms |
-| Feel | Choice buttons | Smooth · Gentle · Even | Smooth | Smooth gives the knob weight; Even feels robotic. | `--tog-ease`: `cubic-bezier(.4,0,.2,1)` / `ease-in-out` / `linear` |
+| Feel | Choice buttons | Smooth · Gentle · Even | Gentle | Gentle gives the knob weight; Even feels robotic. | `--tog-ease`: `ease-out` / `cubic-bezier(.4,0,.2,1)` / `linear` |
 
 **More options**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Springy knob | Switch | on / off | on | The third switch's knob goes past the end, then settles. | Auto-save's knob (`.sw.elastic .sw-thumb`): no inline `transition`, so the springy `elastic` rule applies / inline `transition:transform var(--tog-dur) var(--tog-ease)`, as today |
+| Springy knob | Switch | on / off | on | The third switch's knob goes past the end, then settles. | Auto-save's switch (the `label.sw` around `#sw2`) has the `elastic` class, so its knob uses the springy `.sw.elastic .sw-thumb` transition / has no `elastic` class, so its knob uses the shared `.sw-thumb` transition (Speed and Feel). This replaces today's inline style, so `toRest()` can clear inline transitions safely. |
 | On color | Swatches (White is left out: the knob is white) | Pink · Blue · Purple · Green · Orange | Blue | The track color when a switch is on. | `--on-color`: `#ff6f8b` / `#58a6ff` / `#d2a8ff` / `#56d364` / `#ffa657` (the Appearance switch keeps its own orange, as today) |
 
 - **Removed:**
   - The note and the "Tap any toggle to flip state." line.
   - The On/Off status readout and the grey lines under the switch names.
-  - The Duration slider and the Easing menu. They become Speed and Feel. Ease out goes: it looks nearly the same as Smooth, which keeps today's default curve.
+  - The Duration slider and the Easing menu. They become Speed and Feel. Today's default curve, "Material smooth", keeps its value under Gentle, and Ease out becomes Smooth. The menu's Ease in-out goes, because Gentle already covers an in-and-out curve.
   - The colour picker. It becomes the On color swatches.
   - "Elastic on toggle 3". It becomes Springy knob.
 - **Good for:** Settings · Preferences · Dark mode switches · **Avoid on:** Forms sent later · More than two options
@@ -429,9 +475,9 @@ None: leave out the `details.hb-options` block.
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Speed | Normal | How long the knob takes to slide: slow is 320ms, normal 200ms and fast 120ms; under 120ms feels mechanical, over 350ms sluggish |
-  | Feel | Smooth | Smooth gives the knob weight as it slows into place; Gentle eases in and out evenly; Even slides at one steady speed |
+  | Feel | Gentle | Gentle eases in and out, which gives the knob weight; Smooth starts fast and slows to a stop; Even slides at one steady speed |
   | Springy knob | on | The third switch's knob goes a little past the end, then settles |
-  | On color | Blue | The track color when a switch is on; it must stand out from the white knob. The sun switch keeps its own orange |
+  | On color | Blue | The track color when a switch is on; it must stand out from the white knob. The Appearance switch keeps its own orange |
 
 - **README See also:**
   - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
@@ -448,14 +494,18 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a click effect: the visitor likes the heart, and Show me likes it once and unlikes it.
 - **Description:** The heart pops and fills as small hearts burst out. Best for like buttons.
-- **Step 1:** Click it — help line: "Click or tap the heart to like it, and again to unlike it."
+- **Step 1:** Click it — help line: "Click or tap the heart to like it and again to unlike it, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: a second click unlikes the heart and puts the count back.
 - **What the visitor does:** clicking or tapping the heart (or Space or Enter on it) toggles the like, as today. A like fills the heart, plays the pop and bursts the particles; an unlike only removes the colour. The toggle is one function, called by the click and by Show me.
-- **Show me:** if the heart is liked, it is first unliked at once. At 300ms the run likes it (fill, pop and burst), and at 2000ms it unlikes it, back to rest with the count at 128. The burst has faded by then (about 0.75 seconds at 60 frames a second). Stops on `hb:input`; the heart stays as it is.
+- **Show me:** starts from rest: if the heart is liked, `toRest()` unlikes it without animating, and the count goes back to 128. Then:
+  - `later(like, 0, 300)` likes it (fill, pop and burst);
+  - `later(unlike, 750, 1250)` unlikes it, back to rest. 750ms is the burst, which fades in about 45 frames, with the 500ms pop inside it; the holds are the first 300ms and 950ms of rest before the unlike.
+  - At the defaults the like comes at 300ms and the unlike at 2000ms, or about 3.5 s with Slow motion.
+  - Stops on `hb:input`; the heart stays as it is.
 - **Reset:** none.
-- **Slow motion:** css for the pop and the fill. While the switch is on, the page also slows the burst: each frame moves every particle a third of its usual step. Position, the gravity added to `vy` and the life drain are multiplied by 1/3, and the `0.98` drag becomes `0.98 ** (1/3)`. It takes effect from the next frame. The run's timers are multiplied by 3 while it is on.
+- **Slow motion:** css for the pop and the fill. While the switch is on, the page also slows the burst: each frame moves every particle a third of its usual step. Position, the gravity added to `vy` and the life drain are multiplied by 1/3, and the `0.98` drag becomes `0.98 ** (1/3)`. It takes effect from the next frame. `later()` triples the burst (750ms), not the 300ms and 950ms holds.
 - **Reduced motion:** as today, a like only fills the heart, with no pop and no burst (the demo's rule and its `reduce` check stay). Show me still fills and empties the heart.
-- **Stage font:** site font. `.count b` drops `var(--disp)`; the "Likes" count becomes `#8a8a92`.
+- **Stage font:** site font. `.count b` drops `var(--disp)`. The "Likes" count and the empty heart's outline both use `--ui-muted`, so both take the new grey.
 - **Stage:** the canvas, the heart and the "Likes 128" count stay. The count is part of a real like button, not a readout. `hb-dots`: yes. Measured: 133px of content, centred.
 
 **Main settings**
@@ -504,11 +554,17 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a click effect: the visitor places the order, and Show me places it once and returns the button to its start.
 - **Description:** Confetti bursts from the button when a task is done. Best for big moments.
-- **Step 1:** Click it — help line: "Click or tap Place order. Click it again for another burst."
-- **Player bar:** Show me · Reset. No Slow motion: the burst already lasts about two seconds and has no quick part to study, and the only CSS on the stage is the button's colour change.
+- **Step 1:** Click it — help line: "Click or tap Place order (again for another burst), or press Show me."
+- **Player bar:** Show me only.
+  - No Reset (owner decision): the button stays done, a further click fires another burst, and Show me starts from rest.
+  - No Slow motion: the burst already lasts about two seconds and has no quick part to study, and the only CSS on the stage is the button's colour change.
 - **What the visitor does:** clicking or tapping the button turns it green with a check and the label "Order placed", and fires the confetti (not under reduced motion), as today. The button stays done, and each further click fires another burst. The click is one function, called by the button and by Show me.
-- **Show me:** if the button is done, it first goes back to "Place order" at once. At 300ms the run clicks it (green, check, "Order placed", confetti), and at 2800ms it puts the button back to "Place order". Most pieces have fallen out of view by then, and the rest keep fading. Stops on `hb:input`; the button stays as it is.
-- **Reset:** stops a run, puts the button back to "Place order" (removes `done`, restores the label) and clears the confetti (empties `particles` and clears the canvas).
+- **Show me:** starts from rest: if the button is done, `toRest()` puts it back to "Place order" without animating (removes `done`, restores the label). Then:
+  - `later(place, 0, 300)` clicks it: green, check, "Order placed" and confetti.
+  - `later(back, 2100, 700)` puts the button back to "Place order". 2100ms is the burst, whose pieces fade over about 2.1 s; the holds are the first 300ms and 400ms of rest after the burst.
+  - At 300ms and 2800ms. The page has no Slow motion, so `later()` never triples.
+  - Stops on `hb:input`; the button stays as it is.
+- **Reset:** none.
 - **Slow motion:** none.
 - **Reduced motion:** as today, the button turns green and shows its check, with no confetti (the `reduce` check stays; the press shrink `.order-btn:active` stays off). Show me still turns the button green and back.
 - **Stage font:** site font. `.order-btn` drops `var(--disp)`, gets `font-family:inherit` and keeps `font-weight:700`.
@@ -568,9 +624,9 @@ None: leave out the `details.hb-options` block.
   - It clears all timers, shows the placeholders again (`visibility` back) and hides the content at once: the content's transition is switched off, `visible` removed, `void realEl.offsetWidth` forces a reflow, then the transition is switched back on.
   - After Loading time, one `later()` timer calls `reveal()`: the placeholders hide and the content fades in over 400ms (`--fade-dur`, new, in place of the fixed `400ms`). The animation-frame tick that only moved the bar goes.
   - While Loop is on, the content holds 1600ms after its fade ends. Loop is checked at that moment, and the next play starts, with the placeholders back at once. Switching Loop off lets the content stay shown.
-- **Slow motion:** page. While the switch is on, `--pulse-spd`, Loading time and `--fade-dur` are multiplied by 3, from the next play (each play sets `--pulse-spd` and `--fade-dur` from its settings). Loading time grows with the pulse so the same number of pulses shows before the content arrives. The 1600ms hold stays.
+- **Slow motion:** page. While the switch is on, `--pulse-spd` and `--fade-dur` are multiplied by 3, from the next play (each play sets both from its settings). Loading time is a hold and keeps its length, and so does the 1600ms hold. So the content arrives at the same moment, after fewer, slower pulses, and fades in three times as slowly.
 - **Reduced motion:** the demo's rule stays (`.skel{animation:none!important;opacity:.6}`): the placeholders hold still and the content still fades in. Replay plays once.
-- **Stage font:** site font. `.real-meta` becomes 11px; `.real-meta` and `.real-text` become `#8a8a92`.
+- **Stage font:** site font. `.real-meta` becomes 11px; it and `.real-text` take their grey from `--ui-muted`.
 - **Stage:** the card stays, with its placeholders and its real content in the same place.
   - The progress bar and its "Loading…" / "Loaded" label (`.load-bar-wrap`) go: they show progress, and a skeleton is used when progress is unknown.
   - `.card-wrap` loses `min-height:260px` and gets `padding:16px`; `.sk-img` and `.real-img` become 72px tall; the stage gets `padding:16px`.
@@ -628,15 +684,16 @@ None: leave out the `details.hb-options` block.
 - **Description:** A band of light sweeps over grey placeholders. Best for loading screens.
 - **Watch it help line:** default
 - **Player bar:** Pause (css) · Slow motion (css)
-- **Sequence:** the band sweeps across the card and both rows forever (`@keyframes shimmer` on each `::after`, over Speed). No page timers.
+- **Sequence:** the band sweeps across the card and the row forever (`@keyframes shimmer` on each `::after`, over Speed). No page timers.
 - **Slow motion:** css
-- **Reduced motion:** the demo's rule goes (it stopped the sweep and dimmed the band, and Play must move it). Paused on arrival, the band sits off the edge, so the placeholders show plain.
+- **Reduced motion:** the demo's rule goes (it stopped the sweep and dimmed the band, and Play must move it). Paused on arrival, the sweep holds at its start. There, the band's bright middle lies on each placeholder's right edge, so half of the band shows, still, brightening toward that edge.
 - **Stage font:** the stage has no text.
-- **Stage:** the card and the two list rows stay.
-  - The card keeps its round avatar, its two header lines and its two text lines. Its image block (`.sk-img`) goes, so the stage fits the phone height with all three placeholders.
-  - The stage gets `padding:16px` and `gap:10px`, the card `padding:14px`, and the rows `padding:10px 14px`.
+- **Stage:** the card and one list row stay (owner decision: the card keeps its image placeholder).
+  - The card keeps its round avatar, its two header lines, its image block and its two text lines. The image block (`.sk-img`) becomes 56px tall with `margin:10px 0 2px`.
+  - The second list row goes: it looks the same as the first, and with both rows and the image the stage would not fit the phone height.
+  - The stage gets `padding:16px` and `gap:12px`, and the card `padding:14px`. The row keeps its own padding.
   - The note under the settings goes.
-  - `hb-dots`: yes. Measured: 280px on phones and laptops.
+  - `hb-dots`: yes. Measured: 288px of the 298px inside the phone stage, and the same on laptops. Keeping the image at its full 100px would need about 326px even with one row.
 
 **Main settings**
 
@@ -654,8 +711,8 @@ None: leave out the `details.hb-options` block.
 
 - **Removed:**
   - The two notes.
-  - The image block inside the card.
-  - The Sweep Speed, Brightness and Angle sliders. They become Speed, Brightness and Highlight angle. The angle slider also reached 0° and 180°, where the band lies flat and cannot be seen moving.
+  - The second list row.
+  - The Sweep Speed, Brightness and Angle sliders. They become Speed, Brightness and Highlight angle. The angle slider ran from −45° to 135° and so passed 0°, where the band lies flat and cannot be seen moving.
   - The Highlight Color menu. It becomes swatches; Silver goes, because at this brightness it looks the same as White.
   - The page's reduced-motion rule.
 - **Good for:** Feeds · Cards · Lists · Image galleries · **Avoid on:** Very short waits · Busy pages
@@ -689,14 +746,14 @@ None: leave out the `details.hb-options` block.
 
 ## loading-spinner — Loading Spinner
 
-- **Kind:** loop. The six spinners turn forever.
-- **Description:** Six spinners that keep turning while something loads. Best for short waits.
+- **Kind:** loop. The six spinners move forever.
+- **Description:** Six small shapes loop to show that something is loading. Best for short waits.
 - **Watch it help line:** default
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** the six spinners move forever, all over Speed. Ring, Orbit and Arc turn (`spin`), and the arc also stretches and shrinks (`arc-pulse`, over twice Speed). Bounce's dots rise in turn (`bounce`), Pulse's ring swells and fades (`pulse-ring`), and Square turns and shrinks (`sq-spin`). No page timers.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule (`animation-play-state:paused!important` on every spinner) goes, because it would stop Play from starting them.
-- **Stage font:** site font. `.spin-label` becomes 11px and `#8a8a92`, keeping its capitals and letter spacing.
+- **Stage font:** site font. `.spin-label` becomes 11px, keeping its capitals, its letter spacing and its `--ui-muted` grey.
 - **Stage:** the six cells stay, with their labels (Ring, Orbit, Arc, Bounce, Pulse, Square).
   - The grid keeps three columns on every screen: the phone rule that made two columns goes, because three rows would not fit the phone stage.
   - `.grid` gets `gap:12px`, `.spin-cell` `padding:12px`, and the stage `padding:16px`.
@@ -755,18 +812,19 @@ None: leave out the `details.hb-options` block.
 - **Watch it help line:** default
 - **Player bar:** Replay · Loop · Slow motion
 - **Sequence:** every play is today's `startAnim()`.
-  - It cancels the previous frame and clears all timers, and sets the three displays to 0 (`setProgress(0)`).
+  - It cancels the previous frame, clears all timers, removes `indet` from the bar and sets the three displays to 0 (`setProgress(0)`). Today only the Sliding bar change handler removed `indet`. Without this, switching Sliding bar off during a slide would leave the endless slide running, because the shared script's replay after a setting change starts a new play.
   - When Sliding bar is on, it starts the slide (`startIndet()`): the bar slides for 2 × Speed, then shows its real fill. The end of the slide goes through `later()`.
   - It fills to Fills to over Speed with Feel (today's animation-frame loop).
-  - While Loop is on, the displays hold 1200ms after the fill ends. Loop is checked at that moment, and the next play starts again from 0. Switching Loop off lets the displays finish filled.
+  - While Loop is on, the displays hold 1200ms after the last movement ends: the fill, or the slide when Sliding bar is on, since the slide ends later, at 2 × Speed. So every loop shows the bar's real fill before the next play starts again from 0. Loop is checked at that moment. Switching Loop off lets the displays finish filled.
 - **Slow motion:** page. While the switch is on, `dur` for the fill, `--prog-dur` for the sliding bar and the timer that ends the slide (2 × Speed) are multiplied by 3, from the next play. The 1200ms hold and the steps' 200ms colour change stay.
 - **Reduced motion:** as today, a play shows the result at once (the `reduceMotion` branch stays), and the sliding bar shows full and still (the demo's CSS rule stays). Replay plays once.
-- **Stage font:** site font. The labels become 11px and `#8a8a92`; the number in the ring keeps 12px bold.
+- **Stage font:** site font. The labels become 11px, keeping their `--ui-muted` grey; the number in the ring keeps 12px bold.
 - **Stage:** the bar, the ring and the steps stay, each with its number.
   - "Linear Bar" becomes "Bar" and "Stepped" becomes "Steps".
   - The "▶ Start" button, the ring's caption (a line of code) and the "Start" / "Complete" labels under the steps go.
   - The stage gets `padding:24px` and `gap:24px`.
   - The numbers change every frame, so the three displays sit in one group with `role="img"` and an `aria-label` naming the target, set at the start of each play (for example "Progress filling to 100%").
+  - The bar keeps filling by `width`, as today and as the README's How it works teaches. `transform:scaleX()` would squash the bar's rounded ends, and the README would no longer match. It is the one animated size left in this half.
   - `hb-dots`: yes. Measured: 234px on phones and laptops.
 
 **Main settings**
@@ -826,18 +884,25 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a click effect: the visitor presses Submit, and Show me submits once and returns the button to its start. Today it also replays by itself every four seconds; that goes, because a do-it page shows itself once on arrival and then waits for the visitor.
 - **Description:** A tick draws itself in a circle once a task succeeds. Best for forms.
-- **Step 1:** Click it — help line: "Click or tap Submit, then press Reset to try again."
+- **Step 1:** Click it — help line: "Click or tap Submit (Reset brings it back), or press Show me."
 - **Player bar:** Show me · Reset · Slow motion (css).
 - **What the visitor does:** clicking Submit runs today's `runSequence()`.
   - The label fades and a spinner turns in the button for 900ms.
   - Then the button shows ✓ and turns green while the circle and the tick draw. With Result set to Error, it turns red while the X draws and shakes.
   - The button then stays finished (disabled) until Reset.
-- **Show me:** calls `reset()` at once, `runSequence()` at 300ms and `reset()` at 3100ms, back to rest: the button reads Submit again and the lines draw back out over Speed. At Normal speed the tick is fully drawn by about 1900ms. Stops on `hb:input`: the run's own timers stop, and a sequence already under way still finishes and stays finished until Reset.
-- **Reset:** stops a run and calls `reset()`.
-- **Slow motion:** css (the drawing, the spinner, the shake and the button's colour). While the switch is on, the page also multiplies the sequence's 900ms loading wait by 3, and the run's timers by 3.
-- **Reduced motion:** the demo's rule stays: the circle and tick, or the X, appear at once, with no shake. Show me still shows the spinner, then the finished result.
+- **Show me:** starts from rest: `toRest()` is `reset()` without animating. Then:
+  - `later(runSequence, 0, 300)` presses Submit. The sequence's own 900ms loading wait is a hold: it stays in `runSequence()`'s own timer, which does not go through `later()` and is never tripled.
+  - `later(reset, 1.4*draw, 2400)` puts the button back to Submit, where `draw` is Speed.
+    - The drawing takes 1.4 × Speed: the circle over Speed, the tick starting at 0.4 × Speed. The X and its shake end sooner.
+    - The holds are 300ms before the press, the 900ms loading wait and 1.2 s on the finished result.
+    - After the reset, the lines draw back out over Speed.
+  - At the defaults: Submit at 300ms, the tick fully drawn by about 1900ms, back to Submit at 3100ms. With Slow motion, back at about 4.5 s, before the lines draw back out.
+  - Stops on `hb:input`: the run's own timers stop, and a sequence already under way still finishes and stays finished until Reset.
+- **Reset:** calls `stopRun()`, then `reset()`: the finished button stays disabled otherwise, so this is the only way back to Submit besides Show me.
+- **Slow motion:** css (the drawing, the spinner, the shake and the button's colour). `later()` triples the drawing (1.4 × Speed), not the holds; the sequence's 900ms loading wait keeps its length.
+- **Reduced motion:** the demo's rule stays and also stops the button's spinner (`.sp{animation:none}` joins it). The spinner shows still, and the circle and tick, or the X, appear at once, with no shake. Show me still shows the spinner, then the finished result.
 - **Stage font:** site font. `.submit-btn` gets `font-family:inherit` in place of `var(--mono)`.
-- **Stage:** the button and the icon stay. The state label under the icon (`#state-label`) goes; it described each step. `hb-dots`: yes. Measured: 230px on phones and laptops.
+- **Stage:** the button and the icon stay. The state label under the icon (`#state-label`) goes; it described each step. `.submit-btn`'s transition keeps only `background`, because its `width` never changes. `hb-dots`: yes. Measured: 230px on phones and laptops.
 
 **Main settings**
 
@@ -894,22 +959,25 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do — a focus effect: the visitor clicks into a field and types, and Show me fills in one field and moves on to the next.
 - **Description:** The label moves up out of the way as you type. Best for sign-up forms.
-- **Step 1:** Click it — help line: "Click or tap a field and type. The label moves up out of the way."
-- **Player bar:** Show me · Reset · Slow motion (css).
+- **Step 1:** Click it — help line: "Click or tap a field and type, or press Show me."
+- **Player bar:** Show me · Slow motion (css). No Reset (owner decision): the visitor can clear a field, and Show me starts from an empty form.
 - **What the visitor does:** focusing a field raises its label and, on the underlined fields, grows the line (`:focus-within`); typing keeps the label up (`filled`, set on `input` and `blur`); leaving an empty field lets it drop back; Tab moves between the fields. All as today.
-- **Show me:** clears the form first, as Reset does, then:
-  - at 0ms Full name gets `is-demo`: its label rises and its line grows;
-  - from 300ms the run types "Ada Lovelace" into it, one letter every 70ms, setting `value` and calling `syncFilled()` after each letter;
-  - at 1500ms Full name loses `is-demo` (its label stays up, because the field is filled), and Company gets it: its border takes the focus color and its label rises;
-  - at 2400ms Company loses it, and its label drops back, because the field is empty;
-  - at 3000ms the run clears Full name, whose label drops back; the form is at rest by about 3200ms.
-
-  Every `:focus-within` rule also lists `.is-demo` (for example `.float-field:is(:focus-within,.is-demo) label`). Stops on `hb:input`: stopping removes `is-demo` from every field and clears the text the run typed, so a field the visitor clicks into starts empty.
-- **Reset:** stops a run and clears every field: values emptied, `filled` removed, labels back down.
-- **Slow motion:** css. The run's timers, the typing included, are multiplied by 3 while it is on.
+- **Show me:** starts from rest: `toRest()` empties every field without animating (values emptied, `filled` removed, labels down). Then, with `f` for Speed:
+  - `later(focusName, 0, 0)`: Full name gets `is-demo`, so its label rises and its line grows.
+  - `later(type, f, 100+70*k)` for letter k (0 to 11) of "Ada Lovelace": the run types it one letter at a time, setting `value` and calling `syncFilled()` after each letter. Typing is a hold, not a movement.
+  - `later(toCompany, f, 1300)`: Full name loses `is-demo`, and its label stays up because the field is filled. Company gets it: its border takes the focus color and its label rises.
+  - `later(leaveCompany, 2*f, 2000)`: Company loses it, and its label drops back because the field is empty.
+  - `later(clearName, 3*f, 2400)`: the run clears Full name, whose label drops back.
+  - At the defaults these come at 0ms, 300 to 1070ms, 1500ms, 2400ms and 3000ms. The form is at rest by about 3.2 s, or about 4.8 s with Slow motion.
+  - Every `:focus-within` rule also lists `.is-demo` (for example `.float-field:is(:focus-within,.is-demo) label`).
+  - Stops on `hb:input` and on a trusted `focusin` inside the stage: a Tab press into the form from outside sends no `hb:input`, and the run moves no focus. Stopping removes `is-demo` from every field and clears the text the run typed, so a field the visitor clicks into starts empty.
+- **Reset:** none.
+- **Slow motion:** css. `later()` triples each label move (Speed), not the typing or the holds.
 - **Reduced motion:** the demo's rule stays: labels and lines move at once, without the transition. Show me still types and moves the labels.
-- **Stage font:** site font. The inputs and the textarea get `font-family:inherit` in place of `var(--mono)`; the labels become `#8a8a92`.
-- **Stage:** Full name (underlined), Company (boxed) and Message (underlined, several lines) stay. The Email address field goes: it is a second underlined field like Full name, and without it the form fits the phone stage. The stage gets `padding:16px`, `.form` gets `gap:16px` (was 24px), and the textarea `min-height:56px` (was 80px). `hb-dots`: yes. Measured: 282px on phones and laptops.
+- **Stage font:** site font. The inputs and the textarea get `font-family:inherit` in place of `var(--mono)`; the labels keep their `--ui-muted` grey.
+- **Stage:** Full name (underlined), Company (boxed) and Message (underlined, several lines) stay. The Email address field goes (owner decision): it is a second underlined field like Full name, and without it the form fits the phone stage. The stage gets `padding:16px`, `.form` gets `gap:16px` (was 24px), and the textarea `min-height:56px` (was 80px). `hb-dots`: yes. Measured: 282px on phones and laptops.
+  - The fields keep their own focus look: the line, the label colour and the box border. The site's focus ring (`body.hb :focus-visible`, specificity 0,2,1) beats their `outline:none` (0,1,1). It would draw an orange box around each focused field, through its raised label.
+  - So the page adds `.stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}` (0,3,1).
 
 **Main settings**
 
@@ -971,7 +1039,7 @@ How far it rises and Size when raised move the underlined fields' labels; the bo
 - **Reset:** shows every cleared badge again and restarts the pulses with `applyStyle()`. While paused, the restarted pulses wait at their first frame (the shared `hb-paused` class holds them) until Play.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule goes (it removed the pulses and hid the halos, and Play must move them).
-- **Stage font:** site font. `.icon-label` becomes 11px and `#8a8a92`; the number in the badge becomes 11px.
+- **Stage font:** site font. `.icon-label` becomes 11px, keeping its `--ui-muted` grey; the number in the badge becomes 11px.
 - **Stage:** the three icons stay. Their two-line labels become one word each: "Number", "Dot" and "Online" (were "Bell numbered", "Inbox dot" and "Avatar online"). The avatar's inline style moves into a class. `hb-dots`: yes. Measured: 168px of content, centred.
 
 **Main settings**
