@@ -1,7 +1,7 @@
 # Zoom Transition
 
 ## What it is
-A zoom transition combines a scale change with an opacity cross-fade so pages appear to advance or recede through depth rather than sliding across a plane. The direction of the scale carries meaning: zooming in feels like arriving or drilling into content, zooming out like backing away, and a pull-through — where the new page rushes in oversized and settles — feels like traveling through space. The demo exposes all three variants and reports the live scale of each page.
+A zoom transition scales the pages as they fade, so the change seems to move through depth rather than across the screen. The direction carries meaning: zooming in feels like arriving or going deeper, zooming out like backing away, and a pull-through — where the new page rushes in from larger and settles — feels like travelling forward.
 
 ## When to use it
 - Drilling into detail from an overview, where zoom-in reinforces "going deeper"
@@ -10,7 +10,7 @@ A zoom transition combines a scale change with an opacity cross-fade so pages ap
 - Modal and lightbox reveals that should feel like the content comes forward
 
 ## How it works
-Each variant is a set of four scale values — `[oldStart, oldEnd, newStart, newEnd]`. The pages start at their "start" scales with the new one transparent, then on the next frame both transition their `transform` and `opacity` to the "end" state simultaneously:
+Each variant is a set of four scale values — `[oldStart, oldEnd, newStart, newEnd]`. The pages start at their "start" scales with the new one transparent, then both transition their `transform` and `opacity` to the "end" state simultaneously:
 
 ```js
 const V={
@@ -22,22 +22,20 @@ const V={
 o.style.transition='none'; n.style.transition='none';
 o.style.transform=`scale(${V[0]})`;
 n.style.opacity='0'; n.style.transform=`scale(${V[2]})`; n.classList.add('active');
-requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  o.style.transition=t; n.style.transition=t;              // t = `all ${dur}ms ${ease}`
-  o.style.opacity='0'; o.style.transform=`scale(${V[1]})`;
-  n.style.opacity='1'; n.style.transform=`scale(${V[3]})`;
-}));
+void n.offsetWidth;                                       // commit the start scales
+o.style.transition=t; n.style.transition=t;              // t = `all ${dur}ms ${ease}`
+o.style.opacity='0'; o.style.transform=`scale(${V[1]})`;
+n.style.opacity='1'; n.style.transform=`scale(${V[3]})`;
 ```
 
-Because the incoming and outgoing scales differ per variant, the same code path produces three distinct spatial feelings. The opacity cross-fade runs alongside the scale so neither page ever appears hard-edged over the other, and the double `requestAnimationFrame` ensures the start scale is painted before the transition kicks off.
+Because the incoming and outgoing scales differ per variant, the same code path produces three distinct spatial feelings. The opacity cross-fade runs alongside the scale so neither page ever appears hard-edged over the other, and reading `offsetWidth` makes the browser apply the start scale before the transition begins.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Variant | Zoom in | Selects the four-value scale set (in / out / pull-through) |
-| Duration | 550ms | Length of the combined scale + fade |
-| Easing | `cubic-bezier(.2,.7,.3,1)` | "Smooth"; springy overshoots the end scale for a settle |
-| New start scale | 0.75 (zoom-in) | How far the incoming page grows from — larger gaps read as deeper travel |
+| Zoom style | Zoom in | Zoom in grows the new page from 75% as the old one shrinks to 90%; Zoom out grows the old page past the frame as it fades; Pull through shrinks the old page to 70% while the new one settles from 130% |
+| Speed | Normal | How long the zoom and the fade take: slow is 900ms, normal 550ms and fast 330ms |
+| Feel | Smooth | Smooth slows to a stop; Springy grows a little past full size and settles; Gentle eases in and out |
 
 ## Production notes
 - **Animate `transform: scale`, not `width`/`height`.** Scale is composited and cheap; animating dimensions relays out the page every frame and drops frames.
@@ -48,7 +46,7 @@ Because the incoming and outgoing scales differ per variant, the same code path 
 - **Library equivalents**: the View Transitions API ships a zoom style via `::view-transition` scale keyframes. Framer Motion's `scale` variants in `AnimatePresence`, GSAP's `scale` tweens, and Next.js transitions all express the same scale-plus-fade.
 
 ## See also
-- [View Transitions API](../view-transitions-api/) — includes a zoom style built the same way
-- [Portal Zoom](../portal-zoom/) — zoom anchored to a specific source element
-- [Slide Transition](../slide-transition/) — lateral motion instead of depth
-- [Shared Element Transition](../shared-element-transition/) — scaling a single element for continuity
+- [View Transitions API](../view-transitions-api/) — the browser can zoom pages too
+- [Portal / Tunnel Zoom](../portal-zoom/) — the next page opens out of a clicked circle
+- [Slide Transition](../slide-transition/) — pages move sideways instead
+- [Shared Element Transition](../shared-element-transition/) — one picture grows into the next page
