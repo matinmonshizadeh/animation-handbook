@@ -1,7 +1,7 @@
 # Scrollytelling
 
 ## What it is
-Scrollytelling binds a narrative to the scroll position, so that advancing through text chapters continuously drives a synchronized visual. Rather than snapping between discrete states, it computes a fractional progress value and interpolates every visual property from it — the reader experiences one continuous journey, not a slideshow. This demo descends through six ocean depth zones, crossfading a porthole's water color and counting metres as you scroll.
+Scrollytelling ties a picture to a story told in scrolling text. As you read down, the picture beside the text changes with you, blending smoothly between chapters instead of switching at each one. In the demo you sink through six layers of the ocean while the porthole's water darkens and the depth counts up to 10,935 metres.
 
 ## When to use it
 - Data-driven stories where a chart, map, or diagram should evolve as the reader progresses
@@ -27,21 +27,20 @@ Reads are throttled with a `requestAnimationFrame` gate (`ticking`) so the scrol
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Reading line | 0.42 × stage height | Where a chapter is considered "active"; lower = triggers later |
-| Chapter min-height | 0.9 × stage height | Scroll distance per chapter; taller = slower, more granular transitions |
-| Fraction `cf` | derived | Drives every crossfade; 0 at chapter start, approaches 1 at the next boundary |
-| rAF gate | on | Coalesces scroll events to one update per frame |
+| Reading line | 42% down the box | A chapter becomes current once its top passes this line; a lower line changes chapters later |
+| Chapter height | At least 90% of the box | How much scrolling each chapter takes; taller chapters make slower, finer blends |
+| Number of chapters | 6 | Each chapter adds its colours and its depth to the blend |
 
 ## Production notes
 - **Fractional, not stepped**: the value that makes scrollytelling feel smooth is the decimal progress between chapters. If you only switch on integer chapter changes, you get a slideshow — interpolate everything you can.
 - **Sticky visual, scrolling text**: the pattern is a `position: sticky` visual beside taller text columns. This is cheaper and more robust than JS-pinning; let CSS hold the visual in place.
 - **Throttle reads**: `getBoundingClientRect` in a scroll handler forces layout. The rAF gate here keeps that to once per frame; on heavier visuals, cache rects and only recompute on resize.
 - **Color interpolation**: blending hex colors requires parsing to RGB channels and lerping each — CSS won't tween `background` mid-value on its own, which is why this is done in JS.
-- **Reduced motion**: the demo drops the porthole's `transition` under `prefers-reduced-motion`; content and depth still update, just without the eased color fade.
+- **Reduced motion**: nothing here moves on its own; the colours and the depth follow the reader's scrolling, so there is nothing to switch off. A CSS transition on the porthole's gradient would not help anyway: gradients cannot be transitioned, which is why the blend is worked out in JavaScript.
 - **Library equivalents**: Scrollama is the standard vanilla library for the "sticky graphic + scrolling steps" layout; GSAP ScrollTrigger with `scrub` handles the interpolation; Framer Motion's `useScroll` + `useTransform` map scroll progress to any animated value in React.
 
 ## See also
-- [Sticky Section](../sticky-section/) — pinning a section and scrubbing through internal states
-- [Scrub Animation](../scrub-animation/) — tying an animation's timeline directly to scroll
-- [Reveal on Scroll](../reveal-on-scroll/) — discrete triggers instead of continuous progress
-- [Progress Bar](../progress-bar/) — surfacing scroll progress as a readout
+- [Sticky Section](../sticky-section/) — a whole section holds still while its content changes
+- [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
+- [Reveal on Scroll](../reveal-on-scroll/) — cards appear as they cross a line
+- [Progress Bar](../progress-bar/) — a bar fills as you read
