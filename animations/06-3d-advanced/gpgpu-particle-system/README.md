@@ -1,7 +1,7 @@
 # GPGPU Particle System
 
 ## What it is
-GPGPU (General-Purpose GPU) particle systems store particle state — position, velocity, age — in floating-point textures rather than JavaScript arrays, and update that state in fragment shaders rather than CPU loops. Each frame, a "physics pass" reads the position texture, computes new positions via a fragment shader, and writes to a second texture. The "render pass" reads the updated positions from a vertex shader and draws each particle as a point. This architecture enables 100,000+ particles at 60fps — impossible with CPU-computed JavaScript arrays.
+A GPU particle system moves tens of thousands of particles on the graphics chip instead of in JavaScript. Every particle's position and speed is stored as one pixel of a texture, and a shader reads last frame's texture and writes the next one, all at once. A second step draws each particle as a tiny point.
 
 ## When to use it
 - Large-scale particle effects: galaxy simulations, fluid flow, fire systems, crowd simulations
@@ -20,6 +20,7 @@ precision highp float;
 uniform sampler2D uPos;   // read previous frame's positions
 uniform float uTime, uSpeed;
 uniform int uBehavior;
+uniform float uStep;     // 1, or 1/3 in slow motion
 out vec4 outColor;        // write new positions
 
 float hash(float n) { return fract(sin(n) * 43758.5); }
@@ -32,13 +33,13 @@ void main() {
   // Apply behavior (flow field, vortex, attractor, etc.)
   if (uBehavior == 1) {  // vortex
     float len = length(vec2(x, y)) + 0.01;
-    vx += (-y / len) * uSpeed * 0.0004;
-    vy += ( x / len) * uSpeed * 0.0004;
-    vx -= x * 0.0005;  // inward pull to prevent escape
-    vy -= y * 0.0005;
+    vx += (-y / len) * uSpeed * 0.0004 * uStep;
+    vy += ( x / len) * uSpeed * 0.0004 * uStep;
+    vx -= x * 0.0005 * uStep;  // inward pull to prevent escape
+    vy -= y * 0.0005 * uStep;
   }
-  vx *= 0.985; vy *= 0.985;  // damping
-  x += vx; y += vy;
+  vx *= pow(0.985, uStep); vy *= pow(0.985, uStep);  // damping
+  x += vx * uStep; y += vy * uStep;
   // Respawn anything that leaves clip space
   if (abs(x) > 1.0 || abs(y) > 1.0) {
     float n = float(coord.x) * 0.0713 + float(coord.y) * 0.1319 + uTime * 0.977;
@@ -81,13 +82,13 @@ void main() {
 ```
 
 ## Key parameters
-| Parameter | Typical value | Effect |
-|-----------|--------------|--------|
-| Texture size | 256×256 | 65k particles. 320×320 = 102k — test FPS before shipping |
-| Physics damping | 0.985 | Higher = more inertia, slower energy loss |
-| Step scale | 0.0002–0.001 | Overall particle speed per frame |
-| Boundary mode | Respawn at ±1.0 | Wrap keeps particle count constant but only survives a divergence-free field |
-| Respawn radius | 0.05–0.95 | Where recycled particles re-enter; a disc keeps the centre fed |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Movement | Flow | Flow follows a shifting field of currents; Swirl circles the middle; Attract pulls everything toward the middle; Orbit sweeps the particles round in rings |
+| Number of particles | 65,000 | 16,000, 65,000 or 100,000 particles, one pixel each of a texture 128, 256 or 320 pixels square; phones start with 16,000 |
+| Speed | Normal | How hard the rule pushes each frame: slow is 0.35, normal 0.6 and fast 1 |
+| Color | One color | One blue, a color from each particle's speed, or colors that slowly shift |
+| Trails | off | Fades the last picture instead of clearing it, so each particle leaves a streak |
 
 ## Production notes
 - **WebGL2 required**: `RGBA32F` float framebuffer targets require WebGL2 (or the `WEBGL_color_buffer_float` extension in WebGL1, which is less reliably available). WebGL2 is supported in all modern browsers (Chrome 56+, Firefox 51+, Safari 15+).
@@ -100,6 +101,6 @@ void main() {
 - **Memory**: 256×256 × 4 channels × 4 bytes (float32) = 1MB per texture. Two textures = 2MB — trivial. At 512×512 (262k particles): 4MB × 2 = 8MB.
 
 ## See also
-- [Canvas Particle Effect](../canvas-particle-effect/) — CPU-based, simpler setup for <500 particles
-- [Fluid Simulation](../fluid-simulation/) — SDF-based shader effect with organic merging
-- [WebGL Shader Animation](../webgl-shader-animation/) — same WebGL2 context, different shader focus
+- [Canvas Particle Effect](../canvas-particle-effect/) — hundreds of particles moved in JavaScript
+- [Fluid / Liquid Simulation](../fluid-simulation/) — a shader that melts blobs together
+- [WebGL Shader Animation](../webgl-shader-animation/) — shaders that paint every pixel
