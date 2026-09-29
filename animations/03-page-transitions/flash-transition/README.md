@@ -26,7 +26,7 @@ function doTransition(prev, next) {
 }
 ```
 
-The fade-out sets its own transition in the same step as the new opacity, so it runs over `flashOut` rather than `flashIn`. A flash also lasts at least 350ms from the start of its rise, so however fast the pages are clicked the demo never flashes more than three times a second. An optional `blur()` filter applied during the flash softens the edge and sells the light-leak feel.
+The fade-out sets its own transition in the same step as the new opacity, so it runs over `flashOut` rather than `flashIn`. No flash starts less than half a second after the previous one began, whatever is pressed (page names, Show me or Reset), so the demo never flashes more than twice a second; a change asked for sooner waits for that moment with the overlay clear. An optional `blur()` filter applied during the flash softens the edge and sells the light-leak feel.
 
 ## Key parameters
 | Parameter | Default | Effect |

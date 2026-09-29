@@ -173,10 +173,10 @@
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),flashEl=document.getElementById('flash-overlay');
   const blurTog=document.getElementById('blur-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  // A flash lasts at least this long (ms) from the start of its rise, so the next one starts no sooner: never more than three
-  // a second, however fast the visitor clicks. Only Fast (310ms) is stretched.
-  const MIN_CYCLE=350;
-  let current=0,animating=false,flashIn=200,flashOut=320,intensity=1,afterMove=null,wayBack=0,timers=[];
+  // No flash starts less than this many ms after the last one began, whatever the visitor presses (page names, Show me, Reset):
+  // never more than two flashes a second. A change asked for sooner waits, with the overlay clear, until then.
+  const MIN_CYCLE=500;
+  let current=0,animating=false,flashIn=200,flashOut=320,intensity=1,lastRise=-MIN_CYCLE,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -237,6 +237,14 @@
     afterMove=then||null;
     if(!motionOk){showPage(next);finish();return}
     animating=true;
+    // settle() cancels a wait, and the next change measures from the same lastRise, so no input can start two rises too close
+    // together
+    const wait=MIN_CYCLE-(performance.now()-lastRise);
+    if(wait>0)later(()=>flash(prev,next),wait);else flash(prev,next);
+  }
+
+  function flash(prev,next){
+    lastRise=performance.now();
     const scale=slowTog.checked?3:1;
     doTransition(prev,next,flashIn*scale,flashOut*scale);
   }
@@ -252,7 +260,7 @@
       pages[next].classList.add('active');
       flashEl.style.transition=`opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
       flashEl.style.opacity='0';flashEl.classList.remove('blur-on');
-      later(finish,Math.max(flashOut,MIN_CYCLE-flashIn));
+      later(finish,flashOut);
     },flashIn);
   }
 
