@@ -80,6 +80,13 @@ for (const d of steps) {
     assert.ok(words(prompt) >= 60 && words(prompt) <= 130, `prompt has ${words(prompt)} words`);
     if (hasTry) assert.ok(prompt.trim().endsWith('Match the settings listed below.'), 'prompt ending');
     else assert.ok(!prompt.includes('Match the settings listed below.'), 'a page without settings does not point to them');
+    if (!hasTry) {
+      // Nothing of a Try it step is left behind (a mistyped Try it tag would otherwise skip every settings check).
+      assert.ok(!/hb-try|hb-setting|hb-options/.test(html), 'a page without Try it has no settings markup');
+      assert.ok(!html.includes('Your settings are added at the end.'), 'a page without settings does not promise them under Copy prompt');
+    }
+    const nums = [...html.matchAll(/<span class="hb-num" aria-hidden="true">(\d+)<\/span>/g)].map(m => Number(m[1]));
+    assert.deepEqual(nums, hasTry ? [1, 2, 3] : [1, 2], 'steps are numbered in order');
     assert.ok(!prompt.includes('`'), 'prompt contains no code');
     const player = between(html, '<div class="hb-player">', '</div>');
     if (kind === 'once') {
