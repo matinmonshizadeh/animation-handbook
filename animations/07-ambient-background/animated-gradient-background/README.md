@@ -10,7 +10,7 @@ An animated gradient background slowly shifts its colors behind the content, ove
 - Any context where a static background feels flat but video would be too heavy
 
 ## How it works
-**Position shift** — the most common variant. The gradient is much larger than the element (`background-size: 400% 400%`) and `background-position` is animated in a slow loop:
+**Sliding** (a position shift) — the most common variant. The gradient is much larger than the element (`background-size: 400% 400%`) and `background-position` is animated in a slow loop:
 
 ```css
 .bg {
@@ -26,7 +26,7 @@ An animated gradient background slowly shifts its colors behind the content, ove
 }
 ```
 
-**Hue rotation** — apply a rotating filter to a static gradient for a simpler approach:
+**Color wheel** (a hue rotation) — apply a rotating filter to a static gradient:
 
 ```css
 .bg {
@@ -38,6 +38,8 @@ An animated gradient background slowly shifts its colors behind the content, ove
 
 Note: `filter` on the gradient element also affects any children — wrap content in a separate `z-index` layer or apply the filter to a pseudo-element.
 
+**Bright bands** runs the same sliding animation on a gradient with brighter colors between dark ends (`background-size: 300% 300%`), over one and a half times the cycle.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
@@ -47,11 +49,11 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 | Muted colors | off | Takes most of the color out (30% saturation) for a quieter background |
 
 ## Production notes
-- **Pure CSS — no JavaScript needed**: the entire effect is a CSS animation. No `requestAnimationFrame`, no canvas, no paint calls beyond the initial setup.
-- **Compositor-thread animation**: `background-position` animation runs on the GPU compositor in modern browsers. It does not trigger layout or paint recalculation on each frame.
+- **Pure CSS — no JavaScript needed**: the entire effect is a CSS animation, with no `requestAnimationFrame` and no canvas.
+- **It repaints every frame**: `background-position` is not a property the compositor can animate by itself, so the browser repaints the gradient on every frame (no layout, though). Over a full hero this is usually fine; for the cheapest version, paint the gradient on an oversized layer and slide it with `transform: translate()`, which the compositor runs without repainting.
 - **Seamless loop**: repeat the first color stop at the end of the gradient to ensure the transition back to the start is smooth. Without this, there's a visible "snap" when the animation restarts.
 - **`@property` for smooth hue stop animation**: native CSS custom property interpolation (`@property` with `syntax: '<color>'`) allows animating individual color stops within a gradient — a newer approach that doesn't require the `background-size` hack.
-- **Performance**: on low-end devices, even CSS gradient animation can be slow if applied to large areas. Use `will-change: background-position` to hint the browser, but measure before adding it to every element.
+- **Performance**: on low-end devices a large repainting gradient can cost frames; `will-change: background-position` does not stop the repaint, the `transform` version does.
 
 ## See also
 - [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend
