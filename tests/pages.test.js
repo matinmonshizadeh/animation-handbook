@@ -265,7 +265,9 @@ for (const d of steps) {
     const html = pageOf(d);
     const player = between(html, '<div class="hb-player">', '</div>');
     const fields = [...player.matchAll(/<input\b[^>]*>/g), ...tryItOf(html).matchAll(/<(?:input|select|textarea)\b[^>]*>/g)].map(m => m[0]);
-    if (html.includes('<section class="hb-step hb-try"')) assert.ok(fields.length > 0, 'the page has fields');
+    // A Try it made only of choice buttons, on a scroll or do-it page whose player bar has no switch, has no form field at all;
+    // any page that does hold a field must have it found here, or the check below would pass without checking anything.
+    if (html.includes('<section class="hb-step hb-try"') && /<(?:input|select|textarea)/.test(html)) assert.ok(fields.length > 0, 'the page has fields');
     for (const field of fields) assert.match(field, /\sautocomplete="off"/, field);
   });
 
