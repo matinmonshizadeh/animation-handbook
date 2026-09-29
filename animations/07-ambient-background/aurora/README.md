@@ -63,7 +63,7 @@ On phones the demo halves the blur, `@media (max-width: 600px) { .band { filter:
 - **`overflow: hidden` is mandatory**: bands extend 30% beyond each edge (for drift headroom). Without overflow clipping, they're visible outside the stage.
 - **`animation-delay` offsets**: give each band a unique negative delay so they start at different phases. Without this, all bands drift together, which looks mechanical.
 - **Star layer pairing**: adding a star background behind the aurora dramatically increases realism — the aurora appears to float in front of the night sky. See the demo's Stars in the sky switch.
-- **Performance**: each blurred element creates a GPU compositing layer. 5 blurred bands + a star canvas is the practical limit on mid-range mobile.
+- **Performance**: each blurred element creates a GPU compositing layer. 5 blurred bands + a star layer is the practical limit on mid-range mobile.
 - **Three.js approach**: for fully custom aurora with 3D depth and noise-driven shapes, render a plane mesh with a custom GLSL shader that samples 3D noise for the waveform and color distribution.
 
 ## See also
