@@ -1,7 +1,7 @@
 # Toggle / Switch Slide
 
 ## What it is
-A toggle switch is a binary control — on or off — where the thumb pill slides horizontally between states. Unlike a checkbox, which changes state instantly, a toggle communicates the transition between states through motion. The animation duration and easing determine whether the control feels mechanical, weighted, or springy.
+A toggle switch is an on/off control whose round knob slides across a track, and the track fills with color when it is on. The slide shows the change instead of just flipping it, and its speed and curve decide whether the switch feels mechanical, weighty or springy.
 
 ## When to use it
 - Settings and preferences panels (notifications on/off, dark mode, feature flags)
@@ -51,10 +51,10 @@ For an elastic feel, swap the thumb transition easing to `cubic-bezier(.34, 1.56
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 200ms | Under 120ms = mechanical; over 350ms = sluggish |
-| Easing | Material smooth | `cubic-bezier(.4,0,.2,1)` — weighted deceleration |
-| Thumb travel | 22px | (track width - 2×padding - thumb width) |
-| On color | accent blue | Must contrast 3:1 with the thumb color (white) |
+| Speed | Normal | How long the knob takes to slide: slow is 320ms, normal 200ms and fast 120ms; under 120ms feels mechanical, over 350ms sluggish |
+| Feel | Gentle | Gentle eases in and out, which gives the knob weight; Smooth starts fast and slows to a stop; Even slides at one steady speed |
+| Springy knob | on | The third switch's knob goes a little past the end, then settles |
+| On color | Blue | The track color when a switch is on; it must stand out from the white knob. The Appearance switch keeps its own orange |
 
 ## Production notes
 - **Accessibility**: the hidden `<input type="checkbox">` provides keyboard control, `aria-checked` state, and screen reader announcements for free — no JS needed for state management.
@@ -65,6 +65,6 @@ For an elastic feel, swap the thumb transition easing to `cubic-bezier(.34, 1.56
 - **Framer Motion**: animate the `x` value of a `<motion.div>` between 0 and the track width — simpler than CSS for controlled components.
 
 ## See also
-- [Button Press Scale](../button-press-scale/) — press-down feedback on toggle tap
-- [Form Field Morph](../form-field-morph/) — another input state transition pattern
-- [Accordion Open/Close](../accordion/) — another binary expand/collapse pattern
+- [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
+- [Form Field Morph](../form-field-morph/) — the label moves up when a field is focused
+- [Accordion Open/Close](../accordion/) — a panel opens and closes smoothly
