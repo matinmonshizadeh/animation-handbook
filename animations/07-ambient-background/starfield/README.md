@@ -22,12 +22,14 @@ class Star {
   }
 
   update() {
+    this.dist += this.speed;
     const ratio = this.dist / MAX_DIST;
     // Accelerate as the star "approaches" — perspective foreshortening
-    this.dist += this.speed * (1 + ratio * 2);
+    this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge
     // Reset to center when off-screen
     if (this.dist > MAX_DIST) {
       this.dist = 0;
+      this.speed = (Math.random() * 0.6 + 0.2) * BASE_SPEED;
       this.angle = Math.random() * Math.PI * 2;
     }
   }
@@ -36,7 +38,7 @@ class Star {
     const ratio = this.dist / MAX_DIST;
     const x = cx + Math.cos(this.angle) * this.dist;
     const y = cy + Math.sin(this.angle) * this.dist;
-    const size = this.size * (1 + ratio * 2);     // grow with distance
+    const size = this.size * (1 + ratio * 1.5);   // grow with distance
     const opacity = 0.3 + ratio * 0.7;            // brighten with distance
 
     ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
@@ -73,7 +75,7 @@ class DriftStar {
 
 ## Production notes
 - **Canvas vs DOM**: DOM elements at star counts above 50 cause heavy layout recalculation. Canvas is the right tool for this effect.
-- **Phones**: the demo draws at most 300 stars on screens narrower than 600px; each star is a separate fill, so the count is the main cost.
+- **Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost.
 - **`ctx.fillStyle` caching**: setting `fillStyle` per star is expensive. Group stars by opacity bucket and set fillStyle once per bucket (color batching) to reduce canvas state changes.
 - **`requestAnimationFrame` throttling**: on 120Hz displays, the loop runs twice as fast. Cap time delta to avoid stars moving at different speeds across devices.
 - **Nebula background pairing**: adding a subtle radial gradient (deep purple in one quadrant, deep blue in another) behind the stars dramatically increases realism with minimal performance cost.

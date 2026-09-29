@@ -169,7 +169,8 @@
   const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
   const stage=document.querySelector('.stage');
   const slowTog=document.getElementById('slow-tog');
-  const PHONE_STARS=300; // a stage narrower than 600px draws at most this many stars
+  const PHONE_STARS=300; // phones and short screens draw at most this many stars
+  const phone=matchMedia('(max-width:600px),(max-height:500px)');
   let W=0,H=0,raf=null,lastT=0,paused=false;
   let MODE='radial',COUNT=300,SPD=0.4,TWINKLE=true,NEBULA=false,COL='white';
   let stars=[];
@@ -224,7 +225,7 @@
   }
 
   function initStars(){
-    const n=W<600?Math.min(COUNT,PHONE_STARS):COUNT;
+    const n=phone.matches?Math.min(COUNT,PHONE_STARS):COUNT;
     stars=Array.from({length:n},()=>new Star(true));
   }
 
@@ -280,6 +281,7 @@
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
+      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
     }));
@@ -293,6 +295,10 @@
 
   resize();
   window.addEventListener('resize',resize);
+  // A window that crosses the phone size changes how many stars it draws, even when the stage keeps its size
+  function onPhone(){const n=phone.matches?Math.min(COUNT,PHONE_STARS):COUNT;if(n!==stars.length){initStars();paint(false);}}
+  if(phone.addEventListener)phone.addEventListener('change',onPhone);
+  else if(phone.addListener)phone.addListener(onPhone);
   start();
 </script>
 </body>
