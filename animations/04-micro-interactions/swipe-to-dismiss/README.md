@@ -25,6 +25,7 @@ function follow(card, reveal, x){
   card.style.transform = `translateX(${x}px)`;
   card.style.opacity = String(Math.max(0.3, 1 - Math.abs(x)/(card.offsetWidth*0.9)));
   reveal.classList.toggle('show', showReveal && Math.abs(x) > 8);
+  reveal.classList.toggle('from-left', x > 0);  // the Delete label sits on the side the card uncovers
 }
 
 function end(){

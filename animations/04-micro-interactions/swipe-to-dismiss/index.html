@@ -31,6 +31,7 @@
     /* Reveal action sits behind the card */
     .reveal{position:absolute;inset:0;border-radius:10px;background:var(--del);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-weight:700;font-size:12px;color:#1a0f08;opacity:0;transition:opacity .12s}
     .reveal.show{opacity:1}
+    .reveal.from-left{justify-content:flex-start}
     .reveal.hidden{display:none}
     /* The draggable card */
     .card{position:absolute;inset:0;border-radius:10px;background:var(--ui-bg);border:1px solid var(--ui-border);display:flex;align-items:center;gap:12px;padding:0 16px;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;will-change:transform}
@@ -136,9 +137,8 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const listEl=document.getElementById('list');
-  const resetBtn=document.getElementById('btn-reset');
-  const reduceMq=window.matchMedia('(prefers-reduced-motion:reduce)');
+  const listEl=document.getElementById('list'),stage=document.querySelector('.stage');
+  const resetBtn=document.getElementById('btn-reset'),reduceMq=window.matchMedia('(prefers-reduced-motion:reduce)');
   let threshold=0.35, showReveal=true;
   const DATA=[
     ['AV','Ava Reyes','Lunch tomorrow? I found a spot'],
@@ -148,23 +148,26 @@
   ];
 
   function build(){
+    const was=listEl.contains(document.activeElement)&&document.activeElement.dataset.i; // which message has the focus, if the list does
     listEl.innerHTML='';
-    DATA.forEach(d=>{
+    DATA.forEach((d,i)=>{
       const row=document.createElement('div');row.className='row';
       row.innerHTML=`<div class="reveal ${showReveal?'':'hidden'}" aria-hidden="true">Delete</div>`+
-        `<div class="card" tabindex="0" role="group" aria-label="${d[1]}: ${d[2]}" aria-describedby="del-hint"><div class="avatar" aria-hidden="true">${d[0]}</div>`+
+        `<div class="card" tabindex="0" role="group" data-i="${i}" aria-label="${d[1]}: ${d[2]}" aria-describedby="del-hint"><div class="avatar" aria-hidden="true">${d[0]}</div>`+
         `<div class="meta"><div class="t">${d[1]}</div><div class="s">${d[2]}</div></div></div>`;
       listEl.appendChild(row);
       wire(row);
     });
+    if(was)listEl.querySelector(`.card[data-i="${was}"]`).focus({preventScroll:true}); // a rebuild never takes the focus away from its message
   }
 
-  // The card follows the pointer 1:1 and fades a little; the red strip shows once it has moved a few pixels.
+  // The card follows the pointer 1:1 and fades a little; the red strip shows once it has moved a few pixels, its label on the side the card uncovers.
   // The visitor's drag and Show me's drag both draw each frame with this.
   function follow(card,reveal,x){
     card.style.transform=`translateX(${x}px)`;
     card.style.opacity=String(Math.max(0.3,1-Math.abs(x)/(card.offsetWidth*0.9)));
     reveal.classList.toggle('show',showReveal&&Math.abs(x)>8);
+    reveal.classList.toggle('from-left',x>0);
   }
 
   function wire(row){
@@ -175,8 +178,10 @@
     card.addEventListener('pointerdown',e=>{
       if(dragging||row.classList.contains('collapsing'))return; // already dismissed
       if(e.pointerType==='mouse'&&e.button!==0)return;
-      dragging=true;pid=e.pointerId;dx=0;startX=e.clientX;lastX=e.clientX;lastT=performance.now();vel=0;
+      const off=new DOMMatrix(getComputedStyle(card).transform).m41; // where the card is now: it may be on its way back to rest
+      dragging=true;pid=e.pointerId;dx=off;startX=e.clientX-off;lastX=e.clientX;lastT=performance.now();vel=0;
       card.classList.remove('settling','flung');
+      follow(card,reveal,off); // stays where it is
       card.setPointerCapture(e.pointerId);
       card.style.cursor='grabbing';
     });
@@ -194,8 +199,7 @@
       const w=card.offsetWidth;
       const pastDist=Math.abs(dx)>w*threshold;
       const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24&&Math.sign(vel)===Math.sign(dx); // velocity commit, only when the flick points away from rest
-      if(!cancelled&&(pastDist||flick)){dismiss(row,card,dx>=0?1:-1);}
-      else{spring(card,reveal);}
+      if(!cancelled&&(pastDist||flick))dismiss(row,card,dx>=0?1:-1);else spring(card,reveal);
     }
     card.addEventListener('pointerup',e=>end(e,false));
     card.addEventListener('pointercancel',e=>end(e,true));
@@ -218,22 +222,16 @@
   }
 
   function dismiss(row,card,dir){
-    if(reduceMq.matches){ // no fly-off flourish — collapse immediately
-      row.remove();checkEmpty();return;
-    }
+    if(reduceMq.matches){row.remove();checkEmpty();return;} // no fly-off flourish — collapse immediately
     card.classList.add('flung');
     card.style.transform=`translateX(${dir*card.offsetWidth*1.25}px)`;
     card.style.opacity='0';
     row.classList.add('collapsing');
-    row.addEventListener('transitionend',function te(ev){
-      if(ev.propertyName==='height'){row.remove();checkEmpty();}
-    });
+    row.addEventListener('transitionend',ev=>{if(ev.propertyName==='height'){row.remove();checkEmpty();}});
   }
 
   function checkEmpty(){
-    if(!listEl.querySelector('.row')){
-      listEl.innerHTML='<div class="empty">All cleared. Press Reset to bring them back.</div>';
-    }
+    if(!listEl.querySelector('.row'))listEl.innerHTML='<div class="empty">All cleared. Press Reset to bring them back.</div>';
   }
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
@@ -267,12 +265,11 @@
       runFrame=0;runDrag=null;letGo();
     })(t0);
   }
-  // The first message is dragged halfway to where letting go deletes it, and let go: it springs back. It is dragged again,
-  // past that point, and let go: it flies off and its row closes up. Then the list is rebuilt.
+  // The first message is dragged halfway to where letting go deletes it, and let go: it springs back; then dragged past that point and let go: it flies off and its row closes up. Then the list is rebuilt.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
-    const row=listEl.querySelector('.row'),card=row.querySelector('.card'),reveal=row.querySelector('.reveal');
+    const row=[...listEl.children].find(r=>!r.contains(document.activeElement)),card=row.querySelector('.card'),reveal=row.querySelector('.reveal'); // the first message, unless the visitor is on it
     drag(card,reveal,card.offsetWidth*threshold/2,400,()=>spring(card,reveal));
     later(()=>drag(card,reveal,card.offsetWidth*(threshold+0.15),600,()=>dismiss(row,card,1)),0,1100);
     later(build,0,2600);
@@ -280,6 +277,8 @@
   resetBtn.addEventListener('click',()=>{ stopRun(); build(); });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
+  // A Tab press from outside the stage sends no hb:input, but a run never moves the focus, so focus arriving in the stage while one runs is the visitor's.
+  stage.addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); });
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
