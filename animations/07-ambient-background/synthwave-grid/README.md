@@ -1,7 +1,7 @@
 # Synthwave Grid
 
 ## What it is
-A neon wireframe floor stretches to a horizon and scrolls continuously toward the viewer, set against a purple gradient sky with a banded, glowing sun. It is the retro-futurist / outrun aesthetic — the "1984 idea of the future" — rebuilt as a seamless ambient loop on a single canvas.
+A synthwave grid is a glowing neon floor that stretches to the horizon and rolls steadily toward the viewer, under a purple sky with a striped, glowing sun. It is the retro look of 1980s album covers and arcade games, the 1980s idea of the future, drawn as a loop that never visibly restarts.
 
 ## When to use it
 - Music, gaming, and event landing pages with a retro or vaporwave theme
@@ -27,20 +27,19 @@ The glow is a canvas `shadowBlur` set to the grid colour; the sun is a clipped s
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Scroll speed | 1.0 | How fast the floor rushes toward the viewer |
-| Line density | 16 | Horizontal line count; also sets the loop period |
-| Grid glow color | #ff2fb0 | Stroke and `shadowBlur` colour of the whole grid |
-| Perspective power | 2.2 | Exponent on the spacing curve (in code) — higher = flatter horizon |
+| Speed | Normal | How fast the floor rolls toward the viewer: slow is 0.6, normal 1 and fast 1.6 |
+| Number of lines | Medium | How many lines the floor has: few is 10 across and 15 toward the horizon, medium 16 and 23, many 24 and 35; more lines make a finer grid |
+| Grid color | Pink | The color of the glowing lines: pink, cyan, purple or orange |
 
 ## Production notes
 - **`shadowBlur` is expensive**: canvas shadow-based glow is one of the heavier 2D operations. It is fine for this line count, but if you raise density substantially, drop the shadow and fake the glow with a second, thicker, low-alpha pass of each line.
 - **The modulo seam**: fading lines in as `p` approaches 0 hides the pop where a new line spawns at the horizon. Without the alpha ramp you would see it flicker into existence.
-- **Reduced motion**: on `prefers-reduced-motion` the scroll offset never advances — a single static grid, sky, and sun are drawn, preserving the look without motion.
+- **Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene.
 - **CSS alternative**: this can also be built with a `transform: perspective()` plane and an animated `background-position` on a repeating linear-gradient, which offloads to the compositor. The canvas version wins on control over per-line fade and glow.
 - **Library equivalents**: for a true 3D floor with camera moves and bloom, use [three.js](https://threejs.org) — a `PlaneGeometry` with a wireframe material and an `UnrealBloomPass` gives the authentic glow. [tsParticles](https://github.com/matteobruni/tsparticles) is not suited to structured grids.
 
 ## See also
-- [Starfield](../starfield/) — the other classic "flying through space" depth loop
-- [Scanline](../scanline/) — pair with this for full CRT / retro-monitor treatment
-- [Grid / Dot Pattern Parallax](../grid-dot-pattern-parallax/) — a flat grid that reacts to the mouse
-- [Animated Gradient Background](../animated-gradient-background/) — the sky gradient on its own
+- [Starfield / Space Particles](../starfield/) — another way of flying forward through space
+- [Scanline Effect](../scanline/) — dark lines that finish the old-screen look
+- [Grid / Dot Pattern Parallax](../grid-dot-pattern-parallax/) — a flat grid that shifts against the pointer
+- [Animated Gradient Background](../animated-gradient-background/) — a gradient like the sky's, moving on its own
