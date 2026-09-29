@@ -4,13 +4,11 @@
 
 ## What it is
 
-A large hero cover card that smoothly morphs into a compact fixed header as
-the user scrolls. Height, font size, background opacity, blur, and element
-visibility are all tied to a single progress value `p ∈ [0, 1]` derived from
-scroll position. At `p = 0` the full cover is visible; at `p = 1` a minimal
-header is pinned to the top. Every value between those extremes is a
-deliberate, intentional intermediate state — not an accidental artifact of
-a CSS transition.
+A cover card to fixed header starts a page with a tall cover that holds the
+title, a subtitle, the date and the author, and shrinks it into a slim header as
+you scroll. Every change, from the cover's height and the title's size to the
+fading background and the small author badge, follows one number that runs from
+0 to 1 with the scroll, so every moment in between looks planned.
 
 ## When to use it
 
@@ -34,11 +32,11 @@ Eight properties are then interpolated against `e` in a single
 `requestAnimationFrame` callback:
 
 ```js
-cover.style.height         = lerp(530, 56, e) + 'px';
+cover.style.height         = lerp(FULL, 56, e) + 'px';   // FULL: 85% of the box's height
 coverTitle.style.transform = `scale(${lerp(1, 13 / 26, e)})`;
 coverBg.style.opacity      = lerp(1, 0.12, e);
 coverBg.style.filter       = `blur(${lerp(0, 6, e)}px)`;
-coverMeta.style.opacity    = 1 - clamp(e * 3, 0, 1);  // also coverSub, coverCode
+coverMeta.style.opacity    = 1 - clamp(e * 3, 0, 1);  // also coverSub
 coverAuthor.style.opacity  = 1 - clamp(e * 2, 0, 1);
 headerChip.style.opacity   = clamp((e - 0.5) * 2, 0, 1);
 coverRule.style.opacity    = e;
@@ -54,12 +52,8 @@ position on its own.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `RANGE` | 320px | Scroll distance over which the morph completes |
-| Cover full height | 530px (desktop) / 480px (mobile) | Starting cover height |
-| Cover min height | 56px (desktop) / 64px (mobile) | Collapsed header height |
-| Easing | easeOutCubic | Brisk start, settled finish |
-| `EASE` | 0.16 | Share of the remaining collapse covered per frame. Lower = smoother but laggier; above ~0.3 a wheel notch reads as a jump again |
-| `BLUR_STEP` | 0.5px | Granularity the backdrop blur snaps to, so the compositor can reuse its cached texture |
+| Shrink distance | Medium | How far you scroll before the cover is fully small: short is 200px, medium 320px and long 440px |
+| Snaps at halfway | off | Switches between the tall cover and the slim header at half the distance instead of shrinking with the scroll; reduced motion always does this |
 
 ## Production notes
 
@@ -107,7 +101,6 @@ position on its own.
 
 ## See also
 
-- [Parallax Scrolling](../parallax-scrolling/) — single progress value driving
-  speed-ratio depth; the same interpolation model applied to layer motion.
-- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — another
-  scroll-progress pattern, this time driving directional column motion.
+- [Pin Animation](../pin-animation/) — one part holds still while the page scrolls past
+- [Stacking Cards](../stacking-cards/) — cards pile into a deck as you scroll
+- [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
