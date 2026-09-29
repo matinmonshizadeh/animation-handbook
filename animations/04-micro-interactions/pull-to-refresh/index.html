@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pull to Refresh — Animation Handbook</title>
-  <meta name="description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <meta name="description" content="Pulling a list down shows a spinner, then new items. Best for feeds.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,30 +12,27 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Pull to Refresh — Animation Handbook">
-  <meta property="og:description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <meta property="og:description" content="Pulling a list down shows a spinner, then new items. Best for feeds.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Pull to Refresh — Animation Handbook">
-  <meta name="twitter:description" content="Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.">
+  <meta name="twitter:description" content="Pulling a list down shows a spinner, then new items. Best for feeds.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pull to Refresh", "name": "Pull to Refresh", "description": "Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Pull to Refresh"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pull to Refresh", "name": "Pull to Refresh", "description": "Pulling a list down shows a spinner, then new items. Best for feeds.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/pull-to-refresh/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Pull to Refresh"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:600px;--ind:64px}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-muted:#8a8a92;--ind:64px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage-wrap{flex:1;min-width:0}
-    .stage{position:relative;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden}
-    /* Indicator zone sits just above the visible top edge; it slides down with the pull */
-    .indicator{position:absolute;top:calc(var(--ind)*-1);left:0;right:0;height:var(--ind);display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ui-muted);font-size:10px;will-change:transform}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:#0b0b0d}
+    /* The stage is a small app screen: a header bar with the Refresh button, then the feed */
+    .app-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 6px 6px 16px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border)}
+    .app-title{font-size:15px;font-weight:700}
+    .refresh-btn{flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--ui-border);border-radius:8px;background:none;color:inherit;font-family:inherit;cursor:pointer}
+    .refresh-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    @media(hover:hover){.refresh-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
+    .feed{position:relative;flex:1;overflow:hidden}
+    /* Indicator zone sits just above the top edge of the feed; it slides down with the pull */
+    .indicator{position:absolute;top:calc(var(--ind)*-1);left:0;right:0;height:var(--ind);display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ui-muted);font-size:11px;will-change:transform}
     .indicator.ready{color:var(--ui-accent)}
     .hint{letter-spacing:.06em;text-transform:uppercase}
     .spin{width:26px;height:26px;position:relative;opacity:0;will-change:transform}
@@ -58,8 +55,9 @@
     @keyframes ah-rot{to{transform:rotate(360deg)}}
     @keyframes ah-blink{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
     @keyframes ah-stretch{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
-    /* Scrollable list — the pull is only claimed when scrollTop is 0 */
-    .scroller{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;will-change:transform;padding:10px}
+    /* Scrollable list: the pull is only claimed when scrollTop is 0. pan-y keeps native vertical scrolling; user-select
+       keeps a mouse drag from selecting the text under it. */
+    .scroller{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y pinch-zoom;-webkit-overflow-scrolling:touch;will-change:transform;padding:10px;-webkit-user-select:none;user-select:none}
     .list{display:flex;flex-direction:column;gap:8px}
     .card{border:1px solid var(--ui-border);background:var(--ui-bg);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
     .card.fresh{animation:ah-in .34s cubic-bezier(.22,1,.36,1)}
@@ -68,159 +66,301 @@
     .card.old .dot{background:var(--ui-muted)}
     .meta{min-width:0}
     .meta .t{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .meta .s{font-size:10px;color:var(--ui-muted);margin-top:2px}
-    aside{width:clamp(200px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:52px;text-align:right;color:var(--ui-text)}
-    select{width:100%;min-height:44px;background:var(--bg);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:4px;font-family:var(--mono);font-size:10px;padding:0 8px}
-    select:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
-    .div{height:1px;background:var(--ui-border)}
-    .btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    .btn:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
-    @media(hover:hover){.btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    .status{font-size:10px;color:var(--ui-muted);min-height:14px}
-    @media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}:root{--stage-h:auto}.stage{height:60vh;min-height:380px}}
+    .meta .s{font-size:11px;color:var(--ui-muted);margin-top:2px}
+    /* The status line is read by screen readers only */
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
     @media(prefers-reduced-motion:reduce){.scroller,.indicator{transition:none!important}.card.fresh{animation:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../segmented-control/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/pull-to-refresh/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Pull to Refresh</h1>
-  <p>Drag the list down from the top past a threshold to spin up a refresh, then release to load new items.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
-    <div class="stage">
-      <div class="indicator" id="indicator">
-        <div class="spin s-ring" id="spin"><span class="ring"></span><span class="dots"><i></i><i></i><i></i></span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
-        <span class="hint" id="hint">Pull to refresh</span>
-      </div>
-      <div class="scroller" id="scroller"><div class="list" id="list"></div></div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../segmented-control/" rel="prev" aria-label="Previous: Segmented Control"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Segmented Control</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.29 · Micro-Interactions</p>
+    <h1>Pull to Refresh</h1>
+    <p class="hb-lede">Pulling a list down shows a spinner, then new items. Best for feeds.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the list down from the top and let go, or press Show me.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">The list follows your drag with rubber-band resistance — the further you pull, the more it fights back. Release past the threshold to trigger a refresh; short pulls snap back.</p>
-    <div class="lbl">Pull threshold</div>
-    <div class="sr"><input type="range" id="th" min="40" max="120" value="64" step="4"><span class="sval" id="thv">64px</span></div>
-    <div class="lbl">Resistance</div>
-    <div class="sr"><input type="range" id="re" min="1" max="4" value="2" step="0.5"><span class="sval" id="rev">2.0×</span></div>
-    <div class="lbl">Spinner style</div>
-    <select id="style"><option value="ring">Ring</option><option value="dots">Dots</option><option value="bars">Bars</option></select>
-    <div class="lbl">Refresh duration</div>
-    <div class="sr"><input type="range" id="du" min="400" max="2400" value="1200" step="200"><span class="sval" id="duv">1200ms</span></div>
-    <div class="div"></div>
-    <button class="btn" id="trigger" type="button">↻ Refresh now</button>
-    <p class="status" id="status" role="status" aria-live="polite"></p>
-  </aside>
-</div>
+    <div class="stage">
+      <div class="app-bar">
+        <span class="app-title" id="feed-title">Updates</span>
+        <button class="refresh-btn" id="trigger" type="button" aria-label="Refresh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      </div>
+      <div class="feed">
+        <div class="indicator" id="indicator" aria-hidden="true">
+          <div class="spin s-ring" id="spin"><span class="ring"></span><span class="dots"><i></i><i></i><i></i></span><span class="bars"><i></i><i></i><i></i><i></i></span></div>
+          <span class="hint" id="hint">Pull to refresh</span>
+        </div>
+        <div class="scroller" id="scroller" role="region" aria-labelledby="feed-title" tabindex="0"><div class="list" id="list"></div></div>
+      </div>
+      <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="th-lbl">Pull distance</p>
+        <div class="seg" id="th-seg" role="group" aria-labelledby="th-lbl">
+          <button type="button" data-px="48" aria-pressed="false">Short</button>
+          <button type="button" data-px="64" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="80" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How far to pull before letting go refreshes.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="re-lbl">Resistance</p>
+        <div class="seg" id="re-seg" role="group" aria-labelledby="re-lbl">
+          <button type="button" data-r="1" aria-pressed="false">Low</button>
+          <button type="button" data-r="2" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-r="3" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">Higher makes the list fight back harder.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="sp-lbl">Spinner</p>
+        <div class="seg" id="sp-seg" role="group" aria-labelledby="sp-lbl">
+          <button type="button" data-s="ring" class="on" aria-pressed="true">Ring</button>
+          <button type="button" data-s="dots" aria-pressed="false">Dots</button>
+          <button type="button" data-s="bars" aria-pressed="false">Bars</button>
+        </div>
+        <p class="hb-hint">The shape that turns while it refreshes.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="du-lbl">Refresh time</p>
+          <div class="seg" id="du-seg" role="group" aria-labelledby="du-lbl">
+            <button type="button" data-ms="700" aria-pressed="false">Short</button>
+            <button type="button" data-ms="1200" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-ms="2000" aria-pressed="false">Long</button>
+          </div>
+          <p class="hb-hint">How long it spins before new items arrive.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add pull to refresh to [the scrolling list or feed that should reload]. When the list is already at its top and the visitor drags it down, move it with the finger but make it resist more the further it goes, and show a spinner above it that fades in and turns as it is pulled. Let go past the line and the list stays down while the spinner keeps turning and new items load, then everything slides back up with the new items on top; a shorter pull just springs back. Also offer a refresh button for people who cannot drag. If the visitor has reduced motion turned on, snap back without sliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Feeds</li><li>Inboxes</li><li>Notifications</li><li>Order lists</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Desktop-only pages</li><li>Lists that rarely change</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const scroller=document.getElementById('scroller');
-  const indicator=document.getElementById('indicator');
-  const spin=document.getElementById('spin');
-  const hint=document.getElementById('hint');
-  const listEl=document.getElementById('list');
-  const statusEl=document.getElementById('status');
+  const $=id=>document.getElementById(id);
+  const scroller=$('scroller'),indicator=$('indicator'),spin=$('spin'),hint=$('hint'),listEl=$('list'),statusEl=$('status');
+  const reduceMq=window.matchMedia('(prefers-reduced-motion:reduce)');
   const INDH=64;                       // resting offset held while refreshing
-  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let threshold=64, resistance=2, dur=1200;
-  let startY=0, pulling=false, pull=0, refreshing=false, n=0;
+  let threshold=64,resistance=2,dur=1200;
+  let startY=0,pid=null,pulling=false,pull=0,refreshing=false,refreshTimer=0,refreshFrom=0,n=0;
+  let runTimers=[],runFrame=0;
 
-  const SEED=['Design review moved to 3pm','Build #482 passed on main','Ana commented on your PR','Weekly metrics are ready','Invoice from Northwind paid','Standup notes posted'];
+  const SEED=['Design review moved to 3pm','Your order has shipped','Ana replied to your comment','Weekly report is ready','Invoice from Northwind paid','Team notes posted'];
+  function el(tag,cls,text){const e=document.createElement(tag);e.className=cls;if(text)e.textContent=text;return e}
   function card(text,fresh){
-    const el=document.createElement('div');
-    el.className='card'+(fresh?' fresh':' old');
-    el.innerHTML='<span class="dot"></span><div class="meta"><div class="t">'+text+'</div><div class="s">'+(fresh?'just now':'earlier')+'</div></div>';
-    return el;
+    const c=el('div','card '+(fresh?'fresh':'old')),meta=el('div','meta');
+    meta.append(el('div','t',text),el('div','s',fresh?'just now':'earlier'));
+    c.append(el('span','dot'),meta);
+    return c;
   }
-  SEED.forEach(t=>listEl.appendChild(card(t,false)));
+  function build(){listEl.replaceChildren(...SEED.map(t=>card(t,false)))}
 
-  // Move both the indicator and the list by the same amount; optionally tween.
+  // Move both the indicator and the list by the same amount; optionally tween (never under reduced motion).
   function setY(y,animate){
-    const t=(animate&&!reduce)?'transform .34s cubic-bezier(.22,1,.36,1)':'none';
-    scroller.style.transition=t; indicator.style.transition=t;
-    scroller.style.transform='translateY('+y+'px)';
-    indicator.style.transform='translateY('+y+'px)';
+    const t=(animate&&!reduceMq.matches)?'transform .34s cubic-bezier(.22,1,.36,1)':'none';
+    scroller.style.transition=indicator.style.transition=t;
+    scroller.style.transform=indicator.style.transform='translateY('+y+'px)';
   }
   // Rubber-band: near 1:1 at first, asymptotic as the drag grows.
-  function resist(dy){ const max=threshold*2.2; return max*dy/(dy+max*resistance); }
+  function resist(dy){const max=threshold*2.2;return max*dy/(dy+max*resistance)}
   function drawSpin(){
     const p=Math.min(pull/threshold,1);
     spin.style.opacity=String(p);
     spin.style.transform='rotate('+(pull*2.2)+'deg) scale('+(0.55+p*0.45)+')';
     indicator.classList.toggle('ready',p>=1);
-    hint.textContent=p>=1?'Release to refresh':'Pull to refresh';
+    const words=p>=1?'Release to refresh':'Pull to refresh';
+    if(hint.textContent!==words)hint.textContent=words;
   }
 
+  // The visitor's drag: only the pointer that went down is followed, and the pull is only claimed at the very top of the list.
   scroller.addEventListener('pointerdown',e=>{
-    if(refreshing)return;
-    startY=e.clientY; pulling=false;
+    if(refreshing||pulling)return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    pid=e.pointerId;startY=e.clientY;
   });
   scroller.addEventListener('pointermove',e=>{
-    if(refreshing)return;
+    if(e.pointerId!==pid||refreshing)return;
+    if(e.pointerType==='mouse'&&!(e.buttons&1)){letGo(true);return}   // the button was let go out of sight
     const dy=e.clientY-startY;
-    if(!pulling){                       // only claim the gesture at the very top
-      if(dy>4 && scroller.scrollTop<=0){ pulling=true; try{scroller.setPointerCapture(e.pointerId);}catch(_){} }
+    if(!pulling){
+      if(dy>4&&scroller.scrollTop<=0){pulling=true;try{scroller.setPointerCapture(pid)}catch(_){}}
       else return;
     }
-    if(dy<=0){ pull=0; setY(0,false); drawSpin(); pulling=false; return; }
+    if(dy<=0){pull=0;setY(0,false);drawSpin();pulling=false;return}
     pull=resist(dy);
-    setY(pull,false); drawSpin();
+    setY(pull,false);drawSpin();
   });
-  function release(){
-    if(refreshing||!pulling)return;
-    pulling=false;
-    if(pull>=threshold){ startRefresh(); }
-    else { pull=0; setY(0,true); drawSpin(); }
+  // Letting go past the line refreshes; a shorter pull, or a gesture the browser cancelled, springs back.
+  function letGo(cancelled){
+    const was=pulling;
+    pid=null;pulling=false;
+    if(!was||refreshing)return;
+    if(!cancelled&&pull>=threshold)startRefresh();
+    else{pull=0;setY(0,true);drawSpin()}
   }
-  scroller.addEventListener('pointerup',release);
-  scroller.addEventListener('pointercancel',release);
-  // Once the pull is claimed, stop the browser from turning the touch into a native pan (which would fire pointercancel).
-  scroller.addEventListener('touchmove',e=>{ if(pulling)e.preventDefault(); },{passive:false});
+  scroller.addEventListener('pointerup',e=>{if(e.pointerId===pid)letGo(false)});
+  scroller.addEventListener('pointercancel',e=>{if(e.pointerId===pid)letGo(true)});
+  // Once the pull is claimed, stop the browser from turning the touch into a native pan (which would cancel the pointer).
+  scroller.addEventListener('touchmove',e=>{if(pulling&&e.cancelable)e.preventDefault()},{passive:false});
 
+  // The list is held down by INDH while the spinner turns for Refresh time; then the new item arrives and everything springs back.
+  // The visitor's release, the Refresh button and Show me all start it here.
   function startRefresh(){
     if(refreshing)return;
-    refreshing=true; pull=INDH;
+    cancelAnimationFrame(runFrame);runFrame=0;   // a Show me pull still being drawn hands over to the refresh
+    refreshing=true;pull=INDH;
     setY(INDH,true);
     indicator.classList.add('ready');
     hint.textContent='Refreshing…';
-    spin.style.transform=''; spin.classList.add('spinning');
+    spin.style.transform='';spin.classList.add('spinning');
     statusEl.textContent='Refreshing…';
-    setTimeout(()=>{
-      n++;
-      listEl.insertBefore(card('New update #'+n+' arrived',true),listEl.firstChild);
-      scroller.scrollTop=0;
-      spin.classList.remove('spinning');
-      pull=0; setY(0,true); drawSpin();
-      refreshing=false;
-      statusEl.textContent='Updated — 1 new item added.';
-    },dur);
+    refreshFrom=performance.now();
+    refreshTimer=setTimeout(finishRefresh,dur);
+  }
+  function finishRefresh(){
+    refreshTimer=0;
+    n++;
+    listEl.insertBefore(card('New update #'+n+' arrived',true),listEl.firstChild);
+    scroller.scrollTop=0;
+    spin.classList.remove('spinning');
+    pull=0;setY(0,true);drawSpin();
+    refreshing=false;
+    statusEl.textContent='Updated — 1 new item added.';
   }
 
-  // Controls
-  const $=id=>document.getElementById(id);
-  $('th').addEventListener('input',e=>{ threshold=+e.target.value; $('thv').textContent=threshold+'px'; });
-  $('re').addEventListener('input',e=>{ resistance=+e.target.value; $('rev').textContent=(+e.target.value).toFixed(1)+'×'; });
-  $('du').addEventListener('input',e=>{ dur=+e.target.value; $('duv').textContent=dur+'ms'; });
-  $('style').addEventListener('change',e=>{ spin.classList.remove('s-ring','s-dots','s-bars'); spin.classList.add('s-'+e.target.value); });
-  $('trigger').addEventListener('click',startRefresh);   // keyboard/button fallback
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move + hold ms; this page has no Slow motion, so every step is a hold: later(step, 0, ms).
+  // The pull is drawn frame by frame, and its one pending frame is kept in runFrame.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0||runFrame!==0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0}
+  // A run starts with the first six items, the list at the top and nothing pulled, put there without animating: the transitions are
+  // turned off, the state is set, a reflow makes it stick, and the transitions come back. A refresh under way ends here too.
+  function toRest(){
+    clearTimeout(refreshTimer);refreshTimer=0;
+    refreshing=false;pulling=false;pid=null;
+    spin.classList.remove('spinning');
+    n=0;statusEl.textContent='';
+    if(listEl.children.length!==SEED.length)build();
+    scroller.scrollTop=0;
+    pull=0;setY(0,false);drawSpin();
+    void scroller.offsetWidth;
+    scroller.style.transition=indicator.style.transition='';
+  }
+  // Show me pulls the list the way a finger would: 700ms down to 1.25 x Pull distance, slowing as it goes like the rubber band,
+  // drawn with the visitor's own setY() and drawSpin(). After 150ms more it lets go, as a release past the line does.
+  function pullDown(ms){
+    const t0=performance.now();
+    (function frame(now){
+      const k=Math.min(1,Math.max(0,(now-t0)/ms));
+      pull=1.25*threshold*(1-Math.pow(1-k,3));
+      setY(pull,false);drawSpin();
+      runFrame=k<1?requestAnimationFrame(frame):0;
+    })(t0);
+  }
+  // Once the new item has been showing for 1.5 s the list is put back to its first six items, so the run ends at rest.
+  function release(){startRefresh();later(toRest,0,dur+1500)}
+  $('btn-demo').addEventListener('click',()=>{
+    if(refreshing)return;                      // a refresh under way finishes on its own
+    stopRun();
+    toRest();
+    pullDown(700);
+    later(release,0,850);
+  });
+  $('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
+  $('trigger').addEventListener('click',()=>startRefresh());   // the keyboard and button way
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A pull still under way springs back and the
+  // visitor's own drag takes over; a refresh that has started finishes as usual, and its new item stays.
+  document.addEventListener('hb:input',()=>{
+    if(!running())return;
+    stopRun();
+    if(!refreshing){pull=0;setY(0,true);drawSpin()}
+  });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('th-seg',d=>{threshold=+d.px});
+  choices('re-seg',d=>{resistance=+d.r});
+  choices('sp-seg',d=>{spin.classList.remove('s-ring','s-dots','s-bars');spin.classList.add('s-'+d.s)});
+  // A refresh under way has its wait re-planned, so a new Refresh time shows soon: what is left of the new time, counted from the start.
+  choices('du-seg',d=>{
+    dur=+d.ms;
+    if(!refreshing)return;
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(finishRefresh,Math.max(0,dur-(performance.now()-refreshFrom)));
+  });
+
+  build();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
