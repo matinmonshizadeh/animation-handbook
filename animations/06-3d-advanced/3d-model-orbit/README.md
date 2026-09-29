@@ -35,7 +35,7 @@ uniform vec3 uCol, uLight;
 
 void main() {
   vec3 L = normalize(uLight - vP);
-  vec3 V = normalize(vec3(0., 0., 4.) - vP);
+  vec3 V = normalize(-vP);
   float d = max(dot(vN, L), 0.0);
   float s = pow(max(dot(reflect(-L, vN), V), 0.0), 48.0);
   gl_FragColor = vec4(0.15 * uCol + d * uCol + 0.7 * s, 1.0);

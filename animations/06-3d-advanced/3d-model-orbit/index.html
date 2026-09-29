@@ -265,7 +265,8 @@ function makeTetra(){
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const slowTog=document.getElementById('slow-tog');
 let W,H,gl,prog,posBuf,nrmBuf,idxBuf,lineBuf,idxCount,lineCount;
-let raf=null,paused=false,last=null,clock=0,rx=.3,ry=0;
+const TILT=.3; // the forward tilt it starts with, and returns to when the shape changes: at 0 a ring is seen edge-on
+let raf=null,paused=false,last=null,clock=0,rx=TILT,ry=0;
 let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let rollSpeed=.2,tumbles=true;
 let mouseNX=0,mouseNY=0;
@@ -338,14 +339,15 @@ function draw(){
 }
 
 // The loop keeps exactly one pending frame in raf. The page's own clock adds up the time of each drawn frame
-// (at most 50 ms), so the forward roll carries on smoothly after a pause instead of jumping.
+// (at most 50 ms, and a third of it while Slow motion is on, so the roll's speed wave slows down with the spin),
+// so the forward roll carries on smoothly after a pause instead of jumping.
 function render(ts){
   raf=requestAnimationFrame(render);
   if(last===null){last=ts;return;} // the first frame after a start only takes the time
   const dt=ts-last;if(dt<16)return;
-  last=ts;clock+=Math.min(dt,50);
+  const k=slowTog.checked?1/3:1;
+  last=ts;clock+=Math.min(dt,50)*k;
   if(MODE==='orbit'){
-    const k=slowTog.checked?1/3:1;
     ry+=SY*.01*k;rx+=SX*.01*k*(Math.sin(clock*.0003)*.5+.5);
   }else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
   draw();
@@ -383,7 +385,7 @@ function choices(id,pick){
 }
 const speedSetting=document.getElementById('speed-setting'),tumbleSetting=document.getElementById('tumble-setting');
 function setRoll(){SX=tumbles?rollSpeed:0;}
-choices('shape-seg',d=>{if(!gl)return;loadGeometry(d.shape);rx=0;ry=0;redraw();});
+choices('shape-seg',d=>{if(!gl)return;loadGeometry(d.shape);rx=TILT;ry=0;redraw();});
 // Speed and Tumbles only matter while it spins
 choices('move-seg',d=>{MODE=d.mode;speedSetting.hidden=tumbleSetting.hidden=MODE!=='orbit';});
 choices('speed-seg',d=>{SY=+d.sy;rollSpeed=+d.sx;setRoll();});
