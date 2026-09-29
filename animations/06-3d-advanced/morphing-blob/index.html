@@ -47,7 +47,9 @@
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and one drop follows your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
     </div>
     <div class="stage" id="stage">
-      <svg id="svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Soft purple and blue circles drifting and melting into one liquid shape, with one drop that follows the pointer">
+      <!-- The circles wander up to about 190 units from the middle (200, 200); this 340-unit box holds them nearly always,
+           and "meet" fits the whole box into any stage, so the blob is never cut. Beside the box the stage is still drawn. -->
+      <svg id="svg" viewBox="30 30 340 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Soft purple and blue circles drifting and melting into one liquid shape, with one drop that follows the pointer">
         <defs>
           <!-- The "goo": blur spreads the circles, then the alpha channel is
                pushed through a steep contrast curve so soft edges snap back to a
@@ -223,15 +225,15 @@ document.addEventListener('hb:pause',e=>{
   else start();
 });
 
-// Pointer Events cover mouse, pen and touch with one code path. While paused the position is only recorded:
-// nothing moves until Play, and then the drop catches up.
+// Pointer Events cover mouse, pen and touch with one code path. The SVG's own screen matrix turns the pointer into drawing
+// units, so the drop stays under the pointer wherever the SVG is scaled and centred, also beside the box on a wide stage.
+// While paused the position is only recorded: nothing moves until Play, and then the drop catches up.
 function toViewBox(e){
-  const r=svg.getBoundingClientRect();
-  // slice-scaled square viewBox: map to the larger dimension, centre the shorter
-  const side=Math.max(r.width,r.height);
-  const ox=(r.width-side)/2, oy=(r.height-side)/2;
-  pointer.x=((e.clientX-r.left-ox)/side)*400;
-  pointer.y=((e.clientY-r.top-oy)/side)*400;
+  const m=svg.getScreenCTM();
+  if(!m)return;
+  const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());
+  pointer.x=p.x;
+  pointer.y=p.y;
 }
 stage.addEventListener('pointermove',toViewBox);
 stage.addEventListener('pointerdown',toViewBox);
