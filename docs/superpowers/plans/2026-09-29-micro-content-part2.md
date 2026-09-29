@@ -139,7 +139,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   ```
 
   The rest is unchanged.
-- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The `pointer-events: none` bullet becomes "**`pointer-events: none`** on the tooltip keeps it from catching the pointer, so it never blocks the item or its neighbours; the cost is that the pointer cannot rest on the tooltip itself, which the WCAG bullet covers." The rest is unchanged.
+- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The `pointer-events: none` bullet becomes "**`pointer-events: none`** on the tooltip keeps it from catching the pointer, so it never blocks the item or its neighbors; the cost is that the pointer cannot rest on the tooltip itself, which the WCAG bullet covers." The rest is unchanged.
 - **Category line:** `04.16 · Micro-Interactions`
 - **Pager:** Previous: Notification Badge Pulse (`../badge-pulse/`) · Next: Drawer / Panel Slide (`../drawer-slide/`)
 
@@ -682,7 +682,7 @@ None: leave out the `details.hb-options` block.
     - At rest the pair is moved down by half of the menu and its gap, so the button sits in the middle: `.pair{transform:translateY(calc(50% - 38px));transition:transform var(--dur) var(--ease)}`. Here 50% is half the pair's own height, and 38px is half the 76px button.
     - When the menu opens, `.pair:has(> .menu.show){transform:none}` slides the pair up with the same timing as the menu's fade and slide. So the pair re-centres as it does today, where the button rises as the menu grows.
   - `.menu` gets `flex-shrink:0` (today's has none). The pair is 278px tall (76 + 20 + 182), so the open menu and the button are centred in the 300px phone stage. Today the open menu is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured).
-  - Short laptop windows get a 260px stage from the shared stylesheet, where the open pair (278px) would be cut off 9px at the top and the bottom. `@media (max-height:640px){.pair{gap:12px}.menu ul{gap:4px}.menu li{padding:10px 14px}}` makes it 252px, which fits the 258px inside the stage with 4px to spare at each end (measured in a 1366×580 window). The stage's height does not change.
+  - Short laptop windows get a 260px stage from the shared stylesheet, where the open pair (278px) would be cut off 10px at the top and the bottom. `@media (min-width:601px) and (max-height:640px){.pair{gap:12px}.menu ul{gap:4px}.menu li{padding:10px 14px}}` makes it 248px, which fits the 258px inside the stage with 5px to spare at each end (the width condition keeps portrait phones, whose 300px stage already fits the 278px pair, on the normal layout) (measured in a 1366×580 window). The stage's height does not change.
   - The old phone rule (`height:auto;min-height:400px`) goes.
   - `hb-dots`: yes. Default height.
 
