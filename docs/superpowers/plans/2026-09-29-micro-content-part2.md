@@ -62,6 +62,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - Do-it pages show themselves once on arrival (the shared script presses Show me).
 - From the Text & Typography reviews: the pruning `later()`; the `hb:input` listener at the top level of the inline script; player controls reached by their ids (`btn-demo`, `btn-reset`, `slow-tog`); Show me restarts the pieces themselves from rest (reset them, force a reflow, then play), never through a double `requestAnimationFrame`.
 - No code on the page: four stages show code or CSS names today (Copy to Clipboard's JavaScript snippet, Accordion's answers, and texts on Modal Expand and Cursor Follower); their sections replace them with plain content.
+- **Transform and opacity only** (CLAUDE.md): no page here animates `width`, `height`, `top`, `left` or `box-shadow`. Cursor Follower now moves and grows with transforms, and Hamburger Menu Toggle's menu opens with transform and opacity instead of `max-height`; their sections say how. The owner allows two exceptions, because the height change is the effect itself: Accordion's opening answer and Swipe to Dismiss's closing row. Their READMEs say why, and how to keep it cheap.
 
 ---
 
@@ -82,6 +83,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the four items stay: the gear button (tooltip below), the cut-off text (tooltip above), the Username field (tooltip to its right) and the avatar (tooltip above).
   - The "Total shown" readout goes, so `show()` no longer counts.
+  - Escape hides a shown tooltip at once. A `keydown` listener on the document removes `visible` from every tooltip and clears their pending show and hide timers, so a tooltip comes back only when the pointer or focus leaves its item and returns. WCAG 1.4.13 asks that a tooltip can be dismissed without moving the pointer or the focus, and today's demo has no way to do it. With focus inside the stage, the Escape press also sends `hb:input`, which stops a Show me run.
   - Two rules of the old phone block stay, in a block of their own: the cut-off text is at least 44px tall with `line-height:24px`, and the field's side tooltip flips below the field (with its arrow). That block's media query becomes `max-width:720px` instead of 600px: the side tooltip (up to 200px wide) is cut off at the stage's right edge on screens from 601px to about 670px wide.
   - `hb-dots`: yes. Default height: the items take 270px of the 300px phone stage, and each tooltip, shown alone, stays inside it (measured).
 
@@ -107,7 +109,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Good for:** Icon buttons · Cut-off text · Form hints · Chart values · **Avoid on:** Key information · Long text
 - **Prompt:**
 
-  > Add tooltips to [the icon buttons, shortened text or fields that need a short explanation]. When the pointer rests on an item, or keyboard focus reaches it, wait a moment, then fade the tooltip in beside it while it grows very slightly from the side facing the item, so it feels light rather than like a pop-up. The wait keeps tooltips from flashing while the pointer only passes by. When the pointer leaves, hide it after a short pause, so the pointer can move onto the tooltip without losing it, and let the Escape key close it. On touch screens, show and hide it with a tap. If the visitor has reduced motion turned on, fade it without growing. Match the settings listed below.
+  > Add tooltips to [the icon buttons, shortened text or fields that need a short explanation]. When the pointer rests on an item, or keyboard focus reaches it, wait a moment, then fade the tooltip in beside it while it grows very slightly from the side facing the item, so it feels light rather than like a pop-up. The wait keeps tooltips from flashing while the pointer only passes by. When the pointer leaves, hide it again, after a pause if the settings include one, and let the Escape key close it at once. On touch screens, show and hide it with a tap. If the visitor has reduced motion turned on, fade it without growing. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -126,8 +128,18 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Notification Badge Pulse](../badge-pulse/) — a dot that pulses to draw the eye
   - [Modal Expand](../modal-expand/) — a full window for content too big for a tooltip
-- **README How it works:** unchanged
-- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The rest is unchanged: the demo's tooltips cannot be pointed at, so the sheet changes the words, not the demo.
+- **README How it works:** after the JS snippet, add "Escape hides a shown tooltip at once, so it can be dismissed without moving the pointer or the focus:" and this snippet:
+
+  ```js
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    clearTimeout(showTimer);
+    tip.classList.remove('visible');
+  });
+  ```
+
+  The rest is unchanged.
+- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The rest is unchanged.
 - **Category line:** `04.16 · Micro-Interactions`
 - **Pager:** Previous: Notification Badge Pulse (`../badge-pulse/`) · Next: Drawer / Panel Slide (`../drawer-slide/`)
 
@@ -331,6 +343,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
     5. "Does it work with a keyboard?" — "Yes. Each question is a button, so Tab reaches it and Enter or Space opens it, and screen readers hear whether it is open."
   - To fit, `.acc-trigger`'s `min-height` becomes 48px (was 52px) and the stage's padding `clamp(12px,3vw,24px)` (was 24px). Measured: today the five closed questions need 334px, so the phone stage (298px inside) already scrolled before anything opened. After the change they need 290px on a phone and 314px on a short laptop (325px inside).
   - The old phone rule (`height:auto;min-height:500px`) goes.
+  - The answers keep their height (or grid-row) animation: the owner allows it here, because the panel opening is the effect itself (see the preamble).
   - `hb-dots`: yes. Default height.
 
 **Main settings**
@@ -381,7 +394,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Drawer / Panel Slide](../drawer-slide/) — a panel that slides in over the page instead
   - [FLIP Technique](../../03-page-transitions/flip-technique/) — moves other elements smoothly when a layout changes
 - **README How it works:** unchanged
-- **README Production notes:** the "Stagger on reveal" bullet ends "see the Text fades in setting in the demo." instead of "see the toggle in the demo." The rest is unchanged.
+- **README Production notes:** the "Stagger on reveal" bullet ends "see the Text fades in setting in the demo." instead of "see the toggle in the demo." A new last bullet: "**Why the demo animates height**: the answer's box growing is the effect itself, so this demo animates its height (or its grid row) directly, an exception to animating only transform and opacity; keep it cheap by opening one short panel at a time and keeping heavy content, such as videos or large images, out of the panel and away from what moves below it." The rest is unchanged.
 - **Category line:** `04.19 · Micro-Interactions`
 - **Pager:** Previous: Modal Expand (`../modal-expand/`) · Next: Cursor Follower (`../cursor-follower/`)
 
@@ -402,15 +415,20 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
   The run also stops on a trusted `pointermove` over the stage (see the preamble). On that, or on `hb:input` (a tap or press): `stopRun()` and remove `expanded`; the dot then follows the visitor.
 - **Slow motion:** none.
-- **Reduced motion:** the demo's rule stays: the dot's size changes at once. The dot still follows the visitor's own pointer with its lag, as today.
+- **Reduced motion:** the demo's rule becomes `#follower .shape{transition:none!important}`, so the dot grows at once. The dot still follows the visitor's own pointer with its lag, as today.
 - **Touch:** today the dot is hidden on touch screens (the `pointer:coarse` check), so phones showed nothing. That check goes. A `pointerdown` on the stage whose `pointerType` is not `mouse` sets `mx`/`my` to the tap point and shows the dot. The first tap places it there directly, as `mouseenter` does; later taps make it glide to each new point. The dot stays shown, and the page still scrolls with a swipe over the box (`touch-action` is unchanged).
 - **Stage font:** site font. `.hover-target` drops `font-family:monospace`.
-- **Stage:** the four coloured areas and the dot stay.
+- **Stage:** the four colored areas and the dot stay.
   - The first area's "Move cursor over stage" becomes "Move your pointer here".
   - The fourth area's "Mix-blend-mode inverts here" becomes "Pass over these words". The old text named the CSS property.
   - The two "Hover target" labels become "Button".
   - The Position readout and both notes go.
   - `cursor:none` on the stage stays.
+  - **The dot moves and grows with transforms only** (CLAUDE.md), where today it sets `left`, `top`, `width` and `height`.
+    - `#follower` becomes a wrapper at `left:0;top:0`. The loop, the snap on `mouseenter`, the run and the tap move it with `transform:translate(Xpx,Ypx)`. `mix-blend-mode` and the `circle`, `ring`, `square`, `expanded` and `no-blend` classes stay on it.
+    - Inside it, a new `.shape` element carries today's shape rules (its size `var(--follower-size)`, its fill, border and corners). It is centred with `transform:translate(-50%,-50%)` and has `transition:transform .2s ease,border-width .2s ease,border-radius .2s ease` in place of today's `width`/`height` transitions.
+    - Growing over a button scales the shape: `#follower.expanded .shape{transform:translate(-50%,-50%) scale(2.5)}`.
+    - To keep the look while scaled, the ring's border becomes `.8px` (2px ÷ 2.5) and the square's corners `1.6px` (4px ÷ 2.5) while expanded, so they still read as 2px and 4px. Tried in Chrome: a compensated border scaled 2.5 times draws a 2px ring, and an SVG stroke with `vector-effect:non-scaling-stroke` does not undo a CSS scale (it drew about 5px).
   - `hb-dots`: no, because the four areas fill the stage. Default height.
 
 **Main settings**
@@ -459,8 +477,38 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Tooltip Reveal](../tooltip-reveal/) — a label that appears where the pointer rests
   - [Click / Tap Ripple](../click-ripple/) — a ripple from the exact point you click
-- **README How it works:** unchanged
-- **README Production notes:** the "Touch devices" bullet gets a last sentence: "The demo sends the dot to each tap only so the effect can be seen on a phone." The rest is unchanged.
+- **README How it works:** the snippets follow the transform-only demo; the prose between them stays.
+  - In the first snippet, the loop's two `follower.style.left`/`top` lines become one:
+
+    ```js
+    follower.style.transform = `translate(${fx}px, ${fy}px)`;   // transform only: nothing is laid out again
+    ```
+
+  - The CSS snippet becomes:
+
+    ```css
+    #follower {
+      position: fixed;
+      left: 0; top: 0;                 /* moved only by transform */
+      mix-blend-mode: difference;
+      pointer-events: none;
+      will-change: transform;
+      z-index: 9999;
+    }
+    #follower .shape {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #fff;
+      transform: translate(-50%, -50%);
+      transition: transform .2s ease;
+    }
+    #follower.expanded .shape { transform: translate(-50%, -50%) scale(2.5); }
+    ```
+
+- **README Production notes:**
+  - The "Touch devices" bullet gets a last sentence: "The demo sends the dot to each tap only so the effect can be seen on a phone."
+  - In the "Performance" bullet, "Updating `left`/`top` (rather than `transform`) on every frame is less optimal — in production, update `transform: translate(x, y)` instead." becomes "The demo moves it with `transform: translate(x, y)` and grows it with `scale()`, so nothing is laid out again while it moves."
+  - The rest is unchanged.
 - **Category line:** `04.20 · Micro-Interactions`
 - **Pager:** Previous: Accordion Open/Close (`../accordion/`) · Next: Error Shake (`../error-shake/`)
 
@@ -475,10 +523,10 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Show me:** `toRest()` empties the field and clears its state (`clearState()`). Then:
   - at once: the field gets a wrong password, "abc123" (it shows as dots);
   - `later(shake, 0, 400)`: today's `shake('Incorrect password. Try again.')`, called directly as the old "Replay shake" button did. It does not submit the form and does not focus the field (the submit handler's `focus()` and `select()` would open a phone's keyboard);
-  - `later(clear, Speed, 2000)`: the field is emptied and `clearState()` runs, and the run ends. About 2.4 s from press to rest at the defaults.
+  - `later(clear, Speed, 2000)`: the field is emptied and `clearState()` runs, and the run ends. About 2.6 s from press to rest at the defaults (the border and the message take 180ms to clear).
 
   On `hb:input`: `stopRun()`. If the field still holds the run's "abc123", it is emptied and `clearState()` runs, so the visitor starts from a clean field.
-- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down. The shake is the run's movement (the Speed in the step that clears the field); the 400ms and 2000ms are holds. A slowed run takes about 3.2 s.
+- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down. The shake is the run's movement (the Speed in the step that clears the field); the 400ms and 2000ms are holds. A slowed run takes about 3.7 s.
 - **Reduced motion:** the demo's rule stays: no shake, but the red border and the message still show.
 - **Stage font:** site font. The card's title drops `var(--disp)`; `.field input` and `.submit` get `font-family:inherit` (were `var(--mono)` and `var(--disp)`). `.field label` (10px) and `.msg` (10.5px) go up to 11px.
 - **Stage:** the sign-in card stays, with its field, message and Sign in button.
@@ -556,6 +604,7 @@ None: leave out the `details.hb-options` block.
   - "Kai Morgan — Deploy is green, shipping it" becomes "Kai Morgan — Booked the tickets for June", in plain words.
   - The empty-list line becomes "All cleared. Press Reset to bring them back."
   - The old phone rule (`height:auto;min-height:420px`) goes.
+  - The row keeps its height animation as it closes: the owner allows it here, because the list closing up is the effect itself (see the preamble).
   - `hb-dots`: yes. Default height.
 
 **Main settings**
@@ -597,7 +646,7 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
   - [Toggle / Switch Slide](../toggle-switch/) — a smaller control that slides and settles
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** a new bullet after "Collapse the row, not the card": "**Why the demo animates height**: the list closing up is the effect itself, so the row's height goes to zero, an exception to animating only transform and opacity; it stays cheap because only one short row changes at a time, the card itself moves with transform and opacity, and the row is removed as soon as its height reaches zero." The rest is unchanged.
 - **Category line:** `04.22 · Micro-Interactions`
 - **Pager:** Previous: Error Shake (`../error-shake/`) · Next: Hamburger Menu Toggle (`../hamburger-menu-toggle/`)
 
@@ -618,7 +667,13 @@ None: leave out the `details.hb-options` block.
 - **Reduced motion:** the demo's rule stays: the icon and the menu switch at once.
 - **Stage font:** site font (no rule to change).
 - **Stage:** the button and the menu stay. The "State: closed" readout goes, with its rules.
-  - `.menu` gets `flex-shrink:0`, and the stage's `gap` becomes 20px (was 28px). Today the open menu (182px) is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured). After the change, the open menu and the button take 278px, centred in the 300px phone stage.
+  - **The menu opens with transform and opacity instead of `max-height`** (CLAUDE.md).
+    - `.menu` loses `max-height`, `overflow:hidden` and their transition, and keeps its full height in the layout.
+    - It gets `opacity:0;transform:translateY(-8px);visibility:hidden;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s linear var(--dur)`.
+    - `.menu.show` gets `opacity:1;transform:none;visibility:visible;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s`, so the closed menu is hidden from screen readers too.
+    - The items keep their staggered slide and fade.
+  - Because the menu now always takes its space, the button sits a little higher at rest and no longer moves when the menu opens (today it rises as the menu grows).
+  - `.menu` keeps `flex-shrink:0`, and the stage's `gap` becomes 20px (was 28px): the button and the menu take 278px, centred in the 300px phone stage. Today the open menu (182px) is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured).
   - The old phone rule (`height:auto;min-height:400px`) goes.
   - `hb-dots`: yes. Default height.
 
@@ -686,7 +741,7 @@ None: leave out the `details.hb-options` block.
   - `later(back, Speed, 1000)`: `setDark(false)`, and the run ends. About 2 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()` only.
-- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down; the change is the run's movement (Speed) and the 1000ms is a hold. A slowed run takes about 4 s.
+- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's color slow down; the change is the run's movement (Speed) and the 1000ms is a hold. A slowed run takes about 4 s.
 - **Reduced motion:** the demo's rule stays: the icon and the card switch at once.
 - **Stage font:** site font (no font rule to change). The card's `.face .st` ("preview card") goes up to 11px (was 9px).
 - **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do.
@@ -750,7 +805,7 @@ None: leave out the `details.hb-options` block.
   - It never writes to the clipboard: that would replace what the visitor copied, and browsers refuse a copy nobody pressed for.
   - It never writes "Copied to clipboard" into the live region.
   - A real press of Copy during the confirmation takes over the same timer, as today. `hb:input` has nothing to stop.
-- **Slow motion:** css. The icon change, the label change, the colour change and the pulse slow down. The button's revert timer, for a real copy and for Show me alike, counts the 520ms pulse as movement and the rest as a hold: it waits 520ms × (3 while Slow motion is on) + (Time before it changes back − 520ms). So the button never changes back before the slowed pulse has ended; without Slow motion nothing changes. A slowed run takes about 3.4 s.
+- **Slow motion:** css. The icon change, the label change, the color change and the pulse slow down. The button's revert timer, for a real copy and for Show me alike, counts the 520ms pulse as movement and the rest as a hold: it waits 520ms × (3 while Slow motion is on) + (Time before it changes back − 520ms). So the button never changes back before the slowed pulse has ended; without Slow motion nothing changes. A slowed run takes about 3.4 s.
 - **Reduced motion:** the demo's rule stays: the icon and label swap without movement or pulse.
 - **Stage font:** site font. `.copy-btn` gets `font-family:inherit` (was `var(--mono)`); `pre` goes with the snippet (see Stage).
 - **Stage:** rewritten, because the page shows no code. Today the stage shows a five-line JavaScript snippet ("snippet.js").
@@ -816,14 +871,14 @@ None: leave out the `details.hb-options` block.
 - **Show me:** `toRest()` sets the rating back to 3 (`rating=3; commit(false)`). Then an invisible pointer sweeps along the row (n is Number of stars). The sweep's steps and the wait for the pop are movement; the 1200ms is a hold:
   - `later(step, i × 120, 0)` for i = 0 to n − 1: `render(i + 1)`, and `later(step, n × 120, 0)`: `render(n − 1)`, as the pointer comes back one star;
   - `later(choose, (n + 1) × 120, 0)`: `rating = n − 1` (or n − 0.5 while Allows half stars is on) and `commit(true)`, which pops that star;
-  - `later(back, (n + 1) × 120 + 420, 1200)`: `rating = 3; commit(false)`, and the run ends. About 2.3 s with five stars.
+  - `later(back, (n + 1) × 120 + 420, 1200)`: `rating = 3; commit(false)`, and the run ends. About 2.5 s from press to rest with five stars (the last fill takes 180ms).
 
   The run does not call `rate.focus()`. It also stops on a trusted `pointermove` over the stage, as on the Hover it pages, because the row's own hover preview would fight the sweep. On that or on `hb:input`: `stopRun()` and `render(rating)`, so the stars show the committed rating.
-- **Slow motion:** css. The fill's colour change and the pop slow down, and so do the sweep and the wait for the pop (movement); the 1200ms hold stays. A slowed run takes about 5.2 s with five stars.
+- **Slow motion:** css. The fill's color change and the pop slow down, and so do the sweep and the wait for the pop (movement); the 1200ms hold stays. A slowed run takes about 5.2 s from press to rest with five stars.
 - **Reduced motion:** the demo's rule stays: the stars fill at once, with no pop.
 - **Touch:** already Pointer Events. The row's `touch-action:none` lets a finger dragged along it preview, and a tap chooses.
 - **Stage font:** site font. `.value` drops `var(--disp)` and `.value small` drops `var(--mono)`.
-- **Stage:** the stars and the score under them ("3.0 / 5") stay. The score is part of the control: it gives the rating in numbers as well as colour, as the README's accessibility note says.
+- **Stage:** the stars and the score under them ("3.0 / 5") stay. The score is part of the control: it gives the rating in numbers as well as color, as the README's accessibility note says.
   - The hint line ("Click a star, or focus the control…") goes; its words move to the help line.
   - The Committed readout goes.
   - `hb-dots`: yes. Default height.
@@ -897,7 +952,7 @@ None: leave out the `details.hb-options` block.
   - The button sits at the edge opposite the corner, centred across: 16px from the bottom while toasts stack in a top corner, and 16px from the top while they stack in a bottom corner (the Corner handler toggles a class such as `at-top` on it).
   - `.toaster` gets `pointer-events:none` and `.toast` `pointer-events:auto`, so the stack's empty box no longer covers the button.
   - The stage's own `min-height:min(62vh,480px)` goes, because the page owns the height. Its own rule sets `--hb-stage-h-phone:420px`, and `position:relative;overflow:hidden` and its radial background stay.
-  - Measured with the 11px message text: on a 375px phone, four toasts end 281px down and the button sits at 319–363px. On a 320px phone every message wraps to two lines (74px toasts), four end at 338px and the button starts at 359px; that is why the phone stage is 420px rather than about 380px. The button's whole face stays pressable. On tablets and computers the stack (300px wide, in a corner) never reaches the button, and four toasts fit every stage.
+  - Measured with the 11px message text on the 420px phone stage: four toasts end 281px down on a 375px phone, and 338px down on a 320px phone, where every message wraps to two lines (74px toasts). The button sits at 359–403px on every phone, so it clears both and its whole face stays pressable. At about 380px it would start at 319px, and the fourth toast would cover its top on a 320px phone. On tablets and computers the stack (300px wide, in a corner) never reaches the button, and four toasts fit every stage.
   - `hb-dots`: no, because the stage keeps its radial background.
 
 **Main settings**
@@ -961,7 +1016,7 @@ None: leave out the `details.hb-options` block.
   - `later(back, Speed, 1200)`: `current = 0; move(0, true); paint()` chooses the first again, and the run ends. About 1.9 s from press to rest at the defaults.
 
   The run uses `move()` and `paint()`, not `select()`, which would move the keyboard focus. On `hb:input`: `stopRun()` only.
-- **Slow motion:** css. The slide and the labels' colour change slow down; the slide is the run's movement (Speed) and the 1200ms is a hold. A slowed run takes about 3.2 s.
+- **Slow motion:** css. The slide and the labels' color change slow down; the slide is the run's movement (Speed) and the 1200ms is a hold. A slowed run takes about 3.2 s.
 - **Reduced motion:** the demo's rule stays: the highlight jumps.
 - **Stage font:** site font. `.seg-opt` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the control stays; the "Selected" readout goes.
@@ -1012,7 +1067,7 @@ None: leave out the `details.hb-options` block.
   - [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between two states
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Accordion Open/Close](../accordion/) — sections that open and close in place
-- **README How it works:** unchanged, except that it ends with the paragraph moved from Key parameters, in plain words: "A curve that runs a little past its end (Springy) gives the highlight a sense of momentum; Smooth reads as more restrained. The labels' colour change uses the same duration as the slide, so the two never drift apart."
+- **README How it works:** unchanged, except that it ends with the paragraph moved from Key parameters, in plain words: "A curve that runs a little past its end (Springy) gives the highlight a sense of momentum; Smooth reads as more restrained. The labels' color change uses the same duration as the slide, so the two never drift apart."
 - **README Production notes:** unchanged
 - **Category line:** `04.28 · Micro-Interactions`
 - **Pager:** Previous: Toast Notification (`../toast-notification/`) · Next: Pull to Refresh (`../pull-to-refresh/`)
