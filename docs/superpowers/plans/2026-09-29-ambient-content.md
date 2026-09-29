@@ -873,6 +873,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Abstract Geometric Motion](../abstract-geometric-motion/) — its Rings pattern spreads rings from the center
 - **README How it works:** the snippets use the demo's clock:
   - In the `Ring` constructor, the comment on `this.born = now;` becomes `// the page's own clock, which stops while paused`, and the comment on the next line goes.
+  - In `update`, the fade `(1 - progress) * 0.6` becomes `(1 - progress) * 0.5`, the value the demo draws.
   - In `scheduleEmit`, `performance.now()` becomes `clock`.
   - After the first snippet, add: "`now` is the page's own clock: each frame adds the time since the last one (a third of it in slow motion), and it stops while the animation is paused, so rings freeze in place and carry on without jumping."
 - **README Production notes:** unchanged
@@ -953,7 +954,12 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — many particles that link up and react to the pointer
   - [Ambient Ripple Effect](../ambient-ripple/) — rings spreading out instead of shapes drifting
   - [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion
-- **README How it works:** after the mouse repulsion snippet, add: "The pointer's position is taken from `pointerdown` as well as `pointermove`, so on a touch screen a finger resting on the stage pushes the shapes too." The rest is unchanged.
+- **README How it works:** the snippets match the demo's code:
+  - In the first snippet, the turn line becomes `if (el.rotation) el.rot += el.rotSpeed; // its own small turn each frame`, followed by `const rot = el.rotation ? el.rot : 0;`: each shape turns by its own step every frame, not by a multiple of `t`.
+  - In "Key construction", `amp` becomes `const amp = RANGE * 0.5 + Math.random() * RANGE * 0.5; // half to all of How far they drift (30, 50 or 90px)`, and the comment on `freq` becomes `// its own pace, 0.3 to 0.8 times as fast as t` (`t` is not seconds).
+  - The "CSS shape generation" block, whose `.shape-*` classes no shape has, becomes "**Shape generation** — shapes without image assets, styled in code:" followed by the demo's own `if (shape === 'ring') … else if (shape === 'square') … else …`, which sets `borderRadius`, `border` and `background` on each shape.
+  - In the mouse repulsion snippet, `if (d < 120) {` becomes `if (d > 0 && d < 120) {`, the demo's guard for a pointer exactly on a shape's centre.
+  - After the mouse repulsion snippet, add: "The pointer's position is taken from `pointerdown` as well as `pointermove`, so on a touch screen a finger resting on the stage pushes the shapes too."
 - **README Production notes:** unchanged
 - **Category line:** `07.10 · Ambient &amp; Background`
 - **Pager:** Previous: Ambient Ripple Effect (`../ambient-ripple/`) · Next: Grid / Dot Pattern Parallax (`../grid-dot-pattern-parallax/`)
