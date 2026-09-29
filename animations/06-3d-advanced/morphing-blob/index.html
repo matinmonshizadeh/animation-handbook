@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Morphing Blob — Animation Handbook</title>
-  <meta name="description" content="An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.">
+  <meta name="description" content="Blobs melt together, and one drop chases your pointer. Best for hero sections.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,123 +12,161 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Morphing Blob — Animation Handbook">
-  <meta property="og:description" content="An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.">
+  <meta property="og:description" content="Blobs melt together, and one drop chases your pointer. Best for hero sections.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Morphing Blob — Animation Handbook">
-  <meta name="twitter:description" content="An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.">
+  <meta name="twitter:description" content="Blobs melt together, and one drop chases your pointer. Best for hero sections.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Morphing Blob", "name": "Morphing Blob", "description": "An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Morphing Blob"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Morphing Blob", "name": "Morphing Blob", "description": "Blobs melt together, and one drop chases your pointer. Best for hero sections.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Morphing Blob"}</script>
   <style>
-    :root{
-      --bg:#0b0b0d;--stage:#08060e;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);
-      --accent:#b98bff;--accent2:#58a6ff;--text:#f4f4f2;--muted:#77777e;
-      --mono:ui-monospace,Menlo,Consolas,monospace;--stage-h:min(70vh,620px);
-    }
+    :root{--ui-accent:#3fd6c4;--stage:#08060e}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:18px}
-    header h1{font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}
-    header p{font-size:clamp(11px,1.4vw,13px);color:var(--muted);margin-top:6px;max-width:62ch}
-    .layout{display:flex;gap:clamp(12px,2vw,22px);align-items:stretch}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:12px;
-      background:radial-gradient(circle at 50% 42%,#141024,var(--stage) 70%);overflow:hidden;position:relative;touch-action:none;cursor:crosshair}
-    svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-    .tip{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);pointer-events:none}
-    aside{width:clamp(210px,24vw,250px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
-    .note{font-size:10px;color:var(--muted);line-height:1.6;border-left:2px solid var(--accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
-    .row{display:flex;align-items:center;gap:8px}
-    input[type=range]{flex:1;accent-color:var(--accent);min-height:44px}
-    .sv{width:44px;text-align:right;font-size:12px;color:var(--text)}
-    .div{height:1px;background:var(--ui-border)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-    .kv .v{color:var(--text)}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:0 0 auto}aside{width:100%}:root{--stage-h:56vh}}
-    @media(prefers-reduced-motion:reduce){.tip{display:none}}
+    .stage{position:relative;background:radial-gradient(circle at 50% 42%,#141024,var(--stage) 70%);touch-action:none;cursor:crosshair}
+    .stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../volumetric-smoke/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../flip-card-3d/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/morphing-blob/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Morphing Blob</h1>
-  <p>An organic gooey blob built from metaball circles fused by an SVG blur-plus-contrast filter — it drifts on its own and a droplet chases your pointer, merging and splitting like liquid.</p>
-</header>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../volumetric-smoke/" rel="prev" aria-label="Previous: Volumetric Smoke / 3D Noise"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Volumetric Smoke / 3D Noise</span></a><a href="../flip-card-3d/" rel="next" aria-label="Next: 3D Flip Card"><span><span class="hb-dir">Next: </span>3D Flip Card</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.17 · 3D &amp; Advanced</p>
+    <h1>Morphing Blob</h1>
+    <p class="hb-lede">Blobs melt together, and one drop chases your pointer. Best for hero sections.</p>
+  </header>
 
-<div class="layout">
-  <div class="stage" id="stage">
-    <svg id="svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <!-- The "goo": blur spreads the circles, then the alpha channel is
-             pushed through a steep contrast curve so soft edges snap back to a
-             hard silhouette — overlapping circles fuse into one liquid shape. -->
-        <filter id="goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur" result="blur"/>
-          <feColorMatrix in="blur" mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
-          <feBlend in="SourceGraphic" in2="goo"/>
-        </filter>
-        <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#b98bff"/>
-          <stop offset="1" stop-color="#58a6ff"/>
-        </linearGradient>
-      </defs>
-      <g id="blobs" filter="url(#goo)" fill="url(#fill)"></g>
-    </svg>
-    <div class="tip" id="tip">Move your pointer</div>
-  </div>
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and one drop follows your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <svg id="svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Soft purple and blue circles drifting and melting into one liquid shape, with one drop that follows the pointer">
+        <defs>
+          <!-- The "goo": blur spreads the circles, then the alpha channel is
+               pushed through a steep contrast curve so soft edges snap back to a
+               hard silhouette — overlapping circles fuse into one liquid shape. -->
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" id="blur" result="blur"/>
+            <feColorMatrix in="blur" mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="goo"/>
+            <feBlend in="SourceGraphic" in2="goo"/>
+          </filter>
+          <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b98bff"/>
+            <stop offset="1" stop-color="#58a6ff"/>
+          </linearGradient>
+        </defs>
+        <g id="blobs" filter="url(#goo)" fill="url(#fill)"></g>
+      </svg>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
 
-  <aside>
-    <p class="note">No shaders and no libraries — the whole liquid effect is one SVG filter over plain moving circles. Blur softens, the color-matrix re-hardens the edge, and the metaballs appear to melt together.</p>
-    <div class="lbl">Gooeyness (blur)</div>
-    <div class="row"><input type="range" id="gooRange" min="4" max="22" step="1" value="10"><span class="sv" id="gooV">10</span></div>
-    <div class="lbl">Blob count</div>
-    <div class="row"><input type="range" id="count" min="3" max="10" step="1" value="6"><span class="sv" id="countV">6</span></div>
-    <div class="lbl">Drift speed</div>
-    <div class="row"><input type="range" id="speed" min="0" max="200" step="1" value="100"><span class="sv" id="speedV">1.0</span></div>
-    <div class="div"></div>
-    <div class="kv"><span>Technique</span><span class="v">metaballs</span></div>
-    <div class="kv"><span>Filter</span><span class="v">blur + contrast</span></div>
-    <div class="kv"><span>Droplet</span><span class="v">pointer-tracked</span></div>
-  </aside>
-</div>
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="goo-lbl">Gooeyness</p>
+        <div class="seg" id="goo-seg" role="group" aria-labelledby="goo-lbl">
+          <button type="button" data-goo="6" aria-pressed="false">Low</button>
+          <button type="button" data-goo="10" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-goo="16" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">How far apart the circles start to melt together.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="count-lbl">Number of blobs</p>
+        <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+          <button type="button" data-count="4" aria-pressed="false">Few</button>
+          <button type="button" data-count="6" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-count="9" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">More circles make a lumpier blob.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-speed="0.6" aria-pressed="false">Slow</button>
+          <button type="button" data-speed="1" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-speed="1.6" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the circles drift.</p>
+      </div>
+    </div>
+  </section>
 
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a gooey blob to [the section you want it in]. Draw several plain circles that drift on looping paths, and run them through a filter that blurs them and then sharpens the blurred edge again, so circles that come close melt into one liquid shape and pull apart again. One drop follows the pointer, or a finger on touch screens, and merges with the rest when it comes near. Keep the blurred area small on phones. If the visitor has reduced motion turned on, show the blob still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero sections</li><li>Playful brands</li><li>Loading states</li><li>Cursor effects</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Serious content</li><li>Busy layouts</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const NS='http://www.w3.org/2000/svg';
-const group=document.getElementById('blobs'),blur=document.getElementById('blur'),tip=document.getElementById('tip');
-const gooEl=document.getElementById('gooRange'),gooV=document.getElementById('gooV');
-const countEl=document.getElementById('count'),countV=document.getElementById('countV');
-const speedEl=document.getElementById('speed'),speedV=document.getElementById('speedV');
-const stage=document.getElementById('stage');
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const svg=document.getElementById('svg'),group=document.getElementById('blobs'),blur=document.getElementById('blur');
+const stage=document.getElementById('stage'),slowTog=document.getElementById('slow-tog');
 
-const CX=200,CY=200;             // viewBox centre
-let blobs=[],speed=1,phase=0,last=0; // phase accumulates so a speed change never jumps
-let pointer={x:CX,y:CY,active:false}; // target for the droplet, in viewBox units
+const CX=200,CY=200;                  // viewBox centre
+let blobs=[],drop=null,speed=1,phase=0; // phase accumulates so a speed change never jumps
+let raf=null,last=null;
+let pointer={x:CX,y:CY};              // target for the drop, in viewBox units
 
+// Makes the circles and nothing else: place() puts them on the stage. The drop stays where it was.
 function build(n){
+  const from=drop?{x:drop.x,y:drop.y}:{x:CX,y:CY};
   group.textContent='';
   blobs=[];
   for(let i=0;i<n;i++){
     const el=document.createElementNS(NS,'circle');
     group.appendChild(el);
     if(i===0){
-      // The droplet: chases the pointer instead of drifting.
-      blobs.push({el,droplet:true,x:CX,y:CY,r:34});
+      // The drop: chases the pointer instead of drifting.
+      drop={el,droplet:true,x:from.x,y:from.y,r:34};
+      blobs.push(drop);
     }else{
       const ang=(i/n)*Math.PI*2, orbit=58+Math.random()*30;
       blobs.push({el,droplet:false,
@@ -142,59 +180,78 @@ function build(n){
   }
 }
 
-function frame(t){
-  const time=t/1000;
-  // Integrate the speed instead of multiplying absolute time: moving the drift
-  // slider then changes the rate without teleporting the blobs. The clamp stops
-  // a long background-tab pause from arriving as one huge step.
-  phase+=Math.min(time-last,0.1)*speed;
-  last=time;
+// Time moves on here and nowhere else: the drift phase, and the drop closing in on the pointer.
+// Integrating the phase instead of multiplying absolute time means a new speed changes the rate
+// without teleporting the circles. Slow motion adds a third of the phase and a third of the pull.
+function step(dt){
+  const slow=slowTog.checked;
+  phase+=dt*speed/(slow?3:1);
+  const pull=slow?0.03:0.09;
+  drop.x+=(pointer.x-drop.x)*pull;
+  drop.y+=(pointer.y-drop.y)*pull;
+}
+
+// Every circle's place follows from the phase (the drop from its own position), so the picture can be
+// drawn at any moment without moving anything: at load, and when the circles are made again while paused.
+function place(){
   for(const b of blobs){
-    if(b.droplet){
-      b.x+=(pointer.x-b.x)*0.09;   // lerp toward the pointer (attraction)
-      b.y+=(pointer.y-b.y)*0.09;
-    }else{
-      const w=phase;
-      b.x=b.bx+Math.sin(w*b.sx+b.px)*b.ax;
-      b.y=b.by+Math.cos(w*b.sy+b.py)*b.ay;
+    if(!b.droplet){
+      b.x=b.bx+Math.sin(phase*b.sx+b.px)*b.ax;
+      b.y=b.by+Math.cos(phase*b.sy+b.py)*b.ay;
     }
     b.el.setAttribute('cx',b.x.toFixed(2));
     b.el.setAttribute('cy',b.y.toFixed(2));
     b.el.setAttribute('r',b.r.toFixed(2));
   }
-  raf=requestAnimationFrame(frame);
 }
 
-// Pointer Events cover mouse, pen and touch with one code path.
+// The loop keeps exactly one pending frame in raf. The first frame after a start adds nothing, and a long
+// gap between frames (a background tab) counts for at most a tenth of a second.
+function frame(ts){
+  raf=requestAnimationFrame(frame);
+  const dt=last===null?0:Math.min(ts-last,100)/1000;
+  last=ts;
+  step(dt);place();
+}
+function start(){if(raf)return;last=null;raf=requestAnimationFrame(frame);}
+
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
+// Play calls start(), which carries on from the same phase.
+document.addEventListener('hb:pause',e=>{
+  if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+  else start();
+});
+
+// Pointer Events cover mouse, pen and touch with one code path. While paused the position is only recorded:
+// nothing moves until Play, and then the drop catches up.
 function toViewBox(e){
-  const r=stage.getBoundingClientRect();
+  const r=svg.getBoundingClientRect();
   // slice-scaled square viewBox: map to the larger dimension, centre the shorter
   const side=Math.max(r.width,r.height);
   const ox=(r.width-side)/2, oy=(r.height-side)/2;
   pointer.x=((e.clientX-r.left-ox)/side)*400;
   pointer.y=((e.clientY-r.top-oy)/side)*400;
-  pointer.active=true;tip.style.opacity=0;
 }
 stage.addEventListener('pointermove',toViewBox);
 stage.addEventListener('pointerdown',toViewBox);
 stage.addEventListener('pointerleave',()=>{pointer.x=CX;pointer.y=CY;});
 
-gooEl.addEventListener('input',e=>{blur.setAttribute('stdDeviation',e.target.value);gooV.textContent=e.target.value;});
-countEl.addEventListener('input',e=>{countV.textContent=e.target.value;build(+e.target.value);if(reduce)paintStatic();});
-speedEl.addEventListener('input',e=>{speed=e.target.value/100;speedV.textContent=speed.toFixed(1);});
-
-build(+countEl.value);
-let raf=null;
-function paintStatic(){ // one settled arrangement, no idle motion
-  for(const b of blobs){
-    b.el.setAttribute('cx',(b.droplet?CX:b.bx).toFixed(2));
-    b.el.setAttribute('cy',(b.droplet?CY:b.by).toFixed(2));
-    b.el.setAttribute('r',b.r.toFixed(2));
-  }
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
 }
-if(reduce){speed=0;paintStatic();}
-else{raf=requestAnimationFrame(frame);}
+choices('goo-seg',d=>{blur.setAttribute('stdDeviation',d.goo);});
+// Choosing the count already chosen must not make new random circles
+choices('count-seg',d=>{const n=+d.count;if(n===blobs.length)return;build(n);place();});
+choices('speed-seg',d=>{speed=+d.speed;});
+
+build(6);
+place();
+start();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
