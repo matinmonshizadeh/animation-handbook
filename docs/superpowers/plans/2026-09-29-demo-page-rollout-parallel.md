@@ -23,6 +23,8 @@
   - Text split into letters or changed every frame or keystroke gets `role="img"` and an `aria-label` with the real text; no live region on it.
   - Page loops never call `pause()`/`play()` on CSS keyframe animations (that detaches them from `animation-play-state`, which the css Pause relies on); they freeze transitions and timers with the helper.
   - The `hb:pause` / `hb:input` listeners are registered at the top level of the page's inline script; the page reaches player controls by their ids, never by `data-hb-*`.
+  - `hb:input` can arrive several times for one gesture (a tap sends two; a trackpad sends a stream of wheel events; a held key repeats): the page's handler only stops a Show me run and must be safe to call repeatedly — never a toggle or a counter.
+  - A "Press Tab" page (Focus Ring) also stops its Show me run when the visitor tabs into the stage (a trusted `focusin` the run did not cause); the run's own `focus()` calls fire trusted `focusin` too, so the page ignores focus moves it made itself (for example with a flag set around its own `focus()` call).
 - Lanes never edit `assets/`, `tests/`, `tools/`, another category's folder, or another category's cards in the root `index.html`. A lane that needs a shared change stops and reports it; the coordinator makes it on `main` and merges `main` into every lane.
 - Tests: `node --test "tests/*.test.js"` from the lane's worktree root. Browser check: `node tools/check-pages.mjs --base http://127.0.0.1:<lane port> <folder>`.
 - Scratch files go in the lane worktree's `.superpowers/scratch/`. Never delete with a wildcard or a command substitution in the path; never write a raw non-breaking space.
