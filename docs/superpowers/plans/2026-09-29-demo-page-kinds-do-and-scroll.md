@@ -69,7 +69,7 @@ git commit -m "test: accept guided-steps pages whose demo has no settings"
   - The Show me button, exactly: `<button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>`. The page's own click handler plays one example of the interaction (about two to four seconds) and returns the demo to rest.
   - The Reset button, where the demo has a state to reset, exactly: `<button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>`. The page's click handler returns the demo to its starting state.
   - On arrival (body `data-hb-autoplay`, not reduced motion) the shared script presses Show me once, 400ms after load.
-  - The document event `hb:input`, sent by the shared script when the visitor presses, types, scrolls or touches inside the stage (trusted `pointerdown`, `keydown`, `wheel` or `touchstart`). A page stops a Show me run that is under way when it receives it, leaving the visitor in control.
+  - The document event `hb:input`, sent by the shared script when the visitor presses, types, scrolls, touches or clicks inside the stage (trusted `pointerdown`, `keydown`, `wheel`, `touchstart` or `click`; the click is there for an activation that comes with no pointer or key event, from assistive technology). A page stops a Show me run that is under way when it receives it, leaving the visitor in control.
   - Slow motion may appear on a do-it page where it works (the existing `data-hb-slowmo`, "css" or page mode).
   - On phones, two buttons in the player bar share one row.
 
@@ -193,7 +193,7 @@ git commit -m "feat: support do-it demos with Show me and Reset"
   - The Play button, exactly: `<button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>`. The shared script scrolls the box from where it is to its end at a steady speed (the whole box in about six seconds), starting again from the top when it is already at the end.
   - The Back to top button, exactly: `<button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>`. The shared script stops any automatic scroll and jumps the box to the top.
   - The box that scrolls is the `.stage`, or the element marked `data-hb-scroller` when the stage holds its own scroller.
-  - The visitor's own wheel, touch, press or key input on the box stops an automatic scroll.
+  - The visitor's own wheel, touch, press, key or click input anywhere in the stage (trusted events only) stops an automatic scroll.
   - On arrival (body `data-hb-autoplay`, not reduced motion) the shared script presses Play once, 400ms after load. Under reduced motion nothing scrolls by itself; Play still works.
 
 - [ ] **Step 1: Write the failing page checks**
