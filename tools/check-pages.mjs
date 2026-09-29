@@ -13,8 +13,8 @@
 // it exactly once on arrival and waits for that run to end, the reduced-motion run checks that it pressed it not at
 // all; both then check that the stage is at rest, that pressing Show me visibly moves it, that the run brings it
 // back to rest and that a real click inside the stage reaches the page as hb:input. On scroll pages the desktop and
-// reduced-motion runs check that the box scrolls by itself on arrival (not under reduced motion), that Play scrolls it,
-// that Back to top, pressed while Play runs, returns it to the top and
+// reduced-motion runs check that the visitor can scroll the box (overflow-y auto or scroll), that the box scrolls by itself
+// on arrival (not under reduced motion), that Play scrolls it, that Back to top, pressed while Play runs, returns it to the top and
 // stops it, that on a scroller with CSS scroll snapping the snapping is off while Play runs and back once the run is
 // stopped, and that a real wheel turn stops Play (over the stage beside an inner scroller, where there is room there,
 // so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README)
@@ -334,6 +334,10 @@ async function scrollProblems(reduced) {
   const snap = () => evaluate(`getComputedStyle(${box}).scrollSnapType`);
   const press = selector => evaluate(`document.querySelector('${selector}').click()`);
   const problems = [];
+  // The visitor must be able to scroll the box. The shared default is overflow:hidden, which the script can still scroll, so
+  // every check below would pass on a box nobody can scroll by hand.
+  const overflow = await evaluate(`getComputedStyle(${box}).overflowY`);
+  if (overflow !== 'auto' && overflow !== 'scroll') problems.push(`the box cannot be scrolled by the visitor (overflow-y is ${overflow}, not auto or scroll)`);
   const startSnap = await snap(); // under reduced motion nothing has run yet: this is the page's own snap type
   const arrived = await pos();
   if (reduced && arrived > 0) problems.push('the box scrolls by itself under reduced motion');
