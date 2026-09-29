@@ -10,7 +10,7 @@
 - Interactive maps or environments where camera movement reveals depth
 
 ## How it works
-Each layer has a CSS `transform: translateX(offset)` where offset = `mouseNormalizedX * strength * depth`. Layers at depth 0 don't move; depth 1 moves the maximum amount:
+Each layer has a CSS `transform: translate(x, y)` that slides it the opposite way from the pointer: x = `-normX * strength * depth` and y = `-normY * strength * depth * 0.4`, where `normX` and `normY` are the pointer's position across the stage, from -0.5 to 0.5. Layers at depth 0 don't move; depth 1 moves the maximum amount:
 
 ```js
 const LAYERS = [
