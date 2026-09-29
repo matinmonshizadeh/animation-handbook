@@ -1,7 +1,7 @@
 # Image Distortion on Hover
 
 ## What it is
-Image distortion on hover applies a shader-based displacement effect to an image or texture when the cursor is nearby. The fragment shader samples the image at UV coordinates offset by a distortion function centered on the mouse position. The image itself is never modified — only the sampling coordinates change. This creates ripple, push, liquid, and pixelation effects that emanate from the cursor and decay over distance and time.
+Image distortion on hover bends a picture around the pointer. A WebGL shader draws the image, and near the pointer each pixel is read from a slightly shifted spot, so the picture seems to ripple, bulge, swirl or break into squares there, while the image itself never changes. The bending fades away after the pointer leaves.
 
 ## When to use it
 - Agency portfolio grids where each project card distorts on hover to signal interactivity
@@ -50,25 +50,28 @@ vec3 pattern(vec2 uv) {
 }
 ```
 
+In the demo the pattern stands still, as a real image would: its time value stays at 0, and only the distortion moves. Once the pointer has gone and the fade has finished, the demo stops drawing, and the pointer or Show me starts it again.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Strength | 8 | Displacement magnitude — larger = more dramatic but can break UV at extremes |
-| Radius | 0.25 (25% of canvas) | Area of effect from cursor — larger = whole canvas affected |
-| Decay speed | 0.5 | How fast the distortion fades after mouse leaves |
-| Distortion type | Ripple | Ripple = wave rings; Push = radial bulge; Liquid = turbulent noise; Pixelate = grid quantization |
+| Effect | Ripple | Ripple sends rings out from the pointer; Push bulges the picture outward; Liquid swirls it; Pixels breaks it into squares |
+| Strength | Medium | How far the picture bends: gentle is 4, medium 8 and strong 14; stronger looks more dramatic but harder to read |
+| Size | Medium | How wide an area bends: small is 15%, medium 25% and large 40% of the picture's height |
+| Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about a quarter of its strength at slow, two fifths at normal and half at fast |
+| Moving ripples | on | With Ripple, the rings keep moving outward while the pointer rests; off, they stand still |
 
 ## Production notes
 - **Real images**: replace the procedural `pattern()` function with `texture2D(uTexture, distortedUV)`. Load images into WebGL via `gl.texImage2D()` from an `<img>` or `ImageBitmap`. Same-origin policy applies — external image URLs need CORS headers.
 - **`gl.clampToEdge`**: ensure texture wrap mode is `CLAMP_TO_EDGE` so UV values outside [0,1] don't tile or mirror at the image border when distortion pushes UVs out of range.
 - **Pointer, not mouse**: bind `pointermove`/`pointerdown` rather than `mousemove`, or the effect never fires on a phone. The cursor position must be converted to backing-store pixels (multiply by the device pixel ratio used for the canvas) before it reaches the shader, or the distortion centre drifts away from the finger on high-DPI screens.
-- **Backing store and DPR**: size the canvas to `clientWidth * dpr` and call `gl.viewport()` after every resize. Uncapped DPR is expensive for a fullscreen fragment shader — this demo caps it at 2, and at 1.5 on phones. Resizing clears the drawing buffer, so a paused or reduced-motion demo has to repaint after a resize or it goes black.
+- **Backing store and DPR**: size the canvas to `clientWidth * dpr` and call `gl.viewport()` after every resize. Uncapped DPR is expensive for a fullscreen fragment shader — this demo caps it at 2, and at 1.5 on phones. Resizing clears the drawing buffer, so a demo that is not drawing every frame (this one stops at rest) has to repaint after a resize or it goes black.
 - **Context loss**: a GPU reset or a restored tab fires `webglcontextlost`. Without a listener (and a `preventDefault()` so `webglcontextrestored` follows) the canvas dies permanently. Shaders, buffers and uniform locations all have to be rebuilt on restore.
 - **CSS-only alternative**: CSS `filter: blur()` and `transform: translate()` on pseudo-elements can approximate push distortion for a single element at low intensity. WebGL is needed for per-pixel wave and liquid effects.
 - **hover-effect-curtains / Curtains.js**: production libraries that wrap this exact pattern. They handle texture loading, canvas sizing, and the shader boilerplate. The GLSL fragment shader is identical to what this demo uses.
 - **Shader Park**: a higher-level tool for declaring distortion effects with a JavaScript-like syntax that compiles to GLSL. Suitable for creative applications where writing raw GLSL is a barrier.
 
 ## See also
-- [WebGL Shader Animation](../webgl-shader-animation/) — same WebGL structure, pattern-focused shaders
-- [Parallax 3D Tilt](../parallax-3d-tilt/) — mouse-responsive 3D tilt without per-pixel distortion
-- [Fluid Simulation](../fluid-simulation/) — SDF metaballs as an alternative organic mouse effect
+- [WebGL Shader Animation](../webgl-shader-animation/) — the same shader setup, painting patterns
+- [Parallax 3D Tilt](../parallax-3d-tilt/) — a card leans toward the pointer instead of bending
+- [Fluid / Liquid Simulation](../fluid-simulation/) — a liquid look that follows the pointer
