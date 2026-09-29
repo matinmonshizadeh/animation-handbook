@@ -10,7 +10,7 @@ This sheet decides, page by page, how the twelve Page Transitions pages present 
 - **Lessons from the Text & Typography reviews** apply to every page:
   - every timer goes through the pruning `later()` (a fired timer's id leaves `timers`);
   - no double `requestAnimationFrame` (see "Starting a transition" below);
-  - the `hb:input` listener is registered at the top level of the page's inline script;
+  - the `hb:input` listener is registered at the top level of the page's inline script. It only clears `afterMove` and the way-back timer, so it is safe to run many times for one gesture (one touch sends both `touchstart` and `pointerdown`); it never calls `settle()`, and only `settle()` advances the View Transitions run counter;
   - the page reaches the player controls by their ids (`btn-demo`, `btn-reset`, `slow-tog`), never by `data-hb-*`.
 - The Pause decisions ("Pause stops at once", the `wait()`/`freeze()`/`thaw()` helper, the css Pause) do not apply: no page in this category is a loop.
 - The category keeps `--ui-accent:#b98cff` and the category line `03.NN · Page Transitions`, NN being the page's position on the home page (03.01 View Transitions API to 03.12 FLIP Technique).
@@ -19,20 +19,20 @@ This sheet decides, page by page, how the twelve Page Transitions pages present 
 
 ### Kind, step 1 and player bar
 
-- **Kind:** every page is a do-it page: `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Each demo waits for the visitor to click inside it: eleven of them switch between small pages, FLIP Technique rearranges cards.
+- **Kind:** every page is a do-it page: `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Each demo waits for the visitor to click inside it: ten of them switch between three small pages, Shared Element Transition opens a project and goes back, and FLIP Technique rearranges cards.
 - **Step 1:** titled "Click it", with the help line each section gives.
 - **Player bar:** Show me, Reset and Slow motion, in that order: the exact Show me and Reset buttons of the do-it plan (ids `btn-demo`, `btn-reset`), then Rotate In's Slow motion switch written without a value (`<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>`), unchecked. Every demo here has a state to return to, so every page has Reset.
-- **Try it help line:** "Change a setting, then press Show me or click in the box to see it." On do-it pages a setting change updates the chips and shows at the next transition; nothing replays by itself.
+- **Try it help line:** exactly "Change a setting, then try it again or press Show me." (the same line on every do-it page, in every category). On do-it pages a setting change updates the chips and shows at the next transition; nothing replays by itself.
 
 ### Show me and Reset
 
 - **Show me is one visit and the way back.** It plays one transition to another page (or view, or layout), holds it for 1200ms, then plays the transition back to where the run started, so the demo ends at rest where it began. A single transition lasts 0.5 to 1.25s at the default settings, below the two to four seconds a Show me run should last; the way back also shows the transition a second time, and on direction-aware demos (Slide Transition) it shows the reverse direction. Each section gives its run and its length at the default settings.
-- **The run, on the eleven page-change demos:**
+- **The run, on the ten page-change demos (the ones with page names):**
   1. Show me first calls `settle()`: it clears every pending timer, cancels the page's running animation frame, skips a running view transition, and puts the demo in its resting state for `current` at once, with `animating=false`.
   2. It goes to the next page, `(current + 1) % 3`, through the same `navigate()` a click on that page's name runs. It passes a callback that runs when this transition has ended, at the point where the page's code sets `animating=false` today. Under reduced motion the page swaps with no movement, and the callback runs straight away. Keep the callback in one page-level variable (for example `afterMove`): the transition's end code runs it once and clears it, and `settle()` and `hb:input` clear it too.
   3. That callback schedules the way back with `later()` 1200ms later: `navigate()` to the page the run started from. This hold is not stretched by Slow motion.
   Shared Element Transition and FLIP Technique follow the same three steps with their own transitions (see their sections).
-- **`hb:input` stops a run under way.** It fires when the visitor presses, types, scrolls or touches inside the stage. It cancels the step not yet started: the end-of-transition callback and the 1200ms timer of the way back. A transition already moving finishes normally and nothing follows, so the visitor is in control. A click on a page name during the hold therefore cancels the way back and plays the visitor's own transition.
+- **`hb:input` stops a run under way.** It fires when the visitor presses, types, scrolls or touches inside the stage. It cancels the step not yet started: the end-of-transition callback and the 1200ms timer of the way back. A transition already moving finishes normally and nothing follows, so the visitor is in control. A click on a page name during the hold therefore cancels the way back and plays the visitor's own transition. One gesture can send `hb:input` more than once (a touch sends `touchstart` and `pointerdown`), so the handler does nothing but clear `afterMove` and the way-back timer: running it twice is harmless. It never calls `settle()` and never touches the View Transitions run counter, which only `settle()` advances.
 - **Reset** calls `settle()`, then shows the demo's first state at once, with no transition (for the page-change demos: the first page, Home, with its name highlighted, the other pages hidden, and their inline transition, transform, filter, clip-path and animation styles cleared). The old "← Return to Home" did the same but ignored clicks during a transition; Reset works at any moment.
 - **A click on the page already shown does nothing,** as today. Clicks during a transition are still ignored (`animating`), as today.
 
@@ -51,7 +51,7 @@ Eight demos put an element in its starting state with `transition:none` and star
 - **Height:** the default height fits every page-change demo. This was measured with a scratch copy of the mini pages on the shared stage: the page area is 313px tall at 1280×800, 260px at 1366×657 and 233px on a 375px or 320px phone, and the tallest mini page, Work, ends inside it on every size (at 253px, 226px and 205px). Portal / Tunnel Zoom sets a phone height, and FLIP Technique uses `hb-grow`; see their sections.
 - `:root` keeps `--bg`, `--ui-bg`, `--ui-border`, `--ui-accent:#b98cff`, `--ui-text`, `--ui-muted` and the demo variables its CSS reads. `--disp`, `--mono`, `--stage-h` and the variables nothing reads (each section names them) go. `--ui-muted` becomes `#8a8a92`: the old `#77777e` is 4.2:1 on the nav's `#111114`, and the new one is 5.5:1.
 - **Site font:** remove `font-family` from `.nav-btn`, `.tb-btn` and `.nav-back`; the other rules that set it (`body`, `select`) go with the old layout. Stage text inherits Schibsted Grotesk.
-- **Mini nav** (the eleven page-change demos):
+- **Mini nav** (the ten page-change demos):
   - `.nav-btn` gets `font-size:13px;padding:0 12px;min-height:44px` at every size (was 10px text, and 36px tall on computers on eight of the pages). With the Morph logo, this still fits a 320px phone (measured).
   - Its hover rule stays inside `@media (hover: hover)`.
   - Where the mini nav is a `<nav>`, it gets `aria-label="Demo pages"` so screen readers do not mistake it for the site's navigation.
@@ -86,14 +86,17 @@ Eight demos put an element in its starting state with `transition:none` and star
 - **Show me:**
   - The run goes from Home to Work with the chosen transition style, holds 1200ms after the view transition's `finished` promise resolves, then goes back to Home: about 2.2s.
   - `settle()` calls `skipTransition()` on a view transition still running and marks the demo idle at once. The old navigation's `await t.finished` must then not run its end code; a run counter compared after the `await` handles this.
+  - A view transition skipped while the browser is still taking its first picture still runs its update callback afterwards. With today's `switchPage(prev,next)` that callback could undo a Reset made in the same frame, so the update callback shows the resting state for `current` as it is when the callback runs (`startViewTransition(()=>showPage(current))`), not the pages the navigation started with.
   - `hb:input` cancels the way back. A view transition already running finishes.
+  - Note for the builder: while a view transition runs (half a second at Normal), the browser's transition layer covers the page, so a press may land on the page root instead of the stage and send no `hb:input`; a press then does not cancel the way back. Check this in the browser during the conversion.
 - **Reset:** yes. Home at once; a running view transition is skipped first.
 - **Slow motion:** each navigation sets `--vt-dur` to Speed × 3 before it starts the view transition. The fallback crossfade for browsers without the API is stretched too: its 300ms fade becomes 900ms, and its 350ms wait becomes 950ms.
 - **Reduced motion:** the demo's rule (`::view-transition-old(page-content),::view-transition-new(page-content){animation:none}`) and its `motionOk` branch (`switchPage()` at once) stay. Show me swaps to Work and back with no movement.
 - **Stage font:** site font.
 - **Stage:**
   - The mini nav and the page area stay. `.page-area` keeps `view-transition-name:page-content`, and every `::view-transition-*` rule and keyframe stays.
-  - **Special case:** the browser draws the old and new pictures above the whole page, in the top layer. The stage's `overflow:hidden` therefore cannot clip them. The demo's own `::view-transition-group(page-content){overflow:clip}` keeps the slide and zoom inside the page area's box, and `::view-transition-old(root),::view-transition-new(root){animation:none}` keeps the rest of the page still. The shared page adds no `view-transition-name`, so `page-content` stays the only one.
+  - **Special case:** the browser draws the old and new pictures above the whole page, in the top layer. The stage's `overflow:hidden` therefore cannot clip them. The demo's own `::view-transition-group(page-content){overflow:clip}` keeps the slide and zoom inside the page area's box, and `::view-transition-old(root),::view-transition-new(root){animation:none}` keeps the rest of the page still. That group rule also gets `border-radius:0 0 11px 11px`, so the page area keeps the stage's rounded bottom corners mid-transition (the stage's 12px radius inside its 1px border).
+  - **The site's top bar stays drawn above the transition** (owner decision). The page area's pictures are drawn above everything, so a stage scrolled partly under the sticky top bar would cover the bar for the length of a transition. The page's own `<style>` names the bar and keeps its pictures still: `.hb-bar{view-transition-name:hb-bar}`, `::view-transition-group(hb-bar),::view-transition-old(hb-bar),::view-transition-new(hb-bar){animation:none}` and `::view-transition-old(hb-bar){opacity:0}`. The old picture is hidden because the browser adds the old and new pictures of a name together while both show, which would brighten the bar. The bar paints above the page area (z-index 50), so its group is drawn above the page area's. `page-content` and `hb-bar` are the only two names; the shared page adds none.
   - The support banner goes (it was in the aside); the fallback stays in the code, and Production notes describe it.
   - `.pstat b` stays `#58a6ff`.
   - Unused variables: none.
@@ -142,7 +145,7 @@ Eight demos put an element in its starting state with `transition:none` and star
   - [Zoom Transition](../zoom-transition/) — three ways to zoom between pages
   - [Shared Element Transition](../shared-element-transition/) — one picture grows into the next page
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** the support banner is gone, so the first bullet says what browsers without the API see: "the demo does exactly this so unsupported browsers still transition." becomes "the demo does exactly this, so browsers without the API still get a simple 300ms fade (900ms in slow motion), whatever the Transition style and Speed." The rest is unchanged.
 - **Category line:** `03.01 · Page Transitions`
 - **Pager:** Previous: none · Next: Shared Element Transition (`../shared-element-transition/`)
 
@@ -160,14 +163,20 @@ Eight demos put an element in its starting state with `transition:none` and star
   - 1200ms after the opening ends (the `dur+50` timer that hides the copy and shows Back), the run closes the detail view the way Back does.
   - This takes about 2.3s.
   - `hb:input` cancels the pending close. An opening already under way finishes.
-- **Reset:** yes. The grid at once: the copy is hidden, the detail view closed, the title back to "Projects" and Back hidden.
+- **Reset:** yes. The grid at once: the copy is hidden, the detail view closed and its inline `opacity` and `transition` cleared, the grid's inline `opacity`, `transition` and `pointer-events` cleared (so it shows and takes clicks again) and its `inert` removed, the title back to "Projects" and Back hidden.
 - **Slow motion:** multiplies `dur` by 3 wherever it is used: the copy's travel, the grid's fade (0.4 × `dur`), the detail's fade and its delay (0.4 and 0.6 × `dur`), the close fade (0.3 × `dur`), and the matching parts of the `dur+50` and `0.3×dur+50` timers.
 - **Reduced motion:** the demo's `motionOk` branches open and close the detail view at once, and the rule `#flip-el{transition:none!important}` stays. Show me opens Lumen and closes it again with no movement.
 - **Stage font:** site font.
 - **Stage:**
   - The mini nav (Back and the title) and the page area (grid, detail view and the moving copy `#flip-el`) stay.
-  - **Special case:** the copy is `position:fixed` and moves in viewport coordinates, so the stage's `overflow:hidden` does not clip it. The conversion must not give the stage or any of its ancestors a `transform`, `filter`, `perspective`, `contain` or `will-change`: any of them would become the copy's containing block and shift or clip it. The copy keeps its own `will-change:transform`.
+  - **Special case:** the copy is `position:fixed` and moves in viewport coordinates, so the stage's `overflow:hidden` does not clip it. The conversion must not give the stage or any of its ancestors a `transform`, `filter`, `backdrop-filter`, `perspective`, `contain`, `container-type` or `will-change`: any of them would become the copy's containing block and shift or clip it. The copy keeps its own `will-change:transform`.
+  - `#flip-el`'s `z-index:100` becomes `40`: above the stage's content, below the site's sticky top bar (50), so a stage scrolled partly under the bar does not draw the copy over it (owner decision).
   - `.nav-back` becomes 13px text, `min-height:44px` at every size, in `var(--ui-muted)`. `.nav-title` becomes 13px. The unused `.nav-label` rule goes.
+  - **The projects become buttons, so a keyboard can open them.** Today each thumbnail is a `div` with a click listener, which a keyboard cannot reach on a "Click it" page.
+    - Each becomes `<button type="button" class="thumb">`. `.thumb` adds `border:0;font:inherit;color:inherit;text-align:left;cursor:pointer`.
+    - Its two lines become `<span class="thumb-label">` and `<span class="thumb-sub">` with `display:block`, because a button may only hold inline content.
+    - Hidden controls leave the Tab order. While the detail view is open, the grid gets `inert` (removed when the grid shows again). `.nav-back` adds `visibility:hidden`, with `.nav-back.show{visibility:visible}` and `transition:opacity .2s,visibility .2s`, so the hidden Back button is not an invisible Tab stop in the grid view.
+    - Focus follows the view. When the visitor opens a project, by click or by key, focus moves to Back once it shows (`focus({preventScroll:true})`). Back returns focus to that project's button once the grid shows. A mouse click gets no focus ring, because the browser shows the ring only after keyboard use. Show me and Reset move no focus.
   - `.thumb-sub` goes from `opacity:.5` to `.8`: 3.0:1 becomes 5.1:1 on the thumbnails.
   - Two thumbnail title colours change so the 11px titles read on their thumbnails, and the detail view's title uses the same colours: Atlas `#79c0ff` becomes `#a5d6ff` (4.49:1 becomes 5.7:1), and Prism `#56d364` becomes `#7ee787` (4.1:1 becomes 5.1:1).
   - Unused variables: `--dur` and `--ease` go.
@@ -224,6 +233,7 @@ None: leave out the `details.hb-options` block.
       flipEl.style.borderRadius = '0';
     ```
 
+  - In the first paragraph, "then on the next frame transition it to the end rect" becomes "then transition it to the end rect".
   - The sentence "The double `requestAnimationFrame` guarantees the browser paints the start rect before the transition begins — without it the clone would jump straight to the end." becomes "Reading `offsetWidth` after placing the clone makes the browser apply the start rect before the transition is switched on — without it the clone would jump straight to the end."
 - **README Production notes:** the second bullet is wrong about how the copy moves: it animates `top`, `left`, `width` and `height`, not a transform. It becomes: "**The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It animates `top`, `left`, `width` and `height`, which is cheap enough for one element; to move many elements, animate `transform` instead, as the FLIP Technique demo does." The rest is unchanged.
 - **Category line:** `03.02 · Page Transitions`
@@ -242,7 +252,7 @@ None: leave out the `details.hb-options` block.
   - It holds 1200ms after the morph's `done` callback, then goes back to Home (hexagon to circle): about 2.6s.
   - `hb:input` cancels the way back.
 - **Reset:** yes. Home at once, with the logo drawn as the circle in its colour (`SHAPES[0]`).
-- **Slow motion:** multiplies the morph's duration (`dur`, read into `d` when a morph starts) by 3. The pages' 300ms fade is multiplied too: `.page`'s transition becomes `opacity var(--fade,300ms) ease`, and each navigation sets `--fade` to 900ms in slow motion or 300ms otherwise.
+- **Slow motion:** multiplies the morph's duration (`dur`, read into `d` when a morph starts) by 3. The pages' 300ms fade is multiplied too: `.page`'s transition becomes `opacity var(--fade,300ms) ease`, and each navigation sets `--fade` to 900ms in slow motion or 300ms otherwise. `settle()` and Reset set `--fade` to `0ms` before they switch the pages, so they switch at once instead of fading over 300ms; the next navigation sets it again.
 - **Reduced motion:** the demo's rule `.page{transition:none}` stays; the rule's `.pts-overlay` part goes with the overlay. `startMorph()`'s `motionOk` branch, which draws the new shape at once, also stays. Show me swaps to Gallery and back with no movement.
 - **Stage font:** site font.
 - **Stage:**
@@ -460,7 +470,7 @@ None: leave out the `details.hb-options` block.
     ```
 
   - "A stagger control adds an optional delay on the incoming page so it trails the outgoing one slightly." becomes "The Gap between pages setting adds an optional delay on the incoming page so it trails the outgoing one."
-- **README Production notes:** the bullet "**The double `requestAnimationFrame`** is required…" becomes "**Commit the parked position.** Reading `offsetWidth` after parking the new page off-screen makes the browser apply that position before the transition is switched on; without it the two writes merge and the new page jumps straight in with no slide." The rest is unchanged.
+- **README Production notes:** the bullet "**The double `requestAnimationFrame`** is required…" becomes "**Commit the parked position.** Reading `offsetWidth` after parking the new page off-screen makes the browser apply that position before the transition is switched on; without it the two writes merge and the new page jumps straight in with no slide." In the bullet "**Match direction to platform expectation.**", "The auto mode encodes this." becomes "The Forward and back setting encodes this." The rest is unchanged.
 - **Category line:** `03.05 · Page Transitions`
 - **Pager:** Previous: Crossfade Transition (`../crossfade/`) · Next: Zoom Transition (`../zoom-transition/`)
 
@@ -694,7 +704,7 @@ None: leave out the `details.hb-options` block.
         void n.offsetWidth;                                        // commit the blurred start
     ```
 
-  - "An "overlap" option starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish" becomes "The Overlaps the two halves setting starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish".
+  - The sentence "An "overlap" option starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time roughly in half while the two stages cross." becomes "The Overlaps the two halves setting starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time by about a quarter while the two halves cross."
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`.** …" becomes "**Commit the start state.** Setting the pre-blur with `transition: none` and then turning the transition on needs a forced reflow in between (reading `offsetWidth`); without it the browser merges the two writes and the page pops in sharp." The rest is unchanged.
 - **Category line:** `03.08 · Page Transitions`
 - **Pager:** Previous: Flash / Light Leak Transition (`../flash-transition/`) · Next: Elastic Transition (`../elastic-transition/`)
@@ -709,7 +719,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Reset · Slow motion (page)
 - **Show me:**
   - The run goes from Home to Work and holds 1200ms after the transition ends (the `dur+50` timer on the planned path, or the moment the live spring settles), then goes back to Home.
-  - This takes about 3.1s on the planned path and about 2.5s with the live spring.
+  - This takes about 3.1s either way: the planned path's transition lasts 950ms, and at Normal and Medium the live spring settles in about 0.8s after its 100ms start delay.
   - `hb:input` cancels the way back.
   - The spring's frame id `rafId` and its 100ms start timer, now kept at page level and started through `later()`, let `settle()` stop a spring under way.
 - **Reset:** yes. Home at once.
@@ -737,13 +747,13 @@ None: leave out the `details.hb-options` block.
 
 None: leave out the `details.hb-options` block.
 
-Live-spring damping. Each value is `Math.round(ratio × 2 × √stiffness)`, with ratio 0.85 for Small, 0.745 for Medium and 0.45 for Large, so every Speed bounces by the same share. Normal and Medium give today's 180 and 20. Every value lies inside the old sliders' ranges (stiffness 50–500, damping 5–50).
+Live-spring damping, measured with the demo's own spring loop. The loop takes one step per frame at 60 frames a second: the first frame has no time step, and the loop stops when position and speed are both under 0.5. A loop that steps once per frame damps much more than the textbook formula predicts, so each value was found by running it. For each speed and size, the whole number shown gives the overshoot nearest the planned path's for the same size (3.6%, 7.2% and 12% of the width); the overshoot it gives is in brackets. The spring settles within 1.3s. Normal and Medium become 180 and 16 (owner decision): today's 20 goes only 1.1% past its place, which barely shows. At 120 frames a second, or in slow motion, the steps are smaller and every bounce is a little larger (up to 6.7%, 10.7% and 13.9%); the three sizes stay apart. Every value lies inside the old sliders' ranges (stiffness 50–500, damping 5–50).
 
 | Bounce size | Slow (70) | Normal (180) | Fast (500) |
 |---|---|---|---|
-| Small | 14 | 23 | 38 |
-| Medium | 12 | 20 | 33 |
-| Large | 8 | 12 | 20 |
+| Small | 12 (2.6%) | 18 (3.5%) | 28 (3.9%) |
+| Medium | 10 (8.1%) | 16 (7.2%) | 25 (7.9%) |
+| Large | 9 (12.0%) | 14 (12.3%) | 23 (11.2%) |
 
 - **Removed:**
   - The note.
@@ -775,9 +785,9 @@ Live-spring damping. Each value is `Math.round(ratio × 2 × √stiffness)`, wit
   - [FLIP Technique](../flip-technique/) — elements glide to their new places
   - [Morph Transition](../morph-transition/) — a shape changes between pages
 - **README How it works:**
-  - "with the overshoot amount scaled by a control" becomes "with the overshoot amount set by Bounce size".
+  - The first paragraph names the two ways as on the page: "This demo offers two modes. The CSS mode writes" becomes "This demo offers two ways to bounce. The planned path writes"; "with the overshoot amount scaled by a control" becomes "with the overshoot amount set by Bounce size"; and "The JS mode integrates" becomes "The live spring integrates".
   - In the snippet, `let pos = -100, vel = 0, target = 0;           // start off-screen right` becomes `let pos = 100, vel = 0, target = 0;            // start off-screen right`, as in the demo.
-  - In the last paragraph, the sentence "Recorded positions are plotted to a small canvas so the overshoot-and-settle curve is visible." is replaced by: "On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (70, 180 or 500) and a damping of 0.85, 0.745 or 0.45 times 2√stiffness, so every speed bounces by the same share."
+  - In the last paragraph, the sentence "Recorded positions are plotted to a small canvas so the overshoot-and-settle curve is visible." is replaced by: "On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (70, 180 or 500) and damping. The damping values were found by running this loop at 60 frames a second, so the spring goes about as far past its place as the planned path does (about 3.6%, 7.2% and 12% of the width). A loop that steps once per frame damps more than the textbook spring formula predicts, so the values were measured rather than calculated."
 - **README Production notes:** unchanged
 - **Category line:** `03.09 · Page Transitions`
 - **Pager:** Previous: Blur Transition (`../blur-transition/`) · Next: Portal / Tunnel Zoom (`../portal-zoom/`)
@@ -791,8 +801,8 @@ Live-spring damping. Each value is `Math.round(ratio × 2 × √stiffness)`, wit
 - **Step 1:** Click it · help line: "Click the round portal or a page name, or press Show me."
 - **Player bar:** Show me · Reset · Slow motion (page)
 - **Show me:**
-  - The run clicks the Home page's portal ("Enter gallery"): the Gallery page opens out of it.
-  - 1200ms after the opening ends (the `dur+50` timer), it goes back to Home the way a click on the Home page name does, with the circle opening from the middle of the page area.
+  - The run clicks the portal of the page on show: the next page opens out of it. On arrival that is Home's portal, "Enter gallery", which opens the Gallery page.
+  - 1200ms after the opening ends (the `dur+50` timer), it goes back to the page it started from the way a click on that page's name does, with the circle opening from the middle of the page area.
   - This takes about 3.7s.
   - `hb:input` cancels the way back.
 - **Reset:** yes. Home at once; every page's `clipPath`, `transition` and `zIndex` are cleared.
@@ -968,6 +978,12 @@ Live-spring damping. Each value is `Math.round(ratio × 2 × √stiffness)`, wit
   - **The cards get shorter** so the default layout fits the laptop's first screen: in `renderCards()`, 110px for tall cards and 86px for short ones (were 140px and 110px); list rows stay 56px.
   - `#card-grid` gets `min-height:230px`, the height of the three-column grid, so a new order in three columns never changes the stage height.
   - **`hb-grow` on the stage**, which replaces the old phone rule `.stage{height:auto;min-height:var(--stage-h)}`. 2 columns (350px of cards) and List (386px) are taller than any shared stage, so the stage grows while they are shown; the default three columns need 329px on a laptop. At 1366×657 that puts the player bar's bottom at about 651px, inside the 657px screen (measured with the shared stage).
+  - **The grid keeps its height until a glide ends.** Otherwise a layout that gets shorter shrinks the stage at once (by 120px measured), and `.page-area{overflow:hidden}` clips the cards that start from the old lower rows:
+    - 2 columns to 3: cards 5 and 6 start 80–110px below the edge;
+    - List to 3 columns: two cards start fully hidden;
+    - List to 2 columns: one card starts 20px hidden.
+
+    In `doFlip()`, before `renderCards()`, set `grid.style.minHeight` to the grid's current height (`grid.offsetHeight + 'px'`). Clear it (`grid.style.minHeight=''`, back to the stylesheet's 230px) in the `dur+50` timer, in `settle()`, in Reset, and straight after `renderCards()` in the reduced-motion branch, where the cards jump at once. A layout that gets taller grows the stage at once, as before, so nothing is clipped; a shorter one keeps the stage's height until the cards have landed, then the stage shrinks.
   - Unused variables: none.
 
 **Main settings**
