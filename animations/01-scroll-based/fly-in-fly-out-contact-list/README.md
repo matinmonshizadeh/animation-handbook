@@ -4,12 +4,11 @@
 
 ## What it is
 
-Each row in a scrollable contact list animates through three viewport zones:
-an entry zone at the bottom (row fades and translates in from below), an
-active zone in the middle (row is fully visible and stable), and an exit zone
-at the top (row fades and translates out upward). The effect is continuous and
-bidirectional — scrubbed to scroll position rather than triggered once. A row
-that scrolls back into the active zone after exiting reappears smoothly.
+A fly-in, fly-out list animates its rows as they pass near the edges of the
+scrolling area. A row coming in at the bottom fades in, slides up and grows to
+full size; a row leaving at the top does the reverse; rows in the middle stay
+still. Because it follows the scroll position rather than playing once,
+scrolling back brings rows back the same way.
 
 ## When to use it
 
@@ -37,27 +36,37 @@ if (pos < Z) {             // exit zone (top)
   const t = pos / Z;       // 0 = fully exited, 1 = entering active
   opacity = lerp(0, 1, t);
   ty      = lerp(-DIST, 0, t);
-  scale   = lerp(SCALE_MIN, 1, t);
+  scale   = lerp(SCALE, 1, t);
 } else if (pos > 1 - Z) { // entry zone (bottom)
   const t = (1 - pos) / Z; // 0 = fully below, 1 = entering active
   opacity = lerp(0, 1, t);
   ty      = lerp(DIST, 0, t);
-  scale   = lerp(SCALE_MIN, 1, t);
+  scale   = lerp(SCALE, 1, t);
 } // else: active zone — opacity=1, ty=0, scale=1
 ```
 
 An `IntersectionObserver` with `rootMargin: '50% 0px'` maintains a Set of
 rows currently in or near the viewport. The rAF callback iterates only that
-Set — never all 15 rows unconditionally.
+Set — never all 15 rows unconditionally. The one exception is a jump longer
+than the observer's margin (Back to top, a dragged scrollbar): rows it has not
+added yet still carry the style they were left with, so every row is styled once.
+The first frame counts as such a jump, which gives the first picture its effect.
+
+The list ends with 70px of padding, as much as the farthest a row can slide.
+Without it, a row still arriving at the bottom would sit below the list and
+stretch the scroll length, then give it back as it settles, and a script that
+reads the length once (as the demo's Play button does) would aim at an end that
+is not there.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `DIST` | 40px | Translation distance at zone edges |
-| `SCALE_MIN` | 0.94 | Scale at zone edges (1 = no shrink) |
-| `Z` | 0.25 | Fraction of viewport height for each zone |
-| Effect mode | all combined | opacity + translateY + scale together |
+| Effect | All three | Which changes a row makes in the bands: all three (moving, fading and shrinking) together read as physical motion; moving only or fading only feels flatter |
+| Edge zone size | Medium | How tall each band is: small is 15% of the box, medium 25% and large 35% |
+| How far rows move | Medium | How far a row slides at the very edge: short is 20px, medium 40px and far 70px |
+| How much rows shrink | Medium | The size of a row at the very edge: a little is 97%, medium 94% and a lot 88% |
+| Shows the zones | off | Tints the two bands, red for leaving and green for arriving |
 
 ## Production notes
 
@@ -86,7 +95,6 @@ Set — never all 15 rows unconditionally.
 
 ## See also
 
-- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — the same
-  single-progress piecewise lerp model applied to a morphing header.
-- [Parallax Scrolling](../parallax-scrolling/) — scroll-position driving
-  layer transforms; the architectural pattern this builds on.
+- [Reveal on Scroll](../reveal-on-scroll/) — cards appear once as they cross a line
+- [Stagger Reveal](../stagger-reveal/) — items in a group appear one after another
+- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a tall cover shrinks into a slim header
