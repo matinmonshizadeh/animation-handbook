@@ -1,7 +1,7 @@
 # Chromatic Aberration
 
 ## What it is
-Chromatic aberration is a lens defect where different wavelengths of light refract at slightly different angles, causing color fringing at high-contrast edges — red fringing on one side, blue on the other. In digital design it is used deliberately as an aesthetic, evoking analog imperfection, glitch aesthetics, or a stylized photographic look. The CSS implementation stacks three mix-blend-mode: screen layers tinted red, green, and blue, offset in opposite directions.
+Chromatic aberration copies a flaw of cheap lenses, where red, green and blue light land in slightly different places and leave colored fringes at the edges. The demo stacks a red, a green and a blue copy of a word, which add up to white where they overlap, and shifts the red and blue copies apart. The split can breathe in and out or glitch.
 
 ## When to use it
 - Glitch-aesthetic branding for music, gaming, and tech-edge products
@@ -47,10 +47,11 @@ function applyOffset(amount, angleDeg) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Intensity | 4px | 1–3px = subtle fringing; 6–12px = obvious glitch; above 15px = illegible |
-| Angle | 30° | 0° = pure horizontal split; 90° = vertical; 45° = diagonal (most "lens-like") |
-| Animation mode | Static | Static = editorial print; Pulse = organic breathing; Glitch = digital artifact |
-| Channel blur | 0px | Soft blur on R/B channels adds lens chromatic fringing rather than digital pixel offset |
+| Movement | Pulse | Pulse widens and narrows the split every 2 seconds; Glitch jumps it briefly every 4 seconds; None keeps it still |
+| Color split | Medium | How far the red and blue copies sit from the word: small is 2px, medium 4px and large 8px; above about 6px the word gets hard to read |
+| Direction | Slanted | Sideways splits the colors left and right; Slanted splits them at 30°; Up and down splits them vertically |
+| Soft color edges | off | Blurs the red and blue copies by 2px, which looks more like a lens than a digital shift |
+| Your text | PRISM | The word that splits |
 
 ## Production notes
 - **`mix-blend-mode: screen`** requires a dark background — screen blending adds RGB values, so on white backgrounds all three channels sum to white and the offset is invisible. This effect works exclusively on dark backgrounds.
@@ -59,6 +60,6 @@ function applyOffset(amount, angleDeg) {
 - **Performance**: CSS stacked elements with `mix-blend-mode` trigger compositing on the GPU. Three `screen`-blended layers is inexpensive. Avoid applying it to large image areas on mobile.
 
 ## See also
-- [WebGL Shader Animation](../webgl-shader-animation/) — GPU shader approach to the same effect with radial falloff
-- [Scramble / Glitch Text](../../05-text-typography/scramble-text/) — companion glitch effect for text characters
-- [Kinetic Typography](../../05-text-typography/kinetic-typography/) — broader context for distressed visual aesthetics
+- [Glitch Text](../../05-text-typography/glitch-text/) — red and cyan strips tear across a word
+- [WebGL Shader Animation](../webgl-shader-animation/) — shaders, which can split colors pixel by pixel
+- [Scramble / Glitch Text](../../05-text-typography/scramble-text/) — random symbols lock into the real text
