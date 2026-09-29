@@ -88,19 +88,25 @@ Eight stages hold a small card that shows the effect behind real content: Animat
 - `.fg-eyebrow` gets `font-weight:600` and 11px (was 9px), the size and weight of the site's small spaced capitals;
 - `.fg-body` gets 13px (was 10–11px) and `color:rgba(255,255,255,.72)` (was .4–.6, under 4.5:1 on the cards).
 
-**On phones** (`@media(max-width:600px)`) every card also gets `padding:12px 14px`, `.fg-eyebrow{margin-bottom:4px}`, `.fg-title{margin-bottom:0}` and `.fg-body{display:none}`. The eyebrow and the title still put content in front of the effect, and the card covers about a quarter of the 300px stage instead of half to two thirds, so the effect stays in view. Ambient Ripple Effect's card also moves to the bottom (see its section).
+**On phones and short screens** (`@media (max-width:600px), (max-height:760px)`) every card also gets `padding:12px 14px`, `.fg-eyebrow{margin-bottom:4px}`, `.fg-title{margin-bottom:0}` and `.fg-body{display:none}`. The eyebrow and the title still put content in front of the effect, and the card covers about a quarter of the stage instead of half to two thirds, so the effect stays in view.
 
-Measured on a 343×300 stage, with the site font and the card text of each section (the share of the stage's height the card covers, and where):
+- **Phones:** the shared stage is 300px tall.
+- **Short screens:** a laptop at 1366×657 or a phone turned sideways gets the same card. On any screen wider than 600px and at most 760px tall, the shared stage is 100svh − 330px tall, at least 260px: 327px on a 1366×657 laptop and 260px on a phone turned sideways. There the laptop-size cards covered 42–63% of it.
+- **Ambient Ripple Effect:** its card also moves to the bottom and, on phones, gets a smaller title (see its section).
 
-| Page | Before (every size's rules) | After (with the phone rules) |
-|---|---|---|
-| Animated Gradient Background | 57%, 30–87% down | 27%, 60–87% down |
-| Mesh Gradient Animation | 64%, 23–87% down | 27%, 60–87% down |
-| Aurora / Northern Lights | 54%, 34–88% down | 27%, 61–88% down |
-| Starfield / Space Particles | 51%, 39–91% down (over the centre, where stars are born) | 25%, 65–91% down |
-| Ambient Ripple Effect | 64%, 18–82% down (over all three ripple sources) | 21%, 75–96% down (below the sources, which sit 25–75% down) |
-| Floating Elements | 69%, 16–84% down | 27%, 36–64% down |
-| Grid / Dot Pattern Parallax | 69%, 16–84% down | 27%, 36–64% down |
+Measured with the site font, each section's card text and the page's 1px stage border. Each cell gives the share of the stage's height the card covers, and where. The "before" figures on phones are from round 1 (no stage border).
+
+| Page | Phone 343×300, before | Phone 343×300, after | Sideways phone 747×260, before → after | Laptop 1366×657 (960×327), before → after |
+|---|---|---|---|---|
+| Animated Gradient Background | 57%, 30–87% down | 26.7%, 59.7–86.3% down | 58.7% → 31.9% | 49.4% → 28.1% |
+| Mesh Gradient Animation | 64%, 23–87% down | 26.7%, 59.7–86.3% down | 59.2% → 24.4% | 55.8% → 28.1% |
+| Aurora / Northern Lights | 54%, 34–88% down | 26.8%, 60.9–87.7% down | 55.2% → 31.5% | 46.6% → 27.8% |
+| Starfield / Space Particles | 51%, 39–91% down (over the centre, where stars are born) | 25.3%, 65.0–90.3% down | 46.0% → 23.8% | 43.9% → 26.3% |
+| Ambient Ripple Effect | 64%, 18–82% down (over all three ripple sources) | 20.3%, 75.4–95.7% down (below the sources, which sit 25–75% down) | 51.8% → 25.0% | 41.9% → 20.6% |
+| Floating Elements | 69%, 16–84% down | 27.5%, 36.3–63.7% down | 56.5% → 25.2% | 54.5% → 29.6% |
+| Grid / Dot Pattern Parallax | 69%, 16–84% down | 27.5%, 36.3–63.7% down | 63.3% → 24.4% | 54.5% → 29.6% |
+
+The phone figures hold from 320px to 414px wide.
 
 The sections give the card text; wording that used developer terms is rewritten in plain words.
 
@@ -221,7 +227,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
 - **README What it is:** rewritten:
 
-  > A mesh gradient is a background of large circles of color, blurred so heavily that their edges disappear and they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
+  > A mesh gradient is a background of a few large circles of color, blurred so their edges soften and the colors run into one another; with heavy blur they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
 
 - **README Key parameters:**
 
@@ -351,7 +357,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Blend | Choice buttons | Film · Lighter · Softer | Film | Film deepens darks and lights; the others are gentler. | `--grain-blend`: `overlay` / `screen` / `soft-light` |
+| Blend | Choice buttons | Film · Lighter · Softer | Film | Film adds contrast, Lighter lifts the darks, Softer is mild. | `--grain-blend`: `overlay` / `screen` / `soft-light` |
 | Colored grain | Switch; shown only when Grain source is Random dots | on / off | off | Colored dots instead of gray ones. | `COLOR_NOISE` true / false |
 | Grain source | Choice buttons | Random dots · Noise filter | Random dots | Dots drawn by a script, or the browser's noise filter. | `IMPL`: `'canvas'` / `'svgfilter'`, showing the matching grain layer (as today) and hiding Grain size and Colored grain for Noise filter |
 
@@ -695,7 +701,16 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage font:** site font.
   - `.center-title` drops Georgia and the italic and gets `font-weight:700`.
 - **Stage:** the glow layers, the ✦ icon and the "Rest state" title stay. The "Breathing glow" label between them goes, with its `.center-label` rule: it sits in the middle of the glow, about 2:1 against the default blue at the breath's peak and nearly gone on a white glow, and it repeats the page's title. `hb-dots`: no. Default height.
-- **Title contrast:** the white title sits in the glow too. Measured at the breath's peak on a 343×300 stage, it stays at least 5.9:1 on the default settings with every color but White (3.9:1). With the largest glow, the biggest swing and the second glow on, it is still at least 4.5:1 on every color but White, which falls to 2.7:1. So Glow color leaves out White: a white glow behind white text cannot work.
+- **The second glow sits behind the first** (a fix). Today both glows are flex items of `.glow-wrap`, so with Second glow on they sit side by side: at 960×440, 195px left and 130px right of the stage's centre.
+  - `.glow2` gets `position:absolute`, which takes it out of the row, and `.glow-wrap`'s flex centring then puts it on the stage's centre.
+  - `.glow` gets `position:relative;z-index:1`, so the first glow stays in front of the fainter second one.
+  - Measured with the fix: both centres on the stage's centre.
+- **Title contrast:** the white title sits over both glows, and at the breath's peak they can be too bright behind it.
+  - **How it was measured:** both glows held at their peak, for every remaining Glow color, glow size and swing, with and without the second glow, on 343×300, 960×380 and 960×440 stages. The figure is the contrast against the glow within 3px of the letters.
+  - **Without help** it falls to 2.7:1 (Green, Large, A lot, second glow on). Text shadows alone do not fix it: the strongest stack tried, four dark shadows, reached 4.0:1.
+  - **The fix:** the title gets a soft dark shadow behind it, a see-through dark patch whose edge fades out: `.center-title{padding:0 6px;border-radius:10px;background:rgba(2,4,8,.4);box-shadow:0 0 14px 8px rgba(2,4,8,.4)}`. It breathes with the title, because it is part of `.center-el`.
+  - **With it,** the lowest measured contrast is 6.3:1, at every setting.
+  - Glow color still leaves out White: a white glow behind white text.
 - **Phone fallback:** none needed. One or two blurred circles (at most 510px across before they grow) change only their size and opacity.
 
 **Main settings**
@@ -740,7 +755,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   | How much it grows | Medium | How far the glow shrinks and grows: a little is 80% to 120% of its size, medium 60% to 150% and a lot 45% to 180% |
   | Glow color | Blue | The color of the glow: pink, blue, purple, green or orange (white would hide the white title at the breath's peak) |
   | Glow size | Medium | The glow's size before it grows: small is 180px, medium 260px and large 340px |
-  | Second glow | off | A larger, fainter glow breathes the other way over a longer cycle, so the two never line up |
+  | Second glow | off | A larger, fainter glow behind the first breathes the other way over a longer cycle, so the two never line up |
   | Icon and title breathe too | on | The icon and the title under it swell by 2% with each breath, too little to notice consciously |
 
 - **README See also:** the first two link texts change to the pages' real titles.
@@ -776,7 +791,13 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Stage font:** site font, on the card as in the preamble.
 - **Stage:** the canvas and the centred card stay.
   - Card text: eyebrow "Ambient ripple"; title "Something is alive here"; body "Like drops on a still pond, or a sonar ping: it hints that something is there." (was "… ECG monitors, sonar pings — suggests presence without interaction.").
-  - The card moves from the middle to the bottom, at every size: `.fg-card{top:auto;bottom:28px;transform:translateX(-50%)}`, with `bottom:12px` on phones. Today it sits over all three ripple sources, which are 35%, 50% and 65% across and 25–75% down. With the preamble's phone card rules it covers 75–96% of a 343×300 phone stage, below every source. On a 960×440 laptop stage it covers 63–94%, so the middle source is sometimes just behind its top edge; that source's rings still spread well past the card.
+  - The card moves from the middle to the bottom, at every size: `.fg-card{top:auto;bottom:28px;transform:translateX(-50%)}`, and `bottom:12px` under the preamble's phone and short-screen card rules. Today it sits over all three ripple sources, which are 35%, 50% and 65% across and 25–75% down.
+  - On phones (at most 600px wide) its `.fg-title` is 13px and its padding `12px`. So "Something is alive here" (146.7px wide) stays on one line down to a 320px screen, where the card leaves it 154px. At 14px it wrapped on every phone narrower than 390px, and the card grew to 26.8% of the stage.
+  - Measured with the page's 1px stage border:
+    - phones from 320px to 414px wide: 20.3% of the stage's height, 75.4–95.7% down, below every source;
+    - a phone turned sideways (747×260 stage): 25.0%, 70.0–95.0% down, so a source near the bottom of its range can sit behind the card's top edge;
+    - a 1366×657 laptop (960×327): 20.6%, 75.4–96.0% down;
+    - taller screens, full card: 36.0% of a 1280×800 laptop's 380px stage (56.3–92.4% down) and 63–94% of a 440px stage. There the middle source is sometimes just behind the card's top edge, and its rings still spread well past the card.
   - `hb-dots`: no. Default height.
 - **Phone fallback:** none needed. A few thin circles a frame, on a canvas that caps the pixel ratio at 2 (0.8 ms a frame, measured on today's phone stage).
 
