@@ -11,7 +11,7 @@ A star rating lets someone give a score by choosing a star. As the pointer moves
 - Not for precise measurements — five (or ten) buckets is the whole point; use a slider or number field when finer values matter
 
 ## How it works
-Each star is two stacked shapes in one box: a muted outline drawn with `currentColor`, and an accent-colored fill. A full star is just a color swap on the outline; a half star reveals an overlaid accent copy clipped to the left 50%. Because the swap is a `transition` on `color`, sweeping the pointer across the row makes the stars fill one after another — the animation is the cascade, not a per-star width tween. Committing retriggers a `transform: scale` pop on the chosen star:
+Each star is one star shape drawn in `currentColor`, with a second copy in the accent color stacked on top of it and clipped to the left 50%. A full star is just a color swap on the shape, from muted to accent; a half star reveals the clipped accent copy. Because the swap is a `transition` on `color`, sweeping the pointer across the row makes the stars fill one after another — the animation is the cascade, not a per-star width tween. Committing retriggers a `transform: scale` pop on the chosen star:
 
 ```css
 .star{ color: var(--ui-muted); transition: color var(--fill-dur) ease; }
