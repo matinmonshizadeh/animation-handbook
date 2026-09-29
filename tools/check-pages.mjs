@@ -11,9 +11,10 @@
 // it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. On do-it
 // pages every press of Show me is recorded from the start of the document: the desktop run checks that the page pressed
 // it exactly once on arrival and waits for that run to end, the reduced-motion run checks that it pressed it not at
-// all; both then check that the stage is at rest, that pressing Show me visibly moves it and that the run brings it
-// back to rest. On scroll pages the desktop and reduced-motion runs check that the box scrolls by itself on arrival (not
-// under reduced motion), that Play scrolls it, that Back to top, pressed while Play runs, returns it to the top and
+// all; both then check that the stage is at rest, that pressing Show me visibly moves it, that the run brings it
+// back to rest and that a real click inside the stage reaches the page as hb:input. On scroll pages the desktop and
+// reduced-motion runs check that the box scrolls by itself on arrival (not under reduced motion), that Play scrolls it,
+// that Back to top, pressed while Play runs, returns it to the top and
 // stops it, that on a scroller with CSS scroll snapping the snapping is off while Play runs and back once the run is
 // stopped, and that a real wheel turn stops Play (over the stage beside an inner scroller, where there is room there,
 // so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README)
@@ -103,12 +104,15 @@ const CHECK = `(() => {
 })()`;
 
 // Runs at the start of every document, before the page's own scripts: records each press of a Show me button, whether it
-// came from the visitor or from the page script, so the press on arrival can be counted exactly whatever the run's length.
-const RECORD_SHOW_ME = `(() => {
+// came from the visitor or from the page script, so the press on arrival can be counted exactly whatever the run's length,
+// and the type of every hb:input the shared script sends, so a real click inside the stage can be seen to reach the page.
+const RECORD = `(() => {
   window.__hbShowMe = [];
+  window.__hbInput = [];
   document.addEventListener('click', e => {
     if (e.target.closest && e.target.closest('[data-hb-demo]')) window.__hbShowMe.push({ trusted: e.isTrusted });
   }, true);
+  document.addEventListener('hb:input', e => window.__hbInput.push(e.detail && e.detail.type));
 })()`;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -306,6 +310,15 @@ async function demoProblems(reduced) {
   let back = false;
   for (let i = 0; i < 32 && !back; i++) { await sleep(250); back = await samePicture(await stageShot(), rest); }
   if (!back) problems.push('the run does not bring the stage back to rest');
+  // A real click inside the stage reaches the page as hb:input. A press sends one for the press first; an activation that
+  // comes with no pointer or key event (assistive technology) sends only the one for the click.
+  const spot = await evaluate(`(() => { const r = document.querySelector('.hb-page .stage').getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + Math.min(r.height, innerHeight - r.top) / 2 }; })()`);
+  const heardBefore = await evaluate(`window.__hbInput.length`);
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  await sleep(100);
+  const heard = await evaluate(`window.__hbInput.slice(${heardBefore})`);
+  if (!heard.includes('click')) problems.push(`a click inside the stage does not reach the page as hb:input (heard: ${heard.join(', ') || 'nothing'})`);
   return problems;
 }
 
@@ -382,7 +395,7 @@ try {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Log.enable');
-  await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD_SHOW_ME });
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD });
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');

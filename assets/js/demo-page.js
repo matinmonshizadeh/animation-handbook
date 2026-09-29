@@ -350,10 +350,11 @@
       if (slowing) win.requestAnimationFrame(slowStage);
     }
 
-    // Do-it pages: the visitor's own press, key, wheel or touch inside the stage is sent as "hb:input", so the page
-    // can stop a Show me run that is under way and leave the visitor in control.
+    // Do-it pages: the visitor's own press, key, wheel, touch or click inside the stage is sent as "hb:input", so the page
+    // can stop a Show me run that is under way and leave the visitor in control. Click is there for an activation that comes
+    // with no pointer or key event (assistive technology); a press sends one for the press and then one for the click.
     function setUpVisitorInput() {
-      ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (type) {
+      ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click'].forEach(function (type) {
         stage.addEventListener(type, function (e) {
           if (e.isTrusted) doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
         }, { capture: true, passive: true });
