@@ -36,15 +36,19 @@
          projected by the perspective on .stage, never by a perspective() here. */
       perspective:var(--perspective);
       transform:rotateX(0deg) rotateY(0deg) scale(1);
-      transition:transform var(--reset-dur) ease,box-shadow var(--reset-dur) ease;
+      transition:transform var(--reset-dur) ease;
       cursor:pointer;touch-action:none;
       will-change:transform
     }
     .tilt-card.active{transition:none}
+    /* The light is one fixed gradient on a layer of its own, twice as wide as the card's diagonal (--shine-d, set by the script)
+       and centred on the card's top left corner. The script moves it to the pointer with translate() and sizes it with scale(),
+       so following the pointer never repaints the card. The card clips it. */
     .card-shine{
-      position:absolute;inset:0;border-radius:16px;
-      background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.15) 0%, transparent 70%);
-      opacity:0;pointer-events:none;transition:opacity .3s
+      position:absolute;left:0;top:0;width:var(--shine-d,0);height:var(--shine-d,0);
+      margin:calc(var(--shine-d,0px) / -2) 0 0 calc(var(--shine-d,0px) / -2);
+      background:radial-gradient(circle closest-side,rgba(255,255,255,.18) 0%,transparent 65%);
+      opacity:0;pointer-events:none;transition:opacity .3s;will-change:transform
     }
     .card-content{position:relative;z-index:1;height:100%;padding:28px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
     .card-over{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7)}
@@ -193,20 +197,25 @@
   let maxTilt=15,invert=false,shineOn=true,scaleOn=true;
   let tiltX=0,tiltY=0; // the last x and y tilt() was given (0 after onLeave()): a Show me run starts from them
   let raf=0;           // the frame of a Show me run that is under way, 0 when there is none
+  let shineD=0;        // the size given to the shine layer (--shine-d), set again only when the card's size changes
 
   // x and y run from -0.5 to 0.5 across the card. The pointer, a finger and Show me all move the card through this.
+  // Only transform and opacity change: the card keeps its CSS shadow, which turns with it, and the light moves as a layer.
   function tilt(x,y){
     tiltX=x;tiltY=y;
     const inv=invert?-1:1;
     const rx=(-y*maxTilt*inv).toFixed(1);
     const ry=(x*maxTilt*inv).toFixed(1);
+    const W=card.clientWidth,H=card.clientHeight; // the card's inner size, read before the transform is written so no frame forces a layout
     card.classList.add('active');
     const scale=scaleOn?'scale(1.04)':'scale(1)';
     card.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) ${scale}`;
-    card.style.boxShadow=`${-ry*.5}px ${rx*.5}px 40px rgba(0,0,0,.7)`;
     if(shineOn){
+      const D=2*Math.hypot(W,H);
+      if(D!==shineD){shineD=D;card.style.setProperty('--shine-d',D+'px')}
+      const R=Math.hypot((.5+Math.abs(x))*W,(.5+Math.abs(y))*H); // how far the light reaches: to the farthest corner
       shine.style.opacity='1';
-      shine.style.background=`radial-gradient(circle at ${(x+.5)*100}% ${(y+.5)*100}%,rgba(255,255,255,.18) 0%,transparent 65%)`;
+      shine.style.transform=`translate(${(x+.5)*W}px,${(y+.5)*H}px) scale(${2*R/D})`;
     }
     // Subtle inner parallax
     orb1.style.transform=`translateZ(20px) translate(${-ry*.3}px,${rx*.3}px)`;
@@ -222,7 +231,6 @@
     tiltX=tiltY=0;
     card.classList.remove('active');
     card.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';
-    card.style.boxShadow='';
     shine.style.opacity='0';
     orb1.style.transform='translateZ(20px)';
     orb2.style.transform='translateZ(30px)';

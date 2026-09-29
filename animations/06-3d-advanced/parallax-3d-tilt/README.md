@@ -32,14 +32,21 @@ card.addEventListener('pointerleave', () => {
 });
 ```
 
-**Shine highlight** — a radial gradient repositioned to the cursor:
+**Shine highlight** — one fixed radial gradient on a layer of its own, moved to the cursor with a transform. Rewriting a gradient on every move repaints the whole card; moving a layer that is already painted does not, and the card's `overflow: hidden` clips it:
+
+```css
+.shine {                              /* --shine-d: twice the card's diagonal, set once by the script */
+  position: absolute; left: 0; top: 0;
+  width: var(--shine-d); height: var(--shine-d);
+  margin: calc(var(--shine-d) / -2) 0 0 calc(var(--shine-d) / -2);   /* its middle starts on the card's top left corner */
+  background: radial-gradient(circle closest-side, rgba(255,255,255,0.18) 0%, transparent 65%);
+}
+```
 
 ```js
-shine.style.background = `radial-gradient(
-  circle at ${(x + 0.5) * 100}% ${(y + 0.5) * 100}%,
-  rgba(255,255,255,0.18) 0%,
-  transparent 65%
-)`;
+// W and H: the card's width and height. D: --shine-d. R: how far the light reaches, out to the farthest corner
+const R = Math.hypot((0.5 + Math.abs(x)) * W, (0.5 + Math.abs(y)) * H);
+shine.style.transform = `translate(${(x + 0.5) * W}px, ${(y + 0.5) * H}px) scale(${2 * R / D})`;
 ```
 
 **Reset transition** — only apply `transition` on leave, not while tracking:
@@ -50,7 +57,7 @@ card.addEventListener('pointerleave', () => card.classList.remove('active'));
 ```
 
 ```css
-.card { transition: transform 400ms ease, box-shadow 400ms ease; }
+.card { transition: transform 400ms ease; }
 .card.active { transition: none; }  /* instant tracking while the pointer moves */
 ```
 
@@ -67,7 +74,7 @@ function step(now) {                           // t0 = the time of the first fra
 }
 ```
 
-`x0` and `y0` are where the card already leans when Show me is pressed, so a second press carries on from there. A real pointer, finger or key press cancels the frame and flattens the card, so the visitor is always in control.
+`x0` and `y0` are where the card already leans when Show me is pressed, so a second press carries on from there. A press, a finger or a wheel turn over the stage, or the pointer moving over the card, cancels the frame and flattens the card, so the visitor is always in control.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -84,7 +91,7 @@ function step(now) {                           // t0 = the time of the first fra
 - **`will-change: transform`**: add only during hover (`mouseenter`/`mouseleave`) to avoid permanent GPU layer allocation. Permanent `will-change` on many cards multiplies GPU memory use.
 - **VanillaTilt.js**: a zero-dependency library that handles this pattern with configurable tilt, glare, scale, and perspective. 2KB gzipped — use in production rather than hand-rolling.
 - **`overflow: hidden` flattens 3D**: any ancestor with `overflow` other than `visible` (or a `filter`, or `opacity < 1`) forces `transform-style` to its flat used value, so `translateZ` on a child silently does nothing. A card that clips its own contents therefore cannot also be a `preserve-3d` container — give it its own `perspective` so its inner depth layers still project, or move the clip to a wrapper outside the 3D chain.
-- **Performance**: `rotateX`/`rotateY` on a GPU-composited element runs at 60fps with no paint. Avoid animating `box-shadow` simultaneously — shadows trigger paint; the demo does it for the depth cue on a single card, but it is not something to repeat across a grid.
+- **Performance**: `rotateX`/`rotateY` on a GPU-composited element runs at 60fps with no paint. Keep everything else that follows the pointer to `transform` and `opacity` as well: the demo moves its light as a layer (see Shine highlight) and leaves the card's shadow fixed in CSS, where it turns with the card. Rewriting a gradient or a `box-shadow` on every move repaints the whole card each frame, which shows on phones and adds up across a grid.
 - **Reduced motion**: the demo does not tilt on its own, and the card snaps flat when the pointer leaves instead of easing back. In production, keep the card flat for these visitors.
 
 ## See also
