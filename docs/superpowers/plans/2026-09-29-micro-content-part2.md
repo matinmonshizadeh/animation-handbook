@@ -17,7 +17,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Feel** uses the names shared with Part 1: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out) is `ease-in-out`, Even (one steady speed) is `linear`, and Springy goes a little past, then settles. A page's own old default curve keeps its exact value under the nearest name: Hamburger Menu Toggle's and Theme Toggle Morph's in-out curves are Gentle, and each Springy row keeps its page's own overshoot curve. The exact curve is in each row.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows: `04.16 · Micro-Interactions` (Tooltip Reveal) to `04.29 · Micro-Interactions` (Pull to Refresh).
 - **Accent:** every page keeps `--ui-accent:#ff9d5c`, which all 29 pages of the category already use.
-- **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92` (the site's own muted grey), as on the converted Entrance & Exit pages. The old `#77777e` is 4.2:1 on the demo cards' `#111114` and 4.4:1 on the stage's `#0b0b0d`; the new grey is 5.5:1 and 5.7:1. Stage text below 11px goes up to 11px, as in Part 1; each section names the rules this changes. Other sizes stay.
+- **Gray stage text:** `:root`'s `--ui-muted` becomes `#8a8a92` (the site's own muted gray), as on the converted Entrance & Exit pages. The old `#77777e` is 4.2:1 on the demo cards' `#111114` and 4.4:1 on the stage's `#0b0b0d`; the new gray is 5.5:1 and 5.7:1. Stage text below 11px goes up to 11px, as in Part 1; each section names the rules this changes. Other sizes stay.
 - **Stage font:** every stage uses the site font. The shared stylesheet already maps `--disp` and `--mono` to it; each section still names the stage rules whose font changes (as the Text & Typography sheet did), including every literal `monospace`, which the shared stylesheet cannot map. On plain elements the `font-family` just goes. Stage buttons and inputs get `font-family:inherit` instead, as in Part 1, because a form control does not take the page's font by itself; the shared stylesheet sets no font on them.
 - **Stage:** the page owns the stage's height, border and corners, so each demo's `.stage` rule loses `height`, `min-height`, `--stage-h`, `flex`, `min-width`, `border` and `border-radius`, and keeps what its content needs (display, alignment, gap, padding, background, `position`, `overflow`). A `.stage-wrap` wrapper goes. The old phone block goes, except the rules a section keeps. `hb-dots` is used on plain dark stages and left off where the stage paints its own full background; each section says which. No page here takes typed text as a setting, so none uses `hb-grow`.
 
@@ -25,7 +25,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Body:** `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Step 1's title and help line come from the section; steps are numbered 1 to 3.
 - **Player bar,** in this order: the Show me button exactly as in the do-it plan (`id="btn-demo"`, `data-hb-demo`); the Reset button exactly as in the do-it plan (`id="btn-reset"`, `data-hb-reset`), only where the section has one; then, only where the section has it, `<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>`.
-- **On arrival** the shared script presses Show me once, 400ms after load; under reduced motion it runs nothing, and Show me and Reset still work when pressed. Under reduced motion the Slow motion switch is greyed out by the shared script.
+- **On arrival** the shared script presses Show me once, 400ms after load; under reduced motion it runs nothing, and Show me and Reset still work when pressed. Under reduced motion the Slow motion switch is grayed out by the shared script.
 - **One run at a time,** with Part 1's helper, word for word, so the whole category runs Show me the same way. Every timer of a run goes through `later(fn, move, hold)`, which waits `move` (tripled while Slow motion is on, read when the timer is set) plus `hold`, which never stretches. Slow motion never stretches holds, Show me runs included: this is a rule for every kind of page. The listeners are registered at the top level of the page's inline script, and the page reaches the player controls by their ids, never by `data-hb-*`:
 
   ```js
@@ -58,7 +58,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 ## Owner decisions and lessons that apply here
 
 - Stage text uses the site font; no page here is a typing effect, so none keeps a monospace font.
-- Reduced motion runs nothing by itself and greys out Slow motion; Show me and Reset still work. Each demo keeps its own reduced-motion CSS, which makes a pressed Show me jump between states instead of moving.
+- Reduced motion runs nothing by itself and grays out Slow motion; Show me and Reset still work. Each demo keeps its own reduced-motion CSS, which makes a pressed Show me jump between states instead of moving.
 - Do-it pages show themselves once on arrival (the shared script presses Show me).
 - From the Text & Typography reviews: the pruning `later()`; the `hb:input` listener at the top level of the inline script; player controls reached by their ids (`btn-demo`, `btn-reset`, `slow-tog`); Show me restarts the pieces themselves from rest (reset them, force a reflow, then play), never through a double `requestAnimationFrame`.
 - No code on the page: four stages show code or CSS names today (Copy to Clipboard's JavaScript snippet, Accordion's answers, and texts on Modal Expand and Cursor Follower); their sections replace them with plain content.
@@ -128,7 +128,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Notification Badge Pulse](../badge-pulse/) — a dot that pulses to draw the eye
   - [Modal Expand](../modal-expand/) — a full window for content too big for a tooltip
-- **README How it works:** after the JS snippet, add "Escape hides a shown tooltip at once, so it can be dismissed without moving the pointer or the focus:" and this snippet:
+- **README How it works:** in the first paragraph, "On mouse-leave it hides after a short second delay — allowing the user to move the cursor from trigger to tooltip without it disappearing:" becomes "On mouse-leave it hides after a short second delay, so it does not vanish the instant the pointer slips off the trigger:", because the demo's tooltips take no pointer. After the JS snippet, add "Escape hides a shown tooltip at once, so it can be dismissed without moving the pointer or the focus:" and this snippet:
 
   ```js
   document.addEventListener('keydown', e => {
@@ -160,7 +160,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Reduced motion:** the demo's rule stays: the drawer and the dimming appear and disappear without sliding or fading.
 - **Touch:** the swipe to close already uses Pointer Events (`pointerdown` on the drawer, `pointerup` on the document, 50px toward its edge).
 - **Stage font:** site font. `.hamburger` gets `font-family:inherit` (was `monospace`), and so does `.close-btn`. The ☰ comes from the system's fallback font, as it does today.
-- **Stage:** the small app screen stays: the header with the menu button and "Atlas App", the grey content lines, the dimming layer and the drawer.
+- **Stage:** the small app screen stays: the header with the menu button and "Atlas App", the gray content lines, the dimming layer and the drawer.
   - The State readout goes.
   - The drawer's list keeps four items (Home, Gallery, About, Contact). "Settings", pinned to the bottom, goes, and `.drawer-body`'s padding becomes 12px (was 16px). Measured: five items need 268px and the side drawer has 221px on a phone and 248px on a short laptop, so the list scrolled; four need 212px.
   - `--drawer-w` becomes `min(280px,80%)`, so on a 320px phone a strip of dimmed page stays to tap.
@@ -415,7 +415,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
   The run also stops on a trusted `pointermove` over the stage (see the preamble). On that, or on `hb:input` (a tap or press): `stopRun()` and remove `expanded`; the dot then follows the visitor.
 - **Slow motion:** none.
-- **Reduced motion:** the demo's rule becomes `#follower .shape{transition:none!important}`, so the dot grows at once. The dot still follows the visitor's own pointer with its lag, as today.
+- **Reduced motion:** the demo's rule becomes `#follower .shape,#follower circle{transition:none!important}`, so the dot grows at once. The dot still follows the visitor's own pointer with its lag, as today.
 - **Touch:** today the dot is hidden on touch screens (the `pointer:coarse` check), so phones showed nothing. That check goes. A `pointerdown` on the stage whose `pointerType` is not `mouse` sets `mx`/`my` to the tap point and shows the dot. The first tap places it there directly, as `mouseenter` does; later taps make it glide to each new point. The dot stays shown, and the page still scrolls with a swipe over the box (`touch-action` is unchanged).
 - **Stage font:** site font. `.hover-target` drops `font-family:monospace`.
 - **Stage:** the four colored areas and the dot stay.
@@ -426,9 +426,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - `cursor:none` on the stage stays.
   - **The dot moves and grows with transforms only** (CLAUDE.md), where today it sets `left`, `top`, `width` and `height`.
     - `#follower` becomes a wrapper at `left:0;top:0`. The loop, the snap on `mouseenter`, the run and the tap move it with `transform:translate(Xpx,Ypx)`. `mix-blend-mode` and the `circle`, `ring`, `square`, `expanded` and `no-blend` classes stay on it.
-    - Inside it, a new `.shape` element carries today's shape rules (its size `var(--follower-size)`, its fill, border and corners). It is centred with `transform:translate(-50%,-50%)` and has `transition:transform .2s ease,border-width .2s ease,border-radius .2s ease` in place of today's `width`/`height` transitions.
+    - Inside it, a new `.shape` element carries today's Circle and Square rules: its size `var(--follower-size)`, its fill and its corners. `no-blend` still turns its fill to today's `rgba(255,157,92,.5)`. It is centred with `transform:translate(-50%,-50%)` and has `transition:transform .2s ease,border-radius .2s ease` in place of today's `width`/`height` transitions.
     - Growing over a button scales the shape: `#follower.expanded .shape{transform:translate(-50%,-50%) scale(2.5)}`.
-    - To keep the look while scaled, the ring's border becomes `.8px` (2px ÷ 2.5) and the square's corners `1.6px` (4px ÷ 2.5) while expanded, so they still read as 2px and 4px. Tried in Chrome: a compensated border scaled 2.5 times draws a 2px ring, and an SVG stroke with `vector-effect:non-scaling-stroke` does not undo a CSS scale (it drew about 5px).
+    - The square's corners become `1.6px` (4px ÷ 2.5) while expanded, so they still read as 4px.
+    - **The Ring shape is drawn as an SVG circle stroke instead of a border.** A border cannot keep 2px: Chrome snaps border widths to whole device pixels. A `.8px` border scaled 2.5 times is 2.5px at 1×, 1.25px at 2× and 1.67px at 3× (today's ring is 2px everywhere), and it dips to about 1px in the first frames of the grow. My earlier "tried in Chrome" note missed this, because I looked at a single screen. `vector-effect:non-scaling-stroke` does not undo a CSS scale either (it drew about 5px). An SVG stroke is not snapped:
+      - `.shape` holds `<svg aria-hidden="true"><circle/></svg>`, shown only for the Ring shape: `#follower .shape svg{display:none;position:absolute;inset:0;width:100%;height:100%;overflow:visible}` and `#follower.ring .shape svg{display:block}`. The ring's `.shape` has no border and no background, with Flips the colors under it on or off.
+      - `#follower .shape circle{cx:50%;cy:50%;r:calc(50% - 1px);fill:none;stroke:#fff;stroke-width:2;transition:stroke-width .2s ease}` and `#follower.expanded .shape circle{stroke-width:.8}` use the same duration and easing as the scale. So the grown ring is 2px again; the review measured exactly 2.00px at 1× and 2×, at rest and grown.
+      - Mid-grow the ring can be up to about 0.45px thicker for a moment, because the thinning stroke and the growing scale multiply: (2 − 1.2e) × (1 + 1.5e) peaks at 2.45px halfway through.
+      - With Flips the colors under it off, the ring keeps today's look: `#follower.no-blend.ring circle{fill:rgba(255,157,92,.5);stroke:var(--ui-accent)}`.
   - `hb-dots`: no, because the four areas fill the stage. Default height.
 
 **Main settings**
@@ -664,7 +669,7 @@ None: leave out the `details.hb-options` block.
 
   On `hb:input`: `stopRun()` only. The menu stays as it is.
 - **Slow motion:** css. The movement is Speed + 210ms (the lines, and the last menu item's delay); the 1200ms is a hold. A slowed run takes about 3.9 s.
-- **Reduced motion:** the demo's rule stays: the icon and the menu switch at once.
+- **Reduced motion:** the demo's rule stays, and it lists the new `.pair` as well: the icon, the menu and the pair switch at once.
 - **Stage font:** site font (no rule to change).
 - **Stage:** the button and the menu stay. The "State: closed" readout goes, with its rules.
   - **The menu opens with transform and opacity instead of `max-height`** (CLAUDE.md).
@@ -672,8 +677,11 @@ None: leave out the `details.hb-options` block.
     - It gets `opacity:0;transform:translateY(-8px);visibility:hidden;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s linear var(--dur)`.
     - `.menu.show` gets `opacity:1;transform:none;visibility:visible;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s`, so the closed menu is hidden from screen readers too.
     - The items keep their staggered slide and fade.
-  - Because the menu now always takes its space, the button sits a little higher at rest and no longer moves when the menu opens (today it rises as the menu grows).
-  - `.menu` keeps `flex-shrink:0`, and the stage's `gap` becomes 20px (was 28px): the button and the menu take 278px, centred in the 300px phone stage. Today the open menu (182px) is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured).
+  - **The button stays centred at rest, as today, with transforms only.**
+    - The button and the menu are wrapped in a new `.pair`: a centred flex column with `gap:20px`, in place of the stage's 28px gap. The stage centres the pair.
+    - At rest the pair is moved down by half of the menu and its gap, so the button sits in the middle: `.pair{transform:translateY(calc(50% - 38px));transition:transform var(--dur) var(--ease)}`. Here 50% is half the pair's own height, and 38px is half the 76px button.
+    - When the menu opens, `.pair:has(> .menu.show){transform:none}` slides the pair up with the same timing as the menu's fade and slide. So the pair re-centres as it does today, where the button rises as the menu grows.
+  - `.menu` gets `flex-shrink:0` (today's has none). The pair is 278px tall (76 + 20 + 182), so the open menu and the button are centred in the 300px phone stage. Today the open menu is squeezed into what is left of the stage, which cuts off its last item on phones and short laptops (measured).
   - The old phone rule (`height:auto;min-height:400px`) goes.
   - `hb-dots`: yes. Default height.
 
