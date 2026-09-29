@@ -45,7 +45,7 @@ Every count starts from zero. The observer decides when the numbers may start; e
 
 The revenue number changes format as it grows, from dollars to thousands to millions, so its widest string is never wider than the final "12,847" and always fits its tile on a phone.
 
-A second observer, shrunk by a few pixels at the bottom, watches for the stats container leaving the box altogether; it stops any count in progress and puts the numbers back to zero, so after Back to top or Play at the end they scroll in at zero again instead of showing the old totals first.
+A second observer, shrunk by 8px at the bottom, watches for the stats container leaving the box altogether; it stops any count in progress and puts the numbers back to zero, so after Back to top or Play at the end they scroll in at zero again instead of showing the old totals first. Its margin is smaller than any of the lines a count starts at, so the counting observer has always let go first and a count can start again on the way down.
 
 The four Feel choices use these curves: Even is `linear`, Smooth is `outCubic`, Slow finish is `outExpo` and Springy is `outBack`:
 
@@ -62,7 +62,7 @@ const EASE = {
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Starts counting | Middle | Where the top of the numbers must reach before they count: early is a tenth of the way up the box, middle 40% of the way up and late 70% |
+| Starts counting | Middle | The line the top of the tiles must pass before the numbers may count: early is a tenth of the way up the box, middle 40% of the way up and late 70%. Each number then waits until half of it is inside the box, so on a short box early and middle start at almost the same place |
 | Speed | Normal | How long each count takes: slow is 2.9 s, normal 1.8 s and fast 1.1 s |
 | Feel | Smooth | Smooth slows to a stop; Slow finish races to near the total, then creeps through the last digits; Springy goes a little past and settles back; Even counts at one steady pace, which feels mechanical |
 | One after another | on | Each number starts 200ms after the one before, so the four count in a cascade |

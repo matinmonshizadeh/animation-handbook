@@ -217,12 +217,13 @@
     observer.observe(stats);
   }
 
-  // Once the tiles are out of the box (their top less than 32px inside it; the first number starts about 70px lower), the
-  // numbers go back to zero. After Back to top, or Play at the end, they scroll in at zero again instead of showing the
-  // old totals first.
+  // Once the tiles are out of the box (their top less than 8px inside it, when no number shows yet), the numbers go back to
+  // zero. After Back to top, or Play at the end, they scroll in at zero again instead of showing the old totals first. The
+  // margin stays well under the smallest "Starts counting" line (a tenth of the box, about 25px at 258px), so the counting
+  // observer has always let go before this one resets, and a count can start again on the way down.
   new IntersectionObserver(entries=>{
     if(!entries[entries.length-1].isIntersecting)resetCounters();
-  },{root:stage,rootMargin:'0px 0px -32px 0px',threshold:0}).observe(stats);
+  },{root:stage,rootMargin:'0px 0px -8px 0px',threshold:0}).observe(stats);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
