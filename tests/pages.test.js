@@ -110,7 +110,17 @@ for (const d of steps) {
         assert.equal(count(html, other), 0, `a do-it page has no ${other}`);
       }
     }
-    for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause', 'data-hb-demo', 'data-hb-reset']) {
+    if (kind === 'scroll') {
+      assert.equal(count(html, 'data-hb-autoscroll'), 1, 'one Play control');
+      assert.equal(count(html, 'data-hb-top'), 1, 'one Back to top control');
+      assert.ok(player.includes('id="btn-scroll" data-hb-autoscroll') && player.includes('id="btn-top" data-hb-top'),
+        'Play and Back to top are in the player bar');
+      assert.ok(count(html, 'data-hb-scroller') <= 1, 'at most one scroller');
+      for (const other of ['data-hb-replay', 'data-hb-loop', 'data-hb-pause', 'data-hb-demo']) {
+        assert.equal(count(html, other), 0, `a scroll page has no ${other}`);
+      }
+    }
+    for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause', 'data-hb-demo', 'data-hb-reset', 'data-hb-autoscroll', 'data-hb-top']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
       const input = (html.match(new RegExp(`<input[^>]*${marker}[^>]*>`)) || [''])[0];

@@ -4,6 +4,7 @@
  * Pause and CSS slow motion on loop pages, presses Show me on do-it pages and tells
  * the page when the visitor takes over ("hb:input"), and follows reduced motion
  * (Loop and Slow motion greyed out, loops start paused).
+ * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -186,6 +187,9 @@
     var stage = page.querySelector('.stage');
     var player = page.querySelector('.hb-player');
     var demoCtl = page.querySelector('[data-hb-demo]');
+    var scrollCtl = page.querySelector('[data-hb-autoscroll]');
+    var topCtl = page.querySelector('[data-hb-top]');
+    var scroller = page.querySelector('[data-hb-scroller]') || stage;
     var reduce = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var promptText = text(promptEl);
 
@@ -356,6 +360,60 @@
       });
     }
 
+    // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
+    // seconds), from the top when it is already at the end. The visitor's own wheel, touch, press or key input anywhere
+    // in the stage stops it, and so does Back to top, which jumps the box to the top.
+    var FULL_SCROLL_MS = 6000;
+    var scrollFrame = 0;
+    var snapKept = null;
+    // While the scroll runs, CSS scroll snapping is off on the scroller (its own inline value is kept), or every step
+    // would snap and the box would jump from one snap point to the next. It goes back on when the scroll ends, is
+    // stopped or Back to top is pressed, and the browser then settles on the nearest snap point by itself.
+    function snapOff() {
+      if (snapKept !== null || win.getComputedStyle(scroller).scrollSnapType === 'none') return;
+      snapKept = scroller.style.scrollSnapType;
+      scroller.style.scrollSnapType = 'none';
+    }
+    function snapOn() {
+      if (snapKept === null) return;
+      scroller.style.scrollSnapType = snapKept;
+      snapKept = null;
+    }
+    function cancelFrame() {
+      if (scrollFrame) win.cancelAnimationFrame(scrollFrame);
+      scrollFrame = 0;
+    }
+    function stopScroll() {
+      cancelFrame();
+      snapOn();
+    }
+    function scrollBox(top) { scroller.scrollTo({ top: top, behavior: 'instant' }); }
+    function autoscroll() {
+      cancelFrame(); // not stopScroll(): pressing Play during a run keeps snapping off, so the box does not snap in between
+      var end = scroller.scrollHeight - scroller.clientHeight;
+      if (end <= 0) { snapOn(); return; }
+      snapOff();
+      if (scroller.scrollTop >= end - 2) scrollBox(0);
+      var pos = scroller.scrollTop, last = 0, speed = end / FULL_SCROLL_MS;
+      function step(now) {
+        if (last) pos = Math.min(end, pos + (now - last) * speed);
+        last = now;
+        scrollBox(pos);
+        scrollFrame = pos < end ? win.requestAnimationFrame(step) : 0;
+        if (!scrollFrame) snapOn();
+      }
+      scrollFrame = win.requestAnimationFrame(step);
+    }
+    function setUpScroll() {
+      scrollCtl.addEventListener('click', autoscroll);
+      if (topCtl) topCtl.addEventListener('click', function () { stopScroll(); scrollBox(0); });
+      // On the stage, not the scroller: a menu or button beside an inner scroller is the visitor's input too.
+      var heard = stage || scroller;
+      ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (type) {
+        heard.addEventListener(type, function (e) { if (e.isTrusted) stopScroll(); }, { passive: true });
+      });
+    }
+
     // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
     // loop starts paused, and a note in the player bar says why. Replay and Play still work.
     var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
@@ -387,6 +445,7 @@
     if (slowCtl) slowCtl.addEventListener('change', replay);
     if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
     if (demoCtl && stage) setUpVisitorInput();
+    if (scrollCtl && scroller) setUpScroll();
     if (slowCtl && stage && stage.getAnimations && slowCtl.getAttribute('data-hb-slowmo') === 'css') {
       slowCtl.addEventListener('change', function () { if (!slowing) slowStage(); });
       if (slowCtl.checked) slowStage();
@@ -397,6 +456,7 @@
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
         if (demoCtl) { if (!(reduce && reduce.matches)) demoCtl.click(); return; }
+        if (scrollCtl) { if (!(reduce && reduce.matches)) scrollCtl.click(); return; }
         if (loopCtl && !(reduce && reduce.matches)) {
           // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.
           if (loopCtl.checked) replay();

@@ -11,8 +11,10 @@
 // it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. On do-it
 // pages the desktop and reduced-motion runs press Show me and check that it visibly moves the stage (the desktop run
 // waits for the run on arrival to end first), and the reduced-motion run checks that nothing moves before it is
-// pressed. The 320px phone runs the page checks (overflow, small targets, chips, README) and takes screenshots, and
-// nothing more.
+// pressed. On scroll pages the desktop and reduced-motion runs check that the box scrolls by itself on arrival (not
+// under reduced motion), that Back to top returns it to the top and stops it, that Play scrolls it and that a real
+// wheel turn over the box stops Play. The 320px phone runs the page checks (overflow, small targets, chips, README)
+// and takes screenshots, and nothing more.
 // Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -262,6 +264,30 @@ async function demoProblems(reduced) {
   return problems;
 }
 
+// Scroll pages: the box scrolls by itself on arrival (not under reduced motion); Back to top returns it to the top and
+// stops it; Play scrolls it; a real wheel turn over the box stops Play.
+async function scrollProblems(reduced) {
+  const box = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
+  const pos = () => evaluate(`${box}.scrollTop`);
+  const problems = [];
+  const arrived = await pos();
+  if (reduced && arrived > 0) problems.push('the box scrolls by itself under reduced motion');
+  if (!reduced && arrived <= 0) problems.push('the box does not scroll by itself on arrival');
+  await evaluate(`document.querySelector('[data-hb-top]').click()`);
+  await sleep(500);
+  if (await pos() !== 0) problems.push('Back to top does not return the box to the top and stop it');
+  await evaluate(`document.querySelector('[data-hb-autoscroll]').click()`);
+  await sleep(800);
+  if (await pos() <= 0) problems.push('Play does not scroll the box');
+  const c = await evaluate(`(() => { const b = ${box}.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + Math.min(b.height, innerHeight - b.top) / 2 }; })()`);
+  await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: c.x, y: c.y, deltaX: 0, deltaY: 40 });
+  await sleep(300);
+  const held = await pos();
+  await sleep(600);
+  if (await pos() !== held) problems.push('turning the wheel does not stop Play');
+  return problems;
+}
+
 let failures = 0;
 try {
   ws = new WebSocket(await pageSocket());
@@ -328,6 +354,7 @@ try {
         if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
         if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
         if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
+        if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }
