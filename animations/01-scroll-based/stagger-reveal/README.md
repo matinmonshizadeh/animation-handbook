@@ -10,7 +10,7 @@ A stagger reveal shows a group of items one after another instead of all at once
 - Any group where a uniform simultaneous appearance feels abrupt or mechanical
 
 ## How it works
-Each item shares one CSS transition (`opacity` and `translateY`) and starts hidden. An `IntersectionObserver` on each section triggers `staggerIn`, which computes an order array for the chosen direction and schedules each item's `.in` class with a delay of `orderIndex × staggerMs`:
+Each item shares one CSS transition (`opacity` and `translateY`) and starts hidden. An `IntersectionObserver` on each group (the grid, the list and the tags) triggers `staggerIn`, which computes an order array for the chosen direction and schedules each item's `.in` class with a delay of `orderIndex × staggerMs`:
 
 ```js
 function getOrder(n) {
@@ -31,7 +31,7 @@ function staggerIn(items) {
 
 The order array holds a *rank* per item, not a target — item `i` waits `order[i] × staggerMs`. Center-out works by using distance-from-center as the rank, so the middle items (rank 0) fire first.
 
-`later()` is `setTimeout` that also remembers its timer. A group plays once, when 5% of it is in the box. Back to top, pressing Play with the box already at its end, and changing a setting all call `rebuild()`, which cancels the timers still waiting, builds the three groups again hidden and attaches fresh observers, so the groups in the box play again with the current settings. The last group ends with 80px of padding, more than the 20px an item sits low before it appears; without it the hidden items would stretch the scroll length and give it back as they arrive, and a script that reads the length once (as the demo's Play button does) would aim at an end that is not there.
+`later()` is `setTimeout` that also remembers its timer. A group plays once, when half of it is in the box or its bottom edge has come into the box. The observers watch the group's items, not the section around them, so the cascade starts while the items are on screen instead of while they are still below the box; a threshold every 5% makes them report on the way, so a quick jump to the end is still noticed and no visible row is left hidden. Back to top, pressing Play with the box already at its end, and changing a setting all call `rebuild()` at once, which cancels the timers still waiting, builds the three groups again hidden and attaches fresh observers, so the groups in the box play again with the current settings. The observers report on the next frame, after the box has jumped to the top, so the finished groups are never drawn there. The last group ends with 80px of padding, more than the 20px an item sits low before it appears; without it the hidden items would stretch the scroll length and give it back as they arrive, and a script that reads the length once (as the demo's Play button does) would aim at an end that is not there.
 
 ## Key parameters
 | Parameter | Default | Effect |

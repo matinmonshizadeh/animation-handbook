@@ -69,15 +69,15 @@
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play. Back to top hides the groups again.</p></div>
     </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Three groups of items">
-      <div class="section" id="sec-grid">
+      <div class="section">
         <div class="sec-head">01 · Grid</div>
         <div class="grid" id="grid"></div>
       </div>
-      <div class="section" id="sec-list">
+      <div class="section">
         <div class="sec-head">02 · List</div>
         <div id="list"></div>
       </div>
-      <div class="section" id="sec-chips">
+      <div class="section">
         <div class="sec-head">03 · Tags</div>
         <div class="chips" id="chips"></div>
       </div>
@@ -155,7 +155,7 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
-  let staggerMs=50,direction='forward',observers=[],timers=[],redo=0;
+  let staggerMs=50,direction='forward',observers=[],timers=[];
 
   const GRID_ITEMS=['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu'];
   const LIST_ITEMS=[
@@ -210,13 +210,17 @@
 
   let gridItems=buildGrid(),listItems=buildList(),chipItems=buildChips();
 
-  // Each group plays once, when 5% of it is in the box
+  // Each group plays once, when half of it is in the box or its bottom edge has come into the box. The observers watch the
+  // group's items, not the section around them, so the cascade starts while the items are on screen. A threshold every 5%
+  // makes them report on the way, so a jump straight to the end is not missed and no visible row is left hidden.
+  const STEPS=Array.from({length:21},(_,i)=>i/20);
   function attachObservers(){
     observers.forEach(o=>o.disconnect());observers=[];
-    [['sec-grid',gridItems],['sec-list',listItems],['sec-chips',chipItems]].forEach(([id,items])=>{
+    [['grid',gridItems],['list',listItems],['chips',chipItems]].forEach(([id,items])=>{
       const o=new IntersectionObserver(entries=>{
-        if(entries[entries.length-1].isIntersecting){o.disconnect();staggerIn(items)}
-      },{root:stage,threshold:.05});
+        const e=entries[entries.length-1];
+        if(e.isIntersecting&&(e.intersectionRatio>=.5||e.boundingClientRect.bottom<=e.rootBounds.bottom+1)){o.disconnect();staggerIn(items)}
+      },{root:stage,threshold:STEPS});
       o.observe(document.getElementById(id));observers.push(o);
     });
   }
@@ -225,7 +229,6 @@
   // Builds the three groups again, hidden, and watches them again: the groups in the box play at once with the current
   // settings, the others when they scroll in
   function rebuild(){
-    clearTimeout(redo);
     timers.forEach(clearTimeout);timers=[];
     gridItems=buildGrid();listItems=buildList();chipItems=buildChips();
     void stage.offsetWidth;
@@ -233,10 +236,11 @@
   }
 
   // Back to top, and Play pressed with the box at its end, hide the groups again. The shared script jumps the box to the top
-  // when it handles the same click, after this listener, so the groups are rebuilt a moment later.
-  document.getElementById('btn-top').addEventListener('click',()=>{clearTimeout(redo);redo=setTimeout(rebuild,50)});
+  // when it handles the same click, after this listener; the new observers report on the next frame, after the jump, so the
+  // finished groups are never drawn at the top.
+  document.getElementById('btn-top').addEventListener('click',()=>rebuild());
   document.getElementById('btn-scroll').addEventListener('click',()=>{
-    if(stage.scrollTop>=stage.scrollHeight-stage.clientHeight-2){clearTimeout(redo);redo=setTimeout(rebuild,50)}
+    if(stage.scrollTop>=stage.scrollHeight-stage.clientHeight-2)rebuild();
   });
 
   function choices(id,pick){
