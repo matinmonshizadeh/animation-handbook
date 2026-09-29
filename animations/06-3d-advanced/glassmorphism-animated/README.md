@@ -56,7 +56,7 @@ Three CSS properties create the glass effect:
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0 16px, transparent 18px) 0 0 / 56px 56px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0 16px, transparent 18px) 0 0 / 56px 56px;
   mask-image: radial-gradient(ellipse closest-side, #000 68%, transparent);
 }
 ```
