@@ -10,7 +10,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind** names the step 1 title: "Hover it", "Click it" or "Drag it", with the page's own help line under **Watch it help line**.
 - **Try it help line** is the same on every do-it page: "Change a setting, then try it again or press Show me." (A do-it page replays nothing when a setting changes: the shared script's replay needs a Replay button. The new setting shows the next time the visitor tries the demo or presses Show me, except where a row says it applies to the stage at once.)
-- **Show me** replaces the plays-once "Sequence": what one run does, its timeline, how it ends at rest and what `hb:input` does. "k" in a timeline is 3 while Slow motion is on and 1 otherwise.
+- **Show me** replaces the plays-once "Sequence": what one run does, its timeline, how it ends at rest and what `hb:input` does. The times are delays from the moment Show me is pressed, at the default settings with Slow motion off, as in Part 1; `later()` triples them while Slow motion is on.
 - **Sets in the demo** lists one value per choice, in the same order as the choices, and names the variable, class or function exactly as today's script has it.
 - Switches in Try it keep their default in the markup (`checked` when the default is on), as on Rotate In. Only the player bar's Slow motion starts unchecked.
 - **Speed** always reads Slow · Normal · Fast. Today's default is Normal; Slow is about 1.6 times and Fast about 0.6 times it, rounded.
@@ -26,28 +26,31 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Body:** `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Step 1's title and help line come from the section; steps are numbered 1 to 3.
 - **Player bar,** in this order: the Show me button exactly as in the do-it plan (`id="btn-demo"`, `data-hb-demo`); the Reset button exactly as in the do-it plan (`id="btn-reset"`, `data-hb-reset`), only where the section has one; then, only where the section has it, `<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>`.
 - **On arrival** the shared script presses Show me once, 400ms after load; under reduced motion it runs nothing, and Show me and Reset still work when pressed. Under reduced motion the Slow motion switch is greyed out by the shared script.
-- **One run at a time.** Every timer of a run goes through the pruning `later()`; a run that draws a drag frame by frame keeps its one pending frame in `demoFrame`. The listeners are registered at the top level of the page's inline script, and the page reaches the player controls by their ids, never by `data-hb-*`:
+- **One run at a time,** with Part 1's helper, word for word, so the whole category runs Show me the same way. Every timer of a run goes through `later()`, which triples it while Slow motion is on (read when each timer is set), so a slowed run keeps its shape. The listeners are registered at the top level of the page's inline script, and the page reaches the player controls by their ids, never by `data-hb-*`:
 
   ```js
-  // Show me: one run at a time. A timer that has fired leaves `timers`, so `demoOn` and `timers` tell what is still pending.
-  let timers=[], demoFrame=0, demoOn=false;
-  function later(fn,ms){const id=setTimeout(()=>{timers=timers.filter(t=>t!==id);fn();},ms);timers.push(id);return id;}
-  function stopDemo(){timers.forEach(clearTimeout);timers=[];cancelAnimationFrame(demoFrame);demoFrame=0;demoOn=false;}
-  // Slow motion "css": the shared script slows the stage's transitions and animations; the run's waits for them triple.
-  const k=()=>{const s=document.getElementById('slow-tog');return s&&s.checked?3:1;};
-  document.getElementById('btn-demo').addEventListener('click',()=>{stopDemo();toRest();demoOn=true;showMe();});
-  // The visitor's own press, key, wheel or touch in the stage ends a run under way and leaves them in control.
-  document.addEventListener('hb:input',()=>{if(!demoOn)return;stopDemo();/* what the section adds */});
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  const slowTog=document.getElementById('slow-tog');      // only on pages with Slow motion
+  let runTimers=[];
+  function later(fn,ms){
+    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, ms*(slowTog&&slowTog.checked?3:1));
+    runTimers.push(id);
+  }
+  function running(){ return runTimers.length>0; }
+  function stopRun(){ runTimers.forEach(clearTimeout); runTimers=[]; /* plus what the section's "stops" line undoes */ }
+  document.getElementById('btn-demo').addEventListener('click',()=>{ stopRun(); /* put the demo at rest, then play the steps with later() */ });
+  document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
   ```
 
-  `toRest()` and `showMe()` are the page's own (the section says what they do); the run's last step sets `demoOn=false`. A page without Slow motion has no `k()`, and a page with no frame-by-frame drag leaves `demoFrame` out.
+  In a section, `toRest()` is "put the demo at rest", the timeline gives the steps, and the "On `hb:input`" line says what `stopRun()` also undoes. A run ends when its last timer has fired. The two drag pages (Swipe to Dismiss, Pull to Refresh) also draw a drag frame by frame: they keep its one pending frame in `runFrame`, their `running()` is also true while `runFrame` is set, and their `stopRun()` also does `cancelAnimationFrame(runFrame); runFrame=0`.
 - **A run starts from rest.** When the visitor left the demo changed (a panel open, another option chosen), `toRest()` puts it back as it is on arrival without animating: the pieces' transitions are turned off inline, the resting state is set, `void el.offsetWidth` forces a reflow, and the inline transitions are cleared. Pressing Show me during a run starts it again from rest.
 - **A run plays one example** of the interaction, about two to four seconds unless the section says otherwise, and ends at rest. It never moves the keyboard focus, never submits a form, never writes to the clipboard and never announces anything to screen readers that did not really happen.
-- **`hb:input`** comes from the visitor's own `pointerdown`, `keydown`, `wheel` or `touchstart` inside the stage. Hovering sends none, so the two Hover it pages also stop a run in their own pointer handlers (their sections say where).
-- **Slow motion "css"** is on the pages whose movement is short CSS transitions and animations: the shared script plays every transition and animation on the stage at a third of its speed, including ones that start later. The page multiplies by `k()` only the run's waits for a movement to finish; the holds keep their length, as on the plays-once pages. The drag pages, Cursor Follower and Toast Notification leave Slow motion out; their sections say why.
-- **Reset** is on a page only where the visitor can leave the demo changed in a way its own controls cannot undo in one step: removed messages (Swipe to Dismiss), a stack of toasts (Toast Notification) and added items (Pull to Refresh). Reset calls `stopDemo()`, then puts the demo back as it is on arrival. Everywhere else a second press of the same control undoes the change (a toggle, an open panel), and Show me starts from rest anyway.
+- **`hb:input`** comes from the visitor's own `pointerdown`, `keydown`, `wheel` or `touchstart` inside the stage. Hovering sends none, so the two Hover it pages (Tooltip Reveal, Cursor Follower) also stop a run on a trusted `pointermove` over the stage while one is under way, as in Part 1.
+- **Slow motion "css"** is on the pages whose movement is short CSS transitions and animations: the shared script plays every transition and animation on the stage at a third of its speed, including the visitor's own and ones that start later, and `later()` triples the run's times. The demo's own timers (a tooltip's delays, the copy button's revert) keep their length, as in Part 1. The drag pages, Cursor Follower and Toast Notification leave Slow motion out; their sections say why.
+- **Reset** is on a page only where the visitor can leave the demo changed in a way its own controls cannot undo in one step: removed messages (Swipe to Dismiss), a stack of toasts (Toast Notification) and added items (Pull to Refresh). Reset calls `stopRun()`, then puts the demo back as it is on arrival. Everywhere else a second press of the same control undoes the change (a toggle, an open panel), and Show me starts from rest anyway.
+- **Reduced motion:** a pressed Show me plays the same steps, and the demo's own reduced-motion rules make each change happen at once. Every run here changes the stage within 1.6 s, because the browser check presses Show me under reduced motion too and needs a visible change, and no stage here moves by itself.
 - **Settings change during a run:** the page applies them at once as today, and each step of the run reads the current values.
-- **Hover and touch:** every hover style stays inside `@media (hover: hover)`, and every hover has a tap equivalent (each section's **Touch** line). Drags use Pointer Events.
+- **Hover and touch:** every hover style stays inside `@media (hover: hover)`, and every hover has a tap equivalent (each section's **Touch** line). Drags use Pointer Events. No run in this half needs Part 1's pretend-hover class `is-demo`: each run calls the demo's own functions (`show()`, `open()`, `toggle()`, `render()` and so on) rather than relying on `:hover` or `:focus`.
 - **"How to convert a page"** applies as written, with `04.NN · Micro-Interactions` and `--ui-accent:#ff9d5c`, except in three places. Step 4's body and player bar are the ones above. Step 5's rules for plays-once pages and loops are replaced by this section; its rules for every page still apply (player controls by id, `choices()`, nothing left of the old controls). Step 8's browser check runs the do-it checks instead: Show me moves the stage within 1.6 s, and nothing moves by itself under reduced motion.
 
 ## Owner decisions and lessons that apply here
@@ -68,11 +71,11 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Player bar:** Show me · Slow motion (css). No Reset: a tooltip hides by itself when the pointer or focus leaves. Slow motion helps here because the fade and the slight grow last only 90 to 250ms; the waits before showing and hiding are timers and keep their length.
 - **Show me:** `toRest()` removes `visible` from all four tooltips. The run is one hover of the first item, the gear button:
   - t = 0: the gear's own `show()` (its tooltip fades in after Delay before showing);
-  - t = Delay before showing + Speed × k + 1600ms: the gear's own `hide()` (it fades out after Delay before hiding);
+  - t = Delay before showing + Speed + 1600ms: the gear's own `hide()` (it fades out after Delay before hiding);
   - the run ends when that fade is over. About 2.3 s at the defaults.
 
-  Each item keeps its `show()` and `hide()` where the run can reach them (for example `wrap.show`, `wrap.hide`). The run also stops when a real pointer enters any item (the items' `mouseenter` handlers, when `e.isTrusted`), because hovering sends no `hb:input`. On `hb:input` or that `mouseenter`: `stopDemo()`, then the gear's `hide()` unless the pointer or focus is on it (`wrap.matches(':hover,:focus-within')`).
-- **Slow motion:** css. The run's wait before hiding uses Speed × k.
+  Each item keeps its `show()` and `hide()` where the run can reach them (for example `wrap.show`, `wrap.hide`). The run also stops on a trusted `pointermove` over the stage (see the preamble). On that or on `hb:input`: `stopRun()`, then the gear's `hide()` unless the pointer or focus is on it (`wrap.matches(':hover,:focus-within')`).
+- **Slow motion:** css. The run's times triple through `later()`; the items' own delays before showing and hiding keep their length.
 - **Reduced motion:** the demo's rule stays: the tooltip fades without growing.
 - **Touch:** today's `touchstart` toggle stays: a tap shows or hides an item's tooltip at once.
 - **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
@@ -137,11 +140,11 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Player bar:** Show me · Slow motion (css). No Reset: ×, a tap on the dimmed page, a swipe or Esc close the drawer. Slow motion shows the point of the demo: the drawer slows as it arrives and speeds up as it leaves.
 - **Show me:** `toRest()` closes the drawer at once, without its transition. Then:
   - t = 0: `open()`, as the menu button does;
-  - t = Opening speed × k + 1500ms: `close()`;
+  - t = Opening speed + 1500ms: `close()`;
   - the run ends when the drawer has closed. About 2 s at the defaults.
 
-  On `hb:input`: `stopDemo()` only. The drawer stays as it is, and the visitor closes it.
-- **Slow motion:** css. The run's wait before closing uses Opening speed × k.
+  On `hb:input`: `stopRun()` only. The drawer stays as it is, and the visitor closes it.
+- **Slow motion:** css. The run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: the drawer and the dimming appear and disappear without sliding or fading.
 - **Touch:** the swipe to close already uses Pointer Events (`pointerdown` on the drawer, `pointerup` on the document, 50px toward its edge).
 - **Stage font:** site font. `.hamburger` gets `font-family:inherit` (was `monospace`), and so does `.close-btn`. The ☰ comes from the system's fallback font, as it does today.
@@ -211,11 +214,11 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Player bar:** Show me · Slow motion (css). No Reset: Cancel, Confirm, a tap on the dimmed page or Esc close the window.
 - **Show me:** `toRest()` closes the window at once, without its transition. Each run presses one button, the next in turn each time Show me is pressed: Top right first (on arrival), then Bottom left, Center, Top left and Bottom right. It shows the point of the demo, a different starting point each time.
   - t = 0: `openModal(btn)` for that button (it does not move the focus);
-  - t = Speed × k + 1500ms: `closeModal()`;
+  - t = Speed + 1500ms: `closeModal()`;
   - the run ends when the window has shrunk away. About 2.1 s at the defaults.
 
-  On `hb:input`: `stopDemo()` only. The window stays open, and the visitor closes it.
-- **Slow motion:** css. The window's grow and fade and the dimming slow down. The run's wait before closing uses Speed × k.
+  On `hb:input`: `stopRun()` only. The window stays open, and the visitor closes it.
+- **Slow motion:** css. The window's grow and fade and the dimming slow down, and the run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: the window appears at full size and disappears without growing or fading.
 - **Stage font:** site font. `.trig-btn`, `.modal-close` and `.modal-confirm` get `font-family:inherit` (was `monospace`).
 - **Stage:** the five buttons, the dimming layer, the window and the origin dot stay; the Origin readout goes.
@@ -314,11 +317,11 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Player bar:** Show me · Slow motion (css). No Reset: every answer closes with its own question.
 - **Show me:** `toRest()` closes every answer at once, without its transition. Then:
   - t = 0: `toggle(items[0])` opens the first question, as a press does;
-  - t = Speed × k + 1500ms: `toggle(items[0])` closes it;
+  - t = Speed + 1500ms: `toggle(items[0])` closes it;
   - the run ends when it has closed. About 2.1 s at the defaults.
 
-  On `hb:input` (a press, or a wheel or touch that scrolls the box): `stopDemo()` only. The answer stays open.
-- **Slow motion:** css. The height or grid-row change, the arrow's turn and the text fade slow down. The run's wait before closing uses Speed × k.
+  On `hb:input` (a press, or a wheel or touch that scrolls the box): `stopRun()` only. The answer stays open.
+- **Slow motion:** css. The height or grid-row change, the arrow's turn and the text fade slow down, and the run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: answers open and close at once, without fading.
 - **Stage font:** site font. `.acc-trigger` gets `font-family:inherit` (was `monospace`).
 - **Stage:** the five questions stay, and the stage scrolls: its own rule keeps `overflow:auto`, because open answers can make the list taller than the stage.
@@ -399,7 +402,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - t = 2100ms: the middle of the fourth area, and it shrinks back;
   - t = 2800ms: the dot fades out, and the run ends. About 2.8 s.
 
-  The run also stops when a real pointer enters or moves over the stage (today's `mouseenter` and `mousemove` handlers, when `e.isTrusted`), because moving the pointer sends no `hb:input`. On that, or on `hb:input` (a tap or press): `stopDemo()` and remove `expanded`; the dot then follows the visitor.
+  The run also stops on a trusted `pointermove` over the stage (see the preamble). On that, or on `hb:input` (a tap or press): `stopRun()` and remove `expanded`; the dot then follows the visitor.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rule stays: the dot's size changes at once. The dot still follows the visitor's own pointer with its lag, as today.
 - **Touch:** today the dot is hidden on touch screens (the `pointer:coarse` check), so phones showed nothing. That check goes. A `pointerdown` on the stage whose `pointerType` is not `mouse` sets `mx`/`my` to the tap point and shows the dot. The first tap places it there directly, as `mouseenter` does; later taps make it glide to each new point. The dot stays shown, and the page still scrolls with a swipe over the box (`touch-action` is unchanged).
@@ -474,11 +477,11 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Show me:** `toRest()` empties the field and clears its state (`clearState()`). Then:
   - t = 0: the field gets a wrong password, "abc123" (it shows as dots);
   - t = 400ms: today's `shake('Incorrect password. Try again.')`, called directly as the old "Replay shake" button did. It does not submit the form and does not focus the field (the submit handler's `focus()` and `select()` would open a phone's keyboard);
-  - t = 400ms + Speed × k + 1600ms: the field is emptied and `clearState()` runs;
+  - t = 400ms + Speed + 1600ms: the field is emptied and `clearState()` runs;
   - the run ends. About 2.4 s at the defaults.
 
-  On `hb:input`: `stopDemo()`. If the field still holds the run's "abc123", it is emptied and `clearState()` runs, so the visitor starts from a clean field.
-- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down. The run's wait after the shake uses Speed × k.
+  On `hb:input`: `stopRun()`. If the field still holds the run's "abc123", it is emptied and `clearState()` runs, so the visitor starts from a clean field.
+- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down, and the run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: no shake, but the red border and the message still show.
 - **Stage font:** site font. The card's title drops `var(--disp)`; `.field input` and `.submit` get `font-family:inherit` (were `var(--mono)` and `var(--disp)`). `.field label` (10px) and `.msg` (10.5px) go up to 11px.
 - **Stage:** the sign-in card stays, with its field, message and Sign in button.
@@ -540,13 +543,13 @@ None: leave out the `details.hb-options` block.
 - **Description:** A card dragged sideways flies off and the list closes up. Best for inboxes.
 - **Watch it help line:** Drag a message sideways and let go. A short drag springs back.
 - **Player bar:** Show me · Reset. No Slow motion: the card follows the visitor's own hand, and the settle and fly-off are short.
-- **Show me:** `toRest()` rebuilds the list (`build()`) when a message is missing. Then, on the first message, frame by frame through `demoFrame`:
+- **Show me:** `toRest()` rebuilds the list (`build()`) when a message is missing. Then, on the first message, frame by frame through `runFrame`:
   - t = 0 to 400ms: it is dragged right to half the Distance to delete, then let go: today's `spring()` brings it back;
   - t = 1100 to 1700ms: it is dragged right to the Distance to delete plus 15% of its width, then let go: today's `dismiss(row, card, 1)` flies it off and closes its row;
   - t = 2600ms: the list is rebuilt, as Reset does, and the run ends. About 2.6 s.
 
-  Each drag frame sets the card as today's `pointermove` does: `translateX(x)`, opacity `max(0.3, 1 − |x| / (0.9 × width))`, and the red strip (`show`) past 8px while Shows a Delete label is on. On `hb:input`: `stopDemo()`. A card still being dragged by the run springs back; a card already gone stays gone, and Reset brings it back.
-- **Reset:** rebuilds all four messages (today's "Reset list", `build()`), after `stopDemo()`.
+  Each drag frame sets the card as today's `pointermove` does: `translateX(x)`, opacity `max(0.3, 1 − |x| / (0.9 × width))`, and the red strip (`show`) past 8px while Shows a Delete label is on. On `hb:input`: `stopRun()`. A card still being dragged by the run springs back; a card already gone stays gone, and Reset brings it back.
+- **Reset:** rebuilds all four messages (today's "Reset list", `build()`), after `stopRun()`.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: a dismissed row is removed at once (its `reduce` branch), and the spring back has no transition.
 - **Touch:** already Pointer Events with pointer capture; `touch-action:pan-y` on the cards lets the page scroll up and down.
@@ -611,11 +614,11 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the button again closes the menu.
 - **Show me:** `toRest()` closes the menu at once, without the transitions. Today's click handler becomes a `toggle()` function, which the button and the run both call. Then:
   - t = 0: `toggle()` opens: the lines cross, and the menu drops in;
-  - t = (Speed + 210ms) × k + 1200ms: `toggle()` closes (the 210ms is the last menu item's delay);
+  - t = Speed + 210ms + 1200ms: `toggle()` closes (the 210ms is the last menu item's delay);
   - the run ends when it has closed. About 2.1 s at the defaults.
 
-  On `hb:input`: `stopDemo()` only. The menu stays as it is.
-- **Slow motion:** css. The run's wait before closing uses (Speed + 210ms) × k.
+  On `hb:input`: `stopRun()` only. The menu stays as it is.
+- **Slow motion:** css. The run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: the icon and the menu switch at once.
 - **Stage font:** site font (no rule to change).
 - **Stage:** the button and the menu stay. The "State: closed" readout goes, with its rules.
@@ -674,11 +677,11 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the button again switches back to light, and Show me starts from light; today's "Reset to light" goes.
 - **Show me:** `toRest()` switches to light at once, without the transitions (`setDark(false)`). Then:
   - t = 0: `setDark(true)`, as a press does: the sun becomes the moon, and the card flips to dark;
-  - t = Speed × k + 1000ms: `setDark(false)`;
+  - t = Speed + 1000ms: `setDark(false)`;
   - the run ends when the change is over. About 2 s at the defaults.
 
-  On `hb:input`: `stopDemo()` only.
-- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down. The run's wait uses Speed × k.
+  On `hb:input`: `stopRun()` only.
+- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down, and the run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: the icon and the card switch at once.
 - **Stage font:** site font (no font rule to change). The card's `.face .st` ("preview card") goes up to 11px (was 9px).
 - **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do.
@@ -738,7 +741,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Copy turns into a tick and Copied, then changes back. Best for codes and links.
 - **Watch it help line:** Press Copy. The button confirms it worked, then changes back.
 - **Player bar:** Show me · Slow motion (css). No Reset: the button changes back by itself.
-- **Show me:** plays the confirmation without copying anything. `toRest()` removes `copied` at once, without the transitions. Then the run adds `copied` to the button and starts the button's own revert timer (`timer`, Time before it changes back), exactly as a successful copy does. The run is only that step, so it ends at once (`demoOn=false`), and the button changes back on its own timer: about 1.8 s from start to rest at the defaults (1.3 s to 2.8 s).
+- **Show me:** plays the confirmation without copying anything. `toRest()` removes `copied` at once, without the transitions. Then the run adds `copied` to the button and starts the button's own revert timer (`timer`, Time before it changes back), exactly as a successful copy does. The run is only that step, so it ends at once (no run timer is left), and the button changes back on its own timer: about 1.8 s from start to rest at the defaults (1.3 s to 2.8 s).
   - It never writes to the clipboard: that would replace what the visitor copied, and browsers refuse a copy nobody pressed for.
   - It never writes "Copied to clipboard" into the live region.
   - A real press of Copy during the confirmation takes over the same timer, as today. `hb:input` has nothing to stop.
@@ -808,10 +811,10 @@ None: leave out the `details.hb-options` block.
 - **Show me:** `toRest()` sets the rating back to 3 (`rating=3; commit(false)`). Then an invisible pointer sweeps along the row (n is Number of stars):
   - every 120ms from t = 0: `render(1)`, `render(2)` … up to `render(n)`, then `render(n − 1)`, as the pointer comes back one star;
   - t = (n + 1) × 120ms: `rating = n − 1` (or n − 0.5 while Allows half stars is on) and `commit(true)`, which pops that star;
-  - t = (n + 1) × 120ms + 420ms × k + 1200ms: `rating = 3; commit(false)`, and the run ends. About 2.3 s with five stars.
+  - t = (n + 1) × 120ms + 420ms + 1200ms: `rating = 3; commit(false)`, and the run ends. About 2.3 s with five stars.
 
-  The run does not call `rate.focus()`. On `hb:input`: `stopDemo()` and `render(rating)`, so the stars show the committed rating.
-- **Slow motion:** css. The fill's colour change and the pop slow down. The run's wait for the pop uses 420ms × k; the sweep's 120ms steps and the 1200ms hold stay.
+  The run does not call `rate.focus()`. On `hb:input`: `stopRun()` and `render(rating)`, so the stars show the committed rating.
+- **Slow motion:** css. The fill's colour change and the pop slow down, and the run's times triple through `later()`, so the sweep keeps its shape.
 - **Reduced motion:** the demo's rule stays: the stars fill at once, with no pop.
 - **Touch:** already Pointer Events. The row's `touch-action:none` lets a finger dragged along it preview, and a tap chooses.
 - **Stage font:** site font. `.value` drops `var(--disp)` and `.value small` drops `var(--mono)`.
@@ -875,10 +878,10 @@ None: leave out the `details.hb-options` block.
 - **Description:** Short messages slide into a corner, then leave on their own. Best for updates.
 - **Watch it help line:** Press the button for a toast. Tap it, swipe it or press × to close it early.
 - **Player bar:** Show me · Reset. No Slow motion: each toast's countdown bar is a CSS animation that decides when it leaves, so slowing the stage would also triple its time on screen.
-- **Show me:** `toRest()` removes any toasts at once (without their exit). Then the run presses the stage's button once: `spawn(0)` brings in the first message ("Saved — Your changes were published."), so a run is always the same; a plain press stays random. The run is only that press, so it ends at once (`demoOn=false`). The toast then lives like any other: it comes in, its bar counts down Time on screen, and it leaves by itself.
+- **Show me:** `toRest()` removes any toasts at once (without their exit). Then the run presses the stage's button once: `spawn(0)` brings in the first message ("Saved — Your changes were published."), so a run is always the same; a plain press stays random. The run is only that press, so it ends at once (no run timer is left). The toast then lives like any other: it comes in, its bar counts down Time on screen, and it leaves by itself.
   - From press to rest takes about 4.6 s at Medium (3.1 s at Short, 7.1 s at Long). That is longer than most runs, because leaving on its own is the point of a toast.
   - `hb:input` has nothing to stop.
-- **Reset:** dismisses every toast, as "Dismiss all" did (each leaves the way it came), after `stopDemo()`.
+- **Reset:** dismisses every toast, as "Dismiss all" did (each leaves the way it came), after `stopRun()`.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, the bar is hidden, and a timer dismisses each one.
 - **Touch:** already Pointer Events: a drag past 35% of its width or a tap dismisses a toast. Holding a finger on a toast pauses its countdown (the `paused` class). Pointing at a toast pauses it too, inside `@media (hover: hover)`, as today.
@@ -948,11 +951,11 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the first option brings the demo back.
 - **Show me:** `toRest()` chooses the first option at once (`current=0; move(0,false); paint()`). Then:
   - t = 0: `current = n − 1; move(n − 1, true); paint()` chooses the last option, so the highlight slides the whole way (n is Number of options);
-  - t = Speed × k + 1200ms: `current = 0; move(0, true); paint()` chooses the first again;
+  - t = Speed + 1200ms: `current = 0; move(0, true); paint()` chooses the first again;
   - the run ends when the highlight has landed. About 1.9 s at the defaults.
 
-  The run uses `move()` and `paint()`, not `select()`, which would move the keyboard focus. On `hb:input`: `stopDemo()` only.
-- **Slow motion:** css. The slide and the labels' colour change slow down. The run's wait uses Speed × k.
+  The run uses `move()` and `paint()`, not `select()`, which would move the keyboard focus. On `hb:input`: `stopRun()` only.
+- **Slow motion:** css. The slide and the labels' colour change slow down, and the run's times triple through `later()`.
 - **Reduced motion:** the demo's rule stays: the highlight jumps.
 - **Stage font:** site font. `.seg-opt` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the control stays; the "Selected" readout goes.
@@ -1017,12 +1020,12 @@ None: leave out the `details.hb-options` block.
 - **Watch it help line:** Drag the list down from the top and let go, or press the refresh button.
 - **Player bar:** Show me · Reset. No Slow motion: the pull follows the visitor's hand, and the spinner turns for as long as the refresh takes.
 - **Show me:** while a refresh is under way, Show me does nothing. Otherwise `toRest()` scrolls the list to its top. Then:
-  - t = 0 to 700ms: frame by frame through `demoFrame`, `pull` eases from 0 to 1.25 × Pull distance, slowing as it goes like the rubber band. Each frame calls `setY(pull,false)` and `drawSpin()`, so the spinner fades in and turns, and the hint reads "Release to refresh" past the line;
+  - t = 0 to 700ms: frame by frame through `runFrame`, `pull` eases from 0 to 1.25 × Pull distance, slowing as it goes like the rubber band. Each frame calls `setY(pull,false)` and `drawSpin()`, so the spinner fades in and turns, and the hint reads "Release to refresh" past the line;
   - t = 850ms: `startRefresh()`, as a release past the line does. It spins for Refresh time, adds the new item at the top and springs back;
   - the run ends when the list is back up. About 2.4 s at the defaults.
 
-  On `hb:input` during the pull: `stopDemo()`, then `pull=0; setY(0,true); drawSpin()`, so the list springs back and the visitor's own drag takes over. Once the refresh has started, it finishes as usual.
-- **Reset:** puts the list back to its six first items (the new ones go, `n` returns to 0) and scrolls it to the top, after `stopDemo()`. A refresh under way ends at once: `startRefresh()` keeps its timer in `refreshTimer`, which Reset clears; then the spinner stops, `refreshing` becomes false and the list is set back to 0 without a transition.
+  On `hb:input` during the pull: `stopRun()`, then `pull=0; setY(0,true); drawSpin()`, so the list springs back and the visitor's own drag takes over. Once the refresh has started, it finishes as usual.
+- **Reset:** puts the list back to its six first items (the new ones go, `n` returns to 0) and scrolls it to the top, after `stopRun()`. A refresh under way ends at once: `startRefresh()` keeps its timer in `refreshTimer`, which Reset clears; then the spinner stops, `refreshing` becomes false and the list is set back to 0 without a transition.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: the list snaps back without its tween, and new items appear without sliding in.
 - **Touch:** already Pointer Events, claimed only at the top of the list, with `touchmove` blocked once the pull is claimed. The list still scrolls normally.
