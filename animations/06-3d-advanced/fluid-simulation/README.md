@@ -1,7 +1,7 @@
 # Fluid / Liquid Simulation
 
 ## What it is
-The fluid simulation demo renders an organic blob effect — metaballs that merge softly when they come close and separate cleanly when far apart. It is not a true Navier-Stokes fluid simulation but a convincing approximation: signed distance field (SDF) spheres combined with a smooth-minimum function, rendered per-pixel in a WebGL fragment shader. The result looks like lava lamp blobs or liquid mercury.
+This fluid effect looks like liquid but is not a real fluid simulation. A WebGL shader works out, for every pixel, how far it is from a few moving circles, and blends those distances so circles that come close melt into one smooth shape, like drops of mercury or a lava lamp. Circles that drift apart separate cleanly again.
 
 ## When to use it
 - Liquid-aesthetic hero backgrounds on health, wellness, and creative product sites
@@ -53,10 +53,13 @@ vec2 ballPosition(int i, float t) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Metaball count | 5 | More = busier, more connections; 8+ at high res drops FPS |
-| Smoothness (k) | 0.08 | 0 = sharp, hard edges (no blending); 0.2 = very soft merge radius |
-| Ball radius | 0.14 | Larger = bigger blobs; overlaps more = more frequent merges |
-| Speed | 0.8 | Faster = frantic; 0.3 = meditative |
+| Melting | Medium | How far apart two blobs start to melt together: a little is 0.03, medium 0.08 and a lot 0.15 of the stage height; a lot gives thick, soft necks |
+| Number of blobs | Medium | Few is 3, medium 5 and many 8 blobs; each one adds work for every pixel |
+| Speed | Normal | How fast the blobs move on their paths: slow is 0.5, normal 0.8 and fast 1.3 |
+| Blob size | Medium | Each blob's radius: small is 9%, medium 14% and large 20% of the stage height |
+| Color | Blue | The color of the liquid |
+| Glow | on | Adds a soft halo that fades out around the liquid |
+| One blob follows the pointer | on | One blob leaves its path and sits under the pointer or a finger |
 
 ## Production notes
 - **Real fluid simulation**: Navier-Stokes-based fluid (velocity fields, pressure, diffusion) requires full-screen texture updates per frame. Pavel DoGreat's WebGL Fluid Simulation (open source) is the go-to — it renders truly interactive fluid at 60fps using a series of physics passes.
@@ -68,6 +71,6 @@ vec2 ballPosition(int i, float t) {
 - **`prefers-reduced-motion`**: pause the animation. The blobs should remain visible in their default positions.
 
 ## See also
-- [WebGL Shader Animation](../webgl-shader-animation/) — same fullscreen-quad approach, different shader patterns
-- [Canvas Particle Effect](../canvas-particle-effect/) — 2D canvas alternative for organic movement
-- [Noise-Based Motion](../noise-based-motion/) — Perlin noise for similar organic feel with less WebGL complexity
+- [WebGL Shader Animation](../webgl-shader-animation/) — the same one-surface shader setup, painting patterns
+- [Morphing Blob](../morphing-blob/) — the same melting look from blurred circles, without WebGL
+- [Noise-Based Motion](../noise-based-motion/) — smooth noise moves dots and a blob instead
