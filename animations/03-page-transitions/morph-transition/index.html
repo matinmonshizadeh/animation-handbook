@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Morph Transition — Animation Handbook</title>
-  <meta name="description" content="An SVG path morphs between page-specific shapes — interpolating point-by-point using matching vertex counts.">
+  <meta name="description" content="The logo changes shape to match each page you visit. Best for brand marks.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/morph-transition/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,129 +12,142 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Morph Transition — Animation Handbook">
-  <meta property="og:description" content="An SVG path morphs between page-specific shapes — interpolating point-by-point using matching vertex counts.">
+  <meta property="og:description" content="The logo changes shape to match each page you visit. Best for brand marks.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/morph-transition/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Morph Transition — Animation Handbook">
-  <meta name="twitter:description" content="An SVG path morphs between page-specific shapes — interpolating point-by-point using matching vertex counts.">
+  <meta name="twitter:description" content="The logo changes shape to match each page you visit. Best for brand marks.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Morph Transition", "name": "Morph Transition", "description": "An SVG path morphs between page-specific shapes — interpolating point-by-point using matching vertex counts.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/morph-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Morph Transition"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Morph Transition", "name": "Morph Transition", "description": "The logo changes shape to match each page you visit. Best for brand marks.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/morph-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Morph Transition"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--dur:700ms;--ease:ease-in-out}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;align-items:center}
     .nav-logo{flex-shrink:0;margin-right:8px}
     .nav-logo svg{display:block}
-    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:4px;cursor:pointer;min-height:44px}
+    #nav{display:flex;gap:6px;flex:1}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
     .page-area{flex:1;position:relative;overflow:hidden}
-    .page{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 300ms ease}
+    .page{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity var(--fade,300ms) ease}
     .page.active{opacity:1;pointer-events:auto}
     .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
-    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.4}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.6}
     .ph{font-size:clamp(22px,3.5vw,36px);font-weight:bold;line-height:1.15}
     .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:320px}
     .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
     .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:18px 12px;font-size:11px}
     .pstat{display:flex;gap:20px;margin-top:4px}
     .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:#58a6ff}
-    .pstat span{font-size:9px;opacity:.4;text-transform:uppercase;letter-spacing:1px}
-    .shape-row{display:flex;gap:8px;margin-top:4px}
-    .shape-btn{background:none;border:1px solid var(--ui-border);padding:6px;border-radius:4px;cursor:pointer;flex-shrink:0;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
-    .shape-btn.on{border-color:var(--ui-accent)}
-    .shape-btn svg{display:block}
-    .pts-overlay{position:absolute;top:0;left:0;pointer-events:none;opacity:0;transition:opacity .2s}
-    .pts-overlay.show{opacity:1}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:38px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .log{display:flex;flex-direction:column;gap:2px}
-    .log-row{font-size:9px;color:var(--ui-muted)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}.nav-btn:hover{border-color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}}
-    @media(prefers-reduced-motion:reduce){.page,.pts-overlay{transition:none}}
+    .pstat span{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
+    @media(hover:hover){.nav-btn:hover{border-color:var(--ui-accent)}}
+    /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
+    @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+    @media(prefers-reduced-motion:reduce){.page{transition:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../shared-element-transition/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../crossfade/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/03-page-transitions/morph-transition/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Morph Transition</h1>
-  <p>An SVG path morphs between page-specific shapes — interpolating point-by-point using matching vertex counts.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div class="mini-nav">
-      <div class="nav-logo">
-        <svg id="morph-svg" width="32" height="32" viewBox="0 0 100 100">
-          <path id="morph-path" fill="#58a6ff" opacity=".9"/>
-          <circle id="pts-layer" r="3" fill="none"/>
-        </svg>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../shared-element-transition/" rel="prev" aria-label="Previous: Shared Element Transition"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Shared Element Transition</span></a><a href="../crossfade/" rel="next" aria-label="Next: Crossfade Transition"><span><span class="hb-dir">Next: </span>Crossfade Transition</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">03.03 · Page Transitions</p>
+    <h1>Morph Transition</h1>
+    <p class="hb-lede">The logo changes shape to match each page you visit. Best for brand marks.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click Gallery or About at the top of the box, or press Show me.</p></div>
+    </div>
+    <div class="stage">
+      <div class="mini-nav">
+        <div class="nav-logo">
+          <svg id="morph-svg" width="44" height="44" viewBox="0 0 100 100" aria-hidden="true"><path id="morph-path" fill="#58a6ff" opacity=".9"/></svg>
+        </div>
+        <div id="nav"></div>
       </div>
-      <div id="nav" style="display:flex;gap:6px;flex:1"></div>
+      <div class="page-area" id="page-area"></div>
     </div>
-    <div class="page-area" id="page-area"></div>
-  </div>
-  <aside>
-    <p class="note">SVG morphing requires source and target paths to have the same number of points. This demo normalizes all three shapes to 12 vertices and interpolates each x,y pair with linear easing or a custom ease function.</p>
-    <div class="lbl">State</div>
-    <div class="kv"><span>Page</span><span class="v" id="cur-page">Home</span></div>
-    <div class="kv"><span>Shape</span><span class="v" id="shape-val">Circle</span></div>
-    <div class="div"></div>
-    <div class="lbl">Jump to shape</div>
-    <div class="shape-row" id="shape-row"></div>
-    <div><div class="lbl" id="dur-lbl">Morph duration</div>
-      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="2000" value="700" step="50"><span class="sv" id="dur-v">700ms</span></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
     </div>
-    <div><div class="lbl">Easing</div>
-      <select id="ease-sel">
-        <option value="ease-in-out" selected>Ease in-out</option>
-        <option value="ease-out">Ease out</option>
-        <option value="linear">Linear</option>
-        <option value="springy">Springy</option>
-      </select>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
     </div>
-    <label class="tog" for="pts-tog"><input type="checkbox" id="pts-tog"><span>Show control points</span></label>
-    <div class="div"></div>
-    <div class="lbl">History</div>
-    <div class="log" id="trans-log"></div>
-    <div class="div"></div>
-    <button class="rst" id="rst-btn">← Return to Home</button>
-  </aside>
-</div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1100" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="700" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="400" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the logo takes to change shape.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="ease-out" aria-pressed="false">Smooth</button>
+          <button type="button" data-ease="springy" aria-pressed="false">Springy</button>
+          <button type="button" data-ease="ease-in-out" class="on" aria-pressed="true">Gentle</button>
+          <button type="button" data-ease="linear" aria-pressed="false">Even</button>
+        </div>
+        <p class="hb-hint">Springy stretches a little past the new shape.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a morphing logo to [your logo or icon, and the pages it belongs to]. Give each page its own shape for the logo, and when the visitor changes page, let the outline flow from the old shape into the new one while the page content fades across. Draw every shape with the same number of points in the same order, so each point has a partner to move to and the outline never tears or twists. Move the points yourself on every frame, because CSS cannot blend two different shapes. If the visitor has reduced motion turned on, switch to the new shape at once. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Logos</li><li>Brand marks</li><li>Icons that change state</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Detailed pictures</li><li>Text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const PI2=Math.PI*2,cx=50,cy=50;
   function pts2path(pts){return'M '+pts.map(([x,y])=>`${x.toFixed(2)} ${y.toFixed(2)}`).join(' L ')+' Z'}
@@ -146,41 +159,50 @@ body{padding-top:46px}
   // 12-point star (alternating outer/inner)
   const star12=Array.from({length:12},(_,i)=>{const a=i/12*PI2-Math.PI/2,r=i%2===0?38:18;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]});
 
-  const SHAPES=[{name:'Circle',pts:circle12,color:'#58a6ff'},{name:'Hexagon',pts:hex12,color:'#56d364'},{name:'Star',pts:star12,color:'#ffa657'}];
+  const SHAPES=[{pts:circle12,color:'#58a6ff'},{pts:hex12,color:'#56d364'},{pts:star12,color:'#ffa657'}];
   const PAGES=[
-    {name:'Home',shape:0,bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><h2 class="ph">Design without compromise.</h2><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
-    {name:'Gallery',shape:1,bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><h2 class="ph">The Portfolio</h2><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
-    {name:'About',shape:2,bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><h2 class="ph">Built on conviction.</h2><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+    {name:'Home',shape:0,bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><p class="ph">Design without compromise.</p><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
+    {name:'Gallery',shape:1,bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',shape:2,bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
   ];
   const nav=document.getElementById('nav'),area=document.getElementById('page-area');
-  const morphPath=document.getElementById('morph-path');
-  const curPage=document.getElementById('cur-page'),shapeVal=document.getElementById('shape-val'),logEl=document.getElementById('trans-log');
-  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v'),easeSel=document.getElementById('ease-sel');
-  const ptsTog=document.getElementById('pts-tog'),shapeRow=document.getElementById('shape-row');
-  let current=0,morphRaf=null,animating=false,dur=700,currentPts=[...circle12],history=[];
+  const morphPath=document.getElementById('morph-path'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let current=0,animating=false,dur=700,ease='ease-in-out',morphRaf=null,currentPts=[...circle12],afterMove=null,wayBack=0,timers=[];
+  const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
-    const d=document.createElement('div');d.className='page'+(i===0?' active':'');d.id='p'+i;d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);
-    const b=document.createElement('button');b.className='nav-btn'+(i===0?' active':'');b.textContent=p.name;b.addEventListener('click',()=>navigate(i));nav.appendChild(b);
+    const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);pages.push(d);
+    const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
+    b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
-  SHAPES.forEach((s,i)=>{
-    const el=document.createElement('button');el.className='shape-btn'+(i===0?' on':'');
-    el.innerHTML=`<svg width="24" height="24" viewBox="0 0 100 100"><path fill="${s.color}" d="${pts2path(s.pts)}"/></svg>`;
-    el.addEventListener('click',()=>{if(!animating)startMorph(currentPts,s.pts,()=>{currentPts=[...s.pts];shapeVal.textContent=s.name;morphPath.setAttribute('fill',s.color);document.querySelectorAll('.shape-btn').forEach((x,j)=>x.classList.toggle('on',j===i));});});
-    shapeRow.appendChild(el);
-  });
-  morphPath.setAttribute('d',pts2path(circle12));morphPath.setAttribute('fill',SHAPES[0].color);
+
+  // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+    return id;
+  }
+  function cancel(id){
+    clearTimeout(id);
+    const i=timers.indexOf(id);
+    if(i>-1)timers.splice(i,1);
+  }
 
   function lerp(a,b,t){return a+(b-a)*t}
-  function easeFn(t,e=easeSel.value){if(e==='linear')return t;if(e==='ease-out')return 1-(1-t)**3;if(e==='springy'){const ov=1.2;return t<0.5?ov*(1-(1-2*t)**2):(t<0.8?ov-(ov-1)*(t-0.5)/0.3:1);}return t<0.5?2*t*t:1-(-2*t+2)**2/2}
+  function easeFn(t,e=ease){if(e==='linear')return t;if(e==='ease-out')return 1-(1-t)**3;if(e==='springy'){const ov=1.2;return t<0.5?ov*(1-(1-2*t)**2):(t<0.8?ov-(ov-1)*(t-0.5)/0.3:1);}return t<0.5?2*t*t:1-(-2*t+2)**2/2}
 
-  function render(pts){morphPath.setAttribute('d',pts2path(pts));currentPts=pts;if(ptsTog.checked)drawPts(pts);}
+  function render(pts){morphPath.setAttribute('d',pts2path(pts));currentPts=pts}
+  function drawShape(s){render([...s.pts]);morphPath.setAttribute('fill',s.color)}
   function startMorph(from,to,done){
     if(morphRaf)cancelAnimationFrame(morphRaf);
     morphRaf=null;
     if(!motionOk){render([...to]);done?.();return;}
-    const start=performance.now(),d=dur,ez=easeSel.value;
+    const start=performance.now(),d=dur*(slowTog.checked?3:1),ez=ease;
     function tick(now){
       const t=Math.min((now-start)/d,1),et=easeFn(t,ez);
       render(from.map(([ax,ay],i)=>[lerp(ax,to[i][0],et),lerp(ay,to[i][1],et)]));
@@ -189,43 +211,65 @@ body{padding-top:46px}
     morphRaf=requestAnimationFrame(tick);
   }
 
-  function updateNav(n){document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===n));curPage.textContent=PAGES[n].name}
-  function addLog(f,t){history.unshift(PAGES[f].name+' → '+PAGES[t].name);if(history.length>3)history.pop();logEl.innerHTML=history.map(l=>`<div class="log-row">${l}</div>`).join('')}
+  function updateNav(n){navBtns.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  // The resting state for page n, at once: it shows, the others are hidden and the logo has its shape. A fade that is
+  // already running toward the same opacity keeps its own length however short --fade is, so it is cancelled too.
+  function showPage(n){
+    area.style.setProperty('--fade','0ms');
+    pages.forEach((el,i)=>{el.classList.toggle('active',i===n);el.getAnimations().forEach(a=>a.cancel())});
+    updateNav(n);
+    drawShape(SHAPES[PAGES[n].shape]);
+  }
 
-  function navigate(next){
+  // Ends a morph: the demo is idle again, and a Show me run goes on to its next step
+  function finish(){
+    animating=false;
+    const then=afterMove;afterMove=null;
+    if(then)then();
+  }
+  // Stops everything at once and shows the resting state for `current`
+  function settle(){
+    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    if(morphRaf){cancelAnimationFrame(morphRaf);morphRaf=null}
+    animating=false;
+    showPage(current);
+  }
+
+  function navigate(next,then){
     if(next===current||animating)return;
-    const prev=current;current=next;updateNav(next);addLog(prev,next);
-    // Crossfade pages
-    document.getElementById('p'+prev).classList.remove('active');
-    document.getElementById('p'+next).classList.add('active');
-    // Morph the logo shape (snaps straight to the target under reduced motion)
-    const targetShape=SHAPES[PAGES[next].shape];
+    const prev=current;current=next;updateNav(next);
+    afterMove=then||null;
+    // The pages fade across in 300ms, three times as long in slow motion, while the logo changes shape
+    area.style.setProperty('--fade',(slowTog.checked?900:300)+'ms');
+    pages[prev].classList.remove('active');pages[next].classList.add('active');
+    const target=SHAPES[PAGES[next].shape];
     animating=true;
-    startMorph(currentPts,targetShape.pts,()=>{
-      currentPts=[...targetShape.pts];shapeVal.textContent=targetShape.name;
-      morphPath.setAttribute('fill',targetShape.color);
-      document.querySelectorAll('.shape-btn').forEach((x,j)=>x.classList.toggle('on',j===PAGES[next].shape));
-      animating=false;
-    });
+    startMorph(currentPts,target.pts,()=>{drawShape(target);finish()});
   }
 
-  const NS='http://www.w3.org/2000/svg';
-  let ptsGroup=null;
-  function drawPts(pts){
-    if(!ptsGroup){ptsGroup=document.createElementNS(NS,'g');ptsGroup.id='pts-g';document.getElementById('morph-svg').appendChild(ptsGroup);}
-    ptsGroup.innerHTML=pts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#58a6ff" opacity=".9"/>`).join('');
+  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  function showMe(){
+    settle();
+    const start=current;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
   }
-  ptsTog.addEventListener('change',()=>{
-    morphPath.style.opacity=ptsTog.checked?'0.5':'';
-    if(ptsTog.checked)drawPts(currentPts);else if(ptsGroup)ptsGroup.innerHTML='';
-  });
-  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
-  document.getElementById('rst-btn').addEventListener('click',()=>{
-    if(animating)return;const p=current;current=0;updateNav(0);if(p!==0)addLog(p,0);
-    document.querySelectorAll('.page').forEach((el,i)=>el.classList.toggle('active',i===0));
-    startMorph(currentPts,circle12,()=>{currentPts=[...circle12];shapeVal.textContent='Circle';morphPath.setAttribute('fill',SHAPES[0].color);document.querySelectorAll('.shape-btn').forEach((x,j)=>x.classList.toggle('on',j===0));animating=false;});
-  });
+  function reset(){current=0;settle()}
+
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  document.getElementById('btn-reset').addEventListener('click',reset);
+  // The visitor took over: cancel what the run has not started yet. A morph already moving finishes on its own.
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('feel-seg',d=>{ease=d.ease});
+  showPage(0);
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
