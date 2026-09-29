@@ -58,9 +58,10 @@ maths.
 - On phone-sized screens (up to 600px wide, or up to 500px tall for a phone held
   sideways) the demo caps the buffer at 140 pixels wide; a phone's stage is small
   enough that it looks the same.
-- Precompute what you can: the radial distance of each pixel and the per-row and
-  per-column sines only need recomputing when size or zoom changes, leaving one
-  sine per pixel in the inner loop.
+- Precompute what you can: the radial distance of each pixel only changes with
+  the size, so it is computed once; the row, column and diagonal sines change
+  with time, so they are computed once per frame for each row and column rather
+  than for every pixel, leaving one sine per pixel in the inner loop.
 - Do colour through a palette lookup table, not live RGB maths per pixel.
 - Pause the `requestAnimationFrame` loop on `visibilitychange` when the tab is
   hidden so a background tab does no work.
