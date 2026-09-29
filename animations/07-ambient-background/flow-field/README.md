@@ -1,7 +1,7 @@
 # Flow Field
 
 ## What it is
-Thousands of particles crawl across the canvas, each one steering by the angle of an invisible vector field. The field comes from a small noise function, so neighbouring particles curve in unison and the whole surface reveals smooth, river-like currents. Because the frame is dimmed rather than cleared, particles leave fading trails that trace the flow.
+A flow field moves thousands of particles across a canvas, each one steering by the direction of an invisible current under it. The directions change smoothly from one spot to the next, so particles near each other curve together, and the whole surface shows gentle, river-like currents. The canvas is dimmed a little each frame instead of cleared, so every particle leaves a fading trail that traces the flow.
 
 ## When to use it
 - Generative, organic hero backgrounds where every load looks slightly different
@@ -32,20 +32,20 @@ p.x += Math.cos(a) * SPD; p.y += Math.sin(a) * SPD;
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Particle count | 900 | Density of the trails; the main cost driver |
-| Noise scale | 34 | Larger = broader, calmer currents; smaller = tight turbulence |
-| Speed | 1.0 | Step length per frame; higher smears the trails |
-| Trail persistence | 0.06 | Fade alpha — low = long ghostly trails, high = short crisp ones |
-| Color | mint | Fixed hue, or `spectrum` for a hue that maps to x-position |
+| Swirl size | Medium | How large the currents are: the direction turns over about 20px (small), 34px (medium) or 60px (large); larger looks calm, smaller turbulent |
+| Trail length | Medium | How long trails linger: short fades 12% a frame, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
+| Speed | Normal | How far each particle moves every frame: slow is 0.6px, normal 1px and fast 1.6px |
+| Number of particles | Medium | Few is 400, medium 900 and many 1,500; phones show at most 500 |
+| Color | Mint | Mint, ember or ice, or rainbow, where the color changes across the stage and over time |
 
 ## Production notes
 - **Trail alpha vs. buildup**: because trails rely on incomplete clearing, a very low persistence value can leave permanent residue on some GPUs. Nudge it up (0.04+) if you see ghosting that never fully fades.
-- **Mobile cap**: particle count is limited to 500 under 600px. Each particle is a stroked line segment, so fill rate — not math — is the bottleneck on phones.
+- **Mobile cap**: particle count is limited to 500 on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways). Each particle is a stroked line segment, so fill rate — not math — is the bottleneck on phones.
 - **Deterministic noise**: the `hash` uses `sin(x*127.1 + y*311.7)*43758.5453`, a classic GLSL trick. It is not cryptographic and not true Perlin noise, but it is cheap, dependency-free, and smooth enough for a field.
-- **Reduced motion**: on `prefers-reduced-motion`, the loop is skipped and ~40 frames are pre-rendered once to leave a static, settled composition.
+- **Reduced motion**: the demo starts paused, showing about 40 frames drawn at once as a still, settled picture, until the visitor presses Play. The same 40 frames are drawn whenever the page opens, so the stage never starts empty.
 - **Library equivalents**: production flow fields usually run on the GPU — [three.js](https://threejs.org) with a fragment/compute shader, or curl-noise in a particle system. [tsParticles](https://github.com/matteobruni/tsparticles) does not do true flow fields, but its path plugins approximate directed motion.
 
 ## See also
-- [Particle Constellation](../particle-constellation/) — particles that link rather than flow
-- [Aurora](../aurora/) — flowing colour bands from blur instead of particles
-- [Mesh Gradient](../mesh-gradient/) — smooth drifting colour with no discrete particles
+- [Particle Constellation](../particle-constellation/) — particles that link up instead of flowing
+- [Aurora / Northern Lights](../aurora/) — flowing bands of color made with blur
+- [Mesh Gradient Animation](../mesh-gradient/) — smooth drifting color with no particles
