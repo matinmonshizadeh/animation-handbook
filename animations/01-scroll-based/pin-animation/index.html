@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pin Animation — Animation Handbook</title>
-  <meta name="description" content="Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.">
+  <meta name="description" content="One part stays put while its text changes on scroll. Best for feature lists.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/pin-animation/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,126 +12,129 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Pin Animation — Animation Handbook">
-  <meta property="og:description" content="Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.">
+  <meta property="og:description" content="One part stays put while its text changes on scroll. Best for feature lists.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/pin-animation/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Pin Animation — Animation Handbook">
-  <meta name="twitter:description" content="Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.">
+  <meta name="twitter:description" content="One part stays put while its text changes on scroll. Best for feature lists.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pin Animation", "name": "Pin Animation", "description": "Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/pin-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Pin Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pin Animation", "name": "Pin Animation", "description": "One part stays put while its text changes on scroll. Best for feature lists.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/pin-animation/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Pin Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#6ea8ff;--ui-border:rgba(255,255,255,.09);--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:620px;position:relative;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
     /* Intro */
-    .intro{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-bottom:1px solid var(--ui-border)}
-    .intro h2{font-size:clamp(20px,3vw,28px);margin-bottom:12px}
-    .intro p{font-size:13px;color:var(--ui-muted);max-width:340px;line-height:1.65}
-    /* Pin section */
-    .pin-section{height:1860px;position:relative}
-    .pin-inner{position:sticky;top:0;height:620px;display:flex;align-items:center;justify-content:center;gap:32px;padding:32px}
+    .intro{height:100cqh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-bottom:1px solid var(--ui-border)}
+    .intro .panel-title{font-size:clamp(20px,3vw,28px);font-weight:700;margin-bottom:12px}
+    .intro p:not(.panel-title){font-size:14px;color:var(--ui-muted);max-width:340px;line-height:1.65}
+    /* Pin section: the extra height is how long the frame stays put */
+    .pin-section{height:300cqh;position:relative}
+    .pin-inner{position:sticky;top:0;height:100cqh;display:flex;align-items:center;justify-content:center;gap:32px;padding:32px}
     .phone-wrap{flex-shrink:0}
+    .phone-wrap svg{height:min(200px,72cqh);width:auto}
     .copy-panel{flex:1;max-width:260px}
     .feat-num{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
     .feat-title{font-size:clamp(18px,2.5vw,24px);font-weight:bold;margin-bottom:12px;line-height:1.2}
-    .feat-desc{font-size:12px;color:var(--ui-muted);line-height:1.7}
+    .feat-desc{font-size:14px;color:var(--ui-muted);line-height:1.7}
     /* Outro */
-    .outro{height:620px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-top:1px solid var(--ui-border)}
-    .outro h2{font-size:clamp(18px,2.5vw,24px);margin-bottom:10px}
-    .outro p{font-size:13px;color:var(--ui-muted);max-width:300px;line-height:1.6}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .div{height:1px;background:var(--ui-border)}
-    .feat-bar{display:flex;gap:4px;height:4px}
-    .feat-seg{flex:1;background:var(--ui-border);border-radius:2px;transition:background .3s}
-    .feat-seg.active{background:var(--ui-accent)}
-    button{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%;height:480px}.intro,.outro{height:480px}.pin-inner{flex-direction:column;gap:16px;height:480px}.phone-wrap svg{transform:scale(.8)}}
-    @media(prefers-reduced-motion:reduce){.feat-seg{transition:none}}
+    .outro{height:100cqh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-top:1px solid var(--ui-border)}
+    .outro .panel-title{font-size:clamp(18px,2.5vw,24px);font-weight:700;margin-bottom:10px}
+    .outro p:not(.panel-title){font-size:14px;color:var(--ui-muted);max-width:300px;line-height:1.6}
+    @media(max-width:600px){.pin-inner{gap:14px;padding:16px}.phone-wrap svg{width:72px;height:131px}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scrub-animation/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../snap-scrolling/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/pin-animation/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Pin Animation</h1>
-  <p>Element freezes in place while the page scrolls beneath it — CSS position: sticky, no JavaScript pinning.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="intro">
-      <h2>Scroll to begin</h2>
-      <p>The phone mockup and feature copy below will pin to the viewport as you scroll through the section. CSS handles the pinning entirely.</p>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scrub-animation/" rel="prev" aria-label="Previous: Scrub Animation"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Scrub Animation</span></a><a href="../snap-scrolling/" rel="next" aria-label="Next: Snap Scrolling"><span><span class="hb-dir">Next: </span>Snap Scrolling</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.09 · Scroll-Based</p>
+    <h1>Pin Animation</h1>
+    <p class="hb-lede">One part stays put while its text changes on scroll. Best for feature lists.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
-    <div class="pin-section" id="pin-section">
-      <div class="pin-inner">
-        <div class="phone-wrap">
-          <svg width="110" height="200" viewBox="0 0 110 200">
-            <rect x="2" y="2" width="106" height="196" rx="16" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
-            <rect id="phone-screen" x="9" y="18" width="92" height="152" rx="8" fill="#0d2b3e"/>
-            <text id="phone-num" x="55" y="98" text-anchor="middle" font-family="monospace" font-size="28" font-weight="bold" fill="#58a6ff" opacity="0.5">01</text>
-            <text id="phone-icon" x="55" y="118" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9" opacity="0.5">Instant Wake</text>
-            <rect x="38" y="183" width="34" height="4" rx="2" fill="#3a3a5a"/>
-          </svg>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A phone that holds still while its features change">
+      <div class="intro">
+        <p class="panel-title">Scroll to begin</p>
+        <p>The phone and its text will stop in the middle of the box and hold still while four features go by.</p>
+      </div>
+      <div class="pin-section" id="pin-section">
+        <div class="pin-inner">
+          <div class="phone-wrap">
+            <svg width="110" height="200" viewBox="0 0 110 200" aria-hidden="true">
+              <rect x="2" y="2" width="106" height="196" rx="16" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
+              <rect id="phone-screen" x="9" y="18" width="92" height="152" rx="8" fill="#0d2b3e"/>
+              <text id="phone-num" x="55" y="98" text-anchor="middle" font-size="28" font-weight="bold" fill="#58a6ff">01</text>
+              <text id="phone-icon" x="55" y="118" text-anchor="middle" font-size="11" fill="#c9d1d9">Instant Wake</text>
+              <rect x="38" y="183" width="34" height="4" rx="2" fill="#3a3a5a"/>
+            </svg>
+          </div>
+          <div class="copy-panel">
+            <div class="feat-num" id="feat-num">01 / 04</div>
+            <div class="feat-title" id="feat-title">Instant Wake</div>
+            <div class="feat-desc" id="feat-desc">The display responds in under 1ms. Always on, never waiting. The sensor layer never sleeps.</div>
+          </div>
         </div>
-        <div class="copy-panel">
-          <div class="feat-num" id="feat-num">01 / 04</div>
-          <div class="feat-title" id="feat-title">Instant Wake</div>
-          <div class="feat-desc" id="feat-desc">The display responds in under 1ms. Always on, never waiting. The sensor layer never sleeps.</div>
-        </div>
+      </div>
+      <div class="outro">
+        <p class="panel-title">Pin released</p>
+        <p>The phone and its text let go and scroll away with the page again.</p>
       </div>
     </div>
-    <div class="outro">
-      <h2>Pin released</h2>
-      <p>Scroll continues normally. The phone and copy are back in the document flow — the pinned journey is complete.</p>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
     </div>
-  </div>
-  <aside>
-    <p class="note">Pinning makes an element stop scrolling with the page for a defined distance. The trick: the PARENT section must be taller than the viewport — the 'extra' height is the scroll distance during which the child stays pinned. CSS position: sticky handles this natively.</p>
-    <div><div class="lbl">Scroll state</div>
-      <div class="tbl">
-        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
-        <div class="kv"><span>Lifecycle</span><span class="v" id="lifecycle">before pin</span></div>
-        <div class="kv"><span>Feature</span><span class="v" id="feat-ind">01 · Instant Wake</span></div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a pinned section to [your product page, and the element that should stay in view]. Make the section several screens tall and pin the element and its text in the middle of the view while the visitor scrolls through it; the extra height is how long it stays. Split that distance into equal parts and show the next feature's text and picture in each part. When the section ends, let the element scroll away with the page. Use the browser's sticky positioning for the pin instead of moving it with a script. If the visitor has reduced motion turned on, change the features without animation.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own page and element.</p>
       </div>
     </div>
-    <div class="div"></div>
-    <div><div class="lbl">Feature progress</div>
-      <div class="feat-bar" id="feat-bar">
-        <div class="feat-seg active"></div><div class="feat-seg"></div><div class="feat-seg"></div><div class="feat-seg"></div>
-      </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
     </div>
-    <button id="reset-btn">Reset scroll</button>
-  </aside>
-</div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Feature lists</li><li>Product tours</li><li>Onboarding</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Short screens</li><li>Long text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const FEATURES=[
     {num:'01',title:'Instant Wake',              desc:'The display responds in under 1ms. Always on, never waiting. The sensor layer never sleeps.',              color:'#0d2b3e',tcolor:'#58a6ff'},
@@ -140,39 +143,31 @@ body{padding-top:46px}
     {num:'04',title:'New Silicon Engine',        desc:'Unified memory architecture. The gap between laptop and phone performance has effectively closed.',         color:'#3d2000',tcolor:'#ffa657'},
   ];
   const stage=document.getElementById('stage'),pinSec=document.getElementById('pin-section');
-  const scrollProg=document.getElementById('scroll-prog'),lifecycleEl=document.getElementById('lifecycle');
   const featNum=document.getElementById('feat-num'),featTitle=document.getElementById('feat-title'),featDesc=document.getElementById('feat-desc');
-  const featInd=document.getElementById('feat-ind'),featBar=document.getElementById('feat-bar');
   const phoneScreen=document.getElementById('phone-screen'),phoneNum=document.getElementById('phone-num'),phoneIcon=document.getElementById('phone-icon');
-  const segs=[...featBar.children];
   let ticking=false,lastFi=-1;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
   function update(){
-    const st=stage.scrollTop,max=stage.scrollHeight-stage.clientHeight;
-    scrollProg.textContent=max>0?Math.round(st/max*100)+'%':'0%';
-    const ps=pinSec.offsetTop,ph=pinSec.offsetHeight,vh=stage.clientHeight;
-    let lifecycle='before pin',fi=0;
-    if(st>=ps&&st<ps+ph-vh){lifecycle='pinned · in section';const p=clamp((st-ps)/(ph-vh),0,1);fi=Math.min(3,Math.floor(p*4))}
-    else if(st>=ps+ph-vh){lifecycle='after release';fi=3}
-    lifecycleEl.textContent=lifecycle;
+    // offsetTop and scrollTop are both measured from the stage's padding edge, so its border does not shift them
+    const st=stage.scrollTop,ps=pinSec.offsetTop,ph=pinSec.offsetHeight,vh=stage.clientHeight;
+    let fi=0;
+    if(st>=ps+ph-vh)fi=3;
+    else if(st>=ps)fi=Math.min(3,Math.floor(clamp((st-ps)/(ph-vh),0,1)*4));
     if(fi!==lastFi){
       const f=FEATURES[fi];
       featNum.textContent=`${f.num} / 04`;featTitle.textContent=f.title;featDesc.textContent=f.desc;
-      featInd.textContent=`${f.num} · ${f.title}`;
       phoneScreen.setAttribute('fill',f.color);phoneNum.setAttribute('fill',f.tcolor);phoneNum.textContent=f.num;
       // trim to the last whole word that still fits inside the 92px phone screen
       phoneIcon.textContent=f.title.length>16?f.title.slice(0,16).replace(/\s+\S*$/,'')+'…':f.title;
       phoneIcon.setAttribute('fill',f.tcolor);
-      segs.forEach((s,i)=>s.classList.toggle('active',i===fi));lastFi=fi;
+      lastFi=fi;
     }
     ticking=false;
   }
   const schedule=()=>{if(!ticking){requestAnimationFrame(update);ticking=true}};
   stage.addEventListener('scroll',schedule,{passive:true});
   addEventListener('resize',schedule,{passive:true});
-  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;update()});
   update();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
