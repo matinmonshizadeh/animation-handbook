@@ -50,12 +50,18 @@ function loop(ts) {
 **SVG `feTurbulence` approach** — the browser generates noise natively; cycling the `seed` attribute animates it:
 
 ```html
-<svg style="display:none">
+<svg width="0" height="0" style="position:absolute">
   <defs>
-    <filter id="grain">
+    <filter id="grain" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3"
                     stitchTiles="stitch" id="turb"/>
       <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="3" intercept="-1"/>
+        <feFuncG type="linear" slope="3" intercept="-1"/>
+        <feFuncB type="linear" slope="3" intercept="-1"/>
+        <feFuncA type="linear" slope="0" intercept="1"/>
+      </feComponentTransfer>
     </filter>
   </defs>
 </svg>
@@ -67,6 +73,8 @@ function loop(ts) {
   mix-blend-mode: overlay;
 "></div>
 ```
+
+The raw noise is faint, half-transparent gray; the component transfer makes it opaque and stretches its contrast, so it shows as strongly as drawn dots at the same opacity.
 
 ```js
 let seed = 0;
@@ -89,7 +97,7 @@ function loop() {
 ## Production notes
 - **Canvas vs SVG feTurbulence**: canvas gives more control (pixel size, color noise) but is more CPU-intensive. SVG feTurbulence is GPU-accelerated and simpler but offers less control over grain character.
 - **Reduced update rate is intentional**: real film grain is 24fps, not 60fps. Generating a new canvas texture 60 times per second is wasted computation — 12–24fps matches the aesthetic and reduces CPU load.
-- **Phones**: the demo changes the grain at most 24 times a second on screens narrower than 600px, and draws the canvas at CSS pixels rather than device pixels; drawing every dot is the costly part.
+- **Phones**: the demo changes the grain at most 24 times a second on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways), and draws the canvas at CSS pixels rather than device pixels; drawing every dot is the costly part.
 - **`mix-blend-mode: overlay`** is the standard for grain: it darkens dark areas slightly and brightens light areas slightly, matching how silver halide responds to exposure.
 - **CSS filter on a pseudo-element**: the cleanest production approach — add `::after { content:''; position:absolute; inset:0; background:url(grain.png); animation:grain 0.5s steps(1) infinite; }` with a spritesheet of pre-generated grain frames. This offloads grain generation entirely to a static asset.
 - **React libraries**: `react-noise` and various `css-grain` packages implement the SVG filter approach as zero-config drop-in components.

@@ -30,8 +30,8 @@
     .hero-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(88,166,255,.85);margin-bottom:12px}
     .hero-h{font-size:clamp(22px,3.5vw,36px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:12px}
     .hero-p{font-size:13px;color:rgba(255,255,255,.72);line-height:1.7;max-width:280px;margin:0 auto}
-    /* SVG grain filter approach */
-    .grain-svg{display:none}
+    /* SVG grain filter approach: a zero-size SVG rather than display:none, from which some browsers draw no filter */
+    .grain-svg{position:absolute;width:0;height:0}
     /* Canvas grain overlay */
     .grain-canvas{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:var(--grain-op);mix-blend-mode:var(--grain-blend)}
     canvas{display:block;width:100%;height:100%}
@@ -68,7 +68,7 @@
         </div>
       </div>
       <!-- SVG filter grain -->
-      <svg class="grain-svg" aria-hidden="true"><defs><filter id="grain-filter" x="0%" y="0%" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" id="grain-turb"/><feColorMatrix type="saturate" values="0"/></filter></defs></svg>
+      <svg class="grain-svg" aria-hidden="true"><defs><filter id="grain-filter" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" id="grain-turb"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="3" intercept="-1"/><feFuncG type="linear" slope="3" intercept="-1"/><feFuncB type="linear" slope="3" intercept="-1"/><feFuncA type="linear" slope="0" intercept="1"/></feComponentTransfer></filter></defs></svg>
       <div class="grain-filter-wrap" id="grain-filter-wrap" aria-hidden="true"><svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#grain-filter)"/></svg></div>
       <!-- Canvas grain -->
       <div class="grain-canvas" id="grain-canvas-wrap" aria-hidden="true"><canvas id="grain-cvs"></canvas></div>
@@ -189,6 +189,7 @@
   const vars=document.documentElement.style;
   const FILM_MS=1000/24; // phones change the grain at most this often
   const SLACK=2;         // a frame that arrives a hair early still counts, so "Every frame" is every frame
+  const phone=matchMedia('(max-width:600px),(max-height:500px)'); // phones and short screens change the grain at most 24 times a second
   let W=0,H=0,raf=null,lastFrame=null;
   let IMPL='canvas',SIZE=2,COLOR_NOISE=false,frameInterval=FILM_MS,seed=0;
 
@@ -225,7 +226,7 @@
 
   // The time between new grain frames: the chosen rate (phones: no faster than film), three times longer in slow motion
   function interval(){
-    const ms=W<600?Math.max(frameInterval,FILM_MS):frameInterval;
+    const ms=phone.matches?Math.max(frameInterval,FILM_MS):frameInterval;
     return slowTog.checked?ms*3:ms;
   }
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again.
@@ -245,6 +246,7 @@
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
+      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
     }));
