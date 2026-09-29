@@ -428,6 +428,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** while Moving beam is on, the beam sweeps down forever (`@keyframes beam-sweep`, over Beam speed), and the cursor always blinks (`@keyframes blink`, 1s, `step-end`). The scanlines themselves are a still pattern. There are no page timers.
 - **Changed default:** Moving beam starts on (today it starts off). With it off, the stage is almost a still picture: only the cursor blinks, so Pause and Slow motion show next to nothing. Variable Font Morph did the same: its Auto-morph became the loop and runs from load. The `.beam` rule loses `display:none`, so the beam shows at load and the switch hides it.
+- **Beam speed keeps the beam where it is.** A new `--beam-dur` alone keeps the time the beam has already swept, so the band would jump to another point of its sweep, and a paused stage would change its picture. The Beam speed choice first scales each beam animation's `currentTime` by new/old sweep length, then writes `--beam-dur`, so the beam stays where it is whether it moves or is paused, with Slow motion on or off. The Speed choices of Animated Gradient Background, Mesh Gradient Animation and Aurora / Northern Lights follow the same rule.
+- **The beam starts 40% into its first sweep** (`animation-delay:calc(var(--beam-dur) * -.4)` on `.beam`). Without the offset the band starts just above the stage, so the first frame, the still frame under reduced motion and a beam switched back on while paused would show no beam, and Beam brightness could not be seen while paused. The offset is a share of the sweep, so the rule above keeps working. After the first sweep the loop is unchanged.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule `.beam{animation-duration:60s!important}.term-cursor{animation:none!important}` goes (see the preamble).
 - **Stage font:** site font. The terminal drops `font-family:monospace` (the owner's ruling keeps a typewriter font for typing effects only, and the effect here is the lines, not the text).
@@ -504,9 +506,11 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - `flash()` sets this leak's fade time `d` (Speed, or 3 × Speed while Slow motion is on) as `--leak-dur`, and sets `--leak-peak` to Brightness × (0.75 to 1, at random).
   - It then adds `active`, so the glow fades in over `d`, spawns three floating light spots when that switch is on, and calls `wait(() => fadeOut(d), d + 200)`.
   - `fadeOut(d)` removes `active`, so the glow fades out over `d`, and calls `wait(flash, d + gap)`, where the gap is random within Time between leaks.
-  - At load the chain starts with `wait(flash, gap)`, so the first leak comes after one gap, as today.
+  - At load the page shows a leak at its peak and starts the chain with `wait(() => fadeOut(d), gap)`.
+    - This is the settled first picture (owner decision), for every visitor. It sets `--leak-dur` and `--leak-peak` as `flash()` does, adds `active` and finishes the glow's fade in at once (`leak.getAnimations().forEach(a => a.finish())`), so there is no fade on arrival. The leak then holds for one gap before it fades out and the chain carries on. A stage that arrives paused (reduced motion) shows the glow, and Comes from and Color show while it is paused.
+    - The first picture has no light spots, and its `d` is the Speed at load, kept for its fade out.
 
-  So one leak is: fade in, hold 200ms at its peak, fade out, then a dark gap. Today the gap was counted from the start of each leak, so a short gap could start the next leak while the last was still fading; now it starts when the glow is gone. The "Next leak in" countdown (a second `setInterval`) and its readout go.
+  So one leak is: fade in, hold 200ms at its peak, fade out, then a dark gap (the first picture is the one leak with no fade in, and it holds for one gap instead of 200ms). Today the gap was counted from the start of each leak, so a short gap could start the next leak while the last was still fading; now it starts when the glow is gone. The "Next leak in" countdown (a second `setInterval`) and its readout go.
 
   **The light spots** float once (`animation:bokeh-float linear both`, no longer `infinite`) and remove themselves on `animationend`, so the 8-second removal timers go. `both` also stops a spot from showing at full size and full strength during its start delay, before its float begins (a glitch today).
 
@@ -524,10 +528,24 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 
   `stage` is the page's `.stage`.
 
-  **Settings while paused:** Comes from and Color repaint the glow's gradient at once (`applyColor()`, no transition). Brightness, Speed, Time between leaks and Floating light spots take effect from the next leak. Brightness no longer writes `--leak-peak` directly (today it does), because that would restart a fade held by Pause.
+  **Time between leaks re-plans the wait under way.** The gap is drawn when a fade out starts, so without this a change made in the dark gap would wait for the old gap (Long to Short could take up to about 9 seconds to show). `fadeOut(d)` records the wait it starts, `fadeD = d` and `gapTotal = d + gap` (the fade out and the dark gap, which is what its `wait(flash, …)` waits for), and a new choice plans that wait again:
+
+  ```js
+  let fadeD=0, gapTotal=0;
+  function fadeOut(d){ leak.classList.remove('active'); fadeD=d; gapTotal=d+randomGap(); wait(flash,gapTotal); }
+  // in the Time between leaks handler, after minGap and maxGap are set (a choice that is already chosen does nothing):
+  if(next!==flash) return;   // a leak under way keeps its timing
+  const waited=gapTotal-(paused?left:Math.max(0,due-performance.now()));
+  gapTotal=fadeD+randomGap();
+  wait(flash,Math.max(0,gapTotal-waited));   // never before the fade out ends
+  ```
+
+  So a fade out or dark gap under way counts the time it has already waited: Long to Short shows within one new gap, Short to Long stretches the wait, the next leak never starts before the fade out has ended, and it comes at once when the new plan has already passed. A leak under way (its fade in or hold, including the first picture) keeps its timing and uses the new range for the gap after it. While paused, `wait()` only records the new plan, so nothing starts, and Play carries on from it.
+
+  **Settings while paused:** Comes from and Color repaint the glow's gradient at once (`applyColor()`, no transition). Speed, Brightness and Floating light spots take effect from the next leak. Time between leaks plans the wait under way again, as above. Brightness no longer writes `--leak-peak` directly (today it does), because that would restart a fade held by Pause.
 - **Slow motion (page):** while the switch is on, `flash()` makes the fade `d` 3 × Speed (the CSS fade and the two waits that wait for it), and new light spots float three times as long. The 200ms hold and the gap keep their length. The change takes effect from the next leak. This is "page" rather than "css" so the page stretches its own fade and waits together, and because between leaks nothing on the stage is animating for a shared slow-down to act on.
-- **Reduced motion:** the demo's rule (the glow held at a steady dim level, and 60-second light spots) goes (see the preamble).
-- **Stage font:** site font. `.photo-cap` becomes `color:rgba(255,255,255,.72)` (was .5).
+- **Reduced motion:** the demo's rule (the glow held at a steady dim level, and 60-second light spots) goes (see the preamble). The still picture is the first picture: the glow at its peak.
+- **Stage font:** site font. `.photo-cap` becomes `color:rgba(255,255,255,.72)` (was .5). It also sits above the glow (`position:relative;z-index:6`), so a bright leak, most of all Down the middle, does not wash the caption out as far.
 - **Stage:** the scene (the photo mock-up with its caption, "ambient · atmospheric · analog warmth") and the glow stay; the spots are added while it runs.
   - The card goes. On the new stage (440px, 300px on phones) it covers most of the photo mock-up, and the leak needs the photo to show against. Its words repeat the page's title and lede.
   - `hb-dots`: no. Default height.
@@ -538,7 +556,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Comes from | Choice buttons | Top left · Top right · Bottom left · Bottom right · Down the middle | Top left | Where the light spills in. | the glow's class: `dir-tl` / `dir-tr` / `dir-bl` / `dir-br` / `dir-h`, then `applyColor()` |
-| Time between leaks | Choice buttons | Short · Medium · Long | Medium | Gaps are random within the range, so it never feels timed. | `minGap`–`maxGap`: 0.5–1.5s / 1–3s / 3–8s (the dark gap after each leak) |
+| Time between leaks | Choice buttons | Short · Medium · Long | Medium | Gaps are random within the range, so it never feels timed. | `minGap`–`maxGap`: 0.5–1.5s / 1–3s / 3–8s (the dark gap after each leak); a new choice plans the wait under way again (see Sequence) |
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | How quickly each leak fades in and out. | `dur`: 2000ms / 1200ms / 700ms (`flash()` writes it to `--leak-dur`) |
 
 **More options**
