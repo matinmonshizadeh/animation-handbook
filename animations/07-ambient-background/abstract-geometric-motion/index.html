@@ -193,11 +193,16 @@
       ctx.strokeStyle=col(r.c,life*.6);ctx.lineWidth=lineW()*(1+life);ctx.stroke();
     });
   }
+  // The rings on screen are colored by their place in the list, spread across Number of shapes (ring i of n gets color
+  // floor(i * CX / n)). The same count always gives the same picture, and a bigger count shows more of the color range
+  // even on the few rings that fit a wide, short stage.
+  function recolor(){rings.forEach((r,i)=>{r.c=Math.floor(i*CX/rings.length);});}
   // Six rings spread across the stage, so the pattern shows at once and a stage that is paused still shows it
   function seedRings(){
     const m=Math.max(W,H);
     ringT=t;
-    rings=Array.from({length:6},(_,i)=>({r:m*(i+1)/7,c:i%CX}));
+    rings=Array.from({length:6},(_,i)=>({r:m*(i+1)/7,c:0}));
+    recolor();
   }
 
   // PRESET 2: Sliding bars
@@ -313,7 +318,7 @@
   choices('num-seg',d=>{
     if(+d.n===CX)return;
     CX=+d.n;
-    rings.forEach((r,i)=>{r.c=i%CX;});   // the rings on screen take their colors from the new range at once, as seedRings() deals them
+    recolor();   // the rings on screen take their colors from the new count at once
     draw();
   });
   choices('pal-seg',d=>{PAL=d.pal;draw();});
