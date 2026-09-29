@@ -159,17 +159,14 @@
   let rings=[],ringT=0;         // the rings on screen, and the time the last one was sent out
   let barX=0,dashPhase=0;       // how far the bars and the dashes have travelled, so a Speed change never moves them
   let PRESET=0,SPD=0.6,CX=6,PAL='cool',CONTRAST=false;
-
   const PALETTES={
     cool:c=>`hsla(${200+c*10},70%,65%,`,
     warm:c=>`hsla(${30+c*8},80%,60%,`,
     neon:c=>`hsla(${(c*60)%360},100%,65%,`,
     mono:c=>`hsla(0,0%,${60+c*5}%,`
   };
-
   function col(c,a){return PALETTES[PAL](c)+a+')';}
   function lineW(){return CONTRAST?1.5:.8;}
-
   // PRESET 0: Rotating polygons
   function drawPolygons(){
     const cx=W/2,cy=H/2;
@@ -183,7 +180,6 @@
       ctx.lineWidth=lineW()*(1+i*.1);ctx.stroke();
     }
   }
-
   // PRESET 1: Concentric expanding rings
   function drawRings(){
     const cx=W/2,cy=H/2;
@@ -193,9 +189,7 @@
       ctx.strokeStyle=col(r.c,life*.6);ctx.lineWidth=lineW()*(1+life);ctx.stroke();
     });
   }
-  // The rings on screen are colored by their place in the list, spread across Number of shapes (ring i of n gets color
-  // floor(i * CX / n)). The same count always gives the same picture, and a bigger count shows more of the color range
-  // even on the few rings that fit a wide, short stage.
+  // The rings on screen are colored by their place in the list, spread across Number of shapes (ring i of n gets color floor(i * CX / n)). The same count always gives the same picture, and a bigger count shows more of the color range even on the few rings that fit a wide, short stage.
   function recolor(){rings.forEach((r,i)=>{r.c=Math.floor(i*CX/rings.length);});}
   // Six rings spread across the stage, so the pattern shows at once and a stage that is paused still shows it
   function seedRings(){
@@ -204,7 +198,6 @@
     rings=Array.from({length:6},(_,i)=>({r:m*(i+1)/7,c:0}));
     recolor();
   }
-
   // PRESET 2: Sliding bars
   function drawBars(){
     const count=CX;
@@ -220,7 +213,6 @@
       ctx.fill();ctx.restore();
     }
   }
-
   // PRESET 3: Color-flow lines
   function drawLines(){
     const count=CX*2;
@@ -243,8 +235,7 @@
     }
   }
 
-  // One step of the loop. k is 1 for a frame at 60 Hz (more or less for a longer or shorter one), and a third of that in
-  // slow motion. t, the rings' growth and the bars' and dashes' travel all move by it, so slow motion slows all of them.
+  // One step of the loop. k is 1 for a frame at 60 Hz (more or less for a longer or shorter one), and a third of that in slow motion. t, the rings' growth and the bars' and dashes' travel all move by it, so slow motion slows all of them.
   function advance(k){
     const dt=SPD*.01*k;
     t+=dt;barX+=SPD*40*dt;dashPhase+=SPD*30*dt;
@@ -262,10 +253,7 @@
     else if(PRESET===2)drawBars();
     else drawLines();
   }
-
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. The first frame
-  // after a start has no earlier frame to measure from, so it adds no time; a long gap between frames (a background
-  // tab) counts for at most 50 ms. At most one picture is drawn per 16 ms.
+  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. The first frame after a start has no earlier frame to measure from, so it adds no time; a long gap between frames (a background tab) counts for at most 50 ms. At most one picture is drawn per 16 ms.
   function loop(ts){
     raf=requestAnimationFrame(loop);
     if(lastT!==null&&ts-lastT<16)return;
@@ -275,17 +263,13 @@
     draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
-
-  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
-  // loop on arrival, which this listener must catch. The picture on screen stays as it is while paused.
+  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the loop on arrival, which this listener must catch. The picture on screen stays as it is while paused.
   document.addEventListener('hb:pause',e=>{
     paused=e.detail.paused;
     if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
   });
-
-  // Setting the canvas size wipes it, so a real change of the stage's size draws the picture again at once, playing or
-  // paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
+  // Setting the canvas size wipes it, so a real change of the stage's size draws the picture again at once, playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
@@ -303,9 +287,7 @@
       pick(b.dataset);
     }));
   }
-  // A setting that changes the picture draws it again at once, so the change shows even while the loop is paused (or is
-  // paused a moment later, before the next frame). Speed changes no picture: the bars and the dashes carry on from where
-  // they are, so it needs no drawing. Pressing the choice already made does nothing.
+  // A setting that changes the picture draws it again at once, so the change shows even while the loop is paused (or is paused a moment later, before the next frame). Speed changes no picture: the bars and the dashes carry on from where they are, so it needs no drawing. Pressing the choice already made does nothing.
   choices('pat-seg',d=>{
     if(+d.idx===PRESET)return;
     PRESET=+d.idx;
@@ -323,7 +305,6 @@
   });
   choices('pal-seg',d=>{PAL=d.pal;draw();});
   document.getElementById('thick-tog').addEventListener('change',e=>{CONTRAST=e.target.checked;draw();});
-
   resize();
   window.addEventListener('resize',resize);
   start();

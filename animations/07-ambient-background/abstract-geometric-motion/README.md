@@ -71,14 +71,14 @@ ctx.setLineDash([]);
 |-----------|---------|--------|
 | Pattern | Polygons | Turning polygons, rings spreading from the center, sliding bars, or wavy lines with flowing color |
 | Speed | Normal | How fast everything moves: slow is 0.35, normal 0.6 and fast 1; keep it below 1 behind content |
-| Number of shapes | Medium | How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many) |
+| Number of shapes | Medium | How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many); on Rings it sets how many colors the rings use |
 | Colors | Cool | Cool blues, warm ambers, bright neon or grays |
 | Thicker lines | off | Draws the lines 1.5px wide instead of 0.8px, so the shapes stand out more |
 
 ## Production notes
 - **Canvas vs SVG vs CSS**: canvas is ideal for complex animated geometry that changes every frame. SVG SMIL animation works for a few elements but becomes expensive with many independently animated paths. CSS is impractical for runtime-generated geometry.
 - **`t += speed * 0.01` not `Date.now()`**: relative time increments (adding to a counter) are frame-rate-independent in spirit and easier to control than absolute timestamps. For truly frame-rate-independent motion, multiply by the actual frame delta.
-- **Infinite seamless looping**: none of the presets use `%` modulo or restart conditions — they simply accumulate `t` continuously. This guarantees the loop is truly seamless; there is no "restart" moment.
+- **Infinite seamless looping**: nothing restarts. Every preset draws from values that only grow (`t`, and the bars' and dashes' own counters), and the bars wrap around the stage with `%`, so there is no reset moment.
 - **`lineDashOffset` for color flow**: animating `lineDashOffset` is a classic SVG/canvas trick for drawing paths that appear to have flowing color or motion along their length. The dash pattern stays fixed in the path's local coordinate space; the offset moves the starting point.
 - **Music visualizer pairing**: replace the time-based `t` with audio frequency data from the Web Audio API's `AnalyserNode`. The shapes then pulse and change size in response to the audio spectrum.
 - **Three.js equivalent**: `LineSegments`, `MeshLine`, and custom `ShaderMaterial` can recreate all four presets in a 3D context with camera movement adding the third dimension.
