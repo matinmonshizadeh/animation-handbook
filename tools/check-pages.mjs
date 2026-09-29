@@ -5,11 +5,23 @@
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
-// hb-check in the temp folder (emptied at the start of each run). Console warnings count as problems too (the page
+// a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
 // script warns about settings that have no label or value). On plays-once pages the desktop run also checks that
 // Replay and a setting change visibly move the stage; on loop pages it checks that the stage moves, that Pause stops
-// it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. The 320px
-// phone runs the page checks (overflow, small targets, chips, README) and takes screenshots, and nothing more.
+// it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. On do-it
+// pages every press of Show me is recorded from the start of the document: the desktop run checks that the page pressed
+// it exactly once on arrival and waits for that run to end, the reduced-motion run checks that it pressed it not at
+// all; both then check that the stage is at rest, that pressing Show me visibly moves it, that the run brings it
+// back to rest and that a real click inside the stage reaches the page as hb:input. On scroll pages the desktop and
+// reduced-motion runs check that the visitor can scroll the box (overflow-y auto or scroll), that the box scrolls by itself
+// on arrival (not under reduced motion), that Play scrolls it, that Back to top, pressed while Play runs, returns it to the top and
+// stops it, that on a scroller with CSS scroll snapping the snapping is off while Play runs and back once the run is
+// stopped, and that a real wheel turn stops Play (over the stage beside an inner scroller, where there is room there,
+// so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README)
+// and takes screenshots, and nothing more.
+// Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
+// Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
+// other's screenshots.
 // Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -30,7 +42,10 @@ function option(name, fallback) {
 }
 const BASE = option('--base', 'http://127.0.0.1:8731').replace(/\/$/, '');
 const givenOut = option('--out', '');
-const OUT = givenOut || join(tmpdir(), 'hb-check');
+// A run without --out gets a folder of its own (start time and process id), so runs going on at the same time never
+// share one.
+const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
+const OUT = givenOut || join(tmpdir(), `hb-check-${stamp}-${process.pid}`);
 const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
 // A category folder (no index.html, but page folders inside) is expanded to its pages, so the call works
 // in shells that do not expand wildcards, such as PowerShell.
@@ -45,11 +60,8 @@ if (!pages.length) {
   console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder>...');
   process.exit(2);
 }
-if (!givenOut) {
-  try { rmSync(OUT, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); }
-  catch { console.error(`Could not empty ${OUT}; screenshots from an earlier run may remain.`); }
-}
 mkdirSync(OUT, { recursive: true });
+console.log(`Screenshots go to ${OUT}`);
 
 const SETUPS = [
   { name: 'desktop', width: 1280, height: 800, full: true, moves: true },
@@ -89,6 +101,18 @@ const CHECK = `(() => {
   const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
     ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));
   return { kind: document.body.dataset.hbKind || '', loop: loop ? loop.checked : null, switches, problems };
+})()`;
+
+// Runs at the start of every document, before the page's own scripts: records each press of a Show me button, whether it
+// came from the visitor or from the page script, so the press on arrival can be counted exactly whatever the run's length,
+// and the type of every hb:input the shared script sends, so a real click inside the stage can be seen to reach the page.
+const RECORD = `(() => {
+  window.__hbShowMe = [];
+  window.__hbInput = [];
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('[data-hb-demo]')) window.__hbShowMe.push({ trusted: e.isTrusted });
+  }, true);
+  document.addEventListener('hb:input', e => window.__hbInput.push(e.detail && e.detail.type));
 })()`;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -244,6 +268,113 @@ async function loopProblems(reduced) {
   return problems;
 }
 
+// True when two stage captures (base64 PNG) show the same picture. After a full-page capture, headless Chrome can leave
+// a couple of faint stale pixels at the edge of something that scaled up and came back (two pixels, 26 of 765 apart, were
+// seen); a real leftover differs in far more pixels and far more strongly. So pixels that differ by 64 or less (summed
+// over red, green and blue) do not count, and neither do the first few that differ more.
+async function samePicture(a, b) {
+  if (a === b) return true;
+  return evaluate(`new Promise(done => {
+    const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+    Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]).then(([x, y]) => {
+      if (x.width !== y.width || x.height !== y.height) { done(false); return; }
+      const read = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
+      const p = read(x), q = read(y);
+      let visible = 0;
+      for (let i = 0; i < p.length; i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 64) visible++;
+      done(visible <= Math.max(8, Math.round(x.width * x.height / 10000)));
+    });
+  })`);
+}
+
+// Do-it pages: the page presses Show me once by itself on arrival and not at all under reduced motion (the presses are
+// recorded from the start of the document, so this holds for a run of any length). Show me runs on arrival, so the
+// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it within
+// 1.6 s, and the run must bring it back to rest.
+async function demoProblems(reduced) {
+  if (!(await evaluate(`!!document.querySelector('[data-hb-demo]')`))) return ['no Show me button to check'];
+  const problems = [];
+  const presses = await evaluate(`(window.__hbShowMe || []).length`);
+  if (reduced && presses) problems.push('Show me is pressed on arrival under reduced motion');
+  if (!reduced && presses !== 1) problems.push(presses ? `Show me is pressed ${presses} times on arrival, not once` : 'Show me is not pressed on arrival');
+  if (!reduced) await sleep(5000);
+  if (await stageChanges(reduced ? 1500 : 800)) {
+    problems.push(reduced ? 'the stage moves by itself under reduced motion' : 'the stage is not at rest after the run on arrival (it keeps moving by itself)');
+    return problems;
+  }
+  const rest = await stageShot();
+  await evaluate(`document.querySelector('[data-hb-demo]').click()`);
+  let moved = false;
+  for (let i = 0; i < 8 && !moved; i++) { await sleep(200); moved = (await stageShot()) !== rest; }
+  if (!moved) { problems.push('Show me does not visibly move the stage'); return problems; }
+  let back = false;
+  for (let i = 0; i < 32 && !back; i++) { await sleep(250); back = await samePicture(await stageShot(), rest); }
+  if (!back) problems.push('the run does not bring the stage back to rest');
+  // A real click inside the stage reaches the page as hb:input. A press sends one for the press first; an activation that
+  // comes with no pointer or key event (assistive technology) sends only the one for the click.
+  const spot = await evaluate(`(() => { const r = document.querySelector('.hb-page .stage').getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + Math.min(r.height, innerHeight - r.top) / 2 }; })()`);
+  const heardBefore = await evaluate(`window.__hbInput.length`);
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  await sleep(100);
+  const heard = await evaluate(`window.__hbInput.slice(${heardBefore})`);
+  if (!heard.includes('click')) problems.push(`a click inside the stage does not reach the page as hb:input (heard: ${heard.join(', ') || 'nothing'})`);
+  return problems;
+}
+
+// Scroll pages: the box scrolls by itself on arrival (not under reduced motion); Play scrolls it; Back to top, pressed
+// while Play runs, returns it to the top and stops it (at 0 half a second later and still at 0 a little over a second
+// later, so both the jump and the stop are seen whatever the arrival did); on a scroller with CSS scroll snapping the
+// snapping is off 300 ms into Play and back once the run has been stopped; a real wheel turn stops Play. The wheel goes
+// to the stage beside an inner scroller where there is room there (the stage-wide stop), else to the box, and the box is
+// read once it has settled: a snapping box glides to its snap point after the turn.
+async function scrollProblems(reduced) {
+  const box = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
+  const pos = () => evaluate(`${box}.scrollTop`);
+  const snap = () => evaluate(`getComputedStyle(${box}).scrollSnapType`);
+  const press = selector => evaluate(`document.querySelector('${selector}').click()`);
+  const problems = [];
+  // The visitor must be able to scroll the box. The shared default is overflow:hidden, which the script can still scroll, so
+  // every check below would pass on a box nobody can scroll by hand.
+  const overflow = await evaluate(`getComputedStyle(${box}).overflowY`);
+  if (overflow !== 'auto' && overflow !== 'scroll') problems.push(`the box cannot be scrolled by the visitor (overflow-y is ${overflow}, not auto or scroll)`);
+  const startSnap = await snap(); // under reduced motion nothing has run yet: this is the page's own snap type
+  const arrived = await pos();
+  if (reduced && arrived > 0) problems.push('the box scrolls by itself under reduced motion');
+  if (!reduced && arrived <= 0) problems.push('the box does not scroll by itself on arrival');
+  await press('[data-hb-autoscroll]');
+  await sleep(800);
+  if (await pos() <= 0) problems.push('Play does not scroll the box');
+  await press('[data-hb-top]');
+  await sleep(500);
+  const atTop = await pos() === 0;
+  await sleep(600);
+  if (!atTop || await pos() !== 0) problems.push('Back to top does not return the box to the top and stop it');
+  // The page's own snap type: read before anything ran (reduced motion), else with the run stopped (a mark left behind
+  // would show as "none" here, but the reduced-motion run sees it)
+  const snaps = reduced ? startSnap : await snap();
+  await press('[data-hb-autoscroll]');
+  await sleep(300);
+  if (snaps !== 'none' && await snap() !== 'none') problems.push('scroll snapping is not turned off while Play runs');
+  await sleep(500);
+  const spot = await evaluate(`(() => {
+    const b = ${box}, s = document.querySelector('.hb-page .stage');
+    if (b !== s) {
+      const r = s.getBoundingClientRect(), x = r.left + 3, y = r.top + 3, hit = document.elementFromPoint(x, y);
+      if (hit && s.contains(hit) && !b.contains(hit)) return { x, y };
+    }
+    const r = b.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + Math.min(r.height, innerHeight - r.top) / 2 };
+  })()`);
+  await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: spot.x, y: spot.y, deltaX: 0, deltaY: 40 });
+  let held = await pos();
+  for (let i = 0; i < 15; i++) { await sleep(100); const next = await pos(); if (next === held) break; held = next; }
+  await sleep(600);
+  if (await pos() !== held) problems.push('turning the wheel does not stop Play');
+  else if (snaps !== 'none' && await snap() !== snaps) problems.push('scroll snapping does not come back when the wheel stops Play');
+  return problems;
+}
+
 let failures = 0;
 try {
   ws = new WebSocket(await pageSocket());
@@ -268,6 +399,7 @@ try {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Log.enable');
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD });
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
@@ -309,6 +441,8 @@ try {
         }
         if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
         if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
+        if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
+        if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }
