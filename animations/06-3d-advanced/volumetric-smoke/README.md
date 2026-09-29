@@ -1,7 +1,7 @@
 # Volumetric Smoke / 3D Noise
 
 ## What it is
-Volumetric rendering treats 3D space as a participating medium — fog, smoke, clouds, or fire — rather than a collection of surfaces. Instead of stopping at the first surface hit (like standard ray marching), each ray accumulates density as it travels through the volume. The result is light scattering, depth-based opacity, and the soft edges that make clouds and smoke look real. This demo samples a 3D fractal Brownian motion (fBm) noise field and renders it as animated smoke rising from a source.
+Volumetric smoke is drawn as a real 3D cloud rather than a flat picture. For every pixel, a ray passes through a cloud of smooth noise and adds up how much smoke it meets, shading each part by how much smoke lies between it and the light. That gives soft edges and depth, which is how films draw smoke, fog and clouds.
 
 ## When to use it
 - Atmospheric background effects: rising smoke, volumetric fog, cloud formations
@@ -50,18 +50,22 @@ float smokeDensity(vec3 p, float t) {
   float r = length(p.xz);
   // smoothstep needs edge0 < edge1, so the upper falloff is inverted rather than reversed
   float src = exp(-r * 3.0) * smoothstep(-0.2, 0.6, p.y) * (1.0 - smoothstep(1.0, 1.8, p.y));
-  float n = fbm(p * 1.4 + vec3(windDrift, t * speed, 0.0));
+  float n = fbm(p * 1.4 + vec3(windDrift, rise, 0.0));
   return max(0.0, n - 0.45) * src * density;
 }
 ```
 
+`rise` grows every frame by the frame's time × the speed, on the page, so changing the speed never makes the smoke jump.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| March steps | 32 | 16 = fast/coarse; 64 = smooth/accurate; diminishing returns above 48 |
-| Smoke density | 0.7 | Higher = denser, more opaque cloud; lower = wispy, transparent |
-| Speed | 0.6 | How fast noise "rises" through the field (animation speed) |
-| Step size | `3.0 / steps` | Smaller steps = finer detail but more iterations needed |
+| Thickness | Medium | How dense the smoke is: thin is 0.4, medium 0.7 and thick 1.2; thin looks wispy, thick hides what is behind |
+| Speed | Normal | How fast the smoke rises: slow is 0.35, normal 0.6 and fast 1 |
+| Detail | Medium | How many steps each ray takes: low is 16, medium 32 and high 64 (48 on phones); fewer steps leave visible stripes |
+| Smoke color | Gray blue | The color of the lit smoke; the shadowed parts are darker shades of it |
+| Wind | on | The whole plume drifts slowly to one side |
+| Fine grain | on | Starts each ray at a slightly random point, which turns the stripes that few steps leave into fine grain |
 
 ## Production notes
 - **Precision**: the `sin`-based hash multiplies by 43758.5, which overflows the usable range of a 16-bit `mediump` float and collapses the noise to flat blocks on many mobile GPUs. Request `highp` in the fragment shader (guarded by `GL_FRAGMENT_PRECISION_HIGH`) or swap the hash for an integer-free variant with a smaller multiplier.
@@ -74,6 +78,6 @@ float smokeDensity(vec3 p, float t) {
 - **Temporal accumulation**: real-time volumetric engines (Unreal Engine's Volumetric Fog) spread the ray march samples across multiple frames and blend results. This reduces per-frame cost by 4–8× at the cost of minor ghosting artifacts during fast camera motion.
 
 ## See also
-- [Ray Marching / SDF Scene](../ray-marching-sdf/) — ray marching that finds surface hits rather than accumulating volume
-- [Noise-Based Motion](../noise-based-motion/) — 2D application of the same noise functions
-- [Fluid Simulation](../fluid-simulation/) — SDF-based alternative for liquid-like effects
+- [Ray Marching / SDF Scene](../ray-marching-sdf/) — rays that stop at surfaces instead of adding up smoke
+- [Noise-Based Motion](../noise-based-motion/) — the same kind of noise, on a flat canvas
+- [Fluid / Liquid Simulation](../fluid-simulation/) — a soft, liquid look drawn by a shader
