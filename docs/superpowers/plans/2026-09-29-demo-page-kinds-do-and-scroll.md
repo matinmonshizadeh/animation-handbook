@@ -47,7 +47,7 @@ In `tests/pages.test.js`, in the guided-steps page test:
 
 - [ ] **Step 2: Prove it on a scratch page**
 
-Copy `animations/02-entrance-and-exit/fade-in-out/index.html` and `README.md` to `.superpowers/scratch/no-settings/`; delete its whole Try it `<section>`, renumber Copy the prompt to 2, and shorten the prompt so it no longer ends with "Match the settings listed below.". Temporarily copy the folder into `animations/02-entrance-and-exit/zz-no-settings/`, run `node --test "tests/*.test.js"` (the scratch page passes; nothing else changes), then delete that temporary folder by its exact path (`rm -r animations/02-entrance-and-exit/zz-no-settings`) and confirm `git status` shows no trace of it. Run `node tools/check-pages.mjs .superpowers/scratch/no-settings` (five `ok` lines: no chips, no warnings).
+Copy `animations/02-entrance-and-exit/fade-in-out/index.html` and `README.md` to `.superpowers/scratch/no-settings/`; delete its whole Try it `<section>`, renumber Copy the prompt to 2, and shorten the prompt so it no longer ends with "Match the settings listed below.". Temporarily copy the folder into `animations/02-entrance-and-exit/zz-no-settings/`, run `node --test "tests/*.test.js"` (the scratch page passes; nothing else changes), then delete that temporary folder by its exact path (`rm -r animations/02-entrance-and-exit/zz-no-settings`) and confirm `git status` shows no trace of it. Run `node tools/check-pages.mjs .superpowers/scratch/no-settings` (six `ok` lines: no chips, no warnings).
 
 - [ ] **Step 3: Commit**
 
@@ -169,11 +169,11 @@ Update the header comment to mention do-it pages.
 
 - [ ] **Step 5: Prove it on a scratch do-it page**
 
-Create `.superpowers/scratch/do-page/index.html` and `README.md` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="do" data-hb-autoplay`; step 1 titled "Click it" with the help line "Click the box, or press Show me."; the stage holds one `<button class="box">` that toggles a class `.on` (scale 1 → 1.2 with a 300ms transition) when clicked; the player bar holds Show me and Reset (markup above); the page script: Show me adds `.on`, removes it after 1200ms (one example, then rest), and cancels that timer on `document`'s `hb:input` and on Reset (which also removes `.on`). Temporarily copy it to `animations/02-entrance-and-exit/zz-do-page/`, run the tests (they pass), delete the temporary folder by its exact path, and confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/do-page` — five `ok` lines. In headless Chrome confirm: on arrival Show me runs once; under reduced motion nothing runs until Show me is pressed; a real click inside the stage during a run sends `hb:input` and the run stops; on a 375px phone Show me and Reset share one row.
+Create `.superpowers/scratch/do-page/index.html` and `README.md` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="do" data-hb-autoplay`; step 1 titled "Click it" with the help line "Click the box, or press Show me."; the stage holds one `<button class="box">` that toggles a class `.on` (scale 1 → 1.2 with a 300ms transition) when clicked; the player bar holds Show me and Reset (markup above); the page script: Show me adds `.on`, removes it after 1200ms (one example, then rest), and cancels that timer on `document`'s `hb:input` and on Reset (which also removes `.on`). Temporarily copy it to `animations/02-entrance-and-exit/zz-do-page/`, run the tests with the temporary page's home-card test skipped (`node --test --test-skip-pattern="zz-.*: the home page card" "tests/*.test.js"`; they pass), delete the temporary folder by its exact path, and confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/do-page` — six `ok` lines. In headless Chrome confirm: on arrival Show me runs once; under reduced motion nothing runs until Show me is pressed; a real click inside the stage during a run sends `hb:input` and the run stops; on a 375px phone Show me and Reset share one row.
 
 - [ ] **Step 6: Run everything and commit**
 
-Run `node --test "tests/*.test.js"` (all pass) and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok` lines — nothing changes for the converted pages). Commit:
+Run `node --test "tests/*.test.js"` (all pass) and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok` lines — nothing changes for the converted pages). Commit:
 
 ```bash
 git add assets/js/demo-page.js assets/css/demo-page.css tests/pages.test.js tools/check-pages.mjs
@@ -309,11 +309,11 @@ Update the header comment to mention scroll pages.
 
 - [ ] **Step 4: Prove it on a scratch scroll page**
 
-Create `.superpowers/scratch/scroll-page/` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="scroll" data-hb-autoplay`; step 1 titled "Scroll it" with the help line "Scroll inside the box, or press Play and it scrolls for you."; the stage gets `overflow-y:auto` in the page's own `.stage` rule and holds twelve tall cards that fade in as they enter the box (an IntersectionObserver with the stage as root); the player bar holds Play and Back to top (markup above); no Try it step (Task 1). Temporarily copy it into `animations/02-entrance-and-exit/zz-scroll-page/`, run the tests, delete the temporary folder by its exact path, confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/scroll-page` — five `ok` lines. In headless Chrome confirm: arrival scrolls the box once to its end in about six seconds; a real wheel turn, touch or press stops it; Back to top jumps to the top and stops; Play at the end starts again from the top; under reduced motion nothing scrolls until Play is pressed; on a 375px phone Play and Back to top share one row.
+Create `.superpowers/scratch/scroll-page/` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="scroll" data-hb-autoplay`; step 1 titled "Scroll it" with the help line "Scroll inside the box, or press Play and it scrolls for you."; the stage gets `overflow-y:auto` in the page's own `.stage` rule and holds twelve tall cards that fade in as they enter the box (an IntersectionObserver with the stage as root); the player bar holds Play and Back to top (markup above); no Try it step (Task 1). Temporarily copy it into `animations/02-entrance-and-exit/zz-scroll-page/`, run the tests with the temporary page's home-card test skipped (`node --test --test-skip-pattern="zz-.*: the home page card" "tests/*.test.js"`), delete the temporary folder by its exact path, confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/scroll-page` — six `ok` lines. In headless Chrome confirm: arrival scrolls the box once to its end in about six seconds; a real wheel turn, touch or press stops it; Back to top jumps to the top and stops; Play at the end starts again from the top; under reduced motion nothing scrolls until Play is pressed; on a 375px phone Play and Back to top share one row.
 
 - [ ] **Step 5: Run everything and commit**
 
-Run `node --test "tests/*.test.js"` and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok` lines). Commit:
+Run `node --test "tests/*.test.js"` and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok` lines). Commit:
 
 ```bash
 git add assets/js/demo-page.js tests/pages.test.js tools/check-pages.mjs
@@ -326,5 +326,5 @@ git commit -m "feat: support scroll demos with Play and Back to top"
 
 **Files:** every converted page (`animations/02-entrance-and-exit/*/index.html`, `animations/05-text-typography/*/index.html`)
 
-- [ ] **Step 1:** Change `demo-page.css?v=3` → `?v=4` and `demo-page.js?v=3` → `?v=4` on all 27 pages (the version test requires one version everywhere). Run the tests and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok`).
+- [ ] **Step 1:** Change `demo-page.css?v=3` → `?v=4` and `demo-page.js?v=3` → `?v=4` on all 27 pages (the version test requires one version everywhere). Run the tests and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok`).
 - [ ] **Step 2:** Commit — `chore: load version 4 of the shared page files`.
