@@ -645,7 +645,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - it draws the haze when Nebula haze is on;
   - it moves every star (`update()`) and draws it.
 
-  `paint(false)` does the same without moving the stars. It runs at load, after `initStars()`, so a loop paused on arrival shows the stars. It also runs after a setting change while paused, which replaces today's `redraw()` (it only worked under reduced motion), and after a real resize (see the preamble), playing or paused, following `initStars()`. The fps measurement and both readouts go.
+  `paint(false)` draws the same frame without moving the stars, and covers the canvas with opaque black (`#000`) first. The see-through `rgba(0,0,0,.85)` cover belongs only to `paint(true)`, where it makes the trails while playing; a still picture repainted after a setting change while paused must leave no ghost of the old stars. `paint(false)` runs at load, after `initStars()`, so a loop paused on arrival shows the stars. It also runs after a setting change while paused, which replaces today's `redraw()` (it only worked under reduced motion), and after a real resize (see the preamble), playing or paused, following `initStars()`. The fps measurement and both readouts go.
 - **Slow motion:** while the switch is on, `update()` moves each star, and advances its twinkle, by a third of the usual step (outward: `dist`; sideways: `x`; and `twinklePhase`), from the next frame.
 - **Reduced motion:** the page's `REDUCED` checks go (see the preamble).
 - **Stage font:** site font, on the card as in the preamble. `.fg-eyebrow` becomes `color:rgba(255,255,255,.6)` (was .4, which is 3.4:1).
@@ -714,6 +714,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Watch it help line:** default
 - **Player bar:** Pause (css) · Slow motion (css)
 - **Sequence:** the glow breathes forever (`@keyframes breathe`, over Speed). The second glow, when it is on, breathes the other way (`reverse`, over 1.3 × Speed). The centre group (`.center-el`: the ✦ icon and the "Rest state" title under it) breathes with the glow when Icon and title breathe too is on (`@keyframes el-breathe`, over Speed). There are no page timers. Icon and title breathe too sets the group's `animation` to `''` or `'none'` as today; its line that set `animationPlayState` goes, because the "css" Pause holds it.
+- **Speed keeps the point of the breath.** A new `--glow-dur` alone keeps the time already played, so every layer would jump to another point of its breath, and a paused stage would change its picture. The Speed choice first scales each animation's `currentTime` on the stage by new/old breath length, then writes `--glow-dur`. The glow stays where it is, moving or paused. This is the rule of Scanline Effect's Beam speed and the Speed choices of the other css pages.
+- **The centre group rejoins the glow's breath.** When Icon and title breathe too is switched back on, the group's restarted animation takes the glow's `currentTime`, so it swells in step with the glow instead of starting a breath of its own.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule `.glow,.glow2,.center-el{animation-duration:60s!important}` goes (see the preamble).
 - **Stage font:** site font.
