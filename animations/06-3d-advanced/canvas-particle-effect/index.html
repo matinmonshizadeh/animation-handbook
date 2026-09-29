@@ -202,9 +202,10 @@ class P{
   }
 }
 
-// The number of dots depends on the width of the screen, checked at each spawn(): far fewer on phones and tablets.
+// The number of dots depends on the size of the screen, checked at each spawn(): far fewer on tablets and on phones,
+// which are up to 600px wide, or up to 500px tall when held sideways.
 function spawn(){
-  COUNT=COUNTS[innerWidth<=600?2:innerWidth<=1024?1:0][level];
+  COUNT=COUNTS[innerWidth<=600||innerHeight<=500?2:innerWidth<=1024?1:0][level];
   particles=[];
   for(let i=0;i<COUNT;i++)particles.push(new P());
 }
@@ -254,8 +255,9 @@ function loop(t){
   draw();
 }
 function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
-// While paused a setting or a resize draws the picture again, so the change shows without anything moving.
-function redraw(){if(paused)draw();}
+// While paused a setting or a resize draws the picture again, so the change shows without anything moving. The canvas is
+// cleared first: with Trails on, draw() only lays a thin wash over the old picture, which would stay showing under the new one.
+function redraw(){if(paused){ctx.clearRect(0,0,W,H);draw();}}
 
 // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
 // loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;

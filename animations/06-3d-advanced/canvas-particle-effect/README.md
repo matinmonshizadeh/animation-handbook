@@ -74,7 +74,7 @@ Stroking each link on its own costs one draw call per line, thousands a frame; g
 
 ## Production notes
 - **O(n²) limit**: distance checks between all pairs scale quadratically. Above ~500 particles the loop drops frames. Fix: spatial partitioning (quadtree, uniform grid) reduces checks to O(n log n). For 1000+ particles, switch to WebGL.
-- **Phones and tablets**: the demo draws 30 to 60 dots on screens 600px wide or less and 60 to 120 up to 1024px, and strokes the links in six batches instead of one call per line.
+- **Phones and tablets**: the demo draws 30 to 60 dots on phones (screens 600px wide or less, or 500px tall or less when held sideways) and 60 to 120 on other screens up to 1024px wide, and strokes the links in six batches instead of one call per line.
 - **Canvas vs DOM**: `<canvas>` is mandatory for 50+ particles. DOM elements at that density create thousands of layout calculations per frame — the browser cannot keep up.
 - **Particles.js / tsParticles**: the dominant production library. Handles everything in this demo plus themes, shape variety, responsive density, and performance at high counts.
 - **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (turn on Trails in the demo).
