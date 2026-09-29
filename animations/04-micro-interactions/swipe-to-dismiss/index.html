@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Swipe to Dismiss — Animation Handbook</title>
-  <meta name="description" content="Drag a card past the threshold (or fling it) to delete; release short and it springs back.">
+  <meta name="description" content="A card dragged sideways flies off and the list closes up. Best for inboxes.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/swipe-to-dismiss/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,101 +12,138 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Swipe to Dismiss — Animation Handbook">
-  <meta property="og:description" content="Drag a card past the threshold (or fling it) to delete; release short and it springs back.">
+  <meta property="og:description" content="A card dragged sideways flies off and the list closes up. Best for inboxes.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/swipe-to-dismiss/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Swipe to Dismiss — Animation Handbook">
-  <meta name="twitter:description" content="Drag a card past the threshold (or fling it) to delete; release short and it springs back.">
+  <meta name="twitter:description" content="A card dragged sideways flies off and the list closes up. Best for inboxes.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Swipe to Dismiss", "name": "Swipe to Dismiss", "description": "Drag a card past the threshold (or fling it) to delete; release short and it springs back.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/swipe-to-dismiss/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Swipe to Dismiss"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Swipe to Dismiss", "name": "Swipe to Dismiss", "description": "A card dragged sideways flies off and the list closes up. Best for inboxes.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/swipe-to-dismiss/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Swipe to Dismiss"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--del:#f4515b}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--del:#f4515b}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:clamp(16px,4vw,32px);overflow:hidden}
-    .list{width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px}
-    /* Row wrapper collapses its own height when the card is dismissed */
+    .stage{display:flex;align-items:center;justify-content:center;padding:clamp(16px,4vw,32px);background:#0b0b0d;overflow:hidden}
+    .list{width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;-webkit-user-select:none;user-select:none}
+    /* The row collapses its own height when its card is dismissed: the list closing up is the effect itself, the one place this page animates height */
     .row{position:relative;height:66px;transition:height .28s cubic-bezier(.4,0,.2,1),opacity .2s;overflow:hidden}
     .row.collapsing{height:0!important;opacity:0}
     /* Reveal action sits behind the card */
-    .reveal{position:absolute;inset:0;border-radius:10px;background:var(--del);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-family:var(--disp);font-weight:700;font-size:12px;color:#fff;opacity:0;transition:opacity .12s}
+    .reveal{position:absolute;inset:0;border-radius:10px;background:var(--del);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-weight:700;font-size:12px;color:#1a0f08;opacity:0;transition:opacity .12s}
     .reveal.show{opacity:1}
     .reveal.hidden{display:none}
     /* The draggable card */
     .card{position:absolute;inset:0;border-radius:10px;background:var(--ui-bg);border:1px solid var(--ui-border);display:flex;align-items:center;gap:12px;padding:0 16px;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;will-change:transform}
     .card.settling{transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .32s}
     .card.flung{transition:transform .3s cubic-bezier(.4,0,1,1),opacity .3s}
-    .avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:14px;color:#1a0f08;background:var(--ui-accent)}
+    .avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#1a0f08;background:var(--ui-accent)}
     .meta{min-width:0}
     .meta .t{font-size:12px;color:var(--ui-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .meta .s{font-size:10px;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta .s{font-size:11px;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .empty{font-size:11px;color:var(--ui-muted);text-align:center}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:44px;text-align:right;color:var(--ui-text)}
-    .tog-inp{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .div{height:1px;background:var(--ui-border)}
-    .reset{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){.reset:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px}}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    /* A window this short gives the stage 260 to 310px, less than four rows of 66px need (288px): the rows give up some height and spacing */
+    @media(min-width:601px) and (max-height:640px){.stage{padding:8px}.list{gap:6px}.row{height:56px}}
     @media(prefers-reduced-motion:reduce){.row,.card.settling,.card.flung{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../error-shake/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../hamburger-menu-toggle/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/swipe-to-dismiss/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Swipe to Dismiss</h1>
-  <p>Drag a card past the threshold (or fling it) to delete; release short and it springs back.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div class="list" id="list"></div>
-  </div>
-  <aside>
-    <p class="note">The card follows your finger 1:1 while dragging. Commit is decided at release by distance OR velocity — a fast flick counts even if it's short.</p>
-    <div class="lbl">Dismiss threshold</div>
-    <div class="sr"><input type="range" id="th-sl" min="15" max="70" value="35" step="5"><span class="sval" id="th-v">35%</span></div>
-    <label class="tog-inp"><input type="checkbox" id="reveal-tog" checked><span>Show delete background</span></label>
-    <div class="div"></div>
-    <button class="reset" id="reset">↺ Reset list</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../error-shake/" rel="prev" aria-label="Previous: Error Shake"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Error Shake</span></a><a href="../hamburger-menu-toggle/" rel="next" aria-label="Next: Hamburger Menu Toggle"><span><span class="hb-dir">Next: </span>Hamburger Menu Toggle</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.22 · Micro-Interactions</p>
+    <h1>Swipe to Dismiss</h1>
+    <p class="hb-lede">A card dragged sideways flies off and the list closes up. Best for inboxes.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag a message sideways and let go, or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="list" id="list"></div>
+      <p class="sr-only" id="del-hint">Press Delete to remove this message.</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="dist-lbl">Distance to delete</p>
+        <div class="seg" id="dist-seg" role="group" aria-labelledby="dist-lbl">
+          <button type="button" data-t="0.2" aria-pressed="false">Short</button>
+          <button type="button" data-t="0.35" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-t="0.5" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How far to drag before letting go deletes it.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shows a Delete label</span><input class="hb-switch" type="checkbox" role="switch" id="reveal-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">A red Delete strip shows behind the card as you drag.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add swipe to dismiss to [the list items people should be able to remove]. While an item is dragged sideways, it follows the finger exactly and fades a little; when the settings include it, a red Delete label shows behind it. On release, remove it if it went far enough or was flicked quickly: it slides off the edge and its row closes up so the list moves up smoothly. Otherwise it springs back into place. Use pointer events so mouse, touch and pen all work, and let up-and-down scrolling still pass through. Offer an undo, and a button for people who cannot drag. If the visitor has reduced motion turned on, remove the row at once without sliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Inboxes</li><li>Notifications</li><li>Chat lists</li><li>To-do lists</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Permanent deletes</li><li>Mouse-only tools</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const listEl=document.getElementById('list');
-  const root=document.documentElement.style;
+  const resetBtn=document.getElementById('btn-reset');
+  const reduceMq=window.matchMedia('(prefers-reduced-motion:reduce)');
   let threshold=0.35, showReveal=true;
-  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const DATA=[
     ['AV','Ava Reyes','Lunch tomorrow? I found a spot'],
-    ['KM','Kai Morgan','Deploy is green, shipping it'],
+    ['KM','Kai Morgan','Booked the tickets for June'],
     ['NP','Noor Patel','Sent the revised mockups'],
-    ['TG','Theo Grant','Re: invoice — all sorted'],
     ['SL','Sol Lindqvist','Are we still on for Friday?']
   ];
 
@@ -114,57 +151,74 @@ body{padding-top:46px}
     listEl.innerHTML='';
     DATA.forEach(d=>{
       const row=document.createElement('div');row.className='row';
-      row.innerHTML=`<div class="reveal ${showReveal?'':'hidden'}">Delete</div>`+
-        `<div class="card"><div class="avatar">${d[0]}</div>`+
+      row.innerHTML=`<div class="reveal ${showReveal?'':'hidden'}" aria-hidden="true">Delete</div>`+
+        `<div class="card" tabindex="0" role="group" aria-label="${d[1]}: ${d[2]}" aria-describedby="del-hint"><div class="avatar" aria-hidden="true">${d[0]}</div>`+
         `<div class="meta"><div class="t">${d[1]}</div><div class="s">${d[2]}</div></div></div>`;
       listEl.appendChild(row);
       wire(row);
     });
   }
 
+  // The card follows the pointer 1:1 and fades a little; the red strip shows once it has moved a few pixels.
+  // The visitor's drag and Show me's drag both draw each frame with this.
+  function follow(card,reveal,x){
+    card.style.transform=`translateX(${x}px)`;
+    card.style.opacity=String(Math.max(0.3,1-Math.abs(x)/(card.offsetWidth*0.9)));
+    reveal.classList.toggle('show',showReveal&&Math.abs(x)>8);
+  }
+
   function wire(row){
     const card=row.querySelector('.card');
     const reveal=row.querySelector('.reveal');
-    let startX=0,dx=0,dragging=false,lastX=0,lastT=0,vel=0;
+    let startX=0,dx=0,dragging=false,pid=0,lastX=0,lastT=0,vel=0;
 
     card.addEventListener('pointerdown',e=>{
-      if(row.classList.contains('collapsing'))return; // already dismissed
-      dragging=true;dx=0;startX=e.clientX;lastX=e.clientX;lastT=performance.now();vel=0;
+      if(dragging||row.classList.contains('collapsing'))return; // already dismissed
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      dragging=true;pid=e.pointerId;dx=0;startX=e.clientX;lastX=e.clientX;lastT=performance.now();vel=0;
       card.classList.remove('settling','flung');
       card.setPointerCapture(e.pointerId);
       card.style.cursor='grabbing';
     });
     card.addEventListener('pointermove',e=>{
-      if(!dragging)return;
+      if(!dragging||e.pointerId!==pid)return;
       dx=e.clientX-startX;
       const now=performance.now();
       if(now>lastT){vel=(e.clientX-lastX)/(now-lastT);lastX=e.clientX;lastT=now;} // px per ms
-      card.style.transform=`translateX(${dx}px)`;
-      card.style.opacity=String(Math.max(0.3,1-Math.abs(dx)/(card.offsetWidth*0.9)));
-      if(reveal)reveal.classList.toggle('show',showReveal&&Math.abs(dx)>8);
+      follow(card,reveal,dx);
     });
-    function end(){
-      if(!dragging)return;dragging=false;card.style.cursor='grab';
+    // Letting go decides by distance or flick; a cancelled pointer (the browser took the gesture over for scrolling) always springs back
+    function end(e,cancelled){
+      if(!dragging||e.pointerId!==pid)return;dragging=false;card.style.cursor='';
       if(performance.now()-lastT>100)vel=0; // finger stopped before release: no flick
       const w=card.offsetWidth;
       const pastDist=Math.abs(dx)>w*threshold;
       const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24&&Math.sign(vel)===Math.sign(dx); // velocity commit, only when the flick points away from rest
-      if(pastDist||flick){dismiss(row,card,dx>=0?1:-1);}
+      if(!cancelled&&(pastDist||flick)){dismiss(row,card,dx>=0?1:-1);}
       else{spring(card,reveal);}
     }
-    card.addEventListener('pointerup',end);
-    card.addEventListener('pointercancel',end);
+    card.addEventListener('pointerup',e=>end(e,false));
+    card.addEventListener('pointercancel',e=>end(e,true));
+    // The keyboard way: a focused message goes with Delete or Backspace, and focus moves on to the next message (or to Reset)
+    card.addEventListener('keydown',e=>{
+      if((e.key!=='Delete'&&e.key!=='Backspace')||row.classList.contains('collapsing'))return;
+      e.preventDefault();
+      const rows=[...listEl.children].filter(r=>!r.classList.contains('collapsing')),i=rows.indexOf(row);
+      const next=rows[i+1]||rows[i-1];
+      dismiss(row,card,1);
+      (next?next.querySelector('.card'):resetBtn).focus({preventScroll:true});
+    });
   }
 
   function spring(card,reveal){
     card.classList.add('settling');
     card.style.transform='translateX(0)';
     card.style.opacity='1';
-    if(reveal)reveal.classList.remove('show');
+    reveal.classList.remove('show');
   }
 
   function dismiss(row,card,dir){
-    if(reduce){ // no fly-off flourish — collapse immediately
+    if(reduceMq.matches){ // no fly-off flourish — collapse immediately
       row.remove();checkEmpty();return;
     }
     card.classList.add('flung');
@@ -178,22 +232,69 @@ body{padding-top:46px}
 
   function checkEmpty(){
     if(!listEl.querySelector('.row')){
-      listEl.innerHTML='<div class="empty">All cleared. Reset the list to try again.</div>';
+      listEl.innerHTML='<div class="empty">All cleared. Press Reset to bring them back.</div>';
     }
   }
 
-  document.getElementById('th-sl').addEventListener('input',e=>{
-    threshold=+e.target.value/100;
-    document.getElementById('th-v').textContent=e.target.value+'%';
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + (hold||0) ms: Slow motion triples the movement, never the hold.
+  const slowTog=document.getElementById('slow-tog');      // only on pages with Slow motion
+  let runTimers=[],runFrame=0,runDrag=null;               // runDrag: the card the run is dragging right now
+  function later(fn,move,hold){
+    const slow=!!(slowTog&&slowTog.checked);
+    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, move*(slow?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){ return runTimers.length>0||runFrame!==0; }
+  function stopRun(){
+    runTimers.forEach(clearTimeout); runTimers=[];
+    cancelAnimationFrame(runFrame); runFrame=0;
+    if(runDrag){ spring(runDrag.card,runDrag.reveal); runDrag=null; } // a card still being dragged by the run springs back
+  }
+  // A run starts with all four messages in place; when one is missing (or still closing up) the list is rebuilt.
+  function toRest(){
+    if(listEl.querySelectorAll('.row').length!==DATA.length||listEl.querySelector('.collapsing'))build();
+  }
+  // Show me drags a card the way a pointer would: it draws every frame with the visitor's follow(), then lets go
+  function drag(card,reveal,x,ms,letGo){
+    const t0=performance.now();
+    card.classList.remove('settling','flung');
+    runDrag={card,reveal};
+    (function frame(now){
+      const k=Math.min(1,Math.max(0,(now-t0)/ms));
+      follow(card,reveal,x*k*k*(3-2*k));
+      if(k<1){runFrame=requestAnimationFrame(frame);return;}
+      runFrame=0;runDrag=null;letGo();
+    })(t0);
+  }
+  // The first message is dragged halfway to where letting go deletes it, and let go: it springs back. It is dragged again,
+  // past that point, and let go: it flies off and its row closes up. Then the list is rebuilt.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    const row=listEl.querySelector('.row'),card=row.querySelector('.card'),reveal=row.querySelector('.reveal');
+    drag(card,reveal,card.offsetWidth*threshold/2,400,()=>spring(card,reveal));
+    later(()=>drag(card,reveal,card.offsetWidth*(threshold+0.15),600,()=>dismiss(row,card,1)),0,1100);
+    later(build,0,2600);
   });
+  resetBtn.addEventListener('click',()=>{ stopRun(); build(); });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
+  document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('dist-seg',d=>{threshold=+d.t});
   document.getElementById('reveal-tog').addEventListener('change',e=>{
     showReveal=e.target.checked;
-    document.querySelectorAll('.reveal').forEach(r=>r.classList.toggle('hidden',!showReveal));
+    listEl.querySelectorAll('.reveal').forEach(r=>r.classList.toggle('hidden',!showReveal));
   });
-  document.getElementById('reset').addEventListener('click',build);
 
   build();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
