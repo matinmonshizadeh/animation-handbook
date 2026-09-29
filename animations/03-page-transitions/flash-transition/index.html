@@ -173,6 +173,9 @@
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),flashEl=document.getElementById('flash-overlay');
   const blurTog=document.getElementById('blur-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // A flash lasts at least this long (ms) from the start of its rise, so the next one starts no sooner: never more than three
+  // a second, however fast the visitor clicks. Only Fast (310ms) is stretched.
+  const MIN_CYCLE=350;
   let current=0,animating=false,flashIn=200,flashOut=320,intensity=1,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
 
@@ -249,7 +252,7 @@
       pages[next].classList.add('active');
       flashEl.style.transition=`opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
       flashEl.style.opacity='0';flashEl.classList.remove('blur-on');
-      later(finish,flashOut);
+      later(finish,Math.max(flashOut,MIN_CYCLE-flashIn));
     },flashIn);
   }
 
