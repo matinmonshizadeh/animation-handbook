@@ -1,7 +1,7 @@
 # Grain / Film Noise Overlay
 
 ## What it is
-Film grain adds organic texture to clean digital design by layering an animated noise pattern over the content at low opacity. The effect mimics the silver-halide crystal randomness of analog film photography. At the right intensity (5–10% opacity), it is nearly invisible but improves perceived depth and warmth. Above 20%, it reads as a damaged screen. The key to film grain is subtlety — users should not notice it, only notice when it's removed.
+Film grain lays a see-through layer of random dots over a design and draws it again and again, so the texture flickers like the grain of photographic film. At a low strength, around 5 to 10 percent, it is barely visible, yet flat digital colors feel warmer and deeper; much stronger, and it looks like a damaged screen. The trick is subtlety: people should not notice the grain, only miss it when it is gone.
 
 ## When to use it
 - Hero sections and portfolio pages where a photographic, editorial aesthetic is desired
@@ -20,14 +20,15 @@ function drawGrain(canvas, ctx, pixelSize = 2, colorNoise = false) {
 
   for (let y = 0; y < H; y += pixelSize) {
     for (let x = 0; x < W; x += pixelSize) {
+      // one color per grain dot: gray, or three random channels
       const v = Math.random() * 255 | 0;
+      const r = colorNoise ? Math.random() * 255 | 0 : v;
+      const g = colorNoise ? Math.random() * 255 | 0 : v;
+      const b = colorNoise ? Math.random() * 255 | 0 : v;
       for (let dy = 0; dy < pixelSize && y + dy < H; dy++) {
         for (let dx = 0; dx < pixelSize && x + dx < W; dx++) {
           const idx = ((y + dy) * W + (x + dx)) * 4;
-          data[idx]     = colorNoise ? (Math.random() * 255 | 0) : v;
-          data[idx + 1] = colorNoise ? (Math.random() * 255 | 0) : v;
-          data[idx + 2] = colorNoise ? (Math.random() * 255 | 0) : v;
-          data[idx + 3] = 255;
+          data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = 255;
         }
       }
     }
@@ -78,19 +79,22 @@ function loop() {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Intensity (opacity) | 8% | 5–10% = invisible but impactful; 15% = noticeable; 30% = distracting |
-| Grain size (pixel size) | 2px | 1px = fine digital noise; 3px = coarse film grain; 4px+ = halftone |
-| Update rate | 24fps | 24fps = film; 12fps = lo-fi analog; 60fps = digital video noise |
-| Blend mode | overlay | `overlay` respects light/dark values; `screen` brightens; `soft-light` is subtler |
+| Strength | Light | How visible the grain is: faint is 4%, light 8% and strong 16%; 5–10% is felt more than seen, above 20% it looks like a damaged screen |
+| Grain size | Medium | The size of each dot: fine is 1px, medium 2px and coarse 3px; coarse looks like old film stock |
+| How often it changes | Like film | New grain every frame (60 times a second), like film (24), choppy (12) or slow (4); phones change it at most 24 times a second |
+| Blend | Film | How the grain mixes with the picture: film darkens dark areas and lightens light ones, like real grain (overlay blending); lighter only lightens (screen); softer is a gentler film (soft light) |
+| Colored grain | off | Randomly colored dots instead of gray ones |
+| Grain source | Random dots | Dots drawn by a script, or the browser's own noise filter; grain size and colored grain apply to the dots only |
 
 ## Production notes
 - **Canvas vs SVG feTurbulence**: canvas gives more control (pixel size, color noise) but is more CPU-intensive. SVG feTurbulence is GPU-accelerated and simpler but offers less control over grain character.
 - **Reduced update rate is intentional**: real film grain is 24fps, not 60fps. Generating a new canvas texture 60 times per second is wasted computation — 12–24fps matches the aesthetic and reduces CPU load.
+- **Phones**: the demo changes the grain at most 24 times a second on screens narrower than 600px, and draws the canvas at CSS pixels rather than device pixels; drawing every dot is the costly part.
 - **`mix-blend-mode: overlay`** is the standard for grain: it darkens dark areas slightly and brightens light areas slightly, matching how silver halide responds to exposure.
 - **CSS filter on a pseudo-element**: the cleanest production approach — add `::after { content:''; position:absolute; inset:0; background:url(grain.png); animation:grain 0.5s steps(1) infinite; }` with a spritesheet of pre-generated grain frames. This offloads grain generation entirely to a static asset.
 - **React libraries**: `react-noise` and various `css-grain` packages implement the SVG filter approach as zero-config drop-in components.
 
 ## See also
-- [Scanline](../scanline/) — another retro-analog overlay technique for CRT aesthetics
-- [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) — companion glitch effect for a degraded-media aesthetic
-- [Light Leak](../light-leak/) — another film-photography-inspired ambient overlay
+- [Scanline Effect](../scanline/) — dark lines over the page, like an old monitor
+- [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) — colors split at the edges, like a cheap lens
+- [Light Leak](../light-leak/) — warm light washes in, like a film camera flaw
