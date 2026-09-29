@@ -1,7 +1,7 @@
 # Mesh Gradient Animation
 
 ## What it is
-A mesh gradient is a background of large circles of color, blurred so heavily that their edges disappear and they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
+A mesh gradient is a background of a few large circles of color, blurred so their edges soften and the colors run into one another; with heavy blur they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
 
 ## When to use it
 - Marketing hero sections where the brand palette must feel premium and hand-crafted
@@ -10,7 +10,7 @@ A mesh gradient is a background of large circles of color, blurred so heavily th
 - App splash screens and loading states
 
 ## How it works
-Each blob is an absolutely-positioned `<div>` with a radial gradient background and `filter: blur()`. The key is heavy blur — 80px or more — which dissolves the gradient's hard edges into pure color wash. CSS keyframes animate each blob on an independent path:
+Each blob is an absolutely-positioned round `<div>` filled with one color and softened with `filter: blur()`. The key is heavy blur — 80px or more — which dissolves the circle's hard edge into a wash of color. CSS keyframes animate each blob on an independent path:
 
 ```css
 .blob {
