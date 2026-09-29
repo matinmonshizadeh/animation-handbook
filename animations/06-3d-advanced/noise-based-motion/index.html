@@ -192,6 +192,9 @@ const stage=document.getElementById('stage');const slowTog=document.getElementBy
 let W,H,paused=false,raf=null,last=null,t=0;
 let MODE='grid',SCALE=.008,SPD=.5,AMP=12,SPACE=48,COLOR='#58a6ff';
 const VERTS=48; // 48 points already draw a smooth edge
+// The blob reads the noise along a circle of radius RING x SCALE (the inner ring RING_IN x SCALE). A tiny circle sees almost
+// one value, so the whole edge only swells and shrinks; this one is wide enough for about two lobes at the default size.
+const RING=48,RING_IN=32;
 
 function resize(){
   const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -224,7 +227,7 @@ function drawBlob(){
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=simplex2(Math.cos(a)*SCALE*12+t,Math.sin(a)*SCALE*12)*AMP;
+    const n=simplex2(Math.cos(a)*SCALE*RING+t,Math.sin(a)*SCALE*RING)*AMP;
     const r2=R+n*2;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
@@ -236,7 +239,7 @@ function drawBlob(){
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=simplex2(Math.cos(a)*SCALE*8+t*.7,Math.sin(a)*SCALE*8)*AMP*.5;
+    const n=simplex2(Math.cos(a)*SCALE*RING_IN+t*.7,Math.sin(a)*SCALE*RING_IN)*AMP*.5;
     const r2=R*.5+n*1.5;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);

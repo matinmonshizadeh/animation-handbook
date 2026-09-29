@@ -35,21 +35,22 @@ function render(ts) {
 }
 ```
 
-**Plasma** — the simplest pattern; nested sine functions over UV coordinates:
+**Plasma** — the simplest pattern; nested sine functions over UV coordinates, and the sum picks a hue (`hsv()` turns a hue, a saturation and a brightness into a color):
 
 ```glsl
 void main() {
   vec2 uv = gl_FragCoord.xy / uRes * 2.0 - 1.0;
+  uv.x *= uRes.x / uRes.y;                       // keep the rings round on a wide stage
   float v  = sin(uv.x * 5.0 + uT)
            + sin(uv.y * 5.0 + uT * 0.7)
-           + sin((uv.x + uv.y) * 5.0 + uT * 0.3)
-           + sin(sqrt(uv.x*uv.x + uv.y*uv.y) * 6.0);
-  vec3 col = 0.5 + 0.5 * cos(v * 3.14 + vec3(0, 2.09, 4.19));
-  gl_FragColor = vec4(col, 1.0);
+           + sin((uv.x + uv.y) * 5.0 + uT * 0.5)
+           + sin(length(uv) * 6.0);              // rings around the middle
+  float hue = fract(v * 0.25 + uT * 0.05);       // the sum picks the hue; time slides it round the rainbow
+  gl_FragColor = vec4(hsv(hue, 0.9, 0.95), 1.0);
 }
 ```
 
-**Voronoi** — cellular pattern using nearest-neighbor distance in a grid:
+**Cells (Voronoi)** — cellular pattern using nearest-neighbor distance in a grid; the point in each cell drifts slowly as time runs on:
 
 ```glsl
 float voronoi(vec2 p) {
@@ -57,7 +58,7 @@ float voronoi(vec2 p) {
   float md = 8.0;
   for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
     vec2 n = vec2(x, y);
-    vec2 pt = n + rand2(i + n);          // random point in each cell
+    vec2 pt = n + rand2(i + n + uT * 0.01);   // a random point in each cell, moving with time
     md = min(md, length(pt - f));
   }
   return md;

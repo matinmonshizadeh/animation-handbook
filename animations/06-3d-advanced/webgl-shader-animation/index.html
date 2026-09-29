@@ -199,7 +199,7 @@ void main(){
 const stage=document.getElementById('stage');const cvs=document.getElementById('cvs');
 const msgEl=document.getElementById('gl-msg');const slowTog=document.getElementById('slow-tog');
 let W,H,gl,prog=null,U=null,raf=null,paused=false,last=null,T=0;
-let PRESET=0,SPD=1,MOUSE_UV=[.5,.5],MOUSE_ON=false;
+let PRESET=0,SPD=1,MOUSE_UV=[.5,.5],SHOWN_UV=[.5,.5],MOUSE_ON=false;
 const HUE=0; // every pattern already runs through the whole rainbow, so the shaders keep the hue shift at 0
 
 // A failed shader is otherwise invisible: the canvas just stays black.
@@ -264,7 +264,7 @@ function resize(){
 function draw(){
   gl.useProgram(prog);
   gl.uniform2f(U.R,W,H);gl.uniform1f(U.T,T);gl.uniform1f(U.H,HUE);
-  if(MOUSE_ON){gl.uniform2f(U.M,MOUSE_UV[0],MOUSE_UV[1]);gl.uniform1i(U.uMouse,1);}
+  if(MOUSE_ON){gl.uniform2f(U.M,SHOWN_UV[0],SHOWN_UV[1]);gl.uniform1i(U.uMouse,1);}
   else gl.uniform1i(U.uMouse,0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
@@ -279,6 +279,7 @@ function render(ts){
   const dt=ts-last;if(dt<16)return;
   last=ts;
   T+=Math.min(dt,100)/1000*SPD/(slowTog.checked?3:1);
+  SHOWN_UV=MOUSE_UV;
   draw();
 }
 function start(){if(raf!==null||!prog)return;last=null;raf=requestAnimationFrame(render);}
@@ -292,7 +293,8 @@ function setPaused(p){
 // loop on arrival, which this listener must catch. Play carries on from the current clock.
 document.addEventListener('hb:pause',e=>setPaused(e.detail.paused));
 
-// The pointer is only recorded here; the pattern takes it when a frame is drawn.
+// The pointer is only recorded here. The pattern takes it on the next frame that moves on (render sets SHOWN_UV),
+// so a repaint while paused shows a new setting and nothing else.
 // y is flipped because gl_FragCoord counts from the bottom of the buffer.
 function aim(e){const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,1-(e.clientY-r.top)/r.height];}
 
@@ -312,7 +314,7 @@ if(init()){
   });
   cvs.addEventListener('webglcontextrestored',()=>{
     if(!init())return;
-    clearFail();resize();
+    resize();
     if(!paused)start();
   });
 }else{
@@ -326,7 +328,7 @@ function choices(id,pick){
     pick(b.dataset);
   }));
 }
-choices('pattern-seg',d=>{switchShader(+d.pattern);still();});
+choices('pattern-seg',d=>{switchShader(+d.pattern);if(paused)still();else start();});
 choices('speed-seg',d=>{SPD=+d.spd;});
 document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE_ON=e.target.checked;still();});
 </script>

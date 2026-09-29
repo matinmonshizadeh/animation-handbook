@@ -42,8 +42,8 @@ The demo sets `step` as a spacing in pixels rather than a number of columns, so 
 ctx.beginPath();
 for (let i = 0; i <= vertices; i++) {
   const a = (i / vertices) * Math.PI * 2;
-  const n = simplex2(Math.cos(a) * 12 * SCALE + time,
-                     Math.sin(a) * 12 * SCALE);
+  const n = simplex2(Math.cos(a) * 48 * SCALE + time,
+                     Math.sin(a) * 48 * SCALE);
   const r = baseRadius + n * amplitude * 2;
   const x = cx + Math.cos(a) * r;
   const y = cy + Math.sin(a) * r;
@@ -51,6 +51,8 @@ for (let i = 0; i <= vertices; i++) {
 }
 ctx.closePath();
 ```
+
+The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see almost one value, so the whole edge would only swell and shrink together; this one spans about two bumps of noise at the default size, so the edge ripples.
 
 ## Key parameters
 | Parameter | Default | Effect |
