@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FLIP Technique — Animation Handbook</title>
-  <meta name="description" content="First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.">
+  <meta name="description" content="Cards glide to their new places when the layout changes. Best for sorting lists.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flip-technique/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,113 +12,137 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="FLIP Technique — Animation Handbook">
-  <meta property="og:description" content="First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.">
+  <meta property="og:description" content="Cards glide to their new places when the layout changes. Best for sorting lists.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flip-technique/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="FLIP Technique — Animation Handbook">
-  <meta name="twitter:description" content="First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.">
+  <meta name="twitter:description" content="Cards glide to their new places when the layout changes. Best for sorting lists.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "FLIP Technique", "name": "FLIP Technique", "description": "First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flip-technique/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, FLIP Technique"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "FLIP Technique", "name": "FLIP Technique", "description": "Cards glide to their new places when the layout changes. Best for sorting lists.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flip-technique/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, FLIP Technique"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .stage-toolbar{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;flex-wrap:wrap}
-    .tb-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:36px}
+    .tb-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 10px;border-radius:4px;cursor:pointer;min-height:44px;min-width:44px}
     @media(hover:hover){.tb-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
     .tb-btn.active-layout{border-color:var(--ui-accent);color:var(--ui-accent)}
+    /* On the narrowest phones a little less spacing lets the six buttons fill two lines */
+    @media(max-width:359px){.stage-toolbar{gap:4px;padding:10px 8px}}
     .page-area{flex:1;position:relative;overflow:hidden;padding:16px}
-    #card-grid{display:grid;gap:10px;transition:none}
+    /* 230px is the height of the three-column grid, so a new order in three columns never changes the stage's height; align-content keeps the rows from spreading over extra height */
+    #card-grid{display:grid;gap:10px;transition:none;min-height:230px;align-content:start}
     .flip-card{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;cursor:default;will-change:transform;position:relative}
     .card-num{font-size:32px;font-weight:bold;opacity:.15;line-height:1;position:absolute;top:10px;right:12px}
     .card-name{font-size:12px;font-weight:bold;margin-bottom:2px}
-    .card-meta{font-size:10px;opacity:.5}
-    /* Invert step overlay */
-    .invert-badge{position:absolute;top:4px;left:4px;font-size:8px;background:rgba(0,0,0,.7);color:var(--ui-accent);padding:2px 6px;border-radius:3px;display:none}
-    .invert-badge.show{display:block}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:38px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.stage{height:auto;min-height:var(--stage-h)}.tb-btn{min-height:44px}}
+    .card-meta{font-size:10px;opacity:.8}
     @media(prefers-reduced-motion:reduce){.flip-card{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../dissolve/" rel="prev" title="Previous">‹ Prev</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/03-page-transitions/flip-technique/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>FLIP Technique</h1>
-  <p>First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div class="stage-toolbar">
-      <button class="tb-btn" id="btn-shuffle">⟳ Shuffle</button>
-      <button class="tb-btn" id="btn-color">Sort by color</button>
-      <button class="tb-btn" id="btn-size">Sort by size</button>
-      <button class="tb-btn active-layout" id="btn-3col" data-cols="3">3 cols</button>
-      <button class="tb-btn" id="btn-2col" data-cols="2">2 cols</button>
-      <button class="tb-btn" id="btn-list" data-cols="1">List</button>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../dissolve/" rel="prev" aria-label="Previous: Dissolve Transition"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Dissolve Transition</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">03.12 · Page Transitions</p>
+    <h1>FLIP Technique</h1>
+    <p class="hb-lede">Cards glide to their new places when the layout changes. Best for sorting lists.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click a button above the cards, or press Show me.</p></div>
     </div>
-    <div class="page-area">
-      <div id="card-grid"></div>
+    <div class="stage hb-grow">
+      <div class="stage-toolbar">
+        <button type="button" class="tb-btn" id="btn-shuffle">Shuffle</button>
+        <button type="button" class="tb-btn" id="btn-color">Sort by color</button>
+        <button type="button" class="tb-btn" id="btn-size">Sort by size</button>
+        <button type="button" class="tb-btn active-layout" data-cols="3" aria-pressed="true">3 columns</button>
+        <button type="button" class="tb-btn" data-cols="2" aria-pressed="false">2 columns</button>
+        <button type="button" class="tb-btn" data-cols="1" aria-pressed="false">List</button>
+      </div>
+      <div class="page-area">
+        <div id="card-grid"></div>
+      </div>
     </div>
-  </div>
-  <aside>
-    <p class="note">FLIP solves layout animation: 1. Record First positions. 2. Apply new layout (cards jump instantly). 3. Invert — apply a transform that puts each card back visually at its original spot. 4. Play the transform to zero so cards glide to their real positions.</p>
-    <div class="lbl">State</div>
-    <div class="kv"><span>Layout</span><span class="v" id="layout-val">3 columns</span></div>
-    <div class="kv"><span>FLIP step</span><span class="v" id="step-val">idle</span></div>
-    <div class="div"></div>
-    <div><div class="lbl" id="dur-lbl">Duration</div>
-      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="100" max="1500" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
     </div>
-    <div><div class="lbl">Easing</div>
-      <select id="ease-sel">
-        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
-        <option value="ease-out">Ease out</option>
-        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
-        <option value="linear">Linear</option>
-      </select>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
     </div>
-    <label class="tog" for="show-inv"><input type="checkbox" id="show-inv"><span>Show Invert step</span></label>
-    <div class="div"></div>
-    <button class="rst" id="rst-btn">Reset layout</button>
-  </aside>
-</div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="800" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="500" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="300" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the cards take to glide into place.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="cubic-bezier(.2,.7,.3,1)" class="on" aria-pressed="true">Smooth</button>
+          <button type="button" data-ease="cubic-bezier(.34,1.56,.64,1)" aria-pressed="false">Springy</button>
+          <button type="button" data-ease="linear" aria-pressed="false">Even</button>
+        </div>
+        <p class="hb-hint">Springy goes a little past each place, then settles.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Animate layout changes in [the grid or list you want to rearrange] with the FLIP technique. Before the change, record where every item is. Apply the new order or layout so the items jump to their new places. Then shift each item back to where it was with a transform, and animate that shift away so the items glide to their real places. Only transforms animate, so it stays smooth even with many items. Match items across the change by a stable id. If the visitor has reduced motion turned on, let the items jump to their new places without gliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Sorting and filtering</li><li>Card grids</li><li>Dashboards</li><li>Lists</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Very long lists</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const CARDS=[
     {name:'Atlas',meta:'Brand identity',bg:'linear-gradient(135deg,#0d2b5e,#1a4a8c)',h:1,colorRank:1},
@@ -128,81 +152,132 @@ body{padding-top:46px}
     {name:'Frame',meta:'Design system',bg:'linear-gradient(135deg,#0d3a3a,#1a5c5c)',h:1,colorRank:3},
     {name:'Echo',meta:'Audio product',bg:'linear-gradient(135deg,#3d0028,#6c004a)',h:2,colorRank:6},
   ];
-  const grid=document.getElementById('card-grid');
-  const layoutVal=document.getElementById('layout-val'),stepVal=document.getElementById('step-val');
-  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v');
-  const easeSel=document.getElementById('ease-sel'),showInvTog=document.getElementById('show-inv');
-  let dur=500,cols=3,order=[0,1,2,3,4,5],animating=false;
+  const START=[0,1,2,3,4,5];
+  const grid=document.getElementById('card-grid'),slowTog=document.getElementById('slow-tog');
+  const layoutBtns=[...document.querySelectorAll('[data-cols]')];
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let dur=500,ease='cubic-bezier(.2,.7,.3,1)',cols=3,order=[...START],animating=false,afterMove=null,wayBack=0,timers=[];
+
+  // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+    return id;
+  }
+  function cancel(id){
+    clearTimeout(id);
+    const i=timers.indexOf(id);
+    if(i>-1)timers.splice(i,1);
+  }
 
   function renderCards(){
     grid.innerHTML='';
     grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
     order.forEach(i=>{
-      const c=CARDS[i];const el=document.createElement('div');el.className='flip-card';el.id='fc'+i;
-      const h=cols===1?'56px':(c.h===2?'140px':'110px');
-      el.style.cssText=`background:${c.bg};height:${h}`;
-      el.innerHTML=`<div class="card-num">${String(i+1).padStart(2,'0')}</div><div class="card-name">${c.name}</div><div class="card-meta">${c.meta}</div><div class="invert-badge" id="ib${i}">INVERTED</div>`;
+      const c=CARDS[i],el=document.createElement('div');el.className='flip-card';el.id='fc'+i;
+      el.style.cssText=`background:${c.bg};height:${cols===1?'56px':(c.h===2?'110px':'86px')}`;
+      el.innerHTML=`<div class="card-num" aria-hidden="true">${String(i+1).padStart(2,'0')}</div><div class="card-name">${c.name}</div><div class="card-meta">${c.meta}</div>`;
       grid.appendChild(el);
     });
   }
+  function setLayout(n){layoutBtns.forEach(b=>{const on=+b.dataset.cols===n;b.classList.toggle('active-layout',on);b.setAttribute('aria-pressed',String(on))})}
 
-  function doFlip(newOrderOrCols,newCols){
-    if(animating)return;animating=true;
-    // FIRST: record positions
-    const cards=[...grid.querySelectorAll('.flip-card')];
-    const first={};cards.forEach(c=>{first[c.id]=c.getBoundingClientRect()});
-    stepVal.textContent='First ✓';
-    // LAST: apply new layout
-    if(newCols!==undefined){cols=newCols;}
-    if(newOrderOrCols){order=newOrderOrCols;}
-    renderCards();
-    grid.offsetHeight; // force reflow
-    stepVal.textContent='Last ✓ — Inverting';
-    if(!motionOk){animating=false;stepVal.textContent='idle';return;}
-    // INVERT: apply transforms to put cards back at original positions
-    const newCards=[...grid.querySelectorAll('.flip-card')];
-    newCards.forEach(c=>{
-      const f=first[c.id];if(!f)return;
-      const last=c.getBoundingClientRect();
-      const dx=f.left-last.left,dy=f.top-last.top;
-      c.style.transform=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
-      c.style.transition='none';
-      if(showInvTog.checked){const b=document.getElementById('ib'+c.id.replace('fc',''));if(b)b.className='invert-badge show';}
-    });
-    // PLAY: animate to zero
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      stepVal.textContent='Playing →';
-      const ease=easeSel.value;
-      newCards.forEach(c=>{
-        c.style.transition=`transform ${dur}ms ${ease}`;
-        c.style.transform='';
-        const b=document.getElementById('ib'+c.id.replace('fc',''));if(b)setTimeout(()=>b.className='invert-badge',dur*0.3);
-      });
-      setTimeout(()=>{stepVal.textContent='idle';animating=false},dur+50);
-    }));
+  // Ends a glide: the demo is idle again, and a Show me run goes on to its next step
+  function finish(){
+    animating=false;
+    const then=afterMove;afterMove=null;
+    if(then)then();
+  }
+  // Stops everything at once: the cards sit in their real places, with no glide left running
+  function settle(){
+    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    grid.style.minHeight='';
+    grid.querySelectorAll('.flip-card').forEach(c=>{c.style.transition='';c.style.transform='';c.getAnimations().forEach(a=>a.cancel())});
+    animating=false;
   }
 
+  // newOrder and newCols are the change (either can be left out); then runs once the glide has ended
+  function doFlip(newOrder,newCols,then){
+    if(animating)return;
+    animating=true;afterMove=then||null;
+    const d=dur*(slowTog.checked?3:1),curve=ease; // read when the glide starts; three times as long in slow motion
+    // FIRST: record where every card is
+    const gridTop=grid.getBoundingClientRect().top,gridH=grid.offsetHeight,first={};
+    grid.querySelectorAll('.flip-card').forEach(c=>{first[c.id]=c.getBoundingClientRect()});
+    // The grid keeps its height until the glide ends, so a shorter layout does not shrink the stage under cards that start lower
+    grid.style.minHeight=gridH+'px';
+    // LAST: apply the new layout (the cards jump to their new places)
+    if(newCols!==undefined)cols=newCols;
+    if(newOrder)order=newOrder;
+    renderCards();
+    if(!motionOk){grid.style.minHeight='';finish();return}
+    const cards=[...grid.querySelectorAll('.flip-card')];
+    const last=cards.map(c=>c.getBoundingClientRect());
+    // A card starts its glide from its old top at its new height: make room for the lowest one
+    const lowest=Math.max(...cards.map((c,i)=>first[c.id].top-gridTop+last[i].height));
+    if(lowest>grid.offsetHeight)grid.style.minHeight=lowest+'px';
+    // INVERT: shift each card back to where it was
+    cards.forEach((c,i)=>{
+      const f=first[c.id];
+      c.style.transition='none';
+      c.style.transform=`translate(${(f.left-last[i].left).toFixed(1)}px,${(f.top-last[i].top).toFixed(1)}px)`;
+    });
+    void grid.offsetWidth; // apply the inverted positions before the glide is switched on
+    // PLAY: glide every transform back to zero
+    cards.forEach(c=>{c.style.transition=`transform ${d}ms ${curve}`;c.style.transform=''});
+    later(()=>{
+      grid.style.minHeight='';
+      cards.forEach(c=>{c.style.transition=''});
+      finish();
+    },d+50);
+  }
+
+  const bySize=o=>[...o].sort((a,b)=>CARDS[b].h-CARDS[a].h);
+  const byColor=o=>[...o].sort((a,b)=>CARDS[a].colorRank-CARDS[b].colorRank);
   document.getElementById('btn-shuffle').addEventListener('click',()=>{
     const o=[...order];for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]];}doFlip(o);
   });
-  document.getElementById('btn-color').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[a].colorRank-CARDS[b].colorRank)));
-  document.getElementById('btn-size').addEventListener('click',()=>doFlip([...order].sort((a,b)=>CARDS[b].h-CARDS[a].h)));
-  document.querySelectorAll('[data-cols]').forEach(b=>b.addEventListener('click',()=>{
+  document.getElementById('btn-color').addEventListener('click',()=>doFlip(byColor(order)));
+  document.getElementById('btn-size').addEventListener('click',()=>doFlip(bySize(order)));
+  layoutBtns.forEach(b=>b.addEventListener('click',()=>{
     if(animating)return;
-    const c=+b.dataset.cols;
-    document.querySelectorAll('[data-cols]').forEach(x=>x.classList.remove('active-layout'));b.classList.add('active-layout');
-    const labels={1:'List',2:'2 columns',3:'3 columns'};layoutVal.textContent=labels[c];
-    doFlip(null,c);
+    setLayout(+b.dataset.cols);
+    doFlip(null,+b.dataset.cols);
   }));
-  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
-  document.getElementById('rst-btn').addEventListener('click',()=>{
-    if(animating)return;order=[0,1,2,3,4,5];cols=3;
-    document.querySelectorAll('[data-cols]').forEach(x=>x.classList.remove('active-layout'));document.getElementById('btn-3col').classList.add('active-layout');
-    layoutVal.textContent='3 columns';renderCards();stepVal.textContent='idle';
-  });
+
+  // Show me: sort by size (by color when the cards are already in that order), hold 1200ms, then glide back to the order they had
+  function showMe(){
+    settle();
+    const before=[...order];
+    let sorted=bySize(before);
+    if(sorted.every((v,i)=>v===before[i]))sorted=byColor(before);
+    doFlip(sorted,undefined,()=>{wayBack=later(()=>{wayBack=0;doFlip(before)},1200)});
+  }
+  function reset(){
+    settle();
+    order=[...START];cols=3;
+    renderCards();setLayout(3);
+  }
+
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  document.getElementById('btn-reset').addEventListener('click',reset);
+  // The visitor took over: cancel what the run has not started yet. A glide already under way finishes on its own.
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('feel-seg',d=>{ease=d.ease});
   renderCards();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
