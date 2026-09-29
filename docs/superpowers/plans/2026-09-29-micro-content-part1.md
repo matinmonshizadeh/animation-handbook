@@ -13,7 +13,7 @@ How to read a section:
 - **Watch it help line: default** means the kind's line: plays once "It plays by itself. Turn on slow motion to see each part of the movement."; loop with Slow motion "It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement."
 - **Pause (css)** means `data-hb-pause="css"`; **Slow motion (css)** means `data-hb-slowmo="css"` and **Slow motion (page)** `data-hb-slowmo` without a value.
 - **Speed** always reads Slow · Normal · Fast; today's default is Normal, Slow is about 1.6 times and Fast about 0.6 times the default duration.
-- **Feel** uses the names shared with Part 2: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out) is `ease-in-out`, Springy (goes a little past, then settles) and Even (one steady speed) is `linear`. A page's own old default curve keeps its exact value under the nearest name (`ease` under Smooth, `cubic-bezier(.4,0,.2,1)` under Gentle), so the default look does not change. The exact curve behind each name is in the row.
+- **Feel** uses the names shared with Part 2: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out) is `ease-in-out`, Even (one steady speed) is `linear`, and Springy goes a little past, then settles. A page's own old default curve keeps its exact value under the nearest name (`ease` under Smooth, `cubic-bezier(.4,0,.2,1)` under Gentle), so the default look does not change, and each Springy row keeps its page's own overshoot curve. The exact curve is in each row.
 - **Swatches** use the Text & Typography palette, in this order, with the colour's name as each button's `aria-label`: Pink `#ff6f8b` · White `#f4f4f2` · Blue `#58a6ff` · Purple `#d2a8ff` · Green `#56d364` · Orange `#ffa657`. A section says when it leaves a colour out or keeps the demo's own colours.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows: `04.01 · Micro-Interactions` (Hover State Animation) to `04.15 · Micro-Interactions` (Notification Badge Pulse).
 - **Accent:** every page keeps `--ui-accent:#ff9d5c`, the colour all the Micro-Interactions pages already use.
@@ -82,7 +82,11 @@ Each section says what "stops" also undoes.
 - **Site font on controls:** stage buttons, inputs, selects and textareas get `font-family:inherit`, because form controls do not take the page font by themselves.
 - **Focus looks on the stage:** the shared stylesheet draws the site's focus ring on every focused element (`body.hb :focus-visible`, specificity 0,2,1). A stage control with its own focus look beats the site ring with a stronger selector: Focus Ring's rings, Form Field Morph's fields and Toggle / Switch Slide's track. A control without one keeps the site ring.
 - **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92`, as in Part 2 (the site's own muted grey), so every stage rule that uses it changes at once. It is 5.7:1 on the stage's `#0b0b0d` and 5.5:1 on the cards' `#111114`; the old `#77777e` is 4.4:1 and 4.2:1. Stage text below 11px goes up to 11px.
-- **Movement uses transform and opacity** (CLAUDE.md). Hover State's underline and lift move from `width` and `box-shadow` to `transform` and `opacity`. Button Press Scale's shadow stops animating and switches at once. Transitions on properties that never change (Toggle's knob shadow, Checkmark's button width) are dropped. One exception stays: Progress Animation's bar still fills by `width`, because that fill is the technique its README teaches (see its section).
+- **Movement uses transform and opacity** (CLAUDE.md):
+  - Hover State's underline grows with `scaleX`, and its lift's shadow fades in by `opacity`.
+  - Button Press Scale's glow crossfades between two shadows by `opacity`.
+  - Progress Animation's bar slides in with `translateX` instead of growing its `width`.
+  - Transitions on properties that never change are dropped (Toggle's knob shadow, Checkmark's button width).
 - **`hb-dots`:** yes on every stage in this half (each has a plain dark background).
 
 ---
@@ -305,7 +309,14 @@ None: leave out the `details.hb-options` block.
 - **Reduced motion:** the demo's rule stays: the button changes to its pressed size and back at once, without the transition. Show me still presses each button in turn.
 - **Stage font:** site font. `.pbtn` gets `font-family:inherit` in place of `monospace`.
 - **Stage:** the three buttons stay (Confirm, Save Draft, Cancel). Their `aria-label`s go, so each button's name is its visible text ("Save" did not match "Save Draft"). The press counters (`.cnt-row`) go. The stage gets `padding:24px`. `hb-dots`: yes. Measured: 274px on phones and laptops.
-  - The buttons' transitions keep only `transform`; `box-shadow` leaves them (see the preamble). The smaller pressed shadow now switches at once, while the size change keeps its timing.
+  - The glow crossfades instead of animating `box-shadow` (see the preamble). `.pbtn` gets `position:relative`, and its `box-shadow` rules and the `box-shadow` parts of its two transitions go.
+  - Each button's resting shadow moves to `::before` and its pressed shadow to `::after`, both with `content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none`. The outlined Cancel button uses `inset:-1px`, so its shadow starts at its border edge, as today.
+  - The shadows keep today's values (resting / pressed):
+    - Confirm: `0 4px 20px rgba(255,157,92,.35)` / `0 1px 6px rgba(255,157,92,.2)`
+    - Save Draft: `0 4px 20px rgba(86,211,100,.3)` / `0 1px 6px rgba(86,211,100,.15)`
+    - Cancel: `0 4px 14px rgba(0,0,0,.4)` / `0 1px 4px rgba(0,0,0,.3)`
+  - At rest `::before` has `opacity:1` and `::after` `opacity:0`; `.pressed` swaps them. Their `opacity` transitions use the same timing as the size: `var(--press-dur) ease` going down (under `.pbtn.pressed`) and `var(--release-dur) var(--release-ease)` coming up. So the glow still eases, and Slow motion slows it with the size.
+  - The reduced-motion rule also lists `.pbtn::before,.pbtn::after`.
 
 **Main settings**
 
@@ -556,7 +567,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Confetti bursts from the button when a task is done. Best for big moments.
 - **Step 1:** Click it — help line: "Click or tap Place order (again for another burst), or press Show me."
 - **Player bar:** Show me only.
-  - No Reset (owner decision): the button stays done, a further click fires another burst, and Show me starts from rest.
+  - No Reset, by the preamble's Reset rule: the button stays done, a further click fires another burst, and Show me starts from rest.
   - No Slow motion: the burst already lasts about two seconds and has no quick part to study, and the only CSS on the stage is the button's colour change.
 - **What the visitor does:** clicking or tapping the button turns it green with a check and the label "Order placed", and fires the confetti (not under reduced motion), as today. The button stays done, and each further click fires another burst. The click is one function, called by the button and by Show me.
 - **Show me:** starts from rest: if the button is done, `toRest()` puts it back to "Place order" without animating (removes `done`, restores the label). Then:
@@ -824,7 +835,10 @@ None: leave out the `details.hb-options` block.
   - The "▶ Start" button, the ring's caption (a line of code) and the "Start" / "Complete" labels under the steps go.
   - The stage gets `padding:24px` and `gap:24px`.
   - The numbers change every frame, so the three displays sit in one group with `role="img"` and an `aria-label` naming the target, set at the start of each play (for example "Progress filling to 100%").
-  - The bar keeps filling by `width`, as today and as the README's How it works teaches. `transform:scaleX()` would squash the bar's rounded ends, and the README would no longer match. It is the one animated size left in this half.
+  - The bar's fill moves to transform (see the preamble). `.prog-fill` becomes `width:100%` with `transform:translateX(-100%)`, which is empty. `setProgress(p)` sets `linearFill.style.transform='translateX('+(p-100)+'%)'` in place of its width.
+  - The track's `overflow:hidden` and radius clip the part still outside, so the bar looks the same, round ends included. This was checked side by side at 1%, 10%, 50%, 97% and 100%. Only below about 3% does the thin sliver differ slightly: it shows the fill's rounded end instead of a tiny pill.
+  - The sliding bar's `@keyframes indet` already moves by transform, and while it runs it overrides the inline transform; its 40% width is set once, not animated.
+  - The sliding bar's reduced-motion rule adds `transform:none!important`, so under reduced motion it still shows full and still, as today.
   - `hb-dots`: yes. Measured: 234px on phones and laptops.
 
 **Main settings**
@@ -873,8 +887,24 @@ None: leave out the `details.hb-options` block.
   - [Skeleton Loader](../skeleton-loader/) — grey shapes stand in for the content
   - [Checkmark Draw](../checkmark-draw/) — the success sign once it reaches the end
   - [Progress Bar](../../01-scroll-based/progress-bar/) — a bar that fills as you scroll
-- **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README How it works:** the linear-bar part must match the new code. The ring and sliding-bar parts are unchanged.
+  - The sentence "**Linear bar**: update `width` via a CSS transition, or animate it manually with `requestAnimationFrame` for easing control:" becomes "**Linear bar**: keep the fill as wide as the track and slide it in from the left with `transform: translateX()`; the track's `overflow: hidden` hides the part still outside, and a transform never makes the page lay out again. Move it with a CSS transition, or with `requestAnimationFrame` for easing control:".
+  - The CSS snippet becomes:
+
+    ```css
+    .prog-track { overflow: hidden; border-radius: 4px; }
+
+    .prog-fill {
+      height: 100%;
+      width: 100%;
+      background: #58a6ff;
+      transform: translateX(-100%);   /* empty: the whole fill sits left of the track */
+      transition: transform 2000ms ease-out;
+    }
+    ```
+
+  - In the `requestAnimationFrame` snippet, `fill.style.width = (target * eased) + '%';` becomes `fill.style.transform = 'translateX(' + (target * eased - 100) + '%)';`.
+- **README Production notes:** the GSAP bullet becomes: "**GSAP**: `gsap.to(fill, { xPercent: -25, duration: 2, ease: "power2.out" })` slides a full-width fill to 75%. For circular rings, animate `strokeDashoffset` directly." The rest is unchanged.
 - **Category line:** `04.12 · Micro-Interactions`
 - **Pager:** Previous: Loading Spinner (`../loading-spinner/`) · Next: Checkmark Draw (`../checkmark-draw/`)
 
@@ -960,7 +990,7 @@ None: leave out the `details.hb-options` block.
 - **Kind:** do — a focus effect: the visitor clicks into a field and types, and Show me fills in one field and moves on to the next.
 - **Description:** The label moves up out of the way as you type. Best for sign-up forms.
 - **Step 1:** Click it — help line: "Click or tap a field and type, or press Show me."
-- **Player bar:** Show me · Slow motion (css). No Reset (owner decision): the visitor can clear a field, and Show me starts from an empty form.
+- **Player bar:** Show me · Slow motion (css). No Reset, by the preamble's Reset rule: the visitor can clear a field, and Show me starts from an empty form.
 - **What the visitor does:** focusing a field raises its label and, on the underlined fields, grows the line (`:focus-within`); typing keeps the label up (`filled`, set on `input` and `blur`); leaving an empty field lets it drop back; Tab moves between the fields. All as today.
 - **Show me:** starts from rest: `toRest()` empties every field without animating (values emptied, `filled` removed, labels down). Then, with `f` for Speed:
   - `later(focusName, 0, 0)`: Full name gets `is-demo`, so its label rises and its line grows.
