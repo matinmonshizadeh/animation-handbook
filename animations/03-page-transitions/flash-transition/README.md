@@ -1,7 +1,7 @@
 # Flash / Light Leak
 
 ## What it is
-A flash transition covers the screen with a colored overlay that peaks at full opacity, swaps the page content while it is hidden, then fades the overlay away to reveal the new scene. The eye reads the overexposure as a single continuous moment, so the underlying content swap is never seen. Cinema uses the same trick to hide edits inside a burst of light.
+A flash transition hides a page change inside a burst of light. A colored layer covers the page and rises to full strength, the page is swapped while it is covered, and the layer then fades away to reveal the new page. The eye reads it as one bright moment, so the swap itself is never seen — the same trick films use to hide a cut.
 
 ## When to use it
 - Masking a cheap or instant content swap where a crossfade would look flat
@@ -18,26 +18,23 @@ function doTransition(prev, next) {
   flashEl.style.opacity = intensity;            // fade the flash up
   setTimeout(() => {
     // Peak — swap the page behind the opaque flash
-    document.getElementById('p' + prev).classList.remove('active');
-    document.getElementById('p' + next).classList.add('active');
-    requestAnimationFrame(() => {
-      flashEl.style.transition = `opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
-      flashEl.style.opacity = '0';               // fade the flash down to reveal
-    });
+    pages[prev].classList.remove('active');
+    pages[next].classList.add('active');
+    flashEl.style.transition = `opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
+    flashEl.style.opacity = '0';               // fade the flash down to reveal
   }, flashIn);
 }
 ```
 
-The swap is deferred to a `requestAnimationFrame` after the class change so the browser commits the new transition before starting the fade-out. An optional `blur()` filter applied during the flash softens the edge and sells the light-leak feel.
+The fade-out sets its own transition in the same step as the new opacity, so it runs over `flashOut` rather than `flashIn`. An optional `blur()` filter applied during the flash softens the edge and sells the light-leak feel.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Flash-in duration | 200ms | Ramp to peak. Faster feels like a camera strobe; slower feels like a wash |
-| Flash-out duration | 320ms | Reveal ramp. Usually longer than the in, so the new page eases into view |
-| Intensity (peak opacity) | 1.00 | Below 1.0 lets the swap show through faintly — keep at 1.0 to fully hide it |
-| Flash color | white | White reads as overexposure; tinted (gold, cyan) reads as a stylized light leak |
-| Blur during flash | off | Adds a soft bloom to the peak, disguising the hard overlay edge |
+| Flash color | White | White reads as a camera flash; gold, cyan and red read as a colored light leak |
+| Speed | Normal | How fast the flash rises and fades: slow is 320ms up and 510ms down, normal 200ms and 320ms, fast 120ms and 190ms; the fade is always a little longer than the rise |
+| Flash strength | Full | How solid the flash gets: full hides the page change completely; strong (75%) and soft (50%) let it show through |
+| Blurs the flash | off | Softens the flash's edges into a glow |
 
 ## Production notes
 - **Swap only at true peak.** If intensity drops below ~0.9 the content change becomes visible as a hard cut through the overlay. Keep peak opacity high, and only lower it deliberately for a see-through effect.
@@ -46,7 +43,7 @@ The swap is deferred to a `requestAnimationFrame` after the class change so the 
 - **Library equivalents.** The View Transitions API can reproduce this by animating a `::view-transition-group` with a flash-colored pseudo-element, though a dedicated overlay is simpler. GSAP timelines chain the fade-in, swap callback, and fade-out cleanly. Barba.js exposes `leave`/`enter` hooks that map directly onto the peak-and-reveal structure.
 
 ## See also
-- [Crossfade](../crossfade/) — the plain opacity blend this technique dresses up
-- [Dissolve](../dissolve/) — another overlay-masked swap, tiled instead of solid
-- [Blur Transition](../blur-transition/) — defocus rather than overexposure to hide the change
-- [Portal / Tunnel Zoom](../portal-zoom/) — a clip-path reveal that also masks the swap
+- [Crossfade Transition](../crossfade/) — the plain fade this dresses up
+- [Dissolve Transition](../dissolve/) — tiles hide the change instead
+- [Blur Transition](../blur-transition/) — a blur hides the change instead
+- [Portal / Tunnel Zoom](../portal-zoom/) — the next page opens out of a clicked circle
