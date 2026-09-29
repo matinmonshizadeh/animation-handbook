@@ -58,7 +58,7 @@ In the demo the pattern stands still, as a real image would: its time value stay
 | Effect | Ripple | Ripple sends rings out from the pointer; Push bulges the picture outward; Liquid swirls it; Pixels breaks it into squares |
 | Strength | Medium | How far the picture bends: gentle is 4, medium 8 and strong 14; stronger looks more dramatic but harder to read |
 | Size | Medium | How wide an area bends: small is 15%, medium 25% and large 40% of the picture's height |
-| Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about a quarter of its strength at slow, two fifths at normal and half at fast |
+| Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about three fifths of its strength at slow, three quarters at normal and nine tenths at fast |
 | Moving ripples | on | With Ripple, the rings keep moving outward while the pointer rests; off, they stand still |
 
 ## Production notes
