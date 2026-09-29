@@ -8,13 +8,13 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 ## How to read a section
 
-- **Kind** names the step 1 title: "Hover it", "Click it" or "Drag it", with the page's own help line under **Watch it help line**.
+- **Kind** names the step 1 title: "Hover it", "Click it" or "Drag it". **Step 1 help line** is the page's own help line under it (the label Part 1 uses).
 - **Try it help line** is the same on every do-it page: "Change a setting, then try it again or press Show me." (A do-it page replays nothing when a setting changes: the shared script's replay needs a Replay button. The new setting shows the next time the visitor tries the demo or presses Show me, except where a row says it applies to the stage at once.)
-- **Show me** replaces the plays-once "Sequence": what one run does, its timeline, how it ends at rest and what `hb:input` does. The times are delays from the moment Show me is pressed, at the default settings with Slow motion off, as in Part 1; `later()` triples them while Slow motion is on.
+- **Show me** replaces the plays-once "Sequence": what one run does, its timeline, how it ends at rest and what `hb:input` does. Each timed step is written `later(step, movement, hold)` and counted from the moment Show me is pressed, at the default settings: the movement is the part of the wait that Slow motion stretches (a transition or animation the step waits for), and the hold is the part it never stretches. A step with no `later()` happens "at once". Each Slow motion line also gives the length of a slowed run, as in Part 1.
 - **Sets in the demo** lists one value per choice, in the same order as the choices, and names the variable, class or function exactly as today's script has it.
 - Switches in Try it keep their default in the markup (`checked` when the default is on), as on Rotate In. Only the player bar's Slow motion starts unchecked.
 - **Speed** always reads Slow · Normal · Fast. Today's default is Normal; Slow is about 1.6 times and Fast about 0.6 times it, rounded.
-- **Feel** uses the Entrance & Exit names: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out), Springy (goes a little past, then settles) and Even (one steady speed) is `linear`. The exact curve behind each name is in the row, because several pages have their own in-out or springy curve.
+- **Feel** uses the names shared with Part 1: Smooth (slows to a stop) is `ease-out`, Gentle (eases in and out) is `ease-in-out`, Even (one steady speed) is `linear`, and Springy goes a little past, then settles. A page's own old default curve keeps its exact value under the nearest name: Hamburger Menu Toggle's and Theme Toggle Morph's in-out curves are Gentle, and each Springy row keeps its page's own overshoot curve. The exact curve is in each row.
 - **Category line:** the pages have none today. NN is the page's position on the home page, which its card already shows: `04.16 · Micro-Interactions` (Tooltip Reveal) to `04.29 · Micro-Interactions` (Pull to Refresh).
 - **Accent:** every page keeps `--ui-accent:#ff9d5c`, which all 29 pages of the category already use.
 - **Grey stage text:** `:root`'s `--ui-muted` becomes `#8a8a92` (the site's own muted grey), as on the converted Entrance & Exit pages. The old `#77777e` is 4.2:1 on the demo cards' `#111114` and 4.4:1 on the stage's `#0b0b0d`; the new grey is 5.5:1 and 5.7:1. Stage text below 11px goes up to 11px, as in Part 1; each section names the rules this changes. Other sizes stay.
@@ -26,14 +26,16 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Body:** `<body class="hb" data-hb-kind="do" data-hb-autoplay>`. Step 1's title and help line come from the section; steps are numbered 1 to 3.
 - **Player bar,** in this order: the Show me button exactly as in the do-it plan (`id="btn-demo"`, `data-hb-demo`); the Reset button exactly as in the do-it plan (`id="btn-reset"`, `data-hb-reset`), only where the section has one; then, only where the section has it, `<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>`.
 - **On arrival** the shared script presses Show me once, 400ms after load; under reduced motion it runs nothing, and Show me and Reset still work when pressed. Under reduced motion the Slow motion switch is greyed out by the shared script.
-- **One run at a time,** with Part 1's helper, word for word, so the whole category runs Show me the same way. Every timer of a run goes through `later()`, which triples it while Slow motion is on (read when each timer is set), so a slowed run keeps its shape. The listeners are registered at the top level of the page's inline script, and the page reaches the player controls by their ids, never by `data-hb-*`:
+- **One run at a time,** with Part 1's helper, word for word, so the whole category runs Show me the same way. Every timer of a run goes through `later(fn, move, hold)`, which waits `move` (tripled while Slow motion is on, read when the timer is set) plus `hold`, which never stretches. Slow motion never stretches holds, Show me runs included: this is a rule for every kind of page. The listeners are registered at the top level of the page's inline script, and the page reaches the player controls by their ids, never by `data-hb-*`:
 
   ```js
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + (hold||0) ms: Slow motion triples the movement, never the hold.
   const slowTog=document.getElementById('slow-tog');      // only on pages with Slow motion
   let runTimers=[];
-  function later(fn,ms){
-    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, ms*(slowTog&&slowTog.checked?3:1));
+  function later(fn,move,hold){
+    const slow=!!(slowTog&&slowTog.checked);
+    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, move*(slow?3:1)+(hold||0));
     runTimers.push(id);
   }
   function running(){ return runTimers.length>0; }
@@ -42,13 +44,13 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
   ```
 
-  In a section, `toRest()` is "put the demo at rest", the timeline gives the steps, and the "On `hb:input`" line says what `stopRun()` also undoes. A run ends when its last timer has fired. The two drag pages (Swipe to Dismiss, Pull to Refresh) also draw a drag frame by frame: they keep its one pending frame in `runFrame`, their `running()` is also true while `runFrame` is set, and their `stopRun()` also does `cancelAnimationFrame(runFrame); runFrame=0`.
+  In a section, `toRest()` is "put the demo at rest", the timeline gives the steps, and the "On `hb:input`" line says what `stopRun()` also undoes. A step written `later(close, Speed, 1500)` runs Speed + 1500ms after the press, or 3 × Speed + 1500ms while Slow motion is on. A run ends when its last timer has fired. Pages without Slow motion write every step as a hold, `later(step, 0, ms)`. The two drag pages (Swipe to Dismiss, Pull to Refresh) also draw a drag frame by frame: they keep its one pending frame in `runFrame`, their `running()` is also true while `runFrame` is set, and their `stopRun()` also does `cancelAnimationFrame(runFrame); runFrame=0`.
 - **A run starts from rest.** When the visitor left the demo changed (a panel open, another option chosen), `toRest()` puts it back as it is on arrival without animating: the pieces' transitions are turned off inline, the resting state is set, `void el.offsetWidth` forces a reflow, and the inline transitions are cleared. Pressing Show me during a run starts it again from rest.
 - **A run plays one example** of the interaction, about two to four seconds unless the section says otherwise, and ends at rest. It never moves the keyboard focus, never submits a form, never writes to the clipboard and never announces anything to screen readers that did not really happen.
-- **`hb:input`** comes from the visitor's own `pointerdown`, `keydown`, `wheel` or `touchstart` inside the stage. Hovering sends none, so the two Hover it pages (Tooltip Reveal, Cursor Follower) also stop a run on a trusted `pointermove` over the stage while one is under way, as in Part 1.
-- **Slow motion "css"** is on the pages whose movement is short CSS transitions and animations: the shared script plays every transition and animation on the stage at a third of its speed, including the visitor's own and ones that start later, and `later()` triples the run's times. The demo's own timers (a tooltip's delays, the copy button's revert) keep their length, as in Part 1. The drag pages, Cursor Follower and Toast Notification leave Slow motion out; their sections say why.
+- **`hb:input`** comes from the visitor's own `pointerdown`, `keydown`, `wheel` or `touchstart` inside the stage. Hovering sends none, so the two Hover it pages (Tooltip Reveal, Cursor Follower) and Star Rating, whose row previews on hover, also stop a run on a trusted `pointermove` over the stage while one is under way, as in Part 1.
+- **Slow motion "css"** is on the pages whose movement is short CSS transitions and animations: the shared script plays every transition and animation on the stage at a third of its speed, including the visitor's own and ones that start later, and `later()` triples only the movement part of the run's waits; holds keep their length. The demo's own timers keep their length too (a tooltip's delays before showing and hiding), except the Copy button's revert, which counts its pulse as movement (see that section). The drag pages, Cursor Follower and Toast Notification leave Slow motion out; their sections say why.
 - **Reset** is on a page only where the visitor can leave the demo changed in a way its own controls cannot undo in one step: removed messages (Swipe to Dismiss), a stack of toasts (Toast Notification) and added items (Pull to Refresh). Reset calls `stopRun()`, then puts the demo back as it is on arrival. Everywhere else a second press of the same control undoes the change (a toggle, an open panel), and Show me starts from rest anyway.
-- **Reduced motion:** a pressed Show me plays the same steps, and the demo's own reduced-motion rules make each change happen at once. Every run here changes the stage within 1.6 s, because the browser check presses Show me under reduced motion too and needs a visible change, and no stage here moves by itself.
+- **Reduced motion:** a pressed Show me plays the same steps, and the demo's own reduced-motion rules make each CSS change happen at once. Three runs move things themselves and still move when Show me is pressed, because the visitor asked for it: the scripted drags of Swipe to Dismiss and Pull to Refresh, and Cursor Follower's glide. Every run here changes the stage within 1.6 s, because the browser check presses Show me under reduced motion too and needs a visible change, and no stage here moves by itself.
 - **Settings change during a run:** the page applies them at once as today, and each step of the run reads the current values.
 - **Hover and touch:** every hover style stays inside `@media (hover: hover)`, and every hover has a tap equivalent (each section's **Touch** line). Drags use Pointer Events. No run in this half needs Part 1's pretend-hover class `is-demo`: each run calls the demo's own functions (`show()`, `open()`, `toggle()`, `render()` and so on) rather than relying on `:hover` or `:focus`.
 - **"How to convert a page"** applies as written, with `04.NN · Micro-Interactions` and `--ui-accent:#ff9d5c`, except in three places. Step 4's body and player bar are the ones above. Step 5's rules for plays-once pages and loops are replaced by this section; its rules for every page still apply (player controls by id, `choices()`, nothing left of the old controls). Step 8's browser check runs the do-it checks instead: Show me moves the stage within 1.6 s, and nothing moves by itself under reduced motion.
@@ -67,15 +69,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Hover it" — a tooltip appears only when the visitor points at, tabs to or taps an item.
 - **Description:** A small label fades in after a short pause. Best for icon buttons.
-- **Watch it help line:** Point at an item or tab to it, or tap it on a phone.
+- **Step 1 help line:** Point at an item, tab to it or tap it on a phone, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: a tooltip hides by itself when the pointer or focus leaves. Slow motion helps here because the fade and the slight grow last only 90 to 250ms; the waits before showing and hiding are timers and keep their length.
 - **Show me:** `toRest()` removes `visible` from all four tooltips. The run is one hover of the first item, the gear button:
-  - t = 0: the gear's own `show()` (its tooltip fades in after Delay before showing);
-  - t = Delay before showing + Speed + 1600ms: the gear's own `hide()` (it fades out after Delay before hiding);
-  - the run ends when that fade is over. About 2.3 s at the defaults.
+  - at once: the gear's own `show()` (its tooltip fades in after Delay before showing);
+  - `later(hide, Speed, Delay before showing + 1600)`: the gear's own `hide()` (it fades out after Delay before hiding), and the run ends. About 2.3 s from press to rest at the defaults.
 
   Each item keeps its `show()` and `hide()` where the run can reach them (for example `wrap.show`, `wrap.hide`). The run also stops on a trusted `pointermove` over the stage (see the preamble). On that or on `hb:input`: `stopRun()`, then the gear's `hide()` unless the pointer or focus is on it (`wrap.matches(':hover,:focus-within')`).
-- **Slow motion:** css. The run's times triple through `later()`; the items' own delays before showing and hiding keep their length.
+- **Slow motion:** css. The fade is the run's only movement (Speed); the delay before showing and the 1600ms are holds, and the items' own delays keep their length. A slowed run takes about 2.9 s.
 - **Reduced motion:** the demo's rule stays: the tooltip fades without growing.
 - **Touch:** today's `touchstart` toggle stays: a tap shows or hides an item's tooltip at once.
 - **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
@@ -95,7 +96,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Delay before hiding | Choice buttons | None · Short · Long | Short | A short pause lets the pointer move onto the tip. | `hideDelay`: 0 / 100 / 300 (ms) |
+| Delay before hiding | Choice buttons | None · Short · Long | Short | How long the tip stays after the pointer leaves. | `hideDelay`: 0 / 100 / 300 (ms) |
 | Shows an arrow | Switch | on / off | off | A small point that aims the tip at its item. | every `.tip-wrap` gets / loses `has-arrow` |
 
 - **Removed:**
@@ -110,7 +111,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **README What it is:** rewritten:
 
-  > A tooltip is a small label that appears next to an item when you point at it or reach it with the keyboard, giving a short explanation that does not fit on the page. It fades in and grows very slightly, and it waits a moment before it shows, so tooltips do not flash while the pointer is only passing over things. When the pointer leaves, it waits a moment more, so you can move onto the tooltip without losing it.
+  > A tooltip is a small label that appears next to an item when you point at it or reach it with the keyboard, giving a short explanation that does not fit on the page. It fades in and grows very slightly, and it waits a moment before it shows, so tooltips do not flash while the pointer is only passing over things. When the pointer leaves, it stays for a moment before it fades, so it does not vanish the instant the pointer slips off the item.
 
 - **README Key parameters:**
 
@@ -118,7 +119,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   |-----------|---------|--------|
   | Delay before showing | Medium | How long the pointer must rest before the tooltip shows: none, short (150ms), medium (300ms) or long (600ms); 300ms keeps tooltips from flashing as the pointer passes, and 200ms can work for very small ones |
   | Speed | Normal | How long the fade and the slight grow take: slow is 250ms, normal 150ms and fast 90ms |
-  | Delay before hiding | Short | How long the tooltip stays after the pointer leaves: none, short (100ms) or long (300ms); a short pause lets the pointer move onto it |
+  | Delay before hiding | Short | How long the tooltip stays after the pointer leaves: none, short (100ms) or long (300ms); a short pause stops it vanishing the instant the pointer slips off its item |
   | Shows an arrow | off | Adds a small point that aims the tooltip at its item |
 
 - **README See also:** the second link's text changes from "Badge Pulse" to the page's real title.
@@ -126,7 +127,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Notification Badge Pulse](../badge-pulse/) — a dot that pulses to draw the eye
   - [Modal Expand](../modal-expand/) — a full window for content too big for a tooltip
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** in the WCAG 1.4.13 bullet, "The 100ms hide delay satisfies "hoverable."" becomes "A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on." The rest is unchanged: the demo's tooltips cannot be pointed at, so the sheet changes the words, not the demo.
 - **Category line:** `04.16 · Micro-Interactions`
 - **Pager:** Previous: Notification Badge Pulse (`../badge-pulse/`) · Next: Drawer / Panel Slide (`../drawer-slide/`)
 
@@ -136,15 +137,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Click it" — the drawer opens only when the visitor presses the menu button.
 - **Description:** A side panel slides in over a dimmed page. Best for mobile menus.
-- **Watch it help line:** Press the menu button. Close the drawer with ×, a tap outside it or a swipe.
+- **Step 1 help line:** Press the menu button, then close the drawer with × or a swipe, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: ×, a tap on the dimmed page, a swipe or Esc close the drawer. Slow motion shows the point of the demo: the drawer slows as it arrives and speeds up as it leaves.
 - **Show me:** `toRest()` closes the drawer at once, without its transition. Then:
-  - t = 0: `open()`, as the menu button does;
-  - t = Opening speed + 1500ms: `close()`;
-  - the run ends when the drawer has closed. About 2 s at the defaults.
+  - at once: `open()`, as the menu button does;
+  - `later(close, Opening speed, 1500)`: `close()`, and the run ends. About 2 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()` only. The drawer stays as it is, and the visitor closes it.
-- **Slow motion:** css. The run's times triple through `later()`.
+- **Slow motion:** css. The slide is the run's movement (Opening speed); the 1500ms is a hold. A slowed run takes about 3 s.
 - **Reduced motion:** the demo's rule stays: the drawer and the dimming appear and disappear without sliding or fading.
 - **Touch:** the swipe to close already uses Pointer Events (`pointerdown` on the drawer, `pointerup` on the document, 50px toward its edge).
 - **Stage font:** site font. `.hamburger` gets `font-family:inherit` (was `monospace`), and so does `.close-btn`. The ☰ comes from the system's fallback font, as it does today.
@@ -180,19 +180,19 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Good for:** Mobile menus · Filters · Settings panels · **Avoid on:** Short messages · Main content
 - **Prompt:**
 
-  > Add a slide-in drawer to [the menu or panel you want to open]. It waits just beyond one edge of the screen and slides in over the page when its button is pressed, while the page behind it dims. Let it slow down as it arrives, like a panel sliding to a stop, and speed up as it leaves, so closing feels quicker than opening. Close it with a close button, a tap on the dimmed page, the Escape key or a swipe back toward its edge. Move only its position so the slide stays smooth, and keep keyboard focus inside it while it is open. If the visitor has reduced motion turned on, show and hide it without sliding. Match the settings listed below.
+  > Add a slide-in drawer to [the menu or panel you want to open]. It waits just beyond one edge of the screen and slides in over the page when its button is pressed; when the settings include it, the page behind it dims. Let it slow down as it arrives, like a panel sliding to a stop, and speed up as it leaves, so closing feels quicker than opening. Close it with a close button, a tap on the page beside it, the Escape key or a swipe back toward its edge. Move only its position, and keep keyboard focus inside it while it is open. If the visitor has reduced motion turned on, show and hide it without sliding. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
-  > A drawer is a panel that waits just beyond one edge of the screen and slides in over the page when you press its button, usually holding a menu, filters or settings. The page behind it dims so the drawer stands out. It slows down as it arrives, like a panel sliding to a stop, and speeds up as it leaves, which makes closing feel quicker than opening.
+  > A drawer is a panel that waits just beyond one edge of the screen and slides in over the page when you press its button, usually holding a menu, filters or settings. The page behind it usually dims so the drawer stands out. It slows down as it arrives, like a panel sliding to a stop, and speeds up as it leaves, which makes closing feel quicker than opening.
 
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Slides in from | Left | The edge the drawer comes from: left or right for menus and filters, top or bottom for sheets |
-  | Opening speed | Normal | How long the slide in takes: slow is 450ms, normal 280ms and fast 170ms; it slows as it arrives (ease-out) |
-  | Closing speed | Normal | How long the slide out takes: slow is 350ms, normal 220ms and fast 130ms; it speeds up as it leaves (ease-in), and a little shorter than opening feels right |
+  | Opening speed | Normal | How long the slide in takes: slow is 450ms, normal 280ms and fast 170ms; it slows as it arrives |
+  | Closing speed | Normal | How long the slide out takes: slow is 350ms, normal 220ms and fast 130ms; it speeds up as it leaves, and a little shorter than opening feels right |
   | Page dimming | Medium | How dark the page behind gets: none, light (25% black), medium (50%) or dark (70%); darker than about 70% feels like a dialog rather than a drawer |
 
 - **README See also:**
@@ -210,15 +210,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Click it" — the window opens only when the visitor presses a button, and it grows out of that button.
 - **Description:** A window grows out of the button you pressed. Best for detail views.
-- **Watch it help line:** Press any of the five buttons. The window grows out of the one you pressed.
+- **Step 1 help line:** Press any of the five buttons and watch the window grow out of it, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: Cancel, Confirm, a tap on the dimmed page or Esc close the window.
 - **Show me:** `toRest()` closes the window at once, without its transition. Each run presses one button, the next in turn each time Show me is pressed: Top right first (on arrival), then Bottom left, Center, Top left and Bottom right. It shows the point of the demo, a different starting point each time.
-  - t = 0: `openModal(btn)` for that button (it does not move the focus);
-  - t = Speed + 1500ms: `closeModal()`;
-  - the run ends when the window has shrunk away. About 2.1 s at the defaults.
+  - at once: `openModal(btn)` for that button (it does not move the focus);
+  - `later(closeModal, Speed, 1500)`: `closeModal()`, and the run ends. About 2.1 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()` only. The window stays open, and the visitor closes it.
-- **Slow motion:** css. The window's grow and fade and the dimming slow down, and the run's times triple through `later()`.
+- **Slow motion:** css. The window's grow and fade and the dimming slow down; the grow is the run's movement (Speed) and the 1500ms is a hold. A slowed run takes about 3.4 s.
 - **Reduced motion:** the demo's rule stays: the window appears at full size and disappears without growing or fading.
 - **Stage font:** site font. `.trig-btn`, `.modal-close` and `.modal-confirm` get `font-family:inherit` (was `monospace`).
 - **Stage:** the five buttons, the dimming layer, the window and the origin dot stay; the Origin readout goes.
@@ -313,15 +312,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Click it" — an answer opens only when the visitor presses its question.
 - **Description:** Each question opens smoothly to show its answer. Best for FAQ pages.
-- **Watch it help line:** Press a question to open its answer, and press it again to close it.
+- **Step 1 help line:** Press a question to open its answer and again to close it, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: every answer closes with its own question.
 - **Show me:** `toRest()` closes every answer at once, without its transition. Then:
-  - t = 0: `toggle(items[0])` opens the first question, as a press does;
-  - t = Speed + 1500ms: `toggle(items[0])` closes it;
-  - the run ends when it has closed. About 2.1 s at the defaults.
+  - at once: `toggle(items[0])` opens the first question, as a press does;
+  - `later(close, Speed, 1500)`: `toggle(items[0])` closes it, and the run ends. About 2.1 s from press to rest at the defaults.
 
   On `hb:input` (a press, or a wheel or touch that scrolls the box): `stopRun()` only. The answer stays open.
-- **Slow motion:** css. The height or grid-row change, the arrow's turn and the text fade slow down, and the run's times triple through `later()`.
+- **Slow motion:** css. The height or grid-row change, the arrow's turn and the text fade slow down; the opening is the run's movement (Speed) and the 1500ms is a hold. A slowed run takes about 3.3 s.
 - **Reduced motion:** the demo's rule stays: answers open and close at once, without fading.
 - **Stage font:** site font. `.acc-trigger` gets `font-family:inherit` (was `monospace`).
 - **Stage:** the five questions stay, and the stage scrolls: its own rule keeps `overflow:auto`, because open answers can make the list taller than the stage.
@@ -393,14 +391,14 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Hover it" — the dot moves only when the visitor moves the pointer over the box or taps in it.
 - **Description:** A dot trails your pointer and flips the colors under it. Best for portfolios.
-- **Watch it help line:** Move your pointer over the box. On a phone, tap anywhere in it.
+- **Step 1 help line:** Move your pointer over the box or tap in it, or press Show me.
 - **Player bar:** Show me. No Reset: nothing stays changed. No Slow motion: the dot follows the pointer on every animation frame, and Lag already sets how slowly it follows.
 - **Show me:** an invisible pointer visits four points, and the dot glides after it (today's `loop()` keeps drawing it). The run sets `mx`/`my`, `inside` and the follower's opacity itself, and adds or removes `expanded` itself when Grows over buttons is on. `toRest()` hides the dot (`inside=false`, opacity 0, no `expanded`).
-  - t = 0: the middle of the first area. `fx`/`fy` jump there as well, as `mouseenter` does, and the dot appears;
-  - t = 700ms: the "Button" in the second area, and the dot grows;
-  - t = 1400ms: the "Button" in the third area; it stays grown;
-  - t = 2100ms: the middle of the fourth area, and it shrinks back;
-  - t = 2800ms: the dot fades out, and the run ends. About 2.8 s.
+  - at once: the middle of the first area. `fx`/`fy` jump there as well, as `mouseenter` does, and the dot appears;
+  - `later(step, 0, 700)`: the "Button" in the second area, and the dot grows;
+  - `later(step, 0, 1400)`: the "Button" in the third area; it stays grown;
+  - `later(step, 0, 2100)`: the middle of the fourth area, and it shrinks back;
+  - `later(end, 0, 2800)`: the run ends. The dot disappears (opacity 0; it has no fade), unless the pointer is over the stage: the run sets `inside = stage.matches(':hover')` and the opacity to match, so a pointer resting there keeps its dot. About 2.8 s.
 
   The run also stops on a trusted `pointermove` over the stage (see the preamble). On that, or on `hb:input` (a tap or press): `stopRun()` and remove `expanded`; the dot then follows the visitor.
 - **Slow motion:** none.
@@ -472,16 +470,15 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 - **Kind:** do it, step 1 "Click it" — the field shakes only when the visitor signs in with a wrong or empty password.
 - **Description:** A field shakes side to side when the input is wrong. Best for sign-in forms.
-- **Watch it help line:** Press Sign in with a wrong or empty password. The right one is letmein.
+- **Step 1 help line:** Sign in with a wrong or empty password (the right one is letmein), or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: typing in the field clears the error, as today. Slow motion shows each swing getting smaller.
 - **Show me:** `toRest()` empties the field and clears its state (`clearState()`). Then:
-  - t = 0: the field gets a wrong password, "abc123" (it shows as dots);
-  - t = 400ms: today's `shake('Incorrect password. Try again.')`, called directly as the old "Replay shake" button did. It does not submit the form and does not focus the field (the submit handler's `focus()` and `select()` would open a phone's keyboard);
-  - t = 400ms + Speed + 1600ms: the field is emptied and `clearState()` runs;
-  - the run ends. About 2.4 s at the defaults.
+  - at once: the field gets a wrong password, "abc123" (it shows as dots);
+  - `later(shake, 0, 400)`: today's `shake('Incorrect password. Try again.')`, called directly as the old "Replay shake" button did. It does not submit the form and does not focus the field (the submit handler's `focus()` and `select()` would open a phone's keyboard);
+  - `later(clear, Speed, 2000)`: the field is emptied and `clearState()` runs, and the run ends. About 2.4 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()`. If the field still holds the run's "abc123", it is emptied and `clearState()` runs, so the visitor starts from a clean field.
-- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down, and the run's times triple through `later()`.
+- **Slow motion:** css. The shake (a CSS animation) and the border and message changes slow down. The shake is the run's movement (the Speed in the step that clears the field); the 400ms and 2000ms are holds. A slowed run takes about 3.2 s.
 - **Reduced motion:** the demo's rule stays: no shake, but the red border and the message still show.
 - **Stage font:** site font. The card's title drops `var(--disp)`; `.field input` and `.submit` get `font-family:inherit` (were `var(--mono)` and `var(--disp)`). `.field label` (10px) and `.msg` (10.5px) go up to 11px.
 - **Stage:** the sign-in card stays, with its field, message and Sign in button.
@@ -541,12 +538,12 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Drag it" — a message goes only when the visitor drags it away.
 - **Description:** A card dragged sideways flies off and the list closes up. Best for inboxes.
-- **Watch it help line:** Drag a message sideways and let go. A short drag springs back.
+- **Step 1 help line:** Drag a message sideways and let go, or press Show me.
 - **Player bar:** Show me · Reset. No Slow motion: the card follows the visitor's own hand, and the settle and fly-off are short.
-- **Show me:** `toRest()` rebuilds the list (`build()`) when a message is missing. Then, on the first message, frame by frame through `runFrame`:
-  - t = 0 to 400ms: it is dragged right to half the Distance to delete, then let go: today's `spring()` brings it back;
-  - t = 1100 to 1700ms: it is dragged right to the Distance to delete plus 15% of its width, then let go: today's `dismiss(row, card, 1)` flies it off and closes its row;
-  - t = 2600ms: the list is rebuilt, as Reset does, and the run ends. About 2.6 s.
+- **Show me:** `toRest()` rebuilds the list (`build()`) when a message is missing. Then, on the first message (the page has no Slow motion, so each step is a hold, `later(step, 0, ms)`; each drag is drawn frame by frame through `runFrame`, and before each drag the card loses `settling` and `flung`, as today's `pointerdown` does):
+  - at once: it is dragged right over 400ms to half the Distance to delete, then let go: today's `spring()` brings it back;
+  - `later(drag, 0, 1100)`: it is dragged right over 600ms to the Distance to delete plus 15% of its width, then let go: today's `dismiss(row, card, 1)` flies it off and closes its row;
+  - `later(rebuild, 0, 2600)`: the list is rebuilt, as Reset does, and the run ends. About 2.6 s.
 
   Each drag frame sets the card as today's `pointermove` does: `translateX(x)`, opacity `max(0.3, 1 − |x| / (0.9 × width))`, and the red strip (`show`) past 8px while Shows a Delete label is on. On `hb:input`: `stopRun()`. A card still being dragged by the run springs back; a card already gone stays gone, and Reset brings it back.
 - **Reset:** rebuilds all four messages (today's "Reset list", `build()`), after `stopRun()`.
@@ -610,15 +607,14 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — the icon changes only when the visitor presses it.
 - **Description:** Three lines turn into an X as the menu opens. Best for mobile menus.
-- **Watch it help line:** Press the button to open the menu, and again to close it.
+- **Step 1 help line:** Press the button to open the menu and again to close it, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the button again closes the menu.
 - **Show me:** `toRest()` closes the menu at once, without the transitions. Today's click handler becomes a `toggle()` function, which the button and the run both call. Then:
-  - t = 0: `toggle()` opens: the lines cross, and the menu drops in;
-  - t = Speed + 210ms + 1200ms: `toggle()` closes (the 210ms is the last menu item's delay);
-  - the run ends when it has closed. About 2.1 s at the defaults.
+  - at once: `toggle()` opens: the lines cross, and the menu drops in;
+  - `later(toggle, Speed + 210, 1200)`: `toggle()` closes (the 210ms is the last menu item's delay), and the run ends. About 2.1 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()` only. The menu stays as it is.
-- **Slow motion:** css. The run's times triple through `later()`.
+- **Slow motion:** css. The movement is Speed + 210ms (the lines, and the last menu item's delay); the 1200ms is a hold. A slowed run takes about 3.9 s.
 - **Reduced motion:** the demo's rule stays: the icon and the menu switch at once.
 - **Stage font:** site font (no rule to change).
 - **Stage:** the button and the menu stay. The "State: closed" readout goes, with its rules.
@@ -662,7 +658,17 @@ None: leave out the `details.hb-options` block.
   - [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between on and off
   - [Drawer / Panel Slide](../drawer-slide/) — the side panel such a button often opens
   - [Modal Expand](../modal-expand/) — a window that grows out of the button you pressed
-- **README How it works:** unchanged
+- **README How it works:** the snippet's open-state lines take today's calculation, which follows Line thickness (today's `translateY(16px)` is right only for 4px lines). The snippet becomes:
+
+  ```css
+  .bar{transition:transform var(--dur) var(--ease),opacity calc(var(--dur)*.6) var(--ease)}
+  /* Half the 36px box minus half a line, so the lines meet at any thickness */
+  .burger[aria-expanded="true"] .bar.top{transform:translateY(calc(18px - var(--bar-h)/2)) rotate(45deg)}
+  .burger[aria-expanded="true"] .bar.mid{opacity:0;transform:scaleX(.2)}
+  .burger[aria-expanded="true"] .bar.bot{transform:translateY(calc(var(--bar-h)/2 - 18px)) rotate(-45deg)}
+  ```
+
+  The prose stays.
 - **README Production notes:** unchanged
 - **Category line:** `04.23 · Micro-Interactions`
 - **Pager:** Previous: Swipe to Dismiss (`../swipe-to-dismiss/`) · Next: Theme Toggle Morph (`../theme-toggle-morph/`)
@@ -673,15 +679,14 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — the icon changes only when the visitor presses it.
 - **Description:** A sun turns into a moon as the colors switch to dark. Best for theme buttons.
-- **Watch it help line:** Press the sun to switch to dark, and press the moon to switch back.
+- **Step 1 help line:** Press the sun to switch to dark and the moon to switch back, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the button again switches back to light, and Show me starts from light; today's "Reset to light" goes.
 - **Show me:** `toRest()` switches to light at once, without the transitions (`setDark(false)`). Then:
-  - t = 0: `setDark(true)`, as a press does: the sun becomes the moon, and the card flips to dark;
-  - t = Speed + 1000ms: `setDark(false)`;
-  - the run ends when the change is over. About 2 s at the defaults.
+  - at once: `setDark(true)`, as a press does: the sun becomes the moon, and the card flips to dark;
+  - `later(back, Speed, 1000)`: `setDark(false)`, and the run ends. About 2 s from press to rest at the defaults.
 
   On `hb:input`: `stopRun()` only.
-- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down, and the run's times triple through `later()`.
+- **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's colour slow down; the change is the run's movement (Speed) and the 1000ms is a hold. A slowed run takes about 4 s.
 - **Reduced motion:** the demo's rule stays: the icon and the card switch at once.
 - **Stage font:** site font (no font rule to change). The card's `.face .st` ("preview card") goes up to 11px (was 9px).
 - **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do.
@@ -739,18 +744,18 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — the button confirms only when the visitor presses it.
 - **Description:** Copy turns into a tick and Copied, then changes back. Best for codes and links.
-- **Watch it help line:** Press Copy. The button confirms it worked, then changes back.
+- **Step 1 help line:** Press Copy and watch the button confirm, then change back, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: the button changes back by itself.
 - **Show me:** plays the confirmation without copying anything. `toRest()` removes `copied` at once, without the transitions. Then the run adds `copied` to the button and starts the button's own revert timer (`timer`, Time before it changes back), exactly as a successful copy does. The run is only that step, so it ends at once (no run timer is left), and the button changes back on its own timer: about 1.8 s from start to rest at the defaults (1.3 s to 2.8 s).
   - It never writes to the clipboard: that would replace what the visitor copied, and browsers refuse a copy nobody pressed for.
   - It never writes "Copied to clipboard" into the live region.
   - A real press of Copy during the confirmation takes over the same timer, as today. `hb:input` has nothing to stop.
-- **Slow motion:** css. The icon change, the label change, the colour change and the pulse slow down. The revert timer is a hold and keeps its length.
+- **Slow motion:** css. The icon change, the label change, the colour change and the pulse slow down. The button's revert timer, for a real copy and for Show me alike, counts the 520ms pulse as movement and the rest as a hold: it waits 520ms × (3 while Slow motion is on) + (Time before it changes back − 520ms). So the button never changes back before the slowed pulse has ended; without Slow motion nothing changes. A slowed run takes about 3.4 s.
 - **Reduced motion:** the demo's rule stays: the icon and label swap without movement or pulse.
 - **Stage font:** site font. `.copy-btn` gets `font-family:inherit` (was `var(--mono)`); `pre` goes with the snippet (see Stage).
 - **Stage:** rewritten, because the page shows no code. Today the stage shows a five-line JavaScript snippet ("snippet.js").
   - It becomes an invite code: a small box with the label "Your invite code" (`--ui-muted`, 12px) and the code "MOTION-2026" (20px, weight 700), with the Copy button beside it. The box and the button sit in a centred row that wraps on narrow screens.
-  - The code element keeps `id="snippet"`, so Copy copies "MOTION-2026".
+  - The code element keeps `id="snippet"`, so Copy copies "MOTION-2026". The button's `aria-label` becomes "Copy invite code" (today's says "Copy code snippet").
   - The "snippet.js / click copy to grab it" header goes, and so does the line "Uses navigator.clipboard.writeText with a document.execCommand fallback." (a note in code words).
   - The visually hidden live region stays.
   - The stage's own rule becomes `display:flex;align-items:center;justify-content:center;padding:24px`. It had no fixed height; now it has the default one.
@@ -761,7 +766,7 @@ None: leave out the `details.hb-options` block.
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | How quickly the icon and label change. | `--dur`: 450ms / 280ms / 170ms |
-| Time before it changes back | Choice buttons | Short · Medium · Long | Medium | How long Copied! stays before the button resets. | `revert`: 1000 / 1500 / 2500 (ms) |
+| Time before it changes back | Choice buttons | Short · Medium · Long | Medium | How long Copied! stays before the button resets. | `revert`: 1000 / 1500 / 2500 (ms; the revert timer counts its first 520ms as movement, see Slow motion) |
 
 **More options**
 
@@ -806,15 +811,15 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — the stars fill and pop only as the visitor points at them and chooses one.
 - **Description:** Stars fill up to your pointer and pop when you choose. Best for reviews.
-- **Watch it help line:** Point along the stars, then click one to choose. On a phone, tap one.
+- **Step 1 help line:** Point along the stars and click or tap one to choose, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: a click, or the arrow, Home and End keys, sets any rating.
-- **Show me:** `toRest()` sets the rating back to 3 (`rating=3; commit(false)`). Then an invisible pointer sweeps along the row (n is Number of stars):
-  - every 120ms from t = 0: `render(1)`, `render(2)` … up to `render(n)`, then `render(n − 1)`, as the pointer comes back one star;
-  - t = (n + 1) × 120ms: `rating = n − 1` (or n − 0.5 while Allows half stars is on) and `commit(true)`, which pops that star;
-  - t = (n + 1) × 120ms + 420ms + 1200ms: `rating = 3; commit(false)`, and the run ends. About 2.3 s with five stars.
+- **Show me:** `toRest()` sets the rating back to 3 (`rating=3; commit(false)`). Then an invisible pointer sweeps along the row (n is Number of stars). The sweep's steps and the wait for the pop are movement; the 1200ms is a hold:
+  - `later(step, i × 120, 0)` for i = 0 to n − 1: `render(i + 1)`, and `later(step, n × 120, 0)`: `render(n − 1)`, as the pointer comes back one star;
+  - `later(choose, (n + 1) × 120, 0)`: `rating = n − 1` (or n − 0.5 while Allows half stars is on) and `commit(true)`, which pops that star;
+  - `later(back, (n + 1) × 120 + 420, 1200)`: `rating = 3; commit(false)`, and the run ends. About 2.3 s with five stars.
 
-  The run does not call `rate.focus()`. On `hb:input`: `stopRun()` and `render(rating)`, so the stars show the committed rating.
-- **Slow motion:** css. The fill's colour change and the pop slow down, and the run's times triple through `later()`, so the sweep keeps its shape.
+  The run does not call `rate.focus()`. It also stops on a trusted `pointermove` over the stage, as on the Hover it pages, because the row's own hover preview would fight the sweep. On that or on `hb:input`: `stopRun()` and `render(rating)`, so the stars show the committed rating.
+- **Slow motion:** css. The fill's colour change and the pop slow down, and so do the sweep and the wait for the pop (movement); the 1200ms hold stays. A slowed run takes about 5.2 s with five stars.
 - **Reduced motion:** the demo's rule stays: the stars fill at once, with no pop.
 - **Touch:** already Pointer Events. The row's `touch-action:none` lets a finger dragged along it preview, and a tap chooses.
 - **Stage font:** site font. `.value` drops `var(--disp)` and `.value small` drops `var(--mono)`.
@@ -876,10 +881,10 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — a toast appears only when the visitor presses the button on the stage.
 - **Description:** Short messages slide into a corner, then leave on their own. Best for updates.
-- **Watch it help line:** Press the button for a toast. Tap it, swipe it or press × to close it early.
+- **Step 1 help line:** Send a toast, then tap or swipe it away early, or press Show me.
 - **Player bar:** Show me · Reset. No Slow motion: each toast's countdown bar is a CSS animation that decides when it leaves, so slowing the stage would also triple its time on screen.
-- **Show me:** `toRest()` removes any toasts at once (without their exit). Then the run presses the stage's button once: `spawn(0)` brings in the first message ("Saved — Your changes were published."), so a run is always the same; a plain press stays random. The run is only that press, so it ends at once (no run timer is left). The toast then lives like any other: it comes in, its bar counts down Time on screen, and it leaves by itself.
-  - From press to rest takes about 4.6 s at Medium (3.1 s at Short, 7.1 s at Long). That is longer than most runs, because leaving on its own is the point of a toast.
+- **Show me:** `toRest()` removes any toasts at once (without their exit). Then the run presses the stage's button once: `spawn(DEMO)` brings in a neutral example, `DEMO = ['ok','Example','A toast like this confirms an action.']`. `spawn()` takes an optional `[type, title, text]` message and, given none, picks one of `TYPES` at random, as today. So a run is always the same, and screen readers, which hear every toast in the `role="status"` stack (on arrival too), hear an honest example rather than a pretend "Saved". The run is only that press, so it ends at once (no run timer is left). The toast then lives like any other: it comes in, its bar counts down Time on screen, and it leaves by itself.
+  - From press to rest takes about 4.3 s at Medium (2.8 s at Short, 6.8 s at Long): the countdown starts as the toast arrives, and leaving takes 300ms. That is longer than most runs, because leaving on its own is the point of a toast.
   - `hb:input` has nothing to stop.
 - **Reset:** dismisses every toast, as "Dismiss all" did (each leaves the way it came), after `stopRun()`.
 - **Slow motion:** none.
@@ -887,10 +892,12 @@ None: leave out the `details.hb-options` block.
 - **Touch:** already Pointer Events: a drag past 35% of its width or a tap dismisses a toast. Holding a finger on a toast pauses its countdown (the `paused` class). Pointing at a toast pauses it too, inside `@media (hover: hover)`, as today.
 - **Stage font:** site font. `.toast .ic` and `.toast .ti` drop `font-family:var(--disp)`; `.toast .x` and the new `.send` get `font-family:inherit`. `.toast .ms` goes up to 11px (was 10.5px).
 - **Stage:** the corner stack stays.
-  - The hint "Trigger a toast →" pointed at the old panel, so it goes, and so do the script's lines that hide and show it. The old panel's "Trigger toast" button moves onto the stage in the hint's place (absolutely centred, as the hint was, under the toasts), as `<button class="send" id="send" type="button">Send a toast</button>`. It keeps the old button's look (accent background, dark text, at least 44px tall) and calls `spawn()`, so the demo still works without the panel.
-  - When four toasts stack on a phone they can cover the button; a tap on a toast closes it.
-  - The stage's own `min-height:min(62vh,480px)` goes, because the page owns the height. `position:relative;overflow:hidden` and its radial background stay.
-  - Four toasts (58px each, 285px with their gaps) fit every stage (measured).
+  - The hint "Trigger a toast →" pointed at the old panel, so it goes, and so do the script's lines that hide and show it.
+  - The old panel's "Trigger toast" button moves onto the stage as `<button class="send" id="send" type="button">Send a toast</button>`, with the old button's look (accent background, dark text, at least 44px tall), so the demo still works without the panel. Its listener is `()=>spawn()`: `addEventListener('click', spawn)` would pass the click event as the message.
+  - The button sits at the edge opposite the corner, centred across: 16px from the bottom while toasts stack in a top corner, and 16px from the top while they stack in a bottom corner (the Corner handler toggles a class such as `at-top` on it).
+  - `.toaster` gets `pointer-events:none` and `.toast` `pointer-events:auto`, so the stack's empty box no longer covers the button.
+  - The stage's own `min-height:min(62vh,480px)` goes, because the page owns the height. Its own rule sets `--hb-stage-h-phone:420px`, and `position:relative;overflow:hidden` and its radial background stay.
+  - Measured with the 11px message text: on a 375px phone, four toasts end 281px down and the button sits at 319–363px. On a 320px phone every message wraps to two lines (74px toasts), four end at 338px and the button starts at 359px; that is why the phone stage is 420px rather than about 380px. The button's whole face stays pressable. On tablets and computers the stack (300px wide, in a corner) never reaches the button, and four toasts fit every stage.
   - `hb-dots`: no, because the stage keeps its radial background.
 
 **Main settings**
@@ -911,7 +918,7 @@ None: leave out the `details.hb-options` block.
   - The note.
   - The hint on the stage.
   - The Corner and Animation menus. They become Corner and How it comes in.
-  - The Auto-dismiss and Stack limit sliders. They become Time on screen and Most at once. Five and six go: a stack of five (342px) does not fit the phone or short-laptop stage, and the newest toast would be cut off.
+  - The Auto-dismiss and Stack limit sliders. They become Time on screen and Most at once. Five and six go: a stack of five (about 347px) does not fit the 327px short-laptop stage, and the newest toast would be cut off. One goes too: with room for a single toast, each new one pushes the last out, and the stacking never shows.
   - "Trigger toast" moves onto the stage as Send a toast.
   - "Dismiss all". The player bar's Reset replaces it.
 - **Good for:** Save confirmations · Upload updates · Sync notices · **Avoid on:** Errors that need action · Long messages
@@ -947,20 +954,19 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Click it" — the highlight moves only when the visitor picks an option.
 - **Description:** A highlight slides to the option you pick. Best for switching views.
-- **Watch it help line:** Press an option, or use the arrow keys. The highlight slides to it.
+- **Step 1 help line:** Press an option or move with the arrow keys, or press Show me.
 - **Player bar:** Show me · Slow motion (css). No Reset: pressing the first option brings the demo back.
 - **Show me:** `toRest()` chooses the first option at once (`current=0; move(0,false); paint()`). Then:
-  - t = 0: `current = n − 1; move(n − 1, true); paint()` chooses the last option, so the highlight slides the whole way (n is Number of options);
-  - t = Speed + 1200ms: `current = 0; move(0, true); paint()` chooses the first again;
-  - the run ends when the highlight has landed. About 1.9 s at the defaults.
+  - at once: `current = n − 1; move(n − 1, true); paint()` chooses the last option, so the highlight slides the whole way (n is Number of options);
+  - `later(back, Speed, 1200)`: `current = 0; move(0, true); paint()` chooses the first again, and the run ends. About 1.9 s from press to rest at the defaults.
 
   The run uses `move()` and `paint()`, not `select()`, which would move the keyboard focus. On `hb:input`: `stopRun()` only.
-- **Slow motion:** css. The slide and the labels' colour change slow down, and the run's times triple through `later()`.
+- **Slow motion:** css. The slide and the labels' colour change slow down; the slide is the run's movement (Speed) and the 1200ms is a hold. A slowed run takes about 3.2 s.
 - **Reduced motion:** the demo's rule stays: the highlight jumps.
 - **Stage font:** site font. `.seg-opt` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the control stays; the "Selected" readout goes.
   - The control's class `seg` becomes `seg-track`, and the rules `.seg`, `.seg.underline .seg-ind` and `.seg.underline .seg-opt[aria-checked="true"]` follow, as does the script's `classList.toggle('underline', …)`. The shared stylesheet styles `.hb-page .seg` and its buttons as Try it choice buttons (borders, gaps, 15px text), which would restyle the demo; this was seen in the browser. `.seg-opt` and `.seg-ind` keep their names.
-  - The stage's own `min-height` and its old phone rule go. Its padding `clamp(28px,6vw,64px) 20px` stays.
+  - The stage's own `min-height` goes. Its padding `clamp(28px,6vw,64px) 20px` stays, and a phone rule sets its side padding to 10px (the old phone rule had 12px). Measured at 320px wide: five options need 252px and now have 266px. At 20px they had 246px and were squeezed into it, their labels overlapping. At 375px they need 256px of 321px.
   - `hb-dots`: yes. Default height.
 
 **Main settings**
@@ -980,7 +986,7 @@ None: leave out the `details.hb-options` block.
 - **Removed:**
   - The note, and the help text under the controls.
   - The Selected readout.
-  - The Segments slider. It becomes Number of options. Six goes: measured on a 320px phone, six options need 272px and the stage has 246px, so the last one was cut off; five need 244px.
+  - The Segments slider. It becomes Number of options. Six goes: on a 320px phone six options need 272px, more than the 266px there is even with the 10px phone padding.
   - The Slide duration slider. It becomes Speed.
   - The Easing menu. It becomes Feel. "Material smooth" and "Ease in-out" go: on this short slide they looked nearly the same as Ease out, now Smooth.
   - The Indicator style menu. It becomes Highlight.
@@ -993,7 +999,7 @@ None: leave out the `details.hb-options` block.
 
   > A segmented control is a row of options where exactly one is chosen, marked by a highlight behind it. When you choose another option, the highlight slides over to it and stretches to its width while the labels change color, so the change reads as one thing moving. It is the switch behind view pickers such as Day, Week and Month.
 
-- **README Key parameters:** the table is replaced (today's has other columns and code names):
+- **README Key parameters:** the table is replaced (today's has other columns and code names). The paragraph under today's table ("A spring curve with slight overshoot (control-point y > 1)…") moves to the end of How it works (see there), so Key parameters holds only the table:
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
@@ -1006,7 +1012,7 @@ None: leave out the `details.hb-options` block.
   - [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between two states
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Accordion Open/Close](../accordion/) — sections that open and close in place
-- **README How it works:** unchanged
+- **README How it works:** unchanged, except that it ends with the paragraph moved from Key parameters, in plain words: "A curve that runs a little past its end (Springy) gives the highlight a sense of momentum; Smooth reads as more restrained. The labels' colour change uses the same duration as the slide, so the two never drift apart."
 - **README Production notes:** unchanged
 - **Category line:** `04.28 · Micro-Interactions`
 - **Pager:** Previous: Toast Notification (`../toast-notification/`) · Next: Pull to Refresh (`../pull-to-refresh/`)
@@ -1017,19 +1023,19 @@ None: leave out the `details.hb-options` block.
 
 - **Kind:** do it, step 1 "Drag it" — the list refreshes only when the visitor pulls it down from its top, or presses its refresh button.
 - **Description:** Pulling a list down shows a spinner, then new items. Best for feeds.
-- **Watch it help line:** Drag the list down from the top and let go, or press the refresh button.
+- **Step 1 help line:** Drag the list down from the top and let go, or press Show me.
 - **Player bar:** Show me · Reset. No Slow motion: the pull follows the visitor's hand, and the spinner turns for as long as the refresh takes.
-- **Show me:** while a refresh is under way, Show me does nothing. Otherwise `toRest()` scrolls the list to its top. Then:
-  - t = 0 to 700ms: frame by frame through `runFrame`, `pull` eases from 0 to 1.25 × Pull distance, slowing as it goes like the rubber band. Each frame calls `setY(pull,false)` and `drawSpin()`, so the spinner fades in and turns, and the hint reads "Release to refresh" past the line;
-  - t = 850ms: `startRefresh()`, as a release past the line does. It spins for Refresh time, adds the new item at the top and springs back;
-  - the run ends when the list is back up. About 2.4 s at the defaults.
+- **Show me:** while a refresh is under way, Show me does nothing. Otherwise `toRest()` puts the list back to its six first items (`n` back to 0) and scrolls it to the top, as Reset does. The page has no Slow motion, so each step is a hold. Then:
+  - at once, over 700ms, frame by frame through `runFrame`: `pull` eases from 0 to 1.25 × Pull distance, slowing as it goes like the rubber band. Each frame calls `setY(pull,false)` and `drawSpin()`, so the spinner fades in and turns, and the hint reads "Release to refresh" past the line;
+  - `later(release, 0, 850)`: `startRefresh()`, as a release past the line does. It spins for Refresh time, adds the new item at the top and springs back;
+  - the run ends with that step; the refresh then finishes on its own, and the list is back up about 2.4 s after the press at the defaults.
 
   On `hb:input` during the pull: `stopRun()`, then `pull=0; setY(0,true); drawSpin()`, so the list springs back and the visitor's own drag takes over. Once the refresh has started, it finishes as usual.
 - **Reset:** puts the list back to its six first items (the new ones go, `n` returns to 0) and scrolls it to the top, after `stopRun()`. A refresh under way ends at once: `startRefresh()` keeps its timer in `refreshTimer`, which Reset clears; then the spinner stops, `refreshing` becomes false and the list is set back to 0 without a transition.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: the list snaps back without its tween, and new items appear without sliding in.
 - **Touch:** already Pointer Events, claimed only at the top of the list, with `touchmove` blocked once the pull is claimed. The list still scrolls normally.
-- **Stage font:** site font (no font rule to change). `.indicator` and `.meta .s` go up to 11px (were 10px).
+- **Stage font:** site font. The new Refresh button gets `font-family:inherit`. `.indicator` and `.meta .s` go up to 11px (were 10px).
 - **Stage:** the list scrolls inside its own box. The stage's own rule keeps `position:relative;overflow:hidden` and adds `display:flex;flex-direction:column`.
   - The stage becomes a small app screen. At the top is a header bar with the title "Updates" and, at its right, a Refresh button: a ↻ icon, `aria-label="Refresh"`, 44×44px, calling `startRefresh()`. It is today's "↻ Refresh now" moved from the old panel onto the stage; the README calls it the keyboard way to refresh.
   - Below the header, a `.feed` box (`position:relative;flex:1;overflow:hidden`) holds the indicator and the scroller, which move into it unchanged. The indicator therefore comes down from under the header.
