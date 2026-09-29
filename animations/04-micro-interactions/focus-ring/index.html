@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Focus Ring Animation — Animation Handbook</title>
-  <meta name="description" content="Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.">
+  <meta name="description" content="A ring closes in around the item the Tab key reaches. Best for forms and menus.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/focus-ring/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,162 +12,222 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Focus Ring Animation — Animation Handbook">
-  <meta property="og:description" content="Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.">
+  <meta property="og:description" content="A ring closes in around the item the Tab key reaches. Best for forms and menus.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/focus-ring/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Focus Ring Animation — Animation Handbook">
-  <meta name="twitter:description" content="Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.">
+  <meta name="twitter:description" content="A ring closes in around the item the Tab key reaches. Best for forms and menus.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Focus Ring Animation", "name": "Focus Ring Animation", "description": "Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/focus-ring/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Focus Ring Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Focus Ring Animation", "name": "Focus Ring Animation", "description": "A ring closes in around the item the Tab key reaches. Best for forms and menus.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/focus-ring/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Focus Ring Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--ring-color:#ff9d5c;--ring-w:2px;--ring-offset:3px;--ring-dur:140ms}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--ring-color:#ff9d5c;--ring-w:2px;--ring-offset:3px;--ring-dur:140ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:24px}
-    .tab-indicator{display:flex;gap:0;font-size:9px;color:var(--ui-muted);border:1px solid var(--ui-border);border-radius:4px;overflow:hidden}
-    .tab-step{padding:8px 14px;border-right:1px solid var(--ui-border);transition:background .15s,color .15s}
-    .tab-step:last-child{border-right:none}
-    .tab-step.active{background:rgba(255,157,92,.15);color:var(--ui-accent)}
-    .form{display:flex;flex-direction:column;gap:16px;width:100%;max-width:340px}
+    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .form{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}
+    /* A window this short gives the stage 260px, less than the form needs: the stage and the form give up some spacing, the items keep their size */
+    @media(min-width:601px) and (max-height:620px){.stage{padding:8px}.form{gap:8px}}
     .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
+    .field label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
     /* Reset browser outline */
-    .focusable{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:12px;padding:10px 12px;border-radius:4px;width:100%;outline:none;min-height:44px;transition:border-color var(--ring-dur) ease}
-    /* ring-solid */
-    .ring-solid .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
-    /* ring-dashed */
-    .ring-dashed .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) dashed var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
-    /* ring-glow */
-    .ring-glow .focusable:focus-visible{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 5px rgba(255,157,92,.18);animation:ring-in var(--ring-dur) ease-out both}
-    /* ring-dual */
-    .ring-dual .focusable:focus-visible{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 1px var(--bg),0 0 0 calc(var(--ring-w) + 1px + var(--ring-offset)) var(--ring-color);animation:ring-in var(--ring-dur) ease-out both}
+    .focusable{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:12px;padding:10px 12px;border-radius:4px;width:100%;outline:none;min-height:44px;transition:border-color var(--ring-dur) ease}
+    .focusable::placeholder{color:var(--ui-muted);opacity:1}
+    .form-btn{background:var(--ui-accent);color:#000;border:none;font-family:inherit;font-weight:bold;padding:0 20px;cursor:pointer}
+    .form-link{color:var(--ui-accent);text-decoration:none;font-family:inherit;padding:10px 2px;display:inline-block;line-height:24px}
+    /* The ring is drawn while an item has keyboard focus (:focus-visible) and while Show me points at it (.is-demo). The .stage in front
+       makes each rule outrank the site ring and its inward offset inside the stage (.hb-page .stage :focus-visible, 0,3,0), which the
+       ring styles would otherwise tie with and lose to. */
+    .stage .ring-solid .focusable:focus-visible,.stage .ring-solid .focusable.is-demo{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    .stage .ring-dashed .focusable:focus-visible,.stage .ring-dashed .focusable.is-demo{border-color:var(--ring-color);outline:var(--ring-w) dashed var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
+    .stage .ring-glow .focusable:focus-visible,.stage .ring-glow .focusable.is-demo{border-color:var(--ring-color);outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 5px rgba(255,157,92,.18);animation:ring-in var(--ring-dur) ease-out both}
+    .stage .ring-dual .focusable:focus-visible,.stage .ring-dual .focusable.is-demo{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);box-shadow:0 0 0 1px #0b0b0d,0 0 0 calc(var(--ring-w) + 1px + var(--ring-offset)) var(--ring-color);animation:ring-in var(--ring-dur) ease-out both}
     @keyframes ring-in{from{outline-offset:calc(var(--ring-offset) + 8px);opacity:.3}to{outline-offset:var(--ring-offset);opacity:1}}
-    .form-btn{background:var(--ui-accent);color:#000;border:none;font-family:monospace;font-size:12px;font-weight:bold;padding:0 20px;border-radius:4px;cursor:pointer;min-height:44px;width:100%;outline:none}
-    .form-link{color:var(--ui-accent);text-decoration:none;font-size:12px;padding:10px 2px;display:inline-block;min-height:44px;line-height:24px;outline:none}
-    .form-link:focus-visible{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
-    .form-btn:focus-visible{outline:var(--ring-w) solid var(--ring-color);outline-offset:var(--ring-offset);animation:ring-in var(--ring-dur) ease-out both}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px;padding:20px}.tab-step{padding:8px 9px;white-space:nowrap}}
     /* Reduced motion: keep the focus outline (a11y) but drop the ring-in expansion */
-    @media(prefers-reduced-motion:reduce){.focusable,.tab-step,.form-btn,.form-link,.focusable:focus-visible,.form-btn:focus-visible,.form-link:focus-visible{animation:none!important;transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.focusable,.focusable:focus-visible,.focusable.is-demo{animation:none!important;transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../click-ripple/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../button-press-scale/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/focus-ring/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Focus Ring Animation</h1>
-  <p>Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div class="tab-indicator">
-      <div class="tab-step" data-i="0">1 · Text</div>
-      <div class="tab-step" data-i="1">2 · Select</div>
-      <div class="tab-step" data-i="2">3 · Button</div>
-      <div class="tab-step" data-i="3">4 · Link</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../click-ripple/" rel="prev" aria-label="Previous: Click / Tap Ripple"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Click / Tap Ripple</span></a><a href="../button-press-scale/" rel="next" aria-label="Next: Button Press Scale"><span><span class="hb-dir">Next: </span>Button Press Scale</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.03 · Micro-Interactions</p>
+    <h1>Focus Ring Animation</h1>
+    <p class="hb-lede">A ring closes in around the item the Tab key reaches. Best for forms and menus.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Press Tab</h2><p>Click the first field and press Tab to move through the form, or press Show me.</p></div>
     </div>
-    <div class="form ring-solid" id="the-form">
-      <div class="field">
-        <label for="f-name">Full name</label>
-        <input class="focusable" id="f-name" type="text" placeholder="Your name" autocomplete="off">
-      </div>
-      <div class="field">
-        <label for="f-country">Country</label>
-        <select class="focusable" id="f-country">
-          <option>Select a country…</option>
-          <option>United States</option>
-          <option>United Kingdom</option>
-          <option>Canada</option>
-        </select>
-      </div>
-      <div class="field">
-        <button class="form-btn focusable" type="button" aria-label="Submit">Submit Form</button>
-      </div>
-      <div class="field">
-        <a href="#" class="form-link focusable" onclick="return false">Forgot password?</a>
+    <div class="stage hb-dots">
+      <div class="form ring-solid" id="the-form">
+        <div class="field">
+          <label for="f-name">Full name</label>
+          <input class="focusable" id="f-name" type="text" placeholder="Your name" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="f-country">Country</label>
+          <select class="focusable" id="f-country">
+            <option>Select a country…</option>
+            <option>United States</option>
+            <option>United Kingdom</option>
+            <option>Canada</option>
+          </select>
+        </div>
+        <div class="field">
+          <button class="form-btn focusable" type="button">Submit Form</button>
+        </div>
+        <div class="field">
+          <a href="#" class="form-link focusable">Forgot password?</a>
+        </div>
       </div>
     </div>
-  </div>
-  <aside>
-    <p class="note">:focus-visible shows rings only for keyboard users. Mouse clicks don't trigger it. This satisfies both WCAG 2.4.7 and designers who dislike always-visible rings.</p>
-    <div class="lbl">Ring Style</div>
-    <select id="ring-sel">
-      <option value="ring-solid" selected>Solid</option>
-      <option value="ring-dashed">Dashed</option>
-      <option value="ring-glow">Glow</option>
-      <option value="ring-dual">Dual ring</option>
-    </select>
-    <div class="lbl">Ring Width</div>
-    <div class="sr"><input type="range" id="rw-sl" min="1" max="4" value="2" step="1"><span class="sv" id="rw-v">2px</span></div>
-    <div class="lbl">Ring Offset</div>
-    <div class="sr"><input type="range" id="ro-sl" min="0" max="8" value="3" step="1"><span class="sv" id="ro-v">3px</span></div>
-    <div class="lbl">Duration</div>
-    <div class="sr"><input type="range" id="dur-sl" min="80" max="300" value="140" step="10"><span class="sv" id="dur-v">140ms</span></div>
-    <div class="div"></div>
-    <p style="font-size:10px;color:var(--ui-muted)">Click in stage, then press Tab.</p>
-    <button class="rst" id="rst-btn">Reset focus</button>
-  </aside>
-</div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="style-lbl">Ring style</p>
+        <div class="seg" id="style-seg" role="group" aria-labelledby="style-lbl">
+          <button type="button" data-ring="ring-solid" class="on" aria-pressed="true">Solid</button>
+          <button type="button" data-ring="ring-dashed" aria-pressed="false">Dashed</button>
+          <button type="button" data-ring="ring-glow" aria-pressed="false">Glow</button>
+          <button type="button" data-ring="ring-dual" aria-pressed="false">Wide</button>
+        </div>
+        <p class="hb-hint">Glow adds a soft halo; Wide fills the gap with color.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="220" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="140" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="80" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly the ring closes in around the item.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="width-lbl">Ring thickness</p>
+        <div class="seg" id="width-seg" role="group" aria-labelledby="width-lbl">
+          <button type="button" data-w="1" aria-pressed="false">Thin</button>
+          <button type="button" data-w="2" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-w="4" aria-pressed="false">Thick</button>
+        </div>
+        <p class="hb-hint">Thicker rings are easier to spot.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="gap-lbl">Ring gap</p>
+          <div class="seg" id="gap-seg" role="group" aria-labelledby="gap-lbl">
+            <button type="button" data-gap="0" aria-pressed="false">None</button>
+            <button type="button" data-gap="3" class="on" aria-pressed="true">Small</button>
+            <button type="button" data-gap="6" aria-pressed="false">Large</button>
+          </div>
+          <p class="hb-hint">The space between the ring and the item.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an animated focus ring to [the links, buttons and form fields on your page]. When keyboard focus moves to an item, draw an outline around it that starts a little further out and faint, then closes in to its place, so each Tab press is easy to follow. Show the ring only for keyboard focus, not after mouse clicks, and never remove the browser's focus outline without drawing this one instead. Make sure the ring stands out against every background it sits on. If the visitor has reduced motion turned on, show the ring at once without closing in. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Forms</li><li>Buttons</li><li>Links</li><li>Menus</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Non-interactive items</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const form=document.getElementById('the-form');
-  const tabs=document.querySelectorAll('.tab-step');
-  const focusables=[...form.querySelectorAll('.focusable')];
-  focusables.forEach((el,i)=>{
-    el.addEventListener('focus',()=>tabs.forEach((t,j)=>t.classList.toggle('active',j===i)));
-    el.addEventListener('blur',()=>tabs[i]?.classList.remove('active'));
-  });
+  const stage=document.querySelector('.stage');
+  const items=[...form.querySelectorAll('.focusable')];
+  const slowTog=document.getElementById('slow-tog');
+  const vars=document.documentElement.style;
   const ringStyles=['ring-solid','ring-dashed','ring-glow','ring-dual'];
-  document.getElementById('ring-sel').addEventListener('change',e=>{
-    form.classList.remove(...ringStyles);form.classList.add(e.target.value);
+  let ringDur=140,runTimers=[];
+
+  // The link only takes the focus; it goes nowhere.
+  form.querySelector('.form-link').addEventListener('click',e=>e.preventDefault());
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];items.forEach(el=>el.classList.remove('is-demo'))}
+  // The ring closes in on item i for ringDur and stays 460ms, then moves on; the last one is let go the same way.
+  // The run only adds a class and never moves the real focus (that would take a keyboard user's place and open the phone keyboard);
+  // a stage item that has the real focus is blurred first, so two rings never show at once.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    if(stage.contains(document.activeElement))document.activeElement.blur();
+    items.forEach((el,i)=>later(()=>{if(i)items[i-1].classList.remove('is-demo');el.classList.add('is-demo')},i*ringDur,i*460));
+    later(()=>items[items.length-1].classList.remove('is-demo'),items.length*ringDur,items.length*460);
   });
-  document.getElementById('rw-sl').addEventListener('input',e=>{
-    document.getElementById('rw-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--ring-w',e.target.value+'px');
-  });
-  document.getElementById('ro-sl').addEventListener('input',e=>{
-    document.getElementById('ro-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--ring-offset',e.target.value+'px');
-  });
-  document.getElementById('dur-sl').addEventListener('input',e=>{
-    document.getElementById('dur-v').textContent=e.target.value+'ms';
-    document.documentElement.style.setProperty('--ring-dur',e.target.value+'ms');
-  });
-  document.getElementById('rst-btn').addEventListener('click',()=>{
-    document.activeElement?.blur();
-    tabs.forEach(t=>t.classList.remove('active'));
-  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A Tab press from outside the form sends no
+  // hb:input (the key goes to the element that had the focus), but the run never moves the focus, so any focus arriving in the
+  // stage while it runs is the visitor's.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('style-seg',d=>{form.classList.remove(...ringStyles);form.classList.add(d.ring)});
+  choices('speed-seg',d=>{ringDur=+d.ms;vars.setProperty('--ring-dur',ringDur+'ms')});
+  choices('width-seg',d=>{vars.setProperty('--ring-w',d.w+'px')});
+  choices('gap-seg',d=>{vars.setProperty('--ring-offset',d.gap+'px')});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
