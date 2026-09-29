@@ -1,7 +1,7 @@
 # Animated Gradient Background
 
 ## What it is
-An animated gradient background slowly shifts its color stops, position, or hue over a long cycle — typically 15–30 seconds — creating a living, breathing backdrop that never quite repeats. It is the simplest ambient effect in the browser: pure CSS, no JavaScript, no canvas. The animation runs on the compositor thread and costs nothing beyond the initial paint.
+An animated gradient background slowly shifts its colors behind the content, over a long cycle (typically 15 to 30 seconds), so the page feels alive without anything catching the eye. The gradient is painted much larger than the area it fills and slides slowly back and forth, or its colors turn around the color wheel. It is the lightest ambient effect: the browser animates it with no script at all.
 
 ## When to use it
 - Hero sections that need subtle life without distracting from headline copy
@@ -41,10 +41,10 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Cycle duration | 20s | Under 8s = distracting; 15–30s = ambient; above 60s = nearly imperceptible |
-| Background size | 400% | Larger = more position range before the gradient repeats |
-| Color stop count | 5 | More stops = richer transitions; include the first stop repeated at the end for seamless loop |
-| Easing | ease | `ease` creates gentle acceleration at start/end; `linear` is uniform |
+| Gradient | Sliding | Sliding moves a large, soft gradient back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends, one and a half times as slowly |
+| Speed | Normal | How long one cycle takes: slow is 32s, normal 20s and fast 12s; under 8s it becomes distracting |
+| Colors | Cool | The colors the gradient moves through: cool blues and purples, sunset oranges, ocean blues and greens, or grays |
+| Muted colors | off | Takes most of the color out (30% saturation) for a quieter background |
 
 ## Production notes
 - **Pure CSS — no JavaScript needed**: the entire effect is a CSS animation. No `requestAnimationFrame`, no canvas, no paint calls beyond the initial setup.
@@ -54,6 +54,6 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 - **Performance**: on low-end devices, even CSS gradient animation can be slow if applied to large areas. Use `will-change: background-position` to hint the browser, but measure before adding it to every element.
 
 ## See also
-- [Mesh Gradient](../mesh-gradient/) — the blurred-blob variant for organic multi-color fields
-- [Breathing Glow](../breathing-glow/) — radial gradient that expands and contracts
-- [Aurora](../aurora/) — directional color bands with horizontal drift
+- [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend
+- [Breathing / Pulsing Glow](../breathing-glow/) — one soft glow grows and shrinks
+- [Aurora / Northern Lights](../aurora/) — bands of color sway like the northern lights
