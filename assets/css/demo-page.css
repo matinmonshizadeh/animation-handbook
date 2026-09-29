@@ -68,6 +68,10 @@ body.hb [hidden]{display:none!important}
 .hb-page .stage.hb-dots{background-image:radial-gradient(rgba(255,255,255,.075) 1px,transparent 1.5px);background-size:24px 24px;background-position:center}
 /* A stage whose text the visitor can change: at least the usual height, and taller when the text needs it */
 .hb-page .stage.hb-grow{height:auto;min-height:clamp(300px,calc(100vh - 420px),440px);min-height:clamp(300px,calc(100svh - 420px),440px)}
+/* The stage clips what sticks out of it, so the site focus ring (drawn 3px outside) would be cut off on anything focusable
+   inside it: there the ring is drawn inward. This selector outranks body.hb :focus-visible. A stage that is itself the
+   scroller is not inside itself, so it keeps the normal ring. */
+.hb-page .stage :focus-visible{outline-offset:-3px}
 .hb-player{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .hb-play,.hb-toggle{box-sizing:border-box;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;
   border:1px solid rgba(255,255,255,.18);border-radius:8px;background:none;color:var(--hb-ink);font:500 15px/1 var(--hb-font);cursor:pointer}
@@ -84,6 +88,12 @@ body.hb [hidden]{display:none!important}
 /* data-hb-pause="css": the shared script puts hb-paused on the stage, which holds every CSS animation on it */
 .hb-page .stage.hb-paused,.hb-page .stage.hb-paused::before,.hb-page .stage.hb-paused::after,
 .hb-page .stage.hb-paused *,.hb-page .stage.hb-paused *::before,.hb-page .stage.hb-paused *::after{animation-play-state:paused!important}
+/* Scroll pages: while Play scrolls a box, the shared script marks it, and CSS scroll snapping is off for it, or every step would
+   snap and the box would jump from one snap point to the next. !important, so that this rule beats any snap type the page sets
+   without !important (inline or in its own style; a page never sets one with !important), and nothing has to be remembered and
+   written back. When the mark goes the page's own snap type applies again and the browser settles the box on the nearest snap
+   point. */
+[data-hb-autoscrolling]{scroll-snap-type:none!important}
 
 /* Switches: a checkbox drawn as a track and knob (gradients, so no pseudo-elements on the input) */
 .hb-switch{appearance:none;-webkit-appearance:none;flex:none;width:32px;height:20px;margin:0;border-radius:999px;cursor:pointer;
@@ -101,7 +111,7 @@ body.hb [hidden]{display:none!important}
 .hb-setting-name{margin:0;font:600 17px/1.3 var(--hb-font);color:var(--hb-ink)}
 .hb-hint{margin:0;font:400 14px/1.45 var(--hb-font);color:var(--hb-muted)}
 .hb-page .seg{display:flex;flex-wrap:wrap;gap:8px}
-.hb-page .seg button{box-sizing:border-box;min-height:44px;padding:0 16px;border:1px solid var(--hb-edge);border-radius:8px;background:none;
+.hb-page .seg button{box-sizing:border-box;min-height:44px;min-width:44px;padding:0 16px;border:1px solid var(--hb-edge);border-radius:8px;background:none;
   color:var(--hb-soft);font:500 15px/1.2 var(--hb-font);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
 .hb-page .seg button.on,.hb-page .seg button[aria-pressed="true"]{border-color:var(--hb-accent);color:var(--hb-accent);
   background:color-mix(in srgb,var(--hb-accent) 12%,transparent)}
@@ -215,6 +225,8 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-player{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .hb-play,.hb-player-note{grid-column:1/-1}
   .hb-player:has(> [data-hb-pause] + .hb-toggle) > .hb-play{grid-column:auto}
+  /* Two buttons in the player bar (Show me and Reset, Play and Back to top) share one row */
+  .hb-player:has(> .hb-play + .hb-play) > .hb-play{grid-column:auto}
   .hb-play,.hb-toggle{justify-content:center;gap:8px;padding:0 12px;font-size:14px}
   .hb-page .seg button{flex:1 0 auto;padding:0 10px}
   .hb-prompt{font-size:16px;line-height:1.6}
