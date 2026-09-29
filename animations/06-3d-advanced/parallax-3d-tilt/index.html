@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parallax 3D Tilt — Animation Handbook</title>
-  <meta name="description" content="CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.">
+  <meta name="description" content="A card tilts toward your pointer, and a light slides over it. Best for cards.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/parallax-3d-tilt/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,30 +12,21 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Parallax 3D Tilt — Animation Handbook">
-  <meta property="og:description" content="CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.">
+  <meta property="og:description" content="A card tilts toward your pointer, and a light slides over it. Best for cards.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/parallax-3d-tilt/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Parallax 3D Tilt — Animation Handbook">
-  <meta name="twitter:description" content="CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.">
+  <meta name="twitter:description" content="A card tilts toward your pointer, and a light slides over it. Best for cards.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Parallax 3D Tilt", "name": "Parallax 3D Tilt", "description": "CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/parallax-3d-tilt/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Parallax 3D Tilt"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Parallax 3D Tilt", "name": "Parallax 3D Tilt", "description": "A card tilts toward your pointer, and a light slides over it. Best for cards.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/parallax-3d-tilt/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Parallax 3D Tilt"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--perspective:1000px;--max-tilt:15;--reset-dur:400ms;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#3fd6c4;--perspective:1000px;--reset-dur:400ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:#060a10;display:flex;align-items:center;justify-content:center;perspective:var(--perspective)}
+    .stage{display:flex;align-items:center;justify-content:center;background:#060a10;perspective:var(--perspective)}
     /* Card */
     .tilt-card{
-      width:clamp(240px,40%,340px);height:clamp(240px,40%,320px);
+      width:clamp(240px,40%,340px);height:min(240px,86%);
       border-radius:16px;position:relative;overflow:hidden;
       background:linear-gradient(135deg,#0d2040,#1a3060);
       border:1px solid rgba(255,255,255,.15);
@@ -56,96 +47,156 @@
       opacity:0;pointer-events:none;transition:opacity .3s
     }
     .card-content{position:relative;z-index:1;height:100%;padding:28px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
-    .card-over{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4)}
-    .card-h{font-family:Georgia,serif;font-size:clamp(18px,2.5vw,26px);color:#fff;line-height:1.2;font-style:italic}
-    .card-sub{font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;max-width:240px}
-    .card-tag{font-size:10px;color:var(--ui-accent);margin-top:4px;letter-spacing:1px}
+    .card-over{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7)}
+    .card-h{font-size:clamp(18px,2.5vw,26px);font-weight:700;color:#fff;line-height:1.2}
+    .card-sub{font-size:13px;color:rgba(255,255,255,.9);line-height:1.6;max-width:240px;text-wrap:pretty}
     /* Depth layers for extra parallax within card */
     .float-orb{position:absolute;border-radius:50%;pointer-events:none;will-change:transform}
     .orb1{width:120px;height:120px;background:rgba(88,166,255,.3);top:-30px;right:-20px;filter:blur(20px);transform:translateZ(20px)}
-    .orb2{width:80px;height:80px;background:rgba(210,168,255,.25);bottom:20px;right:30px;filter:blur(12px);transform:translateZ(30px)}
-    /* Readout */
-    .readout{position:absolute;bottom:12px;left:12px;font-size:9px;color:rgba(255,255,255,.3);z-index:5;pointer-events:none}
-    /* Panel */
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:44px;text-align:right;color:var(--ui-text)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:420px;padding:32px 16px}}
-    @media(prefers-reduced-motion:reduce){.tilt-card{transition:none!important;transform:none!important}.card-shine{opacity:0!important;transition:none!important}.float-orb{transform:none!important}}
+    .orb2{width:80px;height:80px;background:rgba(210,168,255,.2);bottom:20px;right:30px;filter:blur(12px);transform:translateZ(30px)}
+    /* The card snaps flat when the pointer leaves instead of easing back */
+    @media(prefers-reduced-motion:reduce){.tilt-card{transition:none!important}.card-shine{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-driven-3d-rotation/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../canvas-particle-effect/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/parallax-3d-tilt/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Parallax 3D Tilt</h1>
-  <p>CSS perspective + rotateX/Y driven by mouse position — a shine highlight tracks the cursor across the card surface.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="tilt-card" id="card">
-      <div class="card-shine" id="shine"></div>
-      <div class="float-orb orb1" id="orb1"></div>
-      <div class="float-orb orb2" id="orb2"></div>
-      <div class="card-content">
-        <div class="card-over">Feature card</div>
-        <div class="card-h">Three-dimensional perspective</div>
-        <div class="card-sub">Mouse position maps to rotateX and rotateY. The highlight follows the virtual light source.</div>
-        <div class="card-tag">Move or drag the card →</div>
-      </div>
-      <div class="readout" id="readout">rotX: 0° rotY: 0°</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scroll-driven-3d-rotation/" rel="prev" aria-label="Previous: Scroll-Driven 3D Rotation"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Scroll-Driven 3D Rotation</span></a><a href="../canvas-particle-effect/" rel="next" aria-label="Next: Canvas Particle Effect"><span><span class="hb-dir">Next: </span>Canvas Particle Effect</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.03 · 3D &amp; Advanced</p>
+    <h1>Parallax 3D Tilt</h1>
+    <p class="hb-lede">A card tilts toward your pointer, and a light slides over it. Best for cards.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the card, drag a finger across it, or press Show me.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">perspective must be on the PARENT — not the tilting card. The card's rotateX/Y are normalized to ±maxAngle from cursor position relative to card center.</p>
-    <div class="lbl">Max Tilt Angle</div>
-    <div class="sr"><input type="range" id="tilt-sl" min="3" max="30" value="15" step="1"><span class="sv" id="tilt-v">15°</span></div>
-    <div class="lbl">Perspective</div>
-    <div class="sr"><input type="range" id="persp-sl" min="400" max="1500" value="1000" step="50"><span class="sv" id="persp-v">1000px</span></div>
-    <div class="lbl">Reset Duration</div>
-    <div class="sr"><input type="range" id="rst-sl" min="100" max="1000" value="400" step="50"><span class="sv" id="rst-v">400ms</span></div>
-    <label class="tog"><input type="checkbox" id="shine-tog" checked><span>Shine highlight</span></label>
-    <label class="tog"><input type="checkbox" id="invert-tog"><span>Invert tilt</span></label>
-    <label class="tog"><input type="checkbox" id="scale-tog" checked><span>Subtle scale on hover</span></label>
-    <div class="div"></div>
-    <div class="kv"><span>RotateX</span><span class="v" id="rx-v">0°</span></div>
-    <div class="kv"><span>RotateY</span><span class="v" id="ry-v">0°</span></div>
-  </aside>
-</div>
+    <div class="stage hb-dots">
+      <div class="tilt-card" id="card">
+        <div class="card-shine" id="shine"></div>
+        <div class="float-orb orb1" id="orb1"></div>
+        <div class="float-orb orb2" id="orb2"></div>
+        <div class="card-content">
+          <div class="card-over">Feature card</div>
+          <div class="card-h">Three-dimensional perspective</div>
+          <div class="card-sub">The card leans toward your pointer, and the light follows it.</div>
+        </div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="tilt-lbl">Tilt amount</p>
+        <div class="seg" id="tilt-seg" role="group" aria-labelledby="tilt-lbl">
+          <button type="button" data-tilt="8" aria-pressed="false">Small</button>
+          <button type="button" data-tilt="15" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-tilt="25" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How far the card leans at its edges.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="depth-lbl">3D depth</p>
+        <div class="seg" id="depth-seg" role="group" aria-labelledby="depth-lbl">
+          <button type="button" data-px="1500" aria-pressed="false">Subtle</button>
+          <button type="button" data-px="1000" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="500" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Strong looks closer and more dramatic.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shine</span><input class="hb-switch" type="checkbox" role="switch" id="shine-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">A soft light follows the pointer across the card.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="return-lbl">Return speed</p>
+          <div class="seg" id="return-seg" role="group" aria-labelledby="return-lbl">
+            <button type="button" data-ms="650" aria-pressed="false">Slow</button>
+            <button type="button" data-ms="400" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-ms="250" aria-pressed="false">Fast</button>
+          </div>
+          <p class="hb-hint">How quickly the card settles flat again.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Tilts away from the pointer</span><input class="hb-switch" type="checkbox" role="switch" id="invert-tog" autocomplete="off"></label>
+          <p class="hb-hint">Leans the other way, as if you pressed it.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Grows a little</span><input class="hb-switch" type="checkbox" role="switch" id="scale-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Lifts the card slightly while it tilts.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a 3D tilt to [the card you want to bring to life]. As the pointer moves over the card, rotate the card slightly around its horizontal and vertical axes according to where the pointer is, and give its container a 3D perspective so the tilt has depth. When the settings include it, move a soft light across the card with the pointer, as if it catches the light. On touch screens, dragging a finger across the card should tilt it the same way. When the pointer leaves, let the card settle back flat. If the visitor has reduced motion turned on, keep the card flat. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Feature cards</li><li>Pricing cards</li><li>Portfolio tiles</li><li>Game cards</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Text-heavy cards</li><li>Dense grids</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
   const shine=document.getElementById('shine');
   const orb1=document.getElementById('orb1');
   const orb2=document.getElementById('orb2');
-  const readout=document.getElementById('readout');
-  const rxV=document.getElementById('rx-v');
-  const ryV=document.getElementById('ry-v');
+  const vars=document.documentElement.style;
   let maxTilt=15,invert=false,shineOn=true,scaleOn=true;
+  let tiltX=0,tiltY=0; // the last x and y tilt() was given (0 after onLeave()): a Show me run starts from them
+  let raf=0;           // the frame of a Show me run that is under way, 0 when there is none
 
-  function onMove(e){
-    const r=card.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width-.5;   // -0.5 to 0.5
-    const y=(e.clientY-r.top)/r.height-.5;
+  // x and y run from -0.5 to 0.5 across the card. The pointer, a finger and Show me all move the card through this.
+  function tilt(x,y){
+    tiltX=x;tiltY=y;
     const inv=invert?-1:1;
     const rx=(-y*maxTilt*inv).toFixed(1);
     const ry=(x*maxTilt*inv).toFixed(1);
@@ -160,39 +211,64 @@ body{padding-top:46px}
     // Subtle inner parallax
     orb1.style.transform=`translateZ(20px) translate(${-ry*.3}px,${rx*.3}px)`;
     orb2.style.transform=`translateZ(30px) translate(${-ry*.5}px,${rx*.5}px)`;
-    rxV.textContent=rx+'°'; ryV.textContent=ry+'°';
-    readout.textContent=`rotX:${rx}° rotY:${ry}°`;
   }
-
+  // A finger dragged off the card keeps sending its moves to the card, so x and y are held to the card's edges.
+  const edge=v=>Math.max(-.5,Math.min(.5,v));
+  function onMove(e){
+    const r=card.getBoundingClientRect();
+    tilt(edge((e.clientX-r.left)/r.width-.5),edge((e.clientY-r.top)/r.height-.5));
+  }
   function onLeave(){
+    tiltX=tiltY=0;
     card.classList.remove('active');
     card.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';
     card.style.boxShadow='';
     shine.style.opacity='0';
     orb1.style.transform='translateZ(20px)';
     orb2.style.transform='translateZ(30px)';
-    rxV.textContent='0°'; ryV.textContent='0°';
-    readout.textContent='rotX: 0° rotY: 0°';
   }
 
+  // Show me: a pretend pointer circles the middle of the card one and a half times in three seconds, reaching 80% of the
+  // way to the edges halfway through, and ends in the middle. It starts from where the card is; a second press starts anew.
+  function showMe(){
+    cancelAnimationFrame(raf);
+    const x0=tiltX,y0=tiltY;
+    let t0=0;
+    function step(now){
+      if(!t0)t0=now;
+      const p=Math.min(1,(now-t0)/3000);
+      const r=.4*Math.sin(Math.PI*p),a=3*Math.PI*p;
+      tilt(x0*(1-p)+r*Math.cos(a),y0*(1-p)+r*Math.sin(a));
+      if(p<1)raf=requestAnimationFrame(step);
+      else{raf=0;onLeave()}
+    }
+    raf=requestAnimationFrame(step);
+  }
+  function stopRun(){cancelAnimationFrame(raf);raf=0;onLeave()}
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  // The visitor pressed, typed, scrolled or touched inside the stage: a run under way stops and the card settles flat.
+  // Sent more than once for one press, so it does nothing when no run is under way (a finger resting on the card keeps its tilt).
+  document.addEventListener('hb:input',()=>{if(raf)stopRun()});
+
   card.addEventListener('pointerdown',onMove);
-  card.addEventListener('pointermove',onMove);
+  // Hovering sends no hb:input, so the visitor's own pointer ends a run here, then takes the card.
+  card.addEventListener('pointermove',e=>{if(e.isTrusted&&raf)stopRun();onMove(e)});
   card.addEventListener('pointerleave',onLeave);
   card.addEventListener('pointercancel',onLeave);
 
-  document.getElementById('tilt-sl').addEventListener('input',e=>{maxTilt=+e.target.value;document.getElementById('tilt-v').textContent=maxTilt+'°'});
-  document.getElementById('persp-sl').addEventListener('input',e=>{
-    document.getElementById('persp-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--perspective',e.target.value+'px');
-  });
-  document.getElementById('rst-sl').addEventListener('input',e=>{
-    document.getElementById('rst-v').textContent=e.target.value+'ms';
-    document.documentElement.style.setProperty('--reset-dur',e.target.value+'ms');
-  });
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('tilt-seg',d=>{maxTilt=+d.tilt});
+  choices('depth-seg',d=>{vars.setProperty('--perspective',d.px+'px')});
+  choices('return-seg',d=>{vars.setProperty('--reset-dur',d.ms+'ms')});
   document.getElementById('shine-tog').addEventListener('change',e=>{shineOn=e.target.checked;if(!shineOn)shine.style.opacity='0'});
   document.getElementById('invert-tog').addEventListener('change',e=>{invert=e.target.checked});
   document.getElementById('scale-tog').addEventListener('change',e=>{scaleOn=e.target.checked});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
