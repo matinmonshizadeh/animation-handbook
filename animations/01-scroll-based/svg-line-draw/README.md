@@ -4,7 +4,7 @@
 
 ## What it is
 
-A long SVG path embedded in the scrolling content that draws itself with the stroke-dash trick as the reader scrolls down it. The route is part of the page — a tall, winding line you physically travel along — and labelled waypoints pop in as the drawn tip reaches them. This is the classic "journey map" storytelling pattern: hiking routes, company timelines, delivery tracking, process walkthroughs.
+A scroll-drawn line is a long winding route that draws itself as you scroll down it, like a journey being traced on a map. Labelled stops along the way pop in as the line reaches them, and scrolling back up erases the line again. A faint dashed copy of the route shows where it is heading.
 
 ## When to use it
 
@@ -33,12 +33,14 @@ Waypoints are placed at known fractions of the path, so their positions and trig
 // at init: position each waypoint and store its length threshold
 wp.len = LEN * wp.fraction;
 const pt = path.getPointAtLength(wp.len);
-wp.group.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
+wp.group.setAttribute('transform', `translate(${pt.x} ${pt.y}) scale(${k})`);
 
 // per frame: a cheap comparison, class toggled only when the state changes
 const on = drawn >= wp.len;
 if (on !== wp.on) { wp.on = on; wp.group.classList.toggle('on', on); }
 ```
+
+Each stop is also scaled by `k`, which is 600 divided by the drawing's width on screen, so its dot and labels keep the same size on every screen while the route itself scales.
 
 The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `opacity: 0` to full size, and scrolling back past a waypoint removes the class so it un-pops. Progress is clamped, never gated: jumping straight to the bottom draws the full route, returning to the top erases it, and there is no state to get stuck in between. A faint dashed copy of the path sits underneath the drawing stroke, so the reader always sees where the route is going before the line gets there.
 
@@ -46,11 +48,9 @@ The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `o
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `COMPLETE_AT` | 0.85 | Fraction of the scroll range at which the line finishes. Below 1, the route completes while the end is still in view instead of clipping at the viewport edge |
-| Easing | linear | Curve applied to progress before mapping to length. Linear keeps the tip 1:1 with scroll; ease-out front-loads the draw |
-| Waypoint fractions | 0.05 – 0.95 | Where along the path each marker sits and triggers, as a share of total length |
-| Pop transition | 350 ms, overshoot bezier | The scale/fade on waypoint entry. Removed entirely under `prefers-reduced-motion` |
-| Route height | ~2200 SVG units | How much scrolling the journey spans. Taller = slower, more deliberate travel |
+| Feel | Even | Even keeps the tip of the line level with your scroll; Smooth draws quickly at first and slows toward the end |
+| Shows the stops | on | Five labelled stops pop in as the line reaches them and hide again when you scroll back |
+| Line finishes | Normal | How far through the scrolling the line is complete: early at 70%, normal at 85% and at the end at 100%; finishing early shows the whole route before you reach the bottom |
 
 ## Production notes
 
@@ -63,6 +63,6 @@ The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `o
 
 ## See also
 
-- [Scrub Animation](../scrub-animation/) — a short *pinned* path used as a seek bar while content scrolls past it; this entry is the inverse layout — a long path living *in* the content, drawn as you travel down it.
-- [SVG Path Animation](../../06-3d-advanced/svg-path-animation/) — the same dash trick driven by time instead of scroll.
-- [Scrollytelling](../scrollytelling/) — the narrative framework this pattern usually lives inside.
+- [Scrub Animation](../scrub-animation/) — a short pinned path moves as you scroll; here a long path lives in the content
+- [SVG Path Animation](../../06-3d-advanced/svg-path-animation/) — drawings trace themselves over time instead of with the scroll
+- [Scrollytelling](../scrollytelling/) — a picture beside the text changes as a story scrolls by
