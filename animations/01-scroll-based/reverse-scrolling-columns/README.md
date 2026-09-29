@@ -4,12 +4,10 @@
 
 ## What it is
 
-Reverse-scrolling columns place a normally-scrolling center column between
-two flanking columns that scroll in the opposite direction. All three columns
-loop infinitely using a two-set DOM structure and modulo offset math. The
-opposing motion amplifies perceived depth: the brain interprets counter-motion
-as evidence of different distances — the same cue used in parallax, but made
-explicit and exaggerated.
+Reverse-scrolling columns put a column that scrolls normally between two
+columns that move the opposite way. The counter-motion makes the layout feel
+deep and lively, the same cue parallax uses, made stronger. Each column holds
+two copies of its cards and wraps around, so the columns never run out.
 
 ## When to use it
 
@@ -30,7 +28,7 @@ const cOff = -(scrollTop % singleSetH);
 centerInner.style.transform = `translate3d(0, ${cOff}px, 0)`;
 
 // Side columns — negative mult reverses direction; magnitude sets speed
-// (margin-top pre-offsets them by -singleSetH so there is content above)
+// (moving down, margin-top pre-offsets them by -singleSetH so there is content above; moving up, it is 0)
 const sideOff = (scrollTop * Math.abs(mult)) % singleSetH;
 const sideY   = mult >= 0 ? -sideOff : sideOff; // negative = up, positive = down
 sideInner.style.transform = `translate3d(0, ${sideY}px, 0)`;
@@ -47,10 +45,8 @@ seamless wrap when the second set aligns exactly with where the first started.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `mult` | −1.0 | Side-column direction and speed; negative = reverse |
-| `singleSetH` | measured | Height of one card set; determines loop period |
-| Card count | 12 | More cards = longer loop period |
-| Scene height | 2000px | Total scroll travel (max scroll = scene − viewport height) |
+| Side columns go | Opposite way | Opposite way makes the side columns flow against the scroll; same way moves all three together, so the effect disappears |
+| Side column speed | Same | The side columns' speed compared with the middle one: slower is half, same is equal and faster is one and a half times; above that the motion gets uncomfortable |
 
 ## Production notes
 
@@ -72,7 +68,5 @@ seamless wrap when the second set aligns exactly with where the first started.
 
 ## See also
 
-- [Parallax Scrolling](../parallax-scrolling/) — speed-ratio depth without
-  opposing direction; the foundation this technique builds on.
-- [Parallax Depth-of-Field](../parallax-depth-of-field/) — depth via blur
-  rather than directional contrast.
+- [Parallax Scrolling](../parallax-scrolling/) — layers move at different speeds as you scroll
+- [Parallax Depth-of-Field](../parallax-depth-of-field/) — layers move and blur as the focus shifts
