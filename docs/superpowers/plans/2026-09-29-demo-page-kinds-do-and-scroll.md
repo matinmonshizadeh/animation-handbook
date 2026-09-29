@@ -47,7 +47,7 @@ In `tests/pages.test.js`, in the guided-steps page test:
 
 - [ ] **Step 2: Prove it on a scratch page**
 
-Copy `animations/02-entrance-and-exit/fade-in-out/index.html` and `README.md` to `.superpowers/scratch/no-settings/`; delete its whole Try it `<section>`, renumber Copy the prompt to 2, and shorten the prompt so it no longer ends with "Match the settings listed below.". Temporarily copy the folder into `animations/02-entrance-and-exit/zz-no-settings/`, run `node --test "tests/*.test.js"` (the scratch page passes; nothing else changes), then delete that temporary folder by its exact path (`rm -r animations/02-entrance-and-exit/zz-no-settings`) and confirm `git status` shows no trace of it. Run `node tools/check-pages.mjs .superpowers/scratch/no-settings` (five `ok` lines: no chips, no warnings).
+Copy `animations/02-entrance-and-exit/fade-in-out/index.html` and `README.md` to `.superpowers/scratch/no-settings/`; delete its whole Try it `<section>`, renumber Copy the prompt to 2, and shorten the prompt so it no longer ends with "Match the settings listed below.". Temporarily copy the folder into `animations/02-entrance-and-exit/zz-no-settings/`, run `node --test "tests/*.test.js"` (the scratch page passes; nothing else changes), then delete that temporary folder by its exact path (`rm -r animations/02-entrance-and-exit/zz-no-settings`) and confirm `git status` shows no trace of it. Run `node tools/check-pages.mjs .superpowers/scratch/no-settings` (six `ok` lines: no chips, no warnings).
 
 - [ ] **Step 3: Commit**
 
@@ -69,7 +69,7 @@ git commit -m "test: accept guided-steps pages whose demo has no settings"
   - The Show me button, exactly: `<button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>`. The page's own click handler plays one example of the interaction (about two to four seconds) and returns the demo to rest.
   - The Reset button, where the demo has a state to reset, exactly: `<button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>`. The page's click handler returns the demo to its starting state.
   - On arrival (body `data-hb-autoplay`, not reduced motion) the shared script presses Show me once, 400ms after load.
-  - The document event `hb:input`, sent by the shared script when the visitor presses, types, scrolls or touches inside the stage (trusted `pointerdown`, `keydown`, `wheel` or `touchstart`). A page stops a Show me run that is under way when it receives it, leaving the visitor in control.
+  - The document event `hb:input`, sent by the shared script when the visitor presses, types, scrolls, touches or clicks inside the stage (trusted `pointerdown`, `keydown`, `wheel`, `touchstart` or `click`; the click is there for an activation that comes with no pointer or key event, from assistive technology). A page stops a Show me run that is under way when it receives it, leaving the visitor in control.
   - Slow motion may appear on a do-it page where it works (the existing `data-hb-slowmo`, "css" or page mode).
   - On phones, two buttons in the player bar share one row.
 
@@ -169,11 +169,11 @@ Update the header comment to mention do-it pages.
 
 - [ ] **Step 5: Prove it on a scratch do-it page**
 
-Create `.superpowers/scratch/do-page/index.html` and `README.md` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="do" data-hb-autoplay`; step 1 titled "Click it" with the help line "Click the box, or press Show me."; the stage holds one `<button class="box">` that toggles a class `.on` (scale 1 → 1.2 with a 300ms transition) when clicked; the player bar holds Show me and Reset (markup above); the page script: Show me adds `.on`, removes it after 1200ms (one example, then rest), and cancels that timer on `document`'s `hb:input` and on Reset (which also removes `.on`). Temporarily copy it to `animations/02-entrance-and-exit/zz-do-page/`, run the tests (they pass), delete the temporary folder by its exact path, and confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/do-page` — five `ok` lines. In headless Chrome confirm: on arrival Show me runs once; under reduced motion nothing runs until Show me is pressed; a real click inside the stage during a run sends `hb:input` and the run stops; on a 375px phone Show me and Reset share one row.
+Create `.superpowers/scratch/do-page/index.html` and `README.md` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="do" data-hb-autoplay`; step 1 titled "Click it" with the help line "Click the box, or press Show me."; the stage holds one `<button class="box">` that toggles a class `.on` (scale 1 → 1.2 with a 300ms transition) when clicked; the player bar holds Show me and Reset (markup above); the page script: Show me adds `.on`, removes it after 1200ms (one example, then rest), and cancels that timer on `document`'s `hb:input` and on Reset (which also removes `.on`). Temporarily copy it to `animations/02-entrance-and-exit/zz-do-page/`, run the tests with the temporary page's home-card test skipped (`node --test --test-skip-pattern="zz-.*: the home page card" "tests/*.test.js"`; they pass), delete the temporary folder by its exact path, and confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/do-page` — six `ok` lines. In headless Chrome confirm: on arrival Show me runs once; under reduced motion nothing runs until Show me is pressed; a real click inside the stage during a run sends `hb:input` and the run stops; on a 375px phone Show me and Reset share one row.
 
 - [ ] **Step 6: Run everything and commit**
 
-Run `node --test "tests/*.test.js"` (all pass) and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok` lines — nothing changes for the converted pages). Commit:
+Run `node --test "tests/*.test.js"` (all pass) and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok` lines — nothing changes for the converted pages). Commit:
 
 ```bash
 git add assets/js/demo-page.js assets/css/demo-page.css tests/pages.test.js tools/check-pages.mjs
@@ -193,7 +193,7 @@ git commit -m "feat: support do-it demos with Show me and Reset"
   - The Play button, exactly: `<button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>`. The shared script scrolls the box from where it is to its end at a steady speed (the whole box in about six seconds), starting again from the top when it is already at the end.
   - The Back to top button, exactly: `<button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>`. The shared script stops any automatic scroll and jumps the box to the top.
   - The box that scrolls is the `.stage`, or the element marked `data-hb-scroller` when the stage holds its own scroller.
-  - The visitor's own wheel, touch, press or key input on the box stops an automatic scroll.
+  - The visitor's own wheel, touch, press, key or click input anywhere in the stage (trusted events only) stops an automatic scroll.
   - On arrival (body `data-hb-autoplay`, not reduced motion) the shared script presses Play once, 400ms after load. Under reduced motion nothing scrolls by itself; Play still works.
 
 - [ ] **Step 1: Write the failing page checks**
@@ -309,11 +309,11 @@ Update the header comment to mention scroll pages.
 
 - [ ] **Step 4: Prove it on a scratch scroll page**
 
-Create `.superpowers/scratch/scroll-page/` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="scroll" data-hb-autoplay`; step 1 titled "Scroll it" with the help line "Scroll inside the box, or press Play and it scrolls for you."; the stage gets `overflow-y:auto` in the page's own `.stage` rule and holds twelve tall cards that fade in as they enter the box (an IntersectionObserver with the stage as root); the player bar holds Play and Back to top (markup above); no Try it step (Task 1). Temporarily copy it into `animations/02-entrance-and-exit/zz-scroll-page/`, run the tests, delete the temporary folder by its exact path, confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/scroll-page` — five `ok` lines. In headless Chrome confirm: arrival scrolls the box once to its end in about six seconds; a real wheel turn, touch or press stops it; Back to top jumps to the top and stops; Play at the end starts again from the top; under reduced motion nothing scrolls until Play is pressed; on a 375px phone Play and Back to top share one row.
+Create `.superpowers/scratch/scroll-page/` from `animations/02-entrance-and-exit/fade-in-out/`: body `data-hb-kind="scroll" data-hb-autoplay`; step 1 titled "Scroll it" with the help line "Scroll inside the box, or press Play and it scrolls for you."; the stage gets `overflow-y:auto` in the page's own `.stage` rule and holds twelve tall cards that fade in as they enter the box (an IntersectionObserver with the stage as root); the player bar holds Play and Back to top (markup above); no Try it step (Task 1). Temporarily copy it into `animations/02-entrance-and-exit/zz-scroll-page/`, run the tests with the temporary page's home-card test skipped (`node --test --test-skip-pattern="zz-.*: the home page card" "tests/*.test.js"`), delete the temporary folder by its exact path, confirm `git status` is clean of it. Run `node tools/check-pages.mjs .superpowers/scratch/scroll-page` — six `ok` lines. In headless Chrome confirm: arrival scrolls the box once to its end in about six seconds; a real wheel turn, touch or press stops it; Back to top jumps to the top and stops; Play at the end starts again from the top; under reduced motion nothing scrolls until Play is pressed; on a 375px phone Play and Back to top share one row.
 
 - [ ] **Step 5: Run everything and commit**
 
-Run `node --test "tests/*.test.js"` and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok` lines). Commit:
+Run `node --test "tests/*.test.js"` and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok` lines). Commit:
 
 ```bash
 git add assets/js/demo-page.js tests/pages.test.js tools/check-pages.mjs
@@ -326,5 +326,5 @@ git commit -m "feat: support scroll demos with Play and Back to top"
 
 **Files:** every converted page (`animations/02-entrance-and-exit/*/index.html`, `animations/05-text-typography/*/index.html`)
 
-- [ ] **Step 1:** Change `demo-page.css?v=3` → `?v=4` and `demo-page.js?v=3` → `?v=4` on all 27 pages (the version test requires one version everywhere). Run the tests and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (135 `ok`).
+- [ ] **Step 1:** Change `demo-page.css?v=3` → `?v=4` and `demo-page.js?v=3` → `?v=4` on all 27 pages (the version test requires one version everywhere). Run the tests and `node tools/check-pages.mjs animations/02-entrance-and-exit animations/05-text-typography` (162 `ok`).
 - [ ] **Step 2:** Commit — `chore: load version 4 of the shared page files`.
