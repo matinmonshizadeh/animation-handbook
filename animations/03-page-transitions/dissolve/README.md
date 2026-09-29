@@ -1,7 +1,7 @@
 # Dissolve
 
 ## What it is
-A dissolve is a non-uniform fade: the screen is divided into a grid of tiles, and each tile fades at a slightly different time according to a delay pattern. Because regions disappear out of sync, the change reads as the old scene dissolving into grain rather than the whole image fading at once. The delay pattern — random, diagonal, or radial — determines the texture of the wipe.
+A dissolve breaks a page change into a grid of tiles. Each tile fades in over the old page at a slightly different moment, so the old page seems to break up into grain or blocks rather than fading evenly. The order of the tiles — random, a diagonal sweep or rings from the middle — gives the dissolve its texture.
 
 ## When to use it
 - Transitions that want more texture than a plain crossfade but less drama than a slide or zoom
@@ -25,10 +25,10 @@ function getDelays(n, style) {
       return (r + c) / (2 * (n - 1));
     });
   }
-  // radial: distance from the grid center
+  // radial: tile-centre distance, normalised so the corners land at 1
   return Array.from({length: total}, (_, i) => {
-    const r = Math.floor(i / n) - n / 2, c = i % n - n / 2;
-    return Math.sqrt(r * r + c * c) / Math.sqrt(2) * n / 2 / (n * 0.8);
+    const r = Math.floor(i / n) - (n - 1) / 2, c = i % n - (n - 1) / 2;
+    return Math.sqrt(r * r + c * c) / (Math.SQRT2 * (n - 1) / 2);
   });
 }
 ```
@@ -38,11 +38,10 @@ Each tile's inline style bakes the normalized delay into a real transition: `tra
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Dissolve style | random | `random` = grain, `diagonal` = sweep, `radial` = wipe from center out |
-| Granularity | 8×8 | Tile count. Coarse reads as blocks; fine (16×16) approaches a smooth fade |
-| Duration | 800ms | Total wipe time; the swap fires at ~60% through, under the tiles |
-| Dissolve in + out | off | Fades tiles back out over the new page for a symmetric transition |
-| Show tile mask | off | Outlines each tile in red to expose the grid structure |
+| Pattern | Random | The order the tiles appear in: random looks like grain, diagonal sweeps from one corner, and from the middle spreads out in rings |
+| Tile size | Medium | How big the tiles are: small is a 16 by 16 grid, medium 8 by 8 and large 4 by 4; small tiles come close to a smooth fade |
+| Speed | Normal | How long the tiles take: slow is 1300ms, normal 800ms and fast 500ms; the page swaps at 60% of it, under the tiles |
+| Dissolves both ways | off | Also fades the tiles away in the same pattern to reveal the new page, instead of removing them at once |
 
 ## Production notes
 - **Random needs a stable order.** Shuffling the tile order once and mapping each tile to its rank keeps the pattern coherent; re-randomizing per frame would flicker. This demo shuffles a single order array and reuses it.
@@ -51,7 +50,7 @@ Each tile's inline style bakes the normalized delay into a real transition: `tra
 - **Library equivalents.** The View Transitions API can dissolve with a masked `::view-transition-old` but does not offer per-tile stagger out of the box — a generated mask image is the native route. GSAP's `stagger` with a `grid` and `from: 'random'` reproduces this directly. Shader-based dissolves sample a noise texture against a rising threshold, which is the same idea at pixel granularity.
 
 ## See also
-- [Crossfade](../crossfade/) — the uniform fade this breaks into staggered tiles
-- [Flash / Light Leak](../flash-transition/) — another overlay that hides the swap
-- [Blur Transition](../blur-transition/) — a softer non-tiled way to mask the change
-- [Slide Transition](../slide-transition/) — a directional wipe without the tile texture
+- [Crossfade Transition](../crossfade/) — an even fade with no tiles
+- [Flash / Light Leak Transition](../flash-transition/) — a burst of light hides the change
+- [Blur Transition](../blur-transition/) — a blur hides the change
+- [Slide Transition](../slide-transition/) — pages move instead of dissolving
