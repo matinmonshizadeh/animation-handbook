@@ -1,4 +1,4 @@
-// Static checks for the guided-steps demo pages, their READMEs and the home page.
+// Static checks for the guided-steps demo pages, their READMEs, the home page and the shared stylesheet.
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -20,6 +20,16 @@ const between = (s, from, to) => {
   return s.slice(start, end < 0 ? undefined : end);
 };
 const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+// The rules of a stylesheet as { selector, body }: comments removed, rules inside @media and @supports included.
+const cssRules = css => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .map(m => ({ selector: m[1].trim(), body: m[2] }));
+// [ids, classes + attributes + pseudo-classes, elements] of a selector that has no functional pseudo-class.
+const specificity = selector => [
+  (selector.match(/#[\w-]+/g) || []).length,
+  (selector.match(/\.[\w-]+|\[[^\]]*\]|(?<!:):(?!:)[\w-]+/g) || []).length,
+  (selector.replace(/\.[\w-]+|#[\w-]+|\[[^\]]*\]|::?[\w-]+/g, ' ').match(/[a-zA-Z][\w-]*/g) || []).length
+];
+const outranks = (a, b) => { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i]; return false; };
 
 const demos = fs.readdirSync(ANIM, { withFileTypes: true }).filter(c => c.isDirectory()).flatMap(c =>
   fs.readdirSync(path.join(ANIM, c.name), { withFileTypes: true }).filter(d => d.isDirectory())
@@ -39,6 +49,29 @@ const CONVERTED = [ENTRANCE_EXIT, '05-text-typography'];
 
 // The Pause button of a loop page, exactly as in the template; {MODE} is '' (the page pauses itself) or '="css"'.
 const PAUSE = '<button class="hb-play" type="button" id="btn-pause" data-hb-pause{MODE} data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>';
+
+// The Show me and Reset buttons of a do-it page, exactly as in the template (Reset only where the demo has a state to reset).
+const SHOW_ME = '<button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>';
+const RESET = '<button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>';
+
+// Show me belongs to do-it pages and Reset to do-it and loop pages, each exactly as in the template: the shared script picks
+// what to press on arrival by the button it finds, and Reset brings back what the visitor changed. `html` is the whole page
+// and `player` its player bar.
+function assertShowMeAndReset(kind, html, player) {
+  const bar = player.replace(/>\s+</g, '><'); // the player bar without the white space between its elements
+  if (kind === 'do') {
+    assert.equal(count(html, 'data-hb-demo'), 1, 'one Show me control');
+    assert.ok(bar.includes(SHOW_ME), 'the Show me button is in the player bar exactly as in the template');
+  } else {
+    assert.equal(count(html, 'data-hb-demo'), 0, 'only a do-it page has data-hb-demo');
+  }
+  if (!html.includes('data-hb-reset')) return;
+  assert.ok(kind === 'do' || kind === 'loop', 'only a do-it or loop page has data-hb-reset');
+  assert.equal(count(html, 'data-hb-reset'), 1, 'at most one Reset');
+  assert.ok(bar.includes(RESET), 'the Reset button is in the player bar exactly as in the template');
+  // On a do-it page Reset comes right after Show me: on phones two buttons that sit next to each other share one row.
+  if (kind === 'do') assert.ok(bar.includes(SHOW_ME + RESET), 'on a do-it page the Reset button comes right after Show me');
+}
 
 for (const cat of CONVERTED) {
   test(`every ${cat} demo uses the guided-steps page`, () => {
@@ -102,10 +135,8 @@ for (const d of steps) {
         'a loop has no Replay, Loop or autoplay');
     }
     if (kind === 'do') {
-      assert.equal(count(html, 'data-hb-demo'), 1, 'one Show me control');
-      assert.ok(player.includes('<button class="hb-play" type="button" id="btn-demo" data-hb-demo>'), 'Show me is in the player bar');
-      assert.ok(count(html, 'data-hb-reset') <= 1 && count(player, 'data-hb-reset') === count(html, 'data-hb-reset'),
-        'at most one Reset, in the player bar');
+      // A do-it page shows itself once on arrival: the shared script presses Show me when the body asks for autoplay.
+      assert.ok(body[2], 'a do-it page runs Show me once on arrival (data-hb-autoplay on the body)');
       for (const other of ['data-hb-replay', 'data-hb-loop', 'data-hb-pause', 'data-hb-autoscroll', 'data-hb-top']) {
         assert.equal(count(html, other), 0, `a do-it page has no ${other}`);
       }
@@ -120,6 +151,7 @@ for (const d of steps) {
         assert.equal(count(html, other), 0, `a scroll page has no ${other}`);
       }
     }
+    assertShowMeAndReset(kind, html, player);
     for (const marker of ['data-hb-loop', 'data-hb-slowmo', 'data-hb-pause', 'data-hb-demo', 'data-hb-reset', 'data-hb-autoscroll', 'data-hb-top']) {
       assert.ok(count(html, marker) <= 1, `at most one ${marker}`);
       assert.equal(count(player, marker), count(html, marker), `${marker} is in the player bar`);
@@ -225,9 +257,63 @@ for (const d of steps) {
   });
 }
 
+// The Show me and Reset rules run on the player bar of every page above. These cases run them on made-up player bars, so
+// each kind is covered before a page of that kind exists.
+test('Show me belongs to do-it pages and Reset to do-it and loop pages, each exactly as in the template', () => {
+  const PAUSE_BUTTON = PAUSE.replace('{MODE}', '');
+  const REPLAY = '<button class="hb-play" type="button" id="btn-play" data-hb-replay>Replay</button>';
+  const PLAY = '<button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll>Play</button>';
+  const TOP = '<button class="hb-play" type="button" id="btn-top" data-hb-top>Back to top</button>';
+  const SLOW = '<label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>';
+  const barOf = (...items) => `<div class="hb-player">\n      ${items.join('\n      ')}\n    </div>`;
+  const check = (kind, html) => assertShowMeAndReset(kind, html, between(html, '<div class="hb-player">', '</div>'));
+  const ok = (kind, ...items) => assert.doesNotThrow(() => check(kind, barOf(...items)), `a ${kind} page with ${items.length} controls passes`);
+  const notOk = (message, kind, html) => assert.throws(() => check(kind, html), err => err.message.startsWith(message), `${kind}: ${message}`);
+
+  ok('do', SHOW_ME);
+  ok('do', SHOW_ME, RESET);
+  ok('do', SHOW_ME, RESET, SLOW);
+  ok('loop', PAUSE_BUTTON, RESET, SLOW); // a loop may have a Reset too: Pause, Reset, Slow motion
+  ok('loop', PAUSE_BUTTON, SLOW);
+  ok('once', REPLAY, SLOW);
+  ok('scroll', PLAY, TOP);
+
+  for (const kind of ['once', 'loop', 'scroll']) notOk('only a do-it page has data-hb-demo', kind, barOf(SHOW_ME, REPLAY));
+  for (const kind of ['once', 'scroll']) notOk('only a do-it or loop page has data-hb-reset', kind, barOf(REPLAY, RESET));
+
+  notOk('one Show me control', 'do', barOf(RESET));
+  notOk('one Show me control', 'do', barOf(SHOW_ME, SHOW_ME.replace('id="btn-demo"', 'id="btn-demo-2"')));
+  notOk('the Show me button is in the player bar exactly as in the template', 'do', barOf(SHOW_ME.replace('Show me</button>', 'Play</button>')));
+  notOk('on a do-it page the Reset button comes right after Show me', 'do', barOf(SHOW_ME, SLOW, RESET));
+  notOk('on a do-it page the Reset button comes right after Show me', 'do', barOf(RESET, SHOW_ME));
+  for (const [kind, first] of [['do', SHOW_ME], ['loop', PAUSE_BUTTON]]) {
+    notOk('the Reset button is in the player bar exactly as in the template', kind, barOf(first, RESET.replace('class="hb-play"', 'class="hb-reset"')));
+    notOk('the Reset button is in the player bar exactly as in the template', kind, barOf(first, RESET.replace('id="btn-reset"', 'id="reset"')));
+    notOk('the Reset button is in the player bar exactly as in the template', kind, `<div class="stage">${RESET}</div>${barOf(first)}`);
+    notOk('at most one Reset', kind, barOf(first, RESET, RESET.replace('id="btn-reset"', 'id="btn-reset-2"')));
+  }
+});
+
 test('every guided-steps page links the same version of the shared files', () => {
   const versions = new Set(steps.flatMap(d => [...pageOf(d).matchAll(/demo-page\.(?:css|js)\?v=(\d+)/g)].map(m => m[1])));
   assert.equal(versions.size, 1, `versions in use: ${[...versions].join(', ')}`);
+});
+
+const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));
+const rulesFor = selector => sharedRules.filter(rule => rule.selector.split(',').some(part => part.trim() === selector));
+
+test('the shared stylesheet draws the focus ring inward inside the stage, beating the site ring', () => {
+  // The stage clips what sticks out of it, so the site ring (drawn 3px outside) is cut off on anything focusable inside it.
+  const site = sharedRules.filter(rule => /^body\.hb[^,]*:focus-visible$/.test(rule.selector));
+  assert.equal(site.length, 1, 'the site focus ring rule (body.hb :focus-visible) is in the stylesheet');
+  const inward = '.hb-page .stage :focus-visible';
+  assert.ok(rulesFor(inward).some(rule => /(^|;)\s*outline-offset:\s*-3px\s*(;|$)/.test(rule.body)), 'a focus ring inside the stage is drawn 3px inward');
+  assert.ok(outranks(specificity(inward), specificity(site[0].selector)),
+    `${inward} (${specificity(inward)}) must outrank ${site[0].selector} (${specificity(site[0].selector)})`);
+});
+
+test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
+  assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
 
 test('the home page uses Schibsted Grotesk and the new intro line', () => {

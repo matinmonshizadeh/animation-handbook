@@ -9,9 +9,10 @@
 // script warns about settings that have no label or value). On plays-once pages the desktop run also checks that
 // Replay and a setting change visibly move the stage; on loop pages it checks that the stage moves, that Pause stops
 // it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. On do-it
-// pages the desktop and reduced-motion runs press Show me and check that it visibly moves the stage (the desktop run
-// waits for the run on arrival to end first), and the reduced-motion run checks that nothing moves before it is
-// pressed. On scroll pages the desktop and reduced-motion runs check that the box scrolls by itself on arrival (not
+// pages every press of Show me is recorded from the start of the document: the desktop run checks that the page pressed
+// it exactly once on arrival and waits for that run to end, the reduced-motion run checks that it pressed it not at
+// all; both then check that the stage is at rest, that pressing Show me visibly moves it and that the run brings it
+// back to rest. On scroll pages the desktop and reduced-motion runs check that the box scrolls by itself on arrival (not
 // under reduced motion), that Back to top returns it to the top and stops it, that Play scrolls it and that a real
 // wheel turn over the box stops Play. The 320px phone runs the page checks (overflow, small targets, chips, README)
 // and takes screenshots, and nothing more.
@@ -94,6 +95,15 @@ const CHECK = `(() => {
   const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
     ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));
   return { kind: document.body.dataset.hbKind || '', loop: loop ? loop.checked : null, switches, problems };
+})()`;
+
+// Runs at the start of every document, before the page's own scripts: records each press of a Show me button, whether it
+// came from the visitor or from the page script, so the press on arrival can be counted exactly whatever the run's length.
+const RECORD_SHOW_ME = `(() => {
+  window.__hbShowMe = [];
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('[data-hb-demo]')) window.__hbShowMe.push({ trusted: e.isTrusted });
+  }, true);
 })()`;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -249,18 +259,48 @@ async function loopProblems(reduced) {
   return problems;
 }
 
-// Do-it pages: Show me must visibly move the stage within 1.6 s, and under reduced motion the page must not move by
-// itself. Show me runs on arrival, so the desktop check first waits for that run to end.
+// True when two stage captures (base64 PNG) show the same picture. After a full-page capture, headless Chrome can leave
+// a couple of faint stale pixels at the edge of something that scaled up and came back (two pixels, 26 of 765 apart, were
+// seen); a real leftover differs in far more pixels and far more strongly. So pixels that differ by 64 or less (summed
+// over red, green and blue) do not count, and neither do the first few that differ more.
+async function samePicture(a, b) {
+  if (a === b) return true;
+  return evaluate(`new Promise(done => {
+    const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+    Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]).then(([x, y]) => {
+      if (x.width !== y.width || x.height !== y.height) { done(false); return; }
+      const read = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
+      const p = read(x), q = read(y);
+      let visible = 0;
+      for (let i = 0; i < p.length; i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 64) visible++;
+      done(visible <= Math.max(8, Math.round(x.width * x.height / 10000)));
+    });
+  })`);
+}
+
+// Do-it pages: the page presses Show me once by itself on arrival and not at all under reduced motion (the presses are
+// recorded from the start of the document, so this holds for a run of any length). Show me runs on arrival, so the
+// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it within
+// 1.6 s, and the run must bring it back to rest.
 async function demoProblems(reduced) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-demo]')`))) return ['no Show me button to check'];
   const problems = [];
-  if (reduced && await stageChanges(1500)) problems.push('the stage moves by itself under reduced motion');
+  const presses = await evaluate(`(window.__hbShowMe || []).length`);
+  if (reduced && presses) problems.push('Show me is pressed on arrival under reduced motion');
+  if (!reduced && presses !== 1) problems.push(presses ? `Show me is pressed ${presses} times on arrival, not once` : 'Show me is not pressed on arrival');
   if (!reduced) await sleep(5000);
+  if (await stageChanges(reduced ? 1500 : 800)) {
+    problems.push(reduced ? 'the stage moves by itself under reduced motion' : 'the stage is not at rest after the run on arrival (it keeps moving by itself)');
+    return problems;
+  }
   const rest = await stageShot();
   await evaluate(`document.querySelector('[data-hb-demo]').click()`);
   let moved = false;
   for (let i = 0; i < 8 && !moved; i++) { await sleep(200); moved = (await stageShot()) !== rest; }
-  if (!moved) problems.push('Show me does not visibly move the stage');
+  if (!moved) { problems.push('Show me does not visibly move the stage'); return problems; }
+  let back = false;
+  for (let i = 0; i < 32 && !back; i++) { await sleep(250); back = await samePicture(await stageShot(), rest); }
+  if (!back) problems.push('the run does not bring the stage back to rest');
   return problems;
 }
 
@@ -312,6 +352,7 @@ try {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Log.enable');
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD_SHOW_ME });
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
