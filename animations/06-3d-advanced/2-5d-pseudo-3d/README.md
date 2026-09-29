@@ -1,7 +1,7 @@
 # 2.5D / Pseudo-3D
 
 ## What it is
-2.5D (pseudo-3D) arranges flat 2D layers at different virtual depths, then moves a virtual "camera" to create a parallax depth illusion. Layers closest to the camera move the most in response to mouse or scroll; distant layers barely move. The technique was used in classic video games (Doom, old platformers) and animated films (Disney's multiplane camera, 1937), and translates directly to CSS with no additional libraries.
+2.5D fakes depth with flat layers. The picture is split into layers at different distances, and when the camera moves, near layers slide further than far ones, as the view from a train window does. The same trick gave old cartoons and video games their sense of depth.
 
 ## When to use it
 - Hero sections with illustrated scenes that should feel dimensional
@@ -21,9 +21,10 @@ const LAYERS = [
   { el: document.getElementById('ground'), depth: 1.0  },
 ];
 
-stage.addEventListener('mousemove', e => {
-  const normX = (e.clientX / stage.clientWidth)  - 0.5;  // -0.5 to 0.5
-  const normY = (e.clientY / stage.clientHeight) - 0.5;
+stage.addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect();
+  const normX = (e.clientX - r.left) / r.width  - 0.5;  // -0.5 to 0.5
+  const normY = (e.clientY - r.top)  / r.height - 0.5;
   LAYERS.forEach(({ el, depth }) => {
     el.style.transform = `translate(
       ${-normX * STRENGTH * depth}px,
@@ -33,35 +34,38 @@ stage.addEventListener('mousemove', e => {
 });
 ```
 
-For an **auto-pan** camera, drive the norm values with sine:
+The demo has seven layers, from the sky (depth 0.05) to the ground (depth 1.0). The camera stays where the pointer leaves it. It also listens for `pointerdown`, so a tap moves the camera and a finger dragged sideways carries it along, the same way the mouse does.
+
+For **Show me**, the demo drives the same layers with a three-second sweep instead of the pointer, ending in the middle:
 
 ```js
-function autoLoop(t) {
-  const normX = Math.sin(t * 0.0003) * 0.5;
-  const normY = Math.sin(t * 0.0002) * 0.3;
+function sweep(now) {                       // start = performance.now() when Show me is pressed
+  const p = Math.min(1, (now - start) / 3000);
+  const normX = 0.45 * Math.sin(2 * Math.PI * p);
+  const normY = 0.2 * Math.sin(Math.PI * p);
   LAYERS.forEach(({ el, depth }) => {
     el.style.transform = `translate(${-normX * STRENGTH * depth}px, ${-normY * STRENGTH * depth * 0.4}px)`;
   });
-  requestAnimationFrame(autoLoop);
+  if (p < 1) requestAnimationFrame(sweep);
 }
 ```
+
+The demo also blends in the camera's starting position, so a second press, or a run that a real pointer stopped, carries on from where the camera is instead of jumping. Reset puts the camera back in the middle.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Strength | 40px | Maximum displacement of the nearest (depth 1) layer |
-| Layer count | 7 | More layers = smoother depth gradient; fewer = staircase effect |
-| Depth values | 0.05–1.0 | The distribution determines how pronounced the depth gap feels |
-| Y multiplier | 0.4 | Vertical parallax is usually less than horizontal for landscape scenes |
+| Camera movement | Medium | How far the nearest layer travels as the pointer crosses the scene from one side to the other: small is 20px, medium 40px and large 70px (half that each way from the middle); the farthest layer moves 5% of that |
+| Layer labels | off | Labels each layer with the share of the camera movement it follows, from 5% for the sky to 100% for the ground |
 
 ## Production notes
 - **Each layer must be wider than the stage**: when the camera pans, layers must extend beyond the visible frame so empty edges don't show. Add 10–20% horizontal overflow per layer.
 - **CSS `perspective` vs `translateZ`**: CSS 3D perspective gives the same result with less JavaScript — put `perspective: 800px` on the container and use `translateZ(depth)` on each layer. Mouse rotation of the entire container then creates the parallax effect with a single transform.
-- **Scroll-driven variant**: replace `mousemove` with `scroll` and map scroll position to the camera offset. Combine with sticky positioning to pin the scene while the user scrolls through it.
+- **Scroll-driven variant**: replace `pointermove` with `scroll` and map scroll position to the camera offset. Combine with sticky positioning to pin the scene while the user scrolls through it.
 - **Game engines**: this is the native technique in 2D game engines (Phaser, PixiJS, Godot) with "parallax scrolling" built in as a first-class feature. Each layer specifies a scroll factor (0 to 1).
 - **Optimization**: layers that extend beyond the viewport trigger paint. Use `overflow: hidden` on the parent and `transform: translateZ(0)` on each layer to promote them to GPU compositing layers.
 
 ## See also
-- [Parallax Depth-of-Field](../../01-scroll-based/parallax-depth-of-field/) — the same layered parallax concept for scroll-based scenes
-- [Parallax 3D Tilt](../parallax-3d-tilt/) — mouse-driven 3D tilt of a single card
-- [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scroll as the camera driver
+- [Parallax Depth-of-Field](../../01-scroll-based/parallax-depth-of-field/) — the same layered depth, driven by scrolling
+- [Parallax 3D Tilt](../parallax-3d-tilt/) — one card leans toward the pointer
+- [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scrolling moves a 3D object
