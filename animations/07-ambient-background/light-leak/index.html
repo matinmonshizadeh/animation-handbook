@@ -27,7 +27,8 @@
     /* Scene content */
     .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px}
     .photo-mock{width:100%;max-width:300px;height:200px;border-radius:8px;background:linear-gradient(135deg,#0d1a2e,#1a2e3a);border:1px solid rgba(255,255,255,.08);display:flex;align-items:flex-end;padding:16px}
-    .photo-cap{font-size:11px;color:rgba(255,255,255,.72)}
+    /* Above the glow (z-index 5), so even a bright leak does not wash the caption out */
+    .photo-cap{position:relative;z-index:6;font-size:11px;color:rgba(255,255,255,.72)}
     /* Leak overlay: the fade is a CSS transition; the gradient itself is painted by applyColor() in JS,
        since the leak colour is live-editable. The dir-* class is the state flag. */
     .leak{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity var(--leak-dur) ease-in-out}
@@ -201,20 +202,27 @@
 
   function randomGap(){return(minGap+Math.random()*(maxGap-minGap))*1000}
 
+  // Lights the glow for a leak with fade time d. Real leaks vary in strength, so each one peaks a little below the chosen brightness.
+  function light(d){
+    leak.style.setProperty('--leak-dur',d+'ms');
+    leak.style.setProperty('--leak-peak',(intensity*(.75+Math.random()*.25)).toFixed(3));
+    leak.classList.add('active');
+  }
+
   // One leak: fade in, hold 200ms at the peak, fade out, then a dark gap. The next leak starts only when the glow is gone.
   // Slow motion stretches this leak's fade (and the waits for it) three times; the hold and the gap keep their length.
   function flash(){
     const slow=slowTog.checked?3:1,d=dur*slow;
-    leak.style.setProperty('--leak-dur',d+'ms');
-    // Real leaks vary in strength, so each one peaks a little below the chosen brightness
-    leak.style.setProperty('--leak-peak',(intensity*(.75+Math.random()*.25)).toFixed(3));
-    leak.classList.add('active');
+    light(d);
     if(bokehOn)spawnBokeh(slow);
     wait(()=>fadeOut(d),d+200);
   }
+  // fadeD and gapTotal describe the wait under way after a fade out: the fade out itself, and its full length with the dark gap.
+  let fadeD=0,gapTotal=0;
   function fadeOut(d){
     leak.classList.remove('active');
-    wait(flash,d+randomGap());
+    fadeD=d;gapTotal=d+randomGap();
+    wait(flash,gapTotal);
   }
 
   function spawnBokeh(slow){
@@ -234,14 +242,25 @@
       pick(b.dataset);
     }));
   }
-  // Comes from and Color repaint the glow at once, even while paused. The other settings are read by the next leak;
-  // Brightness never writes --leak-peak here, because that would restart a fade that Pause is holding.
+  // Comes from and Color repaint the glow at once, even while paused. Time between leaks plans the wait under way again (below).
+  // Speed, Brightness and Floating light spots are read by the next leak; Brightness never writes --leak-peak here,
+  // because that would restart a fade that Pause is holding.
   choices('dir-seg',d=>{
     leak.classList.remove('dir-tl','dir-tr','dir-bl','dir-br','dir-h');
     leak.classList.add(d.dir);
     applyColor();
   });
-  choices('gap-seg',d=>{minGap=+d.min;maxGap=+d.max});
+  // A leak under way keeps its timing and uses the new range for the gap after it. A fade out or dark gap under way is planned
+  // again from the new range: it counts the time already waited and never ends before the fade out does.
+  choices('gap-seg',d=>{
+    const lo=+d.min,hi=+d.max;
+    if(lo===minGap&&hi===maxGap)return;
+    minGap=lo;maxGap=hi;
+    if(next!==flash)return;
+    const waited=gapTotal-(paused?left:Math.max(0,due-performance.now()));
+    gapTotal=fadeD+randomGap();
+    wait(flash,Math.max(0,gapTotal-waited));
+  });
   choices('speed-seg',d=>{dur=+d.ms});
   choices('bri-seg',d=>{intensity=+d.bri;vars.setProperty('--leak-op',intensity)});
   choices('color-sw',d=>{
@@ -252,7 +271,12 @@
   document.getElementById('spots-tog').addEventListener('change',e=>{bokehOn=e.target.checked});
 
   applyColor();
-  wait(flash,randomGap());
+  // The first picture is a leak at its peak, with no fade in, so a stage that is paused on arrival (reduced motion) already
+  // shows the effect. It holds for one gap, then fades out and the chain carries on as usual.
+  const firstFade=dur;
+  light(firstFade);
+  leak.getAnimations().forEach(a=>a.finish());
+  wait(()=>fadeOut(firstFade),randomGap());
 </script>
 </body>
 </html>
