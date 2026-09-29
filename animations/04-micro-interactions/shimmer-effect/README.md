@@ -42,12 +42,12 @@ A `::after` pseudo-element holding a translucent gradient covers each skeleton b
 }
 ```
 
-The `background-size: 200% 100%` and position animation gives more control over the highlight width than `translateX` alone.
+The `background-size: 200% 100%` and position animation gives more control over the highlight width than `translateX` alone. The tile is twice as wide as the block and its position travels four block widths per cycle, so the band crosses twice in each `--shim-dur`: every 0.75s at the default 1.5s.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | Normal | How long one sweep takes: slow is 2.4s, normal 1.5s and fast 0.9s; under about 0.8s it feels frantic |
+| Speed | Normal | How often the light crosses: slow every 1.2s, normal every 0.75s and fast every 0.45s; more often than about every 0.4s it feels frantic |
 | Brightness | Medium | How strong the band of light is: soft, medium or bright; soft is subtle, bright suits a branded screen |
 | Highlight angle | Upright | Upright sweeps a straight band; Slanted and Diagonal tilt it; keep one angle across the whole page |
 | Highlight color | White | White works on any placeholder; blue or gold suit branded screens |
