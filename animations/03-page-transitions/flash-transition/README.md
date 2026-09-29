@@ -13,8 +13,9 @@ A flash transition hides a page change inside a burst of light. A colored layer 
 A single absolutely-positioned overlay sits above the pages at a high `z-index`. The transition runs in three phases driven by two `setTimeout` calls: fade the overlay up over `flashIn`, swap the active page at peak opacity, then fade the overlay back down over `flashOut`. The content change happens while the overlay is opaque, so it is invisible.
 
 ```js
-function doTransition(prev, next) {
+function doTransition(prev, next, flashIn, flashOut) {
   flashEl.style.transition = `opacity ${flashIn}ms ease-in, filter ${flashIn}ms ease`;
+  flashEl.classList.toggle('blur-on', blurTog.checked);   // the optional glow
   flashEl.style.opacity = intensity;            // fade the flash up
   setTimeout(() => {
     // Peak — swap the page behind the opaque flash
@@ -22,6 +23,7 @@ function doTransition(prev, next) {
     pages[next].classList.add('active');
     flashEl.style.transition = `opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
     flashEl.style.opacity = '0';               // fade the flash down to reveal
+    flashEl.classList.remove('blur-on');
   }, flashIn);
 }
 ```

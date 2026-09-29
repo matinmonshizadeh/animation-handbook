@@ -13,19 +13,21 @@ A blur transition takes the old page out of focus until it disappears, then brin
 The outgoing page transitions its `filter` (and optionally `opacity`) up to a maximum blur, then the incoming page is pre-blurred, made active, and transitioned back to `blur(0px)`. Because filter transitions do not compose across an element swap, the incoming page's blur is set with `transition: none`, forced to commit with a reflow, and only then animated to sharp.
 
 ```js
-function doTransition(prev, next) {
+function doTransition(prev, next, dur, ease, maxBlur) {
   const o = pages[prev], n = pages[next];
-  o.style.transition = `filter ${dur}ms ${ease}, opacity ${dur}ms ${ease}`;
+  const withFade = fadeTog.checked, overlap = overlapTog.checked;
+  const t = `filter ${dur}ms ${ease}` + (withFade ? `, opacity ${dur}ms ${ease}` : '');
+  o.style.transition = t;
   o.style.filter = `blur(${maxBlur}px)`;
   if (withFade) o.style.opacity = '0';
 
   const swapAfter = overlap ? Math.round(dur * 0.5) : dur;
   setTimeout(() => {
-    o.classList.remove('active');
+    o.classList.remove('active'); o.style.opacity = '0';
     n.style.transition = 'none';
     n.style.filter = `blur(${maxBlur}px)`; n.style.opacity = '0'; n.classList.add('active');
     void n.offsetWidth;                                        // commit the blurred start
-    n.style.transition = `filter ${dur}ms ${ease}, opacity ${dur}ms ${ease}`;
+    n.style.transition = t;
     n.style.filter = 'blur(0px)'; n.style.opacity = '1';   // sharpen in
   }, swapAfter);
 }
