@@ -3,12 +3,14 @@
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
 // Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
-// A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at five screen
-// setups; problems are printed and screenshots saved, by default into hb-check in the temp folder (emptied at the
-// start of each run). Console warnings count as problems too (the page script warns about settings that have no
-// label or value). On plays-once pages the desktop run also checks that Replay and a setting change visibly move
-// the stage; on loop pages it checks that the stage moves, that Pause stops it and Play starts it again, and the
-// reduced-motion run checks that the loop starts paused. Exit code 1 on any problem.
+// A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
+// setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
+// hb-check in the temp folder (emptied at the start of each run). Console warnings count as problems too (the page
+// script warns about settings that have no label or value). On plays-once pages the desktop run also checks that
+// Replay and a setting change visibly move the stage; on loop pages it checks that the stage moves, that Pause stops
+// it and Play starts it again (twice over), and the reduced-motion run checks that the loop starts paused. The 320px
+// phone runs the page checks (overflow, small targets, chips, README) and takes screenshots, and nothing more.
+// Exit code 1 on any problem.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -54,7 +56,8 @@ const SETUPS = [
   { name: 'laptop', width: 1366, height: 657 },
   { name: 'tablet', width: 768, height: 1024 },
   { name: 'phone', width: 375, height: 812, mobile: true, scale: 2 },
-  { name: 'phone-reduced', width: 375, height: 812, mobile: true, scale: 2, reduce: true }
+  { name: 'phone-reduced', width: 375, height: 812, mobile: true, scale: 2, reduce: true },
+  { name: 'phone-small', width: 320, height: 640, mobile: true, scale: 2 }
 ];
 
 // Runs inside the page. Returns the page kind, the Loop switch state, the player switches and the problems found.
@@ -63,7 +66,8 @@ const CHECK = `(() => {
   const phone = innerWidth <= 600;
   const problems = [];
   if (!document.querySelector('.hb-page')) problems.push('not a guided-steps page');
-  if (document.documentElement.scrollWidth > innerWidth + 1) problems.push('horizontal overflow');
+  // Measured against clientWidth: under mobile emulation the browser widens innerWidth to fit overflowing content.
+  if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
   if (phone) {
     const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-rel')]
       .filter(el => el.getClientRects().length && !el.closest('.stage'))
@@ -221,6 +225,11 @@ async function loopProblems(reduced) {
   if (await stageChanges(4000)) problems.push('Pause does not stop the stage');
   await press();
   if (!(await stageChanges(4000))) problems.push('Play does not start the stage again');
+  await press();
+  await sleep(300);
+  if (await stageChanges(4000)) problems.push('a second Pause does not stop the stage');
+  await press();
+  if (!(await stageChanges(4000))) problems.push('a second Play does not start the stage again');
   if (await evaluate(`!!document.querySelector('[data-hb-slowmo="css"]')`)) {
     const rates = () => evaluate(`new Promise(done => requestAnimationFrame(() => done(document.querySelector('.hb-page .stage').getAnimations({ subtree: true }).map(a => a.playbackRate))))`);
     const toggle = () => evaluate(`document.querySelector('[data-hb-slowmo]').click()`);
