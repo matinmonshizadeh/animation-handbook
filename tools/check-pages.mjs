@@ -289,8 +289,10 @@ async function samePicture(a, b) {
 
 // Do-it pages: the page presses Show me once by itself on arrival and not at all under reduced motion (the presses are
 // recorded from the start of the document, so this holds for a run of any length). Show me runs on arrival, so the
-// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it within
-// 1.6 s, and the run must bring it back to rest.
+// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it, and the run
+// must bring it back to rest. The first capture after the press comes straight after it (under reduced motion the stage
+// changes at once and goes back after a hold of about 1.2 s, which a busy machine can let pass before a capture that
+// waited first); more follow every 200 ms for 1.6 s.
 async function demoProblems(reduced) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-demo]')`))) return ['no Show me button to check'];
   const problems = [];
@@ -305,7 +307,7 @@ async function demoProblems(reduced) {
   const rest = await stageShot();
   await evaluate(`document.querySelector('[data-hb-demo]').click()`);
   let moved = false;
-  for (let i = 0; i < 8 && !moved; i++) { await sleep(200); moved = (await stageShot()) !== rest; }
+  for (let i = 0; i < 9 && !moved; i++) { if (i) await sleep(200); moved = (await stageShot()) !== rest; }
   if (!moved) { problems.push('Show me does not visibly move the stage'); return problems; }
   let back = false;
   for (let i = 0; i < 32 && !back; i++) { await sleep(250); back = await samePicture(await stageShot(), rest); }
