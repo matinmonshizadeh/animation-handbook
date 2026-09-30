@@ -45,6 +45,7 @@ Three CSS properties create the glass effect:
 @keyframes blob-move {
   0%   { transform: translate(0, 0)      scale(1); }
   33%  { transform: translate(40px,-30px) scale(1.1); }
+  66%  { transform: translate(-20px, 40px) scale(0.95); }
   100% { transform: translate(30px, 10px) scale(1.05); }
 }
 ```
@@ -57,6 +58,7 @@ Three CSS properties create the glass effect:
   position: absolute;
   inset: 0;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0 16px, transparent 18px) 0 0 / 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse closest-side, #000 68%, transparent);
   mask-image: radial-gradient(ellipse closest-side, #000 68%, transparent);
 }
 ```
