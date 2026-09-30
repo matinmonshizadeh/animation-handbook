@@ -308,6 +308,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `03.03 · Page Transitions`
 - **Pager:** Previous: Shared Element Transition (`../shared-element-transition/`) · Next: Crossfade Transition (`../crossfade/`)
+- **Final fix wave:** the pages that are not on show are `inert` (`showPage` sets it on all three pages and `navigate` on the two that swap), so a screen reader reads only the page on show and Tab cannot enter a hidden one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 
