@@ -1251,16 +1251,19 @@ CATS.forEach(cat=>{
 
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Previews move by elapsed time in 60 Hz frames (steps), so they run at the same speed on any screen. The first frame after a start adds none; a gap over 50 ms counts as 50.
-// Trails fade once per 60 Hz frame of elapsed time at the fixed 60 Hz opacity (fa counts the fades owed): a smaller opacity on faster screens would round differently in an 8-bit canvas. Starfield and flow draw nothing on a frame with no step.
+// Trails wash once per 60 Hz frame of elapsed time at the fixed 60 Hz opacity: a smaller opacity on faster screens would round differently in an 8-bit canvas. fa counts the washes owed; a step within 5% of a whole number counts as that number, so screens just off 60 Hz wash every frame. Starfield and flow draw nothing on a frame with no step or no wash due, and cs carries its steps to the next drawn frame.
 const FRAME=1000/60;
 
 function starfield(pv){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
-  let w,h,stars,raf=null,last=null,fa=0;
+  let w,h,stars,raf=null,last=null,fa=0,cs=0;
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*devicePixelRatio;h=c.height=r.height*devicePixelRatio;
     stars=Array.from({length:90},()=>({x:(Math.random()-.5)*w,y:(Math.random()-.5)*h,z:Math.random()*w}));draw(false);}
   function draw(advance,steps){
-    if(advance){if(!steps)return;fa+=steps;const nf=Math.round(fa);fa-=nf;ctx.fillStyle='rgba(4,5,12,.35)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);}
+    if(advance){if(!steps)return;
+      const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa);
+      if(!nf){cs+=steps;return;}
+      fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(4,5,12,.35)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);}
     else{ctx.fillStyle='#04050c';ctx.fillRect(0,0,w,h);}
     ctx.save();ctx.translate(w/2,h/2);
     for(const s of stars){if(advance){s.z-=w*.004*steps;if(s.z<1){s.z=w;s.x=(Math.random()-.5)*w;s.y=(Math.random()-.5)*h;}}
@@ -1270,7 +1273,7 @@ function starfield(pv){
   }
   function frame(ts){const steps=last==null?0:Math.min(ts-last,50)/FRAME;last=ts;draw(true,steps);raf=requestAnimationFrame(frame);}
   size();addEventListener('resize',size);
-  return {play(){if(!raf&&!reduce){last=null;fa=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+  return {play(){if(!raf&&!reduce){last=null;fa=cs=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
 }
 function scramble(pv){
   const el=pv.querySelector('.txt'),final='SCRAMBLE',chars='ABCDEFGHJKLMNPQRSTUVWXYZ#%$&/<>*';let t=null,locked=0;
@@ -1306,12 +1309,14 @@ function particlesFactory(pv,count,connect){
 }
 function flowEngine(pv){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
-  let w,h,ps,raf=null,last=null,fa=0;const D=devicePixelRatio;
+  let w,h,ps,raf=null,last=null,fa=0,cs=0;const D=devicePixelRatio;
   function ang(x,y){return (Math.sin(x*0.9+y*0.6)+Math.cos(y*1.1-x*0.5))*Math.PI;}
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*D;h=c.height=r.height*D;
     ps=Array.from({length:55},()=>({x:Math.random()*w,y:Math.random()*h}));ctx.fillStyle='#05060a';ctx.fillRect(0,0,w,h);}
   function draw(steps){if(!steps)return;
-    fa+=steps;const nf=Math.round(fa);fa-=nf;ctx.fillStyle='rgba(5,6,10,.09)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(95,216,138,.85)';
+    const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa);
+    if(!nf){cs+=steps;return;}
+    fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(5,6,10,.09)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(95,216,138,.85)';
     // a step longer than one frame is drawn in pieces of about one frame, so the trails have no gaps at 30 Hz
     const n=Math.max(1,Math.round(steps)),s=steps/n;
     for(const p of ps)for(let i=0;i<n;i++){const a=ang(p.x/(70*D),p.y/(70*D));p.x+=Math.cos(a)*1.2*D*s;p.y+=Math.sin(a)*1.2*D*s;
@@ -1319,7 +1324,7 @@ function flowEngine(pv){
       ctx.fillRect(p.x,p.y,1.5*D,1.5*D);}}
   function frame(ts){const steps=last==null?0:Math.min(ts-last,50)/FRAME;last=ts;draw(steps);raf=requestAnimationFrame(frame);}
   size();addEventListener('resize',size);
-  return {play(){if(!raf&&!reduce){last=null;fa=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+  return {play(){if(!raf&&!reduce){last=null;fa=cs=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
 }
 const engines={starfield,scramble,counter,particles:pv=>particlesFactory(pv,46,true),gpgpu:pv=>particlesFactory(pv,150,false),flow:flowEngine};
 
