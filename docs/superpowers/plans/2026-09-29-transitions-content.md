@@ -633,7 +633,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `03.07 · Page Transitions`
 - **Pager:** Previous: Zoom Transition (`../zoom-transition/`) · Next: Blur Transition (`../blur-transition/`)
-- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. The flash-rate line and the README bullets above were corrected to say what the page does.
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. In this sheet, the flash-rate line now says that a page name clicked after a flash has ended never waits, and a README bullet records the snippet's signature and its `blur-on` lines.
 
 ---
 
@@ -720,7 +720,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`.** …" becomes "**Commit the start state.** Setting the pre-blur with `transition: none` and then turning the transition on needs a forced reflow in between (reading `offsetWidth`); without it the browser merges the two writes and the page pops in sharp." The rest is unchanged.
 - **Category line:** `03.08 · Page Transitions`
 - **Pager:** Previous: Flash / Light Leak Transition (`../flash-transition/`) · Next: Elastic Transition (`../elastic-transition/`)
-- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. The README bullet above now records the snippet as the page has it.
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. In this sheet, a README bullet now records the snippet as the page has it.
 
 ---
 
@@ -886,7 +886,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README Production notes:** unchanged
 - **Category line:** `03.10 · Page Transitions`
 - **Pager:** Previous: Elastic Transition (`../elastic-transition/`) · Next: Dissolve Transition (`../dissolve/`)
-- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. A portrait phone up to 640px tall keeps the portal at 16px from the top (it had 8px), so the short-window rule now covers only windows wider than 600px.
+- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. The rule that lifts the portal to 8px from the top now applies only to short windows wider than 600px, so a portrait phone up to 640px tall keeps the portal at 16px (it had 8px).
 
 ---
 
