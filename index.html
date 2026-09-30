@@ -1719,6 +1719,7 @@ function buildCard(e){
     `<span class="try" aria-hidden="true">Try it${ICON_ARROW}</span></div></div>`;
   if(reduce)card.querySelectorAll('animate').forEach(a=>a.remove());
   const eng=engines[pv]?engines[pv](card.querySelector('.pv')):null;
+  card._canvas=!!card.querySelector('canvas');
   card._play=()=>{card.classList.add('playing');eng&&eng.play();};
   card._pause=()=>{card.classList.remove('playing');eng&&eng.pause();};
   card.addEventListener('focusin',card._play);
@@ -1743,13 +1744,15 @@ function hold(card){
   const at=(STILL[card.dataset.pv]??.5)*anims[0].effect.getTiming().duration;
   for(const a of anims)a.currentTime=at;
 }
-// Cards that left the page stop. The canvas previews size themselves on resize, so one resize lets them measure their new place.
+// Cards that left the page stop. The canvas previews size themselves on resize, so when a card with a canvas has just come in,
+// one resize lets it measure its place; the canvases already shown keep theirs, so typing does not start them over.
 function place(cards){
+  const before=new Set(shown);
   shown.forEach(c=>{if(!cards.includes(c))c._pause();});
   shown=cards;
   if(!io)cards.forEach(c=>c._play());
   if(reduce)cards.forEach(hold);
-  dispatchEvent(new Event('resize'));
+  if(cards.some(c=>c._canvas&&!before.has(c)))dispatchEvent(new Event('resize'));
 }
 function showCards(list){
   const grid=document.createElement('div');grid.className='grid';
@@ -1865,15 +1868,16 @@ function writeURL(push){
   const moved=String(new URLSearchParams(search))!==String(new URLSearchParams(location.search));
   try{history[push&&moved?'pushState':'replaceState'](null,'',search||location.pathname);}catch(e){}
 }
-// Reads the view from the address. Returns the category of an old ?cat= link, to scroll to.
-function readURL(){
+// The view the address shows, and the category of an old ?cat= link (to scroll to).
+function fromURL(){
   const p=new URLSearchParams(location.search),found=PLACE_LIST.find(x=>x.url===p.get('place')),cat=p.get('cat')||'';
-  Object.assign(state,{q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'});
-  if(!state.q&&found)state.place=found.key;
-  else if(!state.q&&(p.get('view')==='all'||cat))state.view='all';
-  q.value=q2.value=state.q;
-  return cat;
+  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'};
+  if(!next.q&&found)next.place=found.key;
+  else if(!next.q&&(p.get('view')==='all'||cat))next.view='all';
+  return {next,cat};
 }
+// Takes the view from the address. Returns the category of an old ?cat= link, to scroll to.
+function readURL(){const {next,cat}=fromURL();Object.assign(state,next);q.value=q2.value=state.q;return cat;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
 function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
@@ -1920,8 +1924,13 @@ $('more-btn').addEventListener('click',()=>{
 });
 // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
 $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-// Back and Forward can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
-addEventListener('popstate',()=>{readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();});
+// Back and Forward over a fragment only (the skip link, How it works, Back to top) leave the view and keyboard focus as they
+// are. A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
+addEventListener('popstate',()=>{
+  const {next}=fromURL();
+  if(Object.keys(next).every(k=>next[k]===state[k]))return;
+  readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();
+});
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
