@@ -237,16 +237,18 @@
   function stopRun(){clearTimeout(runTimer);runTimer=0;}
   function toFront(){
     if(!card.classList.contains('flipped'))return;
-    card.style.setProperty('transition','none','important');
+    // The card turns by its own transition, and under reduced motion the faces fade instead: hold both for this one change
+    const held=[card,...card.querySelectorAll('.face')];
+    held.forEach(el=>el.style.setProperty('transition','none','important'));
     setFlipped(false);void card.offsetWidth;
-    card.style.removeProperty('transition');
+    held.forEach(el=>el.style.removeProperty('transition'));
   }
   document.getElementById('btn-demo').addEventListener('click',()=>{
-    stopRun();toFront();setFlipped(true);
+    stopRun();hovering=false;toFront();setFlipped(true);
     runTimer=setTimeout(()=>{runTimer=0;setFlipped(false);},flipMs*(slowTog.checked?3:1)+1200);
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{
-    stopRun();setFlipped(false);tilt.style.transform=FLAT;
+    stopRun();hovering=false;setFlipped(false);tilt.style.transform=FLAT;
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: only a run that is under way stops, and the card stays
   // as it is. The click, tap or key that comes with it then turns the card as usual.
