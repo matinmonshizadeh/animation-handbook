@@ -13,7 +13,7 @@ An elastic transition slides the new page in so that it goes a little past its p
 This demo offers two ways to bounce. The planned path writes a `@keyframes` rule at runtime whose intermediate percentages push past the endpoint before returning, with the overshoot amount set by Bounce size. The live spring integrates an actual spring each frame: force equals `-stiffness × displacement − damping × velocity`, and the loop runs until both position and velocity fall below a threshold.
 
 ```js
-function doSpring(o, n) {
+function doSpring(o, n, stiffness, damping) {   // o: the old page, n: the new page
   let pos = 100, vel = 0, target = 0;            // start off-screen right
   let lastTime = null;
   function tick(now) {
