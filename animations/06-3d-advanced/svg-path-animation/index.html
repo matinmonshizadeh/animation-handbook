@@ -223,11 +223,13 @@
     });
   }
   // One play rebuilds the paths hidden and draws them one after another, each starting a little after the
-  // one before. While Loop is on, the finished drawing holds 1200ms; whether it then vanishes and draws again
-  // is decided right after that hold, from Loop's value at that moment, so switching Loop off during the hold
-  // leaves the drawing shown. Slow motion stretches the draws and the waits for them, not the hold.
+  // one before. While Loop is on, the finished drawing (filled, if Fills is on) holds 1200ms; whether it then vanishes and draws
+  // again is decided right after that hold, from Loop's value at that moment, so switching Loop off during the hold leaves the
+  // drawing shown. Slow motion stretches the draws, the fill's fade and the waits for them, not the hold. Under reduced motion the
+  // lines are already complete (a CSS rule), so the fill comes at once instead of after the time the lines would have taken.
   function cycle(){
-    vars.setProperty('--fill-dur',slowTog.checked?'1200ms':'400ms');
+    const fillMs=slowTog.checked?1200:400;
+    vars.setProperty('--fill-dur',fillMs+'ms');
     const paths=buildPaths(),ms=speed(),gap=ms*0.3,rev=revTog.checked;
     paths.forEach(path=>{
       const len=path.getTotalLength();
@@ -243,8 +245,8 @@
     later(()=>{
       if(fillTog.checked)paths.forEach(path=>{path.style.transition='';path.classList.add('fill-done')});
       if(!loopTog.checked||!motionOk)return;
-      later(()=>{if(loopTog.checked)cycle()},1200);
-    },20+(paths.length-1)*gap+ms+50);
+      later(()=>{if(loopTog.checked)cycle()},1200+(fillTog.checked?fillMs:0));
+    },motionOk?20+(paths.length-1)*gap+ms+50:0);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
