@@ -438,7 +438,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** The knob slides across as the switch turns on or off. Best for settings.
 - **Step 1:** Click it — help line: "Click or tap a switch to turn it on or off, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset (owner decision): a second click flips a switch back, and Show me starts from the arrival state.
-- **What the visitor does:** clicking or tapping a switch (or pressing Space on it) flips its checkbox, and the CSS `:checked` rules slide the knob and colour the track, as today.
+- **What the visitor does:** clicking or tapping a switch or its name (or pressing Space on the switch) flips its checkbox, and the CSS `:checked` rules slide the knob and colour the track, as today. The names flipping their switch is new (see Stage).
 - **Show me:** starts from rest. `toRest()` puts the switches back as they are on arrival (Notifications on, Appearance off, Auto-save on) without animating. Then the run flips each switch and flips it back.
   - Switch i (0 to 2) flips with `later(flip, i*dur, i*200)` and flips back with `later(back, (3+i)*dur, 1000+i*200)`, where `dur` is Speed. Each slide takes Speed, 200ms pass between switches, and all three rest 600ms before they flip back.
   - At the defaults they flip at 0, 400 and 800ms and back at 1600, 2000 and 2400ms. The run is at rest by about 2.6 s, or about 5 s with Slow motion.
@@ -448,7 +448,10 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** css. `later()` triples each slide (Speed), not the 200ms and 600ms holds.
 - **Reduced motion:** the demo's rule stays: the knob jumps and the track colour changes over 0.1s. Show me still flips each switch.
 - **Stage font:** site font. `.tog-label` gets `font-size:15px` and `font-weight:600`.
-- **Stage:** the three switches and their names stay (Notifications, Appearance, Auto-save). The grey lines under the names (`.tog-sub`) go; the third one ("Elastic release overshoot") would be wrong with Springy knob off. The On/Off status readout (`.status-row`) goes. `hb-dots`: yes. Measured: 270px on phones and laptops.
+- **Stage:** the three switches and their names stay (Notifications, Appearance, Auto-save). The grey lines under the names (`.tog-sub`) go; the third one ("Elastic release overshoot") would be wrong with Springy knob off. The On/Off status readout (`.status-row`) goes. `hb-dots`: yes. Measured: 270px on phones and laptops (268px: three 44px rows, two 36px gaps and 32px of padding on each side).
+  - Short windows: a window wider than 600px and at most 620px tall (a short laptop window, a phone held sideways) gives the stage 260px, which is less than the 268px above. `@media(min-width:601px) and (max-height:620px){.stage{gap:20px;padding:20px}}` takes the rows and padding down to 212px, so 48px are spare in a 260px stage; the switches keep their size (measured at 1366×580 and 667×375).
+  - The names are the switches' labels: each `.tog-label` is `<label class="tog-label" for="sw0">` (`sw1`, `sw2`), so a tap on a name flips its switch, as the prompt asks ("Make the whole switch and its label easy to tap"). `.tog-label` gets `display:flex;align-items:center;min-height:44px;cursor:pointer;user-select:none` (with the `-webkit-` prefix) and `touch-action:manipulation`: a 44px tap target that fills the row up to the switch (19px tall before).
+  - The checkboxes are named by their labels: "Notifications", "Appearance" and "Auto-save". The `aria-label`s on the `label.sw` wrappers ("Toggle notifications" and so on) go, and each `.sw-thumb` is `aria-hidden="true"`, or the moon and sun that Appearance's thumb draws with generated content would join its name ("Appearance 🌙").
   - Keyboard focus: the checkbox is invisible (`opacity:0` and no size), so a Tab press showed nothing. The track now shows it, as the switch's own focus look (see the preamble): `.sw input:focus-visible ~ .sw-track{outline:2px solid var(--ui-accent);outline-offset:2px}`.
   - The knob's transitions keep only `transform`: `box-shadow` and `background` leave them, because neither changes.
 
@@ -494,8 +497,8 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
   - [Form Field Morph](../form-field-morph/) — the label moves up when a field is focused
   - [Accordion Open/Close](../accordion/) — a panel opens and closes smoothly
-- **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README How it works:** the CSS snippet gains `.sw input:focus-visible ~ .track { outline: 2px solid #ff9d5c; outline-offset: 2px; }`, and a sentence after it says the checkbox is invisible, so keyboard focus is drawn on the track beside it (a copy of the snippet without that rule would have no visible focus). The rest is unchanged.
+- **README Production notes:** the Label wrapping bullet gains: "The demo's switch names are labels too: each name is a `<label for>` pointing at its checkbox, so tapping the name flips the switch, and it is the name a screen reader announces." The rest is unchanged.
 - **Category line:** `04.06 · Micro-Interactions`
 - **Pager:** Previous: Magnetic Button (`../magnetic-button/`) · Next: Heart / Like Burst (`../heart-burst/`)
 
