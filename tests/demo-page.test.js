@@ -225,3 +225,26 @@ test('a scroll page with an empty sentence of its own gets the usual note, and o
   assert.equal(standInPage('do', true, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
   assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
 });
+
+test('promptWithSettings adds the settings line only when a setting is complete', () => {
+  assert.equal(DP.promptWithSettings('Add it.', [{ label: 'Speed', value: 'Normal' }, { label: 'Size', value: 'Big' }]),
+    'Add it.\n\nSettings from the demo: Speed: Normal, Size: Big.');
+  assert.equal(DP.promptWithSettings('Add it.', []), 'Add it.');
+  assert.equal(DP.promptWithSettings('Add it.', [{ label: 'Speed', value: '' }]), 'Add it.');
+});
+
+test('pageCopyText reads the prompt and the Try it settings of a page', () => {
+  // A stand-in page: a prompt and a Try it step holding one group of choice buttons, "Speed", with "Normal" pressed.
+  const pressed = { getAttribute: () => null, textContent: ' Normal ' };
+  const seg = { hidden: false, parentElement: null, hasAttribute: () => false, closest: () => null, matches: () => false,
+    getAttribute: name => (name === 'aria-labelledby' ? 'speed-lbl' : null), querySelector: () => pressed };
+  const tryStep = { querySelectorAll: () => [seg] };
+  const prompt = { textContent: 'Add a  fade to [the card].' };
+  const page = { querySelector: s => ({ '.hb-prompt': prompt, '.hb-try': tryStep })[s] || null };
+  const doc = { querySelector: s => (s === '.hb-page' ? page : null), getElementById: id => (id === 'speed-lbl' ? { textContent: 'Speed' } : null) };
+  const win = { getComputedStyle: () => ({ display: '' }) };
+  assert.equal(DP.pageCopyText(doc, win), 'Add a fade to [the card].\n\nSettings from the demo: Speed: Normal.');
+  const noSettings = { querySelector: s => (s === '.hb-prompt' ? prompt : null) };
+  assert.equal(DP.pageCopyText({ querySelector: s => (s === '.hb-page' ? noSettings : null) }, win), 'Add a fade to [the card].');
+  assert.equal(DP.pageCopyText({ querySelector: () => null }, win), '');
+});
