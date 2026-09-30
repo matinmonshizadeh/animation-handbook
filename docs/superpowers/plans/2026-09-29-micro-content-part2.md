@@ -736,8 +736,10 @@ None: leave out the `details.hb-options` block.
   .burger[aria-expanded="true"] .bar.bot{transform:translateY(calc(var(--bar-h)/2 - 18px)) rotate(-45deg)}
   ```
 
-  The prose stays.
+  The prose stays, except the last sentence of the first paragraph (final fix wave, below).
 - **README Production notes:** unchanged
+- **Final fix wave (after the category review):**
+  - README How it works: "Because only `transform` and `opacity` change, the morph stays on the compositor" was true of the bars only; the button's border color and the menu's visibility change too. The sentence now says the bars change only `transform` and `opacity`, so the morph stays on the compositor, and that around it the button's border turns orange with a color transition and the menu opens with `opacity` and `transform` (plus `visibility`, so a closed menu is out of reach). The page is unchanged.
 - **Category line:** `04.23 · Micro-Interactions`
 - **Pager:** Previous: Swipe to Dismiss (`../swipe-to-dismiss/`) · Next: Theme Toggle Morph (`../theme-toggle-morph/`)
 
