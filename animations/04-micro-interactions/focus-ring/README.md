@@ -1,7 +1,7 @@
 # Focus Ring Animation
 
 ## What it is
-A focus ring is the outline that shows which item the keyboard is on. Animating it, so the ring closes in around each item as you press Tab, makes every move easier to follow. It shows only when the keyboard is used, so people who click with a mouse do not see rings appear.
+A focus ring is the outline that shows which item the keyboard is on. Animating it, so the ring closes in around each item as you press Tab, makes every move easier to follow. It shows when the keyboard is used (and when you click into a text field, since you type there next), so people who click buttons and links with a mouse do not see rings appear.
 
 ## When to use it
 - Every interactive element on every page — focus rings are mandatory for WCAG 2.4.7 compliance
