@@ -110,11 +110,12 @@
     return s ? '"' + s + '"' : '';
   }
 
-  // The reduced-motion note for the player bar, from what the bar holds ({ loop, slow, pause } as booleans);
-  // '' when reduced motion changes nothing there.
+  // The reduced-motion note for the player bar, from what the bar holds ({ loop, slow, pause } as booleans) and whether the
+  // page is a scroll page ({ scroll }); '' when reduced motion changes nothing there.
   function motionNote(has) {
     var off = [has.loop && 'Loop', has.slow && 'Slow motion'].filter(Boolean);
     var parts = [];
+    if (has.scroll) parts.push('The effects follow the scroll without animating');
     if (has.pause) parts.push('It starts paused');
     if (off.length) parts.push(off.join(' and ') + (off.length > 1 ? ' are' : ' is') + ' off');
     return parts.length ? parts.join(' and ') + ' because your device is set to reduce motion.' : '';
@@ -425,7 +426,8 @@
     }
 
     // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
-    // loop starts paused, and a note in the player bar says why. Replay and Play still work.
+    // loop starts paused, and a note in the player bar says why. Replay and Play still work. A scroll page has nothing to
+    // switch off, and its note says that the effects follow the scroll without animating.
     var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
     var noteEl = null;
     function followReducedMotion() {
@@ -437,7 +439,7 @@
         if (label) label.classList.toggle('is-disabled', reduced);
       });
       if (reduced && pauseCtl && !paused) setPaused(true);
-      var note = reduced ? motionNote({ loop: !!loopCtl, slow: !!slowCtl, pause: !!pauseCtl }) : '';
+      var note = reduced ? motionNote({ loop: !!loopCtl, slow: !!slowCtl, pause: !!pauseCtl, scroll: doc.body.getAttribute('data-hb-kind') === 'scroll' }) : '';
       if (note && !noteEl && player) {
         noteEl = doc.createElement('p');
         noteEl.className = 'hb-player-note';

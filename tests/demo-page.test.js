@@ -98,6 +98,7 @@ test('motionNote says what reduced motion changes in the player bar', () => {
   assert.equal(DP.motionNote({ slow: true }), 'Slow motion is off because your device is set to reduce motion.');
   assert.equal(DP.motionNote({ pause: true, slow: true }), 'It starts paused and Slow motion is off because your device is set to reduce motion.');
   assert.equal(DP.motionNote({ pause: true }), 'It starts paused because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ scroll: true }), 'The effects follow the scroll without animating because your device is set to reduce motion.');
   assert.equal(DP.motionNote({}), '');
 });
 
@@ -173,4 +174,15 @@ test('a do-it page presses nothing on arrival under reduced motion', () => {
   const page = standInPage('do', true);
   page.runTimers();
   assert.equal(page.demo.clicks, 0);
+});
+
+test('a scroll page says under reduced motion that the effects follow the scroll without animating', () => {
+  const page = standInPage('scroll', true);
+  assert.deepEqual(page.player.children.map(c => [c.className, c.textContent]),
+    [['hb-player-note', 'The effects follow the scroll without animating because your device is set to reduce motion.']]);
+});
+
+test('reduced motion adds no note to a scroll page that is not set to reduce motion, or to a do-it page with nothing to switch off', () => {
+  assert.equal(standInPage('scroll', false).player.children.length, 0);
+  assert.equal(standInPage('do', true).player.children.length, 0);
 });
