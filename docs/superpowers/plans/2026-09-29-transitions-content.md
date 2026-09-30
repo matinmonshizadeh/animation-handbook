@@ -552,9 +552,10 @@ None: leave out the `details.hb-options` block.
     ```
 
   - The last paragraph's "and the double `requestAnimationFrame` ensures the start scale is painted before the transition kicks off" becomes "and reading `offsetWidth` makes the browser apply the start scale before the transition begins".
-- **README Production notes:** unchanged
+- **README Production notes:** unchanged, except the library line (the last bullet), which now reads: "the View Transitions API can zoom with `scale` keyframes on `::view-transition-old`/`-new` (the Zoom style of the View Transitions API demo). Framer Motion's `scale` variants in `AnimatePresence` and GSAP's `scale` tweens express the same scale-plus-fade." Before, it said the API "ships a zoom style" and listed "Next.js transitions"; neither is a zoom of its own.
 - **Category line:** `03.06 · Page Transitions`
 - **Pager:** Previous: Slide Transition (`../slide-transition/`) · Next: Flash / Light Leak Transition (`../flash-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`). The README's library line is corrected, as recorded under Production notes above.
 
 ---
 
