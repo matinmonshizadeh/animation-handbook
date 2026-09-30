@@ -30,12 +30,13 @@ viewport.addEventListener('wheel', e => {
 // each frame eases current toward target, by a share that depends on how long the frame took
 const FRAME = 1000 / 60;                         // ease is counted per 1/60 s
 function loop(now) {
+  raf = 0;
   const dt = last ? Math.min(now - last, 50) : FRAME;   // time since the last frame; 1/60 s for the first
   last = now;
   current += (target - current) * (1 - Math.pow(1 - ease, dt / FRAME));   // ease ~0.09
   if (Math.abs(target - current) < 0.1) current = target;
   content.style.transform = `translate3d(0, ${-current}px, 0)`;
-  if (current !== target) requestAnimationFrame(loop);
+  if (current !== target) raf = requestAnimationFrame(loop);
 }
 function kick() { if (!raf) { last = 0; raf = requestAnimationFrame(loop); } }
 ```
