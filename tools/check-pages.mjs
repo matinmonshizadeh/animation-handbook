@@ -434,6 +434,64 @@ async function scrollProblems(reduced) {
   return problems;
 }
 
+// Home page, desktop run: a tile press shows that place and changes the address, Show all shows the rest, Back returns to
+// the start, a plain sentence finds the right animations, a word with no match says so, All animations lists every card
+// under its seven headings, and the old ?q= and ?cat= links still work. Leaves the home page on ?cat=micro-interactions.
+async function homeViewProblems() {
+  const problems = [];
+  const view = () => evaluate(`({ title: document.getElementById('results-title').textContent, cards: document.querySelectorAll('#cards .card').length,
+    more: document.getElementById('more').hidden ? '' : document.getElementById('more-label').textContent, search: location.search })`);
+  const type = text => evaluate(`(() => { const q = document.getElementById('q'); q.value = ${JSON.stringify(text)}; q.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+  await evaluate(`document.querySelector('.place[data-place="btn"]').click()`);
+  await sleep(300);
+  let v = await view();
+  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.search !== '?place=buttons') problems.push(`Buttons tile: ${JSON.stringify(v)}`);
+  await evaluate(`document.getElementById('more-btn').click()`);
+  await sleep(300);
+  v = await view();
+  if (v.cards !== 15 || v.more !== '' || v.search !== '?place=buttons&all=1') problems.push(`Show all: ${JSON.stringify(v)}`);
+  await evaluate(`history.back()`);
+  await sleep(500);
+  v = await view();
+  if (v.title !== 'Good places to start' || v.cards !== 8 || v.search !== '') problems.push(`Back: ${JSON.stringify(v)}`);
+  await type('a button that bounces when clicked');
+  await sleep(300);
+  const found = await evaluate(`[...document.querySelectorAll('#cards .card .title a')].map(a => a.textContent)`);
+  if (found[0] !== 'Click / Tap Ripple' || !found.slice(0, 4).includes('Bounce In')) problems.push(`search order: ${found.slice(0, 5).join(', ')}`);
+  await type('zebra');
+  await sleep(300);
+  const empty = await evaluate(`!document.getElementById('empty').hidden && document.getElementById('empty-title').textContent`);
+  if (empty !== 'Nothing matches “zebra” yet') problems.push(`nothing found: ${empty}`);
+  await evaluate(`document.getElementById('nav-all').click()`);
+  await sleep(500);
+  const all = await evaluate(`({ groups: document.querySelectorAll('#cards .group').length, cards: document.querySelectorAll('#cards .card').length, search: location.search })`);
+  if (all.groups !== 7 || all.cards !== 129 || all.search !== '?view=all') problems.push(`All animations: ${JSON.stringify(all)}`);
+  // Old links keep working: ?q= opens the search, ?cat= opens All animations at that category's heading.
+  for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=micro-interactions', 'All animations']]) {
+    let onLoad;
+    const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+    await send('Page.navigate', { url: `${BASE}/${query}` });
+    try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`${query} did not load`); }
+    listeners.delete(onLoad);
+    await sleep(300);
+    const got = await evaluate(`({ title: document.getElementById('results-title').textContent,
+      top: (() => { const g = document.getElementById('cat-micro-interactions'); return g ? Math.round(g.getBoundingClientRect().top) : null; })() })`);
+    if (got.title !== want) problems.push(`${query}: heading "${got.title}"`);
+    if (query.startsWith('?cat=') && (got.top === null || Math.abs(got.top - 12) > 24)) problems.push(`${query}: the category heading is at ${got.top}px, not at the top`);
+  }
+  return problems;
+}
+
+// Home page, phone run: a tile press scrolls to the results, and the slim bar sticks to the top with that place pressed.
+async function homePhoneProblems() {
+  await evaluate(`document.querySelector('.place[data-place="text"]').click()`);
+  await sleep(900);
+  const v = await evaluate(`(() => { const bar = document.getElementById('pinbar');
+    return { title: document.getElementById('results-title').textContent, shown: getComputedStyle(bar).display !== 'none',
+      top: Math.round(bar.getBoundingClientRect().top), pressed: [...bar.querySelectorAll('[aria-pressed="true"]')].map(b => b.textContent) }; })()`);
+  return v.title === 'Text' && v.shown && Math.abs(v.top) <= 1 && v.pressed.join() === 'Text' ? [] : [`phone, Text tile: ${JSON.stringify(v)}`];
+}
+
 // The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
 let cleaning = null;
 function cleanUp() {
@@ -531,7 +589,8 @@ try {
           if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
         }
         if (home) {
-          // Task 5 and Task 6 add the home page's interaction checks here.
+          if (setup.moves) problems.push(...await homeViewProblems());
+          if (setup.name === 'phone') problems.push(...await homePhoneProblems());
         }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
