@@ -36,6 +36,17 @@
     #card-grid{--rows-h:230px;display:grid;gap:10px;transition:none;min-height:var(--rows-h);align-content:start}
     #card-grid[data-columns="2"]{--rows-h:350px}
     .flip-card{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;cursor:default;will-change:transform;position:relative}
+    .flip-card.is-small{height:86px}
+    .flip-card.is-large{height:110px}
+    #card-grid[data-columns="1"] .flip-card{height:56px}
+    /* A laptop window under 651px tall: smaller cards keep the player bar on the first screen. The grid is 162px in three
+       columns and 248px in two, the same sums as above with 76px and 60px cards. */
+    @media(min-width:601px) and (max-height:650px){
+      #card-grid{--rows-h:162px}
+      #card-grid[data-columns="2"]{--rows-h:248px}
+      .flip-card.is-small{height:60px}
+      .flip-card.is-large{height:76px}
+    }
     .card-num{font-size:32px;font-weight:bold;opacity:.15;line-height:1;position:absolute;top:10px;right:12px}
     .card-name{font-size:12px;font-weight:bold;margin-bottom:2px}
     .card-meta{font-size:10px;opacity:.8}
@@ -181,8 +192,8 @@
     grid.dataset.columns=cols;
     grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
     order.forEach(i=>{
-      const c=CARDS[i],el=document.createElement('div');el.className='flip-card';el.id='fc'+i;
-      el.style.cssText=`background:${c.bg};height:${cols===1?'56px':(c.h===2?'110px':'86px')}`;
+      const c=CARDS[i],el=document.createElement('div');el.className='flip-card '+(c.h===2?'is-large':'is-small');el.id='fc'+i;
+      el.style.background=c.bg;
       el.innerHTML=`<div class="card-num" aria-hidden="true">${String(i+1).padStart(2,'0')}</div><div class="card-name">${c.name}</div><div class="card-meta">${c.meta}</div>`;
       grid.appendChild(el);
     });

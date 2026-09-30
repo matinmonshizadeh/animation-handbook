@@ -390,6 +390,16 @@ test('the shared stylesheet turns CSS scroll snapping off on a box that Play is 
     'a box marked data-hb-autoscrolling has scroll-snap-type: none !important');
 });
 
+test('the shared stylesheet gives a stage that grows with its text the same 260px short-window minimum as the other stages', () => {
+  // On a short laptop window a tighter header lets a stage be 260px tall. A stage that grows with its text needs the same
+  // minimum, or it stays at 300px and pushes the player bar off the first screen.
+  for (const unit of ['vh', 'svh']) {
+    const minimum = `clamp(260px,calc(100${unit} - 330px),440px)`;
+    assert.ok(rulesFor('.hb-page .stage').some(rule => rule.body.includes(`height:var(--hb-stage-h,${minimum})`)), `a stage is ${minimum} tall on a short window`);
+    assert.ok(rulesFor('.hb-page .stage.hb-grow').some(rule => rule.body.includes(`min-height:${minimum}`)), `a growing stage is at least ${minimum} tall on a short window`);
+  }
+});
+
 test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
