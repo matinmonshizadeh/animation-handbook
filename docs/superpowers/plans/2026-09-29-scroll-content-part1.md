@@ -340,13 +340,13 @@ None: leave out the `details.hb-options` block.
 - **README How it works:**
   - The sentence above the second snippet, "Eight properties are then interpolated against `e`", becomes "The cover's visible height and seven other values are then worked out from `e`", and in the snippet `cover.style.height         = lerp(530, 56, e) + 'px';` becomes two lines (the cover moves with transforms, final review): `const h = lerp(FULL, 56, e), d = FULL - h;   // FULL: 85% of the box's height` and ``cover.style.transform = `translateY(${-d}px)`;   // the cover keeps its full height and slides up``.
   - In the same snippet, the comment `// also coverSub, coverCode` becomes `// also coverSub`.
-  - The rest is unchanged.
   - The spacer sentence ("A `flex: 1` spacer inside the cover pushes content to the bottom …") becomes: "Nothing is resized: the cover keeps its full height in the layout and slides up by what it has shrunk, and the article slides with it; the badge and the backdrop are moved back into the visible part, and once the cover is shorter than its text the text starts at the top of the bar. Back to top and Play from the end set the eased value at once." (final review)
+  - The rest is unchanged.
 - **README Production notes:** the bullet "The height animation triggers layout" becomes "**Move the cover; never animate its `height`.** Writing `height` lays the page out every frame. Keep the cover at full height, slide it and the content below with `translateY()`, and squeeze the backdrop with `scaleY()` from its top edge — as the demo does." (final review). The scroll-anchoring bullet gains "This demo moves the cover with transforms, so scrolling never changes its height; the rule stays as a guard for when the box is measured again after a resize." The rest is unchanged.
 - **Category line:** `01.04 · Scroll-Based`
 - **Pager:** Previous: Reverse-Scrolling Columns (`../reverse-scrolling-columns/`) · Next: Fly-in Fly-out Contact List (`../fly-in-fly-out-contact-list/`)
-
 - **Final fix wave (Scroll-Based final review, 2026-09-30).** The cover no longer animates `height`: it keeps its full height in the layout and moves with transforms (the cover-height bullet under Stage, above), so a scroll lays the page out about twice in 150 frames at 4× CPU throttling in a phone-sized box, down from 75. `overflow-anchor:none` stays as a guard: the first Stage bullet's reason now applies when `measure()` writes the cover's height after a resize. A click on Back to top or Play sets the eased value at once, so the cover does not open again after a jump (`render(current)` runs in the same click). `#header-chip` is `aria-hidden`. `index.html` grows from 299 to 308 lines.
+
 ---
 
 ## fly-in-fly-out-contact-list — Fly-in Fly-out Contact List
