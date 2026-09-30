@@ -123,15 +123,16 @@ const profile = mkdtempSync(join(tmpdir(), 'hb-chrome-'));
 // Chrome's helper processes can outlive the browser process with files of the profile open (on a busy machine even a killed
 // Chrome can need several seconds to let go), and on Windows a folder with an open file in it cannot be removed. rmSync fails
 // at once there (its maxRetries and retryDelay do not apply), so the removal is tried again every 200 ms for up to 10 s, and
-// a folder that stays is named.
+// a folder that stays is named, with the error the last try gave.
 async function removeProfile() {
   const end = Date.now() + 10000;
+  let why;
   for (;;) {
     try { rmSync(profile, { recursive: true, force: true }); return; }
-    catch { if (Date.now() >= end) break; }
+    catch (err) { why = err.code || err.message; if (Date.now() >= end) break; }
     await sleep(200);
   }
-  console.error(`Could not remove the temporary Chrome profile: ${profile}`);
+  console.error(`Could not remove the temporary Chrome profile: ${profile} (${why})`);
 }
 // chrome.kill() ends the browser process only. Its helper processes (renderers, the GPU and utility processes, the crash
 // handler) then live on for a long while on a busy machine, so on Windows they are ended too, picked by this run's own profile
