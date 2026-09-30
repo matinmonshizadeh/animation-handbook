@@ -13,7 +13,8 @@ A shared element transition keeps one piece of content in view while the page ch
 FLIP stands for First, Last, Invert, Play. Record the thumbnail's rectangle (First), reveal the destination and read the hero's rectangle (Last), place a fixed copy on the header's rectangle and draw it back onto the thumbnail with a transform (Invert), then transition that transform to none (Play):
 
 ```js
-function openDetail(i){
+function openDetail(i, dur, ease){                            // dur, ease: the chosen speed and feel
+  const p = PROJECTS[i];                                      // the project that was clicked
   const thumbRect = thumbEls[i].getBoundingClientRect();      // FIRST
   detail.classList.add('active');
   const heroRect = detailHero.getBoundingClientRect();        // LAST
