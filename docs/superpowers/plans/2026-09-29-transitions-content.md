@@ -463,6 +463,7 @@ None: leave out the `details.hb-options` block.
   - [Elastic Transition](../elastic-transition/) — the slide with a springy finish
 - **README How it works:**
   - In the snippet, `getDir()` reads `dirMode` in place of `dirMode.value`, and its first line (`const m=dirMode.value;`) goes, so its checks read `dirMode==='ltr'` and so on. `easeSel.value` becomes `ease`.
+  - The snippet's `doTransition` takes the values it reads as the page's does, and defines the two pages it moves: its first line is `function doTransition(prev,next,dur,stagger,ease){`, followed by `  const oldEl=pages[prev], newEl=pages[next];`. Before, `oldEl`, `newEl`, `dur`, `stagger` and `ease` were not defined anywhere in it.
   - The `requestAnimationFrame(()=>requestAnimationFrame(()=>{ … }));` wrapper is replaced by a reflow, with the four lines it held following directly:
 
     ```js
@@ -477,6 +478,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`** is required…" becomes "**Commit the parked position.** Reading `offsetWidth` after parking the new page off-screen makes the browser apply that position before the transition is switched on; without it the two writes merge and the new page jumps straight in with no slide." In the bullet "**Match direction to platform expectation.**", "The auto mode encodes this." becomes "The Forward and back setting encodes this." The rest is unchanged.
 - **Category line:** `03.05 · Page Transitions`
 - **Pager:** Previous: Crossfade Transition (`../crossfade/`) · Next: Zoom Transition (`../zoom-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show (the pages parked to the right), so a screen reader reads only the page on show and Tab cannot enter a parked one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 

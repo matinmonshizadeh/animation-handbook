@@ -197,12 +197,13 @@
     if(i>-1)timers.splice(i,1);
   }
 
-  function updateNav(n){navBtns.forEach((b,i)=>b.classList.toggle('active',i===n))}
-  // One page's resting look: the page shown sits in place, the others are parked to the right, with nothing left over from a
-  // slide (its background stays). A slide that is already heading for the same place keeps its own length when its inline
-  // transition goes, so it is cancelled too.
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
+  // One page's resting look: the page shown sits in place, the others are parked to the right and inert (out of the Tab
+  // order and the accessibility tree), with nothing left over from a slide (its background stays). A slide that is already
+  // heading for the same place keeps its own length when its inline transition goes, so it is cancelled too.
   function rest(el,on){
     el.classList.toggle('active',on);
+    el.inert=!on;
     el.style.transition='';el.style.pointerEvents='';
     el.style.transform=on?'':'translateX(100%)';
     el.getAnimations().forEach(a=>a.cancel());
