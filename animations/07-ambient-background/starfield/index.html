@@ -240,11 +240,9 @@
     ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
   }
 
-  // One picture. paint(true,n,nf) is a frame of the loop for n 60 Hz frames (1 at 60 Hz, 2 at 30 Hz): a see-through cover
-  // leaves short trails, put on nf times (see loop()) with the haze redrawn after each, so trails last as long and faint
-  // leftovers settle to the same colors on any screen; then the stars move by n (a third of it in slow motion, while the
-  // cover does not slow) and are drawn. paint(false) draws the picture where it stands, for the first frame, after a resize
-  // and after a setting changes while paused; nothing moved, so it covers the old picture completely.
+  // One picture. paint(true,n,nf) is a loop frame for n 60 Hz frames: nf covers (the haze redrawn after each), then the stars move by n
+  // (a third of it in slow motion; the covers do not slow) and are drawn. paint(false) redraws the picture where it stands, opaque:
+  // for the first frame, a resize and a setting changed while paused.
   function paint(move,n,nf){
     for(let i=0,c=move?nf:1;i<c;i++){
       ctx.fillStyle=move?'rgba(0,0,0,.85)':'#000';ctx.fillRect(0,0,W,H);
@@ -256,20 +254,16 @@
   // While paused, a setting that changes the picture draws it again so the change shows
   function still(){if(paused)paint(false);}
 
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
-  // 16 ms, each for the time since the last one in 60ths of a second, never more than 50 ms. The cover goes on once per
-  // whole 60th: fa carries the fraction over, and rounding (not "at least 1") keeps a 60 Hz screen at one cover per frame
-  // even with uneven frame times. The first frame after a start has nothing to measure from and leaves the picture alone.
+  // loop() keeps one frame requested in raf. A drawn frame stands for the time since the last drawn one (n, at most 50 ms) and covers once
+  // per whole 60th, fa carrying the rest; with no cover due nothing is drawn and the time carries on, which also caps drawing near 60 a second.
   function loop(ts){
     raf=requestAnimationFrame(loop);
-    if(lastT!==null&&ts-lastT<16)return;
-    const dt=lastT===null?0:Math.min(ts-lastT,50);
-    lastT=ts;
-    if(dt){
-      const n=dt/FRAME;
-      fa+=n;const nf=Math.round(fa);fa-=nf;
-      paint(true,n,nf);
-    }
+    if(lastT===null){lastT=ts;return;}
+    const n=Math.min(ts-lastT,50)/FRAME,w=Math.max(1,Math.round(n));
+    const f=fa+(Math.abs(n-w)<.05?w:n),nf=Math.round(f+.05); // within 5% of a whole number counts as it; the .05 keeps a half-way tie off the edge
+    if(!nf)return;
+    fa=f-nf;lastT=ts;
+    paint(true,n,nf);
   }
   function start(){if(raf)return;lastT=null;fa=0;raf=requestAnimationFrame(loop);}
 
