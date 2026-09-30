@@ -220,14 +220,14 @@
     if(i>-1)timers.splice(i,1);
   }
 
-  function updateNav(n){navBtns.forEach((b,i)=>b.classList.toggle('active',i===n))}
-  // The resting state for page n: it shows, the others are hidden, and no transition leaves a style behind
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
+  // The resting state for page n: it shows, the others are hidden and inert, and no transition or fade is left running
   function showPage(n){
     pages.forEach((el,i)=>{
-      el.classList.toggle('active',i===n);
+      el.classList.toggle('active',i===n);el.inert=i!==n;
       el.style.cssText='';
       el.style.background=PAGES[i].bg;
-      el.style.opacity=i===n?'1':'0';
+      el.style.opacity=i===n?'1':'0';el.getAnimations().forEach(a=>a.cancel());
     });
   }
 

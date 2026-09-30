@@ -49,10 +49,12 @@ Switching the `data-vt` attribute swaps in a different keyframe set (slide, zoom
 
 ## Production notes
 - **Feature-detect** with `'startViewTransition' in document` and fall back to a manual opacity cross-fade — the demo does exactly this, so browsers without the API still get a simple 300ms fade, whatever the Transition style and Speed.
+- **Browser support.** Same-document view transitions — `document.startViewTransition()`, as in this demo — work in Chrome and Edge 111 and later, Safari 18 and Firefox 144. Cross-document ones, turned on for full page loads with `@view-transition { navigation: auto; }`, work in Chrome and Edge 126 and Safari 18.2; check current support for Firefox. Keep the fallback for older browsers.
 - **Suppress the root animation** (`::view-transition-old(root)`) when you only want a sub-region to animate; otherwise the whole page cross-fades underneath your named region.
-- **Every `view-transition-name` must be unique** on the page at capture time. Two elements sharing a name in the same snapshot throws and aborts the transition.
+- **Every `view-transition-name` must be unique** on the page at capture time. Two elements sharing a name in the same snapshot make the browser skip the transition: the page still changes, with no animation.
 - **Honor reduced motion** — the demo drops straight to `showPage()` with no animation when `prefers-reduced-motion: reduce` is set.
-- **Library equivalents**: Astro's `<ViewTransitions />` and Next.js's experimental view-transition support wrap this API for cross-document navigation. Barba.js and Swup predate it and polyfill the same idea with manual snapshotting; on supported browsers you often no longer need them.
+- **Presses wait for the transition.** While a view transition runs, Chrome sends every press on the page to the root element, so buttons do not respond until it ends (`pointer-events` on the transition's pseudo-elements does not change this); keep page transitions short. The demo passes a press over its box on as the visitor taking over, so a click there still stops Show me.
+- **Library equivalents**: Astro's `<ClientRouter />` (named `<ViewTransitions />` before Astro 5) and React's experimental `<ViewTransition>` component, which Next.js can switch on, wrap this API for client-side page changes; between full page loads the CSS rule `@view-transition { navigation: auto; }` does it without JavaScript. Barba.js and Swup predate the API and animate the old and new page content themselves; on supported browsers you often no longer need them.
 
 ## See also
 - [Crossfade Transition](../crossfade/) — the same fade, built by hand
