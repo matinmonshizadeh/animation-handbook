@@ -79,7 +79,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   Each item keeps its `show()` and `hide()` where the run can reach them (for example `wrap.show`, `wrap.hide`). The run also stops on a trusted `pointermove` over the stage (see the preamble). On that or on `hb:input`: `stopRun()`, then the gear's `hide()` unless the pointer or focus is on it (`wrap.matches(':hover,:focus-within')`).
 - **Slow motion:** css. The fade is the run's only movement (Speed); the delay before showing and the 1600ms are holds, and the items' own delays keep their length. A slowed run takes about 2.9 s.
 - **Reduced motion:** the demo's rule stays: the tooltip fades without growing.
-- **Touch:** today's `touchstart` toggle stays: a tap shows or hides an item's tooltip at once.
+- **Touch:** today's `touchstart` toggle stays: a tap shows a hidden tooltip at once and hides a shown one only when the item already has the focus (`tip.classList.contains('visible')&&wrap.contains(document.activeElement)`). The tooltip Show me shows has no focus behind it, so a tap on the gear during the arrival run keeps it. Hiding it (the old condition looked only at `visible`) made it blink: it went at once and came back about 360ms later, when the tap's `focusin` showed it again (a change of the final wave).
 - **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the four items stay: the gear button (tooltip below), the cut-off text (tooltip above), the Username field (tooltip to its right) and the avatar (tooltip above).
   - The "Total shown" readout goes, so `show()` no longer counts.
