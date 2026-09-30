@@ -79,7 +79,7 @@
       </div>
       <div class="page-area" id="page-area">
         <div id="page-grid"></div>
-        <div id="page-detail">
+        <div id="page-detail" inert>
           <div id="detail-hero"></div>
           <div id="detail-body">
             <div id="detail-title">Project Name</div>
@@ -129,7 +129,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add a shared element transition to [your list of items and their detail pages]. When a visitor opens an item, its picture should grow from its place in the list into the large header of the detail page, while the list fades away and the detail text fades in just after the picture lands. Measure where the picture starts and where it ends, put a copy at the start, and move the copy to the end, so it reads as one continuous element. Going back fades the detail page out and the list back in. If the visitor has reduced motion turned on, open and close the detail page without the movement. Match the settings listed below.</p>
+      <p class="hb-prompt">Add a shared element transition to [your list of items and their detail pages]. When a visitor opens an item, its picture should grow from its place in the list into the large header of the detail page, while the list fades away and the detail text fades in just after the picture lands. Measure where the picture starts and where it ends, then move a copy from one to the other with a transform only, never by changing its position or size, so it reads as one continuous element. Going back fades the detail page out and the list back in. If the visitor has reduced motion turned on, open and close the detail page without the movement. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -173,7 +173,7 @@
   const flipEl=document.getElementById('flip-el'),navBack=document.getElementById('nav-back'),navTitle=document.getElementById('nav-title');
   const slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let dur=500,ease='cubic-bezier(.2,.7,.3,1)',animating=false,currentView='grid',openIndex=0,afterMove=null,closeTimer=0,timers=[];
+  let dur=500,ease='cubic-bezier(.2,.7,.3,1)',animating=false,currentView='grid',openIndex=0,afterMove=null,closeTimer=0,timers=[],ownFocus=false;
 
   const thumbEls=PROJECTS.map((p,i)=>{
     const el=document.createElement('button');el.type='button';el.className='thumb';el.style.background=p.bg;
@@ -215,23 +215,23 @@
     flipEl.style.display='none';
     animating=false;
   }
-  // The grid at once, with nothing left over from an opening or a closing
+  // The grid at once, with nothing left over from an opening or a closing: no fade too, or one already heading for its resting value would go on
   function reset(){
     settle();
-    detail.classList.remove('active');detail.style.opacity='';detail.style.transition='';
+    detail.classList.remove('active');detail.inert=true;detail.style.opacity='';detail.style.transition='';
     grid.style.opacity='';grid.style.transition='';grid.style.pointerEvents='';grid.inert=false;
-    navBack.classList.remove('show');navTitle.textContent='Projects';
-    currentView='grid';
+    navBack.classList.remove('show');navTitle.textContent='Projects';currentView='grid';
+    [grid,detail,navBack].forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   }
 
-  // The visitor's own opening and closing move focus with the view; Show me and Reset move none
+  // The visitor's own opening and closing move focus with the view; Show me and Reset move none. ownFocus marks these moves as the page's own.
   function showDetailChrome(name,byVisitor){
     navBack.classList.add('show');navTitle.textContent=name;
-    if(byVisitor)navBack.focus({preventScroll:true});
+    if(byVisitor){ownFocus=true;navBack.focus({preventScroll:true});ownFocus=false}
   }
   function showGrid(byVisitor){
     grid.inert=false;
-    if(byVisitor)thumbEls[openIndex].focus({preventScroll:true});
+    if(byVisitor){ownFocus=true;thumbEls[openIndex].focus({preventScroll:true});ownFocus=false}
   }
 
   function openDetail(i,byVisitor,then){
@@ -243,21 +243,21 @@
     detailHero.style.background=p.bg;detailTitle.textContent=p.name;detailTitle.style.color=p.ac;
     detailSub.textContent=p.sub;detailDesc.textContent=p.desc;
     // LAST: show detail to get hero rect
-    detail.classList.add('active');
+    detail.classList.add('active');detail.inert=false;
     const heroRect=detailHero.getBoundingClientRect();
     grid.inert=true;
     if(!motionOk){
       detail.style.transition='none';detail.style.opacity='1';grid.style.opacity='0';grid.style.pointerEvents='none';
       showDetailChrome(p.name,byVisitor);currentView='detail';finish();return;
     }
-    // FLIP: animate the shared element
-    flipEl.style.cssText=`background:${p.bg};border-radius:10px;width:${thumbRect.width}px;height:${thumbRect.height}px;top:${thumbRect.top}px;left:${thumbRect.left}px;transition:none;display:block`;
+    // INVERT: the copy sits on the header's rectangle and a transform draws it back onto the thumbnail (corners 10px once shrunk)
+    const sx=thumbRect.width/heroRect.width,sy=thumbRect.height/heroRect.height;
+    flipEl.style.cssText=`background:${p.bg};top:${heroRect.top}px;left:${heroRect.left}px;width:${heroRect.width}px;height:${heroRect.height}px;transform-origin:0 0;transform:translate(${thumbRect.left-heroRect.left}px,${thumbRect.top-heroRect.top}px) scale(${sx},${sy});border-radius:${10/sx}px/${10/sy}px;transition:none;display:block`;
     grid.style.opacity='0';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;
     detail.style.opacity='0';
-    void flipEl.offsetWidth; // commit the start rect before the transition is switched on
-    flipEl.style.transition=`all ${d}ms ${ease}`;
-    flipEl.style.top=heroRect.top+'px';flipEl.style.left=heroRect.left+'px';
-    flipEl.style.width=heroRect.width+'px';flipEl.style.height=heroRect.height+'px';flipEl.style.borderRadius='0';
+    void flipEl.offsetWidth; // commit the inverted start before the transition is switched on
+    flipEl.style.transition=`transform ${d}ms ${ease},border-radius ${d}ms ${ease}`; // PLAY: only the transform and the corners animate, so nothing is laid out while the copy travels
+    flipEl.style.transform='none';flipEl.style.borderRadius='0';
     detail.style.transition=`opacity ${Math.round(d*0.4)}ms ease ${Math.round(d*0.6)}ms`;
     detail.style.opacity='1';
     later(()=>{
@@ -273,12 +273,12 @@
     const d=scaled();
     navBack.classList.remove('show');navTitle.textContent='Projects';
     if(!motionOk){
-      detail.classList.remove('active');detail.style.opacity='0';grid.style.opacity='1';grid.style.pointerEvents='auto';
+      detail.classList.remove('active');detail.inert=true;detail.style.opacity='0';grid.style.opacity='1';grid.style.pointerEvents='auto';
       showGrid(byVisitor);currentView='grid';finish();return;
     }
     detail.style.transition=`opacity ${Math.round(d*0.3)}ms ease`;detail.style.opacity='0';
     later(()=>{
-      detail.classList.remove('active');grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;grid.style.pointerEvents='auto';
+      detail.classList.remove('active');detail.inert=true;grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;grid.style.pointerEvents='auto';
       showGrid(byVisitor);currentView='grid';finish();
     },Math.round(d*0.3)+50);
   }
@@ -294,6 +294,8 @@
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel the close the run has not started yet. An opening already under way finishes.
   document.addEventListener('hb:input',()=>{afterMove=null;cancel(closeTimer);closeTimer=0});
+  // A visitor who tabs into the box takes over too; the page's own focus moves (ownFocus) do not count.
+  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&!ownFocus){afterMove=null;cancel(closeTimer);closeTimer=0}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');

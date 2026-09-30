@@ -10,28 +10,29 @@ A shared element transition keeps one piece of content in view while the page ch
 - Mobile app-style navigation where spatial continuity aids orientation
 
 ## How it works
-FLIP stands for First, Last, Invert, Play. Record the thumbnail's rectangle (First), reveal the destination and read the hero's rectangle (Last), position a fixed clone at the start rect, then transition it to the end rect (Invert then Play):
+FLIP stands for First, Last, Invert, Play. Record the thumbnail's rectangle (First), reveal the destination and read the hero's rectangle (Last), place a fixed copy on the header's rectangle and draw it back onto the thumbnail with a transform (Invert), then transition that transform to none (Play):
 
 ```js
 function openDetail(i){
   const thumbRect = thumbEls[i].getBoundingClientRect();      // FIRST
   detail.classList.add('active');
   const heroRect = detailHero.getBoundingClientRect();        // LAST
-  // place clone at the thumb's position/size
+  // INVERT: the copy sits on the header's rectangle; a transform draws it back onto the thumbnail
+  const sx = thumbRect.width / heroRect.width, sy = thumbRect.height / heroRect.height;
   flipEl.style.cssText =
-    `background:${p.bg};width:${thumbRect.width}px;height:${thumbRect.height}px;`+
-    `top:${thumbRect.top}px;left:${thumbRect.left}px;transition:none;display:block`;
-  void flipEl.offsetWidth;                                     // commit the start rect
-  flipEl.style.transition = `all ${dur}ms ${ease}`;            // PLAY
-  flipEl.style.top = heroRect.top+'px';
-  flipEl.style.left = heroRect.left+'px';
-  flipEl.style.width = heroRect.width+'px';
-  flipEl.style.height = heroRect.height+'px';
+    `background:${p.bg};top:${heroRect.top}px;left:${heroRect.left}px;`+
+    `width:${heroRect.width}px;height:${heroRect.height}px;transform-origin:0 0;`+
+    `transform:translate(${thumbRect.left-heroRect.left}px,${thumbRect.top-heroRect.top}px) scale(${sx},${sy});`+
+    `border-radius:${10/sx}px/${10/sy}px;transition:none;display:block`;
+  void flipEl.offsetWidth;                                     // commit the inverted start
+  flipEl.style.transition =                                    // PLAY
+    `transform ${dur}ms ${ease},border-radius ${dur}ms ${ease}`;
+  flipEl.style.transform = 'none';
   flipEl.style.borderRadius = '0';
 }
 ```
 
-The real grid fades out while the clone travels, and the detail body fades in slightly later (`dur*0.6` delay) so the hero has arrived before its text appears. Reading `offsetWidth` after placing the clone makes the browser apply the start rect before the transition is switched on — without it the clone would jump straight to the end.
+The real grid fades out while the copy travels, and the detail body fades in slightly later (`dur*0.6` delay) so the hero has arrived before its text appears. Reading `offsetWidth` after placing the copy makes the browser apply the inverted start before the transition is switched on — without it the copy would jump straight to the end. The corners are set to `10/sx` by `10/sy` so they still look 10px round while the copy is shrunk.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -41,10 +42,10 @@ The real grid fades out while the clone travels, and the detail body fades in sl
 
 ## Production notes
 - **Read then write** — batch all `getBoundingClientRect()` reads before you touch styles. Interleaving reads and writes causes layout thrashing that stutters the animation.
-- **The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It animates `top`, `left`, `width` and `height`, which is cheap enough for one element; to move many elements, animate `transform` instead, as the FLIP Technique demo does.
+- **The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It moves with `transform` alone (a shift and a scale), so the browser lays nothing out while it travels; only its corners are repainted. A scaled copy stretches what is inside it, which suits a picture or a colour but not text.
 - **Fixed positioning uses viewport coordinates**, which is why the demo reads `getBoundingClientRect()` directly. If your clone lives inside a transformed or scrolled ancestor, offsets must be adjusted.
 - **Reduced motion** skips the clone entirely and snaps the detail view in.
-- **Library equivalents**: the View Transitions API does this natively by giving both elements the same `view-transition-name`. Framer Motion's `layoutId` and shared `<motion.*>` elements automate FLIP; Next.js and GSAP's Flip plugin offer the same measure-invert-play primitive.
+- **Library equivalents**: the View Transitions API does this natively by giving both elements the same `view-transition-name`. Framer Motion's `layoutId` and shared `<motion.*>` elements automate FLIP; GSAP's Flip plugin offers the same measure-invert-play primitive.
 
 ## See also
 - [View Transitions API](../view-transitions-api/) — the browser can do this itself

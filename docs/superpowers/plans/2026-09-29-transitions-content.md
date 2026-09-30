@@ -163,24 +163,25 @@ Eight demos put an element in its starting state with `transition:none` and star
   - 1200ms after the opening ends (the `dur+50` timer that hides the copy and shows Back), the run closes the detail view the way Back does.
   - This takes about 2.3s.
   - `hb:input` cancels the pending close. An opening already under way finishes.
-- **Reset:** yes. The grid at once: the copy is hidden, the detail view closed and its inline `opacity` and `transition` cleared, the grid's inline `opacity`, `transition` and `pointer-events` cleared (so it shows and takes clicks again) and its `inert` removed, the title back to "Projects" and Back hidden.
+  - So does a trusted `focusin` inside the stage that the page did not cause: a keyboard visitor who tabs from Show me back to Back during the hold takes over, so the close no longer hides Back under them (which dropped their focus to `<body>`). The page's own two `focus()` calls, Back after an opening and the project after Back, are wrapped in an `ownFocus` flag (`{ownFocus=true;….focus({preventScroll:true});ownFocus=false}`) and do not count, since a programmatic focus is a trusted `focusin` too.
+- **Reset:** yes. The grid at once: the copy is hidden, the detail view closed and `inert` again, its inline `opacity` and `transition` cleared, the grid's inline `opacity`, `transition` and `pointer-events` cleared (so it shows and takes clicks again) and its `inert` removed, the title back to "Projects" and Back hidden. The fades still running on the grid, the detail view and Back are cancelled (`getAnimations()`, then `cancel()`): a fade already heading for its resting value keeps going when its inline `transition` is cleared.
 - **Slow motion:** multiplies `dur` by 3 wherever it is used: the copy's travel, the grid's fade (0.4 × `dur`), the detail's fade and its delay (0.4 and 0.6 × `dur`), the close fade (0.3 × `dur`), and the matching parts of the `dur+50` and `0.3×dur+50` timers.
 - **Reduced motion:** the demo's `motionOk` branches open and close the detail view at once, and the rule `#flip-el{transition:none!important}` stays. Show me opens Lumen and closes it again with no movement.
 - **Stage font:** site font.
 - **Stage:**
   - The mini nav (Back and the title) and the page area (grid, detail view and the moving copy `#flip-el`) stay.
-  - **Special case:** the copy is `position:fixed` and moves in viewport coordinates, so the stage's `overflow:hidden` does not clip it. The conversion must not give the stage or any of its ancestors a `transform`, `filter`, `backdrop-filter`, `perspective`, a `will-change` naming one of these, or `contain` with `layout` or `paint`: any of them would become the copy's containing block and shift or clip it. `container-type` and `contain:size` or `style` do not make one in Chrome; leave them off too, simply because the stage needs no containment. The copy keeps its own `will-change:transform`.
+  - **Special case:** the copy is `position:fixed` and moves in viewport coordinates, so the stage's `overflow:hidden` does not clip it. The conversion must not give the stage or any of its ancestors a `transform`, `filter`, `backdrop-filter`, `perspective`, a `will-change` naming one of these, or `contain` with `layout` or `paint`: any of them would become the copy's containing block and shift or clip it. `container-type` and `contain:size` or `style` do not make one in Chrome; leave them off too, simply because the stage needs no containment. The copy keeps its own `will-change:transform`. **The copy moves with a `transform` only,** because CLAUDE.md rules out animating `top`, `left`, `width` and `height`. It is placed on the header's rectangle with `transform-origin:0 0`; a `translate` and a `scale` draw it back onto the thumbnail (INVERT), and the transition plays that transform to `none` (PLAY) together with `border-radius`, which starts at `10/sx` by `10/sy` (the scale factors) so the corners look 10px round while the copy is shrunk, and ends at 0. The copy starts and ends on the same rectangles as the `top`/`left`/`width`/`height` version it replaces (0px difference at six screen sizes) and reaches the same Springy peak (1007×142 against the 958×141 header at 1280×800); a trip costs 2 or 3 layouts instead of about 32 (375×812, CPU slowed 4×).
   - `#flip-el`'s `z-index:100` becomes `40`: above the stage's content, below the site's sticky top bar (50), so a stage scrolled partly under the bar does not draw the copy over it (owner decision).
   - `.nav-back` becomes 13px text, `min-height:44px` at every size, in `var(--ui-muted)`. `.nav-title` becomes 13px. The unused `.nav-label` rule goes.
   - **The projects become buttons, so a keyboard can open them.** Today each thumbnail is a `div` with a click listener, which a keyboard cannot reach on a "Click it" page.
     - Each becomes `<button type="button" class="thumb">`. `.thumb` adds `border:0;font:inherit;color:inherit;text-align:left;cursor:pointer`.
     - Its two lines become `<span class="thumb-label">` and `<span class="thumb-sub">` with `display:block`, because a button may only hold inline content.
-    - Hidden controls leave the Tab order. While the detail view is open, the grid gets `inert` (removed when the grid shows again). `.nav-back` adds `visibility:hidden` and `transition:opacity .2s,visibility 0s .2s`: when hidden it fades out, then leaves the Tab order, so it is not an invisible Tab stop in the grid view. `.nav-back.show` gets `visibility:visible;transition:opacity .2s`, so Back is visible, and can take focus, the moment `show` is added. A visibility transition on showing would keep Back hidden for about two frames, and `focus()` in the same step would silently fail. Under reduced motion that same step is the only chance (checked in Chrome).
+    - Hidden controls leave the Tab order. While the detail view is open, the grid gets `inert` (removed when the grid shows again). `.nav-back` adds `visibility:hidden` and `transition:opacity .2s,visibility 0s .2s`: when hidden it fades out, then leaves the Tab order, so it is not an invisible Tab stop in the grid view. `.nav-back.show` gets `visibility:visible;transition:opacity .2s`, so Back is visible, and can take focus, the moment `show` is added. A visibility transition on showing would keep Back hidden for about two frames, and `focus()` in the same step would silently fail. Under reduced motion that same step is the only chance (checked in Chrome). The closed detail view is `inert` too (set in the markup, removed when a project opens, set again when the detail view closes and on Reset), so a screen reader does not read its placeholder text or the last project's text.
     - Focus follows the view. When the visitor opens a project, by click or by key, focus moves to Back once it shows (`focus({preventScroll:true})`). Back returns focus to that project's button once the grid shows. A mouse click gets no focus ring, because the browser shows the ring only after keyboard use. Show me and Reset move no focus.
   - `.thumb-sub` goes from `opacity:.5` to `.8`: 3.0:1 becomes 5.1:1 on the thumbnails.
   - Two thumbnail title colours change so the 11px titles read on their thumbnails, and the detail view's title uses the same colours: Atlas `#79c0ff` becomes `#a5d6ff` (4.49:1 becomes 5.7:1), and Prism `#56d364` becomes `#7ee787` (4.1:1 becomes 5.1:1).
   - Unused variables: `--dur` and `--ease` go.
-  - Default height: the grid and the longest detail text fit the 233px page area on a 320px phone.
+  - Default height: the grid and the longest detail text fit the 233px page area on a 320px phone. On small stages, `@media(max-height:640px),(max-width:600px){#detail-body{padding:12px 16px}#detail-title{font-size:18px;margin-bottom:4px}#detail-sub{margin-bottom:6px}#detail-desc{line-height:1.5}}` tightens the text block under the header, so the header keeps its 45% share instead of being squeezed (86 of 193px at 1280×590, with 12px under the text).
 
 **Main settings**
 
@@ -202,7 +203,7 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Galleries · Product grids · Card lists · Media libraries · **Avoid on:** Unrelated pages
 - **Prompt:**
 
-  > Add a shared element transition to [your list of items and their detail pages]. When a visitor opens an item, its picture should grow from its place in the list into the large header of the detail page, while the list fades away and the detail text fades in just after the picture lands. Measure where the picture starts and where it ends, put a copy at the start, and move the copy to the end, so it reads as one continuous element. Going back fades the detail page out and the list back in. If the visitor has reduced motion turned on, open and close the detail page without the movement. Match the settings listed below.
+  > Add a shared element transition to [your list of items and their detail pages]. When a visitor opens an item, its picture should grow from its place in the list into the large header of the detail page, while the list fades away and the detail text fades in just after the picture lands. Measure where the picture starts and where it ends, then move a copy from one to the other with a transform only, never by changing its position or size, so it reads as one continuous element. Going back fades the detail page out and the list back in. If the visitor has reduced motion turned on, open and close the detail page without the movement. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -221,23 +222,29 @@ None: leave out the `details.hb-options` block.
   - [Portal / Tunnel Zoom](../portal-zoom/) — the next page opens out of a clicked circle
   - [Morph Transition](../morph-transition/) — a shape changes instead of moving
 - **README How it works:**
-  - In the snippet, replace the `requestAnimationFrame(()=>requestAnimationFrame(()=>{ … }));` wrapper with a reflow. The lines that were inside it follow directly, with `easeSel.value` becoming `ease`:
+  - The first paragraph ends "…(Last), place a fixed copy on the header's rectangle and draw it back onto the thumbnail with a transform (Invert), then transition that transform to none (Play):".
+  - The snippet follows the page's code, with the `requestAnimationFrame` wrapper replaced by a reflow and `easeSel.value` written `ease`. After `heroRect` it inverts, commits the inverted start and plays:
 
     ```js
-      void flipEl.offsetWidth;                                     // commit the start rect
-      flipEl.style.transition = `all ${dur}ms ${ease}`;            // PLAY
-      flipEl.style.top = heroRect.top+'px';
-      flipEl.style.left = heroRect.left+'px';
-      flipEl.style.width = heroRect.width+'px';
-      flipEl.style.height = heroRect.height+'px';
+      // INVERT: the copy sits on the header's rectangle; a transform draws it back onto the thumbnail
+      const sx = thumbRect.width / heroRect.width, sy = thumbRect.height / heroRect.height;
+      flipEl.style.cssText =
+        `background:${p.bg};top:${heroRect.top}px;left:${heroRect.left}px;`+
+        `width:${heroRect.width}px;height:${heroRect.height}px;transform-origin:0 0;`+
+        `transform:translate(${thumbRect.left-heroRect.left}px,${thumbRect.top-heroRect.top}px) scale(${sx},${sy});`+
+        `border-radius:${10/sx}px/${10/sy}px;transition:none;display:block`;
+      void flipEl.offsetWidth;                                     // commit the inverted start
+      flipEl.style.transition =                                    // PLAY
+        `transform ${dur}ms ${ease},border-radius ${dur}ms ${ease}`;
+      flipEl.style.transform = 'none';
       flipEl.style.borderRadius = '0';
     ```
 
-  - In the first paragraph, "then on the next frame transition it to the end rect" becomes "then transition it to the end rect".
-  - The sentence "The double `requestAnimationFrame` guarantees the browser paints the start rect before the transition begins — without it the clone would jump straight to the end." becomes "Reading `offsetWidth` after placing the clone makes the browser apply the start rect before the transition is switched on — without it the clone would jump straight to the end."
-- **README Production notes:** the second bullet is wrong about how the copy moves: it animates `top`, `left`, `width` and `height`, not a transform. It becomes: "**The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It animates `top`, `left`, `width` and `height`, which is cheap enough for one element; to move many elements, animate `transform` instead, as the FLIP Technique demo does." The rest is unchanged.
+  - The paragraph after it says "copy" throughout and ends: "Reading `offsetWidth` after placing the copy makes the browser apply the inverted start before the transition is switched on — without it the copy would jump straight to the end. The corners are set to `10/sx` by `10/sy` so they still look 10px round while the copy is shrunk."
+- **README Production notes:** the second bullet and the library line change, because the copy moves with a transform. The second bullet becomes: "**The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It moves with `transform` alone (a shift and a scale), so the browser lays nothing out while it travels; only its corners are repainted. A scaled copy stretches what is inside it, which suits a picture or a colour but not text." The library line ends "…automate FLIP; GSAP's Flip plugin offers the same measure-invert-play primitive." (it used to name Next.js, which has no such primitive). The rest is unchanged.
 - **Category line:** `03.02 · Page Transitions`
 - **Pager:** Previous: View Transitions API (`../view-transitions-api/`) · Next: Morph Transition (`../morph-transition/`)
+- **Final fix wave:** the closed detail view is `inert`; Reset cancels running fades; the copy moves with a `transform` instead of `top`, `left`, `width` and `height` (CLAUDE.md), with the same look; a trusted `focusin` the page did not cause stops a Show me run, with an `ownFocus` flag around the page's own focus moves; the prompt and the README say the copy moves with a transform only.
 
 ---
 
