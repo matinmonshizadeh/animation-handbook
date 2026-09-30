@@ -6,23 +6,23 @@ Passive, looping effects that hold visual interest without demanding attention. 
 
 | Demo | Description |
 |------|-------------|
-| [Animated Gradient Background](animated-gradient-background/) | CSS gradient shifts hue and position — pure CSS, no JS, seamless loop |
-| [Mesh Gradient](mesh-gradient/) | Blurred radial gradient blobs drift slowly — the Stripe aesthetic |
-| [Aurora / Northern Lights](aurora/) | Tall color bands drift and skew — heavy blur fakes the curtain of light |
-| [Grain / Film Noise Overlay](grain-overlay/) | Animated noise at 5–10% opacity adds cinematic warmth |
-| [Scanline](scanline/) | CRT horizontal lines + optional sweep beam and phosphor glow |
-| [Light Leak](light-leak/) | Warm gradient fires at random irregular intervals — analog film aesthetic |
-| [Starfield](starfield/) | Stars drift outward from center with parallax depth — slow ambient speed |
-| [Breathing Glow](breathing-glow/) | Radial glow expands/contracts on a 5s breath cycle — calm resting state |
-| [Ambient Ripple](ambient-ripple/) | Concentric rings emit periodically from sources — passive, not click-driven |
-| [Floating Elements](floating-elements/) | Geometric shapes drift on independent sine-wave paths — SaaS hero pattern |
-| [Grid / Dot Pattern Parallax](grid-dot-pattern-parallax/) | Pattern shifts subtly opposite to mouse — depth felt, not seen |
-| [Abstract Geometric Motion](abstract-geometric-motion/) | Four hypnotic loops — polygons, rings, bars, flowing lines |
-| [Particle Constellation](particle-constellation/) | Drifting nodes link with lines when they come close — the network-mesh hero background |
-| [Flow Field](flow-field/) | Particles follow a noise-driven vector field, leaving flowing trails |
-| [Synthwave Grid](synthwave-grid/) | A perspective grid scrolls toward a glowing sun — the retro synthwave horizon |
-| [Matrix Rain](matrix-rain/) | Columns of glowing characters fall on canvas — bright leaders, fading trails |
-| [Plasma Field](plasma/) | Summed sine fields make a flowing, organic color plasma on canvas |
+| [Animated Gradient Background](animated-gradient-background/) | Colors slowly drift across a soft gradient background. Best for hero sections. |
+| [Mesh Gradient Animation](mesh-gradient/) | Blurred blobs of color drift and melt together. Best for landing pages. |
+| [Aurora / Northern Lights](aurora/) | Blurred bands of light sway like the northern lights. Best for dark backgrounds. |
+| [Grain / Film Noise Overlay](grain-overlay/) | Fine grain flickers over the page, like old film. Best for editorial sites. |
+| [Scanline Effect](scanline/) | Dark lines and a sweeping beam imitate an old TV screen. Best for retro sites. |
+| [Light Leak](light-leak/) | Warm light washes in from a corner at random times. Best for photo sites. |
+| [Starfield / Space Particles](starfield/) | Stars stream toward you out of the dark. Best for space themes. |
+| [Breathing / Pulsing Glow](breathing-glow/) | A soft glow slowly grows and shrinks, like calm breathing. Best for idle states. |
+| [Ambient Ripple Effect](ambient-ripple/) | Rings spread from a few spots, like drops on a still pond. Best for hero areas. |
+| [Floating Elements](floating-elements/) | Small shapes drift slowly, each on its own path. Best for hero backgrounds. |
+| [Grid / Dot Pattern Parallax](grid-dot-pattern-parallax/) | A dot grid shifts gently against your pointer for depth. Best for tech sites. |
+| [Abstract Geometric Motion](abstract-geometric-motion/) | Shapes turn, spread and flow in a calm, endless pattern. Best for music players. |
+| [Particle Constellation](particle-constellation/) | Drifting dots link up with lines whenever they come close. Best for tech sites. |
+| [Flow Field](flow-field/) | Particles ride invisible currents, leaving fading trails. Best for art pages. |
+| [Synthwave Grid](synthwave-grid/) | A glowing grid rolls toward you under a striped sun. Best for music and games. |
+| [Matrix Rain](matrix-rain/) | Columns of glowing characters rain down a dark screen. Best for tech themes. |
+| [Plasma Field](plasma/) | Smooth waves of color flow endlessly, made from math. Best for creative sites. |
 
 ## The ambient mindset
 

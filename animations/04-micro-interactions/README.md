@@ -6,35 +6,35 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 
 | Demo | Description |
 |------|-------------|
-| [Hover State Animation](hover-state/) | Color, scale, lift, underline, icon nudge, and background sweep on cursor entry |
-| [Click / Tap Ripple](click-ripple/) | Ripple from exact click point — Material Design's tactile confirmation |
-| [Focus Ring Animation](focus-ring/) | Animated outline on keyboard Tab — :focus-visible for keyboard users only |
-| [Button Press Scale](button-press-scale/) | Scales down on press, springs back on release — asymmetric timing |
-| [Magnetic Button](magnetic-button/) | Button leans toward the cursor within a radius, its label drifting a little further for depth |
-| [Toggle / Switch Slide](toggle-switch/) | Pill slides between on/off — smooth cubic-bezier for weighted feel |
-| [Heart / Like Burst](heart-burst/) | Heart pops and fills while small hearts burst outward on canvas |
-| [Success Confetti](success-confetti/) | Canvas confetti burst on completion — rotating rectangles with gravity |
-| [Skeleton Loader](skeleton-loader/) | Pulsing placeholder blocks while real content loads |
-| [Shimmer Effect](shimmer-effect/) | Gradient sweep across skeleton placeholders |
-| [Loading Spinner](loading-spinner/) | Six spinner variants — ring, orbit, arc, bounce, pulse, square |
-| [Progress Animation](progress-animation/) | Linear bar, circular ring, and stepped segments |
-| [Checkmark Draw](checkmark-draw/) | SVG stroke-dashoffset draws a checkmark or X on success/failure |
-| [Form Field Morph](form-field-morph/) | Floating label rises on focus, persists when filled |
-| [Notification Badge Pulse](badge-pulse/) | Dot pulses to draw peripheral attention without interrupting |
-| [Tooltip Reveal](tooltip-reveal/) | Info box after 300ms hover delay — focus-visible for keyboard |
-| [Drawer / Panel Slide](drawer-slide/) | Off-canvas panel — ease-out open, ease-in close |
-| [Modal Expand](modal-expand/) | Modal scales from trigger button position — spatial continuity |
-| [Accordion Open/Close](accordion/) | Height 0 → auto: JS measured vs CSS grid-template-rows |
-| [Cursor Follower](cursor-follower/) | Lerp-lagged cursor + mix-blend-mode: difference inversion |
-| [Error Shake](error-shake/) | Invalid field shakes with a decaying wobble and flashes red — the universal "no" |
-| [Swipe to Dismiss](swipe-to-dismiss/) | Drag past a threshold to fling a card away as its row collapses — pointer-driven, touch-ready |
-| [Hamburger Menu Toggle](hamburger-menu-toggle/) | The bars icon morphs to an X — top and bottom bars rotate to cross while the middle fades |
-| [Theme Toggle Morph](theme-toggle-morph/) | A sun morphs into a crescent moon as the interface flips between light and dark |
-| [Copy to Clipboard](copy-to-clipboard/) | Copy button swaps to a checkmark and a Copied confirmation, then reverts |
-| [Star Rating](star-rating/) | Stars fill toward the pointer and pop on commit — an accessible five-star control |
-| [Toast Notification](toast-notification/) | Notification cards slide in, stack, and auto-dismiss with a progress bar |
-| [Segmented Control](segmented-control/) | A highlighted pill slides under the selected segment — iOS-style |
-| [Pull to Refresh](pull-to-refresh/) | Drag past the top to reveal a spinner; release past a threshold to refresh |
+| [Hover State Animation](hover-state/) | Six ways a card can react when you point at it. Best for buttons and cards. |
+| [Click / Tap Ripple](click-ripple/) | A ripple spreads out from the spot you press. Best for buttons and list items. |
+| [Focus Ring Animation](focus-ring/) | A ring closes in around the item the Tab key reaches. Best for forms and menus. |
+| [Button Press Scale](button-press-scale/) | Shrinks as you press it and springs back as you let go. Best for main buttons. |
+| [Magnetic Button](magnetic-button/) | Leans toward the pointer, then springs home. Best for one main button. |
+| [Toggle / Switch Slide](toggle-switch/) | The knob slides across as the switch turns on or off. Best for settings. |
+| [Heart / Like Burst](heart-burst/) | The heart pops and fills as small hearts burst out. Best for like buttons. |
+| [Success Confetti](success-confetti/) | Confetti bursts from the button when a task is done. Best for big moments. |
+| [Skeleton Loader](skeleton-loader/) | Gray shapes hold the place of content while it loads. Best for feeds and cards. |
+| [Shimmer Effect](shimmer-effect/) | A band of light sweeps over gray placeholders. Best for loading screens. |
+| [Loading Spinner](loading-spinner/) | Six small shapes loop to show that something is loading. Best for short waits. |
+| [Progress Animation](progress-animation/) | A bar, a ring and steps fill up to show progress. Best for uploads. |
+| [Checkmark Draw](checkmark-draw/) | A tick draws itself in a circle once a task succeeds. Best for forms. |
+| [Form Field Morph](form-field-morph/) | The label moves up out of the way as you type. Best for sign-up forms. |
+| [Notification Badge Pulse](badge-pulse/) | A badge on an icon pulses to catch the eye. Best for unread messages. |
+| [Tooltip Reveal](tooltip-reveal/) | A small label fades in after a short pause. Best for icon buttons. |
+| [Drawer / Panel Slide](drawer-slide/) | A side panel slides in over a dimmed page. Best for mobile menus. |
+| [Modal Expand](modal-expand/) | A window grows out of the button you pressed. Best for detail views. |
+| [Accordion Open/Close](accordion/) | Each question opens smoothly to show its answer. Best for FAQ pages. |
+| [Cursor Follower](cursor-follower/) | A dot trails your pointer and flips the colors under it. Best for portfolios. |
+| [Error Shake](error-shake/) | A field shakes side to side when the input is wrong. Best for sign-in forms. |
+| [Swipe to Dismiss](swipe-to-dismiss/) | A card dragged sideways flies off and the list closes up. Best for inboxes. |
+| [Hamburger Menu Toggle](hamburger-menu-toggle/) | Three lines turn into an X as the menu opens. Best for mobile menus. |
+| [Theme Toggle Morph](theme-toggle-morph/) | A sun turns into a moon as the colors switch to dark. Best for theme buttons. |
+| [Copy to Clipboard](copy-to-clipboard/) | Copy turns into a tick and Copied, then changes back. Best for codes and links. |
+| [Star Rating](star-rating/) | Stars fill up to your pointer and pop when you choose. Best for reviews. |
+| [Toast Notification](toast-notification/) | Short messages slide into a corner, then leave on their own. Best for updates. |
+| [Segmented Control](segmented-control/) | A highlight slides to the option you pick. Best for switching views. |
+| [Pull to Refresh](pull-to-refresh/) | Pulling a list down shows a spinner, then new items. Best for feeds. |
 
 ## Key concepts
 
