@@ -53,9 +53,10 @@ const STEP = 1000 / 60;                  // one physics step, in milliseconds
 let behind = 0;                          // time that has passed but not been stepped yet
 
 function frame(elapsed) {                // elapsed: ms since the last drawn frame
+  if (elapsed < 16) return;              // draw at most once per 16 ms; the time waits for a later frame
   behind += Math.min(elapsed, 50);       // a long gap counts for at most 50 ms
   for (let n = 0; behind >= STEP - 1 && n < 3; n++) {   // 1 ms of slack, at most 3 steps
-    integrate();
+    integrate(STEP / 1000);              // dt in seconds: 1/60
     solveConstraints(iterations);
     behind -= STEP;
   }
@@ -63,7 +64,7 @@ function frame(elapsed) {                // elapsed: ms since the last drawn fra
 }
 ```
 
-A 60 Hz screen runs one step per frame, a 30 Hz screen two, and a 144 Hz screen one step every two or three frames, so the cloth falls and swings at the same speed on every one of them. The 1 ms of slack keeps a frame that arrives a hair early from being skipped and then paid for twice, and the cap of three steps means a device that cannot keep up makes the cloth slower instead of piling up more work.
+A 60 Hz screen runs one step per frame and a 30 Hz screen two. The demo draws at most once per 16 ms, so a 120 Hz screen draws every second refresh with one step, and a 144 Hz screen every third refresh (about 48 pictures a second) with one or two steps. The cloth falls and swings at the same speed on every one of them. The 1 ms of slack keeps a frame that arrives a hair early from being skipped and then paid for twice, and the cap of three steps means a device that cannot keep up makes the cloth slower instead of piling up more work.
 
 **Rendering** — the triangulated mesh is drawn as filled quads. Each quad is split into two triangles sharing the diagonal:
 
