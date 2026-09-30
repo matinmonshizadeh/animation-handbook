@@ -1034,7 +1034,7 @@ button,input{font:inherit;color:inherit}
       </div>
     </div>
     <div class="rhead">
-      <div><h2 class="rtitle" id="results-title">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites from different places. Pick a place above to see more.</p></div>
+      <div><h2 class="rtitle" id="results-title" tabindex="-1">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites from different places. Pick a place above to see more.</p></div>
       <button type="button" class="pillbtn" id="clear-view" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear</button>
     </div>
     <div id="cards"></div>
@@ -1763,12 +1763,19 @@ function showGroups(){
   place(cards);
 }
 const state={q:'',place:'',view:'',all:false};
+const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
 const phone=matchMedia('(max-width:600px)');
 let moreAction='all';
+const pinbar=$('pinbar');
+// The phone bar is there while a view other than Start is open and while its own search box has focus, so emptying the box does not take the box away.
+const syncBar=()=>resultsEl.classList.toggle('filtered',isFiltered()||document.activeElement===q2);
+// A pressed button that goes away with the view hands keyboard focus to the results heading. No scrolling: the callers that move the page scroll it themselves.
+const toTitle=()=>titleEl.focus({preventScroll:true});
+const gone=el=>!el.getClientRects().length;
 function render(){
-  const filtered=!!(state.q||state.place||state.view);
+  const filtered=isFiltered();
   let list=null,title,sub,tags=true;
   if(state.q){
     list=search(state.q);title='Results for “'+state.q+'”';
@@ -1781,7 +1788,7 @@ function render(){
     list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different places. Pick a place above to see more.';
   }
   titleEl.textContent=title;subEl.textContent=sub;
-  resultsEl.classList.toggle('filtered',filtered);
+  syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
   clearBtn.hidden=!filtered;
   if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
@@ -1821,10 +1828,11 @@ document.addEventListener('click',e=>{
     const key=tile.dataset.place;
     go(!state.q&&state.place===key?{}:{place:key},true);
     if(phone.matches&&state.place)toResults();
+    if(gone(tile))toTitle();
     return;
   }
   const pick=e.target.closest('[data-q]');
-  if(pick){go({q:pick.dataset.q},true);if(phone.matches)toResults();}
+  if(pick){go({q:pick.dataset.q},true);if(phone.matches)toResults();if(gone(pick))toTitle();}
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
@@ -1833,15 +1841,17 @@ function typed(input){
 }
 q.addEventListener('input',()=>typed(q));
 q2.addEventListener('input',()=>typed(q2));
+// Moving between the bar's own buttons does not count: a tap on a chip must still find the chip.
+pinbar.addEventListener('focusout',e=>{if(!pinbar.contains(e.relatedTarget))syncBar();});
 $('search-form').addEventListener('submit',e=>{e.preventDefault();toResults();});
 qClear.addEventListener('click',()=>{q.value='';typed(q);q.focus();});
-clearBtn.addEventListener('click',()=>go({},true));
-$('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});});
+clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
+$('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});toTitle();});
 $('more-btn').addEventListener('click',()=>{
-  if(moreAction==='all'){go({view:'all'},true);toResults();}
-  else{state.all=true;writeURL(false);render();}
+  if(moreAction==='all'){go({view:'all'},true);toResults();toTitle();}
+  else{state.all=true;writeURL(false);render();(cardsBox.querySelectorAll('.card .title a')[PAGE]||titleEl).focus();} // the first new card
 });
-$('nav-all').addEventListener('click',e=>{e.preventDefault();go({view:'all'},true);toResults();});
+$('nav-all').addEventListener('click',e=>{e.preventDefault();go({view:'all'},true);toResults();toTitle();});
 addEventListener('popstate',()=>{readURL();render();});
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
