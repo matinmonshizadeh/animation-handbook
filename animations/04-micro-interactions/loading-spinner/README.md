@@ -1,7 +1,7 @@
 # Loading Spinner
 
 ## What it is
-A loading spinner is a looping animation indicating that the system is busy and the user should wait. Unlike a progress bar, it conveys no information about duration — only that work is happening. This makes it appropriate for unpredictably-timed operations like network requests, file processing, or authentication handshakes.
+A loading spinner is a small shape that keeps moving in a loop to show that the system is busy. It says nothing about how long the wait will be, only that work is going on, so it suits waits of unknown length, such as a network request. The demo shows six common designs.
 
 ## When to use it
 - Network requests where response time is unknown
@@ -60,20 +60,19 @@ The bounce-dots variant uses staggered animation delays on three sibling element
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | 800ms | 600–1000ms is the legible range; faster reads as anxious |
-| Size | 40px | 20px inline, 40px full-screen, 60–80px for empty states |
-| Color | accent | Should be distinct from the page background |
-| Minimum display | 400ms | Flash a spinner for less than 400ms and hide it — the flash is worse than nothing |
+| Speed | Normal | How long one turn takes: slow is 1.3s, normal 0.8s and fast 0.5s; 0.6 to 1 second reads as calm, faster as anxious |
+| Size | Medium | Small is 28px, medium 40px and large 52px; small fits inside a button, large fills an empty area |
+| Color | Blue | The spinner's color; pick one that stands out from the page |
 
 ## Production notes
 - **Minimum display time**: if the operation completes in under ~400ms, either show no spinner at all or enforce a minimum display time. A spinner that flashes briefly causes more confusion than it resolves.
 - **Inline button spinner**: replace the button label with a spinner on click, re-enable on response. This pattern prevents double-submission.
 - **`role="status"` and `aria-label`**: screen readers need to announce the loading state. Add `role="status"` and `aria-label="Loading"` to the spinner container.
-- **`prefers-reduced-motion`**: reduce to a simple opacity pulse or hide the spinner and rely on `aria-live` region announcements.
+- **`prefers-reduced-motion`**: under reduced motion the demo starts paused, so the spinners stay still until the visitor presses Play. In production, reduce the spinner to a simple opacity pulse, or hide it and rely on an `aria-live` announcement.
 - **React ecosystem**: `react-spinners` (by David Hu) has 15+ variants. For Tailwind, use the `animate-spin` utility on a bordered circle div.
 - **When not to use**: if you know total progress (file upload, multi-step process), use a progress bar instead — it conveys more information and reduces anxiety.
 
 ## See also
-- [Progress Animation](../progress-animation/) — for known-duration or known-percentage loads
-- [Skeleton Loader](../skeleton-loader/) — for content-shaped placeholders
-- [Checkmark Draw](../checkmark-draw/) — the success state after a spinner resolves
+- [Progress Animation](../progress-animation/) — a bar that shows how much is done
+- [Skeleton Loader](../skeleton-loader/) — gray shapes stand in for the content
+- [Checkmark Draw](../checkmark-draw/) — the success sign once the wait is over

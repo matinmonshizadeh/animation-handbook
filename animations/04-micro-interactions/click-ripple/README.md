@@ -1,7 +1,7 @@
 # Click / Tap Ripple
 
 ## What it is
-A ripple is a circle that expands from the point of click or tap, fading as it grows. Popularized by Material Design, it gives users haptic-substitute feedback: the visual expansion communicates that the press registered, and the origin point confirms exactly where contact was made.
+A ripple is a soft circle that grows out from the spot you press and fades away. It confirms that the press registered and shows exactly where it landed, which helps most on touch screens, where nothing reacts to hovering. Material Design, Google's design system, made it popular.
 
 ## When to use it
 - Primary action buttons (submit, confirm, purchase)
@@ -46,20 +46,22 @@ The button needs `position: relative; overflow: hidden` to contain the ripple.
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 600ms | Longer than a hover animation — the user has already committed the click |
-| Max scale | 2.5× | Must be large enough to reach all button corners from any click point |
-| Start opacity | 0.4 | Controls visibility of the highlight without washing out button content |
-| Origin | Click point | Material default; "from center" is simpler but less accurate |
+| Starts from | Where you press | Where you press shows exactly where the press landed; the middle is simpler but less exact |
+| Speed | Normal | How long the ripple takes to spread and fade: slow is 1000ms, normal 600ms and fast 350ms; a little longer than a hover change, because the click is already made |
+| Ripple size | Medium | How far the circle grows before it fades: small, medium or large; even small reaches every corner of the button |
+| Ripple strength | Medium | How visible the ripple is at the start: faint is 20%, medium 40% and strong 60% |
+| Ripple color | White | White suits colored buttons, orange matches the accent, black suits light buttons |
 
 ## Production notes
 - **`overflow: hidden`** on the button is required — without it the ripple extends beyond the button boundary.
 - **`pointer-events: none`** on the ripple element prevents it from interfering with subsequent clicks fired in quick succession.
 - **Touch events**: `pointerdown` works for both mouse and touch. Avoid `mousedown` — it doesn't fire on touch.
 - **Cleanup**: always remove the element in `animationend`. In stress tests (rapid clicking) DOM nodes accumulate quickly without cleanup.
+- **Reduced motion**: skip the growing circle and fade a flat highlight over the button instead, so the press still shows. The demo does this.
 - **GSAP**: `gsap.fromTo(el, { scale: 0 }, { scale: 2.5, opacity: 0, duration: 0.6, ease: "power2.out", onComplete: () => el.remove() })`.
 - **Material Web Components**: the `<md-ripple>` component handles all of this automatically including touch and keyboard activation.
 
 ## See also
-- [Button Press Scale](../button-press-scale/) — scale-based feedback complementing the ripple
-- [Hover State Animation](../hover-state/) — pre-click affordance signaling
-- [Checkmark Draw](../checkmark-draw/) — post-click confirmation feedback
+- [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
+- [Hover State Animation](../hover-state/) — items react before they are clicked
+- [Checkmark Draw](../checkmark-draw/) — a tick draws itself once the task is done

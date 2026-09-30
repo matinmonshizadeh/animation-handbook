@@ -130,7 +130,7 @@ All 129 techniques, each linked to its live demo.
 - **[Click / Tap Ripple](animations/04-micro-interactions/click-ripple/)** — Ripple emanates from the exact click point — Material Design's tactile confirmation pattern.
 - **[Focus Ring Animation](animations/04-micro-interactions/focus-ring/)** — Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.
 - **[Button Press Scale](animations/04-micro-interactions/button-press-scale/)** — Scales to 0.95 on press, springs back on release — asymmetric timing gives a tactile feel.
-- **[Magnetic Button](animations/04-micro-interactions/magnetic-button/)** — Button leans toward the cursor within a radius, label lagging for parallax — springs home on exit.
+- **[Magnetic Button](animations/04-micro-interactions/magnetic-button/)** — Button leans toward the cursor within a radius, its label drifting a little further for depth — springs home on exit.
 - **[Toggle / Switch Slide](animations/04-micro-interactions/toggle-switch/)** — Pill slides left/right for on/off — smooth cubic-bezier gives a weighted, physical feel.
 - **[Heart / Like Burst](animations/04-micro-interactions/heart-burst/)** — Tap pops and fills the heart while small hearts burst outward on canvas — Twitter-style like.
 - **[Success Confetti](animations/04-micro-interactions/success-confetti/)** — Completing an action fires a canvas confetti burst — rotating rectangles with gravity and spin.

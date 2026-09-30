@@ -1,7 +1,7 @@
 # Notification Badge Pulse
 
 ## What it is
-A notification badge is a small indicator — a numbered chip or colored dot — overlaid on an icon to signal unread items. The pulse animation (a subtle scale loop) draws peripheral attention without demanding focus. It is one of the most restrained attention-capture patterns in UI: it works in the user's periphery without interrupting their current task.
+A notification badge is a small colored dot or number on an icon that marks something new, such as unread messages. A gentle pulse, growing a little and settling back or sending out a soft ring, catches the eye at the edge of your vision without interrupting what you are doing.
 
 ## When to use it
 - Notification bells with unread message counts
@@ -35,13 +35,19 @@ The badge pulses via a looping `scale` keyframe animation:
 }
 ```
 
-The halo variant adds a radiating ring that expands and fades:
+The halo variant adds a radiating ring that expands and fades. The ring is drawn under the badge's number, not over it: the badge is its own stacking context (`isolation: isolate`) and the ring has a negative `z-index`, so it covers the badge's color but never the number, which keeps its contrast through every pulse:
 
 ```css
+.badge {
+  isolation: isolate;
+}
+
 .badge::after {
   content: '';
   position: absolute;
   inset: -4px;
+  z-index: -1;
+  pointer-events: none;
   border-radius: 50%;
   background: var(--badge-color);
   opacity: 0.4;
@@ -54,23 +60,28 @@ The halo variant adds a radiating ring that expands and fades:
 }
 ```
 
+The ring grows to 2.2 times the badge, well past the icon's corner, and it catches the pointer even when it has faded out. So it has `pointer-events: none`; without that, a click on the empty space beside the icon would land on the ring and count as a click on the badge.
+
+Stopping after three pulses takes two more declarations on the animated parts, `animation-iteration-count: 3` and `animation-fill-mode: forwards`. Without the fill mode the halo would fall back to its resting style, a faint ring around the badge, when the last pulse ends; with it the run stays on its last keyframes, the badge at scale 1 and the halo invisible.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 1500ms | 800ms feels urgent; 3000ms is almost imperceptible; 1500ms is the peripheral-vision sweet spot |
-| Scale | 1.3 | 1.1–1.5 range; beyond 1.5 the badge grows large enough to feel alarming |
-| Halo style | Scale + halo | Halo alone is subtler; scale alone is more contained |
-| Border offset | `border: 2px solid bg` | The badge border must match the icon background to appear floating |
+| Pulse style | Grow | Grow scales the badge up and back; Ring sends a soft halo outward; Both does the two together |
+| Speed | Normal | How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; fast feels urgent, slow is easy to miss |
+| How much it grows | Medium | How big the badge gets at the top of each pulse: slightly is 115%, medium 130% and a lot 150% of its size |
+| Stops after three pulses | off | The badges pulse three times and then rest; the online dot keeps going |
+| Badge color | Red | The badge's color; red reads as new and urgent |
 
 ## Production notes
 - **Peripheral vision threshold**: 1.15× scale at 1.5s is the minimum perceptible in peripheral vision for most users. Below that, the badge reads as static.
 - **Dismiss on interaction**: always remove the pulse (and the badge itself) when the user views the notifications. A persistent pulse on already-seen content is confusing.
 - **Fade-after-attention**: pulse strongly for the first 5 seconds, then reduce scale or stop entirely. This mirrors real notification system behavior (the alert has been "seen" peripherally).
 - **`border: 2px solid` background color trick**: this makes the badge appear to float above the icon surface with a gap. Update the border color if the icon sits on a non-uniform background.
-- **`prefers-reduced-motion`**: disable the pulse animation entirely. The badge remains visible — users who need reduced motion still see the indicator, just without motion.
+- **`prefers-reduced-motion`**: under reduced motion the demo starts paused, so the badges stay still until the visitor presses Play. In production, turn the pulse off: the badge stays visible, just without motion.
 - **React**: `react-hot-toast` and Sonner implement badge-style indicators for toast notifications. For nav badges, most component libraries include a `Badge` with optional `animate` prop.
 
 ## See also
-- [Tooltip Reveal](../tooltip-reveal/) — hover-triggered information on the same icons
-- [Loading Spinner](../loading-spinner/) — another attention indicator for active states
-- [Hover State Animation](../hover-state/) — hover feedback on the icon behind the badge
+- [Tooltip Reveal](../tooltip-reveal/) — pointing at an icon shows a short note
+- [Loading Spinner](../loading-spinner/) — another sign that something is going on
+- [Hover State Animation](../hover-state/) — items react when the pointer is over them
