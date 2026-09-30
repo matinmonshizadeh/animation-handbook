@@ -424,14 +424,13 @@ test('the counts written on the home page match its cards', () => {
   const cards = homeConst('CATS').reduce((n, cat) => n + cat.entries.length, 0);
   assert.ok(HOME.includes(`${cards} free animations · no coding needed`), 'hero pill');
   assert.ok(HOME.includes(`<span id="more-label">Browse all ${cards} animations</span>`), 'Browse all button');
+  assert.ok(HOME.includes(`<p class="foot-t">${cards} web animations with live demos and copyable prompts.</p>`), 'footer');
+  assert.ok(between(HOME, '<noscript>', '</noscript>').includes(`All ${cards} are still easy to reach`), 'no-JavaScript note');
 });
 
-// The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm. Looking for the end
-// of the literal, it steps over strings and // comments, so a quote or bracket inside either does not count.
-function homeConst(name) {
-  const start = HOME.indexOf(`const ${name}=`);
-  assert.ok(start >= 0, `const ${name} in index.html`);
-  const from = start + `const ${name}=`.length;
+// Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket
+// inside either does not count.
+function blockEnd(from) {
   const open = HOME[from], close = open === '[' ? ']' : '}';
   let depth = 0, i = from, quote = null;
   for (; i < HOME.length; i++) {
@@ -442,8 +441,21 @@ function homeConst(name) {
     else if (ch === open) depth++;
     else if (ch === close && --depth === 0) break;
   }
+  return i;
+}
+// The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm.
+function homeConst(name) {
+  const start = HOME.indexOf(`const ${name}=`);
+  assert.ok(start >= 0, `const ${name} in index.html`);
+  const from = start + `const ${name}=`.length;
   // vm builds the value in its own realm; the JSON copy is made of ordinary arrays and objects that deepEqual accepts.
-  return JSON.parse(JSON.stringify(vm.runInNewContext('(' + HOME.slice(from, i + 1) + ')')));
+  return JSON.parse(JSON.stringify(vm.runInNewContext('(' + HOME.slice(from, blockEnd(from) + 1) + ')')));
+}
+// A function of the home page's script, `function NAME(…){…}`, read with vm so a test can call it.
+function homeFunction(name) {
+  const start = HOME.indexOf(`function ${name}(`);
+  assert.ok(start >= 0, `function ${name} in index.html`);
+  return vm.runInNewContext('(' + HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1) + ')');
 }
 const PLACE_KEYS = ['btn', 'text', 'imgcard', 'bg', 'menu', 'load', 'intro', 'scroll', 'page'];
 
@@ -468,4 +480,29 @@ test('the eight Start cards are on the home page', () => {
   assert.equal(picks.length, 8);
   assert.equal(new Set(picks).size, 8, 'the eight Start cards are all different');
   for (const slug of picks) assert.ok(slugs.has(slug), slug);
+});
+
+test('a typed word loses its ending by the rule in the spec', () => {
+  const stem = homeFunction('stem');
+  // "ring", "string" and "spring" keep "ing" (what is left is too short or has no vowel) and "ss" keeps its s; after "ing" or
+  // "ed" a doubled last letter goes too while three letters stay, but not l, s, f or z ("scrolling", and "added" keeps three).
+  const want = { ring: 'ring', string: 'string', spring: 'spring', uses: 'use', galleries: 'galler', press: 'press', glass: 'glass',
+    snapping: 'snap', blurred: 'blur', dragging: 'drag', scrolling: 'scroll', added: 'add', flipping: 'flip', tapping: 'tap',
+    pinned: 'pin', clipping: 'clip', scrubbing: 'scrub', fades: 'fad', cards: 'card', boxes: 'box' };
+  assert.deepEqual(Object.fromEntries(Object.keys(want).map(word => [word, stem(word)])), want);
+});
+
+test('every place has one tile, one phone-bar chip and one count, and the markup names no other place', () => {
+  // The opening tags of the page's markup: scripts, styles and comments left out.
+  const tags = HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
+  const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
+  const hasClass = (tag, name) => (attr(tag, 'class') || '').split(/\s+/).includes(name);
+  const placed = tags.filter(tag => attr(tag, 'data-place') !== undefined), counted = tags.filter(tag => attr(tag, 'data-count') !== undefined);
+  for (const tag of placed) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-place')), `unknown place: ${tag}`);
+  for (const tag of counted) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-count')), `unknown place: ${tag}`);
+  for (const key of PLACE_KEYS) {
+    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'place')).length, 1, `one ${key} tile`);
+    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'pchip')).length, 1, `one ${key} chip in the phone bar`);
+    assert.equal(counted.filter(tag => attr(tag, 'data-count') === key).length, 1, `one ${key} count`);
+  }
 });
