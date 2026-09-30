@@ -219,6 +219,8 @@ None: leave out the `details.hb-options` block.
   - `.scene{height:320cqh}`; `.columns{position:sticky;top:0;height:100cqh}` (with its flex, gap, padding and overflow). The phone rules that set 480px go; `.col-right{display:none}` under 600px stays.
   - `measure()` stays, with its re-measure on `document.fonts.ready` and `resize` (the loop period depends on the card height). It pre-offsets the side columns by one set (`marginTop = -singleSetH`) only while they move down (`mult < 0`); when they move up (`mult >= 0`) it sets their `marginTop` to 0. Today it always pre-offsets them, which only suits moving down: with Same way the side columns run out of cards, leaving up to 334px of empty column on a laptop (review measurement). With the change there is no gap at any speed in either direction, at any size (measured, 258–438px boxes and phones).
   - The card icons' `svg` in `makeSet()` get `aria-hidden="true"` (shared rule 12).
+  - **Screen readers hear the twelve cards once (final fix wave).** The left and right `.col` get `aria-hidden="true"` (they repeat the middle column), and so does the second `.card-set` of every column, which only repeats the first so the column can loop: `el.appendChild(makeSet()).setAttribute('aria-hidden', 'true')`, with a comment. Before, each card was read six times (four on a phone, where the right column is hidden).
+  - **Reduced motion switched on mid-visit clears the movement (final fix wave).** The reduced-motion line of `update()` sets the three inner transforms to `''` before it returns, and `motionMQ.addEventListener('change', update)` after the resize listener runs it when the setting changes, so the columns go back to rest at once and, switched off again, take up the scroll position. This replaces "`update()` returns early" in Reduced motion above. Before, the transforms stayed frozen where they were, and a later change of Side columns go emptied the side columns (measured at 1280×800, at 61% of the scroll: a 508px gap at the top of each side column after a switch to Same way); now every direction and speed leaves them full.
   - `update()` keeps the three transforms; its readout lines (progress and the three offsets) go.
   - `hb-dots`: no. Default height.
 
@@ -260,6 +262,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.03 · Scroll-Based`
 - **Pager:** Previous: Parallax Scrolling (`../parallax-scrolling/`) · Next: Cover Card to Fixed Header (`../cover-card-to-fixed-header/`)
+- **Final fix wave:** the side columns and the second card set of every column are hidden from screen readers (each card is read once, not six times), and reduced motion switched on mid-visit clears the column transforms (see the last two Stage bullets).
 
 ---
 
