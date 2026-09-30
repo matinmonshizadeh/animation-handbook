@@ -1,7 +1,7 @@
 # Shimmer Effect
 
 ## What it is
-A shimmer effect is a diagonal or horizontal gradient highlight that sweeps repeatedly across skeleton placeholder blocks. Where a skeleton pulse fades opacity up and down uniformly, a shimmer moves directionally — giving the impression that data is streaming in from one side. It is a more sophisticated loading state that reads as active progress rather than passive waiting.
+A shimmer is a band of light that sweeps across gray placeholder shapes again and again while content loads. Where a pulse fades every block up and down together, a shimmer travels in one direction, so the placeholders look like content streaming in.
 
 ## When to use it
 - Card and list skeleton loaders where the content streams from a server
@@ -9,7 +9,7 @@ A shimmer effect is a diagonal or horizontal gradient highlight that sweeps repe
 - Any skeleton component where the motion direction matches the data source (left-to-right for left-aligned content)
 
 ## How it works
-A `::after` pseudo-element containing a translucent gradient is positioned absolutely over the skeleton block and translated from `-100%` to `+200%`:
+A `::after` pseudo-element holding a translucent gradient covers each skeleton block, and its background position slides from one side to the other:
 
 ```css
 :root {
@@ -42,25 +42,25 @@ A `::after` pseudo-element containing a translucent gradient is positioned absol
 }
 ```
 
-The `background-size: 200% 100%` and position animation gives more control over the highlight width than `translateX` alone.
+The `background-size: 200% 100%` and position animation gives more control over the highlight width than `translateX` alone. The tile is twice as wide as the block and its position travels four block widths per cycle, so the band crosses twice in each `--shim-dur`: every 0.75s at the default 1.5s.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 1500ms | 1–2s per sweep is the perceptible range; under 800ms feels frantic |
-| Brightness | 0.25 | Highlight opacity — 0.1 is subtle, 0.5 is bright-branded |
-| Angle | 90° (horizontal) | Diagonal (`-45deg`) can look more dynamic; keep consistent across components |
-| Color | White | Gold or blue for branded variants; stay translucent to work on any skeleton bg |
+| Speed | Normal | How often the light crosses: slow every 1.2s, normal every 0.75s and fast every 0.45s; more often than about every 0.4s it feels frantic |
+| Brightness | Medium | How strong the band of light is: soft, medium or bright; soft is subtle, bright suits a branded screen |
+| Highlight angle | Upright | Upright sweeps a straight band; Slanted and Diagonal tilt it; keep one angle across the whole page |
+| Highlight color | White | White works on any placeholder; blue or gold suit branded screens |
 
 ## Production notes
 - **Single direction only**: multiple shimmer components sweeping in different directions simultaneously create visual chaos. All skeletons on a page should shimmer in the same direction.
 - **`overflow: hidden` required**: the shimmer pseudo-element extends beyond the card. Without overflow clipping, it bleeds into adjacent elements.
-- **Combining with pulse**: the demo supports pulse + shimmer together. In practice, pick one — both simultaneously are redundant and visually loud.
+- **Combining with pulse**: pick one — a pulse and a shimmer together are redundant and visually loud.
 - **Performance**: shimmer uses `background-position` animation rather than `transform`. While `transform` is typically preferred, background-position on a GPU-composited layer is acceptably performant. Alternatively, `translateX` with `will-change: transform` on the pseudo-element is the most performant approach.
 - **CSS-only**: no JavaScript required. The animation is infinite and stops automatically when the element is removed from DOM.
 - **React**: `react-loading-skeleton` includes shimmer. For custom components, the CSS pattern above is framework-agnostic.
 
 ## See also
-- [Skeleton Loader](../skeleton-loader/) — the underlying placeholder structure shimmer enhances
-- [Loading Spinner](../loading-spinner/) — alternative for unknown-duration loads
-- [Progress Animation](../progress-animation/) — when duration or percentage is known
+- [Skeleton Loader](../skeleton-loader/) — the placeholders pulse instead
+- [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
+- [Progress Animation](../progress-animation/) — a bar that shows how much is done

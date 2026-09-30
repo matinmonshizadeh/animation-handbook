@@ -1,7 +1,7 @@
 # Hover State Animation
 
 ## What it is
-A hover state animation is any visual change that fires when the cursor enters an interactive element. It confirms interactivity before the user clicks. Six distinct techniques exist — color shift, scale, lift+shadow, underline grow, icon nudge, and background sweep — each with different affordance strength and motion character.
+A hover state is a small change that plays when the pointer moves over something you can click, such as a button, a link or a card. It tells people the item will respond before they click it. The demo shows six common ways to do it: a color change, a slight grow, a lift with a shadow, an underline that draws out, an arrow that nudges forward and a tint that sweeps across.
 
 ## When to use it
 - Navigation links and buttons that need to signal clickability
@@ -17,7 +17,8 @@ All six techniques use CSS `transition` driven by `:hover` (or `:active` as a to
 
 /* Color shift */
 .h-color { transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
-.h-color:hover { background: #1a2a3a; border-color: var(--ui-accent); }
+@media (hover: hover) { .h-color:hover { background: #2a201a; border-color: var(--ui-accent); } }
+.h-color:active { background: #2a201a; border-color: var(--ui-accent); }
 
 /* Scale */
 .h-scale { transition: transform var(--dur) var(--ease); }
@@ -29,7 +30,7 @@ All six techniques use CSS `transition` driven by `:hover` (or `:active` as a to
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(88,166,255,.13);
+  background: rgba(255,157,92,.13);
   transform: translateX(-100%);
   transition: transform var(--dur) var(--ease);
 }
@@ -41,10 +42,8 @@ The `@media (hover: hover)` gate prevents hover styles from sticking on touch de
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `--dur` | 180ms | Transition duration — keep ≤200ms for responsiveness |
-| `--ease` | ease | Easing curve — ease-out feels snappier, springy adds delight |
-| Scale amount | 1.03 | 1.01–1.05 is the useful range; beyond 1.05 feels unstable |
-| Shadow elevation | 8px / 24px | `translateY(-4px)` paired with a larger shadow sells the lift |
+| Speed | Normal | How long each change takes: slow is 300ms, normal 180ms and fast 110ms; keep hover changes at 200ms or less so moving across several items never feels sticky |
+| Feel | Smooth | Smooth slows into place; Springy goes a little too far, then settles; Gentle eases in and out; Even keeps one steady pace |
 
 ## Production notes
 - **Duration ceiling**: hover animations over 200ms make rapid cursor movement across multiple elements feel sluggish and "sticky." Keep it at or below 180ms.
@@ -54,6 +53,6 @@ The `@media (hover: hover)` gate prevents hover styles from sticking on touch de
 - **Framer Motion**: `<motion.div whileHover={{ scale: 1.03 }} />` — idiomatic React equivalent.
 
 ## See also
-- [Button Press Scale](../button-press-scale/) — the complement: press-down feedback
-- [Tooltip Reveal](../tooltip-reveal/) — hover that reveals additional information
-- [Click / Tap Ripple](../click-ripple/) — confirmation on click rather than hover
+- [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
+- [Tooltip Reveal](../tooltip-reveal/) — pointing at an item shows a short note
+- [Click / Tap Ripple](../click-ripple/) — a ripple spreads from the spot you press

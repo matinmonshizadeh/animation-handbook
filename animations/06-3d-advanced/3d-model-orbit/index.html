@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>3D Model Orbit — Animation Handbook</title>
-  <meta name="description" content="Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.">
+  <meta name="description" content="A lit 3D shape spins, or turns to face your pointer. Best for product views.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,93 +12,157 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="3D Model Orbit — Animation Handbook">
-  <meta property="og:description" content="Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.">
+  <meta property="og:description" content="A lit 3D shape spins, or turns to face your pointer. Best for product views.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="3D Model Orbit — Animation Handbook">
-  <meta name="twitter:description" content="Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.">
+  <meta name="twitter:description" content="A lit 3D shape spins, or turns to face your pointer. Best for product views.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "3D Model Orbit", "name": "3D Model Orbit", "description": "Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 3D Model Orbit"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "3D Model Orbit", "name": "3D Model Orbit", "description": "A lit 3D shape spins, or turns to face your pointer. Best for product views.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 3D Model Orbit"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;touch-action:pan-y}
+    .stage{position:relative;background:#060a10;touch-action:pan-y}
     canvas{display:block;width:100%;height:100%}
-    .hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
-    .fps-badge,.obj-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
-    .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:11px;line-height:1.7;color:var(--ui-muted)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}.stage{flex:0 0 auto}aside{width:100%}:root{--stage-h:380px}}
-    @media(prefers-reduced-motion:reduce){button.rst,.ah-bar a,.ah-bar button{transition:none!important}}
+    .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.72)}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scroll-driven-3d-rotation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/3d-model-orbit/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>3D Model Orbit</h1>
-  <p>Phong-shaded 3D geometry in vanilla WebGL — vertex buffers, MVP matrix, and a full lighting model.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="hud">
-      <div class="fps-badge" id="fps">— fps</div>
-      <div class="obj-badge" id="obj-badge">Cube</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scroll-driven-3d-rotation/" rel="next" aria-label="Next: Scroll-Driven 3D Rotation"><span><span class="hb-dir">Next: </span>Scroll-Driven 3D Rotation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.01 · 3D &amp; Advanced</p>
+    <h1>3D Model Orbit</h1>
+    <p class="hb-lede">A lit 3D shape spins, or turns to face your pointer. Best for product views.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">3D rendering needs: vertex buffer, shader program, model-view-projection matrix, render loop. Three.js hides this behind a clean API. This demo exposes the raw machinery.</p>
-    <div class="lbl">Mode</div>
-    <select id="mode-sel"><option value="orbit" selected>Auto-orbit</option><option value="mouse">Mouse-follow</option></select>
-    <div class="lbl">Object</div>
-    <select id="obj-sel"><option value="cube" selected>Cube</option><option value="sphere">Sphere</option><option value="torus">Torus</option><option value="tetra">Tetrahedron</option></select>
-    <div class="lbl">Spin X / Y</div>
-    <div class="sr"><input type="range" id="sx-sl" min="0" max="30" value="2" step="1"><span class="sv" id="sx-v">0.2</span></div>
-    <div class="sr"><input type="range" id="sy-sl" min="0" max="30" value="8" step="1"><span class="sv" id="sy-v">0.8</span></div>
-    <div class="lbl">Camera Distance</div>
-    <div class="sr"><input type="range" id="cam-sl" min="15" max="60" value="30" step="1"><span class="sv" id="cam-v">3.0</span></div>
-    <div class="lbl">Object Color</div>
-    <input type="color" id="color-pick" value="#58a6ff" aria-label="Object color">
-    <label class="tog"><input type="checkbox" id="wire-tog"><span>Wireframe</span></label>
-    <div class="div"></div>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="A lit 3D shape turning on a dark background"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-shape="cube" class="on" aria-pressed="true">Cube</button>
+          <button type="button" data-shape="sphere" aria-pressed="false">Sphere</button>
+          <button type="button" data-shape="torus" aria-pressed="false">Ring</button>
+          <button type="button" data-shape="tetra" aria-pressed="false">Pyramid</button>
+        </div>
+        <p class="hb-hint">The object that is drawn and lit.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="move-lbl">Movement</p>
+        <div class="seg" id="move-seg" role="group" aria-labelledby="move-lbl">
+          <button type="button" data-mode="orbit" class="on" aria-pressed="true">Spins</button>
+          <button type="button" data-mode="mouse" aria-pressed="false">Follows the pointer</button>
+        </div>
+        <p class="hb-hint">Or it turns to face your pointer or finger.</p>
+      </div>
+      <div class="hb-setting" id="speed-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-sy="0.5" data-sx="0.12" aria-pressed="false">Slow</button>
+          <button type="button" data-sy="0.8" data-sx="0.2" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-sy="1.3" data-sx="0.32" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast it spins.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting" id="tumble-setting">
+          <label class="hb-switch-row"><span>Tumbles as it spins</span><input class="hb-switch" type="checkbox" role="switch" id="tumble-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Also rolls it forward, so the top and bottom show.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="dist-lbl">Distance</p>
+          <div class="seg" id="dist-seg" role="group" aria-labelledby="dist-lbl">
+            <button type="button" data-dist="2.6" aria-pressed="false">Close</button>
+            <button type="button" data-dist="3" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-dist="4.2" aria-pressed="false">Far</button>
+          </div>
+          <p class="hb-hint">How close the camera is; closer looks bigger.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" aria-pressed="false" aria-label="Pink" data-color="#ff6f8b" style="background:#ff6f8b"></button>
+            <button type="button" aria-pressed="false" aria-label="White" data-color="#f4f4f2" style="background:#f4f4f2"></button>
+            <button type="button" class="on" aria-pressed="true" aria-label="Blue" data-color="#58a6ff" style="background:#58a6ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Purple" data-color="#d2a8ff" style="background:#d2a8ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Green" data-color="#56d364" style="background:#56d364"></button>
+            <button type="button" aria-pressed="false" aria-label="Orange" data-color="#ffa657" style="background:#ffa657"></button>
+          </div>
+          <p class="hb-hint">The color of the object.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Edges only</span><input class="hb-switch" type="checkbox" role="switch" id="wire-tog" autocomplete="off"></label>
+          <p class="hb-hint">Draws the triangles' edges instead of a lit surface.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a spinning 3D object to [the product or shape you want to show]. Draw it with WebGL: store the shape as triangles and light every point with a soft base light, a direct light and a shiny highlight, so it reads as solid. Turn it around its own axis so every side comes into view, or let it turn to face the pointer, which a tap or a sideways drag should also do on touch screens. Change its size by moving the camera closer or further, not by changing the lens. If the visitor has reduced motion turned on, show the object still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Product showcases</li><li>Hero sections</li><li>Logos</li><li>3D previews</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long reading pages</li><li>Low-power devices</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 // ─── Shaders ───────────────────────────────────────────────────────────────
 const VS=`
@@ -199,16 +263,17 @@ function makeTetra(){
 
 // ─── WebGL setup ───────────────────────────────────────────────────────────
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
-const fpsEl=document.getElementById('fps'),objBadge=document.getElementById('obj-badge');
+const slowTog=document.getElementById('slow-tog');
 let W,H,gl,prog,posBuf,nrmBuf,idxBuf,lineBuf,idxCount,lineCount;
-let raf=null,paused=false,lastT=0,rx=.3,ry=0,fpsAvg=0;
-let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
+const TILT=.3; // the forward tilt it starts with, and returns to when the shape changes: at 0 a ring is seen edge-on
+let raf=null,paused=false,last=null,clock=0,rx=TILT,ry=0;
+let MODE='orbit',SHAPE='cube',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
+let rollSpeed=.2,tumbles=true;
 let mouseNX=0,mouseNY=0;
-const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 // A failed shader is otherwise a silent black canvas — say so instead.
 function fail(msg){gl=null;if(raf){cancelAnimationFrame(raf);raf=null;}
-  cvs.style.display='none';fpsEl.textContent='—';
+  cvs.style.display='none';
   const d=document.createElement('div');d.className='msg';d.textContent=msg;stage.appendChild(d);}
 function sh(t,s){
   const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);
@@ -240,7 +305,6 @@ function loadGeometry(name){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,geo.idx,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(lines),gl.STATIC_DRAW);
   idxCount=geo.idx.length;lineCount=lines.length;
-  objBadge.textContent={cube:'Cube',sphere:'Sphere',torus:'Torus',tetra:'Tetrahedron'}[name];
 }
 
 // Backing store in device pixels (capped at 2x) so the render is not upscaled on retina.
@@ -274,41 +338,65 @@ function draw(){
   else{gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);}
 }
 
+// The loop keeps exactly one pending frame in raf. The page's own clock adds up the time of each drawn frame
+// (at most 50 ms, and a third of it while Slow motion is on, so the roll's speed wave slows down with the spin),
+// so the forward roll carries on smoothly after a pause instead of jumping.
 function render(ts){
-  if(paused){raf=null;return;}
   raf=requestAnimationFrame(render);
-  const dt=ts-lastT;if(dt<16)return;
-  fpsAvg+=(1000/dt-fpsAvg)*(fpsAvg?.1:1);fpsEl.textContent=Math.round(fpsAvg)+' fps';lastT=ts;
-  if(MODE==='orbit'){ry+=SY*.01;rx+=SX*.01*(Math.sin(ts*.0003)*.5+.5);}
-  else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
+  if(last===null){last=ts;return;} // the first frame after a start only takes the time
+  const dt=ts-last;if(dt<16)return;
+  const k=slowTog.checked?1/3:1;
+  last=ts;clock+=Math.min(dt,50)*k;
+  if(MODE==='orbit'){
+    ry+=SY*.01*k;rx+=SX*.01*k*(Math.sin(clock*.0003)*.5+.5);
+  }else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
   draw();
 }
+function start(){if(raf||!gl)return;last=null;raf=requestAnimationFrame(render);}
+// While paused a setting or a resize draws the picture again, so the change shows without anything moving.
+function redraw(){if(gl&&paused)draw();}
+
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
+// Play calls start(), which carries on from the current angles.
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
+  if(paused){cancelAnimationFrame(raf);raf=null;}
+  else start();
+});
 
 init();resize();
-if(gl){
-  if(motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
-  else{draw();} // reduced motion: one static frame, object stays visible
-}
+if(gl){draw();start();}
 
-stage.addEventListener('pointermove',e=>{
+// The pointer is recorded even while paused; it turns the shape only when a frame is drawn.
+function aim(e){
   const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;
-  if(gl&&!raf&&!paused&&MODE==='mouse'){rx=mouseNY*1.2;ry=mouseNX*1.5;draw();} // reduced motion: still follows the pointer
-});
-window.addEventListener('resize',()=>{resize();if(gl&&!raf)draw();});
+}
+stage.addEventListener('pointermove',aim);
+stage.addEventListener('pointerdown',aim);
+window.addEventListener('resize',()=>{resize();redraw();});
 
-document.getElementById('mode-sel').addEventListener('change',e=>MODE=e.target.value);
-document.getElementById('obj-sel').addEventListener('change',e=>{if(!gl)return;loadGeometry(e.target.value);rx=0;ry=0;if(!raf)draw();});
-document.getElementById('sx-sl').addEventListener('input',e=>{SX=e.target.value/10;document.getElementById('sx-v').textContent=SX.toFixed(1);});
-document.getElementById('sy-sl').addEventListener('input',e=>{SY=e.target.value/10;document.getElementById('sy-v').textContent=SY.toFixed(1);});
-document.getElementById('cam-sl').addEventListener('input',e=>{DIST=e.target.value/10;document.getElementById('cam-v').textContent=DIST.toFixed(1);if(gl&&!raf)draw();});
-document.getElementById('color-pick').addEventListener('input',e=>{const h=e.target.value;COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];if(gl&&!raf)draw();});
-document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;if(gl&&!raf)draw();});
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(raf){cancelAnimationFrame(raf);raf=null;} // never leave two loops running
-  if(!paused&&gl&&motionOk){lastT=performance.now();raf=requestAnimationFrame(render);}
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+const speedSetting=document.getElementById('speed-setting'),tumbleSetting=document.getElementById('tumble-setting');
+function setRoll(){SX=tumbles?rollSpeed:0;}
+choices('shape-seg',d=>{if(!gl||d.shape===SHAPE)return;SHAPE=d.shape;loadGeometry(SHAPE);rx=TILT;ry=0;redraw();});
+// Speed and Tumbles only matter while it spins
+choices('move-seg',d=>{MODE=d.mode;speedSetting.hidden=tumbleSetting.hidden=MODE!=='orbit';});
+choices('speed-seg',d=>{SY=+d.sy;rollSpeed=+d.sx;setRoll();});
+document.getElementById('tumble-tog').addEventListener('change',e=>{tumbles=e.target.checked;setRoll();});
+choices('dist-seg',d=>{DIST=+d.dist;redraw();});
+choices('color-sw',d=>{
+  const h=d.color;
+  COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
+  redraw();
 });
+document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;redraw();});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

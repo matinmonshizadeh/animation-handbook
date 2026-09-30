@@ -1,7 +1,7 @@
 # Fluid / Liquid Simulation
 
 ## What it is
-The fluid simulation demo renders an organic blob effect — metaballs that merge softly when they come close and separate cleanly when far apart. It is not a true Navier-Stokes fluid simulation but a convincing approximation: signed distance field (SDF) spheres combined with a smooth-minimum function, rendered per-pixel in a WebGL fragment shader. The result looks like lava lamp blobs or liquid mercury.
+This fluid effect looks like liquid but is not a real fluid simulation. A WebGL shader works out, for every pixel, how far it is from a few moving circles, and blends those distances so circles that come close melt into one smooth shape, like drops of mercury or a lava lamp. Circles that drift apart separate cleanly again.
 
 ## When to use it
 - Liquid-aesthetic hero backgrounds on health, wellness, and creative product sites
@@ -53,21 +53,24 @@ vec2 ballPosition(int i, float t) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Metaball count | 5 | More = busier, more connections; 8+ at high res drops FPS |
-| Smoothness (k) | 0.08 | 0 = sharp, hard edges (no blending); 0.2 = very soft merge radius |
-| Ball radius | 0.14 | Larger = bigger blobs; overlaps more = more frequent merges |
-| Speed | 0.8 | Faster = frantic; 0.3 = meditative |
+| Melting | Medium | How far apart two blobs start to melt together: a little is 0.03, medium 0.08 and a lot 0.15 of the stage height; a lot gives thick, soft necks |
+| Number of blobs | Medium | Few is 3, medium 5 and many 8 blobs; each one adds work for every pixel |
+| Speed | Normal | How fast the blobs move on their paths: slow is 0.5, normal 0.8 and fast 1.3 |
+| Blob size | Medium | Each blob's radius: small is 9%, medium 14% and large 20% of the stage height |
+| Color | Blue | The color of the liquid |
+| Glow | on | Adds a soft halo that fades out around the liquid |
+| One blob follows the pointer | on | One blob leaves its path and sits under the pointer or a finger |
 
 ## Production notes
-- **Real fluid simulation**: Navier-Stokes-based fluid (velocity fields, pressure, diffusion) requires full-screen texture updates per frame. Pavel DoGreat's WebGL Fluid Simulation (open source) is the go-to — it renders truly interactive fluid at 60fps using a series of physics passes.
+- **Real fluid simulation**: Navier-Stokes-based fluid (velocity fields, pressure, diffusion) requires full-screen texture updates per frame. Pavel Dobryakov's WebGL Fluid Simulation (PavelDoGreat on GitHub, open source) is the go-to — it renders truly interactive fluid at 60fps using a series of physics passes.
 - **SDF metaballs are an approximation**: they look fluid but don't conserve volume, don't flow around obstacles, and don't respond to physical forces. For true fluid behavior, use a full simulation library.
-- **Performance**: each additional metaball adds a distance evaluation per pixel. On a 1920×1080 canvas with 8 balls, that's ~16 million SDF evaluations per frame. This is why mobile frame rates drop — use a lower canvas resolution on mobile. The demo caps the backing store at 2× device pixel ratio on desktop and 1.5× under 600px, which is the whole of its quality/cost dial.
+- **Performance**: each additional metaball adds a distance evaluation per pixel. On a 1920×1080 canvas with 8 balls, that's ~16 million SDF evaluations per frame. This is why mobile frame rates drop — use a lower canvas resolution on mobile. The demo caps the backing store at 2× device pixel ratio on desktop and 1.5× on phones (600px wide or less, or 500px tall or less), which is the whole of its quality/cost dial.
 - **Silent shader failure**: a shader that fails to compile throws nothing and logs nothing — you get a black canvas. Always check `COMPILE_STATUS` and `LINK_STATUS` and surface a message, as this demo does.
 - **Context loss**: `webglcontextlost` fires on a GPU reset, a driver update, or a backgrounded tab being restored. Without a listener the canvas stays black permanently. Call `preventDefault()` on the loss event, stop the loop, and rebuild the program on `webglcontextrestored`.
 - **Shadertoy**: the metaball pattern is one of the classic Shadertoy exercises. [shadertoy.com](https://www.shadertoy.com) has hundreds of metaball variants.
 - **`prefers-reduced-motion`**: pause the animation. The blobs should remain visible in their default positions.
 
 ## See also
-- [WebGL Shader Animation](../webgl-shader-animation/) — same fullscreen-quad approach, different shader patterns
-- [Canvas Particle Effect](../canvas-particle-effect/) — 2D canvas alternative for organic movement
-- [Noise-Based Motion](../noise-based-motion/) — Perlin noise for similar organic feel with less WebGL complexity
+- [WebGL Shader Animation](../webgl-shader-animation/) — the same one-surface shader setup, painting patterns
+- [Morphing Blob](../morphing-blob/) — the same melting look from blurred circles, without WebGL
+- [Noise-Based Motion](../noise-based-motion/) — smooth noise moves dots and a blob instead

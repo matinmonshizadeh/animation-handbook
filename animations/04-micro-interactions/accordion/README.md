@@ -1,7 +1,7 @@
 # Accordion Open/Close
 
 ## What it is
-An accordion is a vertically stacked list of items where each item has a clickable header that reveals or collapses its body content. The animation challenge is that the body must transition between a height of zero (collapsed) and its natural height (expanded) — and CSS cannot natively animate `height: 0` to `height: auto`. The demo shows two solutions: JavaScript measurement and the CSS `grid-template-rows` trick.
+An accordion is a stack of headings that each open to show more content below them, and close again. The hard part is the movement: the content's box has to grow from nothing to its natural height, which browsers cannot animate on their own. The demo shows two ways to do it: measure the content's height first, or let a grid row grow from nothing to its full size.
 
 ## When to use it
 - FAQ sections and documentation pages
@@ -36,7 +36,7 @@ function openItem(item) {
 }
 ```
 
-After transition, set `height: auto` so the content can reflow naturally if its size changes.
+The demo keeps that pixel height and measures again when the window is resized, and once the site font has loaded, so an open answer is never clipped. Setting `height: auto` after the transition, as the production notes below describe, lets the content reflow by itself instead.
 
 **Approach 2 — CSS `grid-template-rows`:**
 
@@ -71,20 +71,23 @@ trigger.addEventListener('click', () => {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 300ms | 150–400ms; shorter feels snappy, longer feels deliberate |
-| Easing | ease-in-out | Symmetrical for expand and collapse; ease-out for expand-only bias |
-| Single/multi open | Single | Single-open accordion is more navigable; multi-open for settings |
-| Chevron rotation | 180° | Standard indicator — point down when collapsed, up when open |
+| Speed | Normal | How long an answer takes to open or close: slow is 500ms, normal 300ms and fast 180ms |
+| Feel | Gentle | Gentle eases in and out, which suits opening and closing alike; Smooth slows at the end; Even keeps one steady speed |
+| Several open at once | off | Off closes the open answer when another opens, which keeps the list short; on suits settings pages |
+| Built with | Measured height | Measured height measures the answer before growing to it; Grid rows lets a grid row grow from nothing to its full size, with no measuring; both look the same |
+| Arrow flips | on | The arrow beside each question turns to point up while its answer is open |
+| Text fades in | off | The answer's text fades in and rises slightly while its box opens, each paragraph a moment after the one before |
 
 ## Production notes
 - **Never animate `max-height` to a large value**: the easing runs across the unused space first, making the timing unpredictable and the animation feel front-loaded. Always animate the actual height.
 - **CSS grid approach browser support**: `grid-template-rows` animation works in Chrome 107+, Firefox 107+, Safari 16+. For older browsers, fall back to the JS measurement method.
 - **Setting `height: auto` after open**: for the JS approach, listen for `transitionend` and set `height: auto` so the content can reflow (e.g., if the user resizes the window). Reset to the explicit pixel value before closing.
 - **ARIA requirements**: `aria-expanded` on the trigger, `id` on the content panel, `aria-controls` linking them, and `role="region"` on the content for landmark navigation.
-- **Stagger on reveal**: child elements inside the body can fade in with staggered delays once the height animation is underway — see the toggle in the demo.
+- **Stagger on reveal**: child elements inside the body can fade in with staggered delays once the height animation is underway — see the Text fades in setting in the demo.
 - **Radix UI Accordion**: fully accessible, keyboard-navigable, animatable via `data-state="open"/"closed"` attributes. Framer Motion's `AnimatePresence` handles entry/exit for conditionally rendered content.
+- **Why the demo animates height**: the answer's box growing is the effect itself, so this demo animates its height (or its grid row) directly, an exception to animating only transform and opacity; keep it cheap by opening one short panel at a time and keeping heavy content, such as videos or large images, out of the panel and away from what moves below it.
 
 ## See also
-- [Toggle / Switch Slide](../toggle-switch/) — simpler binary show/hide without height animation
-- [Drawer / Panel Slide](../drawer-slide/) — off-canvas equivalent of the accordion body
-- [FLIP Technique](../../03-page-transitions/flip-technique/) — height changes that need to animate other elements simultaneously
+- [Toggle / Switch Slide](../toggle-switch/) — a simple on and off with no height change
+- [Drawer / Panel Slide](../drawer-slide/) — a panel that slides in over the page instead
+- [FLIP Technique](../../03-page-transitions/flip-technique/) — moves other elements smoothly when a layout changes

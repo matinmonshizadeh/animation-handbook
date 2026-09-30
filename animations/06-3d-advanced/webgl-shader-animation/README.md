@@ -1,7 +1,7 @@
 # WebGL Shader Animation
 
 ## What it is
-WebGL shader animations run entirely on the GPU — a fragment shader executes once per pixel per frame, producing the full visual from mathematical functions alone. The vertex shader is trivial (a fullscreen quad); all the creative work happens in the fragment shader. This is the model behind Shadertoy: each demo is one fragment shader, no geometry.
+A shader animation draws a moving picture entirely on the graphics chip. One small program runs for every pixel, every frame, and works out that pixel's color from its position and the time, so the whole pattern is made of math, with no images. Each of the four patterns in the demo is one such program.
 
 ## When to use it
 - Full-canvas animated backgrounds that need GPU-level performance
@@ -24,29 +24,33 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.ST
 gl.enableVertexAttribArray(aPos);
 gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
+let t = 0, last = 0;
 function render(ts) {
+  if (last) t += Math.min(ts - last, 100) / 1000 * speed;   // add up time, so a new speed never jumps
+  last = ts;
   gl.uniform2f(uRes, W, H);
-  gl.uniform1f(uT, ts / 1000 * speed);
+  gl.uniform1f(uT, t);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   requestAnimationFrame(render);
 }
 ```
 
-**Plasma** — the simplest pattern; nested sine functions over UV coordinates:
+**Plasma** — the simplest pattern; nested sine functions over UV coordinates, and the sum picks a hue (`hsv()` turns a hue, a saturation and a brightness into a color):
 
 ```glsl
 void main() {
   vec2 uv = gl_FragCoord.xy / uRes * 2.0 - 1.0;
+  uv.x *= uRes.x / uRes.y;                       // keep the rings round on a wide stage
   float v  = sin(uv.x * 5.0 + uT)
            + sin(uv.y * 5.0 + uT * 0.7)
-           + sin((uv.x + uv.y) * 5.0 + uT * 0.3)
-           + sin(sqrt(uv.x*uv.x + uv.y*uv.y) * 6.0);
-  vec3 col = 0.5 + 0.5 * cos(v * 3.14 + vec3(0, 2.09, 4.19));
-  gl_FragColor = vec4(col, 1.0);
+           + sin((uv.x + uv.y) * 5.0 + uT * 0.5)
+           + sin(length(uv) * 6.0);              // rings around the middle
+  float hue = fract(v * 0.25 + uT * 0.05);       // the sum picks the hue; time slides it round the rainbow
+  gl_FragColor = vec4(hsv(hue, 0.9, 0.95), 1.0);
 }
 ```
 
-**Voronoi** — cellular pattern using nearest-neighbor distance in a grid:
+**Cells (Voronoi)** — cellular pattern using nearest-neighbor distance in a grid; the point in each cell drifts slowly as time runs on:
 
 ```glsl
 float voronoi(vec2 p) {
@@ -54,7 +58,7 @@ float voronoi(vec2 p) {
   float md = 8.0;
   for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
     vec2 n = vec2(x, y);
-    vec2 pt = n + rand2(i + n);          // random point in each cell
+    vec2 pt = n + rand2(i + n + uT * 0.01);   // a random point in each cell, moving with time
     md = min(md, length(pt - f));
   }
   return md;
@@ -64,10 +68,9 @@ float voronoi(vec2 p) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Time speed | 1.0× | Multiplier on `uT` uniform — faster = more energetic animation |
-| Hue shift | 0° | Rotates the entire color palette without rewriting the shader |
-| Mouse interaction | off | Feeds a normalised `M` uniform into the shader — each preset uses it differently |
-| Device pixel ratio | ≤2 (≤1.5 on mobile) | Backing-store multiplier. Capped, because fill cost scales with its square |
+| Pattern | Plasma | Plasma adds up sine waves into flowing color; Waves bends striped color; Cells splits the plane into cells around moving points; Kaleidoscope mirrors one slice around the middle |
+| Speed | Normal | How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times |
+| Reacts to the pointer | off | Each pattern bends around the pointer or a finger in its own way; in Kaleidoscope the pointer sets the number of slices |
 
 ## Production notes
 - **Always check `COMPILE_STATUS` and `LINK_STATUS`.** A shader that fails to compile throws nothing and logs nothing — `gl.drawArrays` just quietly draws nothing and you get a black canvas. Read `getShaderInfoLog` / `getProgramInfoLog` and put the message somewhere a human will see it. This demo renders the compile log into the stage; break a shader on purpose and you get the GLSL error, not a black box.
@@ -79,6 +82,6 @@ float voronoi(vec2 p) {
 - **Mouse uniform**: add `uniform vec2 uMouse` and pass `e.clientX / W, e.clientY / H` to make any shader interactive without rewriting the core algorithm.
 
 ## See also
-- [Fluid Simulation](../fluid-simulation/) — SDF-based shader, same fullscreen-quad approach
-- [Ray Marching / SDF Scene](../ray-marching-sdf/) — most complex application of the same shader pattern
-- [Noise-Based Motion](../noise-based-motion/) — canvas equivalent of procedural animated patterns
+- [Fluid / Liquid Simulation](../fluid-simulation/) — blobs drawn by the same one-surface shader setup
+- [Ray Marching / SDF Scene](../ray-marching-sdf/) — a whole 3D scene drawn by one shader
+- [Noise-Based Motion](../noise-based-motion/) — moving patterns drawn on a 2D canvas instead

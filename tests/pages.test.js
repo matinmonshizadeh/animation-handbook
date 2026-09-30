@@ -45,7 +45,7 @@ const keyParameters = d => sections(read(path.join(d.dir, 'README.md')))['Key pa
 const ENTRANCE_EXIT = '02-entrance-and-exit';
 // Categories whose demos have all moved to the guided-steps page. A demo here that lost <main class="hb-page">
 // would otherwise drop out of every check below without any failure. Add a category when its last demo is converted.
-const CONVERTED = [ENTRANCE_EXIT, '05-text-typography', '07-ambient-background'];
+const CONVERTED = [ENTRANCE_EXIT, '05-text-typography', '07-ambient-background', '06-3d-advanced', '04-micro-interactions'];
 
 // The Pause button of a loop page, exactly as in the template; {MODE} is '' (the page pauses itself) or '="css"'.
 const PAUSE = '<button class="hb-play" type="button" id="btn-pause" data-hb-pause{MODE} data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>';

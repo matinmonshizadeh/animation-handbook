@@ -1,6 +1,6 @@
 # 04 — Micro-Interactions & UI Animation
 
-Short, user-triggered animations that provide feedback, confirm actions, and communicate state. Duration is typically ≤300ms — they must feel instant, not decorative.
+Short, user-triggered animations that provide feedback, confirm actions, and communicate state. They start the moment the visitor acts and stay short (see Duration discipline below), so they feel instant, not decorative.
 
 ## Animations
 
@@ -10,7 +10,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Click / Tap Ripple](click-ripple/) | Ripple from exact click point — Material Design's tactile confirmation |
 | [Focus Ring Animation](focus-ring/) | Animated outline on keyboard Tab — :focus-visible for keyboard users only |
 | [Button Press Scale](button-press-scale/) | Scales down on press, springs back on release — asymmetric timing |
-| [Magnetic Button](magnetic-button/) | Button leans toward the cursor within a radius, label lagging for parallax |
+| [Magnetic Button](magnetic-button/) | Button leans toward the cursor within a radius, its label drifting a little further for depth |
 | [Toggle / Switch Slide](toggle-switch/) | Pill slides between on/off — smooth cubic-bezier for weighted feel |
 | [Heart / Like Burst](heart-burst/) | Heart pops and fills while small hearts burst outward on canvas |
 | [Success Confetti](success-confetti/) | Canvas confetti burst on completion — rotating rectangles with gravity |
@@ -38,7 +38,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 
 ## Key concepts
 
-**Duration discipline**: micro-interactions must complete in ≤200ms for hover states, ≤300ms for click responses, ≤400ms for loading indicators appearing. Longer durations shift perception from "feedback" to "animation."
+**Duration discipline**: Feedback should begin the moment the visitor acts and stay short: about 200ms or less for a hover change and under about 100ms for a press to show. A change that shows a new state, such as a ripple, a morph or a panel opening, usually takes 300–600ms; much longer and feedback starts to feel like decoration.
 
 **Asymmetric timing**: press events animate faster than release events (80ms press / 180ms release for button scale). Opening events are slightly slower than closing (280ms open / 220ms close for drawers). The asymmetry matches physical intuition.
 

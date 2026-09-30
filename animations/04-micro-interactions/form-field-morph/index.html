@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Form Field Morph — Animation Handbook</title>
-  <meta name="description" content="Floating label rises out of the input on focus — persists when the field is filled.">
+  <meta name="description" content="The label moves up out of the way as you type. Best for sign-up forms.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,164 +12,257 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Form Field Morph — Animation Handbook">
-  <meta property="og:description" content="Floating label rises out of the input on focus — persists when the field is filled.">
+  <meta property="og:description" content="The label moves up out of the way as you type. Best for sign-up forms.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Form Field Morph — Animation Handbook">
-  <meta name="twitter:description" content="Floating label rises out of the input on focus — persists when the field is filled.">
+  <meta name="twitter:description" content="The label moves up out of the way as you type. Best for sign-up forms.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Form Field Morph", "name": "Form Field Morph", "description": "Floating label rises out of the input on focus — persists when the field is filled.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Form Field Morph"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Form Field Morph", "name": "Form Field Morph", "description": "The label moves up out of the way as you type. Best for sign-up forms.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Form Field Morph"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--field-dur:200ms;--float-dist:22px;--label-scale:0.8;--focus-color:#58a6ff}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--field-dur:200ms;--float-dist:22px;--label-scale:0.8;--focus-color:#58a6ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:32px}
-    .form{display:flex;flex-direction:column;gap:24px;width:100%;max-width:320px}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .form{display:flex;flex-direction:column;gap:16px;width:100%;max-width:320px}
+    /* A window this short gives the stage 260px, less than the three fields need: the stage and the form give up some spacing, the fields keep their size */
+    @media(min-width:601px) and (max-height:620px){.stage{padding:8px}.form{gap:12px}}
     /* Float field */
     .float-field{position:relative;padding-top:20px}
-    .float-field label{position:absolute;left:0;top:20px;height:44px;display:flex;align-items:center;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,font-size var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
+    .float-field label{position:absolute;left:0;top:20px;height:44px;display:flex;align-items:center;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
     .float-field:has(textarea) label{top:26px;height:auto}
-    .float-field input,.float-field textarea{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
-    .float-field textarea{min-height:80px;resize:none}
+    .float-field input,.float-field textarea{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
+    .float-field textarea{min-height:56px;resize:none}
     .float-field .underline{position:absolute;bottom:0;left:0;width:100%;height:2px;background:var(--focus-color);transform:scaleX(0);transform-origin:left center;transition:transform var(--field-dur) ease}
-    .float-field:focus-within .underline{transform:scaleX(1)}
-    .float-field:focus-within label,
+    /* A field looks focused while it has the focus (:focus-within) and while Show me points at it (.is-demo); Show me never moves the real focus */
+    .float-field:is(:focus-within,.is-demo) .underline{transform:scaleX(1)}
+    .float-field:is(:focus-within,.is-demo) label,
     .float-field.filled label{transform:translateY(calc(var(--float-dist)*-1)) scale(var(--label-scale));color:var(--focus-color)}
     /* Variant 2: box input */
     .box-field{position:relative;padding-top:20px}
     .box-field label{position:absolute;left:12px;top:calc(20px + 10px);font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
-    .box-field input{display:block;width:100%;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:13px;padding:24px 12px 8px;outline:none;border-radius:6px;transition:border-color var(--field-dur) ease,background var(--field-dur) ease;min-height:56px}
-    .box-field:focus-within input{border-color:var(--focus-color);background:rgba(88,166,255,.04)}
-    .box-field:focus-within label,.box-field.filled label{transform:translateY(-12px) scale(0.78);color:var(--focus-color)}
-    /* Panel */
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:44px;text-align:right;color:var(--ui-text)}
-    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:460px}}
-    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
+    .box-field input{display:block;width:100%;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:24px 12px 8px;outline:none;border-radius:6px;transition:border-color var(--field-dur) ease,background var(--field-dur) ease;min-height:56px}
+    .box-field:is(:focus-within,.is-demo) input{border-color:var(--focus-color);background:color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)}
+    .box-field:is(:focus-within,.is-demo) label,.box-field.filled label{transform:translateY(-12px) scale(0.78);color:var(--focus-color)}
+    /* The fields show focus with their own line, label color and border, so the site focus ring (0,2,1) is switched off on them.
+       The .stage in front (0,3,1) outranks it and the stage's inward ring rule (0,3,0). */
+    .stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}
+    /* iOS Safari zooms in on a field whose text is smaller than 16px */
+    @media(pointer:coarse){.float-field input,.float-field textarea,.box-field input{font-size:16px}}
+    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field textarea,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../checkmark-draw/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../badge-pulse/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/form-field-morph/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Form Field Morph</h1>
-  <p>Floating label rises out of the input on focus — persists when the field is filled.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div class="form">
-      <div class="float-field" id="ff1">
-        <label for="inp-name">Full name</label>
-        <input id="inp-name" type="text" placeholder=" " autocomplete="off" aria-label="Full name">
-        <div class="underline"></div>
-      </div>
-      <div class="float-field" id="ff2">
-        <label for="inp-email">Email address</label>
-        <input id="inp-email" type="email" placeholder=" " autocomplete="off" aria-label="Email address">
-        <div class="underline"></div>
-      </div>
-      <div class="box-field" id="bf1">
-        <label for="inp-company">Company</label>
-        <input id="inp-company" type="text" placeholder=" " autocomplete="off" aria-label="Company">
-      </div>
-      <div class="float-field" id="ff3">
-        <label for="inp-msg">Message</label>
-        <textarea id="inp-msg" placeholder=" " aria-label="Message"></textarea>
-        <div class="underline"></div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../checkmark-draw/" rel="prev" aria-label="Previous: Checkmark Draw"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Checkmark Draw</span></a><a href="../badge-pulse/" rel="next" aria-label="Next: Notification Badge Pulse"><span><span class="hb-dir">Next: </span>Notification Badge Pulse</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.14 · Micro-Interactions</p>
+    <h1>Form Field Morph</h1>
+    <p class="hb-lede">The label moves up out of the way as you type. Best for sign-up forms.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap a field and type, or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="form">
+        <div class="float-field" id="ff-name">
+          <label for="inp-name">Full name</label>
+          <input id="inp-name" type="text" placeholder=" " autocomplete="off">
+          <div class="underline"></div>
+        </div>
+        <div class="box-field" id="ff-company">
+          <label for="inp-company">Company</label>
+          <input id="inp-company" type="text" placeholder=" " autocomplete="off">
+        </div>
+        <div class="float-field" id="ff-msg">
+          <label for="inp-msg">Message</label>
+          <textarea id="inp-msg" placeholder=" " autocomplete="off"></textarea>
+          <div class="underline"></div>
+        </div>
       </div>
     </div>
-  </div>
-  <aside>
-    <p class="note">Floating labels persist as identifiers. :placeholder-shown detects empty state in CSS. For filled state detection in JS, check input.value.length.</p>
-    <div class="lbl">Animation Duration</div>
-    <div class="sr"><input type="range" id="dur-sl" min="80" max="400" value="200" step="10"><span class="sv" id="dur-v">200ms</span></div>
-    <div class="lbl">Float Distance</div>
-    <div class="sr"><input type="range" id="dist-sl" min="14" max="32" value="22" step="1"><span class="sv" id="dist-v">22px</span></div>
-    <div class="lbl">Label Scale</div>
-    <div class="sr"><input type="range" id="scale-sl" min="65" max="90" value="80" step="1"><span class="sv" id="scale-v">0.80</span></div>
-    <div class="lbl">Focus Color</div>
-    <input type="color" id="color-pick" value="#58a6ff" aria-label="Focus color">
-    <div class="div"></div>
-    <div class="kv"><span>Filled fields</span><span class="v" id="filled-count">0 / 4</span></div>
-    <div class="div"></div>
-    <p class="note" style="opacity:.7">Row 1–2: underline style. Row 3: box / Material style. Row 4: textarea.</p>
-  </aside>
-</div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="320" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="200" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="120" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">Slow feels heavy on a long form.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="dist-lbl">How far it rises</p>
+        <div class="seg" id="dist-seg" role="group" aria-labelledby="dist-lbl">
+          <button type="button" data-px="16" aria-pressed="false">Low</button>
+          <button type="button" data-px="22" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="28" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">Far enough to clear the text you type.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="scale-lbl">Size when raised</p>
+        <div class="seg" id="scale-seg" role="group" aria-labelledby="scale-lbl">
+          <button type="button" data-s="0.7" aria-pressed="false">Small</button>
+          <button type="button" data-s="0.8" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-s="0.9" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">Smaller stays out of the way; larger reads easily.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Focus color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" aria-pressed="false" aria-label="Pink" data-c="#ff6f8b" style="background:#ff6f8b"></button>
+            <button type="button" aria-pressed="false" aria-label="White" data-c="#f4f4f2" style="background:#f4f4f2"></button>
+            <button type="button" class="on" aria-pressed="true" aria-label="Blue" data-c="#58a6ff" style="background:#58a6ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Purple" data-c="#d2a8ff" style="background:#d2a8ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Green" data-c="#56d364" style="background:#56d364"></button>
+            <button type="button" aria-pressed="false" aria-label="Orange" data-c="#ffa657" style="background:#ffa657"></button>
+          </div>
+          <p class="hb-hint">The raised label and the active line or border.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add floating labels to [the form fields you want to label]. Each label sits inside its field like a placeholder; when the field is focused or has text in it, the label moves up and shrinks so it stays visible above the text, and the field's line or border takes on the focus color. When an empty field loses focus, the label moves back down. Keep a real label element for each field so screen readers announce it, and shrink the label from its left edge so it does not drift sideways. If the visitor has reduced motion turned on, move the label without animating it. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Sign-up forms</li><li>Sign-in forms</li><li>Checkout</li><li>Settings</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long labels</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const floatFields=document.querySelectorAll('.float-field');
-  const boxFields=document.querySelectorAll('.box-field');
-  const allInputs=document.querySelectorAll('.form input,.form textarea');
-  const filledEl=document.getElementById('filled-count');
+  const stage=document.querySelector('.stage');
+  const wraps=[...stage.querySelectorAll('.float-field,.box-field')];
+  const nameWrap=document.getElementById('ff-name');
+  const nameInput=document.getElementById('inp-name');
+  const companyWrap=document.getElementById('ff-company');
+  const slowTog=document.getElementById('slow-tog');
+  const vars=document.documentElement.style;
+  const parts=[...stage.querySelectorAll('label,.underline,input,textarea')]; // what eases; toRest() switches it off for a moment
+  const typed='Ada Lovelace';
+  let f=200,runTimers=[];
 
-  function updateFilled(){
-    const n=[...allInputs].filter(i=>i.value.trim().length>0).length;
-    filledEl.textContent=n+' / 4';
+  // A field is filled when it holds more than spaces; a filled field keeps its label up after the focus has left.
+  function syncFilled(wrap){
+    wrap.classList.toggle('filled',wrap.querySelector('input,textarea').value.trim().length>0);
   }
-
-  function syncFilled(input,wrapper){
-    wrapper.classList.toggle('filled',input.value.trim().length>0);
-    updateFilled();
-  }
-
-  [...floatFields].forEach(wrap=>{
+  wraps.forEach(wrap=>{
     const inp=wrap.querySelector('input,textarea');
-    inp.addEventListener('input',()=>syncFilled(inp,wrap));
-    inp.addEventListener('blur',()=>syncFilled(inp,wrap));
-    syncFilled(inp,wrap);
-  });
-  [...boxFields].forEach(wrap=>{
-    const inp=wrap.querySelector('input');
-    inp.addEventListener('input',()=>syncFilled(inp,wrap));
-    inp.addEventListener('blur',()=>syncFilled(inp,wrap));
-    syncFilled(inp,wrap);
+    inp.addEventListener('input',()=>syncFilled(wrap));
+    inp.addEventListener('blur',()=>syncFilled(wrap));
+    syncFilled(wrap);
   });
 
-  document.getElementById('dur-sl').addEventListener('input',e=>{
-    document.getElementById('dur-v').textContent=e.target.value+'ms';
-    document.documentElement.style.setProperty('--field-dur',e.target.value+'ms');
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  // Stopping also takes back what the run did: no field looks focused and the name the run typed is gone, so a field the
+  // visitor clicks into starts empty.
+  function stopRun(){
+    runTimers.forEach(clearTimeout);runTimers=[];
+    wraps.forEach(w=>w.classList.remove('is-demo'));
+    nameInput.value='';syncFilled(nameWrap);
+  }
+  // A run starts from an empty form, put there without animating: the transitions are turned off, the fields are emptied, a reflow
+  // makes it stick, and the transitions come back.
+  function toRest(){
+    parts.forEach(el=>{el.style.transition='none'});
+    wraps.forEach(w=>{w.classList.remove('is-demo','filled');w.querySelector('input,textarea').value=''});
+    void stage.offsetWidth;
+    parts.forEach(el=>{el.style.transition=''});
+  }
+  // Full name looks focused and is typed into, one letter every 70ms once its label has risen; then Company looks focused for a
+  // moment and the name is cleared. The run only adds a class and sets values: it never moves the real focus, so it cannot take
+  // the place of a visitor who is typing. A real press on Show me lets go of a field that still has the focus (this also closes
+  // the phone keyboard); the press the shared script makes on arrival leaves a visitor who is already in a field alone.
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    const inStage=stage.contains(document.activeElement);
+    if(!e.isTrusted&&inStage)return;
+    stopRun();
+    if(inStage)document.activeElement.blur();
+    toRest();
+    later(()=>nameWrap.classList.add('is-demo'),0,0);
+    [...typed].forEach((_,k)=>later(()=>{nameInput.value=typed.slice(0,k+1);syncFilled(nameWrap)},f,100+70*k));
+    later(()=>{nameWrap.classList.remove('is-demo');companyWrap.classList.add('is-demo')},f,1300);
+    later(()=>companyWrap.classList.remove('is-demo'),2*f,2000);
+    later(()=>{nameInput.value='';syncFilled(nameWrap)},3*f,2400);
   });
-  document.getElementById('dist-sl').addEventListener('input',e=>{
-    document.getElementById('dist-v').textContent=e.target.value+'px';
-    document.documentElement.style.setProperty('--float-dist',e.target.value+'px');
-  });
-  document.getElementById('scale-sl').addEventListener('input',e=>{
-    const v=(e.target.value/100).toFixed(2);
-    document.getElementById('scale-v').textContent=v;
-    document.documentElement.style.setProperty('--label-scale',v);
-  });
-  document.getElementById('color-pick').addEventListener('input',e=>{
-    document.documentElement.style.setProperty('--focus-color',e.target.value);
-  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A Tab press from outside the form sends no
+  // hb:input (the key goes to the element that had the focus), but the run never moves the focus, so any focus arriving in the
+  // stage while it runs is the visitor's.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{f=+d.ms;vars.setProperty('--field-dur',f+'ms')});
+  choices('dist-seg',d=>{vars.setProperty('--float-dist',d.px+'px')});
+  choices('scale-seg',d=>{vars.setProperty('--label-scale',d.s)});
+  choices('color-sw',d=>{vars.setProperty('--focus-color',d.c)});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
