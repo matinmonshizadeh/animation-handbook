@@ -44,7 +44,7 @@ paths.forEach((path, i) => {
 });
 ```
 
-**Fill at end** — trigger a fill reveal after the stroke draw completes. The path has to start with `fill: transparent`, not `fill: none`: a fill can only fade from a colour, and from `none` it would snap on.
+**Fill at end** — trigger a fill reveal after the stroke draw completes. The path has to start with `fill: transparent`, not `fill: none`: a fill can only fade from a color, and from `none` it would snap on.
 
 ```js
 path.style.fill = 'transparent';        // not 'none'
