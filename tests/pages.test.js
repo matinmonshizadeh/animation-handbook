@@ -418,7 +418,8 @@ test('the home page uses Schibsted Grotesk and the new intro line', () => {
   assert.ok(HOME.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
 });
 
-// The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm.
+// The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm. Looking for the end
+// of the literal, it steps over strings and // comments, so a quote or bracket inside either does not count.
 function homeConst(name) {
   const start = HOME.indexOf(`const ${name}=`);
   assert.ok(start >= 0, `const ${name} in index.html`);
@@ -428,6 +429,7 @@ function homeConst(name) {
   for (; i < HOME.length; i++) {
     const ch = HOME[i];
     if (quote) { if (ch === '\\') i++; else if (ch === quote) quote = null; continue; }
+    if (ch === '/' && HOME[i + 1] === '/') { while (i < HOME.length && HOME[i] !== '\n') i++; continue; }
     if (ch === "'" || ch === '"' || ch === '`') quote = ch;
     else if (ch === open) depth++;
     else if (ch === close && --depth === 0) break;
@@ -456,5 +458,6 @@ test('every place holds at least one animation', () => {
 test('the eight Start cards are on the home page', () => {
   const picks = homeConst('PICKS'), slugs = new Set(Object.keys(homeConst('PLACES')));
   assert.equal(picks.length, 8);
+  assert.equal(new Set(picks).size, 8, 'the eight Start cards are all different');
   for (const slug of picks) assert.ok(slugs.has(slug), slug);
 });
