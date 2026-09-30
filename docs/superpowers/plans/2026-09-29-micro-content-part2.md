@@ -581,8 +581,12 @@ None: leave out the `details.hb-options` block.
   - [Focus Ring Animation](../focus-ring/) — a ring that follows keyboard focus
   - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
   - [Checkmark Draw](../checkmark-draw/) — the tick that says yes
-- **README How it works:** after the CSS snippet, add: "The demo writes this keyframe rule from JavaScript, so the Number of swings setting can give it as many swings as it asks for, each smaller than the last." The rest is unchanged.
+- **README How it works:** after the CSS snippet, add: "The demo writes this keyframe rule from JavaScript, so the Number of swings setting can give it as many swings as it asks for, each smaller than the last." The rest is unchanged, except that the CSS snippet now shows the six-swing set (final fix wave, below).
 - **README Production notes:** unchanged
+- **Final fix wave (after the category review):**
+  - The press the shared script makes on arrival no longer touches a visitor who is already typing. Show me's handler begins `e=>{if(!e.isTrusted&&stage.contains(document.activeElement))return;` (the guard Form Field Morph has), so a password being typed is not emptied and replaced by "abc123". A visitor's own press on Show me still runs the demo.
+  - The comment above the stylesheet's `@keyframes shake` now says what is true: `buildShake()` rewrites the rule when the page loads, with swings that decay (six by default), and the copy in the stylesheet only stands in until then (its 80% and 90% swings return to full size).
+  - README How it works: the CSS snippet is the six-swing decaying set that `buildShake(6)` writes, rounded: 0% and 100% at 0, then 14% −0.86, 29% 0.71, 43% −0.57, 57% 0.43, 71% −0.29 and 86% 0.14 times `--shake-x`. The old snippet swung back to full size at 80% and 90% while the text called the shake decaying.
 - **Category line:** `04.21 · Micro-Interactions`
 - **Pager:** Previous: Cursor Follower (`../cursor-follower/`) · Next: Swipe to Dismiss (`../swipe-to-dismiss/`)
 
@@ -733,8 +737,10 @@ None: leave out the `details.hb-options` block.
   .burger[aria-expanded="true"] .bar.bot{transform:translateY(calc(var(--bar-h)/2 - 18px)) rotate(-45deg)}
   ```
 
-  The prose stays.
+  The prose stays, except the last sentence of the first paragraph (final fix wave, below).
 - **README Production notes:** unchanged
+- **Final fix wave (after the category review):**
+  - README How it works: "Because only `transform` and `opacity` change, the morph stays on the compositor" was true of the bars only; the button's border color and the menu's visibility change too. The sentence now says the bars change only `transform` and `opacity`, so the morph stays on the compositor, and that around it the button's border turns orange with a color transition and the menu opens with `opacity` and `transform` (plus `visibility`, so a closed menu is out of reach). The page is unchanged.
 - **Category line:** `04.23 · Micro-Interactions`
 - **Pager:** Previous: Swipe to Dismiss (`../swipe-to-dismiss/`) · Next: Theme Toggle Morph (`../theme-toggle-morph/`)
 
@@ -936,7 +942,11 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
   - [Toggle / Switch Slide](../toggle-switch/) — another small control that animates its state
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** unchanged, except the last sentence of the Touch targets bullet (final fix wave, below)
+- **Final fix wave (after the category review):**
+  - The row's focus rule keeps a transparent outline: `.stage .rate:focus-visible{outline:2px solid transparent;…}` in place of `outline:none`, as on Segmented Control. Forced-colors mode removes `box-shadow`, so the row had no focus ring there; now the outline shows as a ring in the system color. Outside forced-colors mode the box-shadow ring looks exactly as before and the transparent outline is invisible.
+  - The rule that wraps more than five stars into two equal rows now covers windows up to 870px wide (was 845px). With classic scrollbars, ten stars wrapped nine and one between 846px and 863px: they fit one row from 864px (846px without scrollbars), and 870px leaves room for wider scrollbars. Up to 870px ten stars now sit in two rows of five.
+  - README Touch targets: the last sentence no longer says hover styling is gated behind `(hover: hover)`, because the page has had no `:hover` rule since 89c0379. It says there is no CSS `:hover` style, so nothing stays painted after a tap, that the preview comes from `pointermove`, and that a finger's drag asks `document.elementFromPoint` which star is under it.
 - **Category line:** `04.26 · Micro-Interactions`
 - **Pager:** Previous: Copy to Clipboard (`../copy-to-clipboard/`) · Next: Toast Notification (`../toast-notification/`)
 

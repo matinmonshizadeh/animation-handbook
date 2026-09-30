@@ -15,8 +15,10 @@ has opened without swapping to a different icon.
 The bars are three absolutely positioned spans stacked inside a fixed-height
 box. Toggling `aria-expanded` on the button flips the styling: the outer bars
 translate to the vertical center and rotate ±45°, and the middle bar drops its
-opacity. Because only `transform` and `opacity` change, the morph stays on the
-compositor.
+opacity. Because the bars change only `transform` and `opacity`, the morph stays
+on the compositor; around it, the button's border turns orange with a color
+transition, and the menu opens with `opacity` and `transform` (plus
+`visibility`, so a closed menu is out of reach).
 
 ```css
 .bar{transition:transform var(--dur) var(--ease),opacity calc(var(--dur)*.6) var(--ease)}

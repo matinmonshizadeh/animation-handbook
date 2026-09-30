@@ -38,7 +38,7 @@ The pointer position within a star decides the value — left half rounds to `.5
 - **Keyboard**: arrow keys step by the current increment, Home clears to 0, End jumps to max. The control must be focusable (`tabindex="0"`) and show a visible focus ring — rating with the mouse only is not enough.
 - **Don't rely on color alone**: fill is reinforced by the numeric readout below the row so the value survives for colorblind users and greyscale. Never encode the score in hue by itself.
 - **Half-star handling**: resolve the half from the pointer's horizontal position inside the hovered star, and keep the committed value and the hover preview separate so leaving the row restores the committed rating rather than a stray hover state.
-- **Touch targets**: each star box is at least 44×44px and the control uses Pointer Events, so hover-preview and tap-to-commit both work on touch. Hover styling is gated behind `@media (hover: hover)`.
+- **Touch targets**: each star box is at least 44×44px and the control uses Pointer Events, so hover-preview and tap-to-commit both work on touch. There is no CSS `:hover` style, so nothing stays painted after a tap; the preview comes from `pointermove`, and a finger's drag asks `document.elementFromPoint` which star is under it.
 - **Library equivalents**: Framer Motion can drive the pop with a `whileTap`/`animate` scale spring; many form kits (e.g. rating inputs in headless UI libraries) ship the radiogroup semantics so you only style the stars.
 
 ## See also
