@@ -16,8 +16,8 @@ prompt to paste into an AI assistant, so the site itself shows no code.
   in one HTML file; the page around it comes from two shared files (below).
 - **No external dependencies in demos.** No CDN GSAP, no jQuery. If a
   technique requires a library in production, mention that in the README
-  but demonstrate the principle with vanilla code. A page links only the two
-  shared files and the site font, all inside this repository.
+  but demonstrate the principle with vanilla code. A page loads only files from
+  this repository: the two shared files, the site font and the site icons.
 - **Keep demos under ~300 lines total.** If it's longer, the explanation
   has failed.
 - **Demos must work offline.** Open the HTML in a browser, it runs (from a
@@ -26,13 +26,13 @@ prompt to paste into an AI assistant, so the site itself shows no code.
 ## File template for each animation
 
 ### `index.html` structure
-A page is one HTML file: the demo's own markup, `<style>` and `<script>` placed
-inside the shared guided-steps page. Copy the closest existing page of the same
-kind (see Page kinds) and change the demo, its settings and its texts. The tests
-check the shared markup, and the player bar buttons character by character, so
-do not retype them. Good starting points: `02-entrance-and-exit/rotate-in`
-(plays once), `07-ambient-background/aurora` (loops),
-`04-micro-interactions/checkmark-draw` (do it) and
+A page is one HTML file. The demo's own CSS is in a `<style>` and its JS in a
+`<script>` in that file, inside the shared guided-steps page. Copy the closest
+existing page of the same kind (see Page kinds) and change the demo, its settings
+and its texts. The tests check the shared markup, and the player bar buttons
+character by character, so do not retype them. Good starting points:
+`02-entrance-and-exit/rotate-in` (plays once), `07-ambient-background/aurora`
+(loops), `04-micro-interactions/checkmark-draw` (do it) and
 `01-scroll-based/snap-scrolling` (scroll).
 
 The `<head>` holds `<title>Name — Animation Handbook</title>`, the canonical
@@ -177,6 +177,13 @@ Copy prompt copies the prompt, a blank line, and `Settings from the demo: label:
 value, label: value.` If the browser blocks the clipboard the script falls back to
 an off-screen text box, and last to selecting the prompt. On phones the prompt
 shows five lines with "Show the full prompt".
+
+#### Colors
+The demo's own styles use CSS variables for colors and default to a dark stage
+with light cards. Each page sets `--ui-accent` in `:root` to its category's color,
+and the shared stylesheet uses it for the step numbers, the category line, chips,
+focus rings and pressed buttons: 01 `#6ea8ff`, 02 `#5fd88a`, 03 `#b98cff`,
+04 `#ff9d5c`, 05 `#ff6f8b`, 06 `#3fd6c4`, 07 `#ffce5a`.
 
 #### Font
 The site font is Schibsted Grotesk, self-hosted in `assets/fonts/` and loaded by
