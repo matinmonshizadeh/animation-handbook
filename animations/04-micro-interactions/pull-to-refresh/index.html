@@ -275,7 +275,7 @@
     indicator.classList.add('ready');
     hint.textContent='Refreshing…';
     spin.style.transform='';spin.classList.add('spinning');
-    statusEl.textContent='Refreshing…';
+    if(!demoRefresh)statusEl.textContent='Refreshing…';   // Show me's refresh says nothing aloud
     refreshFrom=performance.now();
     refreshTimer=setTimeout(finishRefresh,dur);
   }
@@ -287,9 +287,10 @@
     spin.classList.remove('spinning');
     pull=0;setY(0,true);drawSpin();
     refreshing=false;
+    // Show me's refresh says nothing aloud, because nothing was really updated: its new item shows for 1.5 s, whatever Refresh time became,
+    // then the list is put back to its first six items
+    if(demoRefresh){demoRefresh=false;later(toRest,0,1500);return}
     statusEl.textContent='Updated — 1 new item added.';
-    // Show me's refresh: its new item shows for 1.5 s, whatever Refresh time became, then the list is put back to its first six items
-    if(demoRefresh){demoRefresh=false;later(toRest,0,1500)}
   }
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
@@ -299,7 +300,7 @@
     const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move+(hold||0));
     runTimers.push(id);
   }
-  // A run is under way while a timer or the drawn frame is pending, and while its own refresh is (demoRefresh: from the release to the clean-up).
+  // A run is under way while a timer or the drawn frame is pending, and while its own refresh is (demoRefresh: from the release until the new item arrives; the clean-up after it is a run timer).
   function running(){return runTimers.length>0||runFrame!==0||demoRefresh}
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;demoRefresh=false}
   // A run starts with the first six items, the list at the top and nothing pulled, put there without animating: the transitions are
