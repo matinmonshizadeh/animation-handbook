@@ -42,8 +42,16 @@ the scroll position is stored as a *target* and the rendered value eases toward
 it a fraction at a time, which turns those discrete steps into continuous motion:
 
 ```js
-current += (target - current) * EASE;   // inside a requestAnimationFrame loop
+const dt = last ? Math.min(now - last, 50) : FRAME;                    // FRAME = 1000 / 60; time since the last frame
+current += (target - current) * (1 - Math.pow(1 - EASE, dt / FRAME));  // inside a requestAnimationFrame loop
 ```
+
+`EASE` is the share of the distance covered in 1/60 s, and a frame that lasted
+`dt` covers `1 - Math.pow(1 - EASE, dt / FRAME)` of what is left. The layers
+therefore settle in the same time on a 30, 60 or 120Hz screen; a fixed share per
+frame would settle twice as fast at 120Hz and half as fast at 30Hz. The first
+frame after the loop restarts counts as 1/60 s, and `dt` is capped at 50ms so a
+hidden tab does not make the layers jump.
 
 The loop only runs while the two values differ, so an idle page costs nothing.
 
@@ -58,7 +66,7 @@ layers do not rewind through the whole focus pull.
 | Focus | Follows the scroll | Sharp on the sky at the top of the scroll and on the front ridge at the end; each layer blurs by its distance from it |
 | Strongest blur | 14px (8px on phones) | The blur of a layer as far from the focus as a layer can be |
 | Layer travel | 19% of the box's height (12.5% on phones) | What the layers' sinking is measured against: over the whole scroll the front ridge sinks 70% of it, the hills 45%, the mountains 25%, the far peaks 10% and the sky not at all |
-| Easing | 14% a frame | How much of the remaining distance the layers cover each frame; lower is smoother but lags more |
+| Easing | 14% per sixtieth of a second | How much of the remaining distance the layers cover in a sixtieth of a second; a longer frame covers more, so the layers settle in the same time on every screen; lower is smoother but lags more |
 | Pinned scene | Three box heights of scrolling | How much scrolling the whole focus pull takes |
 
 ## Production notes
