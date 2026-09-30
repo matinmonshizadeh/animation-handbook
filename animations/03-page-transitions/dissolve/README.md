@@ -45,7 +45,7 @@ Each tile's inline style bakes the normalized delay into a real transition: `tra
 
 ## Production notes
 - **Random needs a stable order.** Shuffling the tile order once and mapping each tile to its rank keeps the pattern coherent; re-randomizing per frame would flicker. This demo shuffles a single order array and reuses it.
-- **Tile count is a cost knob.** A 16×16 grid is 256 animated elements — still cheap because each only transitions `opacity`, but pushing much finer starts to cost layout and memory. Beyond ~24×24 a canvas or a noise-texture mask is a better tool.
+- **Tile count is a cost knob.** A 16×16 grid is 256 animated elements. The fades themselves are cheap, because each tile only transitions `opacity`, but creating and styling that many elements makes the frame that starts the dissolve slow on phones, so the demo draws Small as 10×10 there. Much finer grids also cost layout and memory; beyond ~24×24 a canvas or a noise-texture mask is a better tool.
 - **Swap timing.** The page underneath is swapped while enough tiles are opaque to hide it (here at ~60% of the duration). Swap too early and the incoming page shows through gaps; too late and the reveal feels delayed.
 - **Library equivalents.** The View Transitions API can dissolve with a masked `::view-transition-old` but does not offer per-tile stagger out of the box — a generated mask image is the native route. GSAP's `stagger` with a `grid` and `from: 'random'` reproduces this directly. Shader-based dissolves sample a noise texture against a rising threshold, which is the same idea at pixel granularity.
 

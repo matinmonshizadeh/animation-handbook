@@ -588,7 +588,7 @@ None: leave out the `details.hb-options` block.
   - No rise starts less than 500ms after the previous rise began (`MIN_CYCLE`). The page keeps the time of the last rise (`lastRise`).
   - A change asked for sooner waits, with the overlay at 0 and the pages unchanged, and its rise starts when the 500ms are over. `settle()` cancels a waiting rise, and the next change measures from the same `lastRise`, so no input can start two rises too close together. This covers page names, Show me (clicked, or held with the key repeating) and Reset followed by a page name.
   - `settle()` still puts the demo at rest at once (the overlay is at 0 immediately); only a new rise waits. A waiting rise belongs to the change under way, so `hb:input` does not cancel it.
-  - In normal use the wait is not noticed: nothing waits at Normal (520ms a flash) or Slow (830ms), a Show me run holds 1200ms between its flashes, and at Fast (310ms a flash) a page name clicked right after a flash waits at most 190ms. It matters when Show me or Reset is pressed over and over. The fade-out timer stays `flashOut`.
+  - In normal use the wait is not noticed: a page name clicked after a flash has ended never waits at Normal (520ms a flash) or Slow (830ms), a Show me run holds 1200ms between its flashes, and at Fast (310ms a flash) a page name clicked right after a flash waits at most 190ms. It matters when Show me or Reset is pressed over and over, or a page name is clicked during a flash they cut short. The fade-out timer stays `flashOut`.
 - **Reduced motion:** the demo's rule `#flash-overlay{display:none}` and its `motionOk` branch stay: the pages swap at once with no flash. Show me swaps to Work and back.
 - **Stage font:** site font.
 - **Stage:**
@@ -649,9 +649,11 @@ None: leave out the `details.hb-options` block.
   - In the snippet, the `requestAnimationFrame(() => {` line and its closing `});` go. The two fade-out lines they held stay in the timer callback, right after the page swap.
   - The sentence "The swap is deferred to a `requestAnimationFrame` after the class change so the browser commits the new transition before starting the fade-out." becomes "The fade-out sets its own transition in the same step as the new opacity, so it runs over `flashOut` rather than `flashIn`."
   - One sentence follows it: "No flash starts less than half a second after the previous one began, whatever is pressed (page names, Show me or Reset), so the demo never flashes more than twice a second; a change asked for sooner waits for that moment with the overlay clear."
+  - The snippet also follows the page's signature and glow: the function is `doTransition(prev, next, flashIn, flashOut)` (the page passes the two times it read when the flash started, three times as long in slow motion), and two `blur-on` lines are added, `flashEl.classList.toggle('blur-on', blurTog.checked);   // the optional glow` right after the rise's `transition` line and `flashEl.classList.remove('blur-on');` after the fade-out's opacity line.
 - **README Production notes:** unchanged
 - **Category line:** `03.07 · Page Transitions`
 - **Pager:** Previous: Zoom Transition (`../zoom-transition/`) · Next: Blur Transition (`../blur-transition/`)
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. In this sheet, the flash-rate line now says that a page name clicked after a flash has ended never waits, and a README bullet records the snippet's signature and its `blur-on` lines.
 
 ---
 
@@ -731,9 +733,14 @@ None: leave out the `details.hb-options` block.
     ```
 
   - The sentence "An "overlap" option starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time roughly in half while the two stages cross." becomes "The Overlaps the two halves setting starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time by about a quarter while the two halves cross."
+  - The snippet also follows the page's signature and settings:
+    - The function is `doTransition(prev, next, dur, ease, maxBlur)`: the page passes the three values it read when the change started (`dur` three times as long in slow motion).
+    - It reads the two switches with `const withFade = fadeTog.checked, overlap = overlapTog.checked;` (the snippet used both names without defining them), and builds one string for both pages' `transition`: ``const t = `filter ${dur}ms ${ease}` + (withFade ? `, opacity ${dur}ms ${ease}` : '');``. Opacity is in it only when the pages fade. `o.style.transition = t;` and `n.style.transition = t;` replace the two fixed strings, which always named opacity.
+    - At the swap the old page also gets `o.style.opacity = '0'`, on the line with `o.classList.remove('active');`, as the page does.
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`.** …" becomes "**Commit the start state.** Setting the pre-blur with `transition: none` and then turning the transition on needs a forced reflow in between (reading `offsetWidth`); without it the browser merges the two writes and the page pops in sharp." The rest is unchanged.
 - **Category line:** `03.08 · Page Transitions`
 - **Pager:** Previous: Flash / Light Leak Transition (`../flash-transition/`) · Next: Elastic Transition (`../elastic-transition/`)
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. In this sheet, a README bullet now records the snippet as the page has it.
 
 ---
 
@@ -833,6 +840,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - 1200ms after the opening ends (the `dur+50` timer), it goes back to the page it started from the way a click on that page's name does, with the circle opening from the middle of the page area.
   - This takes about 3.7s.
   - `hb:input` cancels the way back.
+  - A visitor who tabs into the box during a run takes over too. Shift+Tab from Show me lands on the portal of the page on show, and that sends no `hb:input`, so a trusted `focusin` on the stage does the same job: it clears `afterMove` and the way-back timer and the visitor's focus stays where they put it. The page's own focus move (see Stage) is wrapped in an `ownFocus` flag that this listener ignores, because a script's `focus()` sends a trusted `focusin` too; without the flag that move would stop the run after its first opening.
 - **Reset:** yes. Home at once; every page's `clipPath`, `transition` and `zIndex` are cleared.
 - **Slow motion:** multiplies `dur` by 3, along with that part of the timer.
 - **Reduced motion:** the demo's `motionOk` branch stays: the pages swap at once. Its CSS rule `#zoom-mask{transition:none!important}` goes with the mask. Show me swaps to Gallery and back.
@@ -842,10 +850,15 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - The unused `#zoom-mask` goes, with its CSS and its `--dur` and `--ease` variables. It never shows: the reveal is the incoming page's own `clip-path`.
   - **The portal moves to the top-right corner.** In the shorter shared stage its old bottom-right spot covers the Gallery grid (the grid reaches 226px of the laptop's 260px page area, and the portal starts at 148px). Its position and size move from the inline style into the `.portal` rule, and only the page's portal colour stays inline:
     - computers and tablets: `top:24px;right:24px;width:80px;height:80px`;
-    - phones (`@media (max-width:600px)`): `top:16px;right:16px;width:64px;height:64px`.
+    - phones and short windows (`@media (max-width:600px),(max-height:640px)`): `top:16px;right:16px;width:64px;height:64px`;
+    - short windows wider than a phone (`@media (max-height:640px) and (min-width:601px)`): `top:8px`, because the page area there is under 220px. A portrait phone up to 640px tall keeps its 16px; measured, the circle stays at least 24px from any text or tile at 320px wide, 48.8px at 360×640 and 51.5px at 568×320. Every short window (`@media (max-height:640px)`) also tightens the pages' spacing, `.pc{gap:8px}.gi{padding:12px}`.
   - The portal's label moves from its inline style (9px at `opacity:.6`) into the existing, unused `.portal-label` rule, which becomes `font-size:11px;opacity:.8;text-align:center;padding:4px;line-height:1.3;pointer-events:none`: 4.1:1 on the Gallery portal becomes 5.9:1.
   - The Home page keeps its line "Click the portal to travel to the gallery."
   - `--hb-stage-h-phone:360px`: at 320px wide, the About heading reaches under a top-right portal on the 300px stage; 360px clears it.
+  - **Each portal is a real button:** `<button type="button" class="portal">` (it was a `div`), with `color:inherit;font:inherit` so its label looks as before. It is in the Tab order, Enter and Space open the next page, and the site's focus ring shows on it.
+  - **Pages that are not on show are `visibility:hidden`** (with `opacity:0` and `pointer-events:none`), so the portal on such a page is not a Tab stop and not in the accessibility tree. A page is visible again the moment it gets `active`, which is when its opening starts.
+  - **Focus follows the opening.** When an opening ends and the focus was on the portal of the page that is now hidden, `finish()` moves it to the portal of the page on show, so a keyboard visitor keeps their place. The move sits between `ownFocus=true` and `ownFocus=false` (see Show me).
+  - **Reduced motion** also switches off the portal's hover grow (`transition:transform .2s ease`, on `@media (hover:hover)` only) with `@media (prefers-reduced-motion:reduce){.portal{transition:none}}`.
   - `.pstat b` stays `var(--ui-accent)`.
 
 **Main settings**
@@ -895,6 +908,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README Production notes:** unchanged
 - **Category line:** `03.10 · Page Transitions`
 - **Pager:** Previous: Elastic Transition (`../elastic-transition/`) · Next: Dissolve Transition (`../dissolve/`)
+- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. The rule that lifts the portal to 8px from the top now applies only to short windows wider than 600px, so a portrait phone up to 640px tall keeps the portal at 16px (it had 8px).
 
 ---
 
@@ -977,9 +991,10 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   ```
 
   The rest is unchanged.
-- **README Production notes:** unchanged
+- **README Production notes:** the bullet "**Tile count is a cost knob.**" is rewritten, because "still cheap" contradicted the phone cap (see Phones). It becomes "**Tile count is a cost knob.** A 16×16 grid is 256 animated elements. The fades themselves are cheap, because each tile only transitions `opacity`, but creating and styling that many elements makes the frame that starts the dissolve slow on phones, so the demo draws Small as 10×10 there. Much finer grids also cost layout and memory; beyond ~24×24 a canvas or a noise-texture mask is a better tool." The rest is unchanged.
 - **Category line:** `03.11 · Page Transitions`
 - **Pager:** Previous: Portal / Tunnel Zoom (`../portal-zoom/`) · Next: FLIP Technique (`../flip-technique/`)
+- **Final fix wave:** the page is unchanged; only the README's Production notes bullet on tile count was corrected, as recorded above.
 
 ---
 
@@ -1001,8 +1016,8 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **Stage font:** site font.
 - **Stage:**
   - The toolbar and the card grid stay; the Invert badges go (`.invert-badge` and each card's badge element).
-  - Toolbar buttons (`.tb-btn`): 13px text, `padding:0 10px`, `min-height:44px` at every size, in `var(--ui-muted)`; the active layout stays in the accent colour.
-  - Toolbar labels become plain words: "Shuffle", "Sort by color", "Sort by size", "3 columns", "2 columns", "List" (were "⟳ Shuffle", "3 cols", "2 cols"). The six fit on one line on computers and tablets and on two lines on 375px and 320px phones (measured).
+  - Toolbar buttons (`.tb-btn`): 13px text, `padding:0 10px`, `min-height:44px` and `min-width:44px` at every size, in `var(--ui-muted)`; the active layout stays in the accent colour. `min-width:44px` matters for List, which is 42.9px wide without it. On phones narrower than 360px a spacing rule, `@media(max-width:359px){.stage-toolbar{gap:4px;padding:10px 8px}}`, keeps the six buttons on two lines (at 320px they take three without it).
+  - Toolbar labels become plain words: "Shuffle", "Sort by color", "Sort by size", "3 columns", "2 columns", "List" (were "⟳ Shuffle", "3 cols", "2 cols"). The six fit on one line on computers and tablets and on two lines at 375 and 320px with those rules (measured).
   - `.card-meta` goes from `opacity:.5` to `.8`: 3.0:1 becomes 5.1:1 on the cards. `.card-num`, the large faint number, is decoration and stays.
   - **The cards get shorter** so the default layout fits the laptop's first screen: in `renderCards()`, 110px for tall cards and 86px for short ones (were 140px and 110px); list rows stay 56px.
   - `#card-grid` gets `min-height:var(--rows-h)`, with `--rows-h:230px`, the height of the three-column grid, and `--rows-h:350px` in two columns (`data-columns="2"`, which `renderCards()` sets on the grid), the height of that grid in the starting order, so a new order never changes the stage height. Sorted by size the two-column grid is only 326px: without its own minimum the player bar jumped up 24px when the first glide of a Show me run ended, and back down when the way back began. It also gets `align-content:start`. Without it the grid spreads any extra height over its rows. In a scratch grid in headless Chrome, a 440px min-height moved the second row from 120px down to 225px. Then Sort by size would space the rows apart, and the hold below would glide the cards to stretched rows and make them jump when it is released.
@@ -1073,6 +1088,7 @@ None: leave out the `details.hb-options` block.
 
   - "The double `requestAnimationFrame` guarantees the inverted (start) state is committed before the transition to zero begins." becomes "Reading `offsetWidth` between Invert and Play makes the browser apply the inverted (start) positions before the transition to zero begins."
   - In the snippet, the INVERT block reads every card's rect before it writes anything, as the page does and as the Production notes' "Read then write, once" says: `const last = newCards.map(c => c.getBoundingClientRect());` before the loop, then `newCards.forEach((c, i) => { const f = first[c.id]; const dx = f.left - last[i].left, dy = f.top - last[i].top; …` inside it.
-- **README Production notes:** unchanged
+- **README Production notes:** the start of the "**Library equivalents.**" bullet changes, because `<AnimatePresence>` is Framer Motion's component for items that leave and is not FLIP itself. "React's `<AnimatePresence>` and Framer Motion's `layout` prop implement FLIP automatically for layout changes." becomes "Framer Motion's `layout` prop implements FLIP automatically for layout changes (its `AnimatePresence` handles items that leave)." The rest is unchanged.
 - **Category line:** `03.12 · Page Transitions`
 - **Pager:** Previous: Dissolve Transition (`../dissolve/`) · Next: none
+- **Final fix wave:** the page is unchanged. The README's library line was corrected, and the toolbar lines above now record the two rules the page has (`min-width:44px` and the spacing rule below 360px).
