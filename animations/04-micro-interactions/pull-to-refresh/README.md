@@ -10,12 +10,12 @@ Pull to refresh reloads a list when you drag it down from its top. As you pull, 
 - Anywhere the content is already scrollable from the top, so the gesture has room to start
 
 ## How it works
-The list lives in a scroller and is moved, together with the spinner's zone above it, by a single `translateY`. On `pointerdown` the start Y is recorded for that pointer; on `pointermove` the gesture is only *claimed* once the finger has moved down and the scroller is already at the top (`scrollTop <= 0`), which keeps normal scrolling intact everywhere else. The raw drag distance is passed through a rubber-band function so the list tracks the finger closely at first and fights back harder the further it is pulled:
+The list lives in a scroller and is moved, together with the spinner's zone above it, by a single `translateY`. On `pointerdown` the start Y is recorded for that pointer; on `pointermove` the gesture is only *claimed* once the finger has moved down and the scroller is already at the top (`scrollTop <= 0`), which keeps normal scrolling intact everywhere else. The raw drag distance is passed through a rubber-band function: the list follows the finger one to one at first and fights back harder the further it is pulled, and the resistance setting only decides how fast it stiffens:
 
 ```js
-function resist(dy){                 // near 1:1 at first, asymptotic as it grows
-  const max = threshold * 2.2;
-  return max * dy / (dy + max * resistance);
+function resist(dy){                 // 1:1 at first, stiffer as it grows; resistance sets how fast
+  const max = threshold * (1 + 2.4 / resistance);
+  return max * dy / (dy + max);
 }
 
 scroller.addEventListener('pointermove', e => {

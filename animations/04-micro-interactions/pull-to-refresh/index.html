@@ -205,7 +205,7 @@
   const INDH=64;                       // resting offset held while refreshing
   let threshold=64,resistance=2,dur=1200;
   let startY=0,pid=null,pulling=false,pull=0,refreshing=false,refreshTimer=0,refreshFrom=0,n=0;
-  let runTimers=[],runFrame=0;
+  let runTimers=[],runFrame=0,demoRefresh=false;
 
   const SEED=['Design review moved to 3pm','Your order has shipped','Ana replied to your comment','Weekly report is ready','Invoice from Northwind paid','Team notes posted'];
   function el(tag,cls,text){const e=document.createElement(tag);e.className=cls;if(text)e.textContent=text;return e}
@@ -223,8 +223,8 @@
     scroller.style.transition=indicator.style.transition=t;
     scroller.style.transform=indicator.style.transform='translateY('+y+'px)';
   }
-  // Rubber-band: near 1:1 at first, asymptotic as the drag grows.
-  function resist(dy){const max=threshold*2.2;return max*dy/(dy+max*resistance)}
+  // Rubber-band: the list follows the finger 1:1 at first and stiffens as the drag grows; Resistance sets how fast.
+  function resist(dy){const max=threshold*(1+2.4/resistance);return max*dy/(dy+max)}
   function drawSpin(){
     const p=Math.min(pull/threshold,1);
     spin.style.opacity=String(p);
@@ -288,6 +288,8 @@
     pull=0;setY(0,true);drawSpin();
     refreshing=false;
     statusEl.textContent='Updated — 1 new item added.';
+    // Show me's refresh: its new item shows for 1.5 s, whatever Refresh time became, then the list is put back to its first six items
+    if(demoRefresh){demoRefresh=false;later(toRest,0,1500)}
   }
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
@@ -297,8 +299,9 @@
     const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move+(hold||0));
     runTimers.push(id);
   }
-  function running(){return runTimers.length>0||runFrame!==0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0}
+  // A run is under way while a timer or the drawn frame is pending, and while its own refresh is (demoRefresh: from the release to the clean-up).
+  function running(){return runTimers.length>0||runFrame!==0||demoRefresh}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;demoRefresh=false}
   // A run starts with the first six items, the list at the top and nothing pulled, put there without animating: the transitions are
   // turned off, the state is set, a reflow makes it stick, and the transitions come back. A refresh under way ends here too.
   function toRest(){
@@ -323,8 +326,8 @@
       runFrame=k<1?requestAnimationFrame(frame):0;
     })(t0);
   }
-  // Once the new item has been showing for 1.5 s the list is put back to its first six items, so the run ends at rest.
-  function release(){startRefresh();later(toRest,0,dur+1500)}
+  // The release starts the refresh as the visitor's would and marks it as the run's, so finishRefresh() ends the run at rest.
+  function release(){demoRefresh=true;startRefresh()}
   $('btn-demo').addEventListener('click',()=>{
     if(refreshing)return;                      // a refresh under way finishes on its own
     stopRun();

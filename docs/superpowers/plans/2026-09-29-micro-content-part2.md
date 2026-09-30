@@ -1091,14 +1091,15 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Reset. No Slow motion: the pull follows the visitor's hand, and the spinner turns for as long as the refresh takes.
 - **Show me:** while a refresh is under way, Show me does nothing. Otherwise `toRest()` puts the list back to its six first items (`n` back to 0) and scrolls it to the top, as Reset does. The page has no Slow motion, so each step is a hold. Then:
   - at once, over 700ms, frame by frame through `runFrame`: `pull` eases from 0 to 1.25 × Pull distance, slowing as it goes like the rubber band. Each frame calls `setY(pull,false)` and `drawSpin()`, so the spinner fades in and turns, and the hint reads "Release to refresh" past the line;
-  - `later(release, 0, 850)`: `startRefresh()`, as a release past the line does. It spins for Refresh time, adds the new item at the top and springs back;
-  - the run ends with that step; the refresh then finishes on its own, and the list is back up about 2.4 s after the press at the defaults.
+  - `later(release, 0, 850)`: `release()` marks the refresh as the run's (`demoRefresh=true`) and calls `startRefresh()`, as a release past the line does. It spins for Refresh time, adds the new item at the top and springs back; the list is back up about 2.4 s after the press at the defaults;
+  - when that refresh ends, `finishRefresh()` clears `demoRefresh` and runs `later(toRest, 0, 1500)`: the new item shows for 1.5 s, then `toRest()` puts the list back to its six first items, so the run ends at rest, as the preamble says of every run. The step is scheduled as the item arrives, not at the release, so a Refresh time changed during the refresh is counted and the item always shows its full 1.5 s. About 3.6 s after the press at the defaults (3.1 s at Short, 4.4 s at Long). The browser check needs this step: it compares the stage before and after a run, and under reduced motion nothing has run before it, so a run that leaves a seventh item could never match.
 
-  On `hb:input` during the pull: `stopRun()`, then `pull=0; setY(0,true); drawSpin()`, so the list springs back and the visitor's own drag takes over. Once the refresh has started, it finishes as usual.
+  `running()` is also true from the release until the clean-up has run (`demoRefresh`), and `stopRun()` also clears `demoRefresh`. On `hb:input`: `stopRun()`, so no clean-up follows. During the pull the list then springs back, `pull=0; setY(0,true); drawSpin()`, and the visitor's own drag takes over. Once the refresh has started, it finishes as usual and its new item stays (no spring back is drawn while `refreshing`).
 - **Reset:** puts the list back to its six first items (the new ones go, `n` returns to 0) and scrolls it to the top, after `stopRun()`. A refresh under way ends at once: `startRefresh()` keeps its timer in `refreshTimer`, which Reset clears; then the spinner stops, `refreshing` becomes false and the list is set back to 0 without a transition.
 - **Slow motion:** none.
 - **Reduced motion:** the demo's rules stay: the list snaps back without its tween, and new items appear without sliding in.
 - **Touch:** already Pointer Events, claimed only at the top of the list, with `touchmove` blocked once the pull is claimed. The list still scrolls normally.
+- **Pull curve:** today's `resist()` moved the list at 1/Resistance of the finger from the first pixel, and the line was 1.83 × Pull distance × Resistance of finger travel away: 235px at Medium/Medium, about the whole height of the feed (201px on the 260px stage, 241px on phones, 268 to 381px on the others). At the defaults a drag that stayed inside the stage refreshed only at 1280×800. The curve becomes `function resist(dy){const max=threshold*(1+2.4/resistance);return max*dy/(dy+max)}`: the list follows the finger 1:1 at first and stiffens as the drag grows, and Resistance only sets how fast. Pull distance is still the pull after the curve, and the line is `threshold × (1 + resistance / 2.4)` of finger travel away. For Short · Medium · Long that is 68 · 91 · 113px at Low, 88 · 117 · 147px at Medium and 108 · 144 · 180px at High (checked in Chrome: 3px less springs back, 3px more refreshes). A drag from the middle of the first card to 4px above the stage's bottom edge (about 160px of room on the 260px stages, 200px on phones, 227px at 1366×657, 280px at 1280×800) therefore refreshes at the defaults on every stage, with a mouse and with a finger, and a 60px drag still springs back. Every combination refreshes inside the stage except Long/High (180px) on the two 260px stages, the "long drag" the README names. Show me sets `pull` itself, so it does not change.
 - **Stage font:** site font. The new Refresh button gets `font-family:inherit`. `.indicator` and `.meta .s` go up to 11px (were 10px).
 - **Stage:** the list scrolls inside its own box. The stage's own rule keeps `position:relative;overflow:hidden` and adds `display:flex;flex-direction:column`.
   - The stage becomes a small app screen. At the top is a header bar with the title "Updates" and, at its right, a Refresh button: a ↻ icon, `aria-label="Refresh"`, 44×44px, calling `startRefresh()`. It is today's "↻ Refresh now" moved from the old panel onto the stage; the README calls it the keyboard way to refresh.
@@ -1113,7 +1114,7 @@ None: leave out the `details.hb-options` block.
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Pull distance | Choice buttons | Short · Medium · Long | Medium | How far to pull before letting go refreshes. | `threshold`: 48 / 64 / 80 (px) |
-| Resistance | Choice buttons | Low · Medium · High | Medium | Higher makes the list fight back harder. | `resistance`: 1 / 2 / 3 |
+| Resistance | Choice buttons | Low · Medium · High | Medium | Higher makes the list fight back harder. | `resistance`: 1 / 2 / 3 (how fast the pull curve stiffens, see Pull curve) |
 | Spinner | Choice buttons | Ring · Dots · Bars | Ring | The shape that turns while it refreshes. | the spinner's class: `s-ring` / `s-dots` / `s-bars` |
 
 **More options**
@@ -1150,7 +1151,7 @@ None: leave out the `details.hb-options` block.
   - [Swipe to Dismiss](../swipe-to-dismiss/) — the sideways drag that removes an item
   - [Loading Spinner](../loading-spinner/) — spinners on their own
   - [Drawer / Panel Slide](../drawer-slide/) — a panel that slides in from an edge
-- **README How it works:** unchanged
+- **README How it works:** brought in line with the page: the snippet's `resist()` is the pull curve above (so "follows the finger one to one at first" is true), its pointer lines follow the page's `pid` bookkeeping, "refresh duration" reads "refresh time", and the last paragraph names the Refresh button and Show me.
 - **README Production notes:** in the "Accessibility alternative" bullet, "this demo wires a "Refresh now" button to the identical code path and announces state through an `aria-live` region" becomes "this demo's Refresh button, in the list's header, runs the identical code path, and a live region announces the state". The rest is unchanged.
 - **Category line:** `04.29 · Micro-Interactions`
 - **Pager:** Previous: Segmented Control (`../segmented-control/`) · Next: none
