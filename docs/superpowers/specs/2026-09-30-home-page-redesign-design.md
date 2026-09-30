@@ -16,7 +16,7 @@ asks one plain question, answers it with nine picture tiles, and shows big cards
 1. **Top bar** — the logo and "Animation Handbook" on the left (links to the top); on the right "Browse all" (opens
    the All animations view, below), "How it works" (jumps to that section), the theme button, and a "GitHub" button
    that keeps today's star count.
-2. **Hero**, centered, with six slow floating shapes at the sides (three on phones; decoration only):
+2. **Hero**, centered, with six slow floating shapes at the sides (desktop only; decoration):
    - a small pill: "129 free animations · no coding needed", with a softly pulsing green dot;
    - the heading **"What do you want to animate?"**;
    - one line under it: "Pick a place, or describe it in your own words. Every animation plays live, and each one
@@ -67,23 +67,24 @@ list, never typed in.
 - **Search**: typing clears the picked tile and shows results as you type. Heading "Results for “fade in”", line
   "12 animations match." (or "1 animation matches."), cards with their place labels, first eight then Show all.
 - **All animations** (from Browse all, in the top bar or under Start): heading "All animations", line "129 animations
-  in 7 groups.", then the seven categories in today's order, each with a small heading ("01 · Scroll-Based ·
-  26 animations") and all its cards, each with its place label. This keeps the `NN.MM` line on every demo page
+  in 7 groups.", then the seven categories in today's order, each with a small heading (its number, name and
+  count: "01 Scroll-Based 26 animations") and all its cards, each with its place label. This keeps the `NN.MM` line on every demo page
   meaningful: it is still the animation's place in this list.
 - **Nothing found**: a white panel: "Nothing matches “zebra” yet", "Try a simpler word, or pick one of these:", the
   five popular suggestions, and **Browse all 129 animations**.
 
 The view lives in the address, so a view can be shared and **Back** from a demo page returns to it:
-`?place=buttons`, `?q=fade%20in`, `?view=all`. Pressing a tile, Browse all or a suggestion adds a history step;
-typing only replaces the address. Old links keep working: `?q=` as today, and `?cat=04` opens All animations at
-that category's heading.
+`?place=buttons`, `?q=fade%20in`, `?view=all`, with `&all=1` once Show all is pressed. Pressing a tile, Browse all,
+Clear or a suggestion adds a history step;
+typing only replaces the address. Old links keep working: `?q=` as today, and `?cat=micro-interactions` (the
+category's name in the form today's chips write it) opens All animations at that category's heading.
 
 ## Search
 
 Search looks at each animation's name, its one-line description, the names of its places and its category name. The
 query is split into words; common small words are dropped (a, an, and, the, that, this, to, for, with, when, on, in,
 of, my, it, i, want, make, some); each word is matched by its start, so "bounces", "bounce" and "bouncing" all match
-"bounce" (drop a final "s", "es", "ing" or "ed" before matching). An animation matches when at least one word matches;
+"bounce" (a word of four letters or more drops a final "s", "es", "ing" or "ed" before matching). An animation matches when at least one word matches;
 results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the description 1),
 ties in home order. "a button that bounces when clicked" therefore puts Click / Tap Ripple, Bounce In and the other
 button animations at the top.
