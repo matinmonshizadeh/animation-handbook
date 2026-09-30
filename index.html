@@ -46,6 +46,7 @@
 }
 </script>
 <script>document.documentElement.classList.add('js');(function(){try{var t=localStorage.getItem('ah-theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<script src="assets/js/demo-page.js?v=6" defer></script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -1736,6 +1737,66 @@ showCards(PICKS.map(s=>BY_SLUG[s]));
     document.documentElement.dataset.theme=next;try{localStorage.setItem('ah-theme',next);}catch(e){}});})();
 addEventListener('keydown',e=>{const t=document.activeElement&&document.activeElement.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();$('q').focus();}});
+
+// ---------- Copy prompt on the cards ----------
+// The text is the page's own: the home page reads the page's HTML and builds the text with the shared page script
+// (DemoPage), every setting at its default. Nothing on a fetched page is laid out, so no control counts as hidden by style.
+const pageTexts=new Map(),NO_STYLE={getComputedStyle:()=>({display:''})};
+function promptFor(url){
+  let text=pageTexts.get(url);
+  if(!text){
+    text=fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(html=>{
+      if(!window.DemoPage)throw new Error('the page script has not loaded');
+      const t=DemoPage.pageCopyText(new DOMParser().parseFromString(html,'text/html'),NO_STYLE);
+      if(!t)throw new Error('no prompt on the page');
+      return t;
+    });
+    text.catch(()=>pageTexts.delete(url));
+    pageTexts.set(url,text);
+  }
+  return text;
+}
+// Safari only writes the clipboard while the press is fresh, so the text goes in as a promise where the browser allows it.
+async function writeClipboard(text){
+  const clip=navigator.clipboard;
+  if(!clip)throw new Error('no clipboard');
+  if(window.ClipboardItem&&clip.write){
+    try{await clip.write([new ClipboardItem({'text/plain':text.then(t=>new Blob([t],{type:'text/plain'}))})]);return;}
+    catch(err){if(err&&err.name==='NotAllowedError')throw err;}
+  }
+  await clip.writeText(await text);
+}
+const toastEl=$('toast');let toastTimer=0;
+function toast(message){
+  toastEl.querySelector('.toast-t').textContent=message;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2400);
+}
+function copyState(btn,kind){
+  const name=btn.closest('.card').querySelector('.title a').textContent;
+  clearTimeout(btn._timer);
+  btn.classList.toggle('done',kind==='done');btn.classList.toggle('fail',kind==='fail');
+  if(kind==='done'){
+    btn.innerHTML=ICON_DONE+'<span class="copy-l">Copied</span>';btn.setAttribute('aria-label','Prompt copied for '+name);
+    btn._timer=setTimeout(()=>copyState(btn,''),1800);
+  }else if(kind==='fail'){
+    btn.innerHTML=ICON_OPEN+'<span class="copy-l">Open to copy</span>';btn.setAttribute('aria-label','Open the page to copy the prompt for '+name);
+  }else{
+    btn.innerHTML=ICON_COPY+'<span class="copy-l">Copy prompt</span>';btn.setAttribute('aria-label','Copy prompt for '+name);
+  }
+}
+const urlOf=card=>card.querySelector('.title a').getAttribute('href');
+cardsBox.addEventListener('click',e=>{
+  const btn=e.target.closest('.copy');
+  if(!btn)return;
+  const url=urlOf(btn.closest('.card'));
+  if(btn.classList.contains('fail')){location.href=url+'#hb-prompt-title';return;}
+  writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
+});
+// Reading the page starts when the pointer rests on a card or a card gets focus, so the copy is quick.
+const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(card)promptFor(urlOf(card)).catch(()=>{});};
+cardsBox.addEventListener('pointerover',warm);
+cardsBox.addEventListener('focusin',warm);
 </script>
 </body>
 </html>
