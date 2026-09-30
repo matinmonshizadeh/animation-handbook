@@ -320,6 +320,7 @@ button,input{font:inherit;color:inherit}
 @media(max-width:1238px){.fl2,.fl5{display:none}} /* the two shapes that would crowd the 720px search box below 1239px */
 .acts{flex-wrap:wrap} /* a narrow card puts Try it under Copy prompt */
 #q{text-overflow:ellipsis} /* a placeholder that does not fit ends in an ellipsis, not cut by the button */
+.rtitle,.empty-t{overflow-wrap:anywhere} /* the headings that repeat the typed words break inside a word too long for the line */
 @media(min-width:601px) and (max-width:700px){.copy{gap:6px;padding:0 10px;font-size:13px}.tag{padding:4px 9px;font-size:11px}} /* three cards across leave the pill about 135px and the preview about 150px: Copy prompt and the place label stay on one line with room to spare */
 @media(max-width:360px){ /* two narrow cards across: the pill and the place label on the preview stay on one line */
   .copy{gap:5px;padding:0 4px;font-size:12px}
@@ -1681,12 +1682,16 @@ const PLACE=Object.fromEntries(PLACE_LIST.map(p=>[p.key,p]));
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const slugify=x=>x.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const wordsOf=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
+// Small words that say nothing about an animation, left out of what is typed and of the cards' own words. "best" is one: every
+// description ends "Best for …", so it (like "for") would match every card, and a first "b" or "f" would find them all.
+const STOP=new Set(['a','an','and','the','that','this','to','for','with','when','on','in','of','my','it','i','want','make','some','best']);
+const keyWords=s=>wordsOf(s).filter(w=>!STOP.has(w));
 // Every animation in home order, with the words search looks at.
 const ALL=[];
 CATS.forEach(cat=>cat.entries.forEach(([slug,name,desc])=>{
   const places=PLACES[slug]||[];
   ALL.push({slug,name,desc,cat,places,order:ALL.length,url:`${cat.folder}/${slug}/`,
-    nameW:wordsOf(name),placeW:wordsOf(places.map(k=>PLACE[k].name).join(' ')),descW:wordsOf(desc+' '+cat.name)});
+    nameW:keyWords(name),placeW:keyWords(places.map(k=>PLACE[k].name).join(' ')),descW:keyWords(desc+' '+cat.name)});
 }));
 const BY_SLUG=Object.fromEntries(ALL.map(e=>[e.slug,e]));
 const ICON_COPY='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
@@ -1755,7 +1760,6 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 });
 // ---------- Views, search and the address ----------
 const PAGE=8;
-const STOP=new Set(['a','an','and','the','that','this','to','for','with','when','on','in','of','my','it','i','want','make','some']);
 // A typed word drops the first of these endings that leaves three letters with a vowel ("ring" stays whole), never the s of
 // "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while three stay (snapping → snap, added → add).
 function stem(w){
@@ -1767,7 +1771,7 @@ function stem(w){
   }
   return w;
 }
-function queryWords(text){return [...new Set(wordsOf(text).filter(w=>!STOP.has(w)).map(stem))];}
+function queryWords(text){return [...new Set(keyWords(text).map(stem))];}
 // A word counts 3 in the name, 2 in a place name, 1 in the description or category; each is matched by the start of a word.
 function score(e,words){
   let s=0;
