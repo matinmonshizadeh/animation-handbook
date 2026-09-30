@@ -517,11 +517,11 @@ None: leave out the `details.hb-options` block.
 - **What the visitor does:** clicking or tapping the heart (or Space or Enter on it) toggles the like, as today. A like fills the heart, plays the pop and bursts the particles; an unlike only removes the colour. The toggle is one function, called by the click and by Show me.
 - **Show me:** starts from rest: if the heart is liked, `toRest()` unlikes it without animating, and the count goes back to 128. Then:
   - `later(like, 0, 300)` likes it (fill, pop and burst);
-  - `later(unlike, 750, 1250)` unlikes it, back to rest. 750ms is the burst, which fades in about 45 frames, with the 500ms pop inside it; the holds are the first 300ms and 950ms of rest before the unlike.
+  - `later(unlike, 750, 1250)` unlikes it, back to rest. 750ms is the burst, which fades in about 45 frames' worth of time (three quarters of a second on every screen since the frame-rate fix), with the 500ms pop inside it; the holds are the first 300ms and 950ms of rest before the unlike.
   - At the defaults the like comes at 300ms and the unlike at 2000ms, or about 3.5 s with Slow motion.
   - Stops on `hb:input`; the heart stays as it is.
 - **Reset:** none.
-- **Slow motion:** css for the pop and the fill. While the switch is on, the page also slows the burst: each frame moves every particle a third of its usual step. Position, the gravity added to `vy` and the life drain are multiplied by 1/3, and the `0.98` drag becomes `0.98 ** (1/3)`. It takes effect from the next frame. `later()` triples the burst (750ms), not the 300ms and 950ms holds.
+- **Slow motion:** css for the pop and the fill. While the switch is on, the page also slows the burst: each frame moves every particle a third of its usual step. Position, the gravity added to `vy` and the life drain are multiplied by `k`, and the `0.98` drag becomes `0.98 ** k` (`k` is a third of the frame's time in 60 Hz frames while the switch is on: 1/3 at 60 Hz; see the frame-rate fix below). It takes effect from the next frame. `later()` triples the burst (750ms), not the 300ms and 950ms holds.
 - **Reduced motion:** as today, a like only fills the heart, with no pop and no burst (the demo's rule and its `reduce` check stay). Show me still fills and empties the heart.
 - **Stage font:** site font. `.count b` drops `var(--disp)`. The "Likes" count and the empty heart's outline both use `--ui-muted`, so both take the new grey.
 - **Stage:** the canvas, the heart and the "Likes 128" count stay. The count is part of a real like button, not a readout. `hb-dots`: yes. Measured: 131px of content, centred.
@@ -561,13 +561,14 @@ None: leave out the `details.hb-options` block.
   - [Notification Badge Pulse](../badge-pulse/) — a badge pulses to catch the eye
   - [Checkmark Draw](../checkmark-draw/) — success shown without a burst
   - [Click / Tap Ripple](../click-ripple/) — a calmer response from the spot you press
-- **README How it works:** unchanged, except that the `tick()` snippet gained the drag line (final fix wave, below)
-- **README Production notes:** unchanged
+- **README How it works:** unchanged, except that the `tick()` snippet gained the drag line (final fix wave, below) and the frame-rate fix (below) made it time-based
+- **README Production notes:** unchanged, except for the new first bullet added by the frame-rate fix (below)
 - **Final fix wave (after the category review):**
-  - README How it works: the `tick()` snippet lacked the drag the page applies to each piece's sideways speed every frame. Its line now reads `p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.vx *= 0.98; p.life -= 0.022;  // move, gravity, drag, fade`, and the sentence before the snippet names the drag next to gravity.
+  - README How it works: the `tick()` snippet lacked the drag the page applies to each piece's sideways speed every frame. Its line then read `p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.vx *= 0.98; p.life -= 0.022;  // move, gravity, drag, fade`, and the sentence before the snippet named the drag next to gravity; the frame-rate fix (below) has since scaled it by the time since the last frame, so it now reads `p.x += p.vx * k; p.y += p.vy * k; p.vy += 0.12 * k;    // move, gravity` and `p.vx *= 0.98 ** k; p.life -= 0.022 * k;                // drag, fade`.
   - Stage: the measured content height is 131px on phones and laptops (the 96px button, the 20px gap and the 15px count), not 133px. The line above is corrected.
 - **Category line:** `04.07 · Micro-Interactions`
 - **Pager:** Previous: Toggle / Switch Slide (`../toggle-switch/`) · Next: Success Confetti (`../success-confetti/`)
+- **Frame-rate fix (wrap-up):** `tick(ts)` scales every step by `k`, the time since the last frame in 60 Hz frames: `dt = last === null ? FRAME : Math.min(ts - last, 50)` with `FRAME = 1000/60`, then `k = dt / FRAME`, times a third in Slow motion. `spawn()` sets `last` to `null` when it starts the loop, so a burst's first frame counts as one 60 Hz frame. Position, gravity and life take `k` and the drag is `0.98 ** k`; a step over 1.5 frames (a 30 Hz screen, or a dropped frame) is taken in two halves, so the arc stays close to the 60 Hz one. The burst lasts about three quarters of a second on every screen (it lasted half that at 120 Hz and twice that at 30 Hz), so Show me's unlike step (2000ms, or about 3.5s in Slow motion) comes after it at every rate measured, 30 to 144 Hz. README: the `tick(ts)` snippet with `FRAME` and `last`, a sentence before it explaining `k`, a paragraph after it on the first frame, the 50ms cap, the two halves and Slow motion, and a new first Production note, "**Time, not frames**".
 
 ---
 
@@ -629,10 +630,11 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
   - [Heart / Like Burst](../heart-burst/) — a smaller burst for each like
   - [Modal Expand](../modal-expand/) — a dialog grows from the button that opened it
-- **README How it works:** in the sentence after the snippet, "adjusting a slider changes the very next burst" becomes "changing a setting changes the very next burst". The rest is unchanged.
-- **README Production notes:** in the Reduced motion bullet, the last sentence ("This demo swaps the sub-caption to say so.") goes. The rest is unchanged.
+- **README How it works:** in the sentence after the snippet, "adjusting a slider changes the very next burst" becomes "changing a setting changes the very next burst". The rest is unchanged, except for the time-based sentence, snippet and paragraph of the frame-rate fix (below).
+- **README Production notes:** in the Reduced motion bullet, the last sentence ("This demo swaps the sub-caption to say so.") goes. The rest is unchanged, except for the new first bullet of the frame-rate fix (below).
 - **Category line:** `04.08 · Micro-Interactions`
 - **Pager:** Previous: Heart / Like Burst (`../heart-burst/`) · Next: Skeleton Loader (`../skeleton-loader/`)
+- **Frame-rate fix (wrap-up):** `tick(ts)` scales every step by `k = dt / FRAME`, the time since the last frame in 60 Hz frames (`FRAME = 1000/60`, `dt` at most 50 ms). `fire()` sets `last` to `null` when it starts the loop, so a burst's first frame counts as one 60 Hz frame. Gravity, spin, position and life take `k` and the drag is `0.99 ** k`; a step over 1.5 frames (a 30 Hz screen, or a dropped frame) is taken in two halves, so the arc stays close to the 60 Hz one. The confetti lasts the same on every screen (it lasted half as long at 120 Hz and twice as long at 30 Hz), so it is gone before Show me's back step (2800ms) at 30 to 144 Hz. README: the same additions as Heart Burst's (a sentence explaining `k`, the `FRAME` and `last` snippet, a paragraph on the first frame, the 50ms cap and the two halves) and a new first Production note, "**Time, not frames**".
 
 ---
 
