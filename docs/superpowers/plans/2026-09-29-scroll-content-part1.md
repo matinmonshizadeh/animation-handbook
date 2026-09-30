@@ -197,10 +197,12 @@ None: leave out the `details.hb-options` block.
 - **README How it works:**
   - "Each layer has a speed multiplier `s ∈ [0, 1.5]`." becomes "Each layer has a speed multiplier `s` between 0 and 1.5, set by the Depth setting."
   - In the snippet, the comment `// MAX_PARALLAX = 150px` becomes `// MAX_PARALLAX = a quarter of the box's height`.
+  - Final fix wave, three sentences to match the travel (`MAX_PARALLAX = stage.clientHeight / 4`; the grass is the layer at 100%): "scales a fixed travel budget by the layer's speed" becomes "scales the travel, a quarter of the box's height, by the layer's speed"; "Normalising first keeps the travel identical no matter how tall the scroll container is, and clamps the effect at both ends for free" becomes "Normalising first makes the movement the same whatever the length of the scroll, and clamps it at both ends for free"; and "Layers with high speed (foreground: 100%) track the scroll" becomes "Layers with high speed (the grass: 100%) move the most".
   - The rest is unchanged.
 - **README Production notes:** in the Accessibility bullet, "hold every layer at zero offset and show the static scene — but keep the numeric readouts tracking the scroll, so the panel isn't reporting stale values. Apply `will-change: auto` in the reduced-motion media query to avoid unnecessary layer promotion." becomes "hold every layer at zero offset and show the static scene, and apply `will-change: auto` in the reduced-motion media query to avoid unnecessary layer promotion." The rest is unchanged.
 - **Category line:** `01.02 · Scroll-Based`
 - **Pager:** Previous: Parallax Depth-of-Field (`../parallax-depth-of-field/`) · Next: Reverse-Scrolling Columns (`../reverse-scrolling-columns/`)
+- **Final fix wave:** README wording only: the travel is a quarter of the box's height whatever the length of the scroll, and the layer at 100% (the grass) moves the most rather than tracking the scroll (see README How it works above).
 
 ---
 
@@ -220,6 +222,8 @@ None: leave out the `details.hb-options` block.
   - `.scene{height:320cqh}`; `.columns{position:sticky;top:0;height:100cqh}` (with its flex, gap, padding and overflow). The phone rules that set 480px go; `.col-right{display:none}` under 600px stays.
   - `measure()` stays, with its re-measure on `document.fonts.ready` and `resize` (the loop period depends on the card height). It pre-offsets the side columns by one set (`marginTop = -singleSetH`) only while they move down (`mult < 0`); when they move up (`mult >= 0`) it sets their `marginTop` to 0. Today it always pre-offsets them, which only suits moving down: with Same way the side columns run out of cards, leaving up to 334px of empty column on a laptop (review measurement). With the change there is no gap at any speed in either direction, at any size (measured, 258–438px boxes and phones).
   - The card icons' `svg` in `makeSet()` get `aria-hidden="true"` (shared rule 12).
+  - **Screen readers hear the twelve cards once (final fix wave).** The left and right `.col` get `aria-hidden="true"` (they repeat the middle column), and so does the second `.card-set` of every column, which only repeats the first so the column can loop: `el.appendChild(makeSet()).setAttribute('aria-hidden', 'true')`, with a comment. Before, each card was read six times (four on a phone, where the right column is hidden).
+  - **Reduced motion switched on mid-visit clears the movement (final fix wave).** The reduced-motion line of `update()` sets the three inner transforms to `''` before it returns, and `motionMQ.addEventListener('change', update)` after the resize listener runs it when the setting changes, so the columns go back to rest at once and, switched off again, take up the scroll position. This replaces "`update()` returns early" in Reduced motion above. Before, the transforms stayed frozen where they were, and a later change of Side columns go emptied the side columns (measured at 1280×800, at 61% of the scroll: a 508px gap at the top of each side column after a switch to Same way); now every direction and speed leaves them full.
   - `update()` keeps the three transforms; its readout lines (progress and the three offsets) go.
   - `hb-dots`: no. Default height.
 
@@ -261,6 +265,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.03 · Scroll-Based`
 - **Pager:** Previous: Parallax Scrolling (`../parallax-scrolling/`) · Next: Cover Card to Fixed Header (`../cover-card-to-fixed-header/`)
+- **Final fix wave:** the side columns and the second card set of every column are hidden from screen readers (each card is read once, not six times), and reduced motion switched on mid-visit clears the column transforms (see the last two Stage bullets).
 
 ---
 
@@ -449,7 +454,7 @@ None: leave out the `details.hb-options` block.
     | 06 | Open Studio | Workshop | Two days of making things by hand. |
     | 07 | Tide Tables | App | Daily tides for every beach on the coast. |
 
-  - The card button reads "View project →" (owner decision 6; the page checks forbid "Read more").
+  - The card button reads "View project →" (owner decision 6; the page checks forbid "Read more"). It is decoration: the card is not a link and the button takes no press, so `buildCards()` writes it as `<div class="card-btn" aria-hidden="true">` and a screen reader does not announce an action that is not there (before, it read "View project →" once for every card).
   - The big faded number becomes a watermark (owner decision 5): it keeps its 52px size and its opacity .1 but leaves the text column's flow, `.card-num{position:absolute;top:clamp(8px,3cqh,16px);right:clamp(12px,2.5vw,24px);margin:0;line-height:1}` with `.card__text{position:relative}`, and each number gets `aria-hidden="true"` in `buildCards()` (shared rule 12).
   - `.card__text` padding follows the box's height: `padding:clamp(14px,6cqh,32px) clamp(18px,3vw,32px)` (was `clamp(18px,3vw,32px)` all round; `6cqh` is 6% of the box).
   - On the shortest cards the one-line text hides, so the title, the kind and the button fit. `measure()` works out a card's height, `stage.clientHeight - 12 - (numCards - 1) * peekPx`, and toggles the class `short` on `#cards` when it is under 170px, with `#cards.short .card-body{display:none}`. `measure()` already runs after `buildCards()`, after a change of Edge that shows and on `resize`. The line hides only with seven cards and the Large edge (in the 258px and 288px boxes of short laptop windows and on phones), and with five cards and the Large edge or seven and Medium in the 258px box.
@@ -515,6 +520,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** in the "Size cards to include their own offset" bullet, `stage − 24px − (N−1) × peek` becomes `stage − 12px − (N−1) × peek`. The rest is unchanged.
 - **Category line:** `01.06 · Scroll-Based`
 - **Pager:** Previous: Fly-in Fly-out Contact List (`../fly-in-fly-out-contact-list/`) · Next: ScrollTrigger Animation (`../scroll-trigger/`)
+- **Final fix wave:** the decorative "View project →" button is `aria-hidden="true"` (see the card button under Stage): the accessibility tree no longer holds it, and the cards' titles and text are read as before.
 
 ---
 
@@ -872,7 +878,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Reading line | 42% down the box | A chapter becomes current once its top passes this line; a lower line changes chapters later |
+  | Reading line | 42% down the box | A chapter becomes current once its top passes this line; a higher line changes chapters later, a lower one sooner |
   | Chapter height | At least 90% of the box | How much scrolling each chapter takes; taller chapters make slower, finer blends |
   | Number of chapters | 6 | Each chapter adds its colours and its depth to the blend |
 
@@ -885,6 +891,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the Reduced motion bullet becomes: "**Reduced motion**: nothing here moves on its own; the colours and the depth follow the reader's scrolling, so there is nothing to switch off. A CSS transition on the porthole's gradient would not help anyway: gradients cannot be transitioned, which is why the blend is worked out in JavaScript." The rest is unchanged.
 - **Category line:** `01.11 · Scroll-Based`
 - **Pager:** Previous: Snap Scrolling (`../snap-scrolling/`) · Next: Reveal on Scroll (`../reveal-on-scroll/`)
+- **Final fix wave:** wording only. The Reading line row of the README's Key parameters (and the copy of it above) said a lower line changes chapters later; it is the other way round. A chapter is reached at the scroll position that equals its top in the content minus the line's distance down the box (`reach` in `update()`, with the line at 42% of the box's height), so a lower line is reached after less scrolling and changes chapters sooner, and a higher one later (measured at 1280×800, 40% of the way down the scroll: the depth reads 1,425 m with the line at 20% of the box, 2,159 m at 42% and 2,759 m at 60%).
 
 ---
 
@@ -894,7 +901,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Cards appear as they cross a line in the box. Best for long landing pages.
 - **Step 1:** Scroll it · help line: "Scroll inside the box, or press Play. Back to top hides the cards again."
 - **Player bar:** Play · Back to top
-- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the dashed trigger line beside the scroller, so the line stays in place while the cards move. The script calls it `scroller` wherever it said `stage`.
+- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the dashed trigger line beside the scroller, so the line stays in place while the cards move; `#trigger-line` has `pointer-events:none`, so a click, a touch or a wheel turn over it goes through to the scroller. The script calls it `scroller` wherever it said `stage`.
 - **What scrolling shows:** seven cards rise toward a dashed line across the box. Each stays hidden until its top passes the line, then settles into place in its own way: a fade, a rise, a slide from the left, a grow, a sharpen from a blur, a wipe from the left, and a group of four chips that arrive one by one. A card stays shown after that, unless Plays every time is on; then it hides again when it drops back below the line.
 - **Scroll distance and Play:** the cards' own height, with 200px of room after the last so it can pass the highest line: about 2.1 box heights at 1280×800 (800px) and 3.1 on a 375px phone (921px). At the Normal line the first cards show whole on arrival (the observer may already have revealed the next one, partly below the box edge): two at 1280×800, at 1366×657 and on a 375px phone, three in the 438px boxes (768×1024 and 610×1000), and one in the 258px box of a 1280×590 window and on a 320px phone. Play reveals the rest about a second apart.
 - **Every Trigger line is reached** (shared rule 4): at the end of the scroll the last card's top is at most 115px down the box (at 768×1024 and at 610×1000, where the box is 438px), always above even the Higher line at half the box; measured from the 258px box to the 438px box and on phones.
@@ -904,7 +911,7 @@ None: leave out the `details.hb-options` block.
 - **Stage:**
   - `.stage`: `position:relative;overflow:hidden;background:#0b0b0d`.
   - `.scroller`: `height:100%;overflow-y:auto;scrollbar-width:none;position:relative`, with the `::-webkit-scrollbar{display:none}` rule. The old stage's width, border and height go, and so does `--stage-h`.
-  - `#trigger-line` stays in the `.stage`, over the scroller: `updateLine()` sets its `top` to `scroller.clientTop + threshold / 100 * scroller.clientHeight`. Its label keeps "trigger", at 11px (was 9px). Today the line and its label each have `opacity:.7`, so the label reads about 2.7:1; the line drops its opacity and draws its dashes in `rgba(110,168,255,.7)` instead, and the label drops its own, so it shows in the full accent (7.9:1) while the dashes look as they do today.
+  - `#trigger-line` stays in the `.stage`, over the scroller: `updateLine()` sets its `top` to `scroller.clientTop + threshold / 100 * scroller.clientHeight`. Its label keeps "trigger", at 11px (was 9px). Today the line and its label each have `opacity:.7`, so the label reads about 2.7:1; the line drops its opacity and draws its dashes in `rgba(110,168,255,.7)` instead, and the label drops its own, so it shows in the full accent (7.9:1) while the dashes look as they do today. The line has `pointer-events:none` (the label inherits it), so input reaches the scroller underneath it.
   - The cards' texts are rewritten in plain words (today's bodies are CSS values such as "opacity 0 → 1"). The tag reads "Technique 01" to "Technique 07" (the code names after it go), at 11px without the opacity .7; the titles stay:
 
     | Card | Title | Text |
@@ -918,7 +925,7 @@ None: leave out the `details.hb-options` block.
     | 07 | Stagger Group | (the four chips Alpha, Beta, Gamma and Delta, unchanged) |
 
     `.card-body` becomes 14px (was 11px) and `.stagger-chip` 12px (was 10px).
-  - Script: `reveal()` and `hide()` keep the class change; their state-readout lines go, and so do `logEvent()`, `obsSnippet()` and the Card states list.
+  - Script: `reveal()` and `hide()` keep the class change; their state-readout lines go, and so do `logEvent()`, `obsSnippet()` and the Card states list. `buildObserver()` watches each card where it changes, through `watched(el)`: the card itself, but for the Stagger Group card its row of chips, `.stagger-row` (the callback finds the card again with `e.target.closest('.card')`). The chips sit lower in the card, so watching the card's top would start their cascade below the box on the lower lines.
   - `hb-dots`: no. Default height.
 
 **Main settings**
@@ -962,6 +969,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.12 · Scroll-Based`
 - **Pager:** Previous: Scrollytelling (`../scrollytelling/`) · Next: Stagger Reveal (`../stagger-reveal/`)
+- **Final fix wave:** sheet only. It now records that `#trigger-line` has `pointer-events:none` (Scroller and Stage lines above) and that the Stagger Group card is watched at its `.stagger-row` (Script line above).
 
 ---
 
@@ -975,7 +983,7 @@ None: leave out the `details.hb-options` block.
 - **What scrolling shows:** three groups: a grid of twelve cards (two columns on phones), a list of six people and a cluster of eight tags. As each group comes into the box, its items fade in and rise one after another, a short delay apart, in the chosen order. A group stays shown after that. On arrival the grid is in the box and plays at once; the list and the tags play as the box scrolls, each once half of it is in the box or its bottom edge is, so their cascades happen where the visitor can see them.
 - **Scroll distance and Play:** the groups' own height: about 1.3 box heights at 1280×800 (510px) and 2.7 on a phone (792px). Play reaches the list between about one and three seconds in (0.9 to 2.8 s: earlier in a tall box, later on a phone) and the tags about five seconds in (4.8 to 5.2 s), so their cascades end about when the six-second run does (only the grid plays on arrival, at every size).
 - **Every group plays** (shared rule 4): a group has no line. It plays once half of it is in the box, or its bottom edge has come into the box, so the last rows of a long group are never left hidden. The observers watch the group's items (`#grid`, `#list` and `#chips`), not the section around them (whose padding and heading made the cascade run before any item was on screen), and have a threshold every 5% (`Array.from({length:21},(_,i)=>i/20)`), so a jump straight to the end is not missed: a plain `threshold:.5` leaves the visible rows hidden at the end, and `[0,.5]` misses a jump from the top to the end. The box scrolls until the last group is wholly in view, so all three play at every size, and in Play 3 to 4 of the 6 list rows and all 8 tags are seen fading in at every size. Until a group plays, the items of it already in the box stay hidden (up to three list rows for about a second in Play).
-- **Back to top, Play from the end, and settings:** Back to top, Play pressed with the box at its end, and every settings change rebuild the three groups hidden and watch them again, as today's Replay all groups did (without its scroll to the top). A new helper `rebuild()` clears the timers still pending from the last reveal, rebuilds the grid, list and chips hidden, and calls `attachObservers()`; the groups in the box then replay with the current settings. The page calls it on clicks on `#btn-top`, and on `#btn-scroll` when `stage.scrollTop >= stage.scrollHeight - stage.clientHeight - 2`, at once in the same click, as a settings change does, so the difference shows where the box is. It does not wait for the jump to the top: the new observers first report on the next frame, after the shared script has jumped the box, so the groups in view play from the top and the finished groups are never drawn there (with a 50ms delay they stayed on screen for about four frames). This relies on the order of the listeners: the page's inline script registers its click listeners before the shared script (loaded with `defer`) registers Play's and Back to top's, so on a click the page still sees the box at its end before Play jumps it to the top. The listeners must stay in the inline script's top level.
+- **Back to top, Play from the end, and settings:** Back to top, Play pressed with the box at its end, and every settings change rebuild the three groups hidden and watch them again, as today's Replay all groups did (without its scroll to the top). A new helper `rebuild()` clears the timers still pending from the last reveal, rebuilds the grid, list and chips hidden, and calls `attachObservers()`; a group half in the box, or with its bottom edge in it, then plays at once with the current settings, and the others when they scroll in. The page calls it on clicks on `#btn-top`, and on `#btn-scroll` when `stage.scrollTop >= stage.scrollHeight - stage.clientHeight - 2`, at once in the same click, as a settings change does, so the difference shows where the box is. It does not wait for the jump to the top: the new observers first report on the next frame, after the shared script has jumped the box, so the groups in view play from the top and the finished groups are never drawn there (with a 50ms delay they stayed on screen for about four frames). This relies on the order of the listeners: the page's inline script registers its click listeners before the shared script (loaded with `defer`) registers Play's and Back to top's, so on a click the page still sees the box at its end before Play jumps it to the top. The listeners must stay in the inline script's top level.
 - **Reduced motion:** nothing scrolls by itself. As today, the items appear in the same order and with the same delays, but without moving (`.item{transition:none!important}`).
 - **Stage font:** site font.
 - **Stage:**
@@ -1029,3 +1037,4 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the Reduced motion bullet becomes: "**Reduced motion**: transitions are disabled under `prefers-reduced-motion`, so each item simply appears at its turn, without moving — the stagger is decorative, never load-bearing." The rest is unchanged.
 - **Category line:** `01.13 · Scroll-Based`
 - **Pager:** Previous: Reveal on Scroll (`../reveal-on-scroll/`) · Next: Horizontal Scroll (`../horizontal-scroll/`)
+- **Final fix wave:** wording only. The page comments, the README and the rebuild line above no longer say that no visible row is left hidden or that the groups in the box replay. A group half in the box, or with its bottom edge in it, plays at once (also after a rebuild); a group less than half in view whose bottom edge is still below the box waits, hidden, until more of it scrolls in. Checked after a rebuild at 1280×800 and 375×812: a group 30% or 45% in view stays hidden and one 60% in view plays; a group 30% in view with its bottom edge in the box plays.

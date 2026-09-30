@@ -212,7 +212,8 @@
 
   // Each group plays once, when half of it is in the box or its bottom edge has come into the box. The observers watch the
   // group's items, not the section around them, so the cascade starts while the items are on screen. A threshold every 5%
-  // makes them report on the way, so a jump straight to the end is not missed and no visible row is left hidden.
+  // makes them report on the way, so a jump straight to the end is not missed; a group less than half in view whose bottom
+  // edge is still below the box waits, hidden, until more of it scrolls in.
   const STEPS=Array.from({length:21},(_,i)=>i/20);
   function attachObservers(){
     observers.forEach(o=>o.disconnect());observers=[];
@@ -226,8 +227,8 @@
   }
   attachObservers();
 
-  // Builds the three groups again, hidden, and watches them again: the groups in the box play at once with the current
-  // settings, the others when they scroll in
+  // Builds the three groups again, hidden, and watches them again: a group half in the box, or with its bottom edge in it,
+  // plays at once with the current settings, the others when they scroll in
   function rebuild(){
     timers.forEach(clearTimeout);timers=[];
     gridItems=buildGrid();listItems=buildList();chipItems=buildChips();

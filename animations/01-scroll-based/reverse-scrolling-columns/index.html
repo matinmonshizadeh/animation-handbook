@@ -69,13 +69,13 @@
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Three columns of project cards">
       <div class="scene">
         <div class="columns">
-          <div class="col">
+          <div class="col" aria-hidden="true">
             <div class="col-inner" id="inner-left"></div>
           </div>
           <div class="col">
             <div class="col-inner" id="inner-center"></div>
           </div>
-          <div class="col col-right">
+          <div class="col col-right" aria-hidden="true">
             <div class="col-inner" id="inner-right"></div>
           </div>
         </div>
@@ -201,7 +201,8 @@
 
   [leftInner, centerInner, rightInner].forEach(el => {
     el.appendChild(makeSet());
-    el.appendChild(makeSet());
+    // The second set only repeats the first so the column can loop, and the side columns repeat the middle one: a screen reader hears the twelve cards once
+    el.appendChild(makeSet()).setAttribute('aria-hidden', 'true');
   });
 
   // Side columns: dir -1 runs them the opposite way, +1 the same way; speed is their share of the middle column's.
@@ -226,8 +227,8 @@
     const st = stage.scrollTop;
     ticking = false;
 
-    // Reduced motion: columns stay put
-    if (motionMQ.matches) return;
+    // Reduced motion: columns stay put, and switching it on mid-visit sets them back at rest
+    if (motionMQ.matches) { centerInner.style.transform = leftInner.style.transform = rightInner.style.transform = ''; return; }
 
     // Center: scrolls with the input — content travels up as you scroll down
     centerInner.style.transform = `translate3d(0,${-(st % singleSetH)}px,0)`;
@@ -255,6 +256,8 @@
   choices('speed-seg', d => { speed = +d.speed; mult = dir * speed; update(); });
 
   window.addEventListener('resize', () => { measure(); update(); });
+  // Reduced motion switched on or off mid-visit: clear the movement, or take it up again from where the box is
+  motionMQ.addEventListener('change', update);
 
   measure();
   update();

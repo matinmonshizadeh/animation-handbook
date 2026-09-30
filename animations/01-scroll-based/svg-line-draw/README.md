@@ -27,7 +27,7 @@ const drawn = Math.min(LEN, LEN * p / COMPLETE_AT);          // COMPLETE_AT belo
 path.style.strokeDashoffset = LEN - drawn;                   // reveal the travelled portion
 ```
 
-`COMPLETE_AT` is 1 by default, so the line finishes as the scroll does and its tip stays inside the box while it is drawn. A smaller value finishes the line earlier: the rest of the scroll then shows the finished route, but the tip runs ahead of the box, because the route is many boxes tall.
+`COMPLETE_AT` is 1 by default, so the line finishes as the scroll does and its tip stays inside the box while it is drawn with Even (Smooth draws ahead early in the scroll). A smaller value finishes the line earlier: the rest of the scroll then shows the finished route, but the tip runs ahead of the box, because the route is many boxes tall.
 
 Waypoints are placed at known fractions of the path, so their positions and trigger points are computed once from those fractions — never per scroll event:
 

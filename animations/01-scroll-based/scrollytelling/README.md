@@ -27,7 +27,7 @@ Reads are throttled with a `requestAnimationFrame` gate (`ticking`) so the scrol
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Reading line | 42% down the box | A chapter becomes current once its top passes this line; a lower line changes chapters later |
+| Reading line | 42% down the box | A chapter becomes current once its top passes this line; a higher line changes chapters later, a lower one sooner |
 | Chapter height | At least 90% of the box | How much scrolling each chapter takes; taller chapters make slower, finer blends |
 | Number of chapters | 6 | Each chapter adds its colours and its depth to the blend |
 

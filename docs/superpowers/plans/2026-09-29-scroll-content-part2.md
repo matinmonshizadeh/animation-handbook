@@ -60,7 +60,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Step 1** is titled "Scroll it". Its default help line is "Scroll inside the box, or press Play and it scrolls for you." A section gives a page-specific line where it helps.
 - **Player bar of a scroll page:** the Play button and then the Back to top button, exactly as in the do-it/scroll plan, and nothing else (no Slow motion, Replay, Loop or Pause).
 - **Try it help line of a scroll page:** "Change a setting, then scroll again or press Play.", the fixed line for the kind; no page has its own. Most settings redraw the stage at once, where it is; the others (a count's speed, how far rows lean) show at the next scroll.
-- **The scroller** is the `.stage` itself, or, on Progress Bar and Scrollspy Navigation, an inner element marked `data-hb-scroller`. On those two the indicator and the menu sit beside the scroller, and the `.stage` does the job of today's `.stage-wrap`. Every scroller gets:
+- **The scroller** is the `.stage` itself, or, on Progress Bar and Scrollspy Navigation, an inner element marked `data-hb-scroller`. On those two the `.stage` does the job of today's `.stage-wrap`: Progress Bar's indicators sit beside the scroller with `pointer-events:none`, and Scrollspy's menu sits inside it, in a zero-height sticky rail (`.spy-rail`). Every scroller gets:
   - `tabindex="0" role="region"` and an `aria-label` (each section gives it), as on the scratch scroll page, so keyboard users can focus it and scroll it with the arrow keys;
   - `overflow-y:auto` (was `scroll`), keeping today's hidden scrollbar (`scrollbar-width:none` and the `::-webkit-scrollbar{display:none}` rule);
   - `position:relative`, so the `offsetTop` of anything inside it is measured from its own top. Sticky Section and Zoom Into Image read `offsetTop` without it today, so it is measured from the top of the page and their steps and their zoom start about 100px of scrolling late (measured: 111px and 103px).
@@ -327,7 +327,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Description:** A bar fills as you read down the page. Best for long articles.
 - **Step 1:** Scroll it · help line: default
 - **Player bar:** Play · Back to top
-- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="An article with a reading progress indicator">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the three indicators beside the scroller, so they stay in place while the article moves. The script calls it `scroller` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the scroller's focus ring inset, inside the stage (rule B2).
+- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="An article with a reading progress indicator">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the three indicators beside the scroller, with `pointer-events:none`, so they stay in place while the article moves and a wheel turn or a touch over them still scrolls the article. The script calls it `scroller` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the scroller's focus ring inset, inside the stage (rule B2).
 - **What scrolling shows:** the article scrolls, and the chosen indicator (a bar along the top, a ring in the top-right corner with the percentage inside, or a rail down the right edge) fills from empty to full, reaching full exactly at the end of the article.
 - **Scroll distance and Play:** the article does not depend on the stage height (measured: 846px on laptops and 1,126px on a 375px phone), so the box scrolls about 1.5 box heights on laptops and nearly 3 on phones. Play fills the indicator from 0 to 100% in six seconds.
 - **Reduced motion:** nothing scrolls by itself, and nothing needs simplifying: the indicators have no transition. The demo's rule goes (it named the old scroller and transitions that do not exist).
@@ -339,6 +339,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - The ring grows from 40px to 48px (`width="48" height="48"`; the `viewBox` stays `0 0 36 36`), and `.circ-text` gets `font-size:9px;font-weight:600;fill:#f4f4f2`, about 12px on screen (today 5.6px).
   - The ring's thickness comes from CSS: `.circ-bg,.circ-fg{stroke-width:var(--bar-thick)}` in place of `stroke-width:3`, and the Thickness handler's two `setAttribute('stroke-width', …)` calls go. Today the CSS `stroke-width:3` beats those attributes, so the thickness slider never changed the ring.
   - Article text: `.art-body{font-size:15px;line-height:1.8;color:#adadb2}` (was 13px at opacity .7); `.art-byline{font-size:12px;color:#8a8a92}` (was opacity .4); `.art-pull{color:#d6d6da}` (was opacity .8); `.art-h2` keeps its size without the opacity.
+  - `.art-title{padding-right:40px}` keeps the title clear of the ring in the top-right corner (48px wide, 8px in from the box's edge): with the Ring indicator on, the title's text ends 394px, 233px, 34px and 19px short of it at 1280×800, 768×1024, 375×812 and 320×640 (the title wraps to two lines on the two phone sizes).
   - The article is rewritten in plain words (today's paragraphs describe scrollTop, requestAnimationFrame and dash arrays). In order:
 
     | Part | Text |
@@ -422,6 +423,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - The rest is unchanged.
 - **Category line:** `01.17 · Scroll-Based`
 - **Pager:** Previous: Counter Animation (`../counter-animation/`) · Next: Section Wipe (`../section-wipe/`)
+- **Final fix wave:** sheet only. It now records that the three indicators (`#top-bar`, `#side-rail`, `svg#circ`) have `pointer-events:none` (Scroller line) and that `.art-title` has `padding-right:40px` to stay clear of the ring (the Stage bullet after Article text).
 
 ---
 
@@ -527,7 +529,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
     - the water rect starts at y 345 (`height` 255); the shimmer lines are at y 365, 385 and 410 (were 440, 460 and 485); the reflection ellipses at `cy` 372 and 395 (were 470 and 500);
     - the stars at (760,130) and (50,180) go, and five stars at (90,205), (250,226), (380,199), (470,232) and (740,236) fill the band; the other six stay.
     - The moon (y 194–242) and the mountains (y 245–345) lie wholly inside y 192–408, and so does the top of the lake (y 345–408), so the widest box (3.7:1) keeps all three. The starting window still shows mountains at every setting.
-    - Measured in headless Chrome, fully open, box sizes inside the border, distances from the top edge of the box: 958×258 (1280×590): moon 57px across and round, 2px down; distant peaks 63px, near peaks 99px; lake 75px tall. 958×325 (1366×657): moon 35px down, lake 109px. 958×378 (1280×800): moon 62px down, lake 135px. 705×438 (768×1024): moon 42px across, lake 180px. 745×258 (a phone held sideways, 812×375): moon 45px across, lake 87px. 341×298 and 286×298 (phones): moon 24px across, lake 127px. The moon is a 1:1 circle at every size, both reflection ellipses are inside the box, and the caption never covers the moon. Under the starting window (Small / Medium / Large) the mountains fill 82–100% / 31–81% / 15–56% of what shows, at every size.
+    - Measured in headless Chrome, fully open, box sizes inside the border, distances from the top edge of the box: 958×258 (1280×590): moon 57px across and round, 2px down; distant peaks 63px, near peaks 99px; lake 75px tall. 958×325 (1366×657): moon 35px down, lake 109px. 958×378 (1280×800): moon 62px down, lake 135px. 705×438 (768×1024): moon 42px across, lake 180px. 745×258 (a phone held sideways, 812×375): moon 45px across, lake 87px. 341×298 and 286×298 (phones): moon 24px across, lake 127px. The moon is a 1:1 circle at every size, both reflection ellipses are inside the box, and the caption never covers the moon. Under the starting window (Small / Medium / Large) the mountains fill 67–100% / 31–81% / 15–56% of what shows, at every size.
   - Script: `update()` keeps the inset, radius and caption maths; the readout line goes, and the clip no longer checks the removed portal switch. It also sets the outline's fade, as above.
   - Phone rules: none. Today's mobile block held only the stage height and the aside.
   - `hb-dots`: no. Default height.
@@ -577,6 +579,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **README Production notes:** unchanged, except that the Reduced motion bullet now reads "shows the caption immediately and hides the starting-frame outline" (fix round 1).
 - **Category line:** `01.19 · Scroll-Based`
 - **Pager:** Previous: Section Wipe (`../section-wipe/`) · Next: Scroll Image Sequence (`../scroll-image-sequence/`)
+- **Final fix wave:** the Small window's range in the measured line under Stage is 67–100%, not 82–100% (Task 11 re-review). Like the other two ranges it comes from a coarse 12×12 hit-test of the starting window at the seven box sizes; a denser 48×48 grid reads 72–98%, 32–82% and 20–56%, so the three ranges are good to a few points.
 
 ---
 
@@ -843,7 +846,7 @@ None: leave out the `details.hb-options` block.
   - The rows are built by the script as today, with `for(let i=0;i<28;i++)`, the title `String(i+1).padStart(2,'0')+' — '+NAMES[i%14]`, and the hue `(210+i*22)%360`.
   - The "scroll to shear" line on every row (`.m-tag`) goes.
   - Script: `tick()` and `applySkew()` stay; the readout lines, `measure()` and `maxScroll` go (they only fed the Position readout). Two changes follow rule B8:
-    - **Speed per 1/60 s.** `tick(now)` works out `dt`, the time since the previous frame, kept between 1ms and 50ms: `dt=lastTime?Math.min(Math.max(now-lastTime,1),50):FRAME`, with `FRAME=1000/60`. It uses `raw=(top-lastTop)*FRAME/dt`, and the smoothing step uses the same time: `vel+=(raw-vel)*(1-Math.pow(1-SMOOTH,dt/FRAME))`. So a 120Hz screen leans and springs back as a 60Hz one does. Where the `scroll` listener starts the loop, it also sets `lastTime=0`, so the first frame of a run counts as 1/60 s. A frame's timestamp can be earlier than the moment the loop started, so a measured first `dt` would inflate the speed.
+    - **Speed per 1/60 s.** `tick(now)` works out `dt`, the time since the previous frame, at least 1ms and with no upper limit: `dt=lastTime?Math.max(now-lastTime,1):FRAME`, with `FRAME=1000/60`. It uses `raw=(top-lastTop)*FRAME/dt`, and the smoothing step uses the same time: `vel+=(raw-vel)*(1-Math.pow(1-SMOOTH,dt/FRAME))`. So a 120Hz screen leans and springs back as a 60Hz one does. Where the `scroll` listener starts the loop, it also sets `lastTime=0`, so the first frame of a run counts as 1/60 s. A frame's timestamp can be earlier than the moment the loop started, so a measured first `dt` would inflate the speed. A stalled frame counts for its real length, so the step it saw is divided by the time it took and the speed stays the speed the box was moving at (a cap at 50ms, the first version, read a 200ms stall as four times the speed).
     - **Instant jumps are ignored.** Back to top, and Play restarting from the top, move the box in one frame, which today leans the rows to the full limit for a moment. The shared script moves the box while it handles the click, before the click reaches the document, so a `click` listener on the document (for `#btn-top` and `#btn-scroll`, matched by id) sets `lastTop=seenTop=stage.scrollTop`: the jump adds no speed, and no flag is left behind that could swallow a later move. Built as the review of Task 13 accepted it, replacing the `jumped` flag that `tick()` would read. A `resize` listener does the same, because a resize can move the box too (1280×800 to 768×1024 while resting at the end leaned the rows to -12° for a second).
     - **A run starts from where the box was before its first move.** `seenTop` is where the last `scroll` event left the box. When the listener starts a run it sets `lastTop=seenTop` (the original set it to the position after the move), so a single instant notch of the wheel counts as speed (5.04° at Normal; 0° with the original start, in a browser with smooth scrolling off).
     - `.content` gets `overflow:clip`: a leaning row draws outside its box, which made the scrollable area up to 131px taller while the rows leaned and shorter again afterwards. Clipping at the padding box changes no picture (the clip edges are the edges of the scrolling content) and keeps the range constant.
@@ -898,7 +901,7 @@ None: leave out the `details.hb-options` block.
 
     ```js
     function tick(now) {
-      const dt = lastTime ? Math.min(Math.max(now - lastTime, 1), 50) : FRAME;   // ms since the last frame
+      const dt = lastTime ? Math.max(now - lastTime, 1) : FRAME;   // ms since the last frame
       lastTime = now;
       const raw = (el.scrollTop - lastTop) * FRAME / dt;      // px moved per 1/60 s
       lastTop = el.scrollTop;
@@ -914,6 +917,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.23 · Scroll-Based`
 - **Pager:** Previous: Text Fill on Scroll (`../text-fill-on-scroll/`) · Next: SVG Line Draw on Scroll (`../svg-line-draw/`)
+- **Final fix wave:** `dt` has no upper limit any more: the page, the README snippet and the two places above that quote the formula (Speed per 1/60 s, and README How it works) lost the 50ms cap. With the cap a stalled frame's step was divided by 50ms instead of the time it took, so at 630px/s (Normal, a laptop) a stall of 100, 200 or 400ms added 1.2°, 3.5° and 8.2° of lean; now it adds under 0.03° (and under 0.03° at 375px/s on a phone). Ordinary scrolling is unchanged: the steady lean at 630px/s is 3.67° before and after.
 
 ---
 
@@ -925,7 +929,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
 - **What scrolling shows:** a winding route with a faint dashed copy underneath; the solid line draws itself in step with the scroll, and five labelled stops (Depart, River crossing, Basecamp, Summit ridge, Arrive) pop in as the line reaches them. Scrolling back up erases the line and hides the stops again. The route ends at "— end of route —".
-- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3 to 10 box heights). At the defaults the line is complete at the end of the scroll, as Play ends (6 s). Early and Near the end finish at 70% and 85% of it. Fix round 1 (2026-09-30): the default was 85% ("Normal"), and with the route 5 to 13 boxes tall in the shared box the tip then left the box after about 40% of a laptop scroll (in the box for 51% of the scroll at 1280×800, 43% at 1366×657, 41% at 1280×590, 44% for a phone held sideways, 69% at 768×1024, 86% at 375×812). With the line finishing at the end the tip is in the box for the whole scroll at every size, and every stop pops in view.
+- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3.5 to 13.4 box heights). At the defaults the line is complete at the end of the scroll, as Play ends (6 s). Early and Near the end finish at 70% and 85% of it. Fix round 1 (2026-09-30): the default was 85% ("Normal"), and with the route 3.5 to 13.4 boxes tall in the shared box the tip then left the box after about 40% of a laptop scroll (in the box for 51% of the scroll at 1280×800, 43% at 1366×657, 41% at 1280×590, 44% for a phone held sideways, 69% at 768×1024, 86% at 375×812). With the line finishing at the end the tip is in the box for the whole scroll at every size with Even (with Smooth it draws ahead early in the scroll), and every stop pops in view.
 - **Reduced motion:** nothing scrolls by itself. The demo's rule stays: the stops appear without their pop (`.pop{transition:none}`); the line still draws with the scroll. With nothing drawn on arrival the first picture is the route's dashed guide, which is why the guide is drawn at .35 alpha (see Stage).
 - **Stage font:** site font. `.wp-label` and `.wp-sub` drop `var(--mono)`.
 - **Stage:**
@@ -992,6 +996,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.24 · Scroll-Based`
 - **Pager:** Previous: Scroll Velocity Skew (`../scroll-velocity-skew/`) · Next: Scrollspy Navigation (`../scrollspy-nav/`)
+- **Final fix wave:** wording and figures only. The route's length is one range, 3.5 to 13.4 box heights (the scrolling content divided by the box: 3.47 on a 320px phone up to 13.36 in the 258px box of 1280×590), in place of the two ranges above (3 to 10 and 5 to 13). The README's "its tip stays inside the box" holds for Even only. Measured at ten screen sizes from 320×640 to 1280×590: with Even the tip is in the box for the whole scroll at every size; with Smooth only for 8% to 29% of it (the tip is out of the box from 3% to 17% of the scroll on).
 
 ---
 
@@ -1001,7 +1006,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** A menu highlights the section you are reading. Best for long docs.
 - **Step 1:** Scroll it · help line: "Scroll inside the box or pick a section in the menu, or press Play and it scrolls for you."
 - **Player bar:** Play · Back to top
-- **Scroller:** `<div class="doc" id="doc" data-hb-scroller tabindex="0" role="region" aria-label="Documentation sections">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the menu (`nav.spy-nav`) beside the scroller, so the menu stays in place. The script calls the scroller `doc` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the focus ring of the scroller and of the menu links inset, inside the stage (rule B2).
+- **Scroller:** `<div class="doc" id="doc" data-hb-scroller tabindex="0" role="region" aria-label="Documentation sections">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`, the box around the scroller; the menu (`nav.spy-nav`) sits inside the scroller, in the sticky zero-height `.spy-rail` (`position:sticky;top:0;height:0;z-index:1`, the scroller's first child), so the menu stays in place while the sections move and a wheel turn or a swipe that starts on it still scrolls the box. The script calls the scroller `doc` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the focus ring of the scroller and of the menu links inset, inside the stage (rule B2).
 - **Play and the menu:** the shared script stops Play on any trusted input anywhere inside the stage (rule B6), including a press on a menu link, so Play has stopped before the link scrolls the box. The link handler needs nothing more.
 - **What scrolling shows:** six documentation sections scroll by. As a section's heading passes the line that Link changes at sets, its link lights and the marker slides to it; at the very bottom the last link lights. Pressing a link glides (or jumps) to its section and lights that link at once, without flickering through the links in between. Under 600px wide the menu is a strip across the top, as today.
 - **Scroll distance and Play:** six sections of at least 500px and a 40cqh run-out. In the site font the sections are exactly 500px (3,000px in all) from 375px wide up. On a 320px phone the text wraps more, and each section is 564px (3,384px in all). Measured, that is about 6 box heights on a 440px tablet stage, 8.6 at 1366×657, 9.5 on a 375px phone, 10.8 on a 320px phone and 11 in the smallest stage (1280×590). Play passes about one section a second, so the marker steps down the menu about once a second.
@@ -1065,6 +1070,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the "`offsetTop` is the recurring trap" bullet is wrong about this demo (its scroller is positioned, so `offsetTop` would be measured from it). The words "here it would be body-relative and every comparison would be wrong" become "and then every comparison is wrong (this demo positions its scroller, but still measures as below, which works whatever sits in between)". The rest is unchanged.
 - **Category line:** `01.25 · Scroll-Based`
 - **Pager:** Previous: SVG Line Draw on Scroll (`../svg-line-draw/`) · Next: Scroll-Driven Background Color (`../scroll-background-color/`)
+- **Final fix wave:** sheet only. The menu is not beside the scroller: it sits inside it, in the sticky zero-height `.spy-rail` (the Scroller line above and the category rule at the top of this half). Checked at 1280×800: the rail is the scroller's first child, and a 300px wheel turn over a menu link scrolls the box while the menu stays 16px below its top edge.
 
 ---
 
@@ -1089,13 +1095,13 @@ None: leave out the `details.hb-options` block.
   - `.num` becomes 13px, weight 600, keeping its letter spacing. `.stage p` becomes `font-size:14px` (was `clamp(11px,1.4vw,13px)`; rule B9).
   - The chapter lines are rewritten in plain words where they named code or settings (luminance, the blend window, snapping):
 
-    | Chapter | Title | Two lines |
+    | Chapter | Title | Text |
     |---|---|---|
-    | 01 | Departure | The first section owns the darkest color. / Scroll down and the ground shifts under the text. (unchanged) |
-    | 02 | Ascent | Halfway between two sections, the background / is an even mix of both colors. |
-    | 03 | Meridian | When the background turns light, / the text turns dark so it stays readable. |
-    | 04 | Descent | Each section has a color of its own, / and the change happens as you move between them. |
-    | 05 | Arrival | The last color stays / as you reach the end. |
+    | 01 | Departure | The first section owns the darkest color. Scroll down and the ground shifts under the text. (unchanged) |
+    | 02 | Ascent | Halfway between two sections, the background is an even mix of both colors. |
+    | 03 | Meridian | When the background turns light, the text turns dark so it stays readable. |
+    | 04 | Descent | Each section has a color of its own, and the change happens as you move between them. |
+    | 05 | Arrival | The last color stays as you reach the end. |
 
   - Script: `update()` keeps the blend maths and the guarded write; the swatch, hex, percentage and segment readout lines go.
   - Phone rules: none. Today's mobile block held only the stage size and the aside.
@@ -1151,3 +1157,4 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.26 · Scroll-Based`
 - **Pager:** Previous: Scrollspy Navigation (`../scrollspy-nav/`) · Next: none
+- **Final fix wave:** each chapter's text is one paragraph, `<p>${c[1]} ${c[2]}</p>`, with no `<br>`, so it wraps on its own (the table lists the text, not where it breaks). The forced break had left "background" and "text." alone on a line at 375px. Without it a chapter could still end on one word at 320-344px and 352-373px (360px, for example), so `.stage p` also has `text-wrap:pretty`. Measured at every width from 320 to 1600px: no chapter has a one-word line (47 widths had one without `text-wrap:pretty`), and the wraps from 374px up (375, 390 and 414px, tablets, laptops) are the same as without it. On laptops and tablets chapters 1 to 4 take two lines and chapter 5 one, and the section heights and the scroll length are unchanged. A browser that ignores `text-wrap:pretty` wraps as before and can still end a chapter on one word at those narrow widths.
