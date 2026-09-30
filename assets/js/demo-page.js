@@ -31,8 +31,7 @@
   }
 
   // Only relative paths, "#" anchors and http(s) URLs are link targets. Anything else, including
-  // protocol-relative "//host" links, is rendered as plain text instead. handbook.js has an older,
-  // looser copy that lets "//host" through; this is the one to keep.
+  // protocol-relative "//host" links, is rendered as plain text instead.
   function isSafeHref(href) {
     href = String(href);
     return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) && !/^\/\//.test(href) &&
