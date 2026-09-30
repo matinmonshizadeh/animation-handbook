@@ -11,7 +11,7 @@ A theme toggle morph is one icon that turns from a sun into a crescent moon when
 Reach for a plain labelled switch instead when the control sits in a dense form, or when users may not read a sun/moon as "theme" without a text label beside it.
 
 ## How it works
-The icon is one inline SVG: a filled `disc`, a group of eight `line` rays, and a `mask` containing a movable `cutout` circle. In the light state the cutout sits off the disc, so the disc renders whole and the rays are visible. Toggling adds a `.dark` class that scales the rays to zero from the icon's center and slides the cutout circle over the disc — the mask subtracts that overlap, leaving a crescent. A separate flip card rotates on the same duration and easing. Only `transform` and `opacity` animate.
+The icon is one inline SVG: a filled `disc`, a group of eight `line` rays, and a `mask` containing a movable `cutout` circle. In the light state the cutout sits off the disc, so the disc renders whole and the rays are visible. Toggling adds a `.dark` class that scales the rays to zero from the icon's center and slides the cutout circle over the disc — the mask subtracts that overlap, leaving a crescent. A separate flip card rotates on the same duration and easing. The rays, the disc, the cut-out circle and the card change only `transform` and `opacity`. The icon's color fades from orange to lavender through a `color` transition on the button, which the SVG picks up with `currentColor`.
 
 ```css
 .icon line{transform-origin:12px 12px;
