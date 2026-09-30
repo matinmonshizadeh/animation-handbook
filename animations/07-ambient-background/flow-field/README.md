@@ -26,12 +26,14 @@ function angleAt(x, y, time) {
 // per frame: fade, then advance every particle along its local angle
 // s is how many 60 Hz frames this one stands for: 1 at 60 Hz, 2 at 30 Hz
 const s = Math.min(now - last, 50) / (1000 / 60);
-ctx.fillStyle = `rgba(5,6,10,${1 - Math.pow(1 - TRAIL, s)})`; ctx.fillRect(0, 0, W, H);
+owed += s; const washes = Math.round(owed); owed -= washes;   // whole 60ths of a second to fade; the rest carries over
+ctx.fillStyle = `rgba(5,6,10,${TRAIL})`;
+for (let i = 0; i < washes; i++) ctx.fillRect(0, 0, W, H);
 const a = angleAt(p.x, p.y, t);
 p.x += Math.cos(a) * SPD * s; p.y += Math.sin(a) * SPD * s;
 ```
 
-Both the step and the fade grow with the time since the last frame, so a 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. A frame that stands for two 60 Hz frames moves each particle twice as far and dims the canvas as much as two fades would (`1 - (1 - TRAIL)^s`, the same as `TRAIL` when `s` is 1). The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1`, so it looks the same on every screen.
+The step grows with the time since the last frame, and so does the fade, in whole units: the canvas is dimmed once for every 60th of a second that has passed, each time by the same `TRAIL` as at 60 Hz. A 30 Hz frame dims it twice; on a 144 Hz screen, where the demo draws every third frame, it is dimmed five times in every four frames. So a 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. `owed` keeps the fraction that is left over, and rounding rather than "at least one" gives a 60 Hz screen exactly one dim per frame even when its frame times are uneven. One dim of `1 - (1 - TRAIL)^s` would fade the same amount in theory, but an 8-bit canvas rounds every dim, so the faint leftovers would settle to different colors on different screens; repeating the same dim makes them settle to the same colors everywhere. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1` with one dim each, so it looks the same on every screen.
 
 ## Key parameters
 | Parameter | Default | Effect |
