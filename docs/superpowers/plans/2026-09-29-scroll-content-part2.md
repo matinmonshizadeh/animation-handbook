@@ -587,7 +587,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
 - **What scrolling shows:** a wireframe cube with a smaller shape inside it, drawn on a canvas that holds still while the box scrolls. Each scroll position shows one frame of a sequence: scrolling down turns the cube one and a half times while it opens out and closes again, and scrolling up plays it backwards. With few frames the steps between pictures are easy to see.
-- **Scroll distance and Play:** the track is 340cqh with its sticky frame 100cqh tall: 2.4 box heights of scrolling, the same proportion as today's 340vh track in a 100vh window. Play plays the whole sequence (120 frames at the default) in six seconds. Back to top, and Play restarting from the top, are instant jumps (rule B8): with Glides between frames on, the picture then eases from the frame it showed back to the first one, as it does after any fast scroll; with it off, the picture jumps too.
+- **Scroll distance and Play:** the track is 340cqh with its sticky frame 100cqh tall: 2.4 box heights of scrolling, the same proportion as today's 340vh track in a 100vh window. Play plays the whole sequence (120 frames at the default) in six seconds. Back to top, and Play restarting from the top, are instant jumps (rule B8), and the picture jumps with them, with or without Glides between frames (a click on either button sets the shown frame at once).
 - **Reduced motion:** nothing scrolls by itself. As today, the picture jumps straight to the frame for each position, with no easing (`smoothing` is false under reduced motion).
 - **Stage font:** no text stays on the stage.
 - **Stage (rebuilt):**
@@ -658,6 +658,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.20 · Scroll-Based`
 - **Pager:** Previous: Zoom Into Image (`../zoom-into-image/`) · Next: Smooth (Inertia) Scroll (`../smooth-scroll/`)
+- **Final fix wave (Scroll-Based final review, 2026-09-30).** A `click` listener on the document, for `#btn-top` and `#btn-scroll` (by id, as Velocity Skew and SVG Line Draw do), runs `updateTarget(); shownFrame=targetFrame`, so the picture stands at the frame for the box's new position in the same click instead of playing backwards through the exploded frames. The shared script has already moved the box when the click reaches the document. README How it works: "…multiply by the frame count, and draw that frame" becomes "…and multiply it by the frame count; a frame loop draws that frame" (the scroll handler only sets the target frame; the loop draws), and a sentence says a click on either button sets the shown frame to the target at once.
 
 ---
 

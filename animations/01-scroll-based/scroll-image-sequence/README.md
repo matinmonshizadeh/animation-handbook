@@ -10,7 +10,7 @@ A scroll image sequence plays a series of still pictures as you scroll, like fli
 - Any "cinematic" scroll moment where you want frame-accurate control instead of CSS transitions
 
 ## How it works
-A tall track element provides the scroll budget; a child pins itself with `position: sticky`. On every scroll event you convert the track's position into a `0 → 1` progress value, multiply by the frame count, and draw that frame. This demo has no image assets, so each frame is generated procedurally — but the scrubbing logic is identical to the production version.
+A tall track element provides the scroll budget; a child pins itself with `position: sticky`. On every scroll event you convert the track's position into a `0 → 1` progress value and multiply it by the frame count; a frame loop draws that frame. This demo has no image assets, so each frame is generated procedurally — but the scrubbing logic is identical to the production version.
 
 ```js
 function updateTarget(){
@@ -30,7 +30,7 @@ const index = Math.round(shownFrame);
 if (index !== drawn) { drawFrame(index); drawn = index; }         // skip a picture that is already on the canvas
 ```
 
-`drawFrame(index)` is a pure function of the index — same index, same picture — which is exactly why reverse scrubbing rewinds cleanly. It is also why the loop can skip a picture that is already on the canvas, which keeps the page cheap on phones.
+`drawFrame(index)` is a pure function of the index — same index, same picture — which is exactly why reverse scrubbing rewinds cleanly. It is also why the loop can skip a picture that is already on the canvas, which keeps the page cheap on phones. Back to top, and Play starting again from the top, move the box in one jump; a click on either button sets the shown frame to the target at once, so the picture does not play backwards.
 
 ## Key parameters
 | Parameter | Default | Effect |
