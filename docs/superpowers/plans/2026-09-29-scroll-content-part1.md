@@ -893,7 +893,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Cards appear as they cross a line in the box. Best for long landing pages.
 - **Step 1:** Scroll it · help line: "Scroll inside the box, or press Play. Back to top hides the cards again."
 - **Player bar:** Play · Back to top
-- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the dashed trigger line beside the scroller, so the line stays in place while the cards move. The script calls it `scroller` wherever it said `stage`.
+- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the dashed trigger line beside the scroller, so the line stays in place while the cards move; `#trigger-line` has `pointer-events:none`, so a click, a touch or a wheel turn over it goes through to the scroller. The script calls it `scroller` wherever it said `stage`.
 - **What scrolling shows:** seven cards rise toward a dashed line across the box. Each stays hidden until its top passes the line, then settles into place in its own way: a fade, a rise, a slide from the left, a grow, a sharpen from a blur, a wipe from the left, and a group of four chips that arrive one by one. A card stays shown after that, unless Plays every time is on; then it hides again when it drops back below the line.
 - **Scroll distance and Play:** the cards' own height, with 200px of room after the last so it can pass the highest line: about 2.1 box heights at 1280×800 (800px) and 3.1 on a 375px phone (921px). At the Normal line the first cards show whole on arrival (the observer may already have revealed the next one, partly below the box edge): two at 1280×800, at 1366×657 and on a 375px phone, three in the 438px boxes (768×1024 and 610×1000), and one in the 258px box of a 1280×590 window and on a 320px phone. Play reveals the rest about a second apart.
 - **Every Trigger line is reached** (shared rule 4): at the end of the scroll the last card's top is at most 115px down the box (at 768×1024 and at 610×1000, where the box is 438px), always above even the Higher line at half the box; measured from the 258px box to the 438px box and on phones.
@@ -903,7 +903,7 @@ None: leave out the `details.hb-options` block.
 - **Stage:**
   - `.stage`: `position:relative;overflow:hidden;background:#0b0b0d`.
   - `.scroller`: `height:100%;overflow-y:auto;scrollbar-width:none;position:relative`, with the `::-webkit-scrollbar{display:none}` rule. The old stage's width, border and height go, and so does `--stage-h`.
-  - `#trigger-line` stays in the `.stage`, over the scroller: `updateLine()` sets its `top` to `scroller.clientTop + threshold / 100 * scroller.clientHeight`. Its label keeps "trigger", at 11px (was 9px). Today the line and its label each have `opacity:.7`, so the label reads about 2.7:1; the line drops its opacity and draws its dashes in `rgba(110,168,255,.7)` instead, and the label drops its own, so it shows in the full accent (7.9:1) while the dashes look as they do today.
+  - `#trigger-line` stays in the `.stage`, over the scroller: `updateLine()` sets its `top` to `scroller.clientTop + threshold / 100 * scroller.clientHeight`. Its label keeps "trigger", at 11px (was 9px). Today the line and its label each have `opacity:.7`, so the label reads about 2.7:1; the line drops its opacity and draws its dashes in `rgba(110,168,255,.7)` instead, and the label drops its own, so it shows in the full accent (7.9:1) while the dashes look as they do today. The line has `pointer-events:none` (the label inherits it), so input reaches the scroller underneath it.
   - The cards' texts are rewritten in plain words (today's bodies are CSS values such as "opacity 0 → 1"). The tag reads "Technique 01" to "Technique 07" (the code names after it go), at 11px without the opacity .7; the titles stay:
 
     | Card | Title | Text |
@@ -917,7 +917,7 @@ None: leave out the `details.hb-options` block.
     | 07 | Stagger Group | (the four chips Alpha, Beta, Gamma and Delta, unchanged) |
 
     `.card-body` becomes 14px (was 11px) and `.stagger-chip` 12px (was 10px).
-  - Script: `reveal()` and `hide()` keep the class change; their state-readout lines go, and so do `logEvent()`, `obsSnippet()` and the Card states list.
+  - Script: `reveal()` and `hide()` keep the class change; their state-readout lines go, and so do `logEvent()`, `obsSnippet()` and the Card states list. `buildObserver()` watches each card where it changes, through `watched(el)`: the card itself, but for the Stagger Group card its row of chips, `.stagger-row` (the callback finds the card again with `e.target.closest('.card')`). The chips sit lower in the card, so watching the card's top would start their cascade below the box on the lower lines.
   - `hb-dots`: no. Default height.
 
 **Main settings**
@@ -961,6 +961,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.12 · Scroll-Based`
 - **Pager:** Previous: Scrollytelling (`../scrollytelling/`) · Next: Stagger Reveal (`../stagger-reveal/`)
+- **Final fix wave:** sheet only. It now records that `#trigger-line` has `pointer-events:none` (Scroller and Stage lines above) and that the Stagger Group card is watched at its `.stagger-row` (Script line above).
 
 ---
 
