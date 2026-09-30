@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Floating Elements — Animation Handbook</title>
-  <meta name="description" content="Geometric shapes drift on independent sine-wave paths — no two elements move in sync.">
+  <meta name="description" content="Small shapes drift slowly, each on its own path. Best for hero backgrounds.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/floating-elements/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,204 +12,292 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Floating Elements — Animation Handbook">
-  <meta property="og:description" content="Geometric shapes drift on independent sine-wave paths — no two elements move in sync.">
+  <meta property="og:description" content="Small shapes drift slowly, each on its own path. Best for hero backgrounds.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/floating-elements/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Floating Elements — Animation Handbook">
-  <meta name="twitter:description" content="Geometric shapes drift on independent sine-wave paths — no two elements move in sync.">
+  <meta name="twitter:description" content="Small shapes drift slowly, each on its own path. Best for hero backgrounds.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Floating Elements", "name": "Floating Elements", "description": "Geometric shapes drift on independent sine-wave paths — no two elements move in sync.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/floating-elements/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Floating Elements"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Floating Elements", "name": "Floating Elements", "description": "Small shapes drift slowly, each on its own path. Best for hero backgrounds.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/floating-elements/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Floating Elements"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ffce5a;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#ffce5a}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;background:#03050a}
+    .stage{position:relative;overflow:hidden;background:#03050a}
     .float-layer{position:absolute;inset:0;overflow:hidden}
     .el{position:absolute;will-change:transform;opacity:.5}
-    /* Shapes via border/border-radius */
-    .shape-circle{border-radius:50%}
-    .shape-square{}
-    .shape-triangle{background:none!important;width:0!important;height:0!important;border-style:solid}
-    .shape-ring{background:none!important;border-radius:50%;border:2px solid currentColor}
-    /* Foreground */
     .fg-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(200px,60%,320px);background:rgba(3,5,10,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:24px;z-index:10;text-align:center}
-    .fg-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
-    .fg-title{font-family:Georgia,serif;font-size:clamp(16px,2.2vw,22px);color:#fff;margin-bottom:10px;font-style:italic;line-height:1.2}
-    .fg-body{font-size:11px;color:rgba(255,255,255,.45);line-height:1.6}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column;align-items:stretch}aside{width:100%}:root{--stage-h:420px}.stage{flex:none}}
-    @media(prefers-reduced-motion:reduce){.el{animation:none!important;transition:none!important}}
+    .fg-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--ui-accent);margin-bottom:10px}
+    .fg-title{font-size:clamp(16px,2.2vw,22px);font-weight:700;color:#fff;margin-bottom:10px;line-height:1.2}
+    .fg-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6}
+    /* On phones and short screens the card shrinks to leave the shapes in view */
+    @media(max-width:600px),(max-height:760px){.fg-card{padding:12px 14px}.fg-eyebrow{margin-bottom:4px}.fg-title{margin-bottom:0}.fg-body{display:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../ambient-ripple/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../grid-dot-pattern-parallax/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/07-ambient-background/floating-elements/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Floating Elements</h1>
-  <p>Geometric shapes drift on independent sine-wave paths — no two elements move in sync.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="float-layer" id="float-layer"></div>
-    <div class="fg-card">
-      <div class="fg-eyebrow">Floating Elements</div>
-      <div class="fg-title">5–12 shapes is the sweet spot</div>
-      <div class="fg-body">Each shape has a unique amplitude, frequency, and phase. Synchronized motion would look mechanical.</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../ambient-ripple/" rel="prev" aria-label="Previous: Ambient Ripple Effect"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Ambient Ripple Effect</span></a><a href="../grid-dot-pattern-parallax/" rel="next" aria-label="Next: Grid / Dot Pattern Parallax"><span><span class="hb-dir">Next: </span>Grid / Dot Pattern Parallax</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.10 · Ambient &amp; Background</p>
+    <h1>Floating Elements</h1>
+    <p class="hb-lede">Small shapes drift slowly, each on its own path. Best for hero backgrounds.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">5–12 shapes is the sweet spot. Each shape gets a unique amplitude, frequency, and phase for its sine-wave path. Synchronized shapes look mechanical; independence looks natural.</p>
-    <div class="lbl">Count</div>
-    <div class="sr"><input type="range" id="count-sl" min="4" max="20" value="8" step="1"><span class="sv" id="count-v">8</span></div>
-    <div class="lbl">Drift Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="5" step="1"><span class="sv" id="spd-v">0.5</span></div>
-    <div class="lbl">Drift Range</div>
-    <div class="sr"><input type="range" id="range-sl" min="20" max="120" value="50" step="10"><span class="sv" id="range-v">50px</span></div>
-    <div class="lbl">Shape Mix</div>
-    <select id="shape-sel">
-      <option value="circles">Circles only</option>
-      <option value="squares">Squares only</option>
-      <option value="rings">Rings only</option>
-      <option value="mixed" selected>Mixed</option>
-    </select>
-    <div class="lbl">Palette</div>
-    <select id="pal-sel">
-      <option value="cool" selected>Cool (blues/purples)</option>
-      <option value="warm">Warm (oranges/reds)</option>
-      <option value="mono">Monochrome</option>
-      <option value="neon">Neon</option>
-    </select>
-    <label class="tog"><input type="checkbox" id="rot-tog" checked><span>Subtle rotation</span></label>
-    <label class="tog"><input type="checkbox" id="pulse-tog" checked><span>Opacity pulse</span></label>
-    <label class="tog"><input type="checkbox" id="react-tog"><span>Mouse repulsion</span></label>
-    <div class="div"></div>
-    <button class="rst" id="rebuild-btn">↺ Rebuild</button>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+    <div class="stage">
+      <div class="float-layer" id="float-layer" aria-hidden="true"></div>
+      <div class="fg-card">
+        <div class="fg-eyebrow">Floating elements</div>
+        <div class="fg-title">No two shapes move together</div>
+        <div class="fg-body">Each shape follows its own slow path, so the motion never looks mechanical.</div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="count-lbl">Number of shapes</p>
+        <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+          <button type="button" data-n="5" aria-pressed="false">Few</button>
+          <button type="button" data-n="8" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-n="14" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">5 to 12 shapes feels calm; more gets busy.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-spd="0.3" aria-pressed="false">Slow</button>
+          <button type="button" data-spd="0.5" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-spd="0.8" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the shapes drift.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="range-lbl">How far they drift</p>
+        <div class="seg" id="range-seg" role="group" aria-labelledby="range-lbl">
+          <button type="button" data-px="30" aria-pressed="false">Short</button>
+          <button type="button" data-px="50" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="90" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How far each shape wanders from its place.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="shape-lbl">Shapes</p>
+          <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+            <button type="button" data-shape="circles" aria-pressed="false">Circles</button>
+            <button type="button" data-shape="squares" aria-pressed="false">Squares</button>
+            <button type="button" data-shape="rings" aria-pressed="false">Rings</button>
+            <button type="button" data-shape="mixed" class="on" aria-pressed="true">Mixed</button>
+          </div>
+          <p class="hb-hint">The kind of shapes that float.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="pal-lbl">Colors</p>
+          <div class="seg" id="pal-seg" role="group" aria-labelledby="pal-lbl">
+            <button type="button" data-pal="cool" class="on" aria-pressed="true">Cool</button>
+            <button type="button" data-pal="warm" aria-pressed="false">Warm</button>
+            <button type="button" data-pal="mono" aria-pressed="false">Gray</button>
+            <button type="button" data-pal="neon" aria-pressed="false">Neon</button>
+          </div>
+          <p class="hb-hint">The set of colors the shapes use.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shapes turn</span><input class="hb-switch" type="checkbox" role="switch" id="rot-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Each shape slowly spins as it drifts.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Fades in and out</span><input class="hb-switch" type="checkbox" role="switch" id="pulse-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Each shape slowly brightens and dims.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shapes avoid the pointer</span><input class="hb-switch" type="checkbox" role="switch" id="react-tog" autocomplete="off"></label>
+          <p class="hb-hint">Shapes near your pointer or finger slide aside.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add floating shapes to [the section you want a gentle moving background behind]. Scatter a handful of small, see-through circles, squares or rings, and move each one slowly around its own starting point on a smooth, looping path, giving every shape its own speed, distance and starting point so no two ever move in step. Keep them behind the content and let clicks pass through. When the settings include it, shapes slide away from the pointer, or from a finger on touch screens. If the visitor has reduced motion turned on, keep the shapes still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero backgrounds</li><li>Landing pages</li><li>Onboarding screens</li><li>Empty states</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Busy layouts</li><li>Long reading pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const layer=document.getElementById('float-layer');
-const stage=document.getElementById('stage');
-let W=stage.clientWidth,H=stage.clientHeight;
-let COUNT=8,SPD=0.5,RANGE=50,SHAPE='mixed',PAL='cool',ROT=true,PULSE=true,REACT=false;
-let elements=[],raf=null,paused=false,t=0,mouse={x:-999,y:-999};
-const REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const layer=document.getElementById('float-layer');
+  const stage=document.querySelector('.stage');
+  const slowTog=document.getElementById('slow-tog');
+  let W=0,H=0,raf=null,paused=false,t=0,mouse={x:-999,y:-999};
+  let COUNT=8,SPD=0.5,RANGE=50,SHAPE='mixed',PAL='cool',ROT=true,PULSE=true,REACT=false;
+  let elements=[];
 
-const PALETTES={
-  cool:['rgba(88,166,255,.3)','rgba(100,80,220,.3)','rgba(56,200,180,.25)'],
-  warm:['rgba(255,166,87,.3)','rgba(248,81,73,.3)','rgba(255,210,100,.25)'],
-  mono:['rgba(200,210,220,.15)','rgba(150,160,170,.12)','rgba(240,245,255,.1)'],
-  neon:['rgba(0,255,180,.4)','rgba(255,0,200,.35)','rgba(0,200,255,.4)']
-};
+  const PALETTES={
+    cool:['rgba(88,166,255,.3)','rgba(100,80,220,.3)','rgba(56,200,180,.25)'],
+    warm:['rgba(255,166,87,.3)','rgba(248,81,73,.3)','rgba(255,210,100,.25)'],
+    mono:['rgba(200,210,220,.15)','rgba(150,160,170,.12)','rgba(240,245,255,.1)'],
+    neon:['rgba(0,255,180,.4)','rgba(255,0,200,.35)','rgba(0,200,255,.4)']
+  };
 
-const SHAPES=['circle','square','ring'];
-// Swap the alpha channel of an rgba() string, e.g. rgba(88,166,255,.3) -> rgba(88,166,255,0.6)
-const withAlpha=(c,a)=>c.replace(/[\d.]+\)$/,a+')');
+  const SHAPES=['circle','square','ring'];
+  // Swap the alpha channel of an rgba() string, e.g. rgba(88,166,255,.3) -> rgba(88,166,255,0.6)
+  const withAlpha=(c,a)=>c.replace(/[\d.]+\)$/,a+')');
 
-function mkEl(){
-  const shapePick=SHAPE==='mixed'?SHAPES[Math.floor(Math.random()*SHAPES.length)]:SHAPE.replace(/s$/,'');
-  const sz=8+Math.random()*20;
-  const col=PALETTES[PAL][Math.floor(Math.random()*PALETTES[PAL].length)];
-  const el=document.createElement('div');el.className='el';
-  const bx=10+Math.random()*80,by=10+Math.random()*80;
-  const amp=RANGE*.5+Math.random()*RANGE*.5;
-  const freq=0.3+Math.random()*0.5;
-  const phase=Math.random()*Math.PI*2;
-  const phaseY=Math.random()*Math.PI*2;
-  const rotSpd=(Math.random()-.5)*0.3;
-  const pulsePhs=Math.random()*Math.PI*2;
+  function mkEl(){
+    const shapePick=SHAPE==='mixed'?SHAPES[Math.floor(Math.random()*SHAPES.length)]:SHAPE.replace(/s$/,'');
+    const sz=8+Math.random()*20;
+    const col=PALETTES[PAL][Math.floor(Math.random()*PALETTES[PAL].length)];
+    const el=document.createElement('div');el.className='el';
+    const bx=10+Math.random()*80,by=10+Math.random()*80;
+    const amp=RANGE*.5+Math.random()*RANGE*.5;
+    const freq=0.3+Math.random()*0.5;
+    const phase=Math.random()*Math.PI*2;
+    const phaseY=Math.random()*Math.PI*2;
+    const rotSpd=(Math.random()-.5)*0.3;
+    const pulsePhs=Math.random()*Math.PI*2;
 
-  if(shapePick==='ring'){
-    el.style.width=sz+'px';el.style.height=sz+'px';el.style.borderRadius='50%';el.style.border='2px solid '+withAlpha(col,0.6);
-    el.style.background='none';
-  }else if(shapePick==='square'){
-    el.style.width=sz+'px';el.style.height=sz+'px';el.style.background=col;
-  }else{
-    el.style.width=sz+'px';el.style.height=sz+'px';el.style.borderRadius='50%';el.style.background=col;
-  }
-  el.style.position='absolute';
-  layer.appendChild(el);
-  return{el,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0,mx:bx,my:by};
-}
-
-function rebuild(){
-  layer.innerHTML='';
-  elements=Array.from({length:COUNT},mkEl);
-}
-
-function loop(ts){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(loop);
-  if(!REDUCE)t+=SPD*.005;
-  elements.forEach(e=>{
-    const W=stage.clientWidth,H=stage.clientHeight;
-    let x=e.bx/100*W+Math.sin(e.freq*t+e.phase)*e.amp;
-    let y=e.by/100*H+Math.cos(e.freq*t*0.7+e.phaseY)*e.amp*.6;
-    // Mouse repulsion
-    if(REACT&&!REDUCE&&mouse.x>0){
-      const dx=x-mouse.x,dy=y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
-      if(d<120){const f=120-d;x+=dx/d*f*.08;y+=dy/d*f*.08;}
+    el.style.width=sz+'px';el.style.height=sz+'px';
+    if(shapePick==='ring'){
+      el.style.borderRadius='50%';el.style.border='2px solid '+withAlpha(col,0.6);
+      el.style.background='none';
+    }else if(shapePick==='square'){
+      el.style.background=col;
+    }else{
+      el.style.borderRadius='50%';el.style.background=col;
     }
-    let rot=0;if(ROT&&!REDUCE){e.rot+=e.rotSpd;rot=e.rot;}
-    let op=0.5;if(PULSE&&!REDUCE)op=0.4+0.3*Math.sin(e.pulsePhs+t*.5);
-    e.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
-    e.el.style.opacity=op;
+    layer.appendChild(el);
+    return{el,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0};
+  }
+
+  // Writes each shape's position, turn and opacity for t: every frame, after rebuild(), and after a setting changes while paused
+  function place(){
+    elements.forEach(e=>{
+      let x=e.bx/100*W+Math.sin(e.freq*t+e.phase)*e.amp;
+      let y=e.by/100*H+Math.cos(e.freq*t*0.7+e.phaseY)*e.amp*.6;
+      // Shapes avoid the pointer
+      if(REACT&&mouse.x>0){
+        const dx=x-mouse.x,dy=y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d>0&&d<120){const f=120-d;x+=dx/d*f*.08;y+=dy/d*f*.08;}
+      }
+      const op=PULSE?0.4+0.3*Math.sin(e.pulsePhs+t*.5):0.5;
+      e.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${(ROT?e.rot:0).toFixed(1)}deg)`;
+      e.el.style.opacity=op;
+    });
+  }
+
+  function rebuild(){
+    layer.textContent='';
+    elements=Array.from({length:COUNT},mkEl);
+    place();
+  }
+
+  // One pending frame at a time: Pause cancels it, Play starts one loop again. A frame moves t and each turn one step (a third in slow motion).
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    const k=slowTog.checked?1/3:1;
+    t+=SPD*.005*k;
+    if(ROT)elements.forEach(e=>{e.rot+=e.rotSpd*k});
+    place();
+  }
+  function start(){if(raf)return;raf=requestAnimationFrame(loop)}
+
+  // Top level, so it is there before the shared script (deferred) pauses the loop on arrival under reduced motion. Paused shapes stay put.
+  document.addEventListener('hb:pause',e=>{
+    paused=e.detail.paused;
+    if(paused){cancelAnimationFrame(raf);raf=null}
+    else start();
   });
-}
 
-rebuild();raf=requestAnimationFrame(loop);
+  // A real change of the stage's size places the shapes again, playing or paused; the same size (a phone's address bar) does nothing
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;
+    if(w===W&&h===H)return;
+    W=w;H=h;place();
+  }
 
-stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
-stage.addEventListener('pointerleave',()=>{mouse.x=-999;});
-stage.addEventListener('pointercancel',()=>{mouse.x=-999;});
-window.addEventListener('resize',()=>{W=stage.clientWidth;H=stage.clientHeight;});
+  // The pointer's position comes from pointermove and pointerdown, so a finger resting on the stage counts too
+  function aim(e){const r=stage.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top}
+  stage.addEventListener('pointermove',aim);
+  stage.addEventListener('pointerdown',aim);
+  stage.addEventListener('pointerleave',()=>{mouse.x=-999});
+  stage.addEventListener('pointercancel',()=>{mouse.x=-999});
 
-document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;rebuild();});
-document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('range-sl').addEventListener('input',e=>{RANGE=+e.target.value;document.getElementById('range-v').textContent=RANGE+'px';rebuild();});
-document.getElementById('shape-sel').addEventListener('change',e=>{SHAPE=e.target.value;rebuild();});
-document.getElementById('pal-sel').addEventListener('change',e=>{PAL=e.target.value;rebuild();});
-document.getElementById('rot-tog').addEventListener('change',e=>{ROT=e.target.checked;});
-document.getElementById('pulse-tog').addEventListener('change',e=>{PULSE=e.target.checked;});
-document.getElementById('react-tog').addEventListener('change',e=>{REACT=e.target.checked;});
-document.getElementById('rebuild-btn').addEventListener('click',rebuild);
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused){raf=requestAnimationFrame(loop);}
-});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // While paused, a setting that changes how the shapes look places them again so the change shows
+  function still(){if(paused)place()}
+  // The settings that build the shapes ignore a press on the choice already made, so it does not scatter a new arrangement
+  choices('count-seg',d=>{if(+d.n===COUNT)return;COUNT=+d.n;rebuild()});
+  choices('speed-seg',d=>{SPD=+d.spd;still()});
+  choices('range-seg',d=>{if(+d.px===RANGE)return;RANGE=+d.px;rebuild()});
+  choices('shape-seg',d=>{if(d.shape===SHAPE)return;SHAPE=d.shape;rebuild()});
+  choices('pal-seg',d=>{if(d.pal===PAL)return;PAL=d.pal;rebuild()});
+  document.getElementById('rot-tog').addEventListener('change',e=>{ROT=e.target.checked;still()});
+  document.getElementById('pulse-tog').addEventListener('change',e=>{PULSE=e.target.checked;still()});
+  document.getElementById('react-tog').addEventListener('change',e=>{REACT=e.target.checked;still()});
+
+  resize();
+  rebuild();
+  window.addEventListener('resize',resize);
+  start();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
