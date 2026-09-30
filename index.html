@@ -330,7 +330,7 @@ button,input{font:inherit;color:inherit}
 
 /* ── preview library ── */
 .pv *{will-change:transform,opacity}
-.card:not(.playing) .pv .anim{animation-play-state:paused!important}
+.card:not(.playing) .pv .anim,.card:not(.playing) .pv .anim::before,.card:not(.playing) .pv .anim::after{animation-play-state:paused!important}
 
 /* signature: 01 scroll */
 .pv-sig1{background:#08090c;overflow:hidden;-webkit-mask:linear-gradient(#0000,#000 18%,#000 82%,#0000);mask:linear-gradient(#0000,#000 18%,#000 82%,#0000)}
@@ -858,10 +858,10 @@ button,input{font:inherit;color:inherit}
 .pv-flow{background:#05060a}
 
 @media(prefers-reduced-motion:reduce){
-  .pv .anim{animation-play-state:paused!important}
+  .pv .anim,.pv .anim::before,.pv .anim::after{animation-play-state:paused!important} /* each preview holds one clear frame: hold() in the script picks it */
   .art *,.art *::before,.art *::after,.pill-dot::after{animation-play-state:paused!important}
   .float{display:none}
-  .card,.card:hover,.card:hover .pv,.place:hover .art{transform:none;transition:none}
+  .card,.card:hover,.card:hover .pv,.card:hover .try .i,.place:hover .art{transform:none;transition:none}
   .toast{transform:translate(-50%,0);transition:opacity .25s} /* the message fades in place, it does not slide */
 }
 
@@ -1619,6 +1619,7 @@ function scramble(pv){
 }
 function counter(pv){
   const el=pv.querySelector('.num'),target=1240;let raf=null,start=null;
+  if(reduce)el.textContent=target.toLocaleString(); // the still frame shows the number it counts up to, before it is ever on screen
   function frame(ts){if(start==null)start=ts;const p=Math.min((ts-start)/1600,1),e=1-Math.pow(1-p,3);
     el.textContent=Math.round(e*target).toLocaleString();
     if(p<1)raf=requestAnimationFrame(frame);
@@ -1720,11 +1721,26 @@ const CARD=Object.fromEntries(ALL.map(e=>[e.slug,buildCard(e)]));
 const $=id=>document.getElementById(id);
 const resultsEl=$('results'),cardsBox=$('cards');
 let shown=[];
+// Under reduced motion every preview holds one still, clear frame. A card that is placed starts its CSS animations anew, held
+// by the styles at their first moment, where many show an empty stage; so each placing sets them to one moment of their loop:
+// the middle of the first animation's cycle, or the share of it that STILL names (where the middle is empty, cut off, hidden
+// under the place label or between two states). Nothing here runs without reduced motion.
+const STILL={
+  cover:.1,curtain:.6,kinetic:.25,carousel:.1,typewriter:.55,textclip:.7,svgpath:.7,smoke:.3,leak:.7,
+  flash:.41,blurpage:.2,toggle:.7,shake:.8
+};
+function hold(card){
+  const anims=card.querySelector('.pv').getAnimations({subtree:true});
+  if(!anims.length)return;
+  const at=(STILL[card.dataset.pv]??.5)*anims[0].effect.getTiming().duration;
+  for(const a of anims)a.currentTime=at;
+}
 // Cards that left the page stop. The canvas previews size themselves on resize, so one resize lets them measure their new place.
 function place(cards){
   shown.forEach(c=>{if(!cards.includes(c))c._pause();});
   shown=cards;
   if(!io)cards.forEach(c=>c._play());
+  if(reduce)cards.forEach(hold);
   dispatchEvent(new Event('resize'));
 }
 function showCards(list){
