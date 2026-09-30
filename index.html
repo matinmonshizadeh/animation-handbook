@@ -1251,7 +1251,7 @@ CATS.forEach(cat=>{
 
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 // Previews move by elapsed time in 60 Hz frames (steps), so they run at the same speed on any screen. The first frame after a start adds none; a gap over 50 ms counts as 50.
-// Trails wash once per 60 Hz frame of elapsed time at the fixed 60 Hz opacity: a smaller opacity on faster screens would round differently in an 8-bit canvas. fa counts the washes owed; a step within 5% of a whole number counts as that number, so screens just off 60 Hz wash every frame. Starfield and flow draw nothing on a frame with no step or no wash due, and cs carries its steps to the next drawn frame.
+// Trails wash once per 60 Hz frame of elapsed time at the fixed 60 Hz opacity: a smaller opacity on faster screens would round differently in an 8-bit canvas. fa counts the washes owed; a step within 5% of a whole number counts as that number, so screens just off 60 Hz wash every frame, and fa is rounded with a lean of .05 so a tie (fa = .5 on an exact 120 or 240 Hz screen) washes on the same frame whatever the timestamp noise. Starfield and flow draw nothing on a frame with no step or no wash due, and cs carries its steps to the next drawn frame.
 const FRAME=1000/60;
 
 function starfield(pv){
@@ -1261,7 +1261,7 @@ function starfield(pv){
     stars=Array.from({length:90},()=>({x:(Math.random()-.5)*w,y:(Math.random()-.5)*h,z:Math.random()*w}));draw(false);}
   function draw(advance,steps){
     if(advance){if(!steps)return;
-      const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa);
+      const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa+.05);
       if(!nf){cs+=steps;return;}
       fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(4,5,12,.35)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);}
     else{ctx.fillStyle='#04050c';ctx.fillRect(0,0,w,h);}
@@ -1314,7 +1314,7 @@ function flowEngine(pv){
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*D;h=c.height=r.height*D;
     ps=Array.from({length:55},()=>({x:Math.random()*w,y:Math.random()*h}));ctx.fillStyle='#05060a';ctx.fillRect(0,0,w,h);}
   function draw(steps){if(!steps)return;
-    const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa);
+    const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa+.05);
     if(!nf){cs+=steps;return;}
     fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(5,6,10,.09)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(95,216,138,.85)';
     // a step longer than one frame is drawn in pieces of about one frame, so the trails have no gaps at 30 Hz
