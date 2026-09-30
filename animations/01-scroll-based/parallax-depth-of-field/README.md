@@ -47,6 +47,10 @@ current += (target - current) * EASE;   // inside a requestAnimationFrame loop
 
 The loop only runs while the two values differ, so an idle page costs nothing.
 
+Back to top, and Play starting again from the top, move the box in one jump; a
+click on either button sets the eased value to the new position at once, so the
+layers do not rewind through the whole focus pull.
+
 ## Key parameters
 
 | Parameter | Default | Effect |
