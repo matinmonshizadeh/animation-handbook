@@ -328,7 +328,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Player bar:** Play · Back to top
 - **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="An article with a reading progress indicator">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the three indicators beside the scroller, so they stay in place while the article moves. The script calls it `scroller` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the scroller's focus ring inset, inside the stage (rule B2).
 - **What scrolling shows:** the article scrolls, and the chosen indicator (a bar along the top, a ring in the top-right corner with the percentage inside, or a rail down the right edge) fills from empty to full, reaching full exactly at the end of the article.
-- **Scroll distance and Play:** the article does not depend on the stage height (measured: 853px on laptops and 1,130px on phones), so the box scrolls about 1.5 box heights on laptops and nearly 3 on phones. Play fills the indicator from 0 to 100% in six seconds.
+- **Scroll distance and Play:** the article does not depend on the stage height (measured: 846px on laptops and 1,126px on a 375px phone), so the box scrolls about 1.5 box heights on laptops and nearly 3 on phones. Play fills the indicator from 0 to 100% in six seconds.
 - **Reduced motion:** nothing scrolls by itself, and nothing needs simplifying: the indicators have no transition. The demo's rule goes (it named the old scroller and transitions that do not exist).
 - **Stage font:** site font. `.art-title` and `.art-h2` use `font-weight:700` (was `bold`); `.circ-text` drops `var(--mono)`.
 - **Stage:**
