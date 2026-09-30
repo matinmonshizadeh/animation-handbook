@@ -196,10 +196,12 @@ None: leave out the `details.hb-options` block.
 - **README How it works:**
   - "Each layer has a speed multiplier `s ∈ [0, 1.5]`." becomes "Each layer has a speed multiplier `s` between 0 and 1.5, set by the Depth setting."
   - In the snippet, the comment `// MAX_PARALLAX = 150px` becomes `// MAX_PARALLAX = a quarter of the box's height`.
+  - Final fix wave, three sentences to match the travel (`MAX_PARALLAX = stage.clientHeight / 4`; the grass is the layer at 100%): "scales a fixed travel budget by the layer's speed" becomes "scales the travel, a quarter of the box's height, by the layer's speed"; "Normalising first keeps the travel identical no matter how tall the scroll container is, and clamps the effect at both ends for free" becomes "Normalising first makes the movement the same whatever the length of the scroll, and clamps it at both ends for free"; and "Layers with high speed (foreground: 100%) track the scroll" becomes "Layers with high speed (the grass: 100%) move the most".
   - The rest is unchanged.
 - **README Production notes:** in the Accessibility bullet, "hold every layer at zero offset and show the static scene — but keep the numeric readouts tracking the scroll, so the panel isn't reporting stale values. Apply `will-change: auto` in the reduced-motion media query to avoid unnecessary layer promotion." becomes "hold every layer at zero offset and show the static scene, and apply `will-change: auto` in the reduced-motion media query to avoid unnecessary layer promotion." The rest is unchanged.
 - **Category line:** `01.02 · Scroll-Based`
 - **Pager:** Previous: Parallax Depth-of-Field (`../parallax-depth-of-field/`) · Next: Reverse-Scrolling Columns (`../reverse-scrolling-columns/`)
+- **Final fix wave:** README wording only: the travel is a quarter of the box's height whatever the length of the scroll, and the layer at 100% (the grass) moves the most rather than tracking the scroll (see README How it works above).
 
 ---
 
