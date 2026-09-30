@@ -185,6 +185,8 @@ float density(vec3 p,float t){
   vec3 q=p+vec3(windX,0.,0.);
   // Cone source shape: narrower at top
   float r=length(p.xz);float src=exp(-r*3.)*smoothstep(-.2,0.6,p.y)*(1.-smoothstep(1.0,1.8,p.y));
+  // Nothing to add where the plume has faded out, so the five noise samples are only taken where there can be smoke
+  if(src<1e-3)return 0.;
   float n=fbm(q*1.4+vec3(0.,uRise*.4,0.));
   return max(0.,n-.45)*src*uDens*2.;
 }
@@ -258,12 +260,13 @@ function init(){
 // After a lost context nothing draws again until the page is reloaded (as the message says), even if the browser restores the context
 const live=()=>!!gl&&!lost&&!gl.isContextLost();
 
-// Ray marching is fill-rate bound, so the backing store never exceeds one CSS pixel per fragment. Phones render below that
-// (0.75) and take at most 48 steps, so High is 48 there: that pair is the reduced-quality path this effect needs on mobile.
+// Ray marching is fill-rate bound, so the backing store never exceeds one CSS pixel per fragment, and holds about 90,000 pixels
+// at most: the browser scales the canvas up to the stage, which suits smoke this soft. Phones render at most 0.75 of the stage
+// and take at most 48 steps, so High is 48 there: that is the reduced-quality path this effect needs on mobile.
 // The visitor's Detail stays as chosen; the limit is applied when drawing, so it follows the screen both ways.
 function steps(){return Math.min(STEPS,PHONE.matches?48:64);}
 function layout(force){
-  const phone=PHONE.matches,s=Math.min(window.devicePixelRatio||1,phone?.75:1);
+  const phone=PHONE.matches,s=Math.min(window.devicePixelRatio||1,phone?.75:1,Math.sqrt(90000/Math.max(1,stage.clientWidth*stage.clientHeight)));
   const w=Math.max(1,Math.round(stage.clientWidth*s)),h=Math.max(1,Math.round(stage.clientHeight*s));
   // Setting the size clears the canvas, so nothing is touched when the stage is the same size and the phone limits are the same
   // (a phone's address bar showing or hiding also fires resize).
