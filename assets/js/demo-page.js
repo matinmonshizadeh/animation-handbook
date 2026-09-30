@@ -1,9 +1,10 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
  * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
  * animations", plays the demo on arrival, replays it when a setting changes, runs
- * Pause and CSS slow motion on loop pages, presses Show me on do-it pages and tells
- * the page when the visitor takes over ("hb:input"), and follows reduced motion
- * (Loop and Slow motion greyed out, loops start paused).
+ * Pause and CSS slow motion on loop pages, presses Show me on do-it pages (not on arrival
+ * when the visitor has already acted in the stage) and tells the page when the visitor
+ * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
+ * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
@@ -352,12 +353,18 @@
     // Do-it pages: the visitor's own press, key, wheel, touch or click inside the stage is sent as "hb:input", so the page
     // can stop a Show me run that is under way and leave the visitor in control. Click is there for an activation that comes
     // with no pointer or key event (assistive technology); a press sends one for the press and then one for the click.
+    // The same input, or focus arriving in the stage (a Tab into a field), also means the visitor got there before the Show me
+    // press on arrival, and that press is then skipped, so it cannot wipe or replace what they are doing.
+    var visitorActed = false;
     function setUpVisitorInput() {
       ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click'].forEach(function (type) {
         stage.addEventListener(type, function (e) {
-          if (e.isTrusted) doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
+          if (!e.isTrusted) return;
+          visitorActed = true;
+          doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
         }, { capture: true, passive: true });
       });
+      stage.addEventListener('focusin', function (e) { if (e.isTrusted) visitorActed = true; });
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
@@ -458,7 +465,7 @@
     else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
-        if (demoCtl) { if (!(reduce && reduce.matches)) demoCtl.click(); return; }
+        if (demoCtl) { if (!(reduce && reduce.matches) && !visitorActed) demoCtl.click(); return; }
         if (scrollCtl) { if (!(reduce && reduce.matches)) scrollCtl.click(); return; }
         if (loopCtl && !(reduce && reduce.matches)) {
           // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.
