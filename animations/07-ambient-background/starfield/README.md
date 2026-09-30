@@ -10,7 +10,7 @@ A starfield fills a dark background with small stars that stream out from the ce
 - Dark-themed landing pages that need a sense of depth and motion without complexity
 
 ## How it works
-Each star tracks its angular position (`angle`), distance from center (`dist`), and speed. Per frame, distance increases and the star's canvas coordinates are computed from polar coordinates:
+Each star tracks its angular position (`angle`), distance from center (`dist`), and speed. On every frame, distance increases by the speed times `k` (explained below) and the star's canvas coordinates are computed from polar coordinates:
 
 ```js
 class Star {
@@ -21,8 +21,8 @@ class Star {
     this.size  = Math.random() * 1.5 + 0.5;
   }
 
-  update() {
-    this.dist += this.speed;
+  update(k) {
+    this.dist += this.speed * k;
     const ratio = this.dist / MAX_DIST;
     // Accelerate as the star "approaches" — perspective foreshortening
     this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge
@@ -59,15 +59,25 @@ class DriftStar {
     this.depth = Math.random() * 0.8 + 0.2;  // 0.2 (far) to 1.0 (near)
     this.size  = this.depth * 2;
   }
-  update() { this.x -= this.depth * SPEED; if (this.x < 0) this.x = W; }
+  update(k) { this.x -= this.depth * SPEED * k; if (this.x < 0) this.x = W; }
 }
 ```
+
+`k` is the number of 60 Hz frames the last frame stands for, so a 30 Hz phone and a 144 Hz monitor show the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, a long gap between frames counts for at most 50 ms, and slow motion takes a third of `k`:
+
+```js
+const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
+last = now;
+const k = dt / (1000 / 60);                                 // 1 at 60 Hz, 2 at 30 Hz
+```
+
+The short trails come from covering the canvas with a see-through black layer on every frame instead of clearing it. The layer is made stronger for a longer frame, `1 - 0.15 ** k`, which is the usual 0.85 when `k` is 1, so the trails last as long in seconds on every screen.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Direction | Outward | Outward streams the stars from the center; sideways drifts them past, the nearer ones faster |
-| Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65 pixels a frame near the center, faster toward the edge; keep it slow for a calm background |
+| Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65, about the pixels a star covers in a 60th of a second out at the edge (16, 25 and 41 pixels a second), and about a third of that near the center; keep it slow for a calm background |
 | Number of stars | Medium | Few is 150, medium 300 and many 600; phones show at most 300 |
 | Star color | White | White, a warm white, or a different pale color for each star |
 | Twinkling | on | Each star gently brightens and dims on its own rhythm |
@@ -77,7 +87,7 @@ class DriftStar {
 - **Canvas vs DOM**: DOM elements at star counts above 50 cause heavy layout recalculation. Canvas is the right tool for this effect.
 - **Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost.
 - **`ctx.fillStyle` caching**: setting `fillStyle` per star is expensive. Group stars by opacity bucket and set fillStyle once per bucket (color batching) to reduce canvas state changes.
-- **`requestAnimationFrame` throttling**: on 120Hz displays, the loop runs twice as fast. Cap time delta to avoid stars moving at different speeds across devices.
+- **Same speed on every screen**: a fixed step per `requestAnimationFrame` frame runs twice as fast on a 120Hz display and half as fast on a 30Hz phone. The demo scales each step by the time since the last frame (in 60ths of a second, capped at 50 ms), so the stars move at the same speed everywhere, and it draws at most once every 16 ms so a fast display does no extra work.
 - **Nebula background pairing**: adding a subtle radial gradient (deep purple in one quadrant, deep blue in another) behind the stars dramatically increases realism with minimal performance cost.
 - **Three.js `Points` geometry**: production starfields use Three.js `BufferGeometry` with `PointsMaterial`. Each star is a vertex; the position buffer is updated each frame. This approach scales to 100,000+ stars.
 - **`prefers-reduced-motion`**: keep stars static (no animation loop) or limit to a very slow drift at 10% of normal speed.
