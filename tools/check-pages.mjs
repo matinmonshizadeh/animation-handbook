@@ -544,11 +544,13 @@ async function homeViewProblems() {
 }
 
 // Home page, phone run: a tile press scrolls to the results, and the slim bar sticks to the top with that place pressed.
-// Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A chip pressed again and
-// the back arrow go away with the bar, so keyboard focus moves to the results heading (the arrow also scrolls to the top).
+// Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A chip pressed again
+// goes away with the bar, so keyboard focus moves to the results heading. The back arrow goes away too and scrolls to the
+// top, so keyboard focus moves to the first place tile, which is on screen there.
 async function homePhoneProblems() {
-  const now = () => evaluate(`({ title: document.getElementById('results-title').textContent, focus: document.activeElement.id || document.activeElement.tagName.toLowerCase(),
-    shown: getComputedStyle(document.getElementById('pinbar')).display !== 'none', scrolled: Math.round(scrollY) })`);
+  const now = () => evaluate(`(() => { const a = document.activeElement;
+    return { title: document.getElementById('results-title').textContent, focus: a.id || (a.matches('.place') ? 'tile ' + a.dataset.place : a.tagName.toLowerCase()),
+      shown: getComputedStyle(document.getElementById('pinbar')).display !== 'none', scrolled: Math.round(scrollY) }; })()`);
   const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.focus(); el.click(); })()`);
   const typeInBar = text => evaluate(`(() => { const box = document.getElementById('q2'); box.value = ${JSON.stringify(text)}; box.dispatchEvent(new Event('input', { bubbles: true })); })()`);
   await evaluate(`document.querySelector('.place[data-place="text"]').click()`);
@@ -583,7 +585,7 @@ async function homePhoneProblems() {
     await press('#pin-back');
     await sleep(1300);
     b = await now();
-    if (b.title !== 'Good places to start' || b.shown || b.focus !== 'results-title' || b.scrolled > 1) problems.push(`phone, back arrow: ${JSON.stringify(b)}`);
+    if (b.title !== 'Good places to start' || b.shown || b.focus !== 'tile btn' || b.scrolled > 1) problems.push(`phone, back arrow: ${JSON.stringify(b)}`);
   } finally {
     await send('Emulation.setFocusEmulationEnabled', { enabled: false });
   }

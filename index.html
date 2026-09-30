@@ -1814,15 +1814,18 @@ function render(){
   [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
   qClear.hidden=!q.value;
 }
-// Spaces go in as %20, not +, as the spec shows; readURL() reads both.
+// Spaces go in as %20, not +, as the spec shows; readURL() reads both. A press adds a history step only when the address
+// changes (the same view written with + counts as the same), and a history call the browser refuses (Safari allows 100 in
+// 10 seconds, which fast typing can reach) never stops the page.
 function writeURL(push){
   const p=[];
   if(state.q)p.push('q='+encodeURIComponent(state.q));
   else if(state.place)p.push('place='+PLACE[state.place].url);
   else if(state.view)p.push('view=all');
   if(state.all&&(state.q||state.place))p.push('all=1');
-  const url=p.length?'?'+p.join('&'):location.pathname;
-  history[push?'pushState':'replaceState'](null,'',url);
+  const search=p.length?'?'+p.join('&'):'';
+  const moved=String(new URLSearchParams(search))!==String(new URLSearchParams(location.search));
+  try{history[push&&moved?'pushState':'replaceState'](null,'',search||location.pathname);}catch(e){}
 }
 // Reads the view from the address. Returns the category of an old ?cat= link, to scroll to.
 function readURL(){
@@ -1833,7 +1836,8 @@ function readURL(){
   q.value=q2.value=state.q;
   return cat;
 }
-function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);writeURL(push);render();}
+// go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
+function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 document.addEventListener('click',e=>{
   const tile=e.target.closest('[data-place]');
@@ -1850,7 +1854,7 @@ document.addEventListener('click',e=>{
 function typed(input){
   (input===q?q2:q).value=input.value;
   Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false});
-  writeURL(false);render();
+  render();writeURL(false);
 }
 q.addEventListener('input',()=>typed(q));
 q2.addEventListener('input',()=>typed(q2));
@@ -1859,17 +1863,20 @@ pinbar.addEventListener('focusout',e=>{if(!pinbar.contains(e.relatedTarget))sync
 $('search-form').addEventListener('submit',e=>{e.preventDefault();toResults();});
 qClear.addEventListener('click',()=>{q.value='';typed(q);q.focus();});
 clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
-$('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});toTitle();});
+// The arrow goes away with the bar, and the page goes back to the top, where the first place tile takes keyboard focus.
+$('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});$('places').querySelector('.place').focus({preventScroll:true});});
 $('more-btn').addEventListener('click',()=>{
   if(moreAction==='all'){go({view:'all'},true);toResults();toTitle();}
-  else{state.all=true;writeURL(false);render();(cardsBox.querySelectorAll('.card .title a')[PAGE]||titleEl).focus();} // the first new card
+  else{state.all=true;render();writeURL(false);(cardsBox.querySelectorAll('.card .title a')[PAGE]||titleEl).focus();} // the first new card
 });
-$('nav-all').addEventListener('click',e=>{e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-addEventListener('popstate',()=>{readURL();render();});
+// A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
+$('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
+// Back and Forward can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
+addEventListener('popstate',()=>{readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();});
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
-  else if(e.key==='Escape'&&(el===q||el===q2)){el.value='';typed(el);el.blur();}
+  else if(e.key==='Escape'&&(el===q||el===q2)){if(el.value){el.value='';typed(el);}el.blur();} // an empty box is only left: a picked place stays
 });
 const startCat=readURL();
 render();
