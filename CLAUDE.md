@@ -38,6 +38,8 @@ description: copy them from a neighbor page and change them together.
 **Shared files.** Every page links these after its own `<style>`, with one version `N` on every page.
 **When either file changes, bump N on every page in the same change**, or visitors keep a cached copy (a
 test fails if the pages differ). `demo-page.css` draws the page around the demo; `demo-page.js` runs it.
+The home page links `demo-page.js` too (its cards' Copy prompt builds the text with
+`DemoPage.pageCopyText`), with the same `N`.
 
 ```html
 <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=N">
@@ -47,10 +49,10 @@ test fails if the pages differ). `demo-page.css` draws the page around the demo;
 **The page** (one centered column at every size; each part appears once):
 1. **Top bar** (`nav.hb-bar`): the home link and Previous / Next links to the neighbors in the category
    (`rel="prev"`, `rel="next"`; the first and last page have one).
-2. **Header** (`header.hb-head`): the category line `NN.MM · Category` (its place on the home page), the
-   `<h1>` and the one-line description (`p.hb-lede`) in plain words, ending "Best for …". That sentence is
-   also the meta, Open Graph, Twitter and JSON-LD description, its card in the `CATS` array of the root
-   `index.html`, and its line in both READMEs.
+2. **Header** (`header.hb-head`): the category line `NN.MM · Category` (its place in the home page's
+   All animations list), the `<h1>` and the one-line description (`p.hb-lede`) in plain words, ending
+   "Best for …". That sentence is also the meta, Open Graph, Twitter and JSON-LD description, its card in the
+   `CATS` array of the root `index.html`, and its line in both READMEs.
 3. **1 · Watch it** (`section.hb-watch`): help line, stage (`div.stage`), player bar (`div.hb-player`); the
    step title and help line are written per page.
 4. **2 · Try it** (`section.hb-try`): one to three settings, the rest under **More options**
@@ -192,7 +194,10 @@ inside an entry's "Production notes" section, never as their own entry.
    use the linked page's `<h1>`; copy the markup from a neighbor. Adding a page mid-category renumbers the
    `NN.MM` category line of every later page.
 6. Update the root `index.html` index page to link to it: add a card to the category's `entries` in the
-   `CATS` array (slug, name, the page's one-line description), and add the page to `sitemap.xml`.
+   `CATS` array (slug, name, the page's one-line description), and add the page to `sitemap.xml`. Give it one
+   or more places in `PLACES` (right after `PV` in the same script): `btn` Buttons, `text` Text,
+   `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading & messages,
+   `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card.
 7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line
    description, in home page order), and the technique count wherever it is written: the root `README.md`,
    the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md`.
@@ -217,6 +222,9 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   player bar below a laptop's first screen and chips that do not match the settings, and it works the controls
   of the page's kind. It skips controls inside `.stage` when it measures touch targets, so check buttons and
   handles a demo draws there by hand.
+- **Home page:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> home` checks the home page at the same
+  six setups (six `ok` lines). Its desktop run also tries the tiles, the search and Show all, and compares
+  Copy prompt on the home page with every page's own; run it after changing any page's settings or prompt.
 
 ## Out of scope
 - Backend code, databases, APIs.

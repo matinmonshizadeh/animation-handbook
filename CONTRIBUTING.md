@@ -63,9 +63,10 @@ fix a bug, or improve an explanation are all welcome.
    neighbor, so one link. Use the linked page's `<h1>` in the link text and in the
    `aria-label`, and copy the markup from a neighbor. Adding a page in the middle of a category
    renumbers the `NN.MM` category line of every later page.
-5. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description)
-   and add the page to `sitemap.xml`. The description is the page's one-line description,
-   word for word.
+5. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description),
+   give it one or more places in `PLACES` (the home page's tiles: `btn`, `text`, `imgcard`,
+   `bg`, `menu`, `load`, `intro`, `scroll`, `page`; the first labels its card) and add the page
+   to `sitemap.xml`. The description is the page's one-line description, word for word.
 6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
    the same name and description, and update the technique count where it is written: the
    root `README.md`, the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`
@@ -245,6 +246,11 @@ reduced motion, 320×640) and prints one line for each, so a passing page gives 
 lines**. A problem prints `FAIL` with the reason; console errors and warnings both count (a
 control with no label or value is left out and the console warns). It skips controls inside
 `.stage` when it measures touch targets, so check buttons and handles a demo draws there by hand.
+
+The home page has a check of its own:
+`node tools/check-pages.mjs --base http://127.0.0.1:<port> home`. It checks the layout at the
+six setups, tries the tiles, the search and Show all, and compares Copy prompt on the home page
+with every page's own prompt and default settings.
 
 ## Writing style
 
