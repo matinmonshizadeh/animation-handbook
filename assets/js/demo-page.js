@@ -358,7 +358,9 @@
     // The same input, or focus arriving in the stage (a Tab into a field), also means the visitor got there before the Show me
     // press on arrival, and that press is then skipped, so it cannot wipe or replace what they are doing. Focus counts whoever
     // asks for it: a page's own focus() call makes a trusted focusin in Chrome too, so a do-it page must not move focus into
-    // its stage before that press (none does).
+    // its stage before that press (none does). A press on Show me itself, which sits outside the stage, counts too: the press
+    // on arrival would start the run over. Input made before this script ran was not heard; focus it left in the stage is still
+    // there, so the press on arrival is skipped for that as well.
     var visitorActed = false;
     function setUpVisitorInput() {
       ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click'].forEach(function (type) {
@@ -369,6 +371,7 @@
         }, { capture: true, passive: true });
       });
       stage.addEventListener('focusin', function (e) { if (e.isTrusted) visitorActed = true; }, { capture: true, passive: true });
+      demoCtl.addEventListener('click', function (e) { if (e.isTrusted) visitorActed = true; });
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
@@ -474,7 +477,10 @@
     else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
-        if (demoCtl) { if (!(reduce && reduce.matches) && !visitorActed) demoCtl.click(); return; }
+        if (demoCtl) {
+          if (!(reduce && reduce.matches) && !visitorActed && !(stage && stage.contains(doc.activeElement))) demoCtl.click();
+          return;
+        }
         if (scrollCtl) { if (!(reduce && reduce.matches)) scrollCtl.click(); return; }
         if (loopCtl && !(reduce && reduce.matches)) {
           // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.

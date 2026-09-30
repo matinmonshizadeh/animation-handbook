@@ -135,7 +135,7 @@ function standInPage(kind, reduced, bodyAttributes) {
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init && init.detail; } }
   };
   DP.boot(doc, win);
-  return { stage, player, demo, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
+  return { doc, stage, player, demo, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
 
@@ -171,6 +171,29 @@ test('events dispatched by script (isTrusted false) do not count as the visitor 
   page.runTimers();
   assert.equal(page.demo.clicks, 1);
   assert.equal(page.sent.length, 0);
+});
+
+test('the Show me press on arrival is skipped after the visitor pressed Show me themselves, which sits outside the stage', () => {
+  const page = standInPage('do', false);
+  page.demo.emit('click', visitor);
+  page.runTimers();
+  assert.equal(page.demo.clicks, 0);
+  assert.equal(page.sent.length, 0);
+  const other = standInPage('do', false);
+  other.demo.emit('click', script);
+  other.runTimers();
+  assert.equal(other.demo.clicks, 1);
+});
+
+test('the Show me press on arrival is skipped when focus is already in the stage, as when the visitor got there before the script ran', () => {
+  const page = standInPage('do', false);
+  page.doc.activeElement = page.stage;
+  page.runTimers();
+  assert.equal(page.demo.clicks, 0);
+  const elsewhere = standInPage('do', false);
+  elsewhere.doc.activeElement = elsewhere.doc.body;
+  elsewhere.runTimers();
+  assert.equal(elsewhere.demo.clicks, 1);
 });
 
 test('a do-it page presses nothing on arrival under reduced motion', () => {
