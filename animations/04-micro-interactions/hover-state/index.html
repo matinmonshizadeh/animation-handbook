@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hover State Animation — Animation Handbook</title>
-  <meta name="description" content="Six hover techniques side by side — color, scale, lift, underline, icon nudge, and background sweep.">
+  <meta name="description" content="Six ways a card can react when you point at it. Best for buttons and cards.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,144 +12,194 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Hover State Animation — Animation Handbook">
-  <meta property="og:description" content="Six hover techniques side by side — color, scale, lift, underline, icon nudge, and background sweep.">
+  <meta property="og:description" content="Six ways a card can react when you point at it. Best for buttons and cards.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Hover State Animation — Animation Handbook">
-  <meta name="twitter:description" content="Six hover techniques side by side — color, scale, lift, underline, icon nudge, and background sweep.">
+  <meta name="twitter:description" content="Six ways a card can react when you point at it. Best for buttons and cards.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Hover State Animation", "name": "Hover State Animation", "description": "Six hover techniques side by side — color, scale, lift, underline, icon nudge, and background sweep.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Hover State Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Hover State Animation", "name": "Hover State Animation", "description": "Six ways a card can react when you point at it. Best for buttons and cards.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Hover State Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--dur:180ms;--ease:ease}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--dur:180ms;--ease:ease}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
-    .hgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%}
-    .hcard{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:20px 16px;cursor:pointer;min-height:80px;display:flex;flex-direction:column;justify-content:center;gap:6px;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
-    .hcard-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ui-muted)}
-    .hcard-name{font-size:13px;font-weight:bold}
-    /* 1. Color shift */
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    /* A window this short gives the stage 260 to 290px, less than the six cards need: the stage gives up some padding, the cards keep their size */
+    @media(min-width:601px) and (max-height:620px){.stage{padding:10px}}
+    .hgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
+    .hcard{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px 12px;cursor:pointer;min-height:72px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+    .hcard-name{font-size:15px;font-weight:700}
+    /* Each change plays on hover (only where a pointer can hover), while pressed (the tap on touch screens) and while Show me points at the card (.is-demo) */
+    /* 1. Color change */
     .h-color{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
     @media(hover:hover){.h-color:hover{background:#2a201a;border-color:var(--ui-accent)}}
-    .h-color:active{background:#2a201a;border-color:var(--ui-accent)}
-    /* 2. Scale */
+    .h-color:active,.h-color.is-demo{background:#2a201a;border-color:var(--ui-accent)}
+    /* 2. Grow */
     .h-scale{transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-scale:hover{transform:scale(1.03)}}
-    .h-scale:active{transform:scale(1.03)}
-    /* 3. Lift + shadow */
-    .h-lift{transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
-    @media(hover:hover){.h-lift:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.6)}}
-    .h-lift:active{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.6)}
-    /* 4. Underline grow */
-    .h-underline .card-link{display:inline-block;position:relative;color:var(--ui-accent);font-size:13px;font-weight:bold}
-    .h-underline .card-link::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1px;background:var(--ui-accent);transition:width var(--dur) var(--ease)}
-    @media(hover:hover){.h-underline:hover .card-link::after{width:100%}}
-    .h-underline:active .card-link::after{width:100%}
-    /* 5. Icon nudge */
+    .h-scale:active,.h-scale.is-demo{transform:scale(1.03)}
+    /* 3. Lift: the card moves up and its shadow, a layer of its own, fades in */
+    .h-lift{overflow:visible;transition:transform var(--dur) var(--ease)}
+    .h-lift::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 8px 24px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
+    @media(hover:hover){.h-lift:hover{transform:translateY(-4px)}.h-lift:hover::after{opacity:1}}
+    .h-lift:active,.h-lift.is-demo{transform:translateY(-4px)}
+    .h-lift:active::after,.h-lift.is-demo::after{opacity:1}
+    /* 4. Underline: a line as wide as the link, scaled out from the left */
+    .h-underline .card-link{display:inline-block;align-self:flex-start;position:relative;color:var(--ui-accent);font-size:15px;font-weight:700}
+    .h-underline .card-link::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:1px;background:var(--ui-accent);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease)}
+    @media(hover:hover){.h-underline:hover .card-link::after{transform:scaleX(1)}}
+    .h-underline:active .card-link::after,.h-underline.is-demo .card-link::after{transform:scaleX(1)}
+    /* 5. Arrow nudge */
     .h-icon-row{display:flex;align-items:center;gap:8px}
     .arrow{display:inline-block;transition:transform var(--dur) var(--ease);font-size:14px}
     @media(hover:hover){.h-icon:hover .arrow{transform:translateX(6px)}}
-    .h-icon:active .arrow{transform:translateX(6px)}
-    /* 6. Background sweep */
+    .h-icon:active .arrow,.h-icon.is-demo .arrow{transform:translateX(6px)}
+    /* 6. Sweep */
     .h-sweep::before{content:'';position:absolute;inset:0;background:rgba(255,157,92,.13);transform:translateX(-100%);transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-sweep:hover::before{transform:translateX(0)}}
-    .h-sweep:active::before{transform:translateX(0)}
-    .count-row{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--ui-muted);justify-content:center;margin-top:10px}
-    .cnt{color:var(--ui-text)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:48px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{height:auto;min-height:400px}.hgrid{grid-template-columns:1fr}}
+    .h-sweep:active::before,.h-sweep.is-demo::before{transform:translateX(0)}
     /* Reduced motion: hover states still change, but without the tween */
-    @media(prefers-reduced-motion:reduce){.h-color,.h-scale,.h-lift,.arrow,.h-underline .card-link::after,.h-sweep::before{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.h-color,.h-scale,.h-lift,.h-lift::after,.arrow,.h-underline .card-link::after,.h-sweep::before{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../click-ripple/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/hover-state/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Hover State Animation</h1>
-  <p>Six hover techniques side by side — color, scale, lift, underline, icon nudge, and background sweep.</p>
-</header>
-<div class="layout">
-  <div class="stage">
-    <div style="width:100%">
-      <div class="hgrid">
-        <div class="hcard h-color" id="c0"><div class="hcard-label">Technique 1</div><div class="hcard-name">Color Shift</div></div>
-        <div class="hcard h-scale" id="c1"><div class="hcard-label">Technique 2</div><div class="hcard-name">Scale Up</div></div>
-        <div class="hcard h-lift" id="c2"><div class="hcard-label">Technique 3</div><div class="hcard-name">Lift + Shadow</div></div>
-        <div class="hcard h-underline" id="c3"><div class="hcard-label">Technique 4</div><span class="card-link">Underline Grow</span></div>
-        <div class="hcard h-icon" id="c4"><div class="h-icon-row"><div class="hcard-name">Icon Nudge</div><span class="arrow">→</span></div><div class="hcard-label">Technique 5</div></div>
-        <div class="hcard h-sweep" id="c5"><div class="hcard-label">Technique 6</div><div class="hcard-name">Background Sweep</div></div>
-      </div>
-      <div class="count-row" id="counts"></div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../click-ripple/" rel="next" aria-label="Next: Click / Tap Ripple"><span><span class="hb-dir">Next: </span>Click / Tap Ripple</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.01 · Micro-Interactions</p>
+    <h1>Hover State Animation</h1>
+    <p class="hb-lede">Six ways a card can react when you point at it. Best for buttons and cards.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Point at a card (press and hold it on a phone), or press Show me.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">Hover animations must complete in ≤200ms or they delay the user's next action. On touch, :active provides the fallback — no JS needed.</p>
-    <div class="lbl">Duration</div>
-    <div class="sr"><input type="range" id="dur-sl" min="50" max="400" value="180" step="10"><span class="sv" id="dur-v">180ms</span></div>
-    <div class="lbl">Easing</div>
-    <select id="ease-sel">
-      <option value="ease" selected>Ease</option>
-      <option value="ease-out">Ease out</option>
-      <option value="ease-in-out">Ease in-out</option>
-      <option value="linear">Linear</option>
-      <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
-    </select>
-    <div class="div"></div>
-    <div class="kv"><span>Total hovers</span><span class="v" id="total-cnt">0</span></div>
-    <div class="div"></div>
-    <p class="note" style="opacity:.7">Touch devices: hover doesn't fire — :active fallback is applied on tap.</p>
-  </aside>
-</div>
+    <div class="stage hb-dots">
+      <div style="width:100%">
+        <div class="hgrid">
+          <div class="hcard h-color"><div class="hcard-name">Color change</div></div>
+          <div class="hcard h-scale"><div class="hcard-name">Grow</div></div>
+          <div class="hcard h-lift"><div class="hcard-name">Lift</div></div>
+          <div class="hcard h-underline"><span class="card-link">Underline</span></div>
+          <div class="hcard h-icon"><div class="h-icon-row"><div class="hcard-name">Arrow nudge</div><span class="arrow">→</span></div></div>
+          <div class="hcard h-sweep"><div class="hcard-name">Sweep</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="300" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="180" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="110" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">Quick feels responsive; slow can feel sticky.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="ease" class="on" aria-pressed="true">Smooth</button>
+          <button type="button" data-ease="cubic-bezier(.34,1.56,.64,1)" aria-pressed="false">Springy</button>
+          <button type="button" data-ease="ease-in-out" aria-pressed="false">Gentle</button>
+          <button type="button" data-ease="linear" aria-pressed="false">Even</button>
+        </div>
+        <p class="hb-hint">Springy goes a little too far, then settles.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add hover feedback to [the buttons, links or cards you want to react]. When the pointer moves over an item, change it in one clear way: shift its background color, grow it slightly, lift it with a deeper shadow, draw an underline out from the left, nudge its arrow forward, or sweep a tint across it. Use one style per kind of item and keep it the same across the page. Apply hover styles only on devices that can hover, and show the same change while an item is pressed on touch screens. If the visitor has reduced motion turned on, switch the look without animating it. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Buttons</li><li>Links</li><li>Cards</li><li>Menus</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Plain text</li><li>Non-clickable items</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const cards=document.querySelectorAll('.hcard');
-  const counts=Array(6).fill(0);
-  const cEl=document.getElementById('counts');
-  const totalEl=document.getElementById('total-cnt');
-  const names=['Color','Scale','Lift','Underline','Icon','Sweep'];
-  function renderCounts(){cEl.innerHTML=names.map((n,i)=>`<span>${n}: <span class="cnt">${counts[i]}</span></span>`).join('')}
-  renderCounts();
-  cards.forEach((c,i)=>{
-    c.addEventListener('mouseenter',()=>{counts[i]++;renderCounts();totalEl.textContent=counts.reduce((a,b)=>a+b,0)});
+  const cards=[...document.querySelectorAll('.hcard')];
+  const stage=document.querySelector('.stage');
+  const slowTog=document.getElementById('slow-tog');
+  const vars=document.documentElement.style;
+  let dur=180,runTimers=[];
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cards.forEach(c=>c.classList.remove('is-demo'))}
+  // Card i is pointed at for one change plus a 270ms hold; the next card starts 50ms after it lets go.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    cards.forEach((c,i)=>{
+      later(()=>c.classList.add('is-demo'),i*dur,i*320);
+      later(()=>c.classList.remove('is-demo'),(i+1)*dur,i*320+270);
+    });
   });
-  document.getElementById('dur-sl').addEventListener('input',e=>{
-    document.getElementById('dur-v').textContent=e.target.value+'ms';
-    document.documentElement.style.setProperty('--dur',e.target.value+'ms');
-  });
-  document.getElementById('ease-sel').addEventListener('change',e=>{
-    document.documentElement.style.setProperty('--ease',e.target.value);
-  });
+  // The visitor pressed, typed, scrolled or touched inside the stage, or moved a pointer over it: the run stops.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  stage.addEventListener('pointermove',e=>{if(e.isTrusted&&running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
+  choices('feel-seg',d=>{vars.setProperty('--ease',d.ease)});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

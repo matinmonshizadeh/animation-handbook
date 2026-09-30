@@ -4,7 +4,7 @@
 
 ## What it is
 
-A pinned paragraph whose words fill from dim to full color one at a time as the reader scrolls — the reading-highlight effect used on Apple- and Linear-style marketing pages. Scroll progress sweeps an index through the words: everything behind it is lit, everything ahead waits dim. Because the fill is computed from scroll position rather than played, pausing holds the sentence mid-read and scrolling back up un-reads it in perfect reverse.
+Text fill on scroll lights a paragraph up word by word as you scroll, as if it were being read at your pace. The paragraph holds still while you scroll through its section, and how far you have scrolled decides how many words are lit, so stopping holds the sentence mid-read and scrolling back un-reads it.
 
 ## When to use it
 
@@ -30,16 +30,15 @@ for (let i = lo; i < hi; i++) words[i].classList.toggle('on', i < filled);
 lastFilled = filled;
 ```
 
-On a normal scroll step that is one or two class toggles instead of eighty, and an idle frame costs nothing. A short CSS `color` transition on each word softens the flip without fighting the per-frame logic, since the class — not the color — is what changes per frame.
+On a normal scroll step that is one or two class toggles instead of fifty, and an idle frame costs nothing. A short CSS `color` transition on each word softens the flip without fighting the per-frame logic, since the class — not the color — is what changes per frame. When a jump changes more than a quarter of the words at once (Back to top, or Play starting over), the transition is switched off for that one change, so the old state does not linger.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Fill completes at | 90% | Portion of the scroll budget the fill is spread across; finishing early leaves a beat of read-through before the section ends |
-| Dim color | `rgba(244,244,242,.16)` | The unread state. Too faint and the text is invisible before reveal; too strong and the fill has no drama |
-| Highlight | accent | Color of the currently-active word — the "cursor" that shows where the reader is |
-| Word transition | 180ms | The soften on each word's flip; the sweep itself has no duration |
+| Highlights the current word | on | The next word to fill shows in the highlight color, like a reading cursor |
+| Fill finishes | Normal | How far through the scrolling the last word lights: early at 70%, normal at 90% and at the end at 100%; finishing early leaves a moment to read the whole text |
+| Highlight color | Blue | The color of the word being filled |
 
 ## Production notes
 
@@ -52,6 +51,6 @@ On a normal scroll step that is one or two class toggles instead of eighty, and 
 
 ## See also
 
-- [Reveal on Scroll](../reveal-on-scroll/) — discrete enter/leave reveals; this entry is the continuous version for a single passage.
-- [Scrub Animation](../scrub-animation/) — the same position-not-playback model driving a drawn path.
-- [Kinetic Typography](../../05-text-typography/kinetic-typography/) — time-based type motion, for contrast with scroll-driven.
+- [Reveal on Scroll](../reveal-on-scroll/) — whole cards appear as they scroll into view; this is the continuous version for one paragraph
+- [Scrub Animation](../scrub-animation/) — scroll position drives a drawing, both ways
+- [Kinetic Typography](../../05-text-typography/kinetic-typography/) — words that each move in their own way, on a timer instead of the scroll

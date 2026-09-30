@@ -21,9 +21,11 @@
 // and takes screenshots, and nothing more.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
-// other's screenshots.
+// other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
+// again for up to 10 s while Chrome lets go of its files; one that stays is named in the output. Ctrl+C, or an error thrown
+// outside the run, does the same before the exit.
 // Exit code 1 on any problem.
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -119,9 +121,33 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const withTimeout = (promise, ms) => Promise.race([promise, sleep(ms).then(() => { throw new Error('timeout'); })]);
 
 const profile = mkdtempSync(join(tmpdir(), 'hb-chrome-'));
-function removeProfile() {
-  try { rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); }
-  catch { console.error(`Could not remove the temporary Chrome profile: ${profile}`); }
+// Chrome's helper processes can outlive the browser process with files of the profile open (on a busy machine even a killed
+// Chrome can need several seconds to let go), and on Windows a folder with an open file in it cannot be removed. rmSync fails
+// at once there (its maxRetries and retryDelay do not apply), so the removal is tried again every 200 ms for up to 10 s, and
+// a folder that stays is named, with the error the last try gave.
+async function removeProfile() {
+  const end = Date.now() + 10000;
+  let why;
+  for (;;) {
+    try { rmSync(profile, { recursive: true, force: true }); return; }
+    catch (err) { why = err.code || err.message; if (Date.now() >= end) break; }
+    await sleep(200);
+  }
+  console.error(`Could not remove the temporary Chrome profile: ${profile} (${why})`);
+}
+// chrome.kill() ends the browser process only. Its helper processes (renderers, the GPU and utility processes, the crash
+// handler) then live on for a long while on a busy machine, so on Windows they are ended too, picked by this run's own profile
+// folder in their command line (its name has a random part). Not by walking the process tree from Chrome's PID, as taskkill /T
+// does: a process keeps the PID of a parent that died long ago and PIDs are reused, so that walk can reach unrelated processes.
+// The folder goes to the script through the environment, so no quoting can go wrong.
+function stopChrome() {
+  chrome.kill();
+  if (process.platform !== 'win32') return;
+  try {
+    execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+      `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -and $env:HB_PROFILE -and $_.CommandLine.Contains($env:HB_PROFILE) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`],
+      { stdio: 'ignore', timeout: 20000, windowsHide: true, env: { ...process.env, HB_PROFILE: profile } });
+  } catch {}
 }
 // Port 0: Chrome picks a free port and writes it into DevToolsActivePort in its profile folder,
 // so a Chrome left over from an earlier run can never be picked up by mistake.
@@ -130,9 +156,9 @@ function removeProfile() {
 const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
   '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 const chromeExited = new Promise(resolve => chrome.once('exit', resolve));
-chrome.once('error', err => {
+chrome.once('error', async err => {
   console.error(`Could not start Chrome at ${CHROME} (${err.message}). Set CHROME to its path.`);
-  removeProfile();
+  await removeProfile();
   process.exit(2);
 });
 
@@ -154,9 +180,11 @@ async function pageSocket() {
 
 let ws = null;
 let nextId = 0;
+let aborting = false; // set by abort() below: the run stops where it is and only the cleanup goes on
 const pending = new Map();
 const listeners = new Set();
 function send(method, params = {}) {
+  if (aborting) return new Promise(() => {});
   return new Promise((resolve, reject) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) { reject(new Error(`${method}: Chrome is not connected`)); return; }
     const id = ++nextId;
@@ -165,6 +193,7 @@ function send(method, params = {}) {
   });
 }
 function failPending(reason) {
+  if (aborting) return;
   for (const done of pending.values()) done({ error: { message: reason } });
   pending.clear();
 }
@@ -289,8 +318,10 @@ async function samePicture(a, b) {
 
 // Do-it pages: the page presses Show me once by itself on arrival and not at all under reduced motion (the presses are
 // recorded from the start of the document, so this holds for a run of any length). Show me runs on arrival, so the
-// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it within
-// 1.6 s, and the run must bring it back to rest.
+// desktop check first waits for that run to end. The stage must then be at rest, Show me must visibly move it, and the run
+// must bring it back to rest. The first capture after the press comes straight after it (under reduced motion the stage
+// changes at once and goes back after a hold of about 1.2 s, which a busy machine can let pass before a capture that
+// waited first); more follow every 200 ms for 1.6 s.
 async function demoProblems(reduced) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-demo]')`))) return ['no Show me button to check'];
   const problems = [];
@@ -305,7 +336,7 @@ async function demoProblems(reduced) {
   const rest = await stageShot();
   await evaluate(`document.querySelector('[data-hb-demo]').click()`);
   let moved = false;
-  for (let i = 0; i < 8 && !moved; i++) { await sleep(200); moved = (await stageShot()) !== rest; }
+  for (let i = 0; i < 9 && !moved; i++) { if (i) await sleep(200); moved = (await stageShot()) !== rest; }
   if (!moved) { problems.push('Show me does not visibly move the stage'); return problems; }
   let back = false;
   for (let i = 0; i < 32 && !back; i++) { await sleep(250); back = await samePicture(await stageShot(), rest); }
@@ -374,6 +405,29 @@ async function scrollProblems(reduced) {
   else if (snaps !== 'none' && await snap() !== snaps) problems.push('scroll snapping does not come back when the wheel stops Play');
   return problems;
 }
+
+// The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
+let cleaning = null;
+function cleanUp() {
+  cleaning ??= (async () => {
+    if (ws) ws.close();
+    stopChrome();
+    await Promise.race([chromeExited, sleep(5000)]);
+    await removeProfile();
+  })();
+  return cleaning;
+}
+// Ctrl+C (or a closed terminal) and an error thrown outside the main flow, in a socket listener for one, skip the finally
+// below and would leave Chrome running and the profile unnamed. So the run stops where it is (send() no longer answers, which
+// keeps the pages still to come from failing one after the other), the same cleanup runs, and the exit code is 1.
+async function abort(what) {
+  aborting = true;
+  console.error(what);
+  await cleanUp().catch(() => {});
+  process.exit(1);
+}
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP']) process.on(signal, () => abort(`Interrupted (${signal}).`));
+process.on('uncaughtException', err => abort(err?.stack || String(err)));
 
 let failures = 0;
 try {
@@ -456,9 +510,6 @@ try {
   console.error(err.message);
   failures++;
 } finally {
-  if (ws) ws.close();
-  chrome.kill();
-  await Promise.race([chromeExited, sleep(5000)]);
-  removeProfile();
+  await cleanUp();
 }
 process.exit(failures ? 1 : 0);

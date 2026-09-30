@@ -1,7 +1,7 @@
 # Form Field Morph
 
 ## What it is
-Form field morph, also called the floating label pattern, is an input animation where the placeholder label translates upward and scales down when the field receives focus. Unlike a traditional placeholder that disappears on first keystroke, the floating label persists above the input as a visible identifier throughout the entire editing session.
+Form field morph, also called a floating label, starts with each field's label inside the field, like a placeholder. When you click into the field or type in it, the label moves up and shrinks, so it stays visible above your text instead of disappearing the way a placeholder does.
 
 ## When to use it
 - Any form where screen space is limited and a separate `<label>` above each input would be too tall
@@ -50,13 +50,17 @@ The label is positioned absolutely inside the field container, overlapping the i
 }
 ```
 
-The `.filled` class is toggled in JavaScript by checking `input.value.length > 0` on `blur` — this keeps the label floated when the user leaves a filled field:
+The `.filled` class is toggled in JavaScript by checking that the input holds text other than spaces, both while typing and when the field loses focus — this keeps the label floated when the user leaves a filled field:
 
 ```js
-input.addEventListener('blur', () => {
+function syncFilled() {
   wrapper.classList.toggle('filled', input.value.trim().length > 0);
-});
+}
+input.addEventListener('input', syncFilled);
+input.addEventListener('blur', syncFilled);
 ```
+
+In the demo, Show me plays the effect by adding an `is-demo` class to a field instead of moving your focus, so the focus rules there list it next to `:focus-within`. You do not need it in your own form.
 
 A CSS-only alternative uses `:placeholder-shown` (the placeholder is visible only when the field is empty):
 
@@ -70,10 +74,10 @@ input:focus ~ label {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Duration | 200ms | 120–250ms; slower feels heavy on forms with many fields |
-| Float distance | 22px | Must clear the input text height with a small gap |
-| Label scale | 0.8 | 0.75–0.85 — readable but visually subordinate to input text |
-| Focus color | accent | Reinforces which field is active |
+| Speed | Normal | How long the label takes to move: slow is 320ms, normal 200ms and fast 120ms; slower feels heavy on a form with many fields |
+| How far it rises | Medium | How far the label moves up on the underlined fields: low is 16px, medium 22px and high 28px; it must clear the typed text |
+| Size when raised | Medium | How big the raised label is on the underlined fields: small is 70%, medium 80% and large 90% of its size |
+| Focus color | Blue | The color of the raised label and the active line or border |
 
 ## Production notes
 - **The filled-state retention bug**: the most common mistake is animating on `:focus-within` alone. When the user tabs to the next field, the label snaps back even though the field is filled. Always combine with a filled class or `:placeholder-shown`.
@@ -84,6 +88,6 @@ input:focus ~ label {
 - **React Hook Form + Floating UI**: common pairing in production. The float state is controlled via `formState.dirtyFields` or watched field values.
 
 ## See also
-- [Focus Ring Animation](../focus-ring/) — complementary keyboard-focus indicator
-- [Toggle / Switch Slide](../toggle-switch/) — another input state transition pattern
-- [Accordion Open/Close](../accordion/) — expand/collapse with height animation
+- [Focus Ring Animation](../focus-ring/) — a ring shows which item the keyboard is on
+- [Toggle / Switch Slide](../toggle-switch/) — a switch slides between on and off
+- [Accordion Open/Close](../accordion/) — a panel opens and closes smoothly

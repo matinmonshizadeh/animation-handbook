@@ -187,6 +187,7 @@
   const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
   const stage=document.querySelector('.stage');
   const slowTog=document.getElementById('slow-tog');
+  const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   let W=0,H=0,raf=null,lastT=null,paused=false;
   let clock=0; // the page's own time in ms: it moves only while the loop runs, so Pause holds every ring where it is
   let SRCS=3,INTERVAL=3,MAX_R=160,LIFE=2.5,THICK=1.5,IRR=true,DRIFT=false;
@@ -217,7 +218,7 @@
     sources.forEach(s=>[.3,.6,.9].forEach(f=>rings.push(new Ring(s.x,s.y,clock-f*LIFE*1000))));
   }
 
-  // k is 1, or a third in slow motion
+  // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion
   function advance(k){
     if(!DRIFT)return;
     sources.forEach(s=>{
@@ -247,12 +248,13 @@
   function loop(ts){
     raf=requestAnimationFrame(loop);
     if(lastT!==null&&ts-lastT<16)return;
-    // The first frame after a start adds no time, a long gap (a background tab) counts for at most 50 ms, and slow motion adds a third
+    // The first frame after a start adds no time, a long gap (a background tab) counts for at most 50 ms, and slow motion adds a
+    // third. The clock adds the time itself; the sources' drift moves by it in 60ths of a second
     const dt=lastT===null?0:Math.min(ts-lastT,50);
     lastT=ts;
     const k=slowTog.checked?1/3:1;
     clock+=dt*k;
-    advance(k);emit();draw();
+    advance(k*dt/FRAME);emit();draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop)}
 
@@ -262,6 +264,8 @@
     if(paused){cancelAnimationFrame(raf);raf=null}
     else start();
   });
+  // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
+  document.addEventListener('visibilitychange',()=>{lastT=null});
 
   // A real size change (sizing the canvas wipes it) starts over with the first picture; the same size (a phone's address bar) does nothing
   function resize(){

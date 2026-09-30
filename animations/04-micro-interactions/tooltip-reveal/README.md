@@ -1,7 +1,7 @@
 # Tooltip Reveal
 
 ## What it is
-A tooltip is a small floating label that appears near an element on hover (or focus), providing supplementary information that doesn't fit inline. The reveal animation — typically a fade combined with a subtle scale — makes the tooltip feel responsive rather than jarring. A delay before showing (300ms) prevents tooltips from triggering on accidental cursor pass-through.
+A tooltip is a small label that appears next to an item when you point at it or reach it with the keyboard, giving a short explanation that does not fit on the page. It fades in and grows very slightly, and it waits a moment before it shows, so tooltips do not flash while the pointer is only passing over things. When the pointer leaves, it stays for a moment before it fades, so it does not vanish the instant the pointer slips off the item.
 
 ## When to use it
 - Icon buttons without visible text labels
@@ -10,7 +10,7 @@ A tooltip is a small floating label that appears near an element on hover (or fo
 - Data visualization elements (chart bars, graph nodes) that show exact values on hover
 
 ## How it works
-The tooltip is positioned absolutely relative to the trigger, initially invisible. On hover it fades and scales in after a `setTimeout` delay. On mouse-leave it hides after a short second delay — allowing the user to move the cursor from trigger to tooltip without it disappearing:
+The tooltip is positioned absolutely relative to the trigger, initially invisible. On hover it fades and scales in after a `setTimeout` delay. On mouse-leave it hides after a short second delay, so it does not vanish the instant the pointer slips off the trigger:
 
 ```css
 .tooltip {
@@ -18,15 +18,20 @@ The tooltip is positioned absolutely relative to the trigger, initially invisibl
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) scale(0.95);
-  background: #1e2433;
-  border: 1px solid #21262d;
+  transform-origin: bottom center;
+  background: #1c1c22;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #f4f4f2;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 11px;
+  line-height: 1.5;
+  width: max-content;
+  max-width: 200px;
+  z-index: 10;
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms ease, transform 150ms ease;
-  white-space: nowrap;
 }
 
 .tooltip.visible {
@@ -38,12 +43,12 @@ The tooltip is positioned absolutely relative to the trigger, initially invisibl
 ```js
 let showTimer, hideTimer;
 
-trigger.addEventListener('mouseenter', () => {
+trigger.addEventListener('pointerenter', () => {
   clearTimeout(hideTimer);
   showTimer = setTimeout(() => tip.classList.add('visible'), 300);
 });
 
-trigger.addEventListener('mouseleave', () => {
+trigger.addEventListener('pointerleave', () => {
   clearTimeout(showTimer);
   hideTimer = setTimeout(() => tip.classList.remove('visible'), 100);
 });
@@ -59,24 +64,34 @@ trigger.addEventListener('focusout', () => {
 });
 ```
 
+Escape hides a shown tooltip at once, so it can be dismissed without moving the pointer or the focus:
+
+```js
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  clearTimeout(showTimer);
+  tip.classList.remove('visible');
+});
+```
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Show delay | 300ms | Prevents flash on cursor pass-through — the most important parameter |
-| Hide delay | 100ms | Keeps tooltip alive briefly so the cursor can move onto it |
-| Animation duration | 150ms | Fast enough to feel instant; slow enough to be perceivable |
-| Scale start | 0.95 | Subtle — scale from 0.9 or less feels like a popup, not a tooltip |
+| Delay before showing | Medium | How long the pointer must rest before the tooltip shows: none, short (150ms), medium (300ms) or long (600ms); 300ms keeps tooltips from flashing as the pointer passes, and 200ms can work for very small ones |
+| Speed | Normal | How long the fade and the slight grow take: slow is 250ms, normal 150ms and fast 90ms |
+| Delay before hiding | Short | How long the tooltip stays after the pointer leaves: none, short (100ms) or long (300ms); a short pause stops it vanishing the instant the pointer slips off its item |
+| Shows an arrow | off | Adds a small point that aims the tooltip at its item |
 
 ## Production notes
 - **The 300ms rule**: without a show delay, every cursor movement across the page triggers tooltip flashes. 300ms is the minimum that feels responsive without being annoying. 200ms can work if the tooltip is very small.
 - **Smart positioning**: the demo positions tooltips in fixed directions. Production implementations need viewport-aware positioning — flip the tooltip when it would overflow the edge. Floating UI (by Atomics Design) handles this automatically.
 - **Touch devices**: tooltips have no hover trigger on touch. Long-press or a dedicated info button is the touch equivalent. The demo uses `touchstart` to toggle visibility as a fallback.
-- **`pointer-events: none`** on the tooltip prevents it from intercepting mouse events when using the `hide-delay` technique of allowing cursor movement onto the tooltip.
-- **WCAG 1.4.13 (Content on Hover or Focus)**: the tooltip must be dismissible without moving the cursor (e.g., Escape key), hoverable itself without disappearing, and persistent until the cursor moves away. The 100ms hide delay satisfies "hoverable."
+- **`pointer-events: none`** on the tooltip keeps it from catching the pointer, so it never blocks the item or its neighbors; the cost is that the pointer cannot rest on the tooltip itself, which the WCAG bullet covers.
+- **WCAG 1.4.13 (Content on Hover or Focus)**: the tooltip must be dismissible without moving the cursor (e.g., Escape key), hoverable itself without disappearing, and persistent until the cursor moves away. The demo covers "dismissible": Escape hides a shown tooltip at once. A hide delay helps with "hoverable" only when the tooltip takes the pointer; the demo's tooltips have `pointer-events: none`, so a tooltip that must be hoverable needs pointer events on.
 - **Floating UI / Popper.js**: production-grade positioning library. `computePosition()` with `flip` and `shift` middleware handles all edge cases.
 - **Radix UI Tooltip**: `<Tooltip.Root>`, `<Tooltip.Trigger>`, `<Tooltip.Content>` — fully accessible, WCAG 1.4.13 compliant, animation-ready.
 
 ## See also
-- [Hover State Animation](../hover-state/) — hover feedback on the trigger element
-- [Badge Pulse](../badge-pulse/) — persistent attention indicator vs. hover-triggered info
-- [Modal Expand](../modal-expand/) — for content too large for a tooltip
+- [Hover State Animation](../hover-state/) — items that react when the pointer is on them
+- [Notification Badge Pulse](../badge-pulse/) — a dot that pulses to draw the eye
+- [Modal Expand](../modal-expand/) — a full window for content too big for a tooltip

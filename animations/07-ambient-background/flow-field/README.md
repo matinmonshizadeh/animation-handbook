@@ -23,18 +23,28 @@ function angleAt(x, y, time) {
   return vnoise(x/SCALE, y/SCALE + time*0.15) * Math.PI * 4;
 }
 
-// per frame: fade, then advance every particle along its local angle
-ctx.fillStyle = `rgba(5,6,10,${TRAIL})`; ctx.fillRect(0, 0, W, H);
+// per drawn frame: fade, then advance every particle along its local angle
+// s is how many 60 Hz frames have passed since the last drawn frame: 1 at 60 Hz, 2 at 30 Hz
+const s = Math.min(now - last, 50) / (1000 / 60), w = Math.max(1, Math.round(s));
+const f = fa + (Math.abs(s - w) < 0.05 ? w : s);   // a step within 5% of a whole number counts as that number
+const nf = Math.round(f + 0.05);                    // whole dims due; the 0.05 keeps a half-way tie off the rounding edge
+if (!nf) return;                                    // none yet: draw nothing, the time carries to the next frame
+fa = f - nf; last = now;                            // the fraction left over carries too
+ctx.fillStyle = `rgba(5,6,10,${TRAIL})`;
+for (let i = 0; i < nf; i++) ctx.fillRect(0, 0, W, H);
+const k = s * (slow ? 1 / 3 : 1);                   // slow motion shortens the step, not the dim
 const a = angleAt(p.x, p.y, t);
-p.x += Math.cos(a) * SPD; p.y += Math.sin(a) * SPD;
+p.x += Math.cos(a) * SPD * k; p.y += Math.sin(a) * SPD * k;
 ```
+
+The step grows with the time since the last drawn frame, and so does the fade, in whole units: the canvas is dimmed once for every 60th of a second, each time by the same `TRAIL` as at 60 Hz, so a 30 Hz frame dims it twice. A step within 5% of a whole number counts as that number for the dim, so a 59.94 or 60.06 Hz screen, or a little noise in the timestamps, still gets exactly one dim per frame, and `fa` carries the fraction that is left over. Rounding leans up by 0.05, so a screen whose frames land exactly half-way between two dims, such as 120 or 240 Hz, keeps a regular draw rhythm instead of one decided by timestamp noise. When no whole dim is due yet, as on the first of two frames of a 120 Hz screen, the frame draws nothing and its time carries to the next one. That keeps drawing at most about 60 frames a second whatever the screen (a 30 Hz screen draws 30, with two dims each), and every drawn frame at one dim, so the trails do not pulse. A 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. One dim of `1 - (1 - TRAIL)^s` would fade the same amount in theory, but an 8-bit canvas rounds every dim, so the faint leftovers would settle to different colors on different screens; repeating the same dim makes them settle to the same colors everywhere. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1` with one dim each, so it looks the same on every screen.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Swirl size | Medium | How large the currents are: the direction turns over about 20px (small), 34px (medium) or 60px (large); larger looks calm, smaller turbulent |
-| Trail length | Medium | How long trails linger: short fades 12% a frame, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
-| Speed | Normal | How far each particle moves every frame: slow is 0.6px, normal 1px and fast 1.6px |
+| Trail length | Medium | How long trails linger: short fades 12% every 60th of a second, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
+| Speed | Normal | How far each particle moves in a 60th of a second: slow is 0.6px, normal 1px and fast 1.6px (36, 60 and 96px a second) |
 | Number of particles | Medium | Few is 400, medium 900 and many 1,500; phones show at most 500 |
 | Color | Mint | Mint, ember or ice, or rainbow, where the color changes across the stage and over time |
 

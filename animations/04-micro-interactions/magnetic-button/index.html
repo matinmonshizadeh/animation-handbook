@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Magnetic Button — Animation Handbook</title>
-  <meta name="description" content="A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.">
+  <meta name="description" content="Leans toward the pointer, then springs home. Best for one main button.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnetic-button/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,135 +12,207 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Magnetic Button — Animation Handbook">
-  <meta property="og:description" content="A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.">
+  <meta property="og:description" content="Leans toward the pointer, then springs home. Best for one main button.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnetic-button/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Magnetic Button — Animation Handbook">
-  <meta name="twitter:description" content="A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.">
+  <meta name="twitter:description" content="Leans toward the pointer, then springs home. Best for one main button.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Magnetic Button", "name": "Magnetic Button", "description": "A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnetic-button/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Magnetic Button"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Magnetic Button", "name": "Magnetic Button", "description": "Leans toward the pointer, then springs home. Best for one main button.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnetic-button/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Magnetic Button"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--radius:160}
+    :root{--ui-accent:#ff9d5c}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{position:relative;flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:manipulation}
-    /* Radius ring — purely visual, follows the button */
-    .ring{position:absolute;width:calc(var(--radius)*2px);height:calc(var(--radius)*2px);border:1px dashed rgba(255,157,92,.35);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s}
-    .ring.show{opacity:1}
-    .mag{position:relative;border:none;cursor:pointer;background:var(--ui-accent);color:#1a0e05;font-family:var(--disp);font-weight:700;font-size:clamp(15px,2vw,18px);letter-spacing:.01em;padding:20px 40px;min-height:56px;border-radius:40px;transform:translate(var(--tx,0px),var(--ty,0px));transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;touch-action:manipulation}
+    /* The button and its label move by transform only: --tx and --ty carry the pull, so the pressed size can be added to it */
+    .mag{position:relative;border:none;cursor:pointer;background:var(--ui-accent);color:#1a0e05;font-family:inherit;font-weight:700;font-size:clamp(15px,2vw,18px);letter-spacing:.01em;padding:20px 40px;min-height:56px;border-radius:40px;transform:translate(var(--tx,0px),var(--ty,0px));transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
     .mag.pressed{transform:translate(var(--tx,0px),var(--ty,0px)) scale(.94)}
-    .mag .lbl{display:inline-block;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
-    .hint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:10px;color:var(--ui-muted);letter-spacing:.5px;pointer-events:none}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:52px;text-align:right;color:var(--ui-text)}
-    .tog-inp{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog-inp input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px}}
-    @media(prefers-reduced-motion:reduce){.mag,.mag .lbl{transition:transform .12s linear}}
+    .mag .mag-label{display:inline-block;transition:transform .55s cubic-bezier(.22,1,.36,1);will-change:transform}
+    /* The site focus ring is drawn inside the button. It has the same orange as the fill, so it turns dark. */
+    .hb-page .stage .mag:focus-visible{outline-color:#0b0b0d}
+    @media(prefers-reduced-motion:reduce){.mag,.mag .mag-label{transition:transform .12s linear}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../button-press-scale/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../toggle-switch/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/magnetic-button/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Magnetic Button</h1>
-  <p>A CTA that leans toward the cursor within a radius, its label lagging for parallax, then springs home on exit.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="ring" id="ring"></div>
-    <button class="mag" id="btn"><span class="lbl">Get Started</span></button>
-    <div class="hint" id="hint">Move your cursor near the button</div>
-  </div>
-  <aside>
-    <p class="note">Magnetism is pointer distance mapped to a translate. The button moves a fraction of the way to the cursor; the label moves further, so it appears to float above the surface.</p>
-    <div class="lbl2">Magnet Strength</div>
-    <div class="sr"><input type="range" id="str-sl" min="0" max="60" value="35" step="1"><span class="sval" id="str-v">0.35</span></div>
-    <div class="lbl2">Activation Radius</div>
-    <div class="sr"><input type="range" id="rad-sl" min="80" max="280" value="160" step="10"><span class="sval" id="rad-v">160px</span></div>
-    <label class="tog-inp"><input type="checkbox" id="ring-tog"><span>Show radius ring</span></label>
-    <div class="div"></div>
-    <div class="kv"><span>Pull</span><span class="v" id="pull-v">0px</span></div>
-    <div class="kv"><span>Input</span><span class="v" id="mode-v">—</span></div>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../button-press-scale/" rel="prev" aria-label="Previous: Button Press Scale"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Button Press Scale</span></a><a href="../toggle-switch/" rel="next" aria-label="Next: Toggle / Switch Slide"><span><span class="hb-dir">Next: </span>Toggle / Switch Slide</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.05 · Micro-Interactions</p>
+    <h1>Magnetic Button</h1>
+    <p class="hb-lede">Leans toward the pointer, then springs home. Best for one main button.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move the pointer close to the button (touch near it on a phone), or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <button class="mag" type="button"><span class="mag-label">Get Started</span></button>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="strength-lbl">Pull strength</p>
+        <div class="seg" id="strength-seg" role="group" aria-labelledby="strength-lbl">
+          <button type="button" data-strength="0.2" aria-pressed="false">Gentle</button>
+          <button type="button" data-strength="0.35" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-strength="0.5" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Stronger pulls feel playful; gentle ones feel calm.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="reach-lbl">Reach</p>
+        <div class="seg" id="reach-seg" role="group" aria-labelledby="reach-lbl">
+          <button type="button" data-reach="100" aria-pressed="false">Short</button>
+          <button type="button" data-reach="160" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-reach="240" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How close the pointer must come before it pulls.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a magnetic effect to [the one button you want to stand out]. When the pointer comes within reach, pull the button part of the way toward it, more strongly the closer it gets, and move its label a little further so the label seems to float above the button. When the pointer leaves, let the button spring back to its place. Move it only with transforms so the layout never shifts, and use it on one or two buttons at most. On touch screens, pull the button toward the finger while it touches and send it home when it lifts. If the visitor has reduced motion turned on, move it quickly and evenly instead of letting it glide. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero buttons</li><li>Portfolio sites</li><li>One key action</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Forms</li><li>Rows of buttons</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const stage=document.getElementById('stage'),btn=document.getElementById('btn'),
-      lbl=btn.querySelector('.lbl'),ring=document.getElementById('ring'),hint=document.getElementById('hint');
-const hasHover=window.matchMedia('(hover: hover)').matches;
-let strength=0.35,radius=160;
+  const stage=document.querySelector('.stage');
+  const btn=stage.querySelector('.mag');
+  const label=btn.querySelector('.mag-label');
+  const slowTog=document.getElementById('slow-tog');
+  const hasHover=window.matchMedia('(hover: hover)').matches;
+  let strength=0.35,radius=160,runTimers=[];
 
-document.getElementById('mode-v').textContent=hasHover?'pointer (magnet)':'touch (press)';
-
-function reset(){
-  btn.style.removeProperty('--tx');btn.style.removeProperty('--ty');lbl.style.transform='';ring.style.left='';ring.style.top='';
-  document.getElementById('pull-v').textContent='0px';
-}
-
-if(hasHover){
-  stage.addEventListener('pointermove',e=>{
+  // The pull takes a point on the stage (from its top left corner). The mouse, a finger and Show me all call it.
+  // It measures from where the button is now, moved or not, and sends the button home when the point is out of reach.
+  function pull(px,py){
     const s=stage.getBoundingClientRect(),b=btn.getBoundingClientRect();
-    // Button center relative to stage
-    const bx=b.left+b.width/2-s.left, by=b.top+b.height/2-s.top;
-    const px=e.clientX-s.left, py=e.clientY-s.top;
-    const dx=px-bx, dy=py-by, dist=Math.hypot(dx,dy);
-    ring.style.left=(bx-radius)+'px';ring.style.top=(by-radius)+'px';
+    const dx=px-(b.left+b.width/2-s.left),dy=py-(b.top+b.height/2-s.top),dist=Math.hypot(dx,dy);
     if(dist<radius){
-      // Falloff: full strength at center, easing to 0 at the radius edge
-      const pull=(1-dist/radius);
-      const tx=dx*strength*pull, ty=dy*strength*pull;
+      const f=1-dist/radius; // full strength at the button's centre, easing to none at the edge of Reach
+      const tx=dx*strength*f,ty=dy*strength*f;
       btn.style.setProperty('--tx',tx+'px');btn.style.setProperty('--ty',ty+'px');
-      lbl.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
-      document.getElementById('pull-v').textContent=Math.round(Math.hypot(tx,ty))+'px';
-    }else{ reset(); }
-  });
-  stage.addEventListener('pointerleave',reset);
-}else{
-  hint.textContent='Tap the button';
-}
-// Press feedback works on both touch and pointer
-btn.addEventListener('pointerdown',()=>btn.classList.add('pressed'));
-['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,()=>btn.classList.remove('pressed')));
+      label.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
+    }else home();
+  }
+  function home(){
+    btn.style.removeProperty('--tx');btn.style.removeProperty('--ty');label.style.transform='';
+  }
+  function pointAt(e){
+    const s=stage.getBoundingClientRect();
+    pull(e.clientX-s.left,e.clientY-s.top);
+  }
 
-document.getElementById('str-sl').addEventListener('input',e=>{
-  strength=+e.target.value/100;
-  document.getElementById('str-v').textContent=strength.toFixed(2);
-});
-document.getElementById('rad-sl').addEventListener('input',e=>{
-  radius=+e.target.value;
-  document.getElementById('rad-v').textContent=radius+'px';
-  document.documentElement.style.setProperty('--radius',radius);
-});
-document.getElementById('ring-tog').addEventListener('change',e=>{
-  ring.classList.toggle('show',e.target.checked);
-});
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run and sends the button home.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];home()}
+
+  // A mouse pulls while it moves over the stage, and the button goes home when it leaves (only where the device can hover).
+  // A run under way is stopped first and the pull runs after it, so the visitor's own pointer takes over at once;
+  // leaving the stage ends a run too (stopRun sends the button home), or the run would carry on after the button went home.
+  if(hasHover){
+    stage.addEventListener('pointermove',e=>{
+      if(e.pointerType!=='mouse')return;
+      if(e.isTrusted&&running())stopRun();
+      pointAt(e);
+    });
+    stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')stopRun()});
+  }
+  // A finger or pen pulls while it touches the stage, follows it while it moves and sends the button home when it lifts or leaves the stage
+  // (a pen lifted outside would send its pointerup elsewhere).
+  // A swipe that scrolls the page cancels the touch. Pointer events, so a tap's follow-up mouse events leave no pointer behind.
+  let touchId=null;
+  stage.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse')return;
+    touchId=e.pointerId;pointAt(e);
+  });
+  stage.addEventListener('pointermove',e=>{if(e.pointerId===touchId)pointAt(e)});
+  ['pointerup','pointercancel','pointerleave'].forEach(type=>stage.addEventListener(type,e=>{
+    if(e.pointerId!==touchId)return;
+    touchId=null;home();
+  }));
+
+  // Pressing the button shrinks it a little, for mouse, touch and pen alike.
+  btn.addEventListener('pointerdown',()=>btn.classList.add('pressed'));
+  ['pointerup','pointercancel','pointerleave'].forEach(type=>btn.addEventListener(type,()=>btn.classList.remove('pressed')));
+
+  // A pretend pointer visits three spots around the button: each glide takes 550ms and each spot is held 150ms, then the button goes home.
+  // The spots are fixed offsets from the button's resting centre, read from its layout box (the pull's transform never moves it) in the
+  // pull's own frame, the stage's border box, and sized by Reach so they always fall within it.
+  const SPOTS=[[-.55,-.35],[.6,.1],[-.1,.5]];
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    const cx=stage.clientLeft+btn.offsetLeft+btn.offsetWidth/2,cy=stage.clientTop+btn.offsetTop+btn.offsetHeight/2;
+    SPOTS.forEach(([ox,oy],k)=>later(()=>pull(cx+ox*radius,cy+oy*radius),k*550,k*150));
+    later(home,1650,450);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the button goes home.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('strength-seg',d=>{strength=+d.strength});
+  choices('reach-seg',d=>{radius=+d.reach});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

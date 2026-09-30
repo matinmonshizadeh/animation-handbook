@@ -171,7 +171,8 @@
   const slowTog=document.getElementById('slow-tog');
   const PHONE_STARS=300; // phones and short screens draw at most this many stars
   const phone=matchMedia('(max-width:600px),(max-height:500px)');
-  let W=0,H=0,raf=null,lastT=0,paused=false;
+  const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
+  let W=0,H=0,raf=null,lastT=null,fa=0,paused=false; // fa: the part of a cover not yet applied
   let MODE='radial',COUNT=300,SPD=0.4,TWINKLE=true,NEBULA=false,COL='white';
   let stars=[];
 
@@ -192,7 +193,8 @@
       }
       this.hue=Math.random()*60;
     }
-    // k is 1, or a third in slow motion: the outward step, the sideways step and the twinkle all shrink by it
+    // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion: the outward
+    // step, the sideways step and the twinkle all grow and shrink with it
     update(k){
       if(MODE==='radial'){
         this.dist+=this.speed*k;
@@ -238,26 +240,32 @@
     ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
   }
 
-  // One picture. paint(true) is a frame of the loop: a see-through cover leaves short trails, then the stars move and
-  // are drawn. paint(false) draws the picture where it stands, for the first frame, after a resize and after a setting
-  // changes while paused; nothing moved, so it covers the old picture completely.
-  function paint(move){
-    ctx.fillStyle=move?'rgba(0,0,0,.85)':'#000';ctx.fillRect(0,0,W,H);
-    if(NEBULA)drawNebula();
-    const k=slowTog.checked?1/3:1;
+  // One picture. paint(true,n,nf) is a loop frame for n 60 Hz frames: nf covers (the haze redrawn after each), then the stars move by n
+  // (a third of it in slow motion; the covers do not slow) and are drawn. paint(false) redraws the picture where it stands, opaque:
+  // for the first frame, a resize and a setting changed while paused.
+  function paint(move,n,nf){
+    for(let i=0,c=move?nf:1;i<c;i++){
+      ctx.fillStyle=move?'rgba(0,0,0,.85)':'#000';ctx.fillRect(0,0,W,H);
+      if(NEBULA)drawNebula();
+    }
+    const k=move?n*(slowTog.checked?1/3:1):0;
     stars.forEach(s=>{if(move)s.update(k);s.draw();});
   }
   // While paused, a setting that changes the picture draws it again so the change shows
   function still(){if(paused)paint(false);}
 
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again.
+  // loop() keeps one frame requested in raf. A drawn frame stands for the time since the last drawn one (n, at most 50 ms) and covers once
+  // per whole 60th, fa carrying the rest; with no cover due nothing is drawn and the time carries on, which also caps drawing near 60 a second.
   function loop(ts){
     raf=requestAnimationFrame(loop);
-    if(ts-lastT<16)return;
-    lastT=ts;
-    paint(true);
+    if(lastT===null){lastT=ts;return;}
+    const n=Math.min(ts-lastT,50)/FRAME,w=Math.max(1,Math.round(n));
+    const f=fa+(Math.abs(n-w)<.05?w:n),nf=Math.round(f+.05); // within 5% of a whole number counts as it; the .05 keeps a half-way tie off the edge
+    if(!nf)return;
+    fa=f-nf;lastT=ts;
+    paint(true,n,nf);
   }
-  function start(){if(raf)return;lastT=0;raf=requestAnimationFrame(loop);}
+  function start(){if(raf)return;lastT=null;fa=0;raf=requestAnimationFrame(loop);}
 
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The stars on screen stay as they are while paused.
@@ -266,6 +274,8 @@
     if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
   });
+  // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
+  document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
 
   // Setting the canvas size wipes it, so a real change of the stage's size builds the stars and draws them at once,
   // playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.

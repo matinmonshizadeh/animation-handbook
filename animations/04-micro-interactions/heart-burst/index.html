@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Heart / Like Burst — Animation Handbook</title>
-  <meta name="description" content="Tap to like — the heart pops and fills as a spray of small hearts bursts outward and fades, Twitter-style.">
+  <meta name="description" content="The heart pops and fills as small hearts burst out. Best for like buttons.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/heart-burst/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,141 +12,232 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Heart / Like Burst — Animation Handbook">
-  <meta property="og:description" content="Tap to like — the heart pops and fills as a spray of small hearts bursts outward and fades, Twitter-style.">
+  <meta property="og:description" content="The heart pops and fills as small hearts burst out. Best for like buttons.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/heart-burst/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Heart / Like Burst — Animation Handbook">
-  <meta name="twitter:description" content="Tap to like — the heart pops and fills as a spray of small hearts bursts outward and fades, Twitter-style.">
+  <meta name="twitter:description" content="The heart pops and fills as small hearts burst out. Best for like buttons.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Heart / Like Burst", "name": "Heart / Like Burst", "description": "Tap to like — the heart pops and fills as a spray of small hearts bursts outward and fades, Twitter-style.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/heart-burst/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Heart / Like Burst"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Heart / Like Burst", "name": "Heart / Like Burst", "description": "The heart pops and fills as small hearts burst out. Best for like buttons.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/heart-burst/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Heart / Like Burst"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--like:#ff5470;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--like:#ff5470}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{position:relative;flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;overflow:hidden;touch-action:manipulation}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;overflow:hidden;touch-action:manipulation;background:#0b0b0d}
     canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
     .like-wrap{position:relative;z-index:2}
-    .like-btn{position:relative;background:none;border:none;cursor:pointer;width:96px;height:96px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+    .like-btn{position:relative;background:none;border:none;border-radius:50%;cursor:pointer;font:inherit;width:96px;height:96px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
     .heart{width:64px;height:64px;color:var(--ui-muted);transition:color .2s;transform-origin:center}
-    .heart path{transition:fill .2s}
     .like-btn.on .heart{color:var(--like)}
     /* Pop: overshoot scale keyframe applied on like */
     @keyframes pop{0%{transform:scale(1)}30%{transform:scale(.8)}55%{transform:scale(1.25)}75%{transform:scale(.92)}100%{transform:scale(1)}}
     .like-btn.pop .heart{animation:pop .5s cubic-bezier(.22,1,.36,1)}
     .count{font-size:12px;color:var(--ui-muted);z-index:2}
-    .count b{color:var(--ui-text);font-family:var(--disp)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl2{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:52px;text-align:right;color:var(--ui-text)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:auto}.stage{width:100%;height:auto;min-height:420px}}
+    .count b{color:var(--ui-text)}
     @media(prefers-reduced-motion:reduce){.like-btn.pop .heart{animation:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../toggle-switch/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../success-confetti/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/heart-burst/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Heart / Like Burst</h1>
-  <p>Tap to like — the heart pops and fills as a spray of small hearts bursts outward and fades, Twitter-style.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cv"></canvas>
-    <div class="like-wrap">
-      <button class="like-btn" id="btn" aria-pressed="false" aria-label="Like">
-        <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.9-10-9.3C.4 8.3 2 5 5.2 5c1.9 0 3.2 1 3.8 2 .6-1 1.9-2 3.8-2 3.2 0 4.8 3.3 3.2 6.7C19.5 16.1 12 21 12 21z"/></svg>
-      </button>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../toggle-switch/" rel="prev" aria-label="Previous: Toggle / Switch Slide"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Toggle / Switch Slide</span></a><a href="../success-confetti/" rel="next" aria-label="Next: Success Confetti"><span><span class="hb-dir">Next: </span>Success Confetti</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.07 · Micro-Interactions</p>
+    <h1>Heart / Like Burst</h1>
+    <p class="hb-lede">The heart pops and fills as small hearts burst out. Best for like buttons.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the heart to like it and again to unlike it, or press Show me.</p></div>
     </div>
-    <div class="count">Likes <b id="count">128</b></div>
-  </div>
-  <aside>
-    <p class="note">The burst is a short-lived particle system on a canvas overlay. Each tap spawns N particles with random angle/velocity; gravity and fade retire them within ~700ms. Un-liking is silent.</p>
-    <div class="lbl2">Particle Count</div>
-    <div class="sr"><input type="range" id="cnt-sl" min="6" max="40" value="18" step="1"><span class="sval" id="cnt-v">18</span></div>
-    <div class="lbl2">Burst Spread</div>
-    <div class="sr"><input type="range" id="spr-sl" min="40" max="160" value="90" step="5"><span class="sval" id="spr-v">90px</span></div>
-    <div class="div"></div>
-    <div class="kv"><span>State</span><span class="v" id="state-v">Not liked</span></div>
-    <div class="kv"><span>Live particles</span><span class="v" id="live-v">0</span></div>
-  </aside>
-</div>
+    <div class="stage hb-dots">
+      <canvas id="cv" aria-hidden="true"></canvas>
+      <div class="like-wrap">
+        <button class="like-btn" type="button" aria-pressed="false" aria-label="Like">
+          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21S3.25 15.4 3.25 9.6C3.25 6.9 5.2 5 7.7 5c1.8 0 3.3 1 4.3 2.7C13 6 14.5 5 16.3 5c2.5 0 4.45 1.9 4.45 4.6C20.75 15.4 12 21 12 21z"/></svg>
+        </button>
+      </div>
+      <div class="count">Likes <b id="count">128</b></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="num-lbl">Number of hearts</p>
+        <div class="seg" id="num-seg" role="group" aria-labelledby="num-lbl">
+          <button type="button" data-n="10" aria-pressed="false">Few</button>
+          <button type="button" data-n="18" class="on" aria-pressed="true">Some</button>
+          <button type="button" data-n="32" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">More pieces make a bigger celebration.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="far-lbl">How far they fly</p>
+        <div class="seg" id="far-seg" role="group" aria-labelledby="far-lbl">
+          <button type="button" data-px="60" aria-pressed="false">Short</button>
+          <button type="button" data-px="90" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="140" aria-pressed="false">Far</button>
+        </div>
+        <p class="hb-hint">How far the pieces travel before they fade.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a like button with a burst to [the heart or favorite button you want to reward]. When the visitor likes something, the heart quickly squashes, overshoots a little and settles as it fills with color, while a spray of tiny hearts and dots flies out from its center, arcs down and fades. Unliking simply removes the color, with no burst. Draw the burst on one layer over the button and stop drawing once the last piece has faded. Tell screen readers whether it is liked. If the visitor has reduced motion turned on, only fill the heart, with no pop or burst. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Like buttons</li><li>Favorites</li><li>Bookmarks</li><li>Reactions</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Delete buttons</li><li>Neutral toggles</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const stage=document.getElementById('stage'),btn=document.getElementById('btn'),
-      cv=document.getElementById('cv'),ctx=cv.getContext('2d'),countEl=document.getElementById('count');
-const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let liked=false,count=128,particles=[],raf=null,dpr=Math.min(window.devicePixelRatio||1,2);
-let pCount=18,spread=90;
+  const stage=document.querySelector('.stage'),btn=document.querySelector('.like-btn'),heart=btn.querySelector('.heart'),
+        cv=document.getElementById('cv'),ctx=cv.getContext('2d'),countEl=document.getElementById('count'),
+        slowTog=document.getElementById('slow-tog'),reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: every step below is measured in these
+  let liked=false,count=128,particles=[],raf=null,last=null,dpr=1,pCount=18,spread=90,runTimers=[];
 
-function resize(){cv.width=stage.clientWidth*dpr;cv.height=stage.clientHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
-resize();new ResizeObserver(resize).observe(stage);
+  // The canvas has one pixel per screen pixel (two at most per CSS pixel), so the hearts stay sharp on dense screens.
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=Math.round(stage.clientWidth*dpr);cv.height=Math.round(stage.clientHeight*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();new ResizeObserver(resize).observe(stage);
 
-function spawn(){
-  const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
-  const ox=b.left+b.width/2-s.left, oy=b.top+b.height/2-s.top;
-  for(let i=0;i<pCount;i++){
-    const a=Math.random()*Math.PI*2, v=spread*(0.5+Math.random()*0.5)/12;
-    particles.push({x:ox,y:oy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,size:4+Math.random()*5,
-      hue:['#ff5470','#ff9d5c','#ffd166','#ff85a1'][i%4],heart:Math.random()>0.4});
+  function spawn(){
+    if(dpr!==Math.min(window.devicePixelRatio||1,2))resize();
+    const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
+    const ox=b.left+b.width/2-s.left, oy=b.top+b.height/2-s.top;
+    for(let i=0;i<pCount;i++){
+      const a=Math.random()*Math.PI*2, v=spread*(0.5+Math.random()*0.5)/12;
+      particles.push({x:ox,y:oy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,size:4+Math.random()*5,
+        hue:['#ff5470','#ff9d5c','#ffd166','#ff85a1'][i%4],heart:Math.random()>0.4});
+    }
+    if(!raf){last=null;raf=requestAnimationFrame(tick)}
   }
-  if(!raf)raf=requestAnimationFrame(tick);
-}
-function tick(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  particles=particles.filter(p=>p.life>0);
-  document.getElementById('live-v').textContent=particles.length;
-  for(const p of particles){
-    p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.vx*=0.98;p.life-=0.022;
-    ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.hue;
-    if(p.heart){drawHeart(p.x,p.y,p.size);}
-    else{ctx.beginPath();ctx.arc(p.x,p.y,p.size*0.5,0,Math.PI*2);ctx.fill();}
+  function tick(ts){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    particles=particles.filter(p=>p.life>0);
+    // Each step is scaled by the time since the last frame, in 60 Hz frames (1 at 60 Hz, 0.5 at 120 Hz, 2 at 30 Hz), so a burst lasts
+    // the same on every screen. A burst's first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms.
+    const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
+    // Slow motion: every piece moves a third of its usual step. It is read every frame, so it applies from the next one.
+    // A step over 1.5 frames (a 30 Hz screen) is taken in two halves, which keeps the arc close to the one a 60 Hz screen draws.
+    const k=dt/FRAME*(slowTog.checked?1/3:1),parts=k>1.5?2:1,h=k/parts,drag=0.98**h;
+    for(const p of particles){
+      for(let i=0;i<parts;i++){p.x+=p.vx*h;p.y+=p.vy*h;p.vy+=0.12*h;p.vx*=drag;p.life-=0.022*h}
+      ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.hue;
+      if(p.heart){drawHeart(p.x,p.y,p.size);}
+      else{ctx.beginPath();ctx.arc(p.x,p.y,p.size*0.5,0,Math.PI*2);ctx.fill();}
+    }
+    ctx.globalAlpha=1;
+    raf=particles.length?requestAnimationFrame(tick):null;
   }
-  ctx.globalAlpha=1;
-  if(particles.length)raf=requestAnimationFrame(tick);else raf=null;
-}
-function drawHeart(x,y,s){
-  ctx.save();ctx.translate(x,y);ctx.scale(s/24,s/24);ctx.beginPath();
-  ctx.moveTo(0,6);ctx.bezierCurveTo(-12,-6,-6,-14,0,-6);ctx.bezierCurveTo(6,-14,12,-6,0,6);
-  ctx.closePath();ctx.fill();ctx.restore();
-}
-btn.addEventListener('click',()=>{
-  liked=!liked;
-  btn.classList.toggle('on',liked);
-  btn.setAttribute('aria-pressed',liked);
-  document.getElementById('state-v').textContent=liked?'Liked':'Not liked';
-  if(liked){
-    count++;
-    if(!reduce){btn.classList.remove('pop');void btn.offsetWidth;btn.classList.add('pop');spawn();}
-  }else{count--;}
-  countEl.textContent=count;
-});
-document.getElementById('cnt-sl').addEventListener('input',e=>{pCount=+e.target.value;document.getElementById('cnt-v').textContent=pCount;});
-document.getElementById('spr-sl').addEventListener('input',e=>{spread=+e.target.value;document.getElementById('spr-v').textContent=spread+'px';});
+  function drawHeart(x,y,s){
+    ctx.save();ctx.translate(x,y);ctx.scale(s/24,s/24);ctx.beginPath();
+    ctx.moveTo(0,6);ctx.bezierCurveTo(-12,-6,-6,-14,0,-6);ctx.bezierCurveTo(6,-14,12,-6,0,6);
+    ctx.closePath();ctx.fill();ctx.restore();
+  }
+
+  // Liking fills the heart and, unless the visitor asks for reduced motion, pops it and bursts the pieces; unliking only takes the color away.
+  // The click and Show me both come through here.
+  function setLiked(on){
+    if(on===liked)return;
+    liked=on;
+    btn.classList.toggle('on',liked);
+    btn.setAttribute('aria-pressed',liked);
+    if(liked){
+      count++;
+      if(!reduce.matches){btn.classList.remove('pop');void btn.offsetWidth;btn.classList.add('pop');spawn();}
+    }else{count--;}
+    countEl.textContent=count;
+  }
+  btn.addEventListener('click',()=>setLiked(!liked));
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
+  // A run starts from the arrival state, put there without animating: the transition is turned off, the state is set, a reflow makes it
+  // stick, and the transition comes back. A burst still in the air goes too.
+  function toRest(){
+    heart.style.transition='none';
+    btn.classList.remove('on','pop');
+    btn.setAttribute('aria-pressed','false');
+    liked=false;count=128;countEl.textContent=count;
+    particles=[];ctx.clearRect(0,0,cv.width,cv.height);
+    void btn.offsetWidth;
+    heart.style.transition='';
+  }
+  // The heart is liked after 300ms of rest, and unliked once the 750ms burst and 950ms more of rest have passed.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    later(()=>setLiked(true),0,300);
+    later(()=>setLiked(false),750,1250);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the heart stays as it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('num-seg',d=>{pCount=+d.n});
+  choices('far-seg',d=>{spread=+d.px});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

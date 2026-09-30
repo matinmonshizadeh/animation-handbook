@@ -22,6 +22,14 @@ for (let i = 0; i < DENS; i++) {
 }
 ```
 
+The offset grows with time, not with the number of frames: every 60th of a second adds `speed * 0.02` (a third of that in slow motion), however many frames that takes, so the floor rolls at the same speed on a 30 Hz phone and a 144 Hz monitor. At normal speed that is 1.2 lines a second. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap between frames counts for at most 50 ms:
+
+```js
+const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
+last = now;
+offset += speed * 0.02 * dt / (1000 / 60) * (slow ? 1 / 3 : 1);
+```
+
 The glow is a canvas `shadowBlur` set to the grid colour; the sun is a clipped semicircle filled with a vertical gradient and striped with background-coloured gaps.
 
 ## Key parameters

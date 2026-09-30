@@ -56,7 +56,7 @@ function scheduleEmit(source) {
 
 ```js
 function updateSource(source) {
-  source.x += source.vx * k;   // k is 1, or a third in slow motion
+  source.x += source.vx * k;   // k is the time since the last frame in 60ths of a second: 1 at 60 Hz, 2 at 30 Hz, a third of it in slow motion
   source.y += source.vy * k;
   // Bounce at boundaries
   if (source.x < W * 0.05 || source.x > W * 0.95) source.vx *= -1;

@@ -10,7 +10,7 @@ Floating elements are small, see-through shapes, such as circles, squares or rin
 - Dashboard hero areas where the background differentiates sections
 
 ## How it works
-Each shape has a base position (`bx`, `by`) and sine-wave parameters. Per animation frame, current position is computed from base position plus sinusoidal offsets:
+Each shape has a base position (`bx`, `by`) and sine-wave parameters. On every animation frame, its current position is computed from the base position plus sinusoidal offsets of a running time `t`:
 
 ```js
 function animate(t) {
@@ -18,8 +18,7 @@ function animate(t) {
     const x = el.bx + Math.sin(el.freq * t + el.phase)    * el.amplitude;
     const y = el.by + Math.cos(el.freq * t * 0.7 + el.phaseY) * el.amplitude * 0.6;
 
-    if (el.rotation) el.rot += el.rotSpeed; // its own small turn each frame
-    const rot = el.rotation ? el.rot : 0;
+    const rot = el.rotation ? el.rot : 0;   // its own small turn, added up in the loop below
     const opacity = el.pulse
       ? 0.4 + 0.3 * Math.sin(el.pulsePhase + t * 0.5)   // stays inside 0.1–0.7
       : 0.5;
@@ -27,6 +26,23 @@ function animate(t) {
     el.dom.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
     el.dom.style.opacity = opacity;
   });
+}
+```
+
+The clock `t` and each shape's turn move by the time that has passed, not by a fixed amount per frame. Every 60th of a second adds `speed * 0.005` to `t` (a third of that in slow motion), however many frames that takes, so a 30 Hz phone and a 144 Hz monitor drift at the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap between frames counts for at most 50 ms:
+
+```js
+const FRAME = 1000 / 60;                  // what one 60 Hz frame adds up to
+let last = null;                          // set back to null on Play and when the tab returns
+
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
+  last = now;
+  const k = dt / FRAME * (slow ? 1 / 3 : 1);   // 1 at 60 Hz, 2 at 30 Hz, about 0.42 at 144 Hz; a third of that in slow motion
+  t += speed * 0.005 * k;
+  if (rotates) elements.forEach(el => { el.rot += el.rotSpeed * k; });
+  animate(t);
 }
 ```
 

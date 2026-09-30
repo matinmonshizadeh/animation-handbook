@@ -2,12 +2,7 @@
 
 ## What it is
 
-A segmented control is a row of two or more mutually exclusive options with a
-single highlighted "pill" indicating the current choice. When the selection
-changes, that indicator slides from the old option to the new one and the
-label colors crossfade, so the change reads as one object moving rather than
-two states blinking. It is the desktop and mobile pattern behind iOS view
-switchers, filter bars, and time-range pickers.
+A segmented control is a row of options where exactly one is chosen, marked by a highlight behind it. When you choose another option, the highlight slides over to it and stretches to its width while the labels change color, so the change reads as one thing moving. It is the switch behind view pickers such as Day, Week and Month.
 
 ## When to use it
 
@@ -34,14 +29,14 @@ crossfade lands as the pill arrives.
 ```js
 function move(i, animate) {
   const target = opts[i].getBoundingClientRect();
-  const base   = opts[0].getBoundingClientRect();   // reference width
-  const x  = opts[i].offsetLeft;                     // absolute offset in track
+  const base   = opts[0].getBoundingClientRect();    // reference width
+  const x  = target.left - base.left + opts[0].offsetLeft;   // offset inside the track
   const sx = target.width / base.width;              // scaleX to fit this segment
   if (!animate) ind.style.transition = 'none';       // no slide on first paint
   ind.style.width = base.width + 'px';
   ind.style.setProperty('--x', x + 'px');
   ind.style.setProperty('--sx', sx);
-  if (!animate) requestAnimationFrame(() => ind.style.transition = '');
+  if (!animate) { void ind.offsetWidth; ind.style.transition = ''; }  // flush the jump, then allow sliding again
 }
 ```
 
@@ -55,21 +50,19 @@ function move(i, animate) {
 
 Because `transform-origin` is the left edge, `scaleX` grows the pill to the
 right from the segment's left boundary, keeping it aligned as widths change.
+The choice is marked (`aria-checked`) before the option is measured, because
+the chosen label is set a little heavier, which makes it a little wider.
+
+A curve that runs a little past its end (Springy) gives the highlight a sense of momentum; Smooth reads as more restrained. The labels' color change uses the same duration as the slide, so the two never drift apart.
 
 ## Key parameters
 
-| Parameter | What it controls | Typical value |
-| --- | --- | --- |
-| `duration` | How long the pill takes to travel | 250–400ms |
-| `easing` | The travel curve | spring `cubic-bezier(.5,1.6,.4,1)` or `cubic-bezier(.4,0,.2,1)` |
-| `translateX` | Horizontal position of the pill | measured `offsetLeft` of target |
-| `scaleX` | Width match for uneven segments | `targetWidth / referenceWidth` |
-| indicator style | Filled pill vs. thin underline | `filled` / `underline` |
-| segment count | Number of exclusive options | 2–5 |
-
-A spring curve with slight overshoot (control-point y > 1) gives the pill a
-sense of momentum; a standard ease reads as more restrained. Keep the label
-color transition on the same `duration` so the two never desync.
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Speed | Normal | How long the highlight takes to slide: slow is 550ms, normal 340ms and fast 200ms |
+| Feel | Springy | Springy runs a little past the option, then settles; Smooth slows to a stop; Even keeps one steady speed |
+| Highlight | Pill | A filled pill behind the chosen option, or a thin line under it |
+| Number of options | Four | Two to five options; more, or long labels, do not fit on one line |
 
 ## Production notes
 
@@ -93,6 +86,6 @@ color transition on the same `duration` so the two never desync.
 
 ## See also
 
-- [Toggle / Switch Slide](../toggle-switch/)
-- [Tab Bar / Underline](../hover-state/)
-- [Accordion Open/Close](../accordion/)
+- [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between two states
+- [Hover State Animation](../hover-state/) — items that react when the pointer is on them
+- [Accordion Open/Close](../accordion/) — sections that open and close in place

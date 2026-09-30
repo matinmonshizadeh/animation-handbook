@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stacking Cards — Animation Handbook</title>
-  <meta name="description" content="CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.">
+  <meta name="description" content="Cards stick at the top and pile into a deck. Best for step-by-step stories.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stacking-cards/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,32 +12,23 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Stacking Cards — Animation Handbook">
-  <meta property="og:description" content="CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.">
+  <meta property="og:description" content="Cards stick at the top and pile into a deck. Best for step-by-step stories.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stacking-cards/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Stacking Cards — Animation Handbook">
-  <meta name="twitter:description" content="CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.">
+  <meta name="twitter:description" content="Cards stick at the top and pile into a deck. Best for step-by-step stories.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Stacking Cards", "name": "Stacking Cards", "description": "CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stacking-cards/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Stacking Cards"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Stacking Cards", "name": "Stacking Cards", "description": "Cards stick at the top and pile into a deck. Best for step-by-step stories.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stacking-cards/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Stacking Cards"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--scale-step:0.10;--peek:14px;--stage-h:620px}
+    :root{--ui-accent:#6ea8ff;--scale-step:0.10;--peek:14px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
     /* stage: the ONLY scroll container. no overflow on any descendant above .card */
-    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;background:var(--bg)}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
     /* lead-in: enough to scroll the first card up into the stack, but not so much
        that the demo opens on an empty stage */
-    .spacer{height:calc(var(--stage-h) * 0.25)}
+    .spacer{height:25cqh}
     #cards{--numcards:5;view-timeline-name:--cards-timeline;view-timeline-axis:block}
     /* The run-out MUST be a real child of #cards. A sticky card stays pinned only
        while its containing block extends below it, and the last card's bottom is
@@ -46,7 +37,7 @@
        constraint is the containing block's content box, which excludes padding.
        This element's height is the pinned window — how far you can keep scrolling
        with the completed deck held on screen. */
-    .run-out{height:calc(var(--stage-h) * 0.3)}
+    .run-out{height:30cqh}
     /* sticky is on .card — the outer wrapper — NOT on .card__content */
     .card{
       --index0:calc(var(--index) - 1);
@@ -61,7 +52,7 @@
       /* Each card's total height is content + its peek padding, and the last card
          carries the tallest stack of it. Subtracting the peek run keeps every card
          within the stage, so the deepest card never clips at high card counts. */
-      height:calc(var(--stage-h) - 24px - (var(--numcards) - 1) * var(--peek));
+      height:calc(100cqh - 12px - (var(--numcards) - 1) * var(--peek));
       border-radius:16px;overflow:hidden;
       display:grid;grid-template-columns:55fr 45fr;
       box-shadow:0 16px 56px rgba(0,0,0,.65);
@@ -82,121 +73,157 @@
         animation-range:exit-crossing var(--start-range) exit-crossing var(--end-range);
       }
     }
-    .card__text{padding:clamp(18px,3vw,32px);display:flex;flex-direction:column;justify-content:center;gap:10px}
-    .card-num{font-size:52px;font-weight:bold;opacity:.1;line-height:1;font-family:serif}
-    .card-title{font-size:clamp(16px,2.2vw,22px);font-weight:bold;font-family:serif;color:#111;line-height:1.2}
-    .card-sub{font-size:10px;opacity:.45;text-transform:uppercase;letter-spacing:1.5px}
-    .card-body{font-size:12px;opacity:.55;line-height:1.65;max-width:320px}
-    .card-btn{align-self:flex-start;border:1px solid var(--ac,#888);color:var(--ac,#888);font-family:monospace;font-size:10px;padding:8px 14px;border-radius:4px;letter-spacing:1px;margin-top:4px}
+    .card__text{position:relative;padding:clamp(14px,6cqh,32px) clamp(18px,3vw,32px);display:flex;flex-direction:column;justify-content:center;gap:10px}
+    /* the big faded number is a watermark, so it takes no room from the text */
+    .card-num{position:absolute;top:clamp(8px,3cqh,16px);right:clamp(12px,2.5vw,24px);margin:0;font-size:52px;font-weight:bold;opacity:.1;line-height:1}
+    .card-title{font-size:clamp(16px,2.2vw,22px);font-weight:bold;color:#111;line-height:1.2}
+    .card-sub{font-size:11px;color:#5f5f66;text-transform:uppercase;letter-spacing:1.5px}
+    .card-body{font-size:14px;color:#5f5f66;line-height:1.65;max-width:320px}
+    /* on the shortest cards the line hides and the rest sits closer, so the title, the kind and the button fit */
+    #cards.short .card-body{display:none}
+    #cards.short .card__text{gap:6px}
+    .card-btn{align-self:flex-start;border:1px solid var(--ac,#888);color:var(--ac,#888);font-size:11px;padding:8px 14px;border-radius:4px;letter-spacing:1px;margin-top:4px}
     .card__visual{overflow:hidden}
-    .debug-badge{position:absolute;top:8px;right:8px;font-size:8px;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:6px;display:none;line-height:1.6;z-index:10}
-    .debug-badge.on{display:block}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sr .sv{width:34px;text-align:right;color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:17px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){
-      .layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%}
-      :root{--stage-h:480px}
-      .card__content{grid-template-columns:1fr;grid-template-rows:1fr 140px}
-    }
+    @media(max-width:600px){.card__content{grid-template-columns:1fr;grid-template-rows:1fr}.card__visual{display:none}.card__text{gap:6px}}
     @media(prefers-reduced-motion:reduce){.card__content{animation:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../fly-in-fly-out-contact-list/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../scroll-trigger/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/stacking-cards/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Stacking Cards</h1>
-  <p>CSS Scroll-Driven Animations — sticky cards fan into a deck; exit-crossing timeline drives the scale.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="spacer"></div>
-    <div id="cards"></div>
-  </div>
-  <aside>
-    <p class="note">Sticky is on .card (not .card__content). padding-top per index peeks earlier cards above later ones. transform-origin:50% 0% collapses scale downward so peek tabs stay visible.</p>
-    <div><div class="lbl">Stack status</div>
-      <div class="tbl">
-        <div class="kv"><span>Scroll</span><span class="v" id="scroll-prog">0%</span></div>
-        <div class="kv"><span>Topmost card</span><span class="v" id="topmost">01</span></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../fly-in-fly-out-contact-list/" rel="prev" aria-label="Previous: Fly-in Fly-out Contact List"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Fly-in Fly-out Contact List</span></a><a href="../scroll-trigger/" rel="next" aria-label="Next: ScrollTrigger Animation"><span><span class="hb-dir">Next: </span>ScrollTrigger Animation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.06 · Scroll-Based</p>
+    <h1>Stacking Cards</h1>
+    <p class="hb-lede">Cards stick at the top and pile into a deck. Best for step-by-step stories.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A stack of project cards">
+      <div class="spacer"></div>
+      <div id="cards"></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="peek-lbl">Edge that shows</p>
+        <div class="seg" id="peek-seg" role="group" aria-labelledby="peek-lbl">
+          <button type="button" data-peek="0" aria-pressed="false">None</button>
+          <button type="button" data-peek="8" aria-pressed="false">Small</button>
+          <button type="button" data-peek="14" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-peek="20" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">The strip of each card left showing above the next.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shrink-lbl">How much cards shrink</p>
+        <div class="seg" id="shrink-seg" role="group" aria-labelledby="shrink-lbl">
+          <button type="button" data-step="0.05" aria-pressed="false">A little</button>
+          <button type="button" data-step="0.10" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-step="0.12" aria-pressed="false">A lot</button>
+        </div>
+        <p class="hb-hint">Covered cards shrink so the deck looks deep.</p>
       </div>
     </div>
-    <div class="div"></div>
-    <div><div class="lbl" id="scale-lbl">Scale step</div>
-      <div class="sr"><input type="range" id="scale-sl" aria-labelledby="scale-lbl" min="5" max="20" value="10"><span class="sv" id="scale-val">0.10</span></div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="count-lbl">Number of cards</p>
+          <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+            <button type="button" data-count="3" aria-pressed="false">3</button>
+            <button type="button" data-count="5" class="on" aria-pressed="true">5</button>
+            <button type="button" data-count="7" aria-pressed="false">7</button>
+          </div>
+          <p class="hb-hint">More cards make a taller deck and a longer scroll.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
-    <div><div class="lbl" id="peek-lbl">Peek offset</div>
-      <div class="sr"><input type="range" id="peek-sl" aria-labelledby="peek-lbl" min="0" max="30" value="14"><span class="sv" id="peek-val">14px</span></div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add stacking cards to [your set of project or step cards]. Make each card stick to the top of the scrolling area so the next card slides up over it, and push each later card down by the offset in the settings so a strip of the cards underneath stays visible, like a deck. As a card is covered, shrink it slightly from its top edge, so buried cards look farther away. Leave some room after the last card so the finished deck stays on screen. Use scroll-driven animations where the browser supports them, with a small script as the fallback. If the visitor has reduced motion turned on, let the cards stack without shrinking. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
     </div>
-    <div><div class="lbl" id="cards-lbl">Card count</div>
-      <div class="sr"><input type="range" id="cards-sl" aria-labelledby="cards-lbl" min="3" max="7" value="5" step="1"><span class="sv" id="cards-val">5</span></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
     </div>
-    <div class="div"></div>
-    <label class="tog" for="debug-tog"><input type="checkbox" id="debug-tog"><span>Show indices</span></label>
-    <label class="tog" for="js-tog"><input type="checkbox" id="js-tog"><span>JS fallback</span></label>
-    <button class="rst" id="reset-btn">Reset scroll</button>
-  </aside>
-</div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Portfolios</li><li>Case studies</li><li>Onboarding steps</li><li>Feature tours</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Many cards</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const ALL_CARDS=[
-    {num:'01',title:'Sticky Without Pinning', sub:'Position mechanics', body:'Each .card sticks at top:0. The stack emerges from sticky alone — no JavaScript pinning.',                                              ac:'#c07030',vis:'linear-gradient(135deg,#f5ede0,#e8d0a8)'},
-    {num:'02',title:'Peek via Padding',       sub:'Index-based offset',  body:'padding-top: index × peek pushes each card\'s content lower. Card 1 has none; each later card reveals the previous card\'s top edge.', ac:'#3a8a60',vis:'linear-gradient(135deg,#d4ede2,#a8d8bc)'},
-    {num:'03',title:'Exit-Crossing Range',    sub:'Timeline math',       body:'The scroll timeline covers the full exit phase. Card i animates over its slice [i/N, (i+1)/N], so each card scales in sequence.',        ac:'#3a70a8',vis:'linear-gradient(135deg,#ccdff0,#a0c4e4)'},
-    {num:'04',title:'Scale From the Top',     sub:'Transform origin',    body:'transform-origin: 50% 0% anchors scale to the top edge. Cards shrink downward, keeping their peek tab flush and visible.',               ac:'#9a7820',vis:'linear-gradient(135deg,#f0e8c0,#e0d098)'},
-    {num:'05',title:'Reverse-Index Formula',  sub:'Depth math',          body:'The topmost card (reverse-index 1) ends at scale 1.0. Buried cards have larger reverse-indices and compress proportionally more.',       ac:'#5a8a38',vis:'linear-gradient(135deg,#d4e8c0,#b0d490)'},
-    {num:'06',title:'Progressive Fallback',   sub:'Any browser',         body:'An rAF handler mirrors the CSS exit-crossing math exactly. The same peek offsets and scale formula produce an identical result.',        ac:'#8a3a68',vis:'linear-gradient(135deg,#f0d0e4,#e0a8c8)'},
-    {num:'07',title:'Open Standard',          sub:'W3C Working Group',   body:'CSS Scroll-Driven Animations is a W3C spec. As browser support grows, the JavaScript fallback becomes unnecessary.',                    ac:'#3a5aa0',vis:'linear-gradient(135deg,#ccd4f0,#a0b0e8)'},
+    {num:'01',title:'Harbor House', sub:'Architecture',body:'A timber home on the edge of the water.',      ac:'#aa632b',vis:'linear-gradient(135deg,#f5ede0,#e8d0a8)'},
+    {num:'02',title:'Night Market', sub:'Photography', body:'Forty evenings of food stalls and lanterns.',  ac:'#37835b',vis:'linear-gradient(135deg,#d4ede2,#a8d8bc)'},
+    {num:'03',title:'Field Notes',  sub:'Journal',     body:'Small drawings from a year of walks.',         ac:'#3a70a8',vis:'linear-gradient(135deg,#ccdff0,#a0c4e4)'},
+    {num:'04',title:'Slow Roast',   sub:'Brand',       body:'A new look for a family coffee roaster.',      ac:'#90701e',vis:'linear-gradient(135deg,#f0e8c0,#e0d098)'},
+    {num:'05',title:'North Line',   sub:'Maps',        body:'A clearer map for a busy train network.',      ac:'#548034',vis:'linear-gradient(135deg,#d4e8c0,#b0d490)'},
+    {num:'06',title:'Open Studio',  sub:'Workshop',    body:'Two days of making things by hand.',           ac:'#8a3a68',vis:'linear-gradient(135deg,#f0d0e4,#e0a8c8)'},
+    {num:'07',title:'Tide Tables',  sub:'App',         body:'Daily tides for every beach on the coast.',    ac:'#3a5aa0',vis:'linear-gradient(135deg,#ccd4f0,#a0b0e8)'},
   ];
   const stage=document.getElementById('stage'),cardsEl=document.getElementById('cards');
-  const scrollProg=document.getElementById('scroll-prog'),topmostEl=document.getElementById('topmost');
-  const scaleSl=document.getElementById('scale-sl'),scaleValEl=document.getElementById('scale-val');
-  const peekSl=document.getElementById('peek-sl'),peekValEl=document.getElementById('peek-val');
-  const cardsSl=document.getElementById('cards-sl'),cardsValEl=document.getElementById('cards-val');
-  const debugTog=document.getElementById('debug-tog'),jsTog=document.getElementById('js-tog');
   const supportsSDCA=CSS.supports('animation-timeline','scroll()');
   const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
   let numCards=5,scaleStep=0.10,peekPx=14,useJsFallback=!supportsSDCA,ticking=false,currentCards=[];
-  let contents=[],cardOffsets=[],cardsTop=0,cardsH=1,maxScroll=1,lastScales=[],lastProg='',lastTop='';
-  if(!supportsSDCA){jsTog.checked=true}
+  let contents=[],cardsTop=0,cardsH=1,lastScales=[];
 
   function buildCards(){
     cardsEl.innerHTML='';cardsEl.style.setProperty('--numcards',numCards);currentCards=[];
     ALL_CARDS.slice(0,numCards).forEach((d,i)=>{
       const el=document.createElement('div');
       el.className='card';el.style.setProperty('--index',i+1);
-      const ri=numCards-i;
       el.innerHTML=`<div class="card__content" style="--ac:${d.ac}">
-        <div class="debug-badge${debugTog.checked?' on':''}">i:${i+1} ri:${ri} ${Math.round(i/numCards*100)}%–${Math.round((i+1)/numCards*100)}%</div>
         <div class="card__text">
-          <div class="card-num">${d.num}</div>
+          <div class="card-num" aria-hidden="true">${d.num}</div>
           <div class="card-title">${d.title}</div>
           <div class="card-sub">${d.sub}</div>
           <div class="card-body">${d.body}</div>
-          <div class="card-btn">Read more →</div>
+          <div class="card-btn" aria-hidden="true">View project →</div>
         </div>
         <div class="card__visual" style="background:${d.vis}"></div></div>`;
       cardsEl.appendChild(el);currentCards.push(el);
@@ -212,33 +239,20 @@ body{padding-top:46px}
 
   const lerp=(a,b,t)=>a+(b-a)*t,clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 
-  /* Geometry, measured once instead of per frame.
-     Do NOT use card.offsetTop here: .card is position:sticky, so offsetTop reports
-     where the card is *currently stuck*, which changes as you scroll — measuring
-     mid-scroll yielded offsets that ran backwards. offsetHeight is unaffected by
-     sticky, so accumulating heights gives each card's static offset at any scroll.
-     #cards itself is static, so its rect is a reliable origin. */
+  /* Geometry, measured once instead of per frame. #cards itself is static, so its rect is a reliable
+     origin: a sticky card's offsetTop reports where it is currently stuck, which changes as you scroll. */
   function measure(){
-    cardsTop=Math.round(cardsEl.getBoundingClientRect().top-stage.getBoundingClientRect().top+stage.scrollTop);
+    cardsTop=cardsEl.getBoundingClientRect().top-stage.getBoundingClientRect().top-stage.clientTop+stage.scrollTop;
     cardsH=Math.max(1,cardsEl.offsetHeight);
-    maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight);
-    let acc=0;
-    cardOffsets=currentCards.map(c=>{const o=acc;acc+=c.offsetHeight;return o});
+    // A card is the box less its 12px foot and the strips above the deepest one; on the shortest cards the one-line text hides
+    cardsEl.classList.toggle('short',stage.clientHeight-12-(numCards-1)*peekPx<170);
   }
 
   function update(){
-    const st=stage.scrollTop;
-    const prog=Math.round(st/maxScroll*100)+'%';
-    if(prog!==lastProg){scrollProg.textContent=prog;lastProg=prog}
-    // topmost = the last card whose sticky top has reached the stage top
-    let top=0;
-    for(let i=0;i<cardOffsets.length;i++) if(st>=cardsTop+cardOffsets[i]) top=i;
-    const num=ALL_CARDS[top].num;
-    if(num!==lastTop){topmostEl.textContent=num;lastTop=num}
     if(useJsFallback&&!motionMQ.matches){
       // Mirrors the CSS exit-crossing timeline: 0 when #cards' top edge reaches the
       // stage top, 1 when its bottom edge does. Card i owns the slice [i/N,(i+1)/N].
-      const N=currentCards.length,p=clamp((st-cardsTop)/cardsH,0,1);
+      const N=currentCards.length,p=clamp((stage.scrollTop-cardsTop)/cardsH,0,1);
       for(let i=0;i<N;i++){
         const t=clamp(p*N-i,0,1),ri=N-i;
         const s=+lerp(1,1+scaleStep-scaleStep*ri,t).toFixed(4);
@@ -249,32 +263,27 @@ body{padding-top:46px}
   }
 
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
-  scaleSl.addEventListener('input',()=>{
-    scaleStep=scaleSl.value/100;scaleValEl.textContent=scaleStep.toFixed(2);
-    document.documentElement.style.setProperty('--scale-step',scaleStep);
-    lastScales=lastScales.map(()=>-1);update();
-  });
-  peekSl.addEventListener('input',()=>{
-    peekPx=+peekSl.value;peekValEl.textContent=peekPx+'px';
-    document.documentElement.style.setProperty('--peek',peekPx+'px');
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
+  // switching reduced motion on must clear the fallback's inline scales, or they would sit frozen on the cards
+  motionMQ.addEventListener('change',()=>{contents.forEach(c=>c.style.removeProperty('transform'));lastScales=lastScales.map(()=>-1);update()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('peek-seg',d=>{
+    peekPx=+d.peek;document.documentElement.style.setProperty('--peek',peekPx+'px');
     measure();update();          // peek changes each card's height, so geometry moves
   });
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
-  cardsSl.addEventListener('input',()=>{numCards=+cardsSl.value;cardsValEl.textContent=numCards;buildCards()});
-  debugTog.addEventListener('change',()=>document.querySelectorAll('.debug-badge').forEach(b=>b.classList.toggle('on',debugTog.checked)));
-  jsTog.addEventListener('change',()=>{
-    useJsFallback=jsTog.checked||!supportsSDCA;
-    cardsEl.classList.toggle('js-fallback',useJsFallback);
-    // leaving the fallback (or honouring reduced motion) must clear the inline
-    // transforms, or a stale scale would sit on top of the CSS timeline
-    if(!useJsFallback||motionMQ.matches)contents.forEach(c=>c.style.removeProperty('transform'));
-    lastScales=lastScales.map(()=>-1);
-    measure();update();
+  choices('shrink-seg',d=>{
+    scaleStep=+d.step;document.documentElement.style.setProperty('--scale-step',scaleStep);
+    lastScales=lastScales.map(()=>-1);update();
   });
-  document.getElementById('reset-btn').addEventListener('click',()=>{stage.scrollTop=0;measure();update()});
-  document.documentElement.style.setProperty('--scale-step',scaleStep);
+  choices('count-seg',d=>{numCards=+d.count;buildCards()});
   buildCards();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
