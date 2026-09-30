@@ -180,12 +180,12 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Try it:** none (the rollout spec: this demo has no settings). The page has steps 1 and 2.
 - **Scroller:** the stage.
 - **What scrolling shows:** the cue "Scroll down ↓"; then a two-column section (text on the left, a picture on the right) reaches the top of the box and holds still, and each quarter of the scrolling through it fades in the next of four steps, the text over 0.5 s and the picture over 0.6 s. Scrolling back steps backwards. After the fourth step the section scrolls away and the cue "The page moves on ↓" follows. Under 600px wide the picture column is hidden and the text takes the whole width, as today.
-- **Scroll distance and Play:** a 100cqh lead-in, the 400cqh wrapper with its sticky frame 100cqh tall, and a 100cqh lead-out: 5 box heights of scrolling. The section holds still for 3 of them, so Play spends about 3.6 of its six seconds on the four steps, about 0.9 s each.
+- **Scroll distance and Play:** a 60cqh lead-in, the 400cqh wrapper with its sticky frame 100cqh tall, and a 60cqh lead-out: 4.2 box heights of scrolling. The section holds still for 3 of them, so Play spends about 4.3 of its six seconds on the four steps, about 1.1 s each; both ends of the box show part of the section.
 - **Reduced motion:** nothing scrolls by itself. The demo's rule stays: the steps switch without fading (`.state,.illus{transition:none!important}`).
 - **Stage font:** site font. `.state-head` uses `font-weight:700` (was `bold`).
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d`, with `aria-label="A section that holds still while its content changes"`. `position:relative` also puts the steps back in the right place: today `wrap.offsetTop` is measured from the top of the page.
-  - `.spacer`: `height:100cqh` and the cue style; the texts are "Scroll down ↓" and "The page moves on ↓".
+  - `.spacer`: `height:60cqh` and the cue style; the texts are "Scroll down ↓" and "The page moves on ↓".
   - `#sticky-wrap{height:400cqh}`; `#sticky-inner`, `#text-col` and `#vis-col` each get `height:100cqh`.
   - The text is sized to fit every stage, down to the smallest. Each step centres its text, so a short stage only eats into the padding. Measured, the tallest step's text is 183px at 1366 and 1280 wide (263px with its padding), which fits the 258px smallest stage; 164px on a 375px phone; and 187px on a 320px phone and at 601px wide, where the text column is narrowest. All of these fit:
     - `.state{padding:clamp(24px,4vw,40px)}`;
@@ -241,6 +241,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **README Production notes:** unchanged
 - **Category line:** `01.15 · Scroll-Based`
 - **Pager:** Previous: Horizontal Scroll (`../horizontal-scroll/`) · Next: Counter Animation (`../counter-animation/`)
+- **Final fix wave (2026-09-30):** the final category review found both ends of the box empty but for the cue (first picture, and the rest after the arrival run), because the lead-in and lead-out were a whole box tall. They are 60cqh, as on Horizontal Scroll and Zoom Into Image, so both ends show part of the section. Measured in headless Chrome: 4.2 box heights of scrolling at every size (1,588px in a 378px box, 1,252px in a 298px phone box, 1,084px in a 258px box), the steps changing every 0.75 box, and in Play at 1.9, 3.0 and 4.1 s (gaps of 1.07 to 1.08 s).
 
 ---
 
