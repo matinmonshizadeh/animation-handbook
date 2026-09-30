@@ -167,7 +167,7 @@ let W,H,particles=[],mouse={x:-999,y:-999};
 let paused=false,raf=null,last=null;
 let COUNT=500,level=1,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
 let CONNECTIONS=true,TRAILS=false;
-// Dots for Few, Medium and Many on wide screens, on screens up to 1024px, and on phones (up to 600px)
+// Dots for Few, Medium and Many on wide screens, on screens up to 1024px, and on phones (up to 600px wide, or up to 500px tall)
 const COUNTS=[[250,500,800],[60,90,120],[30,45,60]];
 
 // Backing store is scaled by DPR (capped at 2) so 0.5px lines and 1px dots stay crisp
@@ -295,7 +295,7 @@ function choices(id,pick){
   }));
 }
 choices('force-seg',d=>{FORCE=+d.force;});
-choices('count-seg',d=>{level=+d.level;spawn();redraw();});
+choices('count-seg',d=>{if(+d.level===level)return;level=+d.level;spawn();redraw();});
 choices('link-seg',d=>{CONNECTIONS=d.dist!=='0';if(CONNECTIONS)DIST=+d.dist;redraw();});
 choices('speed-seg',d=>{const n=+d.spd,k=n/SPD;SPD=n;particles.forEach(p=>{p.vx*=k;p.vy*=k;});});
 choices('color-sw',d=>{COLOR=d.color;redraw();});
