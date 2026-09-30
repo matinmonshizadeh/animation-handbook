@@ -30,7 +30,19 @@ ctx.globalAlpha = 1;
 
 Every line shares one stroke color and gets its fade from `globalAlpha`; building a new color string for each line costs several times more.
 
-Optional mouse attraction nudges each node's velocity toward the pointer, so the mesh gathers where the cursor rests. Each node remembers the velocity it started with and eases back to it every frame, so a pull from the pointer fades away while the slow drift goes on. On touch screens the pointer's position also comes from `pointerdown`, so a resting finger works too.
+Optional mouse attraction nudges each node's velocity toward the pointer, so the mesh gathers where the cursor rests. Each node remembers the velocity it started with and eases back to it by 1% for every 60th of a second, so a pull from the pointer fades away while the slow drift goes on. On touch screens the pointer's position also comes from `pointerdown`, so a resting finger works too.
+
+The drift, the pull and the easing move by the time that has passed, not by a fixed amount per frame, so a 30 Hz phone and a 144 Hz monitor show the same speed. `k` counts how many 60 Hz frames the last frame stands for, and a third of that in slow motion. The first frame after a start, a pause or a return from a hidden tab counts as none, and a long gap between frames counts for at most 50 ms:
+
+```js
+const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
+last = now;
+const k = dt / (1000 / 60) * (slow ? 1 / 3 : 1);           // 1 at 60 Hz, 2 at 30 Hz
+
+node.x += node.vx * SPEED * k;                             // drift
+node.vx += (dx / d) * 0.04 * k;                            // pull toward the pointer, when it is near
+node.vx += (node.cvx - node.vx) * 0.01 * k;                // ease back to the cruising velocity
+```
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -43,7 +55,7 @@ Optional mouse attraction nudges each node's velocity toward the pointer, so the
 
 ## Production notes
 - **The n² wall**: connection testing is O(n²). At ~150 nodes you are doing >11,000 distance checks per frame. This demo caps nodes at 60 on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways) to hold 60fps on mid-range phones. For larger fields, bucket nodes into a spatial grid and only test neighboring cells.
-- **Velocity easing**: each frame, a node's velocity eases 1% of the way back to the velocity it started with. That keeps pulls from the pointer from building into runaway speeds, and unlike multiplying the velocity by 0.99, which slows every node to a stop within seconds, it never lets the drift die out.
+- **Velocity easing**: for every 60th of a second, a node's velocity eases 1% of the way back to the velocity it started with. That keeps pulls from the pointer from building into runaway speeds, and unlike multiplying the velocity by 0.99 every 60th of a second, which slows every node to a stop within seconds, it never lets the drift die out. Scaling the 1% by `k` is a linear shortcut that differs from the exact `1 - 0.99^k` by about 1% at most, on a 50 ms frame.
 - **Reduced motion**: the demo starts paused, showing one still frame, until the visitor presses Play. In production, show these visitors the still frame.
 - **Retina**: for crisp lines on high-DPI screens, scale the canvas backing store by `devicePixelRatio` and the context by the same factor. Omitted here to keep fill rate low on mobile.
 - **Library equivalents**: [tsParticles](https://github.com/matteobruni/tsparticles) ships this exact effect (`links` mode) with presets; [three.js](https://threejs.org) can push the same idea to tens of thousands of GPU points with `LineSegments`.
