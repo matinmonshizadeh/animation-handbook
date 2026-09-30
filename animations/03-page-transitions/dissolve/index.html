@@ -262,10 +262,11 @@
   }
 
   function doDissolve(prev,next){
-    // Everything a run needs is read now, so a setting changed mid-way cannot desync the tiles.
-    // d is the whole dissolve in ms (three times as long in slow motion).
+    // Everything a run needs is read now, so a setting changed mid-way cannot desync the tiles. d is the whole dissolve in ms
+    // (three times as long in slow motion); n is the grid's side, at most 10 on phones (256 tiles freeze the first frame there).
     const d=dur*(slowTog.checked?3:1),both=biTog.checked;
-    const delays=buildTiles(gran,PAGES[prev].bg,d,pattern);
+    const n=window.matchMedia('(max-width:600px),(max-height:500px)').matches?Math.min(gran,10):gran;
+    const delays=buildTiles(n,PAGES[prev].bg,d,pattern);
     const tiles=[...overlay.children];
     void overlay.offsetWidth; // commit the transparent tiles before they are switched on
     // Tiles appear over the old page (dissolving it)

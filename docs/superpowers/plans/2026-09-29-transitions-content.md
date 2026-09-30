@@ -882,6 +882,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - `hb:input` cancels the way back.
 - **Reset:** yes. Home at once, with the tile overlay emptied.
 - **Slow motion:** multiplies `dur` by 3, which stretches the tiles' fades and delays, the swap point, and the clean-up timer.
+- **Phones:** the 256 tiles of Small make the frame that starts a dissolve take 50 to 120ms of the page's own work at 4× CPU on a 375px phone, a freeze of about nine frames, so CLAUDE.md's reduced-quality fallback applies. On a phone (the lane's rule: a viewport up to 600px wide or up to 500px tall, a sideways phone included) Small draws a 10 by 10 grid; Medium and Large stay as they are, and computers and tablets keep 16 by 16. `doDissolve()` reads it when the dissolve starts: `const n=matchMedia('(max-width:600px),(max-height:500px)').matches?Math.min(gran,10):gran;`, and passes `n` to `buildTiles()`.
 - **Reduced motion:** the demo's rule `.page{transition:opacity 300ms linear}.dtile{transition:none!important}` and its `motionOk` branch stay: the pages cross in a plain 300ms fade, with no tiles. Show me fades to Work and back.
 - **Stage font:** site font.
 - **Stage:**
@@ -896,7 +897,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Pattern | Choice buttons | Random · Diagonal · From the middle | Random | The order in which the tiles appear. | `pattern`: `'random'` / `'diagonal'` / `'radial'` (read by `getDelays()` in place of `styleSel.value`) |
-| Tile size | Choice buttons | Small · Medium · Large | Medium | Small tiles look like grain; large ones like blocks. | `gran`: 16 / 8 / 4 (tiles on each side) |
+| Tile size | Choice buttons | Small · Medium · Large | Medium | Small tiles look like grain; large ones like blocks. | `gran`: 16 / 8 / 4 (tiles on each side); on a phone Small draws 10 (see Phones), read as `n` when a dissolve starts |
 | Speed | Choice buttons | Slow · Normal · Fast | Normal | How long the tiles take to cover the page. | `dur`: 1300 / 800 / 500 (ms) |
 
 **More options**
@@ -928,7 +929,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Pattern | Random | The order the tiles appear in: random looks like grain, diagonal sweeps from one corner, and from the middle spreads out in rings |
-  | Tile size | Medium | How big the tiles are: small is a 16 by 16 grid, medium 8 by 8 and large 4 by 4; small tiles come close to a smooth fade |
+  | Tile size | Medium | How big the tiles are: small is a 16 by 16 grid (10 by 10 on phones), medium 8 by 8 and large 4 by 4; small tiles come close to a smooth fade |
   | Speed | Normal | How long the tiles take: slow is 1300ms, normal 800ms and fast 500ms; the page swaps at 60% of it, under the tiles |
   | Dissolves both ways | off | Also fades the tiles away in the same pattern to reveal the new page, instead of removing them at once |
 

@@ -39,7 +39,7 @@ Each tile's inline style bakes the normalized delay into a real transition: `tra
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pattern | Random | The order the tiles appear in: random looks like grain, diagonal sweeps from one corner, and from the middle spreads out in rings |
-| Tile size | Medium | How big the tiles are: small is a 16 by 16 grid, medium 8 by 8 and large 4 by 4; small tiles come close to a smooth fade |
+| Tile size | Medium | How big the tiles are: small is a 16 by 16 grid (10 by 10 on phones), medium 8 by 8 and large 4 by 4; small tiles come close to a smooth fade |
 | Speed | Normal | How long the tiles take: slow is 1300ms, normal 800ms and fast 500ms; the page swaps at 60% of it, under the tiles |
 | Dissolves both ways | off | Also fades the tiles away in the same pattern to reveal the new page, instead of removing them at once |
 
