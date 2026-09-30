@@ -20,7 +20,7 @@ precision highp float;
 uniform sampler2D uPos;   // read previous frame's positions
 uniform float uTime, uSpeed;
 uniform int uBehavior;
-uniform float uStep;     // steps of 1/60 s since the last frame: 1 at 60 Hz, a third of that in slow motion
+uniform float uStep;     // one 60 Hz step per pass: 1, or 1/3 in slow motion
 out vec4 outColor;        // write new positions
 
 float hash(float n) { return fract(sin(n) * 43758.5); }
@@ -50,7 +50,7 @@ void main() {
 }
 ```
 
-**Time step** — the page passes `uStep`, the time since the last drawn frame counted in steps of 1/60 s (capped at 50 ms, and a third of it in slow motion), so the particles move at the same speed on a 30, 60 or 144 Hz screen. A long frame is run as several passes of about one step each, two on a 30 Hz screen: the attractor pulls hard near the middle, and one long step there lets particles overshoot and keep circling instead of settling. The damping `pow(0.985, uStep)` is the right amount for a step of any length, and the trail fade is scaled the same way.
+**Time step** — every physics pass moves the particles by exactly one 60 Hz step: `uStep` is 1 (a third of that in slow motion), on every screen. The page keeps the time since the last drawn frame that has not been stepped yet (a gap counts for at most 50 ms), runs one pass for every 1/60 s of it (allowing 1 ms of slack, and at most three passes a frame) and carries the rest over: one pass a frame on a 60 Hz screen, two on a 30 Hz one. The particles move at the same speed on every screen, and the attractor, which pulls hard near the middle and settles differently for a longer or a shorter step, looks the same too. The trail fade is scaled by the frame's time, `1 - 0.88^(time / (1000 / 60))`, and not by slow motion, so the streaks last as long on every screen and slow motion slows the particles but not the fade.
 
 **Texture ping-pong** — alternate which texture is the read source each pass:
 
@@ -94,7 +94,7 @@ void main() {
 
 ## Production notes
 - **WebGL2 required**: `RGBA32F` float framebuffer targets require WebGL2 (or the `WEBGL_color_buffer_float` extension in WebGL1, which is less reliably available). WebGL2 is supported in all modern browsers (Chrome 56+, Firefox 51+, Safari 15+).
-- **Time, not frames**: a fixed step per frame would move the particles twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone, and fade the trails at the same wrong rate. Scale the step and the fade by the time since the last frame, cap that time (this demo uses 50 ms), and split a long frame into passes of about one step so a strong pull near a point stays stable.
+- **Time, not frames**: a fixed step per frame would move the particles twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone, and fade the trails at the same wrong rate. Step by a fixed 1/60 s from an accumulator, as above, and cap the time of one frame (this demo uses 50 ms) and the passes per frame, so a strong pull near a point settles the same on every screen. Scale the trail fade by the time since the last frame.
 - **Three.js `GPUComputationRenderer`**: Three.js includes `GPUComputationRenderer` (in the `three/examples/jsm` path) which encapsulates the entire ping-pong texture pattern. It's the idiomatic production approach.
 - **WebGPU compute shaders**: WebGPU provides proper `@compute` shader stages for GPGPU, eliminating the "fragment shader as compute" workaround. As of 2024, WebGPU is available in Chrome 113+ but not yet in Firefox stable or Safari.
 - **Wrap only survives a divergence-free field**: this demo's flow field pushes particles away from the x-axis, so it has a net outward drift. An earlier version wrapped at ±1.2 while only ±1.0 is visible; particles drifted into that invisible ring faster than they came back and the canvas faded to black after about ten seconds. Tightening the wrap to ±1.0 only moved the symptom — a divergent field teleports the escapee straight back to the edge it just left, so the particles crust along the top and bottom instead. Respawning escapees at a random point near the middle is the fix, and it is what keeps the population steady here. Nothing throws in either failure, and the first second looks correct in all three versions, so this class of bug is only visible if you leave the demo running.
