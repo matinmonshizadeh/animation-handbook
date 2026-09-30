@@ -568,7 +568,7 @@ None: leave out the `details.hb-options` block.
   - No rise starts less than 500ms after the previous rise began (`MIN_CYCLE`). The page keeps the time of the last rise (`lastRise`).
   - A change asked for sooner waits, with the overlay at 0 and the pages unchanged, and its rise starts when the 500ms are over. `settle()` cancels a waiting rise, and the next change measures from the same `lastRise`, so no input can start two rises too close together. This covers page names, Show me (clicked, or held with the key repeating) and Reset followed by a page name.
   - `settle()` still puts the demo at rest at once (the overlay is at 0 immediately); only a new rise waits. A waiting rise belongs to the change under way, so `hb:input` does not cancel it.
-  - In normal use the wait is not noticed: nothing waits at Normal (520ms a flash) or Slow (830ms), a Show me run holds 1200ms between its flashes, and at Fast (310ms a flash) a page name clicked right after a flash waits at most 190ms. It matters when Show me or Reset is pressed over and over. The fade-out timer stays `flashOut`.
+  - In normal use the wait is not noticed: a page name clicked after a flash has ended never waits at Normal (520ms a flash) or Slow (830ms), a Show me run holds 1200ms between its flashes, and at Fast (310ms a flash) a page name clicked right after a flash waits at most 190ms. It matters when Show me or Reset is pressed over and over, or a page name is clicked during a flash they cut short. The fade-out timer stays `flashOut`.
 - **Reduced motion:** the demo's rule `#flash-overlay{display:none}` and its `motionOk` branch stay: the pages swap at once with no flash. Show me swaps to Work and back.
 - **Stage font:** site font.
 - **Stage:**
@@ -629,9 +629,11 @@ None: leave out the `details.hb-options` block.
   - In the snippet, the `requestAnimationFrame(() => {` line and its closing `});` go. The two fade-out lines they held stay in the timer callback, right after the page swap.
   - The sentence "The swap is deferred to a `requestAnimationFrame` after the class change so the browser commits the new transition before starting the fade-out." becomes "The fade-out sets its own transition in the same step as the new opacity, so it runs over `flashOut` rather than `flashIn`."
   - One sentence follows it: "No flash starts less than half a second after the previous one began, whatever is pressed (page names, Show me or Reset), so the demo never flashes more than twice a second; a change asked for sooner waits for that moment with the overlay clear."
+  - The snippet also follows the page's signature and glow: the function is `doTransition(prev, next, flashIn, flashOut)` (the page passes the two times it read when the flash started, three times as long in slow motion), and two `blur-on` lines are added, `flashEl.classList.toggle('blur-on', blurTog.checked);   // the optional glow` right after the rise's `transition` line and `flashEl.classList.remove('blur-on');` after the fade-out's opacity line.
 - **README Production notes:** unchanged
 - **Category line:** `03.07 · Page Transitions`
 - **Pager:** Previous: Zoom Transition (`../zoom-transition/`) · Next: Blur Transition (`../blur-transition/`)
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. The flash-rate line and the README bullets above were corrected to say what the page does.
 
 ---
 
