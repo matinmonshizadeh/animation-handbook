@@ -3,6 +3,8 @@
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
 // Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
+//   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
+//   the search box and the place tiles on the first screen, the tile counts and the eight Start cards.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
@@ -51,15 +53,15 @@ const OUT = givenOut || join(tmpdir(), `hb-check-${stamp}-${process.pid}`);
 const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
 // A category folder (no index.html, but page folders inside) is expanded to its pages, so the call works
 // in shells that do not expand wildcards, such as PowerShell.
-const pages = args.map(p => p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/'))
+const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/')))
   .flatMap(p => {
-    if (isPage(p) || !existsSync(join(ROOT, p))) return [p];
+    if (p === 'home' || isPage(p) || !existsSync(join(ROOT, p))) return [p];
     const inside = readdirSync(join(ROOT, p), { withFileTypes: true })
       .filter(d => d.isDirectory() && isPage(p + d.name)).map(d => `${p}${d.name}/`).sort();
     return inside.length ? inside : [p];
   });
 if (!pages.length) {
-  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder>...');
+  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, or home>...');
   process.exit(2);
 }
 mkdirSync(OUT, { recursive: true });
@@ -103,6 +105,32 @@ const CHECK = `(() => {
   const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
     ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));
   return { kind: document.body.dataset.hbKind || '', loop: loop ? loop.checked : null, switches, problems };
+})()`;
+
+// Runs inside the home page. Returns the problems found: overflow, small targets on phones, the search box and the first
+// row of place tiles on the first screen (1280×800 and 375×812), the tile counts, and the eight Start cards.
+const HOME_CHECK = `(() => {
+  const r = el => el.getBoundingClientRect();
+  const phone = innerWidth <= 600;
+  const problems = [];
+  if (!document.getElementById('places')) problems.push('not the new home page');
+  if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
+  if (phone) {
+    const small = [...document.querySelectorAll('.top a, .top button, .search button, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .foot a')]
+      .filter(el => el.getClientRects().length)
+      .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
+      .map(el => el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+    if (small.length) problems.push('small targets: ' + small.join(', '));
+  }
+  const firstScreen = (innerWidth === 1280 && innerHeight === 800) || (innerWidth === 375 && innerHeight === 812);
+  const search = document.querySelector('.search'), tile = document.querySelector('.place');
+  if (firstScreen && search && r(search).bottom > innerHeight) problems.push('search box below the first screen');
+  if (firstScreen && tile && r(tile).bottom > innerHeight) problems.push('place tiles below the first screen');
+  const counts = [...document.querySelectorAll('.pl-count')].map(el => el.textContent.trim());
+  if (counts.length !== 9 || counts.some(t => !/^\\d+ animations?$/.test(t))) problems.push('tile counts: ' + counts.join(' | '));
+  const cards = document.querySelectorAll('#cards .card').length;
+  if (cards !== 8) problems.push('Start shows ' + cards + ' cards, not 8');
+  return { problems };
 })()`;
 
 // Runs at the start of every document, before the page's own scripts: records each press of a Show me button, whether it
@@ -457,7 +485,8 @@ try {
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
-    const name = parts.length > 1 ? `${parts[parts.length - 2].slice(0, 2)}-${parts[parts.length - 1]}` : parts[0];
+    const home = page === 'home';
+    const name = home ? 'home' : parts.length > 1 ? `${parts[parts.length - 2].slice(0, 2)}-${parts[parts.length - 1]}` : parts[0];
     for (const setup of SETUPS) {
       errors.length = 0;
       const problems = [];
@@ -469,20 +498,22 @@ try {
           onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); };
           listeners.add(onLoad);
         });
-        await send('Page.navigate', { url: `${BASE}/${page}` });
+        await send('Page.navigate', { url: home ? `${BASE}/` : `${BASE}/${page}` });
         try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`page did not finish loading within ${LOAD_TIMEOUT / 1000} s`); }
         listeners.delete(onLoad);
         await sleep(2000);
-        const result = await evaluate(CHECK);
+        const result = await evaluate(home ? HOME_CHECK : CHECK);
         problems.push(...result.problems);
-        if (result.kind === 'once' && result.loop !== null && !setup.reduce && !result.loop) {
-          problems.push('did not start playing on arrival (Loop is off)');
-        }
-        // Under reduced motion Loop and Slow motion must be shown switched off and unable to be switched on.
-        if (setup.reduce) {
-          for (const s of result.switches) {
-            if (s.checked) problems.push(`${s.name} is on under reduced motion`);
-            else if (!s.disabled) problems.push(`${s.name} can be switched on under reduced motion`);
+        if (!home) {
+          if (result.kind === 'once' && result.loop !== null && !setup.reduce && !result.loop) {
+            problems.push('did not start playing on arrival (Loop is off)');
+          }
+          // Under reduced motion Loop and Slow motion must be shown switched off and unable to be switched on.
+          if (setup.reduce) {
+            for (const s of result.switches) {
+              if (s.checked) problems.push(`${s.name} is on under reduced motion`);
+              else if (!s.disabled) problems.push(`${s.name} can be switched on under reduced motion`);
+            }
           }
         }
         const shot = await send('Page.captureScreenshot', { format: 'png' });
@@ -493,10 +524,15 @@ try {
             clip: { x: 0, y: 0, width: setup.width, height: Math.ceil(cssContentSize.height), scale: 1 } });
           writeFileSync(join(OUT, `${name}-${setup.name}-full.png`), Buffer.from(full.data, 'base64'));
         }
-        if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
-        if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
-        if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
-        if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
+        if (!home) {
+          if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
+          if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
+          if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
+          if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
+        }
+        if (home) {
+          // Task 5 and Task 6 add the home page's interaction checks here.
+        }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
       }
