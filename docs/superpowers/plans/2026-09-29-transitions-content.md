@@ -537,11 +537,11 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Opening details · Galleries · Lightboxes · **Avoid on:** Step-by-step flows
 - **Prompt:**
 
-  > Add a zoom transition to [the pages or views you want to move between]. When the page changes, scale the old and the new page while one fades out and the other fades in, so the change seems to move through depth rather than across the screen. Zooming in, where the new page grows into place, feels like going deeper; zooming out feels like stepping back; a pull-through, where the new page rushes in from larger, feels like travelling forward. Scale with transforms only, and keep the fade so no hard edge shows. If the visitor has reduced motion turned on, swap pages without scaling. Match the settings listed below.
+  > Add a zoom transition to [the pages or views you want to move between]. When the page changes, scale the old and the new page while one fades out and the other fades in, so the change seems to move through depth rather than across the screen. Zooming in, where the new page grows into place, feels like going deeper; zooming out feels like stepping back; a pull-through, where the new page rushes in from larger, feels like traveling forward. Scale with transforms only, and keep the fade so no hard edge shows. If the visitor has reduced motion turned on, swap pages without scaling. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
-  > A zoom transition scales the pages as they fade, so the change seems to move through depth rather than across the screen. The direction carries meaning: zooming in feels like arriving or going deeper, zooming out like backing away, and a pull-through — where the new page rushes in from larger and settles — feels like travelling forward.
+  > A zoom transition scales the pages as they fade, so the change seems to move through depth rather than across the screen. The direction carries meaning: zooming in feels like arriving or going deeper, zooming out like backing away, and a pull-through — where the new page rushes in from larger and settles — feels like traveling forward.
 
 - **README Key parameters:**
 

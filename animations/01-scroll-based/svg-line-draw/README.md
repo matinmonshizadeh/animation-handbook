@@ -4,7 +4,7 @@
 
 ## What it is
 
-A scroll-drawn line is a long winding route that draws itself as you scroll down it, like a journey being traced on a map. Labelled stops along the way pop in as the line reaches them, and scrolling back up erases the line again. A faint dashed copy of the route shows where it is heading.
+A scroll-drawn line is a long winding route that draws itself as you scroll down it, like a journey being traced on a map. Labeled stops along the way pop in as the line reaches them, and scrolling back up erases the line again. A faint dashed copy of the route shows where it is heading.
 
 ## When to use it
 
@@ -24,7 +24,7 @@ path.style.strokeDasharray = LEN;
 // per scroll frame (coalesced with requestAnimationFrame):
 const p     = ease(clamp(stage.scrollTop / maxScroll, 0, 1));   // Feel: p for Even, 1 - (1 - p)^3 for Smooth
 const drawn = Math.min(LEN, LEN * p / COMPLETE_AT);          // COMPLETE_AT below 1 finishes before the scroll does
-path.style.strokeDashoffset = LEN - drawn;                   // reveal the travelled portion
+path.style.strokeDashoffset = LEN - drawn;                   // reveal the traveled portion
 ```
 
 `COMPLETE_AT` is 1 by default, so the line finishes as the scroll does and its tip stays inside the box while it is drawn with Even (Smooth draws ahead early in the scroll). A smaller value finishes the line earlier: the rest of the scroll then shows the finished route, but the tip runs ahead of the box, because the route is many boxes tall.
@@ -54,7 +54,7 @@ The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `o
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Feel | Even | Even keeps the tip of the line level with your scroll; Smooth draws quickly at first and slows toward the end |
-| Shows the stops | on | Five labelled stops pop in as the line reaches them and hide again when you scroll back |
+| Shows the stops | on | Five labeled stops pop in as the line reaches them and hide again when you scroll back |
 | Line finishes | At the end | How far through the scrolling the line is complete: early at 70%, near the end at 85% and at the end at 100%; finishing early shows the whole route before you reach the bottom |
 
 ## Production notes

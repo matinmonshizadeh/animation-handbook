@@ -808,7 +808,7 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Key statements · Manifestos · Landing page intros · **Avoid on:** Body text · Long articles
 - **Prompt:**
 
-  > Add a scroll-driven text fill to [the statement or paragraph you want read]. Pin the paragraph in place while the visitor scrolls through a section a few screens tall. Split it into words, show every word in a dim but readable grey, and light the words up one by one in step with the scroll, so how far the reader has scrolled decides how much is lit and scrolling back up un-lights them. When the settings include it, show the next word to fill in a highlight color, like a reading cursor. Keep it real text for screen readers. If the visitor has reduced motion turned on, change each word's color without fading. Match the settings listed below.
+  > Add a scroll-driven text fill to [the statement or paragraph you want read]. Pin the paragraph in place while the visitor scrolls through a section a few screens tall. Split it into words, show every word in a dim but readable gray, and light the words up one by one in step with the scroll, so how far the reader has scrolled decides how much is lit and scrolling back up un-lights them. When the settings include it, show the next word to fill in a highlight color, like a reading cursor. Keep it real text for screen readers. If the visitor has reduced motion turned on, change each word's color without fading. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -957,7 +957,7 @@ None: leave out the `details.hb-options` block.
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Feel | Choice buttons | Even · Smooth | Even | Even keeps the tip with your scroll; Smooth runs ahead. | `easeMode`: `'linear'` / `'out'` (the `EASES` key), then `update()` |
-| Shows the stops | Switch | on / off | on | Labelled points pop in as the line reaches them. | the drawing's `no-wps` class off / on |
+| Shows the stops | Switch | on / off | on | Labeled points pop in as the line reaches them. | the drawing's `no-wps` class off / on |
 
 **More options**
 
@@ -973,18 +973,18 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Timelines · Journey maps · Process steps · Delivery tracking · **Avoid on:** Short pages
 - **Prompt:**
 
-  > Add a scroll-drawn route to [your timeline, journey or process steps]. Draw a long winding path down the page with a faint dashed copy underneath, and reveal the solid line in step with the scroll so its tip travels down with the visitor. Measure the path's length once and reveal it by sliding a single dash that is exactly as long as the path. When the settings include them, place labelled stops along the path and pop each one in as the line reaches it; scrolling back up erases the line and hides them again. If the visitor has reduced motion turned on, show each stop without the pop. Match the settings listed below.
+  > Add a scroll-drawn route to [your timeline, journey or process steps]. Draw a long winding path down the page with a faint dashed copy underneath, and reveal the solid line in step with the scroll so its tip travels down with the visitor. Measure the path's length once and reveal it by sliding a single dash that is exactly as long as the path. When the settings include them, place labeled stops along the path and pop each one in as the line reaches it; scrolling back up erases the line and hides them again. If the visitor has reduced motion turned on, show each stop without the pop. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
-  > A scroll-drawn line is a long winding route that draws itself as you scroll down it, like a journey being traced on a map. Labelled stops along the way pop in as the line reaches them, and scrolling back up erases the line again. A faint dashed copy of the route shows where it is heading.
+  > A scroll-drawn line is a long winding route that draws itself as you scroll down it, like a journey being traced on a map. Labeled stops along the way pop in as the line reaches them, and scrolling back up erases the line again. A faint dashed copy of the route shows where it is heading.
 
 - **README Key parameters:**
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Feel | Even | Even keeps the tip of the line level with your scroll; Smooth draws quickly at first and slows toward the end |
-  | Shows the stops | on | Five labelled stops pop in as the line reaches them and hide again when you scroll back |
+  | Shows the stops | on | Five labeled stops pop in as the line reaches them and hide again when you scroll back |
   | Line finishes | At the end | How far through the scrolling the line is complete: early at 70%, near the end at 85% and at the end at 100%; finishing early shows the whole route before you reach the bottom |
 
 - **README See also:**

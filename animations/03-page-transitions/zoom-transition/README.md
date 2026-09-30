@@ -1,7 +1,7 @@
 # Zoom Transition
 
 ## What it is
-A zoom transition scales the pages as they fade, so the change seems to move through depth rather than across the screen. The direction carries meaning: zooming in feels like arriving or going deeper, zooming out like backing away, and a pull-through — where the new page rushes in from larger and settles — feels like travelling forward.
+A zoom transition scales the pages as they fade, so the change seems to move through depth rather than across the screen. The direction carries meaning: zooming in feels like arriving or going deeper, zooming out like backing away, and a pull-through — where the new page rushes in from larger and settles — feels like traveling forward.
 
 ## When to use it
 - Drilling into detail from an overview, where zoom-in reinforces "going deeper"

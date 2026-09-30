@@ -645,7 +645,7 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Product tours · Explainers · Step-by-step diagrams · **Avoid on:** Short sections · Key information
 - **Prompt:**
 
-  > Add a scroll-scrubbed animation to [your illustration or product explainer]. Hold the scene in view while the visitor scrolls through a taller section, and turn how far they have scrolled into a progress value from 0 to 1. Draw the whole route up front, place the moving object at the point on it that matches the progress, facing along the path, and fill in the part already travelled. Nothing plays on a timer: scrolling back simply moves it back. Shape the progress with the easing given in the settings. If the visitor has reduced motion turned on, drop decorative effects but keep the object following the scroll. Match the settings listed below.
+  > Add a scroll-scrubbed animation to [your illustration or product explainer]. Hold the scene in view while the visitor scrolls through a taller section, and turn how far they have scrolled into a progress value from 0 to 1. Draw the whole route up front, place the moving object at the point on it that matches the progress, facing along the path, and fill in the part already traveled. Nothing plays on a timer: scrolling back simply moves it back. Shape the progress with the easing given in the settings. If the visitor has reduced motion turned on, drop decorative effects but keep the object following the scroll. Match the settings listed below.
 
 - **README What it is:** rewritten:
 

@@ -10,7 +10,7 @@ Wavy text sends a wave rolling across a word. Every letter bobs up and down with
 - Music, party, or beach-themed sites where a liquid feel fits the tone
 
 ## How it works
-JavaScript splits the string into one `<span>` per character and stamps each with an index custom property `--i`. Every span shares a single `bob` keyframe that translates it on the Y axis; the per-letter `animation-delay` of `--i × stagger` phases each letter behind its neighbour, producing the travelling wave:
+JavaScript splits the string into one `<span>` per character and stamps each with an index custom property `--i`. Every span shares a single `bob` keyframe that translates it on the Y axis; the per-letter `animation-delay` of `--i × stagger` phases each letter behind its neighbor, producing the traveling wave:
 
 ```js
 [...str].forEach((ch,i)=>{
@@ -40,7 +40,7 @@ Only `transform` animates, so the effect stays on the compositor and runs at 60f
 |-----------|---------|--------|
 | Wave height | Medium | How far each letter travels: low is 8px, medium 16px and high 28px; larger makes a taller wave |
 | Speed | Normal | How long one rise and fall takes: slow is 2.6s, normal 1.6s and fast 1s |
-| Delay between letters | Medium | The gap between neighbouring letters: short is 30ms, medium 60ms and long 120ms; longer delays stretch the wave |
+| Delay between letters | Medium | The gap between neighboring letters: short is 30ms, medium 60ms and long 120ms; longer delays stretch the wave |
 | Your text | Wavy | The word that waves, up to 14 letters |
 
 ## Production notes

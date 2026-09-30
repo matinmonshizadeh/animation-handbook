@@ -1,7 +1,7 @@
 # Noise-Based Motion
 
 ## What it is
-Noise-based motion uses smooth noise, a random value that changes gradually from place to place, to move things naturally. Plain random numbers jump about; noise drifts, so neighbouring dots move alike and nothing jerks. The demo turns it into a field of dots swaying like grass in the wind, and into a blob whose edge ripples.
+Noise-based motion uses smooth noise, a random value that changes gradually from place to place, to move things naturally. Plain random numbers jump about; noise drifts, so neighboring dots move alike and nothing jerks. The demo turns it into a field of dots swaying like grass in the wind, and into a blob whose edge ripples.
 
 ## When to use it
 - Organic background elements: floating dots, undulating blobs, rippling grids
