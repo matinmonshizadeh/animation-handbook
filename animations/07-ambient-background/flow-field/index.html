@@ -121,7 +121,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add a flow field background to [the section you want it behind]. Fill a canvas with many particles, give every point a direction that changes smoothly from one spot to the next (smooth random noise does this), and move each particle a small step along the direction under it every frame, so neighbours curve together into currents. Instead of clearing the canvas, cover it with a see-through dark layer each frame, so every particle leaves a trail that slowly fades. Let the directions change slowly over time, and use fewer particles on phones. If the visitor has reduced motion turned on, show one still frame of trails. Match the settings listed below.</p>
+      <p class="hb-prompt">Add a flow field background to [the section you want it behind]. Fill a canvas with many particles and give every point a direction that changes smoothly from spot to spot (smooth random noise does this). On every frame, move each particle a small step along the direction under it, scaled by the time since the last frame so it runs at the same speed on every screen. Instead of clearing the canvas, cover it each frame with a see-through dark layer, stronger after a longer frame, so each particle leaves a fading trail. Let the directions change slowly over time, and use fewer particles on phones. If the visitor has reduced motion turned on, show one still frame of trails. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -158,7 +158,8 @@
   const slowTog=document.getElementById('slow-tog');
   const PHONE_PARTS=500; // phones and short screens draw at most this many particles
   const phone=matchMedia('(max-width:600px),(max-height:500px)');
-  let W=0,H=0,raf=null,lastT=0,paused=false,unseen=false,t=0;
+  const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
+  let W=0,H=0,raf=null,lastT=null,paused=false,unseen=false,t=0;
   let COUNT=900,SCALE=34,SPD=1.0,TRAIL=0.06,COL='mint';
   let parts=[];
 
@@ -188,10 +189,12 @@
   }
 
   // One frame: dim the canvas a little instead of clearing it, then move every particle one step along the field and
-  // draw that step. k is 1, or a third in slow motion: the step and the field's time shrink by it, the fade does not.
-  function frame(){
-    const k=slowTog.checked?1/3:1;
-    ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;ctx.fillRect(0,0,W,H);
+  // draw that step. s is how many 60 Hz frames this one stands for (1 at 60 Hz, 2 at 30 Hz): the dim, the step and the
+  // field's time all grow with it, so the trails last as long and the particles travel as far in a second on any screen.
+  // k is s, or a third of it in slow motion: the step and the field's time shrink by it, the fade does not.
+  function frame(s){
+    const k=s*(slowTog.checked?1/3:1);
+    ctx.fillStyle=`rgba(5,6,10,${1-Math.pow(1-TRAIL,s)})`;ctx.fillRect(0,0,W,H);
     for(const p of parts){
       const a=angleAt(p.x,p.y,t);
       const nx=p.x+Math.cos(a)*SPD*k,ny=p.y+Math.sin(a)*SPD*k;
@@ -202,22 +205,25 @@
     }
     t+=0.01*k;
   }
-  // A settled picture: 40 frames at once. The canvas is covered completely first, because a see-through dim leaves a
-  // faint ghost of whatever was there before
+  // A settled picture: 40 frames at once, each a 60 Hz frame's worth, so it is the same picture on every screen. The canvas
+  // is covered completely first, because a see-through dim leaves a faint ghost of whatever was there before
   function prerender(){
     ctx.fillStyle='#05060a';ctx.fillRect(0,0,W,H);
-    for(let i=0;i<40;i++)frame();
+    for(let i=0;i<40;i++)frame(1);
     unseen=false;
   }
 
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per 16 ms.
+  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
+  // 16 ms, and each stands for the time since the last one (in 60ths of a second, at most 50 ms's worth, so a background
+  // tab does not leap). The first frame after a start has nothing to measure from, so it leaves the picture as it is.
   function loop(ts){
     raf=requestAnimationFrame(loop);
-    if(ts-lastT<16)return;
+    if(lastT!==null&&ts-lastT<16)return;
+    const dt=lastT===null?0:Math.min(ts-lastT,50);
     lastT=ts;
-    frame();unseen=false;
+    if(dt){frame(dt/FRAME);unseen=false;}
   }
-  function start(){if(raf)return;lastT=0;raf=requestAnimationFrame(loop);}
+  function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
 
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The picture on screen stays as it is while paused, unless a
@@ -227,6 +233,8 @@
     if(paused){cancelAnimationFrame(raf);raf=null;if(unseen)prerender();}
     else start();
   });
+  // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
+  document.addEventListener('visibilitychange',()=>{lastT=null;});
 
   // Setting the canvas size wipes it, so a real change of the stage's size starts the particles again with a settled
   // picture at once, playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.

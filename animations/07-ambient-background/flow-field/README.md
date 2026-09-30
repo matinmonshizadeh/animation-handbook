@@ -24,17 +24,21 @@ function angleAt(x, y, time) {
 }
 
 // per frame: fade, then advance every particle along its local angle
-ctx.fillStyle = `rgba(5,6,10,${TRAIL})`; ctx.fillRect(0, 0, W, H);
+// s is how many 60 Hz frames this one stands for: 1 at 60 Hz, 2 at 30 Hz
+const s = Math.min(now - last, 50) / (1000 / 60);
+ctx.fillStyle = `rgba(5,6,10,${1 - Math.pow(1 - TRAIL, s)})`; ctx.fillRect(0, 0, W, H);
 const a = angleAt(p.x, p.y, t);
-p.x += Math.cos(a) * SPD; p.y += Math.sin(a) * SPD;
+p.x += Math.cos(a) * SPD * s; p.y += Math.sin(a) * SPD * s;
 ```
+
+Both the step and the fade grow with the time since the last frame, so a 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. A frame that stands for two 60 Hz frames moves each particle twice as far and dims the canvas as much as two fades would (`1 - (1 - TRAIL)^s`, the same as `TRAIL` when `s` is 1). The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1`, so it looks the same on every screen.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Swirl size | Medium | How large the currents are: the direction turns over about 20px (small), 34px (medium) or 60px (large); larger looks calm, smaller turbulent |
-| Trail length | Medium | How long trails linger: short fades 12% a frame, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
-| Speed | Normal | How far each particle moves every frame: slow is 0.6px, normal 1px and fast 1.6px |
+| Trail length | Medium | How long trails linger: short fades 12% every 60th of a second, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
+| Speed | Normal | How far each particle moves in a 60th of a second: slow is 0.6px, normal 1px and fast 1.6px (36, 60 and 96px a second) |
 | Number of particles | Medium | Few is 400, medium 900 and many 1,500; phones show at most 500 |
 | Color | Mint | Mint, ember or ice, or rainbow, where the color changes across the stage and over time |
 
