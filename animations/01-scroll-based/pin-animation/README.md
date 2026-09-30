@@ -4,7 +4,7 @@
 
 ## What it is
 
-An element that freezes in place while the page continues to scroll beneath it. The pinned element appears to hover at a fixed position in the viewport while the user scrolls through a defined section. In this demo, a phone mockup and its paired feature copy pin to the center of the viewport as the user scrolls through a section three times the viewport height. Four features swap in sequence as scroll progresses through the pinned zone, then the pin releases and scroll continues normally. CSS `position: sticky` handles the entire pin — no JavaScript pinning.
+A pin animation holds part of the page still while the rest scrolls past. In the demo, a phone and its text stop in the middle of the box while you scroll through a section three boxes tall, and its four features change as you go; at the end of the section they let go and scroll away. The browser's sticky positioning does the pinning, with no script moving anything.
 
 ## When to use it
 
@@ -20,16 +20,16 @@ The pin requires only three things: a tall parent section, a sticky child, and m
 ```css
 .stage {
   position: relative;
-  overflow-y: scroll;
-  height: 620px;
+  overflow-y: auto;
+  container-type: size;   /* 100cqh is one box height */
 }
 .pin-section {
-  height: 1860px; /* 3× the viewport height */
+  height: 300cqh;         /* three times the box */
 }
 .pin-inner {
   position: sticky;
   top: 0;
-  height: 620px; /* matches the viewport/stage height */
+  height: 100cqh;         /* one box tall */
 }
 ```
 
@@ -43,22 +43,13 @@ const p = clamp((scrollTop - pinStart) / (pinHeight - viewH), 0, 1);
 const featureIndex = Math.min(3, Math.floor(p * 4));
 ```
 
-The lifecycle is derived from the same values:
-
-```js
-const lifecycle =
-  scrollTop < pinStart               ? 'before pin'
-  : scrollTop < pinStart + pinHeight - viewH ? 'pinned · in section'
-  : 'after release';
-```
-
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Pin section height | `3× viewport height` | Total scroll distance through the pin |
-| Feature count | 4 | Features are evenly spaced across the pin section |
-| `sticky top` | `0` | The viewport offset where pinning engages |
+| Pinned section | Three box heights | The phone holds still for the two extra box heights; a taller section makes each feature last longer |
+| Number of features | 4 | The features share the pinned scrolling equally |
+| Pinned at | The top of the box | Where the pinned frame sticks; the phone sits in its middle |
 
 ## Production notes
 
@@ -69,5 +60,6 @@ const lifecycle =
 
 ## See also
 
-- [Scrub Animation](../scrub-animation/) — uses the same scroll-progress model but continuously transforms a single element rather than swapping discrete features.
-- [ScrollTrigger Animation](../scroll-trigger/) — the conceptual framework that defines pin, scrub, and snap as scroll trigger behaviors.
+- [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
+- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Sticky Section](../sticky-section/) — a whole section holds still while its content changes

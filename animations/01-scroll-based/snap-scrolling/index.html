@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Snap Scrolling — Animation Handbook</title>
-  <meta name="description" content="Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.">
+  <meta name="description" content="The box settles on one whole section at a time. Best for slides and galleries.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/snap-scrolling/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,116 +12,136 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Snap Scrolling — Animation Handbook">
-  <meta property="og:description" content="Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.">
+  <meta property="og:description" content="The box settles on one whole section at a time. Best for slides and galleries.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/snap-scrolling/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Snap Scrolling — Animation Handbook">
-  <meta name="twitter:description" content="Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.">
+  <meta name="twitter:description" content="The box settles on one whole section at a time. Best for slides and galleries.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Snap Scrolling", "name": "Snap Scrolling", "description": "Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/snap-scrolling/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Snap Scrolling"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Snap Scrolling", "name": "Snap Scrolling", "description": "The box settles on one whole section at a time. Best for slides and galleries.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/snap-scrolling/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Snap Scrolling"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#6ea8ff;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage-wrap{flex:1;min-width:0;position:relative}
-    .stage{height:620px;overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;scroll-snap-type:y mandatory;scroll-behavior:smooth}
-    .stage::-webkit-scrollbar{display:none}
-    .section{height:620px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;position:relative}
+    .stage{position:relative;overflow:hidden;background:#0b0b0d}
+    .scroller{height:100%;overflow-y:auto;scrollbar-width:none;position:relative;container-type:size;scroll-behavior:smooth}
+    .scroller::-webkit-scrollbar{display:none}
+    /* The Snapping setting changes data-snap. Never !important here: while Play scrolls the box the shared stylesheet turns snapping off */
+    .scroller[data-snap="mandatory"]{scroll-snap-type:y mandatory}
+    .scroller[data-snap="proximity"]{scroll-snap-type:y proximity}
+    .scroller[data-snap="off"]{scroll-snap-type:none}
+    .section{height:100cqh;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
     .sec-num{font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
     .sec-title{font-size:clamp(20px,3vw,30px);font-weight:bold;margin-bottom:14px;line-height:1.2}
-    .sec-sub{font-size:13px;opacity:.65;max-width:360px;line-height:1.65}
+    .sec-sub{font-size:14px;opacity:.65;max-width:360px;line-height:1.65}
     .stats{display:flex;gap:24px;margin-top:20px}
     .stat{text-align:center}
     .stat-val{font-size:22px;font-weight:bold;color:var(--ui-accent)}
-    .stat-label{font-size:10px;color:var(--ui-muted);margin-top:3px}
-    .pull-quote{font-style:italic;font-size:clamp(16px,2.5vw,22px);line-height:1.5;max-width:420px;margin-bottom:12px}
+    .stat-label{font-size:12px;color:var(--ui-muted);margin-top:3px}
+    .pull-quote{font-size:clamp(16px,2.5vw,22px);line-height:1.5;max-width:420px;margin-bottom:12px}
     .quote-attr{font-size:11px;opacity:.5}
-    .snap-dots{position:absolute;right:-28px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--ui-muted);cursor:pointer;transition:background .2s,transform .2s}
-    .dot.active{background:var(--ui-accent);transform:scale(1.4)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .div{height:1px;background:var(--ui-border)}
-    .mode-btns{display:flex;flex-direction:column;gap:4px}
-    .mode-btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:10px 8px;border-radius:4px;cursor:pointer;text-align:left;min-height:44px}
-    .mode-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
-    .jump-btns{display:flex;flex-direction:column;gap:4px}
-    .jump-btn{background:transparent;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px;border-radius:4px;cursor:pointer;min-height:36px}
-    @media(hover:hover){.mode-btn:hover,.jump-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}.stage{height:480px}.section{height:480px}.snap-dots{right:8px;position:fixed;top:auto;transform:none;bottom:120px}}
+    /* The dots sit inside the scroller, in a zero-height sticky row: they stay in place while the sections move, and a swipe, a wheel turn or a key press that starts on them scrolls the box */
+    .snap-rail{position:sticky;top:0;height:0;z-index:1}
+    .snap-dots{position:absolute;right:4px;top:50cqh;transform:translateY(-50%);display:flex;flex-direction:column}
+    .dot{width:44px;height:44px;padding:0;border:0;background:none;font:inherit;display:grid;place-items:center;cursor:pointer}
+    .dot::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ui-muted);transition:background .2s,transform .2s}
+    .dot.active::before{background:var(--ui-accent);transform:scale(1.4)}
     /* Reduced motion: no smooth-scroll animation, no dot tweening */
-    @media(prefers-reduced-motion:reduce){.stage{scroll-behavior:auto!important}.dot{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.scroller{scroll-behavior:auto!important}.dot::before{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../pin-animation/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../scrollytelling/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/snap-scrolling/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Snap Scrolling</h1>
-  <p>Page snaps to defined sections — CSS scroll-snap-type creates a deliberate paginated feel.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
-    <div class="stage" id="stage"></div>
-    <div class="snap-dots" id="snap-dots"></div>
-  </div>
-  <aside>
-    <p class="note">Snap scrolling is native CSS — three lines and zero JavaScript do the magnetism. 'mandatory' forces a snap on every scroll. 'proximity' only snaps when close to a point. 'none' disables it. Switch modes and feel the difference.</p>
-    <div><div class="lbl">Current section</div>
-      <div class="tbl">
-        <div class="kv"><span>Position</span><span class="v" id="sec-pos">01 / 05</span></div>
-        <div class="kv"><span>Title</span><span class="v" id="sec-title-el" style="text-align:right;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pages, not pixels</span></div>
-        <div class="kv"><span>Status</span><span class="v" id="status">locked on snap point</span></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../pin-animation/" rel="prev" aria-label="Previous: Pin Animation"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Pin Animation</span></a><a href="../scrollytelling/" rel="next" aria-label="Next: Scrollytelling"><span><span class="hb-dir">Next: </span>Scrollytelling</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.10 · Scroll-Based</p>
+    <h1>Snap Scrolling</h1>
+    <p class="hb-lede">The box settles on one whole section at a time. Best for slides and galleries.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box and let go: it settles on the nearest section. Press Play and it glides through without snapping.</p></div>
+    </div>
+    <div class="stage">
+      <div class="scroller" id="scroller" data-hb-scroller data-snap="mandatory" tabindex="0" role="region" aria-label="Five sections that the box snaps to"><div class="snap-rail"><div class="snap-dots" id="snap-dots"></div></div></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="snap-lbl">Snapping</p>
+        <div class="seg" id="snap-seg" role="group" aria-labelledby="snap-lbl">
+          <button type="button" data-snap="mandatory" class="on" aria-pressed="true">Always</button>
+          <button type="button" data-snap="proximity" aria-pressed="false">When close</button>
+          <button type="button" data-snap="off" aria-pressed="false">Off</button>
+        </div>
+        <p class="hb-hint">Scroll by hand to see it; Play glides without snapping.</p>
       </div>
     </div>
-    <div class="div"></div>
-    <div><div class="lbl">Snap mode</div>
-      <div class="mode-btns" id="mode-btns">
-        <button class="mode-btn active" data-mode="y mandatory">y mandatory</button>
-        <button class="mode-btn" data-mode="y proximity">y proximity</button>
-        <button class="mode-btn" data-mode="none">none</button>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add snap scrolling to [your page of full-height sections, slides or gallery]. Make each section exactly as tall as the scrolling area and mark its top as a snap point, so that, as the settings choose, the view settles on the nearest section instead of stopping between two. Use the browser's built-in scroll snapping rather than a script. Add small dots that show which section is in view and take the visitor to a section when pressed. Check scrolling with the arrow keys too, because strict snapping can feel stiff there. If the visitor has reduced motion turned on, let the view settle without a smooth glide. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
       </div>
     </div>
-    <div class="div"></div>
-    <div><div class="lbl">Jump to section</div>
-      <div class="jump-btns" id="jump-btns"></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
     </div>
-  </aside>
-</div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Slides</li><li>Galleries</li><li>Onboarding</li><li>Full-screen sections</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long articles</li><li>Uneven sections</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const SECTIONS=[
-    {num:'01',title:'Pages, not pixels',     bg:'linear-gradient(160deg,#050e08,#0c2820)',accent:'#3fb950',type:'hero',   sub:'Snap scrolling divides continuous scroll into deliberate stops. Each section is a destination.'},
-    {num:'02',title:'Magnetic edges',         bg:'linear-gradient(160deg,#060a10,#0a1628)',accent:'#58a6ff',type:'default',sub:'The browser engine pulls the viewport to the nearest snap point on scroll-end.'},
-    {num:'03',title:'Pagination feel',        bg:'linear-gradient(160deg,#0a0610,#1a0c28)',accent:'#bf91f3',type:'stats',  sub:'Design for sections, not infinite scroll. Each stop is a chapter.'},
+    {num:'01',title:'Pages, not pixels',      bg:'linear-gradient(160deg,#050e08,#0c2820)',accent:'#3fb950',type:'hero',   sub:'Snap scrolling turns one long scroll into a few set stops. Each section is a place to land.'},
+    {num:'02',title:'Magnetic edges',         bg:'linear-gradient(160deg,#060a10,#0a1628)',accent:'#58a6ff',type:'default',sub:'Stop scrolling and the box pulls itself to the nearest section.'},
+    {num:'03',title:'A page at a time',       bg:'linear-gradient(160deg,#0a0610,#1a0c28)',accent:'#bf91f3',type:'stats',  sub:'Design in whole sections, not an endless strip. Each stop is a chapter.'},
     {num:'04',title:'"The feeling of deliberate motion is hard to achieve with code alone."',bg:'linear-gradient(160deg,#100806,#281808)',accent:'#ffa657',type:'quote',sub:'— on scroll design'},
-    {num:'05',title:"That's the whole trick", bg:'linear-gradient(160deg,#060810,#0c1020)',accent:'#79c0ff',type:'default',sub:'Three CSS properties. Zero JavaScript. Instant section-based UX.'},
+    {num:'05',title:"That's the whole trick", bg:'linear-gradient(160deg,#060810,#0c1020)',accent:'#79c0ff',type:'default',sub:'The browser does the pulling. Nothing has to be timed or scripted.'},
   ];
-  const stage=document.getElementById('stage'),snapDots=document.getElementById('snap-dots');
+  const scroller=document.getElementById('scroller'),snapDots=document.getElementById('snap-dots');
   SECTIONS.forEach((s,i)=>{
     const sec=document.createElement('div');sec.className='section';sec.style.background=s.bg;
     let inner=`<div class="sec-num" style="color:${s.accent}">${s.num} / 05</div>`;
@@ -129,38 +149,34 @@ body{padding-top:46px}
       inner+=`<div class="pull-quote" style="color:${s.accent}">${s.title}</div><div class="quote-attr">${s.sub}</div>`;
     } else {
       inner+=`<div class="sec-title">${s.title}</div><div class="sec-sub">${s.sub}</div>`;
-      if(s.type==='stats') inner+=`<div class="stats"><div class="stat"><div class="stat-val" style="color:${s.accent}">5</div><div class="stat-label">Snap points</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">3</div><div class="stat-label">Lines of CSS</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">0</div><div class="stat-label">JS needed</div></div></div>`;
+      if(s.type==='stats') inner+=`<div class="stats"><div class="stat"><div class="stat-val" style="color:${s.accent}">5</div><div class="stat-label">Sections</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">5</div><div class="stat-label">Resting points</div></div><div class="stat"><div class="stat-val" style="color:${s.accent}">0</div><div class="stat-label">Stops in between</div></div></div>`;
     }
-    sec.innerHTML=inner;stage.appendChild(sec);
-    const dot=document.createElement('div');dot.className='dot'+(i===0?' active':'');
-    dot.addEventListener('click',()=>stage.scrollTo({top:i*620,behavior:'smooth'}));
+    sec.innerHTML=inner;scroller.appendChild(sec);
+    const dot=document.createElement('button');dot.type='button';dot.className='dot'+(i===0?' active':'');
+    dot.setAttribute('aria-label','Section '+(i+1));
+    if(i===0)dot.setAttribute('aria-current','true');
+    // no behavior: the box's own scroll-behavior decides, so this glides, or jumps under reduced motion
+    dot.addEventListener('click',()=>scroller.scrollTo({top:i*scroller.clientHeight}));
     snapDots.appendChild(dot);
   });
-  const jumpBtns=document.getElementById('jump-btns');
-  SECTIONS.forEach((s,i)=>{
-    const btn=document.createElement('button');btn.className='jump-btn';
-    btn.textContent=`${s.num} · ${s.title.slice(0,20)}${s.title.length>20?'…':''}`;
-    btn.addEventListener('click',()=>stage.scrollTo({top:i*620,behavior:'smooth'}));
-    jumpBtns.appendChild(btn);
-  });
-  document.querySelectorAll('.mode-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      stage.style.scrollSnapType=btn.dataset.mode==='none'?'none':btn.dataset.mode;
-      document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-  const secPos=document.getElementById('sec-pos'),secTitleEl=document.getElementById('sec-title-el'),statusEl=document.getElementById('status');
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('snap-seg',d=>{scroller.dataset.snap=d.snap});
   const dots=snapDots.querySelectorAll('.dot');
-  function getStatus(st){const snap=Math.round(st/620)*620;if(Math.abs(st-snap)<2)return'locked on snap point';if(Math.abs(st-snap)<60)return'snapping…';return'scrolling freely'}
-  stage.addEventListener('scroll',()=>{
-    const st=stage.scrollTop,idx=Math.min(Math.round(st/620),4);
-    secPos.textContent=SECTIONS[idx].num+' / 05';
-    secTitleEl.textContent=SECTIONS[idx].title.length>22?SECTIONS[idx].title.slice(0,22)+'…':SECTIONS[idx].title;
-    statusEl.textContent=getStatus(st);
-    dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
-  },{passive:true});
+  function showSection(){
+    const idx=Math.min(Math.round(scroller.scrollTop/scroller.clientHeight),4);
+    dots.forEach((d,i)=>{
+      d.classList.toggle('active',i===idx);
+      if(i===idx)d.setAttribute('aria-current','true');else d.removeAttribute('aria-current');
+    });
+  }
+  scroller.addEventListener('scroll',showSection,{passive:true});
+  addEventListener('resize',showSection,{passive:true});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scroll Image Sequence — Animation Handbook</title>
-  <meta name="description" content="The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.">
+  <meta name="description" content="Scrolling plays a series of pictures like a flip-book. Best for products.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-image-sequence/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,108 +12,121 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Scroll Image Sequence — Animation Handbook">
-  <meta property="og:description" content="The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.">
+  <meta property="og:description" content="Scrolling plays a series of pictures like a flip-book. Best for products.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-image-sequence/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Scroll Image Sequence — Animation Handbook">
-  <meta name="twitter:description" content="The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.">
+  <meta name="twitter:description" content="Scrolling plays a series of pictures like a flip-book. Best for products.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scroll Image Sequence", "name": "Scroll Image Sequence", "description": "The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-image-sequence/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scroll Image Sequence"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scroll Image Sequence", "name": "Scroll Image Sequence", "description": "Scrolling plays a series of pictures like a flip-book. Best for products.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-image-sequence/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scroll Image Sequence"}</script>
   <style>
-    :root{
-      --bg:#0b0b0d;--stage:#04060c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);
-      --accent:#58a6ff;--text:#f4f4f2;--muted:#77777e;
-      --mono:ui-monospace,Menlo,Consolas,monospace;
-    }
+    :root{--ui-accent:#6ea8ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased}
-    header{padding:clamp(14px,3vw,24px)}
-    header h1{font-size:clamp(18px,3vw,26px);letter-spacing:-.02em}
-    header p{font-size:clamp(11px,1.4vw,13px);color:var(--muted);margin-top:6px;max-width:60ch}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#04060c}
+    .stage::-webkit-scrollbar{display:none}
     /* Tall track gives the scroll budget; the inner panel pins with position:sticky. */
-    .track{position:relative;height:340vh}
-    .pin{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:clamp(10px,2vw,18px);gap:12px}
-    .stage{flex:1;min-height:0;position:relative;border:1px solid var(--ui-border);border-radius:10px;background:var(--stage);overflow:hidden}
+    .track{height:340cqh}
+    .pin{position:sticky;top:0;height:100cqh}
     canvas{display:block;width:100%;height:100%}
-    .hud{position:absolute;top:12px;left:12px;font-size:11px;letter-spacing:1px;color:var(--muted);pointer-events:none}
-    .hud .fr{color:var(--accent);font-size:clamp(15px,2.4vw,20px);letter-spacing:.03em}
-    .hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);pointer-events:none}
-    .hint.hide{opacity:0;transition:opacity .4s}
-    .bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06)}
-    .bar i{display:block;height:100%;background:var(--accent);transform-origin:left;transform:scaleX(0)}
-    /* Controls sit inside the pinned viewport so they stay reachable while scrubbing. */
-    aside{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:12px 14px;
-      display:flex;gap:clamp(12px,3vw,28px);align-items:center;flex-wrap:wrap}
-    .ctl{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
-    .row{display:flex;align-items:center;gap:8px}
-    input[type=range]{flex:1;accent-color:var(--accent);min-height:44px}
-    .sv{width:52px;text-align:right;font-size:12px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;min-height:44px;user-select:none}
-    .tog input{accent-color:var(--accent);width:18px;height:18px;flex-shrink:0}
-    .note{font-size:10px;color:var(--muted);line-height:1.5;flex-basis:100%}
-    @media(max-width:600px){
-      /* Column direction + the inherited flex-wrap would resolve .note's
-         flex-basis:100% against the height and spill it into a second column. */
-      aside{flex-direction:column;align-items:stretch;flex-wrap:nowrap}
-      .ctl{min-width:0;flex:0 0 auto}
-      .note{flex-basis:auto}
-    }
-    @media(prefers-reduced-motion:reduce){.hint{transition:none}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../zoom-into-image/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../smooth-scroll/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scroll-image-sequence/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Scroll Image Sequence</h1>
-  <p>The Apple product-scroll technique: a canvas pinned with position:sticky while scroll progress maps to a frame index that gets drawn — scrub back and it reverses perfectly.</p>
-</header>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../zoom-into-image/" rel="prev" aria-label="Previous: Zoom Into Image"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Zoom Into Image</span></a><a href="../smooth-scroll/" rel="next" aria-label="Next: Smooth (Inertia) Scroll"><span><span class="hb-dir">Next: </span>Smooth (Inertia) Scroll</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.20 · Scroll-Based</p>
+    <h1>Scroll Image Sequence</h1>
+    <p class="hb-lede">Scrolling plays a series of pictures like a flip-book. Best for products.</p>
+  </header>
 
-<div class="track" id="track">
-  <div class="pin">
-    <div class="stage">
-      <canvas id="c"></canvas>
-      <div class="hud"><div class="fr"><span id="frameNo">000</span> / <span id="frameTot">120</span></div>PROCEDURAL FRAME</div>
-      <div class="hint" id="hint">Scroll to scrub &#x21C5;</div>
-      <div class="bar"><i id="barFill"></i></div>
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
-    <aside>
-      <div class="ctl">
-        <span class="lbl">Total frames</span>
-        <div class="row"><input type="range" id="frames" min="24" max="240" step="1" value="120"><span class="sv" id="framesV">120</span></div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A picture sequence that plays as you scroll"><div class="track" id="track"><div class="pin"><canvas id="c" role="img" aria-label="A wireframe cube with a smaller shape inside, turning and opening out as you scroll"></canvas></div></div></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="frames-lbl">Number of frames</p>
+        <div class="seg" id="frames-seg" role="group" aria-labelledby="frames-lbl">
+          <button type="button" data-total="24" aria-pressed="false">Few</button>
+          <button type="button" data-total="120" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-total="240" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">Fewer frames step visibly; more frames look smooth.</p>
       </div>
-      <label class="tog"><input type="checkbox" id="smooth" checked> Smoothing (lerp between frames)</label>
-      <p class="note">Real deployments preload an array of image frames (an exported video → JPG sequence) and draw the nearest one per scroll frame. This demo generates each frame procedurally — a rotating wireframe object — so it stays dependency-free and offline.</p>
-    </aside>
-  </div>
-</div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Glides between frames</span><input class="hb-switch" type="checkbox" role="switch" id="smooth-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Off, the picture jumps straight to each frame.</p>
+      </div>
+    </div>
+  </section>
 
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a scroll-driven image sequence to [your product or object animation]. Export the animation as a numbered series of pictures and load them all before the section comes into view. Pin a canvas in place while the visitor scrolls through a section a few screens tall, turn their scroll position into a frame number, and draw that frame whenever it changes, so scrolling plays the sequence like a flip-book and scrolling back plays it in reverse. When the settings include it, let the picture ease toward the frame the scroll points at instead of jumping. Give the canvas a text description for screen readers. If the visitor has reduced motion turned on, jump straight to each frame. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Product reveals</li><li>3D objects</li><li>Launch pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Slow connections</li><li>Text content</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const stage=document.getElementById('stage'),canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const track=document.getElementById('track');
-const framesEl=document.getElementById('frames'),framesV=document.getElementById('framesV');
-const smoothEl=document.getElementById('smooth');
-const frameNo=document.getElementById('frameNo'),frameTot=document.getElementById('frameTot');
-const barFill=document.getElementById('barFill'),hint=document.getElementById('hint');
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const smoothEl=document.getElementById('smooth-tog');
+const reduceMQ=matchMedia('(prefers-reduced-motion:reduce)');
+let reduce=reduceMQ.matches;
 
-let TOTAL=+framesEl.value;         // total "images" in the sequence
+let TOTAL=120;                     // total "images" in the sequence
 let targetFrame=0;                 // frame the scroll position points at
 let shownFrame=0;                  // frame currently drawn (lerps toward target)
+let drawn=-1;                      // frame now on the canvas; -1 when it has to be drawn again
 let W=0,H=0,DPR=1;
 
 // --- Geometry: a cube + an inner octahedron, both wireframe -----------------
@@ -128,6 +141,7 @@ function resize(){
   W=r.width;H=r.height;
   canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
+  drawn=-1;                                  // resizing clears the canvas
 }
 function rotate(v,ax,ay){
   let [x,y,z]=v;
@@ -170,12 +184,9 @@ function drawFrame(f){
 }
 
 function updateTarget(){
-  const rect=track.getBoundingClientRect();
-  const span=rect.height-innerHeight;
-  const p=span>0?Math.min(Math.max(-rect.top/span,0),1):0;
+  const span=track.offsetHeight-stage.clientHeight;      // the stage is the scroll box
+  const p=span>0?Math.min(Math.max((stage.scrollTop-track.offsetTop)/span,0),1):0;
   targetFrame=p*(TOTAL-1);
-  barFill.style.transform='scaleX('+p+')';
-  if(p>0.02) hint.classList.add('hide');
 }
 
 let raf=null;
@@ -184,20 +195,30 @@ function loop(){
   if(smoothing) shownFrame+=(targetFrame-shownFrame)*0.18;
   else shownFrame=targetFrame;
   const idx=Math.round(shownFrame);
-  drawFrame(idx);
-  frameNo.textContent=String(idx).padStart(3,'0');
+  if(idx!==drawn){drawFrame(idx);drawn=idx}  // a picture already on the canvas is not drawn again
   raf=requestAnimationFrame(loop);
 }
 
-framesEl.addEventListener('input',e=>{
-  TOTAL=+e.target.value;framesV.textContent=TOTAL;frameTot.textContent=TOTAL;
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('frames-seg',d=>{
+  const t=TOTAL>1?shownFrame/(TOTAL-1):0;    // the picture stays where it is; only its steps change
+  TOTAL=+d.total;shownFrame=t*(TOTAL-1);drawn=-1;
   updateTarget();
 });
-addEventListener('scroll',updateTarget,{passive:true});   // scroll fires for wheel AND touch
+stage.addEventListener('scroll',updateTarget,{passive:true});   // scroll fires for wheel AND touch
+// Back to top, and Play starting again from the top, jump the box: the picture jumps with it instead of playing backwards
+document.addEventListener('click',e=>{if(e.target.closest('#btn-top,#btn-scroll')){updateTarget();shownFrame=targetFrame}});
 addEventListener('resize',()=>{resize();updateTarget();});
+reduceMQ.addEventListener('change',e=>{reduce=e.matches});
+document.addEventListener('visibilitychange',()=>{drawn=-1});   // a browser may drop a hidden canvas's pixels
 
 resize();updateTarget();shownFrame=targetFrame;loop();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

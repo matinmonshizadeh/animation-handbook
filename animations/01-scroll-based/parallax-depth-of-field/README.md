@@ -4,10 +4,10 @@
 
 ## What it is
 
-Parallax depth-of-field combines two scroll-driven techniques: each layer of a
-scene moves at a speed proportional to its perceived distance from the viewer
-(parallax), and a virtual focal plane blurs every layer according to how far it
-sits from the current focal depth. The result mimics a camera rack-focus pulled
+Parallax depth-of-field combines two effects that follow the scroll. Each layer
+of a scene moves by an amount that matches how near it is, and a point of sharp
+focus travels from the farthest layer to the nearest, blurring every other layer
+by how far it sits from that focus. The result looks like a camera pulling focus
 through a landscape as you scroll.
 
 ## When to use it
@@ -47,16 +47,19 @@ current += (target - current) * EASE;   // inside a requestAnimationFrame loop
 
 The loop only runs while the two values differ, so an idle page costs nothing.
 
+Back to top, and Play starting again from the top, move the box in one jump; a
+click on either button sets the eased value to the new position at once, so the
+layers do not rewind through the whole focus pull.
+
 ## Key parameters
 
-| Parameter  | Default | Effect |
-|------------|---------|--------|
-| `MAX_BLUR` | 14px    | Maximum blur on a layer at full distance from focal plane |
-| `depth`    | 0.0–1.0 | Fixed depth per layer; 0 = far, 1 = near |
-| `speed`    | 0.0–0.70 | Fraction of `maxOffset` the layer travels over full scroll |
-| `maxOffset`| 120px   | Maximum translateY distance (applied at nearest layer) |
-| `EASE`     | 0.14    | Share of the remaining distance covered per frame. Lower = smoother but laggier; above ~0.3 the stepping returns |
-| `BLUR_STEP`| 0.5px   | Granularity the blur radius snaps to, so the compositor can reuse a cached texture |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Focus | Follows the scroll | Sharp on the sky at the top of the scroll and on the front ridge at the end; each layer blurs by its distance from it |
+| Strongest blur | 14px (8px on phones) | The blur of a layer as far from the focus as a layer can be |
+| Layer travel | 19% of the box's height (12.5% on phones) | What the layers' sinking is measured against: over the whole scroll the front ridge sinks 70% of it, the hills 45%, the mountains 25%, the far peaks 10% and the sky not at all |
+| Easing | 14% a frame | How much of the remaining distance the layers cover each frame; lower is smoother but lags more |
+| Pinned scene | Three box heights of scrolling | How much scrolling the whole focus pull takes |
 
 ## Production notes
 
@@ -85,7 +88,5 @@ The loop only runs while the two values differ, so an idle page costs nothing.
 
 ## See also
 
-- [Parallax Scrolling](../parallax-scrolling/) — four SVG layers at different scroll speeds;
-  the speed-ratio depth concept without the focal-plane blur.
-- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — takes speed-ratio
-  depth further by making columns scroll in opposite directions.
+- [Parallax Scrolling](../parallax-scrolling/) — the same layered depth, without the blur
+- [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — columns move against each other as you scroll

@@ -1,7 +1,7 @@
 # Zoom Into Image
 
 ## What it is
-A zoom-into-image effect expands a framed image outward to full-bleed as you scroll, reading as a camera flying into the picture — the "portal" effect. It's driven not by scaling the image but by animating a `clip-path: inset()` from a large inset down to zero, so a small windowed crop grows to fill the stage. This demo pins a nighttime landscape in a sticky frame and opens the clip as you scroll through a fixed budget, revealing a caption near the end.
+Zoom into image starts with a small window onto a picture and opens it up to fill the screen as you scroll, as if you were flying into the picture. The picture itself never grows: more of it is simply uncovered, so it stays sharp. The window's rounded corners square off as it opens, and a caption fades in at the end.
 
 ## When to use it
 - Hero-to-content transitions where a preview card should open into an immersive image
@@ -18,34 +18,32 @@ const p = clamp((st - pinStart) / budget, 0, 1);
 const inset  = lerp(startPct, 0, p);      // 30% → 0%  (crop opens)
 const radius = lerp(brStart, 0, p);       // 16px → 0  (corners square off)
 
-zoomImg.style.clipPath = portalTog.checked
-  ? `inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`
-  : `inset(${inset.toFixed(2)}%)`;
+zoomImg.style.clipPath = `inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;
 
-caption.style.opacity = p > 0.88 ? ((p - 0.88) / 0.12).toFixed(3) : '0';
+const cap = p > 0.88 ? ((p - 0.88) / 0.12).toFixed(3) : '0';
+caption.style.opacity = cap;
+frameBorder.style.opacity = (1 - cap).toFixed(3);   // the starting-frame outline gives way to the caption
 ```
 
-Clipping rather than scaling is the crucial choice: `clip-path` reveals more of the *existing* image at full resolution, so nothing blurs or pixelates the way a `transform: scale()` zoom would. The caption fades in only over the final 12% of the scroll, once the image is essentially full-bleed.
+Clipping rather than scaling is the crucial choice: `clip-path` reveals more of the *existing* image at full resolution, so nothing blurs or pixelates the way a `transform: scale()` zoom would. The caption fades in only over the final 12% of the scroll, once the image is essentially full-bleed, and the faint starting-frame outline fades out over the same stretch, so it never crosses the caption.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Start size (inset) | 30% | Inset on each side at the start; 30% shows a 40%-wide crop |
-| Border radius start | 16px | Corner rounding of the initial frame; lerps to 0 as it opens |
-| Progress `p` | derived | 0 at pin start, 1 when the scroll budget is exhausted |
-| Section height | 2.5 × stage | Scroll distance the zoom occupies; taller = slower open |
-| Caption fade window | last 12% (p > 0.88) | When the caption overlay begins appearing |
+| Starting window | Medium | How much of the picture shows at first: small is a window a fifth of the box wide, medium two fifths and large three fifths |
+| Corners | Rounded | How round the window's corners are at the start: square, 16px or 32px; they straighten as the window opens |
+| Shows the starting frame | on | A faint outline stays where the window began, so you can see how far it has opened; it fades out as the caption fades in |
 
 ## Production notes
 - **Clip, don't scale**: `clip-path: inset()` reveals real pixels, keeping the image sharp at every step. A `scale()` zoom enlarges a fixed render and softens. Use clipping when the whole image is present and you're uncovering it.
 - **`will-change: clip-path`**: set on the image so the browser prepares for the animating clip. Animating `clip-path` is compositor-friendly on modern engines but still benefits from the hint.
 - **Sticky provides the pin**: the image holds still via `position: sticky` while the tall section scrolls; the clip is the only thing changing, which keeps the effect cheap.
 - **`round` keyword**: `inset(x% round Ypx)` combines the crop and rounded corners in one property, so both animate together off a single progress value.
-- **Reduced motion**: under `prefers-reduced-motion` the CSS forces `clip-path: inset(0%)` and shows the caption immediately — the reader gets the final full image with no fly-in.
+- **Reduced motion**: under `prefers-reduced-motion` the CSS forces `clip-path: inset(0%)`, shows the caption immediately and hides the starting-frame outline — the reader gets the final full image with no fly-in.
 - **Library equivalents**: GSAP ScrollTrigger with `scrub` tweening `clipPath` is the direct equivalent and adds easing; Framer Motion animates the `clipPath` style off a `useTransform` of scroll progress in React.
 
 ## See also
-- [Sticky Section](../sticky-section/) — the pinning mechanic this builds on
-- [Scrub Animation](../scrub-animation/) — binding a property continuously to scroll
-- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a card transforming as it's scrolled
-- [Parallax Depth of Field](../parallax-depth-of-field/) — another depth-through-scroll illusion
+- [Sticky Section](../sticky-section/) — the pinning this effect is built on
+- [Scrub Animation](../scrub-animation/) — scroll position drives the movement, both ways
+- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a big cover changes shape as you scroll
+- [Parallax Depth-of-Field](../parallax-depth-of-field/) — layers move and blur for depth as you scroll
