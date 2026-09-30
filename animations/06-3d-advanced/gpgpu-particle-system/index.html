@@ -165,7 +165,7 @@ void main(){
   float x=p.x,y=p.y,vx=p.z,vy=p.w;
   float age=fract(p.w*0.01+uT*0.001); // reuse w channel for age
   float spd=uSpd*.0002;
-  // uStep counts steps of 1/60 s (1 at 60 Hz, 2 at 30 Hz, a third of that in slow motion): every change of velocity and every move is scaled by it
+  // uStep is 1, or 1/3 in slow motion: every change of velocity and every move is scaled by it
   if(uBehavior==0){// flow field
     float angle=sin(x*2.+uT*.3)*cos(y*2.+uT*.2)+atan(y,x)*.5;
     vx+=cos(angle)*spd*uStep;vy+=sin(angle)*spd*uStep;
@@ -215,10 +215,10 @@ void main(){
 const RENDER_FS=`#version 300 es
 precision mediump float;in vec4 vCol;out vec4 fragColor;
 void main(){fragColor=vCol;}`;
-// Trails: a translucent full-screen quad fades the previous frame instead of clearing it; uA is how much of it the quad covers
+// Trails: a translucent full-screen quad fades the previous frame instead of clearing it
 const FADE_FS=`#version 300 es
-precision mediump float;uniform float uA;out vec4 fragColor;
-void main(){fragColor=vec4(.024,.039,.063,uA);}`;
+precision mediump float;out vec4 fragColor;
+void main(){fragColor=vec4(.024,.039,.063,.12);}`;
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs'),noWgl2=document.getElementById('no-wgl2');
 const slowTog=document.getElementById('slow-tog');
@@ -305,8 +305,10 @@ const FRAME=1000/60;
 // rule pulls hard near the middle, and how tightly the particles settle there depends on the size of the step. "behind" is the
 // time since the last drawn frame that has not been stepped yet. Each frame adds its time (a gap counts for at most 50 ms), runs
 // one pass for every 1/60 s behind (1 ms of slack, at most 3 passes) and carries the rest: one pass a frame on a 60 Hz screen,
-// two on a 30 Hz one. The clock adds up the passes, so a pause never makes the particles jump. The Trails fade covers the same
-// share of the old picture per second at any refresh rate, and Slow motion does not slow it. The loop keeps exactly one
+// two on a 30 Hz one. The clock adds up the passes, so a pause never makes the particles jump. The Trails fade follows the
+// passes: one fade, always the same 12%, for every pass (60 a second, in Slow motion too), so the streaks last as long on every
+// screen, the faint leftovers of a trail end up the same color (a smaller fade is rounded differently by the 8-bit canvas), and
+// Slow motion does not slow them. A frame that ran no pass changes nothing and draws nothing. The loop keeps exactly one
 // pending frame in raf, and draws at most one picture per 12 ms. A tab that comes back to the front starts again from its next
 // frame, so the time away adds no step.
 let behind=0;
@@ -317,8 +319,9 @@ function render(ts){
   last=ts;
   const dt=Math.min(gap,50),unit=slowTog.checked?1/3:1;
   behind+=dt;
-  for(let n=0;behind>=FRAME-1&&n<3;n++){simT+=unit/60;physics(simT,unit);behind-=FRAME;}
-  paint(simT,false,dt/FRAME);
+  let passes=0;
+  for(;behind>=FRAME-1&&passes<3;passes++){simT+=unit/60;physics(simT,unit);behind-=FRAME;}
+  if(passes)paint(simT,false,passes);
 }
 
 // ── Physics pass (render to texture) ──
@@ -345,16 +348,15 @@ function settle(){for(let i=0;i<120;i++){simT+=1/60;physics(simT,1);}}
 
 // ── Render pass (draw points). A picture drawn on its own starts from a cleared canvas ("fresh"): with Trails on, a
 // normal frame only lays a thin fade over the last one, which would leave the old picture showing under a new setting.
-// steps is the length of the frame in steps of 1/60 s; the fade covers .12 of the old picture per step. ──
-function paint(t,fresh,steps=1){
+// fades is how many times that fade is laid over it: once for every physics pass of the frame. ──
+function paint(t,fresh,fades=1){
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
   gl.viewport(0,0,W,H);
   if(TRAILS&&!fresh){// fade the previous frame instead of clearing it
     gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(fadeProg);gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);
-    gl.uniform1f(gl.getUniformLocation(fadeProg,'uA'),1-Math.pow(1-.12,steps));
     const fa=gl.getAttribLocation(fadeProg,'a');gl.enableVertexAttribArray(fa);gl.vertexAttribPointer(fa,2,gl.FLOAT,false,0,0);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    for(let i=0;i<fades;i++)gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   }else{gl.clearColor(0.024,0.039,0.063,1);gl.clear(gl.COLOR_BUFFER_BIT);}
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
   gl.useProgram(renderProg);
