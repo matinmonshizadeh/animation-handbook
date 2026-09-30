@@ -89,6 +89,10 @@ of each, and the Loop and Slow motion switches start unchecked.
   it restarts from the top if already at the end, with CSS snapping off while it runs) until the visitor's own
   input in the stage stops it; `data-hb-top` stops it and jumps to the top; `data-hb-scroller` marks the
   scroller when it is not the stage.
+- `data-hb-motion-note` (scroll pages only): on the body, one sentence with no full stop, for a page where
+  reduced motion switches an effect off instead of only stopping its animation ("The layers stay still while
+  the box scrolls"). The player bar shows it under reduced motion, followed by " because your device is set to
+  reduce motion.", in place of the usual "The effects follow the scroll without animating".
 
 A setting change replays a plays-once demo about 250 ms later; on other kinds it shows while the demo runs or
 at the next Show me, Play or interaction. Three owner rulings hold on every page: Pause freezes the stage at

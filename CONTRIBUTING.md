@@ -135,6 +135,12 @@ page of the same kind. A few details:
   stage's CSS animations; with no value the demo does it itself.
 - On a scroll page the scroller is the stage, or the element marked `data-hb-scroller`. Play
   scrolls it at a steady speed and any real input in the stage stops it.
+- `data-hb-motion-note` on the body of a scroll page (and only there) sets the note that
+  reduced motion shows in the player bar. Use it when reduced motion switches an effect off
+  instead of only stopping its animation, and write one sentence with no full stop ("The
+  layers stay still while the box scrolls"); the shared script adds " because your device is
+  set to reduce motion." Without it the note reads "The effects follow the scroll without
+  animating".
 - `data-hb-skip` leaves a control out of "Your settings"; `data-hb-label` sets its label.
 
 Three rulings hold on every page: Pause freezes the stage at once (running transitions and
