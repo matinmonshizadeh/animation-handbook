@@ -1010,6 +1010,7 @@ None: leave out the `details.hb-options` block.
 - **Stage:** Full name (underlined), Company (boxed) and Message (underlined, several lines) stay. The Email address field goes (owner decision): it is a second underlined field like Full name, and without it the form fits the phone stage. The stage gets `padding:16px`, `.form` gets `gap:16px` (was 24px), and the textarea `min-height:56px` (was 80px). `hb-dots`: yes. Measured: 282px on phones and laptops.
   - The fields keep their own focus look: the line, the label colour and the box border. The site's focus ring (`body.hb :focus-visible`, specificity 0,2,1) beats their `outline:none` (0,1,1). It would draw an orange box around each focused field, through its raised label.
   - So the page adds `.stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}` (0,3,1).
+  - The focused Company box stays opaque: its focused background mixes 4% of the focus colour into the stage's own `#0b0b0d` (`color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)`, `rgb(14,17,23)` with Blue), not into `transparent`. Over `transparent` the stage's `hb-dots` grid showed through the focused box; the unfocused box was already opaque (`--ui-bg`). Changed in the final wave.
 
 **Main settings**
 
