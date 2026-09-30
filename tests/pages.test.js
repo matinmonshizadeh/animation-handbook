@@ -411,11 +411,18 @@ test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
 
-test('the home page uses Schibsted Grotesk and the new intro line', () => {
+test('the home page uses Schibsted Grotesk and asks what to animate', () => {
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
   for (const old of ['Bricolage', 'PlexMono', 'var(--mono)', '--mono:']) assert.ok(!HOME.includes(old), `still uses ${old}`);
-  assert.ok(HOME.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
+  assert.ok(HOME.includes('<h1 class="h1" id="hero-title">What do you want to animate?</h1>'), 'heading');
+  assert.ok(HOME.includes('Pick a place, or describe it in your own words. Every animation plays live, and each one comes with a ready-made prompt for your AI assistant.'), 'intro line');
+});
+
+test('the counts written on the home page match its cards', () => {
+  const cards = homeConst('CATS').reduce((n, cat) => n + cat.entries.length, 0);
+  assert.ok(HOME.includes(`${cards} free animations · no coding needed`), 'hero pill');
+  assert.ok(HOME.includes(`<span id="more-label">Browse all ${cards} animations</span>`), 'Browse all button');
 });
 
 // The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm.
