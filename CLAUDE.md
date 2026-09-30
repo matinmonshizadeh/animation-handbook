@@ -197,11 +197,13 @@ inside an entry's "Production notes" section, never as their own entry.
    `CATS` array (slug, name, the page's one-line description), and add the page to `sitemap.xml`. Give it one
    or more places in `PLACES` (right after `PV` in the same script): `btn` Buttons, `text` Text,
    `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading & messages,
-   `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card.
+   `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card. Keep
+   `PLACES` in the same order as `CATS` (a test checks it).
 7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line
    description, in home page order), and the technique count wherever it is written: the root `README.md`,
    the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md`.
-8. Run the tests and the page check on the new folder and on every page you edited.
+8. Run the tests and the page check on the new folder and on every page you edited. Run the home page check
+   (`home`) too: the new card's Copy prompt is compared there.
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than

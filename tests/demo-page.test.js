@@ -105,8 +105,10 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 
 // boot() takes the document and window it works on, so a stand-in page with just enough DOM can stand for a real one. It holds
 // a stage and, by kind, the buttons boot() looks for. Events are sent to the stage by hand (with isTrusted set as a browser
-// would), timers wait in a list until the test runs them, and every hb:input the script sends is kept.
-function standInPage(kind, reduced, bodyAttributes) {
+// would), timers wait in a list until the test runs them, and every hb:input the script sends is kept. A Copy prompt test passes
+// `copy` ({ prompt, controls, clipboard }) to add a Copy prompt button, text in the prompt, a Try it step holding `controls` (if
+// any) and the window's clipboard; no other test gets any of them.
+function standInPage(kind, reduced, bodyAttributes, copy) {
   const timers = [], sent = [];
   const node = () => ({
     attrs: {}, handlers: {}, children: [], clicks: 0, textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} },
@@ -120,8 +122,12 @@ function standInPage(kind, reduced, bodyAttributes) {
     insertAdjacentElement() {}, contains(other) { return other === this; }, click() { this.clicks++; }
   });
   const stage = node(), player = node(), prompt = node(), demo = node(), play = node(), top = node();
+  // The button has no .hb-copy-label inside it, so its own text is the label.
+  const button = copy && Object.assign(node(), { querySelector: () => null });
+  if (copy) prompt.textContent = copy.prompt;
   const wanted = { '.hb-prompt': prompt, '.stage': stage, '.hb-player': player, '[data-hb-demo]': kind === 'do' && demo,
-    '[data-hb-autoscroll]': kind === 'scroll' && play, '[data-hb-top]': kind === 'scroll' && top };
+    '[data-hb-autoscroll]': kind === 'scroll' && play, '[data-hb-top]': kind === 'scroll' && top, '.hb-copy': button,
+    '.hb-try': copy && copy.controls && Object.assign(node(), { querySelectorAll: () => copy.controls }) };
   const page = { querySelector: selector => wanted[selector] || null };
   const body = node();
   body.setAttribute('data-hb-kind', kind);
@@ -134,8 +140,9 @@ function standInPage(kind, reduced, bodyAttributes) {
     clearTimeout() {}, location: { protocol: 'http:' }, console,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init && init.detail; } }
   };
+  if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard }, getComputedStyle: () => ({ display: '' }) });
   DP.boot(doc, win);
-  return { doc, stage, player, demo, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
+  return { doc, win, stage, player, demo, button, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
 
@@ -247,4 +254,28 @@ test('pageCopyText reads the prompt and the Try it settings of a page', () => {
   const noSettings = { querySelector: s => (s === '.hb-prompt' ? prompt : null) };
   assert.equal(DP.pageCopyText({ querySelector: s => (s === '.hb-page' ? noSettings : null) }, win), 'Add a fade to [the card].');
   assert.equal(DP.pageCopyText({ querySelector: () => null }, win), '');
+});
+
+// The home page copies a card's prompt with pageCopyText, so the button on the page itself has to copy exactly what that gives.
+// The clipboard here keeps every text it is asked to write and answers with a promise that is already settled.
+test("pressing a page's Copy prompt copies what pageCopyText gives", async () => {
+  const prompt = 'Add a fade to [the card].';
+  // One group of choice buttons, "Speed", with "Normal" pressed. A page with a setting copies more than its prompt.
+  const speed = { hidden: false, parentElement: null, hasAttribute: () => false, matches: () => false,
+    getAttribute: name => (name === 'data-hb-label' ? 'Speed' : null),
+    querySelector: () => ({ getAttribute: () => null, textContent: ' Normal ' }) };
+  const cases = [
+    ['a page without a Try it step copies the prompt alone', null, prompt],
+    ['a page with a setting copies the prompt and the settings line', [speed], prompt + '\n\nSettings from the demo: Speed: Normal.']
+  ];
+  for (const [name, controls, expected] of cases) {
+    const written = [], accepted = Promise.resolve();
+    const clipboard = { writeText: text => { written.push(text); return accepted; } };
+    const page = standInPage('once', false, {}, { prompt, controls, clipboard });
+    page.button.emit('click', visitor);
+    await accepted;
+    assert.deepEqual(written, [expected], name);
+    assert.equal(written[0], DP.pageCopyText(page.doc, page.win), name);
+    assert.equal(page.button.textContent, 'Copied', name);
+  }
 });
