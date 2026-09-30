@@ -125,7 +125,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add a cloth simulation to [the flag, banner or fabric you want to show]. Model the cloth as a grid of points joined to their neighbours by links of fixed length. Each frame, move every point by its own momentum plus gravity and wind, then pull linked points back toward their proper distance a few times over. Pin some points so the cloth hangs, and let the visitor grab and drag the nearest point with the pointer or a finger. Use a coarser grid on phones. If the visitor has reduced motion turned on, show the cloth hanging still. Match the settings listed below.</p>
+      <p class="hb-prompt">Add a cloth simulation to [the flag, banner or fabric you want to show]. Model the cloth as a grid of points joined to their neighbours by links of fixed length. In fixed 1/60 s steps, as many as the time since the last frame needs, move every point by its own momentum plus gravity and wind, then pull linked points back toward their proper distance a few times over, so the cloth moves at the same speed on every screen. Pin some points so the cloth hangs, and let the visitor grab and drag the nearest point with the pointer or a finger. Use a coarser grid on phones. If the visitor has reduced motion turned on, show the cloth hanging still. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -159,7 +159,7 @@
 <script>
 const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage');
-let W,H,paused=false,raf=null,lastT=0,windT=0;
+let W,H,paused=false,raf=null,lastT=null,windT=0,behind=0;
 let COLS=24,ROWS=18,GRAVITY=0.12,WIND=0.5,ITERS=4,PIN_MODE='top-corners';
 let SHOW_VERTS=false;
 let pts=[],prev=[],pinned=[],constraints=[];
@@ -267,19 +267,31 @@ function draw(){
   }
 }
 
-// The loop keeps exactly one pending frame in raf. Each drawn frame is one physics step. The wind follows the page's own
-// clock, which adds up the time of each drawn frame (at most 50 ms), so a pause never makes the wind jump.
+// Verlet keeps a point's speed as the distance it moved in the last step, so every step must be the same length, or the
+// cloth's physics change with it (and one long step throws the points further than the links can pull them back). The loop
+// therefore always steps by 1/60 s (FRAME) and runs as many steps as the time since the last drawn frame calls for: one on a
+// 60 Hz screen, two on a 30 Hz one. "behind" is the time not yet stepped; 1 ms of slack keeps a frame that comes a hair early
+// from being skipped and paid for twice. A long gap counts for at most 50 ms and a frame runs at most 3 steps, so a slow
+// device makes the cloth slower instead of piling up more work. At most one picture is drawn per 16 ms.
+const FRAME=1000/60;
+// The loop keeps exactly one pending frame in raf. The wind follows the page's own clock, which adds up the steps taken, so a
+// pause never makes the wind jump.
 function loop(ts){
   raf=requestAnimationFrame(loop);
+  if(lastT===null){lastT=ts;return;} // the first frame after a start only takes the time
   const dt=ts-lastT;if(dt<16)return;
   lastT=ts;
-  windT+=Math.min(dt,50);
-  update();draw();
+  behind+=Math.min(dt,50);
+  let steps=0;
+  while(behind>=FRAME-1&&steps<3){windT+=FRAME;update();behind-=FRAME;steps++;}
+  if(steps)draw();
 }
 // Hangs a fresh cloth to the size of the stage (Detail, a resize) ...
 function rebuild(settle){resize();initCloth(settle);}
 // ... and Play carries on with the cloth as it is; it never stacks a second loop.
-function resume(){if(raf!==null)return;lastT=performance.now();raf=requestAnimationFrame(loop);}
+function resume(){if(raf!==null)return;lastT=null;behind=0;raf=requestAnimationFrame(loop);}
+// A tab that comes back to the front starts again from its next frame, so the time away adds no step.
+document.addEventListener('visibilitychange',()=>{lastT=null;behind=0;});
 
 // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
 // loop on arrival, which this listener must catch. Pause cancels the pending frame and the cloth stays where it is.
