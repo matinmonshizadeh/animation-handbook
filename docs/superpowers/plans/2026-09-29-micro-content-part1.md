@@ -576,14 +576,15 @@ None: leave out the `details.hb-options` block.
 - **What the visitor does:** clicking or tapping the button turns it green with a check and the label "Order placed", and fires the confetti (not under reduced motion), as today. The button stays done, and each further click fires another burst. The click is one function, called by the button and by Show me.
 - **Show me:** starts from rest: if the button is done, `toRest()` puts it back to "Place order" without animating (removes `done`, restores the label). Then:
   - `later(place, 0, 300)` clicks it: green, check, "Order placed" and confetti.
-  - `later(back, 2100, 700)` puts the button back to "Place order". 2100ms is the burst, whose pieces fade over about 2.1 s; the holds are the first 300ms and 400ms of rest after the burst.
+  - `later(back, 2100, 700)` puts the button back to "Place order". 2100ms is the burst, whose pieces fade over about 2.1 s; the holds are the first 300ms and 400ms of rest after the burst. The tick goes at once, with no fade (`.order-btn:not(.done) .check{transition:none}`): it has no width left by then, so a fade would show it over the "P" of the label for 0.3 s.
   - At 300ms and 2800ms. The page has no Slow motion, so `later()` never triples.
   - Stops on `hb:input`; the button stays as it is.
 - **Reset:** none.
 - **Slow motion:** none.
 - **Reduced motion:** as today, the button turns green and shows its check, with no confetti (the `reduce` check stays; the press shrink `.order-btn:active` stays off). Show me still turns the button green and back.
 - **Stage font:** site font. `.order-btn` drops `var(--disp)`, gets `font-family:inherit` and keeps `font-weight:700`.
-- **Stage:** the canvas and the button stay. The caption under the button (`.sub`, "Click to complete — click again to replay") goes; the help line says what to do. `hb-dots`: yes. Measured: 60px of content, centred.
+- **Stage:** the canvas and the button stay. The caption under the button (`.sub`, "Click to complete — click again to replay") goes; the help line says what to do. `hb-dots`: yes. Measured: 56px of content on phones and 58px on laptops, centred.
+  - The label is centred in the button at rest. The tick (`.check`) has `margin-right:0` while it is hidden and `8px` only while the button is done (`.order-btn.done .check`), so the hidden tick no longer pushes the label 4px to the right. The button is 8px narrower at rest, and the 8px gap shows only with the tick.
 
 **Main settings**
 
