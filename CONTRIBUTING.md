@@ -198,6 +198,9 @@ Every demo must work on mobile, tablet, and desktop.
 - Touch targets are at least **44×44px**; gate hover effects behind `@media (hover: hover)`.
 - Drag interactions use Pointer Events, not mouse events.
 - Animate `transform` and `opacity` only — never `width`, `height`, `top`, `left`, or `box-shadow`.
+- A JavaScript frame loop moves by the time since the last frame (in 60ths of a second, at most 50 ms), never by a
+  fixed step per frame, so it runs at the same speed on every screen. Copy the loop of Synthwave Grid, Starfield
+  (trails that fade) or Cloth Simulation (physics in fixed steps).
 - Text is at least 4.5:1 against its background.
 - Respect `@media (prefers-reduced-motion: reduce)`.
 

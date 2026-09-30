@@ -262,6 +262,14 @@ This is non-negotiable — a demo that breaks on phones fails the quality bar.
   `(max-width:600px),(max-height:500px)`, so a phone held sideways counts.
 - Use `transform` and `opacity` for animations — never animate `width`,
   `height`, `top`, `left`, or `box-shadow` directly.
+- A JavaScript frame loop moves by elapsed time, never by a fixed amount per frame, or it runs twice as fast on a
+  120 Hz screen and half as fast on a 30 Hz phone (the page check runs at 60 Hz and cannot see it). With
+  `FRAME = 1000 / 60` and `dt = lastT === null ? 0 : Math.min(ts - lastT, 50)` (a start, Play and `visibilitychange`
+  set `lastT = null`; an easing that restarts on input may count its first frame as one `FRAME`), multiply each step
+  by `dt / FRAME` (and by 1/3 in Slow motion) and turn an easing share `k` into `1 - Math.pow(1 - k, dt / FRAME)`.
+  Physics that needs equal steps (Verlet, a spring) takes fixed steps from an accumulator. A trail washes once for
+  every 60th of a second at its 60 Hz opacity, and a frame with no wash due draws nothing. Copy the loop of Synthwave
+  Grid, Starfield (trails) or Cloth Simulation (fixed steps).
 - Respect `@media (prefers-reduced-motion: reduce)` — disable or simplify
   animations for users who request it (see Reduced motion above).
 
