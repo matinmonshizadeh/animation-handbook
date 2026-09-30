@@ -188,10 +188,8 @@
     return HUES[Math.floor((p.x/W*120+t*20)%360)];
   }
 
-  // One frame: dim the canvas a little instead of clearing it (nf times, see loop()), then move every particle one step
-  // along the field and draw that step. s is how many 60 Hz frames this one stands for (1 at 60 Hz, 2 at 30 Hz). k is s, or
-  // a third of it in slow motion: the step and the field's time shrink by it, the fade does not. The dim is always today's,
-  // once per 60th of a second, so trails last as long and faint leftovers settle to the same colors on any screen.
+  // One frame: dim the canvas nf times, then move every particle one step along the field and draw that step. s is how many
+  // 60 Hz frames it stands for; k is s, or a third of it in slow motion, and shrinks the step and the field's time but not the dim.
   function frame(s,nf){
     const k=s*(slowTog.checked?1/3:1);
     ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;
@@ -214,20 +212,16 @@
     unseen=false;
   }
 
-  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
-  // 16 ms, each for the time since the last one in 60ths of a second, never more than 50 ms. The dim goes on once per
-  // whole 60th: fa carries the fraction over, and rounding (not "at least 1") keeps a 60 Hz screen at one dim per frame
-  // even with uneven frame times. The first frame after a start has nothing to measure from and leaves the picture alone.
+  // loop() keeps one frame requested in raf. A drawn frame stands for the time since the last drawn one (s, at most 50 ms) and dims once per
+  // whole 60th, fa carrying the rest; with no dim due nothing is drawn and the time carries on, which also caps drawing near 60 a second.
   function loop(ts){
     raf=requestAnimationFrame(loop);
-    if(lastT!==null&&ts-lastT<16)return;
-    const dt=lastT===null?0:Math.min(ts-lastT,50);
-    lastT=ts;
-    if(dt){
-      const s=dt/FRAME;
-      fa+=s;const nf=Math.round(fa);fa-=nf;
-      frame(s,nf);unseen=false;
-    }
+    if(lastT===null){lastT=ts;return;}
+    const s=Math.min(ts-lastT,50)/FRAME,w=Math.max(1,Math.round(s));
+    const f=fa+(Math.abs(s-w)<.05?w:s),nf=Math.round(f+.05); // within 5% of a whole number counts as it; the .05 keeps a half-way tie off the edge
+    if(!nf)return;
+    fa=f-nf;lastT=ts;
+    frame(s,nf);unseen=false;
   }
   function start(){if(raf)return;lastT=null;fa=0;raf=requestAnimationFrame(loop);}
 

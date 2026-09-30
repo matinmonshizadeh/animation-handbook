@@ -23,17 +23,21 @@ function angleAt(x, y, time) {
   return vnoise(x/SCALE, y/SCALE + time*0.15) * Math.PI * 4;
 }
 
-// per frame: fade, then advance every particle along its local angle
-// s is how many 60 Hz frames this one stands for: 1 at 60 Hz, 2 at 30 Hz
-const s = Math.min(now - last, 50) / (1000 / 60);
-owed += s; const washes = Math.round(owed); owed -= washes;   // whole 60ths of a second to fade; the rest carries over
+// per drawn frame: fade, then advance every particle along its local angle
+// s is how many 60 Hz frames have passed since the last drawn frame: 1 at 60 Hz, 2 at 30 Hz
+const s = Math.min(now - last, 50) / (1000 / 60), w = Math.max(1, Math.round(s));
+const f = fa + (Math.abs(s - w) < 0.05 ? w : s);   // a step within 5% of a whole number counts as that number
+const nf = Math.round(f + 0.05);                    // whole dims due; the 0.05 keeps a half-way tie off the rounding edge
+if (!nf) return;                                    // none yet: draw nothing, the time carries to the next frame
+fa = f - nf; last = now;                            // the fraction left over carries too
 ctx.fillStyle = `rgba(5,6,10,${TRAIL})`;
-for (let i = 0; i < washes; i++) ctx.fillRect(0, 0, W, H);
+for (let i = 0; i < nf; i++) ctx.fillRect(0, 0, W, H);
+const k = s * (slow ? 1 / 3 : 1);                   // slow motion shortens the step, not the dim
 const a = angleAt(p.x, p.y, t);
-p.x += Math.cos(a) * SPD * s; p.y += Math.sin(a) * SPD * s;
+p.x += Math.cos(a) * SPD * k; p.y += Math.sin(a) * SPD * k;
 ```
 
-The step grows with the time since the last frame, and so does the fade, in whole units: the canvas is dimmed once for every 60th of a second that has passed, each time by the same `TRAIL` as at 60 Hz. A 30 Hz frame dims it twice; on a 144 Hz screen, where the demo draws every third frame, it is dimmed five times in every four frames. So a 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. `owed` keeps the fraction that is left over, and rounding rather than "at least one" gives a 60 Hz screen exactly one dim per frame even when its frame times are uneven. One dim of `1 - (1 - TRAIL)^s` would fade the same amount in theory, but an 8-bit canvas rounds every dim, so the faint leftovers would settle to different colors on different screens; repeating the same dim makes them settle to the same colors everywhere. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1` with one dim each, so it looks the same on every screen.
+The step grows with the time since the last drawn frame, and so does the fade, in whole units: the canvas is dimmed once for every 60th of a second, each time by the same `TRAIL` as at 60 Hz, so a 30 Hz frame dims it twice. A step within 5% of a whole number counts as that number for the dim, so a 59.94 or 60.06 Hz screen, or a little noise in the timestamps, still gets exactly one dim per frame, and `fa` carries the fraction that is left over. Rounding leans up by 0.05, so a screen whose frames land exactly half-way between two dims, such as 120 or 240 Hz, keeps a regular draw rhythm instead of one decided by timestamp noise. When no whole dim is due yet, as on the first of two frames of a 120 Hz screen, the frame draws nothing and its time carries to the next one. That keeps drawing at about 60 frames a second whatever the screen, and every drawn frame at one dim, so the trails do not pulse. A 30 Hz phone and a 144 Hz monitor show particles at the same speed with trails of the same length in seconds. One dim of `1 - (1 - TRAIL)^s` would fade the same amount in theory, but an 8-bit canvas rounds every dim, so the faint leftovers would settle to different colors on different screens; repeating the same dim makes them settle to the same colors everywhere. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap counts for at most 50 ms. The still picture drawn on arrival runs 40 steps of `s = 1` with one dim each, so it looks the same on every screen.
 
 ## Key parameters
 | Parameter | Default | Effect |
