@@ -1,7 +1,7 @@
 # Reveal on Scroll
 
 ## What it is
-A reveal-on-scroll animation holds an element in a hidden pre-state — faded, offset, scaled, blurred, or clipped — until it crosses a trigger line inside the viewport, then transitions it to its resting state. An `IntersectionObserver` watches each element and fires a single callback the moment it enters, so nothing runs on every scroll frame. This demo collects seven interchangeable reveal techniques behind one observer.
+A reveal on scroll keeps an element hidden, such as faded, shifted, shrunk, blurred or clipped, until it rises past a line in the view, then lets it settle into place. The browser reports when each element crosses the line, so nothing has to run on every scroll. The demo shows seven reveal styles behind one dashed line.
 
 ## When to use it
 - Progressively disclosing content sections, cards, or media as a long page scrolls
@@ -16,27 +16,24 @@ Each card carries a `data-fx` attribute naming its technique. CSS defines the hi
 const margin = -(100 - threshold);          // threshold 70 → -30
 observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    const fx = e.target.dataset.fx;
+    const card = e.target.closest('.card');
     if (e.isIntersecting) {
-      reveal(e.target, fx, i);
+      reveal(card);
       if (!repeatTog.checked) observer.unobserve(e.target);   // fire once
     } else if (repeatTog.checked) {
-      hide(e.target, fx, i);                                   // re-arm on exit
+      hide(card);                                              // re-arm on exit
     }
   });
-}, { root: stage, rootMargin: `9999px 0px ${margin}% 0px`, threshold: 0 });
+}, { root: scroller, rootMargin: `9999px 0px ${margin}% 0px`, threshold: 0 });
 ```
 
-The pre-states live entirely in CSS — for example `[data-fx="blur"]{opacity:0;filter:blur(12px)}` becoming `.revealed[data-fx="blur"]{opacity:1;filter:blur(0)}`. The `stagger` technique is no exception: its child chips cascade on `transition-delay` rules scoped to `.revealed`, so the class alone drives the whole group.
+The pre-states live entirely in CSS — for example `[data-fx="blur"]{opacity:0;filter:blur(12px)}` becoming `.revealed[data-fx="blur"]{opacity:1;filter:blur(0)}`. The `stagger` technique is no exception: its child chips cascade on `transition-delay` rules scoped to `.revealed`, so the class alone drives the whole group. The observer watches each card itself, except the stagger group, which it watches at its row of chips: the chips sit lower in the card, so watching the card's top would start the cascade below the box on the lower lines.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Trigger position | 70% | Where the dashed line sits; higher = element must scroll further before firing |
-| `rootMargin` | `9999px 0 -30% 0` | Bottom is derived from the trigger and shrinks the active area; the top is left unbounded so an element already scrolled past still counts |
-| `threshold` | 0 | Fires as soon as any pixel crosses; raise to require a fraction of the element visible |
-| Repeat on re-enter | off | When off, `unobserve` fires each reveal once; when on, elements re-hide on exit |
-| Transition duration | 0.6s | Per-technique CSS timing; the stagger group adds 80ms between children |
+| Trigger line | Normal | Where the dashed line sits: higher is halfway down the box, normal 70% down and lower 90% down; the higher the line, the further a card must scroll before it appears |
+| Plays every time | off | Off, each card appears once and stays; on, it hides again when it drops back below the line and replays the next time |
 
 ## Production notes
 - **One observer, many elements**: a single `IntersectionObserver` handling every card is far cheaper than a `scroll` listener recomputing positions. The observer runs off the main thread.
@@ -50,7 +47,7 @@ The pre-states live entirely in CSS — for example `[data-fx="blur"]{opacity:0;
 - **Library equivalents**: GSAP ScrollTrigger's `toggleActions` and AOS (Animate On Scroll) wrap this exact pattern; Framer Motion's `whileInView` prop is the React equivalent and uses `IntersectionObserver` underneath.
 
 ## See also
-- [Stagger Reveal](../stagger-reveal/) — cascading the reveal across a group of siblings
-- [Scroll Trigger](../scroll-trigger/) — firing discrete actions at scroll positions
-- [Fly In / Fly Out Contact List](../fly-in-fly-out-contact-list/) — reveal paired with an exit animation
-- [Scrollytelling](../scrollytelling/) — continuous scroll-driven narrative instead of discrete triggers
+- [Stagger Reveal](../stagger-reveal/) — items in a group appear one after another
+- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — rows fade and slide as they near the edges
+- [Scrollytelling](../scrollytelling/) — a picture beside the story changes as you read

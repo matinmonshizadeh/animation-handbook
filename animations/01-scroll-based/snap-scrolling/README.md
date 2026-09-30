@@ -4,7 +4,7 @@
 
 ## What it is
 
-Snap scrolling makes the viewport magnetize to predefined scroll positions after the user releases a scroll gesture. Instead of stopping at an arbitrary mid-section position, the browser eases to the nearest snap point. The effect creates a deliberate, paginated feel — sections become destinations rather than arbitrary points in a continuous stream. This demo uses the native CSS `scroll-snap-type` and `scroll-snap-align` properties. No JavaScript drives the magnetism; the browser handles it entirely.
+Snap scrolling makes a scrolling area settle on set points instead of stopping anywhere. When you stop scrolling, the browser pulls the view to the nearest section, so each section is shown whole, like turning pages. The browser does the pulling on its own; no script is needed for it.
 
 ## When to use it
 
@@ -19,40 +19,38 @@ Three CSS properties implement the entire mechanism:
 
 ```css
 /* On the scroll container */
-.stage {
-  overflow-y: scroll;
+.scroller {
+  overflow-y: auto;
+  container-type: size;          /* 100cqh is the box's height */
   scroll-snap-type: y mandatory; /* or 'y proximity' */
 }
 
 /* On each section */
 .section {
-  height: 620px;            /* matches the container height */
+  height: 100cqh;                /* one box tall */
   scroll-snap-align: start;
 }
 ```
 
-`mandatory` forces a snap on every scroll-end. `proximity` snaps only when the user is close to a snap point. `none` disables snapping. The mode toggle in the demo changes `scroll-snap-type` live.
+`mandatory` forces a snap on every scroll-end. `proximity` snaps only when the user is close to a snap point. `none` disables snapping. The Snapping setting switches between the three through a `data-snap` attribute that three CSS rules read. While the Play button scrolls the box, a shared rule turns snapping off on it, and the page's own snapping applies again when it stops.
 
-Pagination dots and jump-to buttons use `scrollTo` with `behavior: 'smooth'`:
+The dots scroll to their section; leaving out `behavior` lets the box's own `scroll-behavior` decide, so it glides, or jumps under reduced motion:
 
 ```js
-stage.scrollTo({ top: sectionIndex * sectionHeight, behavior: 'smooth' });
+scroller.scrollTo({ top: sectionIndex * scroller.clientHeight });
 ```
 
 Current section is derived from scroll position:
 
 ```js
-const sectionIndex = Math.round(stage.scrollTop / sectionHeight);
+const sectionIndex = Math.round(scroller.scrollTop / scroller.clientHeight);
 ```
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `scroll-snap-type` | `y mandatory` | `mandatory` = always snaps; `proximity` = snaps when close; `none` = off |
-| `scroll-snap-align` | `start` | Where the snap point lands: `start`, `center`, or `end` |
-| `scroll-behavior` | `smooth` | Affects programmatic `scrollTo` calls, not the snap itself |
-| Section height | `620px` | Must match stage height for full-page snapping |
+| Snapping | Always | Always settles on a section after every scroll; when close settles only when the box stops near one; off never snaps |
 
 ## Production notes
 
@@ -64,5 +62,6 @@ const sectionIndex = Math.round(stage.scrollTop / sectionHeight);
 
 ## See also
 
-- [Stacking Cards](../stacking-cards/) — another paginated-feel scroll pattern, implemented with sticky stacking rather than snap.
-- [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — continuous scroll with per-element transitions rather than section-level snapping.
+- [Stacking Cards](../stacking-cards/) — cards pile into a deck as you scroll
+- [Section Wipe](../section-wipe/) — each section slides up over the one before
+- [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — rows fade and slide as they near the edges

@@ -4,7 +4,7 @@
 
 ## What it is
 
-Smooth scroll captures the user's wheel and touch input, converts it into a target scroll position, and then eases the content toward that target a little each frame instead of jumping to it. The result is a weighted, gliding motion with momentum — the feel popularized by libraries like Lenis and Locomotive Scroll — rather than the browser's instant, one-to-one native scroll.
+Smooth scroll makes scrolling glide. Instead of moving the content exactly as far as each turn of the wheel or swipe, it treats each one as a place to go and moves the content a little closer on every frame, so it speeds off, then slows to a stop. The result feels weighted, with momentum, rather than like the browser's instant scroll.
 
 ## When to use it
 
@@ -17,37 +17,44 @@ Avoid it for dense, utility-first content (dashboards, docs, long forms) where u
 
 ## How it works
 
-Two numbers are kept: `target` (where scroll wants to be) and `current` (where the content sits right now). Input events move only the target. A `requestAnimationFrame` loop moves `current` a fraction of the remaining distance toward `target` every frame — a linear interpolation, or lerp — and writes that value to the inner content as a `translate3d`, a compositor-only transform.
+Two numbers are kept: `target` (where scroll wants to be) and `current` (where the content sits right now). Input events move only the target. A `requestAnimationFrame` loop moves `current` a fraction of the remaining distance toward `target` every frame — a linear interpolation, or lerp — and writes that value to the inner content as a `translate3d`, a compositor-only transform. The loop only runs while the two differ: input starts it, and it stops once `current` is within a tenth of a pixel of `target`, so an idle box costs nothing.
 
 ```js
 // input only nudges the target
-stage.addEventListener('wheel', e => {
+viewport.addEventListener('wheel', e => {
   e.preventDefault();
   target = clamp(target + e.deltaY, 0, maxScroll);
+  kick();                                        // starts the loop if it is idle
 }, { passive: false });
 
-// each frame eases current toward target
-function loop() {
-  current += (target - current) * ease;          // ease ~0.09
+// each frame eases current toward target, by a share that depends on how long the frame took
+const FRAME = 1000 / 60;                         // ease is counted per 1/60 s
+function loop(now) {
+  raf = 0;
+  const dt = last ? Math.min(now - last, 50) : FRAME;   // time since the last frame; 1/60 s for the first
+  last = now;
+  current += (target - current) * (1 - Math.pow(1 - ease, dt / FRAME));   // ease ~0.09
+  if (Math.abs(target - current) < 0.1) current = target;
   content.style.transform = `translate3d(0, ${-current}px, 0)`;
-  requestAnimationFrame(loop);
+  if (current !== target) raf = requestAnimationFrame(loop);
 }
+function kick() { if (!raf) { last = 0; raf = requestAnimationFrame(loop); } }
 ```
 
 Touch drag uses Pointer Events: on `pointerdown` the current target is captured, and `pointermove` offsets it by the drag distance, so the same target/current machinery serves both mouse wheel and finger drag. The gap between `target` and `current` is what produces momentum: a flick pushes `target` ahead, and `current` coasts after it until the two converge.
 
-The demo keeps all of this inside a scoped stage element with `overflow: hidden` — it never touches `window` scroll — so it embeds without hijacking the page.
+The keyboard moves the same target: in the glide mode a `keydown` handler on the box moves it 40px for an arrow key, 90% of the box for Page Up, Page Down and Space, and to the top or the bottom for Home and End.
+
+The demo keeps all of this inside a scoped box with `overflow: hidden` — it never touches `window` scroll — so it embeds without hijacking the page.
+
+The share moved each frame depends on how long the frame took. A fixed lerp factor per frame is frame-rate dependent: the same value settles twice as fast on a 120Hz display as on 60Hz, and half as fast on a 30Hz phone. Here `ease` is the share covered in 1/60 s, and a frame that lasted `dt` covers `1 - Math.pow(1 - ease, dt / FRAME)` of the distance left, so the distance left shrinks exponentially with time and the glide takes the same time on every screen. `kick()` clears `last`, so the first frame after a start counts as 1/60 s rather than the time since some old frame, and `dt` is capped at 50ms, so a hidden tab does not make the content jump.
 
 ## Key parameters
 
-| Parameter | Typical | Effect |
+| Parameter | Default | Effect |
 |-----------|---------|--------|
-| Ease / lerp factor | `0.05`–`0.2` | Fraction of the remaining gap closed per frame. Lower = heavier, floatier glide; higher = tighter, closer to native. |
-| `maxScroll` | `content.scrollHeight − stage.clientHeight` | Clamp bound for `target`; recomputed on resize. |
-| `deltaY` multiplier | `1` | Scales wheel input into scroll distance; raise for faster travel per notch. |
-| Convergence epsilon | `~0.1px` | Snap `current` to `target` below this gap to end the loop cleanly and avoid sub-pixel jitter. |
-
-A fixed lerp factor is frame-rate dependent — the same value settles faster on a 120Hz display than on 60Hz. For rate-independent easing, scale the factor by delta time: `1 - Math.pow(1 - ease, dt * 60)`.
+| Glide | Medium | How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling |
+| Normal scrolling | off | Turns the glide off so the box scrolls the browser's own way, to compare the two |
 
 ## Production notes
 
@@ -60,6 +67,6 @@ A fixed lerp factor is frame-rate dependent — the same value settles faster on
 
 ## See also
 
-- [Parallax Scrolling](../parallax-scrolling/) — layers moved at different rates; pairs naturally with a smoothed scroll source.
-- [Scrub Animation](../scrub-animation/) — driving a timeline from scroll position, the effect smooth scroll makes feel fluid.
-- [Horizontal Scroll](../horizontal-scroll/) — converting vertical scroll into lateral motion, another scroll-remapping technique.
+- [Parallax Scrolling](../parallax-scrolling/) — layers move at different speeds; pairs well with a glide
+- [Scrub Animation](../scrub-animation/) — scroll-driven movement, which a glide makes smoother
+- [Horizontal Scroll](../horizontal-scroll/) — scrolling down moves a row of panels sideways

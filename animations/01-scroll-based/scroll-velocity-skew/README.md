@@ -2,7 +2,7 @@
 
 ## What it is
 
-A distortion effect where content shears in proportion to how *fast* the user is scrolling, not where they are on the page. Scroll quickly and rows of content skew a few degrees in the direction of travel; stop scrolling and the smoothed velocity decays to zero, so the shear relaxes back to straight on its own. It is the signature move of Locomotive Scroll-era portfolio sites, and it is this handbook's only entry driven by scroll velocity rather than scroll position.
+Scroll velocity skew leans content by how fast you scroll, not by where you are. Scroll quickly and the rows tilt in the direction of travel; stop and they spring back straight. It makes scrolling feel physical, as if the content bends under its own momentum.
 
 ## When to use it
 
@@ -13,29 +13,31 @@ A distortion effect where content shears in proportion to how *fast* the user is
 
 ## How it works
 
-Every technique elsewhere in this section maps scroll **position** to animation progress. This one maps scroll **velocity**: the per-frame difference in `scrollTop`. The raw delta is noisy and spiky, so it is smoothed with a lerp before being scaled and clamped into a skew angle:
+Every technique elsewhere in this section maps scroll **position** to animation progress. This one maps scroll **velocity**: the change in `scrollTop` from one frame to the next, counted per sixtieth of a second. The raw delta is noisy and spiky, so it is smoothed with a lerp before being scaled and clamped into a skew angle:
 
 ```js
-function tick() {
-  const raw = el.scrollTop - lastTop;   // px moved since last frame
+function tick(now) {
+  const dt = lastTime ? Math.max(now - lastTime, 1) : FRAME;   // ms since the last frame
+  lastTime = now;
+  const raw = (el.scrollTop - lastTop) * FRAME / dt;      // px moved per 1/60 s
   lastTop = el.scrollTop;
-  vel += (raw - vel) * SMOOTH;          // low-pass filter the spikes
+  vel += (raw - vel) * (1 - Math.pow(1 - SMOOTH, dt / FRAME));   // low-pass filter the spikes
   const skew = clamp(vel * INTENSITY, -MAX, MAX);
   rows.forEach(r => r.style.transform = `skewY(${skew}deg)`);
   requestAnimationFrame(tick);
 }
 ```
 
-The smoothing is what makes the effect feel physical. Raw deltas would snap the skew on and off with every wheel notch; the lerp turns them into a value with inertia, so the shear ramps up as you accelerate and eases back down after you stop — a spring-back you get for free, without writing any spring code. The loop only runs while there is motion: when the smoothed velocity falls below a threshold and no new scroll event has arrived, it writes an identity transform and parks itself until the next scroll.
+The smoothing is what makes the effect feel physical. Raw deltas would snap the skew on and off with every wheel notch; the lerp turns them into a value with inertia, so the shear ramps up as you accelerate and eases back down after you stop — a spring-back you get for free, without writing any spring code. The loop only runs while there is motion: when the smoothed velocity falls below a threshold and no new scroll event has arrived, it writes an identity transform and parks itself until the next scroll. Speed is measured per sixtieth of a second (`FRAME` is 1000/60 ms), so a 120Hz screen leans as much as a 60Hz one. Back to top, and Play starting again from the top, move the box in a single frame, and so can a window resize (the browser keeps the list inside its new range); when either button is clicked or the window is resized, the demo takes the box's new position as its starting point, so that jump does not count as speed. A run of scrolling starts the same way, from where the box was before its first move, so even a single notch of the wheel leans the rows.
 
 ## Key parameters
 
-| Parameter | Default | What it does |
-|-----------|---------|--------------|
-| `INTENSITY` | 0.35 | Degrees of skew per px/frame of smoothed velocity — the overall strength |
-| `MAX` | 12° | Clamp on the skew angle; keeps a fast flick from folding the layout in half |
-| `SMOOTH` | 0.12 | Lerp factor for the velocity filter; lower = heavier, longer settle, higher = twitchier |
-| Axis | `skewY` | `skewY` shears rows vertically (the classic look); `skewX` slants them sideways |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Strength | Normal | How far the rows lean for a given scroll speed: subtle is 0.2°, normal 0.35° and strong 0.6° for each pixel scrolled in a sixtieth of a second |
+| Lean | Tilt | Tilt tips each row like a slope, the classic look; Slant leans it sideways like italic text |
+| Spring back | Normal | How quickly the lean follows the scroll speed and fades after you stop; slow feels heavy, quick feels twitchy |
+| Most it leans | Medium | The largest angle allowed: 6°, 12° or 20°, so a fast flick cannot fold the rows over |
 
 ## Production notes
 
@@ -47,6 +49,6 @@ The smoothing is what makes the effect feel physical. Raw deltas would snap the 
 
 ## See also
 
-- [Smooth (Inertia) Scroll](../smooth-scroll/) — the lerp-toward-target loop this effect usually rides on
-- [Scrub Animation](../scrub-animation/) — the position-mapped counterpart: deterministic, reversible progress
-- [Marquee Ticker](../../05-text-typography/marquee-ticker/) — often paired with velocity skew, with scroll speed modulating ticker speed
+- [Smooth (Inertia) Scroll](../smooth-scroll/) — scrolling that glides to a stop, often paired with this effect
+- [Scrub Animation](../scrub-animation/) — movement tied to where you are, not how fast you go
+- [Marquee / Ticker](../../05-text-typography/marquee-ticker/) — text that scrolls sideways forever, often sped up by scrolling

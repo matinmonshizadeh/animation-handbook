@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Segmented Control — Animation Handbook</title>
-  <meta name="description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Segmented Control — Animation Handbook</title>
+  <meta name="description" content="A highlight slides to the option you pick. Best for switching views.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,179 +12,256 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Segmented Control — Animation Handbook">
-  <meta property="og:description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <meta property="og:description" content="A highlight slides to the option you pick. Best for switching views.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Segmented Control — Animation Handbook">
-  <meta name="twitter:description" content="A highlighted pill slides between options; the active label crossfades as it lands.">
+  <meta name="twitter:description" content="A highlight slides to the option you pick. Best for switching views.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Segmented Control", "name": "Segmented Control", "description": "A highlighted pill slides between options; the active label crossfades as it lands.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Segmented Control"}</script>
-<style>
-@font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-@font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-@font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-:root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--dur:340ms;--ease:cubic-bezier(.5,1.6,.4,1)}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-header{margin-bottom:20px}
-header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-.layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-.stage-wrap{flex:1;min-width:0}
-.stage{border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:clamp(28px,6vw,64px) 20px;min-height:clamp(280px,42vh,420px)}
-/* Segmented control */
-.seg{position:relative;display:inline-flex;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:4px;max-width:100%;overflow:hidden}
-.seg-ind{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:9px;background:var(--ui-accent);transform-origin:left center;transform:translateX(var(--x,0)) scaleX(var(--sx,1));width:var(--w,0);transition:transform var(--dur) var(--ease);will-change:transform;z-index:0}
-.seg.underline .seg-ind{top:auto;bottom:2px;height:2px;border-radius:2px}
-.seg-opt{position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;font-family:var(--mono);font-size:clamp(11px,1.4vw,13px);color:var(--ui-muted);padding:0 clamp(10px,2.4vw,22px);min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9px;transition:color var(--dur) var(--ease);outline:none;-webkit-tap-highlight-color:transparent}
-.seg-opt[aria-checked="true"]{color:#0b0b0d;font-weight:500}
-.seg.underline .seg-opt[aria-checked="true"]{color:var(--ui-accent)}
-.seg-opt:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ui-accent)}
-@media(hover:hover){.seg-opt:not([aria-checked="true"]):hover{color:var(--ui-text)}}
-.readout{font-size:11px;color:var(--ui-muted)}
-.readout b{color:var(--ui-text);font-weight:500}
-/* Controls */
-aside{width:clamp(210px,24vw,260px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-.lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-.div{height:1px;background:var(--ui-border)}
-.sr{display:flex;align-items:center;gap:6px;font-size:10px}
-.sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-.sval{width:52px;text-align:right;color:var(--ui-text)}
-select{background:var(--bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-@media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}.stage{padding-left:12px;padding-right:12px}}
-@media(prefers-reduced-motion:reduce){.seg-ind,.seg-opt{transition:none!important}}
-</style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Segmented Control", "name": "Segmented Control", "description": "A highlight slides to the option you pick. Best for switching views.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Segmented Control"}</script>
+  <style>
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--dur:340ms;--ease:cubic-bezier(.5,1.6,.4,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(28px,6vw,64px) 20px;background:var(--bg)}
+    /* Segmented control (not .seg: the shared stylesheet styles that name for the Try it choices) */
+    .seg-track{position:relative;display:inline-flex;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:4px;max-width:100%;overflow:hidden}
+    .seg-ind{position:absolute;top:4px;left:0;width:0;height:calc(100% - 8px);border-radius:9px;background:var(--ui-accent);transform-origin:left center;transform:translateX(var(--x,0)) scaleX(var(--sx,1));transition:transform var(--dur) var(--ease);will-change:transform;z-index:0}
+    .seg-track.underline .seg-ind{top:auto;bottom:2px;height:2px;border-radius:2px}
+    .seg-opt{position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;font-family:inherit;font-size:clamp(11px,1.4vw,13px);color:var(--ui-muted);padding:0 clamp(10px,2.4vw,22px);min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9px;transition:color var(--dur) var(--ease);-webkit-tap-highlight-color:transparent}
+    .seg-opt[aria-checked="true"]{color:#0b0b0d;font-weight:500}
+    .seg-track.underline .seg-opt[aria-checked="true"]{color:var(--ui-accent)}
+    /* The option draws its own focus ring, so it also hides the site ring (.stage keeps this above body.hb :focus-visible). The outline stays, transparent, for forced-colors mode, which removes box-shadow. */
+    .stage .seg-opt:focus-visible{outline:2px solid transparent;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ui-accent)}
+    @media(hover:hover){.seg-opt:not([aria-checked="true"]):hover{color:var(--ui-text)}}
+    @media(max-width:600px){.stage{padding-left:10px;padding-right:10px}}
+    @media(prefers-reduced-motion:reduce){.seg-ind,.seg-opt{transition:none!important}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../toast-notification/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../pull-to-refresh/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/segmented-control/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Segmented Control</h1>
-  <p>A highlighted pill slides between options; the active label crossfades as it lands.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
-    <div class="stage">
-      <div class="seg" id="seg" role="radiogroup" aria-label="View mode"></div>
-      <div class="readout">Selected: <b id="ro">—</b></div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../toast-notification/" rel="prev" aria-label="Previous: Toast Notification"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Toast Notification</span></a><a href="../pull-to-refresh/" rel="next" aria-label="Next: Pull to Refresh"><span><span class="hb-dir">Next: </span>Pull to Refresh</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.28 · Micro-Interactions</p>
+    <h1>Segmented Control</h1>
+    <p class="hb-lede">A highlight slides to the option you pick. Best for switching views.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Press an option or move with the arrow keys, or press Show me.</p></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">The indicator never animates left/width. JS measures the target button, then drives transform: translateX + scaleX so motion stays on the compositor.</p>
-    <div class="lbl">Segments</div>
-    <div class="sr"><input type="range" id="count" min="2" max="6" value="4" step="1"><span class="sval" id="count-v">4</span></div>
-    <div class="lbl">Slide duration</div>
-    <div class="sr"><input type="range" id="dur" min="80" max="700" value="340" step="10"><span class="sval" id="dur-v">340ms</span></div>
-    <div class="lbl">Easing</div>
-    <select id="ease">
-      <option value="cubic-bezier(.5,1.6,.4,1)" selected>Spring (overshoot)</option>
-      <option value="cubic-bezier(.4,0,.2,1)">Material smooth</option>
-      <option value="ease-in-out">Ease in-out</option>
-      <option value="ease-out">Ease out</option>
-      <option value="linear">Linear</option>
-    </select>
-    <div class="lbl">Indicator style</div>
-    <select id="style">
-      <option value="filled" selected>Filled pill</option>
-      <option value="underline">Underline</option>
-    </select>
-    <div class="div"></div>
-    <p style="font-size:10px;color:var(--ui-muted)">Click a segment, or focus it and use ← → arrows.</p>
-  </aside>
-</div>
+    <div class="stage hb-dots">
+      <div class="seg-track" id="seg" role="radiogroup" aria-label="View mode"></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="550" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="340" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="200" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the highlight takes to slide.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="cubic-bezier(.5,1.6,.4,1)" class="on" aria-pressed="true">Springy</button>
+          <button type="button" data-ease="ease-out" aria-pressed="false">Smooth</button>
+          <button type="button" data-ease="linear" aria-pressed="false">Even</button>
+        </div>
+        <p class="hb-hint">Springy runs a little past, then settles.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="hl-lbl">Highlight</p>
+        <div class="seg" id="hl-seg" role="group" aria-labelledby="hl-lbl">
+          <button type="button" data-style="pill" class="on" aria-pressed="true">Pill</button>
+          <button type="button" data-style="underline" aria-pressed="false">Underline</button>
+        </div>
+        <p class="hb-hint">A filled pill, or a thin line under the option.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="count-lbl">Number of options</p>
+          <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+            <button type="button" data-n="2" aria-pressed="false">Two</button>
+            <button type="button" data-n="3" aria-pressed="false">Three</button>
+            <button type="button" data-n="4" class="on" aria-pressed="true">Four</button>
+            <button type="button" data-n="5" aria-pressed="false">Five</button>
+          </div>
+          <p class="hb-hint">Up to five short options fit on one line.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a segmented control to [the row of options people switch between, such as Day, Week and Month]. Show the options side by side with one highlight behind the chosen one. When another option is chosen, slide the highlight over to it and stretch or shrink it to that option's width, while the labels' colors cross over as it lands. Measure the chosen option and move the highlight with transforms only, measuring again when fonts load or the window resizes. Make it one group of radio buttons that the arrow keys move through. If the visitor has reduced motion turned on, move the highlight without sliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>View switchers</li><li>Filters</li><li>Date ranges</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Many options</li><li>Long labels</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-const LABELS=['Day','Week','Month','Year','Decade','All'];
-const seg=document.getElementById('seg'),ind=Object.assign(document.createElement('span'),{className:'seg-ind'});
-const ro=document.getElementById('ro');
-let opts=[],current=0;
+  const LABELS=['Day','Week','Month','Year','Decade'];
+  const seg=document.getElementById('seg'),ind=Object.assign(document.createElement('span'),{className:'seg-ind'});
+  ind.setAttribute('aria-hidden','true'); // only the radios belong to the group
+  const slowTog=document.getElementById('slow-tog');
+  const vars=document.documentElement.style;
+  let opts=[],current=0,dur=340,runTimers=[];
 
-function build(n){
-  seg.innerHTML='';seg.appendChild(ind);opts=[];
-  for(let i=0;i<n;i++){
-    const b=document.createElement('button');
-    b.type='button';b.className='seg-opt';b.setAttribute('role','radio');b.textContent=LABELS[i];
-    b.setAttribute('aria-checked','false');
-    b.tabIndex=-1;
-    b.addEventListener('click',()=>select(i));
-    seg.appendChild(b);opts.push(b);
+  function build(n){
+    seg.innerHTML='';seg.appendChild(ind);opts=[];
+    for(let i=0;i<n;i++){
+      const b=document.createElement('button');
+      b.type='button';b.className='seg-opt';b.setAttribute('role','radio');b.textContent=LABELS[i];
+      b.setAttribute('aria-checked','false');b.tabIndex=-1;
+      b.addEventListener('click',()=>select(i));
+      seg.appendChild(b);opts.push(b);
+    }
+    current=Math.min(current,n-1);
+    // mark the selection before the first style resolution (no label crossfade on a rebuild), then put the highlight on it
+    paint();move(current,false);
   }
-  current=Math.min(current,n-1);
-  // mark the selection before first style resolution (no label crossfade on rebuild), then snap the pill
-  paint();requestAnimationFrame(()=>move(current,false));
-}
 
-// Measure the target segment and translate the indicator to it.
-function move(i,animate){
-  const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
-  const x=g.left-base.left+opts[0].offsetLeft;         // sub-pixel offset inside the track
-  const sx=g.width/base.width;                          // scaleX to match differing widths
-  if(!animate)ind.style.transition='none';
-  ind.style.width=base.width+'px';                     // fixed reference width; scaleX does the rest
-  ind.style.setProperty('--x',x+'px');
-  ind.style.setProperty('--sx',sx);
-  if(!animate){void ind.offsetWidth;ind.style.transition='';} // flush the snap before re-enabling transitions
-}
+  // Measure the chosen option and move the highlight with transform only: translateX puts it there, scaleX stretches a fixed reference width to the option's width.
+  function move(i,animate){
+    const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
+    const x=g.left-base.left+opts[0].offsetLeft;         // sub-pixel offset inside the track
+    const sx=g.width/base.width;                          // scaleX to match differing widths
+    if(!animate)ind.style.transition='none';
+    ind.style.width=base.width+'px';                      // fixed reference width; scaleX does the rest
+    ind.style.setProperty('--x',x+'px');
+    ind.style.setProperty('--sx',sx);
+    if(!animate){void ind.offsetWidth;ind.style.transition=''} // flush the snap before re-enabling transitions
+  }
 
-function paint(){
-  opts.forEach((b,i)=>{
-    const on=i===current;
-    b.setAttribute('aria-checked',on?'true':'false');
-    b.tabIndex=on?0:-1;
+  function paint(){
+    opts.forEach((b,i)=>{
+      const on=i===current;
+      b.setAttribute('aria-checked',on?'true':'false');
+      b.tabIndex=on?0:-1;
+    });
+  }
+
+  // A click, a key and Show me all choose an option here. It paints before it measures: the chosen label is heavier, so widths change.
+  function choose(i){current=i;paint();move(i,true)}
+  // The visitor's own choice also moves the keyboard focus onto the option
+  function select(i){
+    if(i!==current)choose(i);
+    opts[i].focus();
+  }
+
+  // Roving-tabindex arrow navigation for the radiogroup.
+  seg.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    const n=opts.length;let t=current;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown')t=(current+1)%n;
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp')t=(current-1+n)%n;
+    else if(e.key==='Home')t=0;
+    else if(e.key==='End')t=n-1;
+    else return;
+    e.preventDefault();select(t);
   });
-  ro.textContent=LABELS[current];
-}
 
-function select(i){
-  if(i===current){opts[i].focus();return;}
-  current=i;move(i,true);paint();opts[i].focus();
-}
+  // Measure again when the box reflows or a font swaps in: the widths depend on the text. A slide under way is aimed anew, not cut short.
+  const remeasure=()=>move(current,ind.getAnimations().length>0);
+  addEventListener('resize',remeasure);
+  if(document.fonts){
+    document.fonts.ready.then(remeasure);
+    document.fonts.addEventListener('loadingdone',remeasure);
+  }
 
-// Roving-tabindex arrow navigation for the radiogroup.
-seg.addEventListener('keydown',e=>{
-  const n=opts.length;let t=current;
-  if(e.key==='ArrowRight'||e.key==='ArrowDown')t=(current+1)%n;
-  else if(e.key==='ArrowLeft'||e.key==='ArrowUp')t=(current-1+n)%n;
-  else if(e.key==='Home')t=0;
-  else if(e.key==='End')t=n-1;
-  else return;
-  e.preventDefault();select(t);
-});
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
+  // A run starts on the first option, put there without animating: the transitions are turned off, the option is chosen,
+  // a reflow makes it stick, and the transitions come back.
+  function toRest(){
+    opts.forEach(b=>{b.style.transition='none'});
+    current=0;paint();move(0,false);
+    void seg.offsetWidth;
+    opts.forEach(b=>{b.style.transition=''});
+  }
+  // The highlight slides to the last option, rests there for 1200ms once it has arrived, and slides back. The run moves no focus.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    choose(opts.length-1);
+    later(()=>choose(0),dur,1200);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the highlight stays where it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
 
-// Recompute geometry when the box reflows or a font swaps in.
-addEventListener('resize',()=>move(current,false));
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>move(current,false));
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
+  choices('feel-seg',d=>{vars.setProperty('--ease',d.ease)});
+  choices('hl-seg',d=>{seg.classList.toggle('underline',d.style==='underline');requestAnimationFrame(()=>move(current,false))});
+  choices('count-seg',d=>build(+d.n));
 
-// Controls
-const R=document.documentElement.style;
-document.getElementById('count').addEventListener('input',e=>{
-  document.getElementById('count-v').textContent=e.target.value;build(+e.target.value);
-});
-document.getElementById('dur').addEventListener('input',e=>{
-  document.getElementById('dur-v').textContent=e.target.value+'ms';R.setProperty('--dur',e.target.value+'ms');
-});
-document.getElementById('ease').addEventListener('change',e=>R.setProperty('--ease',e.target.value));
-document.getElementById('style').addEventListener('change',e=>{
-  seg.classList.toggle('underline',e.target.value==='underline');
-  requestAnimationFrame(()=>move(current,false));
-});
-
-build(4);
+  build(4);
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

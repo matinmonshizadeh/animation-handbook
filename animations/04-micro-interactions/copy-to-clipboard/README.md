@@ -1,7 +1,7 @@
 # Copy to Clipboard
 
 ## What it is
-Copy-to-clipboard feedback is the transient confirmation a button gives after copying text. The moment the copy succeeds, the icon morphs from a clipboard glyph to a checkmark, the label crossfades from "Copy" to "Copied!", and a brief color pulse acknowledges the event. After about 1.5 seconds the button reverts to its resting state, ready to use again. It is the canonical example of transient success feedback: confirm, then get out of the way.
+Copy feedback is the short confirmation a Copy button gives after it copies something. The clipboard icon turns into a tick, the label changes from Copy to Copied! and a brief flash of color marks the moment. After a second or two the button changes back, ready to use again.
 
 ## When to use it
 - Code blocks and API keys in documentation
@@ -33,15 +33,14 @@ btn.addEventListener('click', () => {
 .copied .chk         { opacity: 1; transform: scale(1);  } /* checkmark in  */
 ```
 
-The two labels are stacked in the same grid cell so they crossfade in place without shifting layout, and the two icons are absolutely positioned on top of each other so the clipboard scales out as the checkmark scales in. Only `opacity` and `transform` animate; the checkmark path adds a short `stroke-dashoffset` draw for a hand-drawn finish.
+The two labels are stacked in the same grid cell so they crossfade in place without shifting layout, and the two icons are absolutely positioned on top of each other so the clipboard scales out as the checkmark scales in. The icons and labels animate `opacity` and `transform`, the checkmark path adds a short `stroke-dashoffset` draw for a hand-drawn finish, the button's border and text fade to green with a color transition, and the pulse ring is a one-shot animation of `opacity` and `transform`. If the browser refuses the copy, the button stays as it is and a short message says so.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Revert delay | 1500ms | How long "Copied!" stays before reverting. Under ~1s feels rushed; over ~3s lingers |
-| Animation duration | 280ms | Speed of the icon morph and label crossfade. 150–300ms reads as snappy |
-| Easing | overshoot | A slight spring overshoot on the checkmark gives the confirmation a bit of pop |
-| Pulse | ~520ms | One-shot color ring; runs once per copy, independent of the revert timer |
+| Speed | Normal | How long the icon and label take to change: slow is 450ms, normal 280ms and fast 170ms |
+| Time before it changes back | Medium | How long Copied! stays: short is 1 second, medium 1.5 and long 2.5; under a second feels rushed, and over about three seconds it lingers |
+| Feel | Springy | Springy gives the tick a small bounce; Smooth slows to a stop; Even keeps one steady speed |
 
 ## Production notes
 - **Clipboard API support and fallback**: `navigator.clipboard.writeText` requires a secure context (HTTPS or `localhost`) and a user gesture. Feature-detect it and fall back to a hidden `<textarea>` plus `document.execCommand('copy')` for older or insecure-context browsers, as the demo does.
@@ -51,6 +50,6 @@ The two labels are stacked in the same grid cell so they crossfade in place with
 - **Reduced motion**: under `prefers-reduced-motion: reduce`, drop the morph, pulse, and stroke draw — swap the icon and label instantly. The confirmation still lands, just without movement.
 
 ## See also
-- [Checkmark Draw](../checkmark-draw/) — the stroke-dashoffset technique behind the success tick
-- [Button Press Scale](../button-press-scale/) — the press feedback that precedes the copy
-- [Success Confetti](../success-confetti/) — a louder success celebration for higher-stakes actions
+- [Checkmark Draw](../checkmark-draw/) — a tick that draws itself
+- [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
+- [Success Confetti](../success-confetti/) — a bigger celebration for a bigger moment

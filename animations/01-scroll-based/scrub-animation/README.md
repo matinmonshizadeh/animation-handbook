@@ -4,7 +4,7 @@
 
 ## What it is
 
-An animation with no duration and no playback. Every scroll offset maps to exactly one frame, computed from a single `0–1` progress value derived from `scrollTop` — so scrolling backward does not "reverse" anything, it simply seeks to an earlier position. The demo makes that literal: a flight path is drawn in full up front, progress paints a trail along it, and a frame counter and seek bar report the playhead. Because the whole route is visible at once, you can always see where the current frame sits inside the animation.
+A scrub animation has no play button and no length in seconds: how far you have scrolled decides exactly which moment of the animation shows, like dragging the playhead of a video. Scroll down and it moves forward; scroll back and it moves back. The demo draws the whole flight route up front and fills it in as the plane flies, with a bar and a frame count underneath, so you can always see where you are.
 
 ## When to use it
 
@@ -37,16 +37,13 @@ trail.style.strokeDashoffset = pathLength - d;   // elapsed portion of the route
 
 The trail uses the standard line-drawing trick: `stroke-dasharray` is set to the full path length, and `stroke-dashoffset` counts down from it, revealing the stroke as progress advances.
 
-Nothing here is time-based, which is why the Seek slider in the panel produces identical frames without any scrolling at all — it just writes `scrollTop` and lets the same code run. Scroll is one input to a position, not a trigger for playback.
+Nothing here is time-based: the Play button under the demo only scrolls the box at a steady speed, and the same code draws each frame. Scroll is one input to a position, not a trigger for playback.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Scroll budget | `3 × stage height` | How much scrolling the animation is spread across. Longer = finer control, slower to traverse |
-| `FRAMES` | 120 | Purely a readout, to make "one offset = one frame" concrete |
-| Easing | linear | Curve applied to progress. Linear is 1:1 with scroll; anything else redistributes the frames |
-| Sample offset | 1.5px | Distance either side of the playhead used to derive heading. Larger = smoother, less responsive banking |
+| Feel | Even | How scroll turns into progress: even follows the scroll one to one; gentle eases in and out; smooth slows toward the end; slow start begins slowly and speeds up |
 
 ## Production notes
 
@@ -55,10 +52,10 @@ Nothing here is time-based, which is why the Seek slider in the panel produces i
 - **Give the reader the whole timeline.** The failure mode of an abstract scrubbed scene is that the viewer cannot tell where they are or how much is left, so the motion reads as noise. Drawing the full route up front and filling it in turns the animation into its own progress bar.
 - **Keep layout reads out of the frame loop.** `getTotalLength()`, `scrollHeight` and `clientHeight` are measured once and refreshed on resize. Reading them per frame forces a synchronous reflow on every scroll event.
 - **Library equivalents.** GSAP ScrollTrigger with `scrub: true` is the production standard, and `scrub: 0.5` adds a smoothing lag that makes wheel-notch scrolling feel less stepped. Framer Motion's `useScroll` + `useTransform` is the React equivalent; both are wrappers over exactly this progress-to-value mapping.
-- **Accessibility.** Nothing autoplays, so this is direct manipulation rather than imposed motion. Under `prefers-reduced-motion: reduce` the demo drops the decorative glow and keeps the mapping, since removing it entirely would leave the control inert rather than calmer.
+- **Accessibility.** The page scrolls the box once on arrival, and not at all under `prefers-reduced-motion: reduce`; after that it moves only when the visitor scrolls, so this is direct manipulation rather than imposed motion. Under reduced motion the demo drops the decorative glow and keeps the mapping, since removing it entirely would leave the control inert rather than calmer.
 
 ## See also
 
-- [ScrollTrigger Animation](../scroll-trigger/) — the broader trigger lifecycle this pattern sits inside.
-- [Pin Animation](../pin-animation/) — a complementary pattern where content pins and advances in discrete steps rather than scrubbing continuously.
-- [Progress Bar](../progress-bar/) — the same `scrollTop / maxScroll` value, used as an indicator instead of a driver.
+- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Pin Animation](../pin-animation/) — one part holds still while the page scrolls past
+- [Progress Bar](../progress-bar/) — the same scroll progress, shown as a filling bar

@@ -1,7 +1,7 @@
 # Section Wipe
 
 ## What it is
-A section wipe is a transition where the next section slides up over the current one as you scroll, rather than the current one scrolling away. It is built almost entirely from layout: each section is `position: sticky` at the top with an ascending `z-index`, so a higher-numbered section naturally rises over its predecessor. This demo stacks four full-height sections and adds a single JavaScript touch — the outgoing section scales down slightly as it's covered.
+A section wipe replaces each full-screen section with the next by sliding the new one up over it, instead of scrolling the old one away. Every section sticks to the top of the screen and sits above the one before, so the next one covers it as you scroll. The covered section can shrink slightly, so it seems to sink behind the one arriving.
 
 ## When to use it
 - Full-screen storytelling sections that should feel layered rather than scrolled
@@ -10,7 +10,7 @@ A section wipe is a transition where the next section slides up over the current
 - Anywhere the covering motion should read as depth, one panel sliding behind another
 
 ## How it works
-The wipe itself requires no animation code: every `.section` is `position: sticky; top: 0; height: 100%` of the stage, and their `z-index` values ascend (1, 2, 3, 4). As you scroll, each section sticks at the top until the next one — being higher in the stack — covers it. The only scripted effect is the receding scale, computed from how much of the viewport the next section has already covered:
+The wipe itself requires no animation code: every `.section` is `position: sticky; top: 0; height: 100cqh` (one stage height, because the stage is a size container), and their `z-index` values ascend (1, 2, 3, 4). As you scroll, each section sticks at the top until the next one — being higher in the stack — covers it. The only scripted effect is the receding scale, computed from how much of the viewport the next section has already covered:
 
 ```js
 sections.forEach((s, i) => {
@@ -22,15 +22,13 @@ sections.forEach((s, i) => {
 });
 ```
 
-Because `t` is a continuous ratio of coverage, the scale is scrubbed to scroll — freeze mid-wipe and the section sits at an intermediate scale, no snap. The scale-down makes the covered section feel like it's sliding *behind* the incoming one rather than simply being hidden.
+Here `sr` is the stage's inner box, its top edge and its height inside the border. Because `t` is a continuous ratio of coverage, the scale is scrubbed to scroll — freeze mid-wipe and the section sits at an intermediate scale, no snap. The scale-down makes the covered section feel like it's sliding *behind* the incoming one rather than simply being hidden.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `z-index` order | ascending 1→4 | Determines stacking; higher sections wipe over lower ones |
-| Scale floor | 0.96 | How far the outgoing section shrinks; lower = deeper recede |
-| Wipe range | 100% | Fraction of coverage over which the scale completes; lower = finishes sooner |
-| Coverage `t` | derived | 0 when the next section is off-stage, 1 when it fully covers |
+| Shrink | A little | How small the covered section gets: none keeps it full size, a little is 96% and a lot 88%; smaller sinks it deeper |
+| Shrink speed | Gradual | How much of the wipe the shrink takes: gradual spreads it over the whole wipe, medium over the first 60% and quick over the first 30% |
 
 ## Production notes
 - **The wipe is free**: sticky positioning plus ascending `z-index` produces the entire covering motion with zero JavaScript. Reach for script only for embellishments like the scale, never for the wipe itself.
@@ -41,7 +39,7 @@ Because `t` is a continuous ratio of coverage, the scale is scrubbed to scroll �
 - **Library equivalents**: GSAP ScrollTrigger with `scrub: true` on a scale tween implements the same recede and adds the easing CSS alone can't provide here; Framer Motion maps `useScroll` progress to a `scale` motion value for the React version.
 
 ## See also
-- [Sticky Section](../sticky-section/) — pinning one section and morphing its interior
-- [Stacking Cards](../stacking-cards/) — sticky stacking applied to cards rather than sections
-- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a sticky element transforming as it's passed
-- [Snap Scrolling](../snap-scrolling/) — snapping between full-height sections
+- [Sticky Section](../sticky-section/) — one section holds still while its content changes
+- [Stacking Cards](../stacking-cards/) — cards pile up into a deck as you scroll
+- [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a big cover shrinks into a slim header as you scroll
+- [Snap Scrolling](../snap-scrolling/) — scrolling stops on one whole section at a time

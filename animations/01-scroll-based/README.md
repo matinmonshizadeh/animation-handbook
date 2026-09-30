@@ -4,55 +4,29 @@ Techniques driven by scroll position.
 
 ## Entries
 
-- [Parallax Depth-of-Field](parallax-depth-of-field/) — Five layered SVG mountains with
-  parallax translation and blur-based depth-of-field driven by scroll progress.
-- [Parallax Scrolling](parallax-scrolling/) — Four SVG layers at different scroll speeds
-  create a 3D depth illusion; adjustable speed multipliers show how ratios make or break the effect.
-- [Reverse-Scrolling Columns](reverse-scrolling-columns/) — center column scrolls normally
-  while two flanking columns scroll in reverse, all three looping infinitely.
-- [Cover Card to Fixed Header](cover-card-to-fixed-header/) — a hero cover card scrubs
-  into a compact fixed header; every visual property driven by a single 0→1 progress value.
-- [Fly-in Fly-out Contact List](fly-in-fly-out-contact-list/) — rows translate and fade
-  as they enter and exit the scroll viewport; effect scrubbed continuously to scroll position.
-- [Stacking Cards](stacking-cards/) — cards fan into a deck as they stack; per-index sticky
-  offset creates the peek, CSS Scroll-Driven Animations drive the scale.
-- [ScrollTrigger Animation](scroll-trigger/) — demonstrates the onEnter/onLeave/onEnterBack/
-  onLeaveBack lifecycle using IntersectionObserver and vanilla scroll events.
-- [Scrub Animation](scrub-animation/) — a plane flies a drawn curve that doubles as the timeline;
-  every transform is welded to scroll position with no autoplay.
-- [Pin Animation](pin-animation/) — a phone mockup and feature copy pin to the viewport via
-  CSS sticky while four features swap in sequence during the scroll.
-- [Snap Scrolling](snap-scrolling/) — CSS scroll-snap-type creates a paginated, magnetic feel;
-  switch between mandatory, proximity, and none to feel the difference.
-- [Scrollytelling](scrollytelling/) — fractional chapter progress drives continuous depth
-  crossfades across six ocean-layer chapters; a porthole visual responds between discrete states.
-- [Reveal on Scroll](reveal-on-scroll/) — seven reveal techniques (fade, slide, scale, blur,
-  clip-path mask, stagger) fired by IntersectionObserver at a configurable trigger line.
-- [Stagger Reveal](stagger-reveal/) — groups of elements reveal sequentially with cascading
-  delays; forward, reverse, center-out, and random cascade directions on a grid, list, and chips.
-- [Horizontal Scroll](horizontal-scroll/) — vertical scroll translates a horizontal panel
-  strip; a tall pinned section provides the scroll budget, translateX does the work.
-- [Sticky Section](sticky-section/) — the whole section pins to the viewport while its
-  interior morphs through four states scrubbed to scroll position within the section.
-- [Counter Animation](counter-animation/) — numbers count 0 → target with easing when the
-  stats section enters the internal viewport; four counter formats with stagger support.
-- [Progress Bar](progress-bar/) — reading progress indicator in three styles: top bar,
-  circular ring, and side rail; all driven by scrollTop / (scrollHeight − clientHeight).
-- [Section Wipe](section-wipe/) — the next section slides over the current one via sticky
-  z-index stacking; a scale-down on the receding layer adds depth to the transition.
-- [Zoom Into Image](zoom-into-image/) — clip-path expands from a framed card to full-bleed
-  as you scroll; the portal effect is clip-path: inset() collapsing from center outward.
-- [Scroll Image Sequence](scroll-image-sequence/) — a canvas pinned with position:sticky while
-  scroll progress maps to a frame index; the Apple product-scroll technique, frames drawn procedurally.
-- [Smooth (Inertia) Scroll](smooth-scroll/) — wheel and touch input eased toward a target each
-  frame with a lerp, giving weighted, gliding momentum instead of the browser's instant jumps.
-- [Text Fill on Scroll](text-fill-on-scroll/) — a pinned paragraph fills word by word as scroll
-  progress sweeps through it; pause mid-read, scroll back and it un-reads exactly.
-- [Scroll Velocity Skew](scroll-velocity-skew/) — rows shear in proportion to scroll speed and spring
-  straight on stop — velocity mapping, in contrast to every position-mapped entry.
-- [SVG Line Draw on Scroll](svg-line-draw/) — a winding route draws itself down the page via
-  stroke-dashoffset, popping waypoints as the line reaches them.
-- [Scrollspy Navigation](scrollspy-nav/) — a nav rail tracks the section in view with a sliding
-  indicator; clicking smooth-scrolls, with the spy locked during programmatic scroll.
-- [Scroll-Driven Background Color](scroll-background-color/) — the stage background blends through a palette as
-  you scroll, flipping text contrast automatically on light stops.
+- [Parallax Depth-of-Field](parallax-depth-of-field/) — Layers move at their own speed as the focus shifts. Best for cinematic intros.
+- [Parallax Scrolling](parallax-scrolling/) — Far layers move slower than near ones as you scroll. Best for hero scenes.
+- [Reverse-Scrolling Columns](reverse-scrolling-columns/) — Side columns run the opposite way to the middle one. Best for portfolios.
+- [Cover Card to Fixed Header](cover-card-to-fixed-header/) — A tall cover shrinks into a slim header as you scroll. Best for articles.
+- [Fly-in Fly-out Contact List](fly-in-fly-out-contact-list/) — Rows fade and slide as they near the top or bottom edge. Best for long lists.
+- [Stacking Cards](stacking-cards/) — Cards stick at the top and pile into a deck. Best for step-by-step stories.
+- [ScrollTrigger Animation](scroll-trigger/) — Animations start, follow and pin at set scroll points. Best for landing pages.
+- [Scrub Animation](scrub-animation/) — Scroll plays it forward and back, like dragging a video. Best for product tours.
+- [Pin Animation](pin-animation/) — One part stays put while its text changes on scroll. Best for feature lists.
+- [Snap Scrolling](snap-scrolling/) — The box settles on one whole section at a time. Best for slides and galleries.
+- [Scrollytelling](scrollytelling/) — A picture beside the story changes as you read down. Best for data stories.
+- [Reveal on Scroll](reveal-on-scroll/) — Cards appear as they cross a line in the box. Best for long landing pages.
+- [Stagger Reveal](stagger-reveal/) — Items in a group appear one after another as it scrolls in. Best for card grids.
+- [Horizontal Scroll](horizontal-scroll/) — Scroll down and a row of panels slides sideways. Best for portfolios.
+- [Sticky Section](sticky-section/) — A section holds still while its content changes. Best for feature tours.
+- [Counter Animation](counter-animation/) — Numbers count up when they scroll into view. Best for stats.
+- [Progress Bar](progress-bar/) — A bar fills as you read down the page. Best for long articles.
+- [Section Wipe](section-wipe/) — Each section slides up over the one before. Best for full-screen stories.
+- [Zoom Into Image](zoom-into-image/) — A small window opens up to fill the box as you scroll. Best for hero images.
+- [Scroll Image Sequence](scroll-image-sequence/) — Scrolling plays a series of pictures like a flip-book. Best for products.
+- [Smooth (Inertia) Scroll](smooth-scroll/) — Scrolling glides to a stop instead of jumping. Best for portfolio sites.
+- [Text Fill on Scroll](text-fill-on-scroll/) — Words light up one by one as you scroll. Best for key statements.
+- [Scroll Velocity Skew](scroll-velocity-skew/) — Rows lean when you scroll fast and straighten when you stop. Best for galleries.
+- [SVG Line Draw on Scroll](svg-line-draw/) — A line draws itself along a route as you scroll. Best for timelines.
+- [Scrollspy Navigation](scrollspy-nav/) — A menu highlights the section you are reading. Best for long docs.
+- [Scroll-Driven Background Color](scroll-background-color/) — The background color changes as you scroll through sections. Best for stories.

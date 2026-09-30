@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scrollspy Navigation — Animation Handbook</title>
-  <meta name="description" content="A nav rail that tracks the section in view — the indicator slides to the active link; clicking a link smooth-scrolls to its section.">
+  <meta name="description" content="A menu highlights the section you are reading. Best for long docs.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrollspy-nav/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,53 +12,38 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Scrollspy Navigation — Animation Handbook">
-  <meta property="og:description" content="A nav rail that tracks the section in view — the indicator slides to the active link; clicking a link smooth-scrolls to its section.">
+  <meta property="og:description" content="A menu highlights the section you are reading. Best for long docs.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrollspy-nav/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Scrollspy Navigation — Animation Handbook">
-  <meta name="twitter:description" content="A nav rail that tracks the section in view — the indicator slides to the active link; clicking a link smooth-scrolls to its section.">
+  <meta name="twitter:description" content="A menu highlights the section you are reading. Best for long docs.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrollspy Navigation", "name": "Scrollspy Navigation", "description": "A nav rail that tracks the section in view — the indicator slides to the active link; clicking a link smooth-scrolls to its section.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrollspy-nav/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrollspy Navigation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scrollspy Navigation", "name": "Scrollspy Navigation", "description": "A menu highlights the section you are reading. Best for long docs.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrollspy-nav/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Scrollspy Navigation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--ui-border:rgba(255,255,255,.09)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage-wrap{flex:1;min-width:0;position:relative}
-    .stage{width:100%;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;position:relative}
-    .stage::-webkit-scrollbar{display:none}
-    /* The rail lives OUTSIDE .stage (inside .stage-wrap). An absolutely positioned
-       child of a scroll container scrolls away with the content. */
-    .spy-nav{position:absolute;top:16px;left:16px;z-index:5;background:rgba(17,17,20,.85);backdrop-filter:blur(8px);border:1px solid var(--ui-border);border-radius:8px;padding:10px;display:flex;flex-direction:column}
+    .stage{position:relative;overflow:hidden;background:#0b0b0d}
+    .doc{height:100%;overflow-y:auto;scrollbar-width:none;position:relative;container-type:size}
+    .doc::-webkit-scrollbar{display:none}
+    /* The menu sits inside the scroller, in a row that is zero tall and sticks to the top: it stays in place while the
+       sections move, and a wheel turn or a swipe that starts on it still scrolls the box */
+    .spy-rail{position:sticky;top:0;height:0;z-index:1}
+    .spy-nav{position:absolute;top:16px;left:16px;background:rgba(17,17,20,.85);backdrop-filter:blur(8px);border:1px solid var(--ui-border);border-radius:8px;padding:10px;display:flex;flex-direction:column}
     .spy-ind{position:absolute;left:0;top:10px;width:3px;height:44px;background:var(--ui-accent);border-radius:2px;transition:transform .25s ease}
-    .spy-link{display:flex;align-items:center;min-height:44px;padding:0 14px;font-family:var(--mono);font-size:11px;color:var(--ui-muted);background:none;border:0;cursor:pointer;text-align:left;transition:color .25s ease;white-space:nowrap}
+    .spy-link{display:flex;align-items:center;min-height:44px;padding:0 14px;font:inherit;font-size:14px;font-weight:500;color:var(--ui-muted);background:none;border:0;cursor:pointer;text-align:left;transition:color .25s ease;white-space:nowrap}
     .spy-link.on{color:var(--ui-accent)}
+    /* After a jump (Back to top, Play starting over) the marker and links change at once instead of travelling */
+    .spy-nav.jump .spy-ind,.spy-nav.jump .spy-link{transition:none}
     @media(hover:hover){.spy-link:hover{color:var(--ui-text)}.spy-link.on:hover{color:var(--ui-accent)}}
     .sec{min-height:500px;padding:36px 28px 36px 200px}
-    .sec h2{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.4vw,22px);margin-bottom:14px}
-    .sec p{font-size:11px;color:var(--ui-muted);line-height:1.8;max-width:520px;margin-bottom:12px}
-    .runout{height:calc(var(--stage-h)*.4)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text);font-size:10px}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:34px;text-align:right;color:var(--ui-text)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
+    .sec h3{font-weight:800;font-size:clamp(16px,2.4vw,22px);margin-bottom:14px}
+    .sec p{font-size:14px;color:var(--ui-muted);line-height:1.8;max-width:520px;margin-bottom:12px}
+    .runout{height:40cqh}
+    /* Short laptop screens: 36px links so the whole menu fits the smallest stage. A phone turned sideways keeps 44px links and the menu scrolls. */
+    @media(min-width:601px) and (max-height:640px) and (pointer:fine){.spy-link{min-height:36px}}
+    @media(min-width:601px) and (max-height:640px) and (pointer:coarse){.spy-nav{max-height:calc(100cqh - 32px);overflow-y:auto;scrollbar-width:none}}
     @media(max-width:600px){
-      .layout{flex-direction:column}aside{width:100%}.stage{flex:none;width:100%}:root{--stage-h:480px}
       .spy-nav{flex-direction:row;top:8px;left:8px;right:8px;overflow-x:auto;padding:6px;scrollbar-width:none}
       .spy-ind{display:none}
       .spy-link{padding:0 12px;border-radius:6px}
@@ -67,43 +52,98 @@
     }
     @media(prefers-reduced-motion:reduce){.spy-ind,.spy-link{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../svg-line-draw/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../scroll-background-color/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/scrollspy-nav/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Scrollspy Navigation</h1>
-  <p>A nav rail that tracks the section in view — the indicator slides to the active link; clicking a link smooth-scrolls to its section.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
-    <div class="stage" id="stage"><div id="content"></div><div class="runout"></div></div>
-    <nav class="spy-nav" id="spy-nav" aria-label="Section navigation"><div class="spy-ind" id="spy-ind"></div></nav>
-  </div>
-  <aside>
-    <p class="note">Section tops are measured once (container-relative, not offsetTop) and compared against an activation line — scrollTop + 35% of the viewport. The active index only changes when a new section crosses it.</p>
-    <div><div class="lbl" id="act-lbl">Activation line</div>
-      <div class="sr"><input type="range" id="act-sl" aria-labelledby="act-lbl" min="20" max="60" value="35" step="5"><span class="sv" id="act-val">35%</span></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../svg-line-draw/" rel="prev" aria-label="Previous: SVG Line Draw on Scroll"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>SVG Line Draw on Scroll</span></a><a href="../scroll-background-color/" rel="next" aria-label="Next: Scroll-Driven Background Color"><span><span class="hb-dir">Next: </span>Scroll-Driven Background Color</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.25 · Scroll-Based</p>
+    <h1>Scrollspy Navigation</h1>
+    <p class="hb-lede">A menu highlights the section you are reading. Best for long docs.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box or pick a section in the menu, or press Play and it scrolls for you.</p></div>
     </div>
-    <div class="div"></div>
-    <label class="tog" for="smooth-tog"><input type="checkbox" id="smooth-tog" checked><span>Smooth scroll on click</span></label>
-    <div class="div"></div>
-    <div class="kv"><span>Active section</span><span class="v" id="ro-active">—</span></div>
-    <div class="kv"><span>Scroll</span><span class="v" id="ro-pct">0%</span></div>
-  </aside>
-</div>
+    <div class="stage">
+      <div class="doc" id="doc" data-hb-scroller tabindex="0" role="region" aria-label="Documentation sections">
+        <div class="spy-rail"><nav class="spy-nav" id="spy-nav" aria-label="Section navigation"><div class="spy-ind" id="spy-ind" aria-hidden="true"></div></nav></div>
+        <div id="content"></div>
+        <div class="runout"></div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="act-lbl">Link changes at</p>
+        <div class="seg" id="act-seg" role="group" aria-labelledby="act-lbl">
+          <button type="button" data-act="0.2" aria-pressed="false">Near the top</button>
+          <button type="button" data-act="0.35" class="on" aria-pressed="true">A third down</button>
+          <button type="button" data-act="0.5" aria-pressed="false">Halfway</button>
+        </div>
+        <p class="hb-hint">How far up a heading must scroll before its link lights.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Glides to the section</span><input class="hb-switch" type="checkbox" role="switch" id="smooth-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Off, a link jumps straight to its section.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a scrollspy menu to [your documentation or long page and its section headings]. Keep a menu of section links in place beside the content and highlight the link for the section being read, with a marker that slides to it: a section becomes current once its heading scrolls up past a chosen line, and the last link lights up at the very bottom. Clicking or tapping a link scrolls to its section and lights that link at once, without flickering through the links in between. On phones, turn the menu into a strip across the top. If the visitor has reduced motion turned on, jump to sections instead of gliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Documentation</li><li>Long articles</li><li>Settings pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Short pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const SECTIONS=[
     {name:'Introduction',tint:'rgba(110,168,255,.05)'},
@@ -114,16 +154,15 @@ body{padding-top:46px}
     {name:'Changelog',tint:'rgba(140,210,230,.05)'},
   ];
   const BODY='Body copy stands in for real documentation here. The section needs enough height that scrolling through it feels like reading a page, not flicking past a card.';
-  const stage=document.getElementById('stage'),content=document.getElementById('content'),nav=document.getElementById('spy-nav'),ind=document.getElementById('spy-ind');
-  const actSl=document.getElementById('act-sl'),actVal=document.getElementById('act-val'),smoothTog=document.getElementById('smooth-tog');
-  const roActive=document.getElementById('ro-active'),roPct=document.getElementById('ro-pct');
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let tops=[],maxScroll=0,active=-1,activation=.35,targetLock=-1,lockTimer=0,ticking=false,indH=-1;
+  const doc=document.getElementById('doc'),content=document.getElementById('content'),nav=document.getElementById('spy-nav'),ind=document.getElementById('spy-ind');
+  const smoothTog=document.getElementById('smooth-tog');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let tops=[],maxScroll=0,active=-1,activation=.35,targetLock=-1,glideFrame=0,ticking=false,indH=-1,lastTop=0,pressing=false,missed=false;
 
   const secEls=SECTIONS.map((s,i)=>{
     const el=document.createElement('section');
     el.className='sec';el.style.background=s.tint;
-    el.innerHTML=`<h2>${s.name}</h2><p>${BODY}</p><p>${BODY}</p><p>${BODY}</p>`;
+    el.innerHTML=`<h3>${s.name}</h3><p>${BODY}</p><p>${BODY}</p><p>${BODY}</p>`;
     content.appendChild(el);
     const link=document.createElement('button');
     link.className='spy-link';link.type='button';link.textContent=s.name;link.dataset.i=i;
@@ -132,57 +171,108 @@ body{padding-top:46px}
   });
   const links=[...nav.querySelectorAll('.spy-link')];
 
-  // Cache tops in the stage's content coordinates. offsetTop would be
-  // body-relative here (the sections' offsetParent is not the scroller).
+  // Cache tops in the scroller's content coordinates, measured against the scroller's own rect (the stage's border sits outside it).
+  // offsetTop would depend on what sits between a section and the scroller.
   function measure(){
-    const sRect=stage.getBoundingClientRect();
-    tops=secEls.map(el=>{const r=el.getBoundingClientRect();return r.top-sRect.top+stage.scrollTop});
-    maxScroll=stage.scrollHeight-stage.clientHeight;
+    const sRect=doc.getBoundingClientRect();
+    tops=secEls.map(el=>el.getBoundingClientRect().top-sRect.top+doc.scrollTop);
+    maxScroll=doc.scrollHeight-doc.clientHeight;
   }
   function moveInd(i){
     const l=links[i];
     ind.style.transform=`translateY(${l.offsetTop-10}px)`; // 10 = indicator's own top offset
     if(l.offsetHeight!==indH){indH=l.offsetHeight;ind.style.height=indH+'px'}
   }
-  function setActive(i){
+  // When the menu itself scrolls (a strip on phones, a tall menu on a short sideways screen) show the active link by setting
+  // the menu's own scroll position; scrollIntoView() would scroll the page too.
+  function showInMenu(i){
+    if(pressing){missed=true;return}      // never move the links from under a finger
+    const l=links[i];
+    if(nav.scrollWidth>nav.clientWidth)nav.scrollLeft=l.offsetLeft-(nav.clientWidth-l.offsetWidth)/2;
+    if(nav.scrollHeight>nav.clientHeight)nav.scrollTop=l.offsetTop-(nav.clientHeight-l.offsetHeight)/2;
+  }
+  function setActive(i,instant){
     if(i===active)return;                 // guard: write DOM only on change
-    if(active>-1)links[active].classList.remove('on');
-    links[i].classList.add('on');active=i;
-    moveInd(i);roActive.textContent=SECTIONS[i].name;
+    if(instant)nav.classList.add('jump');
+    if(active>-1){links[active].classList.remove('on');links[active].removeAttribute('aria-current')}
+    links[i].classList.add('on');links[i].setAttribute('aria-current','true');active=i;
+    moveInd(i);showInMenu(i);
+    if(instant){void nav.offsetWidth;nav.classList.remove('jump')}
   }
   function spy(){
-    const st=stage.scrollTop;
-    roPct.textContent=(maxScroll?Math.round(st/maxScroll*100):0)+'%';
+    const st=doc.scrollTop;
+    const jumped=Math.abs(st-lastTop)>doc.clientHeight*1.5; // Back to top, Play starting over: the menu resets at once
+    lastTop=st;
     if(targetLock>-1)return;              // programmatic scroll in flight — no flicker
-    const line=st+stage.clientHeight*activation;
+    const line=st+doc.clientHeight*activation;
     let i=0;
     for(let k=0;k<tops.length;k++)if(tops[k]<=line)i=k;
     if(st>=maxScroll-1)i=tops.length-1;   // force last section at the very bottom
-    setActive(i);
+    setActive(i,jumped);
   }
-  stage.addEventListener('scroll',()=>{
-    if(targetLock>-1){                    // fallback lock release for no-scrollend browsers
-      clearTimeout(lockTimer);
-      lockTimer=setTimeout(()=>{targetLock=-1;spy()},150);
-    }
+  doc.addEventListener('scroll',()=>{
     if(!ticking){ticking=true;requestAnimationFrame(()=>{ticking=false;spy()})}
   },{passive:true});
-  stage.addEventListener('scrollend',()=>{clearTimeout(lockTimer);targetLock=-1;spy()});
+
+  // A link press glides the box to its section by setting scrollTop on every frame (not the browser's own smooth scroll),
+  // so Play, Back to top and the visitor can end the glide at once
+  function stopGlide(){cancelAnimationFrame(glideFrame);glideFrame=0;targetLock=-1}
+  function endGlide(){if(targetLock>-1){stopGlide();spy()}}   // the marker follows the scroll position again
+  function glideTo(i,to){
+    stopGlide();targetLock=i;
+    const from=doc.scrollTop,dist=to-from,dur=Math.min(700,Math.max(250,Math.abs(dist)/2));
+    let t0=0,written=from;
+    function step(now){
+      if(Math.abs(doc.scrollTop-written)>1.5){endGlide();return}   // the visitor scrolled the box some other way: give way
+      if(!t0)t0=now;
+      const k=Math.min(1,(now-t0)/dur);
+      doc.scrollTo({top:from+dist*(k<.5?4*k*k*k:1-Math.pow(2-2*k,3)/2),behavior:'instant'});
+      written=doc.scrollTop;
+      if(k<1)glideFrame=requestAnimationFrame(step);
+      else{stopGlide();spy()}
+    }
+    glideFrame=requestAnimationFrame(step);
+  }
+  // The visitor taking over (wheel, touch, key), or Play or Back to top, ends a glide that is still under way. A press on a
+  // link does not: its click starts a new glide
+  ['wheel','touchstart','keydown'].forEach(type=>doc.addEventListener(type,e=>{
+    if(e.isTrusted&&(type==='wheel'||!e.target.closest('.spy-link')))endGlide();
+  },{passive:true}));
+  ['btn-scroll','btn-top'].forEach(id=>document.getElementById(id).addEventListener('click',endGlide));
+  nav.addEventListener('pointerdown',()=>{pressing=true;missed=false});
+  addEventListener('pointercancel',()=>{pressing=false});     // the browser took the touch to pan the menu: leave it where the visitor puts it
+  addEventListener('pointerup',()=>setTimeout(()=>{           // the click that follows a press lets go itself
+    if(pressing){pressing=false;if(missed)showInMenu(active)}
+  },400));
 
   nav.addEventListener('click',e=>{
     const link=e.target.closest('.spy-link');if(!link)return;
     const i=+link.dataset.i;
-    const smooth=smoothTog.checked&&!reduced;
-    targetLock=i;setActive(i);
-    stage.scrollTo({top:tops[i]-8,behavior:smooth?'smooth':'auto'});
-    if(!smooth){targetLock=-1;spy()}
+    const to=Math.min(Math.max(tops[i]-8,0),maxScroll);
+    pressing=false;setActive(i);
+    if(smoothTog.checked&&!reduced.matches&&Math.abs(to-doc.scrollTop)>1)glideTo(i,to);
+    else{stopGlide();doc.scrollTo({top:to,behavior:'instant'});spy()}
   });
-  actSl.addEventListener('input',()=>{activation=+actSl.value/100;actVal.textContent=actSl.value+'%';spy()});
 
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();if(active>-1)moveInd(active);spy()},150)});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('act-seg',d=>{activation=+d.act;spy()});
+
+  // Sizes change with the window and once the site font has loaded: measure again and forget the cached marker height
+  function remeasure(){
+    measure();indH=-1;
+    if(active>-1){moveInd(active);showInMenu(active)}
+    spy();
+  }
+  addEventListener('resize',remeasure);
   measure();spy();
-  addEventListener('load',()=>{measure();spy()}); // re-measure once web fonts settle
+  addEventListener('load',remeasure);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(remeasure);
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

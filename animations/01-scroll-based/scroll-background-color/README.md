@@ -2,7 +2,7 @@
 
 ## What it is
 
-The page background continuously blends through a palette as the user scrolls, so each section appears to own its own color while the transitions between them are smooth gradients in time rather than hard cuts. It is a portfolio-site staple: the whole canvas becomes a scroll progress indicator. Because light palette entries would make light text unreadable, the text ink flips automatically based on the computed luminance of the current background.
+A scroll-driven background color gives each section of a page its own color and blends from one to the next as you scroll, so the whole page seems to change mood. Halfway between two sections the background is a mix of both colors. When the background turns light, the text switches to dark so it stays readable.
 
 ## When to use it
 
@@ -27,23 +27,22 @@ t = t * t * (3 - 2 * t);                          // smoothstep
 const r = Math.round(a[0] + (b[0] - a[0]) * t);   // per-channel lerp
 ```
 
-The contrast flip computes the relative luminance of the interpolated color and toggles a class when it crosses a threshold, swapping the section text from light ink to dark ink:
+The contrast flip computes the relative luminance of the interpolated color and toggles a class when it crosses a threshold, swapping all of the section text from white to black:
 
 ```js
-const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-stage.classList.toggle('light', lum > 0.55);
+const lin = c => (c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);   // relative luminance
+stage.classList.toggle('light', lum > 0.18);   // white and black text contrast equally at 0.18
 ```
 
-The scroll handler is rAF-coalesced and performs no layout reads; `maxScroll` is cached at init and on a debounced resize. The background write is guarded — channels are rounded and the write is skipped when the resulting string is unchanged.
+The scroll handler is rAF-coalesced and performs no layout reads; `maxScroll` is cached at init, when the fonts have loaded and whenever the window resizes. The background write is guarded — channels are rounded and the write is skipped when the resulting string is unchanged.
 
 ## Key parameters
 
-| Parameter | What it controls |
-| --- | --- |
-| Palette | Array of `[r, g, b]` stops, one per section. Order defines the journey; adjacent stops should not produce muddy midpoints. |
-| Blend window | Fraction of each segment (0.3–1) that actually blends. At 1 the color moves continuously; narrower values hold each color near section centers and confine the transition to a band around each boundary. |
-| Snap toggle | Replaces interpolation with `t = t < .5 ? 0 : 1` — a hard cut at each boundary. Exists to show why the blend matters. |
-| Luminance threshold | The cutoff (0.55 here) above which the background counts as light and the text ink flips dark. Tune per palette. |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Colors | Dusk | The palette, one color per section: Dusk stays dark; Daylight passes through pale colors and Forest through a light green, and the text turns dark on those |
+| Blend | Gradual | Gradual changes the color the whole way between sections; Quick holds each color and changes it near the boundary; Hard cut switches at the boundary with no blend, to show why the blend matters |
 
 ## Production notes
 
@@ -56,6 +55,6 @@ The scroll handler is rAF-coalesced and performs no layout reads; `maxScroll` is
 
 ## See also
 
-- [Scrollytelling](../scrollytelling/)
-- [Animated Gradient Background](../../07-ambient-background/animated-gradient-background/)
-- [Section Wipe](../section-wipe/)
+- [Scrollytelling](../scrollytelling/) — a picture beside the text changes as a story scrolls by
+- [Animated Gradient Background](../../07-ambient-background/animated-gradient-background/) — colors that shift on their own, with no scrolling
+- [Section Wipe](../section-wipe/) — each section slides up over the one before

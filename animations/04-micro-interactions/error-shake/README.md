@@ -1,7 +1,7 @@
 # Error Shake
 
 ## What it is
-An error shake is a validation-feedback pattern: when a user submits an invalid value, the offending field wobbles horizontally a few times and settles back to center, usually alongside a red border and an inline message. The motion is short, decaying, and purely on the X axis — a visual analogue of a human shaking their head "no."
+An error shake tells someone that what they entered was not accepted. The field swings left and right a few times, each swing smaller than the last, then settles exactly where it started, like a head shaking no. A red border and a short message come with it and say what went wrong.
 
 ## When to use it
 - Login and sign-up forms on a failed or empty submit
@@ -13,15 +13,20 @@ An error shake is a validation-feedback pattern: when a user submits an invalid 
 The field is animated by toggling an `error` class that applies a `@keyframes` translateX wobble. The keyframe swings the element left and right with **decaying amplitude**, then returns to `translateX(0)`. Because only `transform` is animated, it stays on the compositor and never triggers layout:
 
 ```css
+/* the default six swings, as the demo's buildShake(6) writes them (values rounded) */
 @keyframes shake {
-  10%,90% { transform: translateX(calc(var(--shake-x) * -1)); }
-  20%,80% { transform: translateX(calc(var(--shake-x) *  1)); }
-  30%,50%,70% { transform: translateX(calc(var(--shake-x) * -0.6)); }
-  40%,60% { transform: translateX(calc(var(--shake-x) *  0.6)); }
-  100% { transform: translateX(0); }
+  0%, 100% { transform: translateX(0); }
+  14% { transform: translateX(calc(var(--shake-x) * -0.86)); }
+  29% { transform: translateX(calc(var(--shake-x) *  0.71)); }
+  43% { transform: translateX(calc(var(--shake-x) * -0.57)); }
+  57% { transform: translateX(calc(var(--shake-x) *  0.43)); }
+  71% { transform: translateX(calc(var(--shake-x) * -0.29)); }
+  86% { transform: translateX(calc(var(--shake-x) *  0.14)); }
 }
 .field.error input { border-color: var(--err); animation: shake var(--shake-dur) cubic-bezier(.36,.07,.19,.97) both; }
 ```
+
+The demo writes this keyframe rule from JavaScript, so the Number of swings setting can give it as many swings as it asks for, each smaller than the last.
 
 The one JS gotcha: re-adding the class on an element that already has it won't replay the animation. Force a reflow between removing and re-adding so the browser restarts it:
 
@@ -39,11 +44,9 @@ A decaying shake reads as "no" universally because it *returns to origin*. Motio
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Shake intensity | 8px | Peak X displacement. Under 4px is barely legible; over ~16px feels violent |
-| Oscillations | 6 | Number of left-right swings. 4–6 reads as a headshake; more feels frantic |
-| Duration | 400ms | Total wobble time. Under 250ms feels twitchy; over 600ms drags |
-| Easing | `cubic-bezier(.36,.07,.19,.97)` | Snappy in/out so swings feel sharp, not floaty |
-| Error color | `#f4515b` | Border + message color; pair with text, never rely on color alone |
+| Shake distance | Medium | How far the field swings: small is 4px, medium 8px and large 14px; under 4px barely shows and over about 16px feels violent |
+| Number of swings | Medium | How many times it swings: few is 4, medium 6 and many 8; four to six reads as a head shake, more feels frantic |
+| Speed | Normal | How long the whole shake lasts: slow is 650ms, normal 400ms and fast 250ms; under 250ms feels twitchy and over 600ms drags |
 
 ## Production notes
 - **Don't rely on motion or color alone.** The shake and red border are reinforcement; the inline text message is what conveys *why* it failed. Color-blind and reduced-motion users need the words.
@@ -54,7 +57,7 @@ A decaying shake reads as "no" universally because it *returns to origin*. Motio
 - **Library equivalents**: Framer Motion expresses this as `animate={{ x: [0,-8,8,-5,5,0] }}` on a keyframe array; GSAP ships a dedicated `RoughEase` and you can also `gsap.fromTo(el,{x:-8},{x:0,ease:'elastic'})`. Both are the same translateX-keyframe idea with nicer restart ergonomics.
 
 ## See also
-- [Form Field Morph](../form-field-morph/) — the valid-state transition counterpart to a rejection
-- [Focus Ring](../focus-ring/) — the other key input-affordance micro-interaction
-- [Button Press Scale](../button-press-scale/) — press feedback on the submit button that triggers validation
-- [Checkmark Draw](../checkmark-draw/) — the "yes" success motion that a shake is the opposite of
+- [Form Field Morph](../form-field-morph/) — a label that rises out of the field as you use it
+- [Focus Ring Animation](../focus-ring/) — a ring that follows keyboard focus
+- [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
+- [Checkmark Draw](../checkmark-draw/) — the tick that says yes

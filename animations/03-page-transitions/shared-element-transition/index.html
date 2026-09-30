@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shared Element Transition — Animation Handbook</title>
-  <meta name="description" content="FLIP technique — a thumbnail morphs continuously into a hero as pages change.">
+  <meta name="description" content="A picture grows from the list into the next page's header. Best for galleries.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,39 +12,30 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Shared Element Transition — Animation Handbook">
-  <meta property="og:description" content="FLIP technique — a thumbnail morphs continuously into a hero as pages change.">
+  <meta property="og:description" content="A picture grows from the list into the next page's header. Best for galleries.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Shared Element Transition — Animation Handbook">
-  <meta name="twitter:description" content="FLIP technique — a thumbnail morphs continuously into a hero as pages change.">
+  <meta name="twitter:description" content="A picture grows from the list into the next page's header. Best for galleries.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Shared Element Transition", "name": "Shared Element Transition", "description": "FLIP technique — a thumbnail morphs continuously into a hero as pages change.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Shared Element Transition"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Shared Element Transition", "name": "Shared Element Transition", "description": "A picture grows from the list into the next page's header. Best for galleries.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Shared Element Transition"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;align-items:center}
-    .nav-back{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:var(--mono);font-size:10px;padding:6px 12px;border-radius:4px;cursor:pointer;min-height:36px;opacity:0;pointer-events:none;transition:opacity .2s}
-    .nav-back.show{opacity:1;pointer-events:auto}
-    .nav-title{font-size:10px;color:var(--ui-text);letter-spacing:1px;flex:1;text-align:center}
-    .nav-label{font-size:10px;color:var(--ui-muted);letter-spacing:1px}
+    /* Hidden, Back also leaves the Tab order once it has faded out; shown, it is visible (and can take focus) at once */
+    .nav-back{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
+    .nav-back.show{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .2s}
+    .nav-title{font-size:13px;color:var(--ui-text);letter-spacing:1px;flex:1;text-align:center}
     .page-area{flex:1;position:relative;overflow:hidden}
     /* Grid page */
     #page-grid{position:absolute;inset:0;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:auto}
-    .thumb{border-radius:10px;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;transition:transform .2s;overflow:hidden;position:relative}
+    .thumb{border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:10px;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;transition:transform .2s;overflow:hidden;position:relative}
     @media(hover:hover){.thumb:hover{transform:scale(1.02)}}
-    .thumb-label{font-size:11px;font-weight:bold;line-height:1.2;margin-bottom:2px}
-    .thumb-sub{font-size:9px;opacity:.5}
+    .thumb-label{display:block;font-size:11px;font-weight:bold;line-height:1.2;margin-bottom:2px}
+    .thumb-sub{display:block;font-size:9px;opacity:.8}
     /* Detail page */
     #page-detail{position:absolute;inset:0;pointer-events:none;opacity:0;display:flex;flex-direction:column}
     #page-detail.active{pointer-events:auto;opacity:1}
@@ -53,153 +44,268 @@
     #detail-title{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:8px}
     #detail-sub{font-size:11px;opacity:.5;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
     #detail-desc{font-size:12px;opacity:.6;line-height:1.7;max-width:360px}
-    /* FLIP element — the morphing clone */
-    #flip-el{position:fixed;border-radius:10px;pointer-events:none;z-index:100;will-change:transform}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:38px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:480px}#page-grid{grid-template-columns:1fr 1fr}.nav-back{min-height:44px}}
+    /* On small stages (short windows, phones) a tighter text block lets the hero keep its share of the height instead of being squeezed */
+    @media(max-height:640px),(max-width:600px){#detail-body{padding:12px 16px}#detail-title{font-size:18px;margin-bottom:4px}#detail-sub{margin-bottom:6px}#detail-desc{line-height:1.5}}
+    /* FLIP element — the morphing clone. It is position:fixed and moves in viewport coordinates, so the stage cannot clip it:
+       no ancestor of it may have a transform, filter, backdrop-filter, perspective or contain, or that ancestor would become its
+       containing block. Above the stage's content (40), below the site's top bar (50). */
+    #flip-el{position:fixed;border-radius:10px;pointer-events:none;z-index:40;will-change:transform}
     @media(prefers-reduced-motion:reduce){#flip-el{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../view-transitions-api/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../morph-transition/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/03-page-transitions/shared-element-transition/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Shared Element Transition</h1>
-  <p>FLIP technique — a thumbnail morphs continuously into a hero as pages change.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="mini-nav">
-      <button class="nav-back" id="nav-back">← Back</button>
-      <div class="nav-title" id="nav-title">Projects</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../view-transitions-api/" rel="prev" aria-label="Previous: View Transitions API"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>View Transitions API</span></a><a href="../morph-transition/" rel="next" aria-label="Next: Morph Transition"><span><span class="hb-dir">Next: </span>Morph Transition</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">03.02 · Page Transitions</p>
+    <h1>Shared Element Transition</h1>
+    <p class="hb-lede">A picture grows from the list into the next page's header. Best for galleries.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click a project to open it, then Back, or press Show me.</p></div>
     </div>
-    <div class="page-area" id="page-area">
-      <div id="page-grid"></div>
-      <div id="page-detail">
-        <div id="detail-hero"></div>
-        <div id="detail-body">
-          <div id="detail-title">Project Name</div>
-          <div id="detail-sub">Category</div>
-          <div id="detail-desc">Project description goes here.</div>
-        </div>
+    <div class="stage">
+      <div class="mini-nav">
+        <button type="button" class="nav-back" id="nav-back">← Back</button>
+        <div class="nav-title" id="nav-title">Projects</div>
       </div>
-      <div id="flip-el"></div>
+      <div class="page-area" id="page-area">
+        <div id="page-grid"></div>
+        <div id="page-detail" inert>
+          <div id="detail-hero"></div>
+          <div id="detail-body">
+            <div id="detail-title">Project Name</div>
+            <div id="detail-sub">Category</div>
+            <div id="detail-desc">Project description goes here.</div>
+          </div>
+        </div>
+        <div id="flip-el"></div>
+      </div>
     </div>
-  </div>
-  <aside>
-    <p class="note">Shared element transitions create visual continuity — the user moves WITH the content. The FLIP technique measures position before and after the DOM change, then plays an inverse transform to smooth.</p>
-    <div class="lbl">State</div>
-    <div class="kv"><span>View</span><span class="v" id="view-val">Grid</span></div>
-    <div class="kv"><span>Selected</span><span class="v" id="sel-val">—</span></div>
-    <div class="div"></div>
-    <div><div class="lbl" id="dur-lbl">Duration</div>
-      <div class="sr"><input type="range" id="dur-sl" aria-labelledby="dur-lbl" min="200" max="1500" value="500" step="50"><span class="sv" id="dur-v">500ms</span></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
     </div>
-    <div><div class="lbl">Easing</div>
-      <select id="ease-sel">
-        <option value="cubic-bezier(.2,.7,.3,1)" selected>Smooth</option>
-        <option value="ease-out">Ease out</option>
-        <option value="cubic-bezier(.34,1.56,.64,1)">Springy</option>
-      </select>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
     </div>
-    <div class="div"></div>
-    <button class="rst" id="rst-btn">← Return to Grid</button>
-  </aside>
-</div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="800" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="500" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="300" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the picture takes to grow into place.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="feel-lbl">Feel</p>
+        <div class="seg" id="feel-seg" role="group" aria-labelledby="feel-lbl">
+          <button type="button" data-ease="cubic-bezier(.2,.7,.3,1)" class="on" aria-pressed="true">Smooth</button>
+          <button type="button" data-ease="cubic-bezier(.34,1.56,.64,1)" aria-pressed="false">Springy</button>
+        </div>
+        <p class="hb-hint">Springy grows a little past the header, then settles.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a shared element transition to [your list of items and their detail pages]. When a visitor opens an item, its picture should grow from its place in the list into the large header of the detail page, while the list fades away and the detail text fades in just after the picture lands. Measure where the picture starts and where it ends, then move a copy from one to the other with a transform only, never by changing its position or size, so it reads as one continuous element. Going back fades the detail page out and the list back in. If the visitor has reduced motion turned on, open and close the detail page without the movement. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Galleries</li><li>Product grids</li><li>Card lists</li><li>Media libraries</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Unrelated pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const PROJECTS=[
-    {name:'Atlas',sub:'Brand Identity',desc:'A complete brand system for a mapping-technology startup — wordmark, motion language, and product icon suite.',bg:'linear-gradient(135deg,#0d2b5e,#1a4a8c)',ac:'#79c0ff'},
+    {name:'Atlas',sub:'Brand Identity',desc:'A complete brand system for a mapping-technology startup — wordmark, motion language, and product icon suite.',bg:'linear-gradient(135deg,#0d2b5e,#1a4a8c)',ac:'#a5d6ff'},
     {name:'Orbit',sub:'Digital Platform',desc:'A collaboration platform for distributed design teams. Real-time editing, async review flows, approval trails.',bg:'linear-gradient(135deg,#2d1b3d,#4a2a6c)',ac:'#d2a8ff'},
-    {name:'Prism',sub:'Mobile Application',desc:'A personal finance app that makes spending visible through a live data-art dashboard.',bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',ac:'#56d364'},
+    {name:'Prism',sub:'Mobile Application',desc:'A personal finance app that makes spending visible through a live data-art dashboard.',bg:'linear-gradient(135deg,#1e3a1e,#2d5c2d)',ac:'#7ee787'},
     {name:'Lumen',sub:'E-commerce',desc:'Redesign of a lighting brand\'s online store — focused on large-format product photography and editorial layout.',bg:'linear-gradient(135deg,#3d2000,#6c3a00)',ac:'#ffa657'},
   ];
   const grid=document.getElementById('page-grid'),detail=document.getElementById('page-detail');
   const detailHero=document.getElementById('detail-hero'),detailTitle=document.getElementById('detail-title');
   const detailSub=document.getElementById('detail-sub'),detailDesc=document.getElementById('detail-desc');
-  const flipEl=document.getElementById('flip-el'),navBack=document.getElementById('nav-back');
-  const navTitle=document.getElementById('nav-title'),viewVal=document.getElementById('view-val'),selVal=document.getElementById('sel-val');
-  const durSl=document.getElementById('dur-sl'),durV=document.getElementById('dur-v'),easeSel=document.getElementById('ease-sel');
-  let dur=500,animating=false,currentView='grid';
+  const flipEl=document.getElementById('flip-el'),navBack=document.getElementById('nav-back'),navTitle=document.getElementById('nav-title');
+  const slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let thumbEls=[];
+  let dur=500,ease='cubic-bezier(.2,.7,.3,1)',animating=false,currentView='grid',openIndex=0,afterMove=null,closeTimer=0,timers=[],ownFocus=false;
 
-  PROJECTS.forEach((p,i)=>{
-    const el=document.createElement('div');el.className='thumb';el.id='thumb'+i;
-    el.style.background=p.bg;
-    el.innerHTML=`<div class="thumb-label" style="color:${p.ac}">${p.name}</div><div class="thumb-sub">${p.sub}</div>`;
-    el.addEventListener('click',()=>{if(!animating)openDetail(i)});
-    grid.appendChild(el);thumbEls.push(el);
+  const thumbEls=PROJECTS.map((p,i)=>{
+    const el=document.createElement('button');el.type='button';el.className='thumb';el.style.background=p.bg;
+    const label=document.createElement('span');label.className='thumb-label';label.style.color=p.ac;label.textContent=p.name;
+    const sub=document.createElement('span');sub.className='thumb-sub';sub.textContent=p.sub;
+    el.append(label,sub);
+    el.addEventListener('click',()=>{if(!animating&&currentView==='grid')openDetail(i,true)});
+    grid.appendChild(el);
+    return el;
   });
 
-  function openDetail(i){
-    animating=true;const p=PROJECTS[i];
-    selVal.textContent=p.name;viewVal.textContent='Detail';
+  // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+    return id;
+  }
+  function cancel(id){
+    clearTimeout(id);
+    const i=timers.indexOf(id);
+    if(i>-1)timers.splice(i,1);
+  }
+  // Slow motion multiplies the movements and the timers that wait for them, not the 50ms margins or the Show me hold
+  function scaled(){return dur*(slowTog.checked?3:1)}
+
+  // Ends an opening or a closing: the demo is idle again, and a Show me run goes on to its next step
+  function finish(){
+    animating=false;
+    const then=afterMove;afterMove=null;
+    if(then)then();
+  }
+  // Stops everything at once: no timer, no run step, no copy on its way
+  function settle(){
+    timers.forEach(clearTimeout);timers=[];closeTimer=0;afterMove=null;
+    flipEl.style.display='none';
+    animating=false;
+  }
+  // The grid at once, with nothing left over from an opening or a closing: no fade too, or one already heading for its resting value would go on
+  function reset(){
+    settle();
+    detail.classList.remove('active');detail.inert=true;detail.style.opacity='';detail.style.transition='';
+    grid.style.opacity='';grid.style.transition='';grid.style.pointerEvents='';grid.inert=false;
+    navBack.classList.remove('show');navTitle.textContent='Projects';currentView='grid';
+    [grid,detail,navBack].forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
+  }
+
+  // The visitor's own opening and closing move focus with the view; Show me and Reset move none. ownFocus marks these moves as the page's own.
+  function showDetailChrome(name,byVisitor){
+    navBack.classList.add('show');navTitle.textContent=name;
+    if(byVisitor){ownFocus=true;navBack.focus({preventScroll:true});ownFocus=false}
+  }
+  function showGrid(byVisitor){
+    grid.inert=false;
+    if(byVisitor){ownFocus=true;thumbEls[openIndex].focus({preventScroll:true});ownFocus=false}
+  }
+
+  function openDetail(i,byVisitor,then){
+    animating=true;afterMove=then||null;openIndex=i;
+    const p=PROJECTS[i],d=scaled();
     // FIRST: record thumb rect
     const thumbRect=thumbEls[i].getBoundingClientRect();
     // Set detail content
     detailHero.style.background=p.bg;detailTitle.textContent=p.name;detailTitle.style.color=p.ac;
     detailSub.textContent=p.sub;detailDesc.textContent=p.desc;
     // LAST: show detail to get hero rect
-    detail.classList.add('active');
+    detail.classList.add('active');detail.inert=false;
     const heroRect=detailHero.getBoundingClientRect();
-    if(!motionOk){detail.style.transition='none';detail.style.opacity='1';navBack.classList.add('show');navTitle.textContent=p.name;grid.style.opacity='0';grid.style.pointerEvents='none';currentView='detail';animating=false;return;}
-    // FLIP: animate the shared element
-    flipEl.style.cssText=`background:${p.bg};border-radius:10px;width:${thumbRect.width}px;height:${thumbRect.height}px;top:${thumbRect.top}px;left:${thumbRect.left}px;transition:none;display:block`;
-    grid.style.opacity='0';grid.style.transition=`opacity ${Math.round(dur*0.4)}ms ease`;
+    grid.inert=true;
+    if(!motionOk){
+      detail.style.transition='none';detail.style.opacity='1';grid.style.opacity='0';grid.style.pointerEvents='none';
+      showDetailChrome(p.name,byVisitor);currentView='detail';finish();return;
+    }
+    // INVERT: the copy sits on the header's rectangle and a transform draws it back onto the thumbnail (corners 10px once shrunk)
+    const sx=thumbRect.width/heroRect.width,sy=thumbRect.height/heroRect.height;
+    flipEl.style.cssText=`background:${p.bg};top:${heroRect.top}px;left:${heroRect.left}px;width:${heroRect.width}px;height:${heroRect.height}px;transform-origin:0 0;transform:translate(${thumbRect.left-heroRect.left}px,${thumbRect.top-heroRect.top}px) scale(${sx},${sy});border-radius:${10/sx}px/${10/sy}px;transition:none;display:block`;
+    grid.style.opacity='0';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;
     detail.style.opacity='0';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      flipEl.style.transition=`all ${dur}ms ${easeSel.value}`;
-      flipEl.style.top=heroRect.top+'px';flipEl.style.left=heroRect.left+'px';
-      flipEl.style.width=heroRect.width+'px';flipEl.style.height=heroRect.height+'px';flipEl.style.borderRadius='0';
-      detail.style.transition=`opacity ${Math.round(dur*0.4)}ms ease ${Math.round(dur*0.6)}ms`;
-      detail.style.opacity='1';
-      setTimeout(()=>{
-        flipEl.style.display='none';
-        navBack.classList.add('show');navTitle.textContent=p.name;
-        currentView='detail';animating=false;
-      },dur+50);
+    void flipEl.offsetWidth; // commit the inverted start before the transition is switched on
+    flipEl.style.transition=`transform ${d}ms ${ease},border-radius ${d}ms ${ease}`; // PLAY: only the transform and the corners animate, so nothing is laid out while the copy travels
+    flipEl.style.transform='none';flipEl.style.borderRadius='0';
+    detail.style.transition=`opacity ${Math.round(d*0.4)}ms ease ${Math.round(d*0.6)}ms`;
+    detail.style.opacity='1';
+    later(()=>{
+      flipEl.style.display='none';
+      showDetailChrome(p.name,byVisitor);
+      currentView='detail';finish();
+    },d+50);
+  }
+
+  function closeDetail(byVisitor){
+    if(animating||currentView!=='detail')return;
+    animating=true;afterMove=null;
+    const d=scaled();
+    navBack.classList.remove('show');navTitle.textContent='Projects';
+    if(!motionOk){
+      detail.classList.remove('active');detail.inert=true;detail.style.opacity='0';grid.style.opacity='1';grid.style.pointerEvents='auto';
+      showGrid(byVisitor);currentView='grid';finish();return;
+    }
+    detail.style.transition=`opacity ${Math.round(d*0.3)}ms ease`;detail.style.opacity='0';
+    later(()=>{
+      detail.classList.remove('active');detail.inert=true;grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;grid.style.pointerEvents='auto';
+      showGrid(byVisitor);currentView='grid';finish();
+    },Math.round(d*0.3)+50);
+  }
+
+  // Show me: from the grid, open the last project (its picture travels furthest), hold 1200ms, then close it the way Back does
+  function showMe(){
+    reset();
+    openDetail(PROJECTS.length-1,false,()=>{closeTimer=later(()=>{closeTimer=0;closeDetail(false)},1200)});
+  }
+
+  navBack.addEventListener('click',()=>closeDetail(true));
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  document.getElementById('btn-reset').addEventListener('click',reset);
+  // The visitor took over: cancel the close the run has not started yet. An opening already under way finishes.
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(closeTimer);closeTimer=0});
+  // A visitor who tabs into the box takes over too; the page's own focus moves (ownFocus) do not count.
+  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&!ownFocus){afterMove=null;cancel(closeTimer);closeTimer=0}});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
     }));
   }
-
-  function closeDetail(){
-    if(animating||currentView!=='detail')return;
-    animating=true;viewVal.textContent='Grid';selVal.textContent='—';
-    navBack.classList.remove('show');navTitle.textContent='Projects';
-    if(!motionOk){detail.classList.remove('active');detail.style.opacity='0';grid.style.opacity='1';grid.style.pointerEvents='auto';currentView='grid';animating=false;return;}
-    detail.style.transition=`opacity ${Math.round(dur*0.3)}ms ease`;detail.style.opacity='0';
-    setTimeout(()=>{
-      detail.classList.remove('active');grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(dur*0.4)}ms ease`;grid.style.pointerEvents='auto';
-      currentView='grid';animating=false;
-    },Math.round(dur*0.3)+50);
-  }
-
-  navBack.addEventListener('click',closeDetail);
-  durSl.addEventListener('input',()=>{dur=+durSl.value;durV.textContent=dur+'ms'});
-  document.getElementById('rst-btn').addEventListener('click',closeDetail);
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('feel-seg',d=>{ease=d.ease});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

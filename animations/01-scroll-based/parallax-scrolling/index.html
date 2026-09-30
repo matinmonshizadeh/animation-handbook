@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parallax Scrolling — Animation Handbook</title>
-  <meta name="description" content="Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.">
+  <meta name="description" content="Far layers move slower than near ones as you scroll. Best for hero scenes.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,257 +12,202 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Parallax Scrolling — Animation Handbook">
-  <meta property="og:description" content="Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.">
+  <meta property="og:description" content="Far layers move slower than near ones as you scroll. Best for hero scenes.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Parallax Scrolling — Animation Handbook">
-  <meta name="twitter:description" content="Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.">
+  <meta name="twitter:description" content="Far layers move slower than near ones as you scroll. Best for hero scenes.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Parallax Scrolling", "name": "Parallax Scrolling", "description": "Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Parallax Scrolling"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Parallax Scrolling", "name": "Parallax Scrolling", "description": "Far layers move slower than near ones as you scroll. Best for hero scenes.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Parallax Scrolling"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root {
-      --bg:#0b0b0d; --ui-bg:#111114; --ui-border:rgba(255,255,255,.09);
-      --ui-accent:#6ea8ff; --ui-text:#f4f4f2; --ui-muted:#77777e;
-      --disp:'Bricolage','Arial Narrow',sans-serif;
-      --mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;
-    }
+    :root{--ui-accent:#6ea8ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);
-         -webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.2vw,22px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-
-    .stage{
-      flex:1;min-width:0;height:600px;
-      overflow-y:scroll;scrollbar-width:none;
-      border:1px solid var(--ui-border);border-radius:8px;
-    }
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
-    .scene{height:1800px}
+    .scene{height:300cqh}
     /* matches the top stop of the sky gradient so layer travel never
        exposes the page background above the backmost layer */
-    .layers{position:sticky;top:0;height:600px;overflow:hidden;background:#0a1628}
+    .layers{position:sticky;top:0;height:100cqh;overflow:hidden;background:#0a1628}
     .layer{
-      position:absolute;top:0;left:0;width:100%;height:600px;
+      position:absolute;top:0;left:0;width:100%;height:100%;
       will-change:transform;
     }
     .layer svg{width:100%;height:100%}
-
-    aside{
-      width:clamp(180px,20vw,220px);flex-shrink:0;
-      background:var(--ui-bg);border:1px solid var(--ui-border);
-      border-radius:8px;padding:16px;
-      display:flex;flex-direction:column;gap:10px;
-    }
-    .note{
-      font-size:10px;color:var(--ui-muted);line-height:1.6;
-      border-left:2px solid var(--ui-accent);padding-left:8px;
-    }
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .row{display:flex;justify-content:space-between;font-size:10px}
-    .row .v{color:var(--ui-text)}
-    .tbl{display:flex;flex-direction:column;gap:2px}
-    .tbl .row{font-size:10px;color:var(--ui-muted)}
-    .sliders{display:flex;flex-direction:column;gap:5px}
-    .sr{display:flex;align-items:center;gap:5px;font-size:10px}
-    .sr label{width:42px;color:var(--ui-muted);flex-shrink:0}
-    .sr input[type=range]{flex:1;min-width:0;accent-color:var(--ui-accent);min-height:44px}
-    .sr .sv{width:32px;text-align:right;color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sliders.locked{opacity:.4;pointer-events:none}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button{
-      background:transparent;border:1px solid var(--ui-border);
-      color:var(--ui-text);font-family:monospace;font-size:10px;
-      padding:17px 8px;border-radius:4px;cursor:pointer;width:100%;
-    }
-    button:hover{border-color:var(--ui-accent);color:var(--ui-accent)}
-
-    @media(max-width:600px){
-      .layout{flex-direction:column;align-items:stretch}
-      aside{width:100%}
-      .stage{flex:none;height:400px}
-      .layers{height:400px}
-      .layer{height:400px}
-    }
     @media(prefers-reduced-motion:reduce){.layer{will-change:auto}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../parallax-depth-of-field/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../reverse-scrolling-columns/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/parallax-scrolling/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../parallax-depth-of-field/" rel="prev" aria-label="Previous: Parallax Depth-of-Field"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Parallax Depth-of-Field</span></a><a href="../reverse-scrolling-columns/" rel="next" aria-label="Next: Reverse-Scrolling Columns"><span><span class="hb-dir">Next: </span>Reverse-Scrolling Columns</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.02 · Scroll-Based</p>
+    <h1>Parallax Scrolling</h1>
+    <p class="hb-lede">Far layers move slower than near ones as you scroll. Best for hero scenes.</p>
+  </header>
 
-<header>
-  <h1>Parallax Scrolling</h1>
-  <p>Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.</p>
-</header>
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A landscape in four layers that move at different speeds">
+      <div class="scene">
+        <div class="layers">
 
-<div class="layout">
+          <!-- L1: Sky + stars -->
+          <div class="layer" id="l1">
+            <svg viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0a1628"/>
+                  <stop offset="100%" stop-color="#060a10"/>
+                </linearGradient>
+              </defs>
+              <rect width="800" height="600" fill="url(#sky)"/>
+              <circle cx="80"  cy="55"  r="1.2" fill="#fff" opacity=".5"/>
+              <circle cx="200" cy="28"  r="1"   fill="#fff" opacity=".4"/>
+              <circle cx="330" cy="78"  r=".9"  fill="#fff" opacity=".6"/>
+              <circle cx="470" cy="18"  r="1.3" fill="#fff" opacity=".3"/>
+              <circle cx="580" cy="52"  r="1"   fill="#fff" opacity=".5"/>
+              <circle cx="680" cy="33"  r="1.1" fill="#fff" opacity=".4"/>
+              <circle cx="755" cy="14"  r=".8"  fill="#fff" opacity=".6"/>
+              <circle cx="140" cy="108" r=".9"  fill="#fff" opacity=".3"/>
+              <circle cx="420" cy="96"  r="1"   fill="#fff" opacity=".4"/>
+              <circle cx="640" cy="116" r=".8"  fill="#fff" opacity=".3"/>
+            </svg>
+          </div>
 
-  <div class="stage" id="stage">
-    <div class="scene">
-      <div class="layers">
+          <!-- L2: Distant ridgeline -->
+          <div class="layer" id="l2">
+            <svg viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#0d2b3e"
+                points="0,380 60,258 130,298 220,208 310,268 400,193
+                        490,243 580,213 660,253 740,223 800,236 800,600 0,600"/>
+            </svg>
+          </div>
 
-        <!-- L1: Sky + stars (speed 10%) -->
-        <div class="layer" id="l1">
-          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#0a1628"/>
-                <stop offset="100%" stop-color="#060a10"/>
-              </linearGradient>
-            </defs>
-            <rect width="800" height="600" fill="url(#sky)"/>
-            <circle cx="80"  cy="55"  r="1.2" fill="#fff" opacity=".5"/>
-            <circle cx="200" cy="28"  r="1"   fill="#fff" opacity=".4"/>
-            <circle cx="330" cy="78"  r=".9"  fill="#fff" opacity=".6"/>
-            <circle cx="470" cy="18"  r="1.3" fill="#fff" opacity=".3"/>
-            <circle cx="580" cy="52"  r="1"   fill="#fff" opacity=".5"/>
-            <circle cx="680" cy="33"  r="1.1" fill="#fff" opacity=".4"/>
-            <circle cx="755" cy="14"  r=".8"  fill="#fff" opacity=".6"/>
-            <circle cx="140" cy="108" r=".9"  fill="#fff" opacity=".3"/>
-            <circle cx="420" cy="96"  r="1"   fill="#fff" opacity=".4"/>
-            <circle cx="640" cy="116" r=".8"  fill="#fff" opacity=".3"/>
-          </svg>
+          <!-- L3: Pine treeline -->
+          <div class="layer" id="l3">
+            <svg viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#0a1f2e"
+                points="0,442 35,362 65,380 95,320 135,344 175,297 215,324
+                        265,287 305,310 360,274 400,297 450,262 490,284
+                        540,270 580,294 635,280 675,304 720,287 760,310
+                        800,294 800,600 0,600"/>
+            </svg>
+          </div>
+
+          <!-- L4: Foreground grass -->
+          <div class="layer" id="l4">
+            <svg viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#050e08"
+                points="0,497 80,452 160,472 240,450 320,467 400,454
+                        480,470 560,457 640,472 720,458 800,464 800,600 0,600"/>
+              <ellipse cx="100" cy="507" rx="60" ry="15" fill="#040c07"/>
+              <ellipse cx="280" cy="514" rx="70" ry="18" fill="#030b06"/>
+              <ellipse cx="500" cy="508" rx="65" ry="16" fill="#040c07"/>
+              <ellipse cx="700" cy="502" rx="55" ry="14" fill="#040c07"/>
+            </svg>
+          </div>
+
         </div>
-
-        <!-- L2: Distant ridgeline (speed 30%) -->
-        <div class="layer" id="l2">
-          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#0d2b3e"
-              points="0,380 60,258 130,298 220,208 310,268 400,193
-                      490,243 580,213 660,253 740,223 800,236 800,600 0,600"/>
-          </svg>
-        </div>
-
-        <!-- L3: Pine treeline (speed 60%) -->
-        <div class="layer" id="l3">
-          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#0a1f2e"
-              points="0,442 35,362 65,380 95,320 135,344 175,297 215,324
-                      265,287 305,310 360,274 400,297 450,262 490,284
-                      540,270 580,294 635,280 675,304 720,287 760,310
-                      800,294 800,600 0,600"/>
-          </svg>
-        </div>
-
-        <!-- L4: Foreground grass (speed 100%) -->
-        <div class="layer" id="l4">
-          <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#050e08"
-              points="0,497 80,452 160,472 240,450 320,467 400,454
-                      480,470 560,457 640,472 720,458 800,464 800,600 0,600"/>
-            <ellipse cx="100" cy="507" rx="60" ry="15" fill="#040c07"/>
-            <ellipse cx="280" cy="514" rx="70" ry="18" fill="#030b06"/>
-            <ellipse cx="500" cy="508" rx="65" ry="16" fill="#040c07"/>
-            <ellipse cx="700" cy="502" rx="55" ry="14" fill="#040c07"/>
-          </svg>
-        </div>
-
       </div>
     </div>
-  </div>
-
-  <aside>
-    <p class="note">Real cameras render depth geometrically — layers slow down roughly as 1/distance. Try ratios like 100% / 60% / 30% / 10% for the most believable depth.</p>
-
-    <div>
-      <div class="lbl">Scroll Progress</div>
-      <div class="row"><span>Progress</span><span class="v" id="progress">0%</span></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
     </div>
+  </section>
 
-    <div>
-      <div class="lbl">Layer Offsets</div>
-      <div class="tbl">
-        <div class="row"><span>Sky</span><span class="v" id="off1">0px</span></div>
-        <div class="row"><span>Ridgeline</span><span class="v" id="off2">0px</span></div>
-        <div class="row"><span>Treeline</span><span class="v" id="off3">0px</span></div>
-        <div class="row"><span>Grass</span><span class="v" id="off4">0px</span></div>
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="depth-lbl">Depth</p>
+        <div class="seg" id="depth-seg" role="group" aria-labelledby="depth-lbl">
+          <button type="button" data-depth="flat" aria-pressed="false">Flat</button>
+          <button type="button" data-depth="shallow" aria-pressed="false">Shallow</button>
+          <button type="button" data-depth="normal" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-depth="deep" aria-pressed="false">Deep</button>
+        </div>
+        <p class="hb-hint">Deep spreads the layers' speeds; Flat moves them as one.</p>
       </div>
     </div>
+  </section>
 
-    <div class="div"></div>
-
-    <div>
-      <div class="lbl">Speed Multipliers</div>
-      <div class="sliders">
-        <div class="sr"><label for="s1">Sky</label>
-          <input type="range" id="s1" min="0" max="150" value="10">
-          <span class="sv" id="sv1">10%</span></div>
-        <div class="sr"><label for="s2">Ridge</label>
-          <input type="range" id="s2" min="0" max="150" value="30">
-          <span class="sv" id="sv2">30%</span></div>
-        <div class="sr"><label for="s3">Trees</label>
-          <input type="range" id="s3" min="0" max="150" value="60">
-          <span class="sv" id="sv3">60%</span></div>
-        <div class="sr"><label for="s4">Grass</label>
-          <input type="range" id="s4" min="0" max="150" value="100">
-          <span class="sv" id="sv4">100%</span></div>
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a parallax scene to [your hero section or illustration]. Split the scene into layers from far to near, such as sky, hills, trees and ground, and hold it in place while the visitor scrolls through a taller section. As they scroll, move each layer by its own amount, as the settings choose; usually the farthest layer barely moves and the nearest moves most, which makes the flat picture feel deep. Base the movement on how far through the section the visitor has scrolled, so it starts and stops at the same place every time. If the visitor has reduced motion turned on, keep every layer still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
       </div>
     </div>
+  </section>
 
-    <div class="div"></div>
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero scenes</li><li>Landing pages</li><li>Story sections</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Text-heavy pages</li><li>Forms</li></ul>
+    </div>
+  </section>
 
-    <label class="tog">
-      <input type="checkbox" id="tog">
-      <span>Disable parallax (all 100%)</span>
-    </label>
-
-    <button id="resetBtn">Reset to defaults</button>
-  </aside>
-
-</div>
-
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
-  const DEFAULTS = [0.10, 0.30, 0.60, 1.00];
-  const LAYERS   = DEFAULTS.map((s, i) => ({
+  // Speed multipliers of the sky, ridge, trees and grass under each Depth choice
+  const DEPTHS = {
+    flat:    [1, 1, 1, 1],
+    shallow: [0.5, 0.65, 0.8, 1],
+    normal:  [0.1, 0.3, 0.6, 1],
+    deep:    [0, 0.25, 0.7, 1.5],
+  };
+  const LAYERS   = DEPTHS.normal.map((s, i) => ({
     el: document.getElementById('l' + (i + 1)),
     speed: s,
   }));
   const stage    = document.getElementById('stage');
-  const progEl   = document.getElementById('progress');
-  const OFFS     = [1,2,3,4].map(i => document.getElementById('off' + i));
-  const SLIDERS  = [1,2,3,4].map(i => document.getElementById('s' + i));
-  const SVALS    = [1,2,3,4].map(i => document.getElementById('sv' + i));
-  const tog      = document.getElementById('tog');
-  const resetBtn = document.getElementById('resetBtn');
-  const motionMQ    = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const MAX_PARALLAX = 150; // max px travel at speed=1.0 over full scroll range
-  let ticking       = false;
+  const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let ticking    = false;
 
   function update() {
     const st       = stage.scrollTop;
     const max      = stage.scrollHeight - stage.clientHeight;
     const progress = max > 0 ? st / max : 0;
-    // reduced motion: readouts still track the scroll, layers never translate
+    // A layer at 100% travels a quarter of the box, so the grass just leaves it at the end of the scroll
+    const MAX_PARALLAX = stage.clientHeight / 4;
+    // reduced motion: the layers never translate
     const still    = motionMQ.matches;
-    progEl.textContent = Math.round(progress * 100) + '%';
-    LAYERS.forEach((L, i) => {
+    LAYERS.forEach(L => {
       const off = still ? 0 : Math.round(progress * MAX_PARALLAX * L.speed);
       L.el.style.transform = `translate3d(0,${off}px,0)`;
-      OFFS[i].textContent  = off + 'px';
     });
     ticking = false;
   }
@@ -271,36 +216,19 @@ body{padding-top:46px}
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
 
-  SLIDERS.forEach((sl, i) => {
-    sl.addEventListener('input', () => {
-      if (!tog.checked) LAYERS[i].speed = sl.value / 100;
-      SVALS[i].textContent = sl.value + '%';
-      update();
-    });
-  });
-
-  const slidersEl = document.querySelector('.sliders');
-  tog.addEventListener('change', () => {
-    LAYERS.forEach((L, i) => {
-      L.speed = tog.checked ? 1.0 : SLIDERS[i].value / 100;
-    });
-    slidersEl.classList.toggle('locked', tog.checked);
-    update();
-  });
-
-  resetBtn.addEventListener('click', () => {
-    tog.checked = false;
-    slidersEl.classList.remove('locked');
-    DEFAULTS.forEach((d, i) => {
-      LAYERS[i].speed      = d;
-      SLIDERS[i].value     = d * 100;
-      SVALS[i].textContent = Math.round(d * 100) + '%';
-    });
+  function choices(id, pick) {
+    const buttons = document.querySelectorAll('#' + id + ' button');
+    buttons.forEach(b => b.addEventListener('click', () => {
+      buttons.forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      pick(b.dataset);
+    }));
+  }
+  choices('depth-seg', d => {
+    DEPTHS[d.depth].forEach((s, i) => { LAYERS[i].speed = s; });
     update();
   });
 
   update();
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

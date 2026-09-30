@@ -6,20 +6,20 @@ Animations specifically for type — where the letterforms themselves are the co
 
 | Demo | Description |
 |------|-------------|
-| [Kinetic Typography](kinetic-typography/) | Phrases enter, transform, and exit in a choreographed timeline |
-| [Typewriter Effect](typewriter-effect/) | Characters appear one at a time with a blinking cursor and natural timing variance |
-| [Scramble / Glitch Text](scramble-text/) | Characters cycle randomly before locking left-to-right — decryption aesthetic |
-| [Variable Font Morph](variable-font-morph/) | CSS font-variation-settings smoothly changes a word's weight and, when set, leans it over by tilting it |
-| [Text Clip-Path Reveal](text-clip-path-reveal/) | Lines reveal via expanding clip-path — preserves kerning and typographic spacing |
-| [Marquee / Ticker](marquee-ticker/) | Continuous horizontal scroll with seamless loop via duplicated content |
-| [Text Morphing](text-morphing/) | One word transitions into another character by character |
-| [Text Gradient Animation](text-gradient-animation/) | background-clip: text with animated background-position flows color through characters |
-| [Outline to Fill](outline-to-fill/) | Hollow stroke letterforms fill with color via clip-path or opacity crossfade |
-| [Enter/Exit Typography](enter-exit-typography/) | Three-act phrase lifecycle: enter → hold → exit, sequenced for storytelling |
-| [Rotate Word Carousel](rotate-word-carousel/) | One keyword cycles through a list while the surrounding sentence stays static |
-| [Glitch Text](glitch-text/) | RGB-split copies jitter behind animated clip-path slices — the datamosh / signal-loss look |
-| [Text on a Path](text-on-path/) | Text flows along an SVG curve via textPath with an animated startOffset |
-| [Wavy Text](wavy-text/) | Per-letter sine-wave bob with a staggered delay sends a wave travelling across the word |
+| [Kinetic Typography](kinetic-typography/) | Words arrive and leave one by one, each moving its own way. Best for intros. |
+| [Typewriter Effect](typewriter-effect/) | Text types itself out behind a blinking cursor. Best for short taglines. |
+| [Scramble / Glitch Text](scramble-text/) | Random symbols lock into the real text, left to right. Best for tech headlines. |
+| [Variable Font Morph](variable-font-morph/) | A word smoothly turns bold, then light, and leans over. Best for headlines. |
+| [Text Clip-Path Reveal](text-clip-path-reveal/) | Each line of a headline is uncovered in turn. Best for big headlines. |
+| [Marquee / Ticker](marquee-ticker/) | Text scrolls sideways in an endless loop, with no seam. Best for news tickers. |
+| [Text Morphing](text-morphing/) | One word changes into the next, letter by letter. Best for short labels. |
+| [Text Gradient Animation](text-gradient-animation/) | Colors flow through the letters while the text stays still. Best for headlines. |
+| [Outline to Fill](outline-to-fill/) | Hollow letters fill with color, as a wipe or a fade. Best for big headlines. |
+| [Enter/Exit Typography](enter-exit-typography/) | Each phrase comes in, stays long enough to read, then leaves. Best for slogans. |
+| [Rotate Word Carousel](rotate-word-carousel/) | One word in a sentence keeps swapping for the next. Best for hero headlines. |
+| [Glitch Text](glitch-text/) | Text tears into red and cyan strips like a broken signal. Best for bold titles. |
+| [Text on a Path](text-on-path/) | Text travels along a wave, an arc or a circle. Best for badges and seals. |
+| [Wavy Text](wavy-text/) | A wave rolls through the word, letter by letter. Best for playful titles. |
 
 ## Key principles
 
