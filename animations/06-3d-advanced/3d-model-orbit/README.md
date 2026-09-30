@@ -1,7 +1,7 @@
 # 3D Model Orbit
 
 ## What it is
-3D model orbit renders a Phong-shaded 3D object in a WebGL canvas and continuously rotates it around one or more axes. It is the foundational WebGL demo: a vertex buffer, a shader program, a model-view-projection matrix, and a render loop. Everything in WebGL-based 3D descends from this pattern.
+A 3D model orbit shows a solid-looking object turning in the browser. The shape is stored as triangles, and WebGL lights every point of it with a soft base light, a direct light and a shiny highlight, so each side reads as solid as it comes into view. It is the basic pattern behind 3D product viewers, drawn here without a 3D library.
 
 ## When to use it
 - Product configurators where a 3D object must rotate on hover or on scroll
@@ -16,7 +16,7 @@ A WebGL program needs three components: geometry (vertex data), shaders (GPU pro
 
 ```glsl
 attribute vec3 aPos, aNorm;
-uniform mat4 uMVP, uM;        /* model-view-projection, model */
+uniform mat4 uMVP, uM;        /* model-view-projection, model-view */
 varying vec3 vN, vP;
 
 void main() {
@@ -35,7 +35,7 @@ uniform vec3 uCol, uLight;
 
 void main() {
   vec3 L = normalize(uLight - vP);
-  vec3 V = normalize(vec3(0., 0., 4.) - vP);
+  vec3 V = normalize(-vP);
   float d = max(dot(vN, L), 0.0);
   float s = pow(max(dot(reflect(-L, vN), V), 0.0), 48.0);
   gl_FragColor = vec4(0.15 * uCol + d * uCol + 0.7 * s, 1.0);
@@ -52,12 +52,15 @@ const MVP = multiply(P, M);
 ```
 
 ## Key parameters
-| Parameter | Typical value | Effect |
-|-----------|--------------|--------|
-| Camera distance | 2.5–4 | Controls perceived object size without changing field of view |
-| Field of view | 45° | Wider FOV = more distortion (fisheye); narrower = more orthographic |
-| Specular exponent | 16–128 | Higher = tighter, shinier highlight; lower = broad matte glow |
-| Rotation speed | 0.5–2 rad/s | Match to the energy of the surrounding content |
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| Shape | Cube | The object that is drawn: a cube, a sphere, a ring or a four-sided pyramid |
+| Movement | Spins | Spins turns it by itself; Follows the pointer turns it to face your pointer or finger |
+| Speed | Normal | How fast it spins: slow is about 17°, normal 27° and fast 45° a second |
+| Tumbles as it spins | on | Also rolls it forward, at a speed that rises and falls, so the top and bottom come into view |
+| Distance | Medium | How far away the camera is: close looks bigger, far looks smaller; the lens stays the same |
+| Color | Blue | The object's color; the lighting adds the shading and the highlight |
+| Edges only | off | Draws the edges of the triangles the shape is made of, instead of its lit surface |
 
 ## Production notes
 - **Three.js in production**: Three.js's `PerspectiveCamera`, `MeshPhongMaterial`, and `OrbitControls` replace everything in this demo in ~20 lines. Use Three.js for anything more complex than a single object — raw WebGL becomes unmanageable fast.
@@ -68,6 +71,6 @@ const MVP = multiply(P, M);
 - **Context loss**: the browser can drop a WebGL context on a GPU reset, driver update, or tab restore, and the canvas then stays blank forever. In production, listen for `webglcontextlost` (call `preventDefault()` on it) and rebuild buffers, textures, and programs in `webglcontextrestored`. This demo does not, to keep the render path readable.
 
 ## See also
-- [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scroll position drives the rotation instead of time
-- [Parallax 3D Tilt](../parallax-3d-tilt/) — CSS 3D equivalent for flat cards
-- [WebGL Shader Animation](../webgl-shader-animation/) — same WebGL boilerplate, different fragment shader focus
+- [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scrolling turns the object instead of time
+- [Parallax 3D Tilt](../parallax-3d-tilt/) — a flat card leans in 3D toward the pointer
+- [WebGL Shader Animation](../webgl-shader-animation/) — the same WebGL setup, painting a pattern instead of a shape

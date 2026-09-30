@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloth / Soft-Body Simulation — Animation Handbook</title>
-  <meta name="description" content="Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.">
+  <meta name="description" content="A cloth sways in the wind, and you can drag it around. Best for playful pages.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/cloth-simulation/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,106 +12,168 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Cloth / Soft-Body Simulation — Animation Handbook">
-  <meta property="og:description" content="Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.">
+  <meta property="og:description" content="A cloth sways in the wind, and you can drag it around. Best for playful pages.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/cloth-simulation/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Cloth / Soft-Body Simulation — Animation Handbook">
-  <meta name="twitter:description" content="Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.">
+  <meta name="twitter:description" content="A cloth sways in the wind, and you can drag it around. Best for playful pages.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Cloth / Soft-Body Simulation", "name": "Cloth / Soft-Body Simulation", "description": "Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/cloth-simulation/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Cloth / Soft-Body Simulation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Cloth / Soft-Body Simulation", "name": "Cloth / Soft-Body Simulation", "description": "A cloth sways in the wind, and you can drag it around. Best for playful pages.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/cloth-simulation/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Cloth / Soft-Body Simulation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;touch-action:none}
+    .stage{position:relative;background:#0b0b0d;touch-action:none}
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:400px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../image-distortion-hover/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../volumetric-smoke/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/cloth-simulation/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Cloth / Soft-Body Simulation</h1>
-  <p>Verlet integration + distance constraints — the physics behind cloth in games. Drag to pull vertices.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="fps-badge" id="fps">— fps</div>
-  </div>
-  <aside>
-    <p class="note">Verlet integration: velocity is implicit (current − previous). Distance constraints pull connected vertices toward their rest length. Solving constraints multiple times per frame increases stiffness.</p>
-    <div class="lbl">Resolution</div>
-    <select id="res-sel">
-      <option value="16">16 × 12 (fast)</option>
-      <option value="24" selected>24 × 18 (balanced)</option>
-      <option value="40">40 × 30 (detailed)</option>
-    </select>
-    <div class="lbl">Gravity</div>
-    <div class="sr"><input type="range" id="grav-sl" min="1" max="30" value="12" step="1"><span class="sv" id="grav-v">0.12</span></div>
-    <div class="lbl">Wind Strength</div>
-    <div class="sr"><input type="range" id="wind-sl" min="0" max="20" value="5" step="1"><span class="sv" id="wind-v">0.5</span></div>
-    <div class="lbl">Stiffness (iterations)</div>
-    <div class="sr"><input type="range" id="stiff-sl" min="1" max="8" value="4" step="1"><span class="sv" id="stiff-v">4</span></div>
-    <div class="lbl">Pin Mode</div>
-    <select id="pin-sel">
-      <option value="top-corners" selected>Top corners</option>
-      <option value="top-edge">Top edge</option>
-      <option value="single">Single corner</option>
-      <option value="none">Unpinned (free fall)</option>
-    </select>
-    <label class="tog"><input type="checkbox" id="verts-tog"><span>Show vertices</span></label>
-    <label class="tog"><input type="checkbox" id="cons-tog"><span>Show constraints</span></label>
-    <div class="div"></div>
-    <button class="rst" id="reset-btn">↺ Reset cloth</button>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../image-distortion-hover/" rel="prev" aria-label="Previous: Image Distortion on Hover"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Image Distortion on Hover</span></a><a href="../volumetric-smoke/" rel="next" aria-label="Next: Volumetric Smoke / 3D Noise"><span><span class="hb-dir">Next: </span>Volumetric Smoke / 3D Noise</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.15 · 3D &amp; Advanced</p>
+    <h1>Cloth / Soft-Body Simulation</h1>
+    <p class="hb-lede">A cloth sways in the wind, and you can drag it around. Best for playful pages.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Drag the cloth to pull it, or pause it to look closely.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="A piece of cloth swaying in the wind, which you can drag with a pointer or a finger"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pin-lbl">Hangs from</p>
+        <div class="seg" id="pin-seg" role="group" aria-labelledby="pin-lbl">
+          <button type="button" data-pin="top-corners" class="on" aria-pressed="true">Two corners</button>
+          <button type="button" data-pin="top-edge" aria-pressed="false">Top edge</button>
+          <button type="button" data-pin="single" aria-pressed="false">One corner</button>
+          <button type="button" data-pin="none" aria-pressed="false">Nothing</button>
+        </div>
+        <p class="hb-hint">Where the cloth is pinned; Nothing lets it fall.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="wind-lbl">Wind</p>
+        <div class="seg" id="wind-seg" role="group" aria-labelledby="wind-lbl">
+          <button type="button" data-wind="0.2" aria-pressed="false">Light</button>
+          <button type="button" data-wind="0.5" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-wind="1.2" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How hard the wind blows; it rises and falls.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="stiff-lbl">Stiffness</p>
+        <div class="seg" id="stiff-seg" role="group" aria-labelledby="stiff-lbl">
+          <button type="button" data-iters="2" aria-pressed="false">Stretchy</button>
+          <button type="button" data-iters="4" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-iters="8" aria-pressed="false">Stiff</button>
+        </div>
+        <p class="hb-hint">Stretchy sags and bounces; stiff keeps its shape.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="grav-lbl">Gravity</p>
+          <div class="seg" id="grav-seg" role="group" aria-labelledby="grav-lbl">
+            <button type="button" data-grav="0.06" aria-pressed="false">Light</button>
+            <button type="button" data-grav="0.12" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-grav="0.2" aria-pressed="false">Heavy</button>
+          </div>
+          <p class="hb-hint">Heavy cloth hangs straighter and falls faster.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="detail-lbl">Detail</p>
+          <div class="seg" id="detail-seg" role="group" aria-labelledby="detail-lbl">
+            <button type="button" data-cols="16" aria-pressed="false">Low</button>
+            <button type="button" data-cols="24" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-cols="40" aria-pressed="false">High</button>
+          </div>
+          <p class="hb-hint">More points make finer folds; phones start at Low.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the points</span><input class="hb-switch" type="checkbox" role="switch" id="verts-tog" autocomplete="off"></label>
+          <p class="hb-hint">Marks each point; pinned ones are red.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a cloth simulation to [the flag, banner or fabric you want to show]. Model the cloth as a grid of points joined to their neighbours by links of fixed length. Each frame, move every point by its own momentum plus gravity and wind, then pull linked points back toward their proper distance a few times over. Pin some points so the cloth hangs, and let the visitor grab and drag the nearest point with the pointer or a finger. Use a coarser grid on phones. If the visitor has reduced motion turned on, show the cloth hanging still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Flags and banners</li><li>Playful pages</li><li>Fashion and textiles</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Behind text</li><li>Serious content</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
-const stage=document.getElementById('stage'),fpsEl=document.getElementById('fps');
-// Reduced motion: start paused with a static frame; the user can opt in via Resume.
-let W,H,paused=matchMedia('(prefers-reduced-motion:reduce)').matches,raf=null,lastT=0;
+const stage=document.getElementById('stage');
+let W,H,paused=false,raf=null,lastT=0,windT=0;
 let COLS=24,ROWS=18,GRAVITY=0.12,WIND=0.5,ITERS=4,PIN_MODE='top-corners';
-let SHOW_VERTS=false,SHOW_CONS=false;
+let SHOW_VERTS=false;
 let pts=[],prev=[],pinned=[],constraints=[];
 let dragIdx=-1,dragMouse={x:0,y:0};
+
+// Phones are screens up to 600px wide, or up to 500px tall when held sideways. They start at Low detail (16 × 12 points),
+// a coarser grid that means far fewer constraint solves per frame; the visitor can still pick more.
+const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
+if(PHONE.matches){COLS=16;ROWS=12;}
+// The pressed Detail choice follows the start (this runs before the shared script reads the settings for "Your settings")
+document.querySelectorAll('#detail-seg button').forEach(b=>{
+  const on=+b.dataset.cols===COLS;
+  b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
+});
 
 // W/H stay in CSS pixels; the backing store is scaled by DPR so the mesh stays crisp.
 function resize(){
@@ -121,11 +183,14 @@ function resize(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
-function initCloth(){
+// Hangs a fresh cloth and draws it, so a cloth that is paused (or not yet moving) is never an empty stage. With settle, 120 silent
+// physics steps run first, so a cloth shown still (at load, or while paused) already hangs.
+function initCloth(settle){
   const w=W*.8,h=H*.65;
   const ox=W*.1,oy=H*.1;
   const sw=w/COLS,sh=h/ROWS;
   pts=[];prev=[];pinned=[];constraints=[];
+  dragIdx=-1; // a hold on a point of the old cloth ends with it
   for(let r=0;r<=ROWS;r++){
     for(let c=0;c<=COLS;c++){
       pts.push([ox+c*sw,oy+r*sh]);
@@ -143,11 +208,12 @@ function initCloth(){
     if(c<COLS){const rest=Math.hypot(pts[n(r,c+1)][0]-pts[n(r,c)][0],pts[n(r,c+1)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r,c+1),rest]);}
     if(r<ROWS){const rest=Math.hypot(pts[n(r+1,c)][0]-pts[n(r,c)][0],pts[n(r+1,c)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r+1,c),rest]);}
   }}
-  if(paused)draw(); // keep the canvas populated while the loop is stopped
+  if(settle)for(let i=0;i<120;i++){windT+=16;update();}
+  draw();
 }
 
 function update(){
-  const windX=WIND*(Math.sin(Date.now()*.0005)+.3)*.8;
+  const windX=WIND*(Math.sin(windT*.0005)+.3)*.8;
   // Verlet integrate
   for(let i=0;i<pts.length;i++){
     if(pinned[i])continue;
@@ -189,12 +255,8 @@ function draw(){
   }
   // Mesh edges — one path, one stroke call per frame
   ctx.strokeStyle='rgba(88,166,255,.12)';ctx.lineWidth=.5;ctx.beginPath();
-  if(SHOW_CONS){
-    for(const[a,b]of constraints){ctx.moveTo(pts[a][0],pts[a][1]);ctx.lineTo(pts[b][0],pts[b][1]);}
-  }else{
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);}
-    for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);}
-  }
+  for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);}
   ctx.stroke();
   // Vertices
   if(SHOW_VERTS){
@@ -205,49 +267,70 @@ function draw(){
   }
 }
 
+// The loop keeps exactly one pending frame in raf. Each drawn frame is one physics step. The wind follows the page's own
+// clock, which adds up the time of each drawn frame (at most 50 ms), so a pause never makes the wind jump.
 function loop(ts){
-  if(paused){raf=null;return;}
   raf=requestAnimationFrame(loop);
   const dt=ts-lastT;if(dt<16)return;
-  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
+  lastT=ts;
+  windT+=Math.min(dt,50);
   update();draw();
 }
+// Hangs a fresh cloth to the size of the stage (Detail, a resize) ...
+function rebuild(settle){resize();initCloth(settle);}
+// ... and Play carries on with the cloth as it is; it never stacks a second loop.
+function resume(){if(raf!==null)return;lastT=performance.now();raf=requestAnimationFrame(loop);}
 
-function start(){resize();initCloth();if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
-// Mobile fallback: a coarser grid means far fewer constraint solves per frame.
-if(matchMedia('(max-width:600px)').matches){COLS=16;ROWS=12;document.getElementById('res-sel').value='16';}
-document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-start();
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Pause cancels the pending frame and the cloth stays where it is.
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
+  if(paused){cancelAnimationFrame(raf);raf=null;}
+  else resume();
+});
 
-// Drag interaction
+rebuild(true);resume();
+
+// Drag interaction: Pointer Events cover mouse, touch and pen; capture keeps the drag alive outside the stage.
 function getClosestVertex(x,y,maxDist=30){
   let best=-1,bd=Infinity;
   pts.forEach((p,i)=>{const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd&&d<maxDist){bd=d;best=i;}});
   return best;
 }
-// Pointer Events cover mouse, touch and pen; capture keeps the drag alive outside the stage.
 const localPos=e=>{const r=cvs.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
-stage.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;dragMouse=localPos(e);dragIdx=getClosestVertex(dragMouse.x,dragMouse.y);try{stage.setPointerCapture(e.pointerId);}catch(_){}});
-stage.addEventListener('pointermove',e=>{if(dragIdx<0||!e.isPrimary)return;dragMouse=localPos(e);if(paused){update();draw();}});
-const endDrag=()=>dragIdx=-1;
-stage.addEventListener('pointerup',endDrag);
-stage.addEventListener('pointercancel',endDrag);
-
-document.getElementById('res-sel').addEventListener('change',e=>{COLS=+e.target.value;ROWS=Math.round(COLS*.75);start();});
-document.getElementById('grav-sl').addEventListener('input',e=>{GRAVITY=e.target.value/100;document.getElementById('grav-v').textContent=GRAVITY.toFixed(2);});
-document.getElementById('wind-sl').addEventListener('input',e=>{WIND=e.target.value/10;document.getElementById('wind-v').textContent=WIND.toFixed(1);});
-document.getElementById('stiff-sl').addEventListener('input',e=>{ITERS=+e.target.value;document.getElementById('stiff-v').textContent=ITERS;});
-document.getElementById('pin-sel').addEventListener('change',e=>{PIN_MODE=e.target.value;initCloth();});
-document.getElementById('verts-tog').addEventListener('change',e=>{SHOW_VERTS=e.target.checked;});
-document.getElementById('cons-tog').addEventListener('change',e=>{SHOW_CONS=e.target.checked;});
-document.getElementById('reset-btn').addEventListener('click',()=>initCloth());
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(raf){cancelAnimationFrame(raf);raf=null;} // never leave two loops queued
-  if(paused)draw();else{lastT=performance.now();raf=requestAnimationFrame(loop);}
+// Only the main button or a finger grabs the cloth; a right click would otherwise leave the hold on after its menu opens.
+stage.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary||e.button!==0)return;
+  dragMouse=localPos(e);dragIdx=getClosestVertex(dragMouse.x,dragMouse.y);
+  try{stage.setPointerCapture(e.pointerId);}catch(_){}
 });
-window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;resize();initCloth();});
+// The position is only recorded; the cloth follows it on the next frame that moves on, so a paused cloth stays still.
+stage.addEventListener('pointermove',e=>{if(dragIdx<0||!e.isPrimary)return;dragMouse=localPos(e);});
+const endDrag=e=>{if(e.isPrimary)dragIdx=-1;};
+['pointerup','pointercancel','lostpointercapture'].forEach(type=>stage.addEventListener(type,endDrag));
+
+// A phone's address bar showing or hiding changes only the window's height, not the stage's, so nothing is hung again
+window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;rebuild(paused);});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+// Choosing what is already chosen must not hang a fresh cloth again
+choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;initCloth(paused);});
+choices('wind-seg',d=>{WIND=+d.wind;});
+choices('stiff-seg',d=>{ITERS=+d.iters;});
+choices('grav-seg',d=>{GRAVITY=+d.grav;});
+choices('detail-seg',d=>{
+  const n=+d.cols;
+  if(n===COLS)return;
+  COLS=n;ROWS=Math.round(COLS*.75);rebuild(paused);
+});
+document.getElementById('verts-tog').addEventListener('change',e=>{SHOW_VERTS=e.target.checked;if(paused)draw();});
+document.getElementById('btn-reset').addEventListener('click',()=>initCloth(paused));
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

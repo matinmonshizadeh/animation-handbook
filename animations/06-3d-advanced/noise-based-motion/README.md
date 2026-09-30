@@ -1,7 +1,7 @@
 # Noise-Based Motion
 
 ## What it is
-Noise-based motion uses Simplex or Perlin noise to drive organic, non-repeating movement. Unlike `Math.random()`, which jumps discontinuously, noise functions return smoothly interpolated values — nearby spatial or temporal samples are similar, making noise ideal for natural motion: wind, water surfaces, fire, breathing. This demo applies 2D Simplex noise to a grid of dots (wind field) and to the vertices of a blob shape.
+Noise-based motion uses smooth noise, a random value that changes gradually from place to place, to move things naturally. Plain random numbers jump about; noise drifts, so neighbouring dots move alike and nothing jerks. The demo turns it into a field of dots swaying like grass in the wind, and into a blob whose edge ripples.
 
 ## When to use it
 - Organic background elements: floating dots, undulating blobs, rippling grids
@@ -34,14 +34,16 @@ function drawWindField() {
 }
 ```
 
+The demo sets `step` as a spacing in pixels rather than a number of columns, so a phone's smaller stage draws fewer dots at the same spacing.
+
 **Blob** — each vertex's radius is offset by noise sampled at its angle:
 
 ```js
 ctx.beginPath();
 for (let i = 0; i <= vertices; i++) {
   const a = (i / vertices) * Math.PI * 2;
-  const n = simplex2(Math.cos(a) * 12 * SCALE + time,
-                     Math.sin(a) * 12 * SCALE);
+  const n = simplex2(Math.cos(a) * 48 * SCALE + time,
+                     Math.sin(a) * 48 * SCALE);
   const r = baseRadius + n * amplitude * 2;
   const x = cx + Math.cos(a) * r;
   const y = cy + Math.sin(a) * r;
@@ -50,14 +52,17 @@ for (let i = 0; i <= vertices; i++) {
 ctx.closePath();
 ```
 
+The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see almost one value, so the whole edge would only swell and shrink together; this one spans about two bumps of noise at the default size, so the edge ripples.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Noise scale | 0.008 | Small = large smooth patterns (zoomed in); large = fine rapid variation |
-| Time speed | 0.5 | How fast the noise "advects" — low = glacial; high = turbulent |
-| Amplitude | 12px | Displacement magnitude — how far points move from their rest position |
-| Grid density | 20 | Columns across the stage — spacing is `floor(W / density)` |
-| Blob vertices | 48 | Segment count around the blob; too few reads as a polygon |
+| Shape | Field of dots | A field of dots that sway, or one blob whose outline ripples |
+| Pattern size | Medium | How big the noise's patterns are: large moves big areas together, small looks busy and fine |
+| Speed | Normal | How fast the noise moves along: slow is 0.3, normal 0.5 and fast 0.8 |
+| Wobble | Medium | How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px |
+| Space between dots | Medium | The distance between dots in the field: wide is 64px, medium 48px and tight 32px; smaller stages draw fewer dots |
+| Color | Blue | The color of the dots or the blob |
 
 ## Production notes
 - **Simplex vs Perlin**: Simplex noise (Gustavson 2005) is faster and has fewer directional artifacts than classic Perlin noise. Use Simplex for new projects.
@@ -66,6 +71,6 @@ ctx.closePath();
 - **Flow fields**: the wind-field variant is a "flow field" — a classic technique in generative art (Daniel Shiffman's Coding Train). Particles follow the noise field like leaves on a stream.
 
 ## See also
-- [Canvas Particle Effect](../canvas-particle-effect/) — velocity-based particle physics (less organic, more physical)
-- [Fluid Simulation](../fluid-simulation/) — SDF metaballs for a liquid aesthetic
-- [Volumetric Smoke](../volumetric-smoke/) — 3D noise applied as a volumetric density field
+- [Canvas Particle Effect](../canvas-particle-effect/) — dots moved by simple physics instead of noise
+- [Flow Field](../../07-ambient-background/flow-field/) — particles follow a noise field and leave trails
+- [Volumetric Smoke / 3D Noise](../volumetric-smoke/) — the same kind of noise, in 3D, drawn as smoke

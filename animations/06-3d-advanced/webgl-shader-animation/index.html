@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebGL Shader Animation — Animation Handbook</title>
-  <meta name="description" content="Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.">
+  <meta name="description" content="Moving color patterns computed for every pixel. Best for bold backgrounds.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/webgl-shader-animation/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,97 +12,126 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="WebGL Shader Animation — Animation Handbook">
-  <meta property="og:description" content="Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.">
+  <meta property="og:description" content="Moving color patterns computed for every pixel. Best for bold backgrounds.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/webgl-shader-animation/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="WebGL Shader Animation — Animation Handbook">
-  <meta name="twitter:description" content="Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.">
+  <meta name="twitter:description" content="Moving color patterns computed for every pixel. Best for bold backgrounds.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "WebGL Shader Animation", "name": "WebGL Shader Animation", "description": "Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/webgl-shader-animation/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, WebGL Shader Animation"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "WebGL Shader Animation", "name": "WebGL Shader Animation", "description": "Moving color patterns computed for every pixel. Best for bold backgrounds.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/webgl-shader-animation/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, WebGL Shader Animation"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;font-size:clamp(11px,1.8vw,15px)}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative;touch-action:pan-y}
+    .stage{position:relative;background:#0b0b0d;touch-action:pan-y}
     canvas{display:block;width:100%;height:100%}
-    .overlay{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
-    .fps-badge{font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px}
-    .shader-name{font-size:9px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.4);padding:3px 10px;border-radius:4px;letter-spacing:1px;text-transform:uppercase}
-    .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(11,11,13,.9);border-top:1px solid var(--ui-border);padding:12px;font-size:9px;color:var(--ui-muted);font-family:var(--mono);line-height:1.5;max-height:200px;overflow-y:auto;display:none;white-space:pre-wrap;word-break:break-all}
-    .gl-msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,32px);background:var(--bg);color:var(--ui-text);font-size:clamp(10px,2.2vw,12px);line-height:1.7;white-space:pre-wrap;overflow-y:auto}
+    .gl-msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,32px);font-size:13px;line-height:1.7;color:rgba(255,255,255,.72);white-space:pre-wrap;overflow-y:auto}
     .gl-msg.on{display:flex}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../glassmorphism-animated/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../noise-based-motion/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/webgl-shader-animation/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>WebGL Shader Animation</h1>
-  <p>Four GLSL fragment shader presets — plasma, wave distortion, Voronoi, and kaleidoscope. Pure GPU math.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="overlay">
-      <div class="fps-badge" id="fps">— fps</div>
-      <div class="shader-name" id="shader-name">Plasma</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../glassmorphism-animated/" rel="prev" aria-label="Previous: Glassmorphism Animated"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Glassmorphism Animated</span></a><a href="../noise-based-motion/" rel="next" aria-label="Next: Noise-Based Motion"><span><span class="hb-dir">Next: </span>Noise-Based Motion</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.07 · 3D &amp; Advanced</p>
+    <h1>WebGL Shader Animation</h1>
+    <p class="hb-lede">Moving color patterns computed for every pixel. Best for bold backgrounds.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-    <div class="src-panel" id="src-panel"></div>
-    <div class="gl-msg" id="gl-msg" role="status"></div>
-  </div>
-  <aside>
-    <p class="note">Fragment shaders run once per pixel on the GPU. The boilerplate (vertex shader, quad geometry, uniforms) stays identical — only the fragment shader changes per preset.</p>
-    <div class="lbl">Shader Preset</div>
-    <select id="preset-sel">
-      <option value="0" selected>Plasma</option>
-      <option value="1">Wave Distortion</option>
-      <option value="2">Voronoi</option>
-      <option value="3">Kaleidoscope</option>
-    </select>
-    <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="1" max="30" value="10" step="1"><span class="sv" id="spd-v">1.0</span></div>
-    <div class="lbl">Hue Shift</div>
-    <div class="sr"><input type="range" id="hue-sl" min="0" max="360" value="0" step="5"><span class="sv" id="hue-v">0°</span></div>
-    <label class="tog"><input type="checkbox" id="mouse-tog"><span>Mouse interaction</span></label>
-    <label class="tog"><input type="checkbox" id="src-tog"><span>View shader source</span></label>
-    <div class="div"></div>
-    <button type="button" class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="A moving pattern of bright colors that fills the stage"></canvas>
+      <div class="gl-msg" id="gl-msg" role="status"></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pattern-lbl">Pattern</p>
+        <div class="seg" id="pattern-seg" role="group" aria-labelledby="pattern-lbl">
+          <button type="button" data-pattern="0" class="on" aria-pressed="true">Plasma</button>
+          <button type="button" data-pattern="1" aria-pressed="false">Waves</button>
+          <button type="button" data-pattern="2" aria-pressed="false">Cells</button>
+          <button type="button" data-pattern="3" aria-pressed="false">Kaleidoscope</button>
+        </div>
+        <p class="hb-hint">Four patterns, each one short formula.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-spd="0.6" aria-pressed="false">Slow</button>
+          <button type="button" data-spd="1" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-spd="1.6" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the pattern moves.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Reacts to the pointer</span><input class="hb-switch" type="checkbox" role="switch" id="mouse-tog" autocomplete="off"></label>
+          <p class="hb-hint">The pattern bends around your pointer or finger.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a moving shader pattern to [the background or section you want it in]. Cover the area with one WebGL surface and write a fragment shader that works out the color of every pixel from its position and the time, so the whole pattern moves as the time runs on: flowing plasma, rippling waves, cells or a kaleidoscope. When the settings include it, let the pointer, or a finger on touch screens, bend the pattern near it. Draw fewer pixels on phones, and show a clear message where WebGL is not available. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero backgrounds</li><li>Music and events</li><li>Loading screens</li><li>Art pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Behind text</li><li>Low-power devices</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
@@ -119,7 +148,7 @@ void main(){
   gl_FragColor=vec4(hsv(hue,.9,.95),1.);
 }`},
   // 1: Wave distortion
-  {name:'Wave Distortion',src:`precision mediump float;
+  {name:'Waves',src:`precision mediump float;
 uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
 vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
 void main(){
@@ -132,7 +161,7 @@ void main(){
   gl_FragColor=vec4(hsv(hue,.85,.9),1.);
 }`},
   // 2: Voronoi
-  {name:'Voronoi',src:`precision mediump float;
+  {name:'Cells',src:`precision mediump float;
 uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
 vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
 float rand(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
@@ -168,14 +197,13 @@ void main(){
 ];
 
 const stage=document.getElementById('stage');const cvs=document.getElementById('cvs');
-const fpsEl=document.getElementById('fps');const shaderName=document.getElementById('shader-name');
-const srcPanel=document.getElementById('src-panel');
-const pauseBtn=document.getElementById('pause-btn');const msgEl=document.getElementById('gl-msg');
-let W,H,gl,prog=null,U=null,raf=null,paused=false,lastT=0,T=0;
-let PRESET=0,SPD=1,HUE=0,MOUSE_UV=[.5,.5],MOUSE_ON=false;
+const msgEl=document.getElementById('gl-msg');const slowTog=document.getElementById('slow-tog');
+let W,H,gl,prog=null,U=null,raf=null,paused=false,last=null,T=0;
+let PRESET=0,SPD=1,MOUSE_UV=[.5,.5],SHOWN_UV=[.5,.5],MOUSE_ON=false;
+const HUE=0; // every pattern already runs through the whole rainbow, so the shaders keep the hue shift at 0
 
 // A failed shader is otherwise invisible: the canvas just stays black.
-function fail(msg){msgEl.textContent=msg;msgEl.classList.add('on');cvs.style.visibility='hidden';fpsEl.textContent='—';}
+function fail(msg){msgEl.textContent=msg;msgEl.classList.add('on');cvs.style.visibility='hidden';}
 function clearFail(){msgEl.classList.remove('on');msgEl.textContent='';cvs.style.visibility='';}
 
 function mkProg(fs){
@@ -206,8 +234,6 @@ function init(){
 
 function switchShader(idx){
   PRESET=idx;
-  shaderName.textContent=SHADERS[idx].name;
-  if(document.getElementById('src-tog').checked)srcPanel.textContent=SHADERS[idx].src;
   if(!gl)return;
   let next;
   try{next=mkProg(SHADERS[idx].src);}
@@ -226,9 +252,10 @@ function switchShader(idx){
 }
 
 // Render at device pixels so the shader is not upscaled from a smaller buffer.
-// Capped — and capped harder on phones, where a full 3x buffer is 9x the fill cost.
+// Capped — and capped harder on phones (up to 600px wide, or up to 500px tall when held sideways),
+// where a full 3x buffer is 9x the fill cost.
 function resize(){
-  const dpr=Math.min(window.devicePixelRatio||1,innerWidth<=600?1.5:2);
+  const dpr=Math.min(window.devicePixelRatio||1,innerWidth<=600||innerHeight<=500?1.5:2);
   W=cvs.width=Math.max(1,Math.round(stage.clientWidth*dpr));
   H=cvs.height=Math.max(1,Math.round(stage.clientHeight*dpr));
   if(gl){gl.viewport(0,0,W,H);still();}
@@ -237,35 +264,47 @@ function resize(){
 function draw(){
   gl.useProgram(prog);
   gl.uniform2f(U.R,W,H);gl.uniform1f(U.T,T);gl.uniform1f(U.H,HUE);
-  if(MOUSE_ON){gl.uniform2f(U.M,MOUSE_UV[0],MOUSE_UV[1]);gl.uniform1i(U.uMouse,1);}
+  if(MOUSE_ON){gl.uniform2f(U.M,SHOWN_UV[0],SHOWN_UV[1]);gl.uniform1i(U.uMouse,1);}
   else gl.uniform1i(U.uMouse,0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 // Redraw the held frame while paused so controls still take effect.
 function still(){if(paused&&prog)draw();}
 
+// The loop keeps exactly one pending frame in raf. Slow motion adds a third of the frame's time to the clock T.
 function render(ts){
   if(paused||!prog){raf=null;return;}
   raf=requestAnimationFrame(render);
-  const dt=ts-lastT;if(dt<16)return;
-  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
-  T+=Math.min(dt,100)/1000*SPD;
+  if(last===null){last=ts;return;} // the first frame after a start only takes the time
+  const dt=ts-last;if(dt<16)return;
+  last=ts;
+  T+=Math.min(dt,100)/1000*SPD/(slowTog.checked?3:1);
+  SHOWN_UV=MOUSE_UV;
   draw();
 }
+function start(){if(raf!==null||!prog)return;last=null;raf=requestAnimationFrame(render);}
 
 function setPaused(p){
-  paused=p;pauseBtn.textContent=paused?'▶ Resume':'⏸ Pause';
+  paused=p;
   if(paused){cancelAnimationFrame(raf);raf=null;still();}
-  else if(gl&&prog&&raf===null){lastT=performance.now();raf=requestAnimationFrame(render);}
+  else start();
 }
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Play carries on from the current clock.
+document.addEventListener('hb:pause',e=>setPaused(e.detail.paused));
+
+// The pointer is only recorded here. The pattern takes it on the next frame that moves on (render sets SHOWN_UV),
+// so a repaint while paused shows a new setting and nothing else.
+// y is flipped because gl_FragCoord counts from the bottom of the buffer.
+function aim(e){const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,1-(e.clientY-r.top)/r.height];}
 
 if(init()){
   resize();
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches)setPaused(true);
-  else{lastT=performance.now();raf=requestAnimationFrame(render);}
-  // Pointer Events, so the same handler serves mouse, pen and touch.
-  // y is flipped because gl_FragCoord counts from the bottom of the buffer.
-  stage.addEventListener('pointermove',e=>{const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,1-(e.clientY-r.top)/r.height];still();});
+  if(prog)draw(); // the first picture, so a loop that starts paused never shows an empty stage
+  start();
+  // Pointer Events, so the same handlers serve mouse, pen and touch: a tap bends the pattern where the finger lands.
+  stage.addEventListener('pointermove',aim);
+  stage.addEventListener('pointerdown',aim);
   window.addEventListener('resize',resize);
   // A GPU reset or a restored tab kills the context; without this the demo dies for good.
   cvs.addEventListener('webglcontextlost',e=>{
@@ -275,24 +314,23 @@ if(init()){
   });
   cvs.addEventListener('webglcontextrestored',()=>{
     if(!init())return;
-    clearFail();resize();
-    if(!paused&&raf===null){lastT=performance.now();raf=requestAnimationFrame(render);}
+    resize();
+    if(!paused)start();
   });
 }else{
   fail('WebGL is not available in this browser.\n\nThis demo needs a WebGL 1.0 context — the patterns are generated by fragment shaders on the GPU, so there is nothing to fall back to. Try a different browser, or enable hardware acceleration.');
-  document.querySelectorAll('aside select,aside input,aside button').forEach(el=>{el.disabled=true;});
 }
 
-document.getElementById('preset-sel').addEventListener('change',e=>{switchShader(+e.target.value);still();});
-document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('hue-sl').addEventListener('input',e=>{HUE=+e.target.value;document.getElementById('hue-v').textContent=HUE+'°';still();});
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('pattern-seg',d=>{switchShader(+d.pattern);if(paused)still();else start();});
+choices('speed-seg',d=>{SPD=+d.spd;});
 document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE_ON=e.target.checked;still();});
-document.getElementById('src-tog').addEventListener('change',e=>{
-  srcPanel.style.display=e.target.checked?'block':'none';
-  if(e.target.checked)srcPanel.textContent=SHADERS[PRESET].src;
-});
-pauseBtn.addEventListener('click',()=>setPaused(!paused));
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

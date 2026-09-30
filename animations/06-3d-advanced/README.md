@@ -1,6 +1,6 @@
 # 06 — 3D & Advanced
 
-WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. All demos include an FPS counter and a pause button.
+WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. The demos that move by themselves have Pause (SVG Path Animation has Replay and Loop); the ones you hover, click or scroll have Show me or Play.
 
 ## Animations
 
@@ -33,7 +33,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 
 **Performance scales differently.** Canvas 2D scales with particle count (O(n) to O(n²)). WebGL shaders scale with pixel count. Ray marching scales with scene complexity × pixel count. GPGPU scales with texture size × physics pass complexity.
 
-**Reduce motion.** All demos pause by default when `prefers-reduced-motion: reduce` is set. Users can resume manually. Never autoplay GPU-intensive animations without this check.
+**Reduce motion.** When `prefers-reduced-motion: reduce` is set, nothing starts moving by itself: the looping demos start paused, Show me and Play wait to be pressed, and SVG Path Animation shows its drawing complete. Never autoplay GPU-intensive animations without this check.
 
 ## Browser requirements
 
