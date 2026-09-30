@@ -119,7 +119,7 @@ the player bar under the stage.
 |---|---|---|---|---|
 | `once`, plays once | Watch it | **Replay** (`data-hb-replay`), **Loop** (`data-hb-loop`), **Slow motion** (`data-hb-slowmo`) | Loop switches on, so it plays and repeats | Loop and Slow motion off and grayed out; Replay plays it once |
 | `loop`, moves by itself | Watch it | **Pause**/Play (`data-hb-pause`), **Slow motion** where it works, sometimes **Reset** (`data-hb-reset`) | Nothing; it is already moving | Starts paused; Slow motion off and grayed out |
-| `do`, the visitor acts | Hover it, Click it, Drag it, Scroll it or Press Tab | **Show me** (`data-hb-demo`), **Reset** where there is a state to reset, **Slow motion** where it works | Show me runs once | Show me does not run on arrival; it works when pressed |
+| `do`, the visitor acts | Hover it, Click it, Drag it, Scroll it or Press Tab | **Show me** (`data-hb-demo`), **Reset** where there is a state to reset, **Slow motion** where it works | Show me runs once, unless the visitor got there first | Show me does not run on arrival; it works when pressed |
 | `scroll`, driven by scroll | Scroll it | **Play** (`data-hb-autoscroll`), **Back to top** (`data-hb-top`) | Play runs once: the box scrolls to its end in about six seconds | Play does not run on arrival; it works when pressed |
 
 Put `data-hb-autoplay` on the body of every kind except `loop`. The tests pin the Pause, Show
@@ -128,6 +128,9 @@ page of the same kind. A few details:
 
 - A do-it page's Show me run stops when the visitor uses the stage. The shared script sends
   `hb:input` on `document` for a real press, key, wheel, touch or click, and the demo listens.
+  The press on arrival is skipped when the visitor has already used the stage, moved focus into
+  it or pressed Show me, so a page must not call `focus()` on anything in its stage while it
+  loads.
 - A demo with its own timers listens to `hb:pause` (`detail.paused`) to stop and start them.
   Register the listener at the top level of the page's script, not in a `DOMContentLoaded`
   handler: under reduced motion the shared script sends the event once at boot, before that.
@@ -135,12 +138,12 @@ page of the same kind. A few details:
   stage's CSS animations; with no value the demo does it itself.
 - On a scroll page the scroller is the stage, or the element marked `data-hb-scroller`. Play
   scrolls it at a steady speed and any real input in the stage stops it.
-- `data-hb-motion-note` on the body of a scroll page (and only there) sets the note that
-  reduced motion shows in the player bar. Use it when reduced motion switches an effect off
-  instead of only stopping its animation, and write one sentence with no full stop ("The
-  layers stay still while the box scrolls"); the shared script adds " because your device is
-  set to reduce motion." Without it the note reads "The effects follow the scroll without
-  animating".
+- `data-hb-motion-note` on the body of a scroll page after `data-hb-autoplay` (and only there)
+  sets the note that reduced motion shows in the player bar. Use it when reduced motion
+  switches an effect off instead of only stopping its animation, and write one sentence with
+  no full stop ("The layers stay still while the box scrolls"); the shared script adds
+  " because your device is set to reduce motion." Without it the note reads "The effects
+  follow the scroll without animating".
 - `data-hb-skip` leaves a control out of "Your settings"; `data-hb-label` sets its label.
 
 Three rulings hold on every page: Pause freezes the stage at once (running transitions and

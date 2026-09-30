@@ -72,7 +72,7 @@ of each, and the Loop and Slow motion switches start unchecked.
 |---|---|---|---|
 | **once** (plays once) | Watch it | **Replay** `data-hb-replay`, **Loop** switch `data-hb-loop`, **Slow motion** switch `data-hb-slowmo` | Loop switches on after about 400 ms, so the demo plays and repeats |
 | **loop** (moves by itself) | Watch it | **Pause**/Play `data-hb-pause`, **Slow motion** where it works, sometimes **Reset** `data-hb-reset` | Nothing: it is already moving |
-| **do** (the visitor acts) | Hover it, Click it, Drag it, Scroll it or Press Tab | **Show me** `data-hb-demo`, **Reset** where there is a state to reset, **Slow motion** where it works | Show me is pressed once |
+| **do** (the visitor acts) | Hover it, Click it, Drag it, Scroll it or Press Tab | **Show me** `data-hb-demo`, **Reset** where there is a state to reset, **Slow motion** where it works | Show me is pressed once, unless the visitor got there first |
 | **scroll** (driven by scroll position) | Scroll it | **Play** `data-hb-autoscroll`, **Back to top** `data-hb-top` | Play is pressed once: the box scrolls to its end in about six seconds |
 
 - `data-hb-replay` plays from the start (and keeps looping if Loop is on); `data-hb-loop` repeats while
@@ -84,15 +84,19 @@ of each, and the Loop and Slow motion switches start unchecked.
   timers registers that listener at the top level of its script, not in a `DOMContentLoaded` handler: under
   reduced motion the event is sent once at boot, before `DOMContentLoaded`.
 - `data-hb-demo`: plays one example (two to four seconds) and returns to rest. A real press, key, wheel, touch or
-  click in the stage is sent as `hb:input` on `document` (`detail.type`), so the page can stop a run.
+  click in the stage is sent as `hb:input` on `document` (`detail.type`), so the page can stop a run. The press on
+  arrival is skipped when the visitor has already acted (a real input or focus in the stage, or their own press of
+  Show me), so a do-it page never moves focus into its stage while it loads: its own `focus()` counts as the
+  visitor's.
 - `data-hb-autoscroll`: scrolls the scroller to its end at a steady speed (the whole box in about six seconds;
   it restarts from the top if already at the end, with CSS snapping off while it runs) until the visitor's own
   input in the stage stops it; `data-hb-top` stops it and jumps to the top; `data-hb-scroller` marks the
   scroller when it is not the stage.
-- `data-hb-motion-note` (scroll pages only): on the body, one sentence with no full stop, for a page where
-  reduced motion switches an effect off instead of only stopping its animation ("The layers stay still while
-  the box scrolls"). The player bar shows it under reduced motion, followed by " because your device is set to
-  reduce motion.", in place of the usual "The effects follow the scroll without animating".
+- `data-hb-motion-note` (scroll pages only): on the body, after `data-hb-autoplay`, one sentence with no full
+  stop, for a page where reduced motion switches an effect off instead of only stopping its animation ("The
+  layers stay still while the box scrolls"). The player bar shows it under reduced motion, followed by " because
+  your device is set to reduce motion.", in place of the usual "The effects follow the scroll without
+  animating".
 
 A setting change replays a plays-once demo about 250 ms later; on other kinds it shows while the demo runs or
 at the next Show me, Play or interaction. Three owner rulings hold on every page: Pause freezes the stage at
