@@ -22,7 +22,8 @@
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
 // other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
-// again for up to 10 s while Chrome lets go of its files; one that stays is named in the output.
+// again for up to 10 s while Chrome lets go of its files; one that stays is named in the output. Ctrl+C, or an error thrown
+// outside the run, does the same before the exit.
 // Exit code 1 on any problem.
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -179,9 +180,11 @@ async function pageSocket() {
 
 let ws = null;
 let nextId = 0;
+let aborting = false; // set by abort() below: the run stops where it is and only the cleanup goes on
 const pending = new Map();
 const listeners = new Set();
 function send(method, params = {}) {
+  if (aborting) return new Promise(() => {});
   return new Promise((resolve, reject) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) { reject(new Error(`${method}: Chrome is not connected`)); return; }
     const id = ++nextId;
@@ -190,6 +193,7 @@ function send(method, params = {}) {
   });
 }
 function failPending(reason) {
+  if (aborting) return;
   for (const done of pending.values()) done({ error: { message: reason } });
   pending.clear();
 }
@@ -402,6 +406,29 @@ async function scrollProblems(reduced) {
   return problems;
 }
 
+// The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
+let cleaning = null;
+function cleanUp() {
+  cleaning ??= (async () => {
+    if (ws) ws.close();
+    stopChrome();
+    await Promise.race([chromeExited, sleep(5000)]);
+    await removeProfile();
+  })();
+  return cleaning;
+}
+// Ctrl+C (or a closed terminal) and an error thrown outside the main flow, in a socket listener for one, skip the finally
+// below and would leave Chrome running and the profile unnamed. So the run stops where it is (send() no longer answers, which
+// keeps the pages still to come from failing one after the other), the same cleanup runs, and the exit code is 1.
+async function abort(what) {
+  aborting = true;
+  console.error(what);
+  await cleanUp().catch(() => {});
+  process.exit(1);
+}
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP']) process.on(signal, () => abort(`Interrupted (${signal}).`));
+process.on('uncaughtException', err => abort(err?.stack || String(err)));
+
 let failures = 0;
 try {
   ws = new WebSocket(await pageSocket());
@@ -483,9 +510,6 @@ try {
   console.error(err.message);
   failures++;
 } finally {
-  if (ws) ws.close();
-  stopChrome();
-  await Promise.race([chromeExited, sleep(5000)]);
-  await removeProfile();
+  await cleanUp();
 }
 process.exit(failures ? 1 : 0);
