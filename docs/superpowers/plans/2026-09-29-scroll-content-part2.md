@@ -1087,13 +1087,13 @@ None: leave out the `details.hb-options` block.
   - `.num` becomes 13px, weight 600, keeping its letter spacing. `.stage p` becomes `font-size:14px` (was `clamp(11px,1.4vw,13px)`; rule B9).
   - The chapter lines are rewritten in plain words where they named code or settings (luminance, the blend window, snapping):
 
-    | Chapter | Title | Two lines |
+    | Chapter | Title | Text |
     |---|---|---|
-    | 01 | Departure | The first section owns the darkest color. / Scroll down and the ground shifts under the text. (unchanged) |
-    | 02 | Ascent | Halfway between two sections, the background / is an even mix of both colors. |
-    | 03 | Meridian | When the background turns light, / the text turns dark so it stays readable. |
-    | 04 | Descent | Each section has a color of its own, / and the change happens as you move between them. |
-    | 05 | Arrival | The last color stays / as you reach the end. |
+    | 01 | Departure | The first section owns the darkest color. Scroll down and the ground shifts under the text. (unchanged) |
+    | 02 | Ascent | Halfway between two sections, the background is an even mix of both colors. |
+    | 03 | Meridian | When the background turns light, the text turns dark so it stays readable. |
+    | 04 | Descent | Each section has a color of its own, and the change happens as you move between them. |
+    | 05 | Arrival | The last color stays as you reach the end. |
 
   - Script: `update()` keeps the blend maths and the guarded write; the swatch, hex, percentage and segment readout lines go.
   - Phone rules: none. Today's mobile block held only the stage size and the aside.
@@ -1149,3 +1149,4 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.26 · Scroll-Based`
 - **Pager:** Previous: Scrollspy Navigation (`../scrollspy-nav/`) · Next: none
+- **Final fix wave:** each chapter's text is one paragraph, `<p>${c[1]} ${c[2]}</p>`, with no `<br>`, so it wraps on its own (the table lists the text, not where it breaks). At 375px no chapter has a one-word line (the forced break left "background" and "text." alone); on laptops and tablets chapters 1 to 4 still take two lines and chapter 5 now takes one, and the section heights and the scroll length are unchanged. At 320-344px and 352-373px (360px, for example) a last line can still be one word.
