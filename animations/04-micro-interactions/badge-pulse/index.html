@@ -31,8 +31,9 @@
     .icon-round{border-radius:50%}
     @media(hover:hover){.icon-btn:hover{border-color:var(--ui-accent)}}
     .icon-label{font-size:11px;color:var(--ui-muted);text-align:center}
-    /* Badge: the number is dark because white on these colors is below 4.5:1 */
-    .badge{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--badge-color);color:#0b0b0d;font-size:11px;font-weight:bold;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+    /* Badge: the number is dark because white on these colors is below 4.5:1. The badge is a stacking context of its own, so the halo
+       below (z-index -1) is drawn over its color but under the number, and the number keeps its contrast through every pulse. */
+    .badge{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:var(--badge-color);color:#0b0b0d;font-size:11px;font-weight:bold;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg);isolation:isolate}
     /* Dot badge */
     .dot-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--badge-color);border:2px solid var(--bg)}
     /* Pulse scale only */
@@ -44,8 +45,9 @@
     /* Both */
     .pulse-both .badge,.pulse-both .dot-badge{animation:badge-scale var(--pulse-dur) ease-in-out infinite}
     .pulse-both .badge::after,.pulse-both .dot-badge::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:var(--badge-color);opacity:.4;animation:halo-grow var(--pulse-dur) ease-out infinite}
-    /* Stops after three pulses */
-    .fade-mode .badge,.fade-mode .dot-badge,.fade-mode .badge::after,.fade-mode .dot-badge::after{animation-iteration-count:3!important}
+    .badge::after{z-index:-1}
+    /* Stops after three pulses: the last pulse ends on its last keyframes (badge at scale 1, halo invisible) and stays there */
+    .fade-mode .badge,.fade-mode .dot-badge,.fade-mode .badge::after,.fade-mode .dot-badge::after{animation-iteration-count:3!important;animation-fill-mode:forwards!important}
     /* Status dot (online) */
     .status-dot{position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#56d364;border:2px solid var(--bg);animation:badge-scale var(--pulse-dur) ease-in-out infinite}
   </style>
@@ -198,6 +200,8 @@
   const stage=document.querySelector('.stage');
   const vars=document.documentElement.style;
   const icons=[...document.querySelectorAll('.icon-btn')];
+  // While its badge shows, an icon's label says what the badge says ("Notifications, 3 new"); the part before the comma names the icon alone
+  const fullLabel=new Map(icons.map(ic=>[ic,ic.getAttribute('aria-label')]));
   let currentStyle='pulse-scale',pulseMs=1500;
 
   // Taking the pulse class off, reading the layout and putting it back starts the bell's and the inbox's animations again
@@ -211,17 +215,20 @@
     });
   }
 
-  // Clicking an icon, or pressing Enter or Space on it, clears its badge; Reset shows every badge again at once.
+  // Clicking an icon, or pressing Enter or Space on it, clears its badge and its label stops announcing it; Reset brings both back at once.
   icons.forEach(ic=>{
     const dismiss=()=>{
       const b=ic.querySelector('.badge,.dot-badge');
-      if(b)b.style.display='none';
+      if(!b)return;
+      b.style.display='none';
+      ic.setAttribute('aria-label',fullLabel.get(ic).split(',')[0]);
     };
     ic.addEventListener('click',dismiss);
     ic.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();dismiss()}});
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{
     document.querySelectorAll('.badge,.dot-badge').forEach(b=>{b.style.display=''});
+    icons.forEach(ic=>ic.setAttribute('aria-label',fullLabel.get(ic)));
     applyStyle();
   });
 
@@ -232,14 +239,20 @@
       pick(b.dataset);
     }));
   }
-  choices('style-seg',d=>{currentStyle=d.style;applyStyle()});
-  // A new --pulse-dur keeps the time already played, so every pulse would jump to another point of its cycle.
-  // Scaling each animation's time by the same factor as its length keeps the pulses where they are, moving or paused.
+  // Pressing the style that is already chosen changes nothing; it must not restart the pulses
+  choices('style-seg',d=>{if(d.style===currentStyle)return;currentStyle=d.style;applyStyle()});
+  // A new --pulse-dur keeps the time already played, so every pulse would jump to another point of its cycle. Scaling each
+  // animation's time by the same factor as its length keeps the pulses where they are: moving, paused or finished (the fill mode of
+  // "Stops after three pulses" keeps a finished pulse in the list). The times are read first, the new length goes in and is flushed,
+  // and then every pulse is moved.
   choices('speed-seg',d=>{
     const next=+d.ms;
-    stage.getAnimations({subtree:true}).forEach(a=>{if(a.animationName&&a.currentTime!=null)a.currentTime=a.currentTime*next/pulseMs});
-    pulseMs=next;
+    if(next===pulseMs)return;
+    const pulses=stage.getAnimations({subtree:true}).filter(a=>a.animationName).map(a=>[a,a.currentTime]);
     vars.setProperty('--pulse-dur',next+'ms');
+    void stage.offsetWidth;
+    pulses.forEach(([a,t])=>{if(t!=null)a.currentTime=t*next/pulseMs});
+    pulseMs=next;
   });
   choices('grow-seg',d=>{vars.setProperty('--pulse-scale',d.scale)});
   choices('color-sw',d=>{vars.setProperty('--badge-color',d.c)});

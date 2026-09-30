@@ -1067,29 +1067,30 @@ How far it rises and Size when raised move the underlined fields' labels; the bo
 - **Description:** A badge on an icon pulses to catch the eye. Best for unread messages.
 - **Watch it help line:** "It moves by itself. Pause it, or click an icon to clear its badge; Reset brings the badges back."
 - **Player bar:** Pause (css) · Reset · Slow motion (css). Reset is the do-it plan's Reset button (`id="btn-reset"`, `data-hb-reset`) and sits between Pause and Slow motion; on phones Pause and Reset share a row.
-- **Sequence:** the bell's and the inbox's badges pulse forever in the chosen Pulse style (`badge-scale`, `halo-grow` or both, over Speed). The avatar's online dot always grows and shrinks (`badge-scale`). No page timers. Clicking the bell or the inbox, or pressing Enter or Space on it, clears its badge (`display:none`), as today.
-- **Reset:** shows every cleared badge again and restarts the pulses with `applyStyle()`. While paused, the restarted pulses wait at their first frame (the shared `hb-paused` class holds them) until Play.
+- **Sequence:** the bell's and the inbox's badges pulse forever in the chosen Pulse style (`badge-scale`, `halo-grow` or both, over Speed). The avatar's online dot always grows and shrinks (`badge-scale`). No page timers. Clicking the bell or the inbox, or pressing Enter or Space on it, clears its badge (`display:none`), as today, and the icon's `aria-label` loses the count so that screen readers no longer announce a badge that is gone: "Notifications, 3 new" becomes "Notifications" and "Inbox, new messages" becomes "Inbox" (the full labels are kept for Reset; "Profile, online" never changes).
+- **Reset:** shows every cleared badge again, restores the full labels and restarts the pulses with `applyStyle()`. While paused, the restarted pulses wait at their first frame (the shared `hb-paused` class holds them) until Play.
 - **Slow motion:** css
 - **Reduced motion:** the demo's rule goes (it removed the pulses and hid the halos, and Play must move them).
-- **Stage font:** site font. `.icon-label` becomes 11px, keeping its `--ui-muted` grey; the number in the badge becomes 11px.
-- **Stage:** the three icons stay. Their two-line labels become one word each: "Number", "Dot" and "Online" (were "Bell numbered", "Inbox dot" and "Avatar online"). The avatar's inline style moves into a class. `hb-dots`: yes. Measured: 168px of content, centred.
+- **Stage font:** site font. `.icon-label` becomes 11px, keeping its `--ui-muted` grey; the number in the badge becomes 11px and dark (`#0b0b0d`), not white: white on the five badge colors is 3.35 to 1.94:1 and the dark number 5.87 to 10.15:1 (text needs 4.5:1).
+- **Stage:** the three icons stay. Their two-line labels become one word each: "Number", "Dot" and "Online" (were "Bell numbered", "Inbox dot" and "Avatar online"). The avatar's inline style moves into a class. `hb-dots`: yes. Measured: 90px of content (the badges stick out 8px above it), centred; it fits every stage, the 260px one included.
+- **Halo layering:** the halo (`::after`) is drawn over the badge's color and under its number: `.badge{isolation:isolate}` makes the badge a stacking context and `.badge::after{z-index:-1}` puts the halo inside it, below the text. A halo painted over the number took it below 4.5:1 (2.66:1 on Red at the start of every Ring or Both pulse, 3.27 to 4.15:1 at rest); with the halo under it the number measures 5.86:1 or better in every state.
 
 **Main settings**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Pulse style | Choice buttons | Grow · Ring · Both | Grow | Grow stays contained; Ring spreads a soft halo. | the bell's and the inbox's class: `pulse-scale` / `pulse-halo` / `pulse-both`, then `applyStyle()` |
-| Speed | Choice buttons | Slow · Normal · Fast | Normal | Fast feels urgent; slow is easy to miss. | `--pulse-dur`: 2.4s / 1.5s / 0.9s |
+| Pulse style | Choice buttons | Grow · Ring · Both | Grow | Grow stays contained; Ring spreads a soft halo. | the bell's and the inbox's class: `pulse-scale` / `pulse-halo` / `pulse-both`, then `applyStyle()`; pressing the style already chosen does nothing (it must not restart the pulses) |
+| Speed | Choice buttons | Slow · Normal · Fast | Normal | Fast feels urgent; slow is easy to miss. | `--pulse-dur`: 2.4s / 1.5s / 0.9s; every pulse is moved to the same point of its new length, so the picture stays (moving, paused or finished) |
 | How much it grows | Choice buttons | Slightly · Medium · A lot | Medium | Much bigger than a third starts to feel alarming. | `--pulse-scale`: 1.15 / 1.3 / 1.5 |
 
 **More options**
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Stops after three pulses | Switch | on / off | off | Pulses three times to be noticed, then rests. | every icon's `fade-mode` class on / off, then `applyStyle()`, as today |
+| Stops after three pulses | Switch | on / off | off | Pulses three times to be noticed, then rests. | every icon's `fade-mode` class on / off, then `applyStyle()`; the rule sets `animation-iteration-count:3` and `animation-fill-mode:forwards`, so the run ends on its last keyframes (badge at scale 1, halo invisible) and a finished pulse stays in `getAnimations()` for Speed |
 | Badge color | Swatches (Red, the default, added; White and Green left out) | Red · Pink · Blue · Purple · Orange | Red | Red reads as new and urgent. | `--badge-color`: `#f85149` / `#ff6f8b` / `#58a6ff` / `#d2a8ff` / `#ffa657` |
 
-White is left out because the badge's number is white, and Green because the online dot is green. How much it grows also sets the online dot's pulse, whatever the Pulse style.
+White stays left out (it was left out when the number was white; the number is dark now, so White could be added if the owner wants it), and Green because the online dot is green. How much it grows also sets the online dot's pulse, whatever the Pulse style.
 
 - **Removed:**
   - The note and the "Click an icon to dismiss its badge." line; the help line says it.
@@ -1121,7 +1122,7 @@ White is left out because the badge's number is white, and Green because the onl
   - [Tooltip Reveal](../tooltip-reveal/) — pointing at an icon shows a short note
   - [Loading Spinner](../loading-spinner/) — another sign that something is going on
   - [Hover State Animation](../hover-state/) — items react when the pointer is over them
-- **README How it works:** unchanged
+- **README How it works:** the halo snippet gains `.badge{isolation:isolate}` and `z-index:-1` on `.badge::after`, with a sentence saying the ring is drawn under the number, and a sentence after it says the three-pulse run uses `animation-iteration-count:3` and `animation-fill-mode:forwards`. The rest is unchanged.
 - **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: under reduced motion the demo starts paused, so the badges stay still until the visitor presses Play. In production, turn the pulse off: the badge stays visible, just without motion." The rest is unchanged.
 - **Category line:** `04.15 · Micro-Interactions`
 - **Pager:** Previous: Form Field Morph (`../form-field-morph/`) · Next: Tooltip Reveal (`../tooltip-reveal/`)

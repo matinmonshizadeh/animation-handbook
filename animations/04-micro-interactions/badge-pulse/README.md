@@ -35,13 +35,18 @@ The badge pulses via a looping `scale` keyframe animation:
 }
 ```
 
-The halo variant adds a radiating ring that expands and fades:
+The halo variant adds a radiating ring that expands and fades. The ring is drawn under the badge's number, not over it: the badge is its own stacking context (`isolation: isolate`) and the ring has a negative `z-index`, so it covers the badge's color but never the number, which keeps its contrast through every pulse:
 
 ```css
+.badge {
+  isolation: isolate;
+}
+
 .badge::after {
   content: '';
   position: absolute;
   inset: -4px;
+  z-index: -1;
   border-radius: 50%;
   background: var(--badge-color);
   opacity: 0.4;
@@ -53,6 +58,8 @@ The halo variant adds a radiating ring that expands and fades:
   100% { transform: scale(2.2); opacity: 0; }
 }
 ```
+
+Stopping after three pulses takes two more declarations on the animated parts, `animation-iteration-count: 3` and `animation-fill-mode: forwards`. Without the fill mode the badge would fall back to the halo's resting style, a faint ring, when the last pulse ends; with it the run stays on its last keyframes, the badge at scale 1 and the halo invisible.
 
 ## Key parameters
 | Parameter | Default | Effect |
