@@ -48,8 +48,20 @@ rather than by writing `font-size` — see the production note below. Nothing is
 resized: the cover keeps its full height in the layout and slides up by what it
 has shrunk, and the article slides with it; the badge and the backdrop are moved
 back into the visible part, and once the cover is shorter than its text the text
-starts at the top of the bar. Back to top and Play from the end set the eased
-value at once.
+starts at the top of the bar.
+
+The scroll does not set `e` itself: it sets a target, and a loop moves the value
+that is drawn toward it, so a wheel notch glides instead of jumping. Each frame
+covers a share of the distance left that depends on how long the frame took, so
+the header settles in the same time on a 30, 60 or 120Hz screen:
+
+```js
+const dt = last ? Math.min(now - last, 50) : FRAME;  // FRAME = 1000 / 60; the first frame after a restart counts as 1/60 s
+last = now;
+current += (target - current) * (1 - Math.pow(1 - EASE, dt / FRAME));  // EASE 0.16 is the share covered in 1/60 s
+```
+
+Back to top and Play from the end set the eased value at once.
 
 ## Key parameters
 

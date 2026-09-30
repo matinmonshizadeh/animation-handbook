@@ -201,9 +201,9 @@
   // A wheel notch is ~100px — nearly a third of RANGE — and easeOutCubic turns that
   // first notch into 68% of the collapse. Scroll therefore sets a *target* and the
   // rendered progress eases toward it, so the header glides instead of snapping.
-  const EASE = 0.16, BLUR_STEP = 0.5;
+  const EASE = 0.16, BLUR_STEP = 0.5, FRAME = 1000 / 60; // EASE: the share of the distance covered in 1/60 s
 
-  let RANGE = 320, raf = null, target = 0, current = 0;
+  let RANGE = 320, raf = null, target = 0, current = 0, last = 0; // last: time of the previous frame, 0 after a restart
 
   function lerp(a, b, t)    { return a + (b - a) * t; }
   function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
@@ -253,16 +253,17 @@
     set('rule',  q(e, .01),                      v => coverRule.style.opacity = v);
   }
 
-  function tick() {
+  function tick(now) {
     const d = target - current;
     if (Math.abs(d) < 0.0005) { current = target; render(current); raf = null; return; }
-    current += d * EASE;
+    const dt = last ? Math.min(now - last, 50) : FRAME; last = now; // the first frame after a restart counts as 1/60 s
+    current += d * (1 - Math.pow(1 - EASE, dt / FRAME));            // the same pace on a 30, 60 or 120Hz screen
     render(current);
     raf = requestAnimationFrame(tick);
   }
   function schedule() {
     if (snaps()) { current = target; render(current); return; }
-    if (raf === null) raf = requestAnimationFrame(tick);
+    if (raf === null) { last = 0; raf = requestAnimationFrame(tick); }
   }
 
   stage.addEventListener('scroll', () => {

@@ -6,24 +6,24 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 
 | Demo | Description |
 |------|-------------|
-| [3D Model Orbit](3d-model-orbit/) | Phong-shaded WebGL geometry orbiting with mouse-follow and auto-spin |
-| [Scroll-Driven 3D Rotation](scroll-driven-3d-rotation/) | CSS cube rotates through four choreographed stages as you scroll |
-| [Parallax 3D Tilt](parallax-3d-tilt/) | CSS perspective + rotateX/Y follows mouse — shine highlight tracks the virtual light |
-| [Canvas Particle Effect](canvas-particle-effect/) | 500 drifting particles with O(n²) proximity connections and mouse repel/attract |
-| [Fluid Simulation](fluid-simulation/) | WebGL metaballs via SDF smooth-minimum in a fragment shader |
-| [Glassmorphism Animated](glassmorphism-animated/) | backdrop-filter: blur() over animated gradient blobs — three frost variants |
-| [WebGL Shader Animation](webgl-shader-animation/) | Four GLSL fragment shader presets: plasma, waves, Voronoi, kaleidoscope |
-| [Noise-Based Motion](noise-based-motion/) | Simplex noise drives a wind field and a morphing blob on 2D canvas |
-| [SVG Path Animation](svg-path-animation/) | stroke-dashoffset reveals three SVG drawings — icon, signature, logo mark |
-| [Chromatic Aberration](chromatic-aberration/) | RGB channels offset via mix-blend-mode: screen — static, pulse, and glitch modes |
-| [2.5D / Pseudo-3D](2-5d-pseudo-3d/) | Seven depth layers translate at different rates — mouse or auto-pan |
-| [Ray Marching / SDF Scene](ray-marching-sdf/) | 3D scene entirely in a fragment shader — sphere blend, boolean, infinite repetition |
-| [GPGPU Particle System](gpgpu-particle-system/) | 65k+ particles computed in WebGL2 textures — texture ping-pong physics |
-| [Image Distortion on Hover](image-distortion-hover/) | Fragment shader displaces UV coordinates around the cursor — four distortion types |
-| [Cloth Simulation](cloth-simulation/) | Verlet integration + distance constraints — draggable, gravity, and wind-responsive |
-| [Volumetric Smoke](volumetric-smoke/) | Ray marching that accumulates 3D noise density — light scattering, shadow rays |
-| [Morphing Blob](morphing-blob/) | Metaball circles fused by an SVG blur-plus-contrast filter — drifts and a droplet chases the pointer |
-| [3D Flip Card](flip-card-3d/) | A card rotates in 3D to reveal its back face — preserve-3d + backface-visibility |
+| [3D Model Orbit](3d-model-orbit/) | A lit 3D shape spins, or turns to face your pointer. Best for product views. |
+| [Scroll-Driven 3D Rotation](scroll-driven-3d-rotation/) | Scrolling turns a 3D cube from pose to pose. Best for product tours. |
+| [Parallax 3D Tilt](parallax-3d-tilt/) | A card tilts toward your pointer, and a light slides over it. Best for cards. |
+| [Canvas Particle Effect](canvas-particle-effect/) | Dots drift, link up when close, and dodge your pointer. Best for tech sites. |
+| [Fluid Simulation](fluid-simulation/) | Blobs drift and melt into each other like liquid. Best for hero backgrounds. |
+| [Glassmorphism Animated](glassmorphism-animated/) | Frosted glass cards blur the colors behind them. Best for cards and panels. |
+| [WebGL Shader Animation](webgl-shader-animation/) | Moving color patterns computed for every pixel. Best for bold backgrounds. |
+| [Noise-Based Motion](noise-based-motion/) | Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds. |
+| [SVG Path Animation](svg-path-animation/) | A line drawing draws itself, stroke by stroke. Best for icons and logos. |
+| [Chromatic Aberration](chromatic-aberration/) | A word splits into red, green and blue fringes. Best for bold titles. |
+| [2.5D / Pseudo-3D](2-5d-pseudo-3d/) | Flat layers slide by different amounts, faking depth. Best for hero scenes. |
+| [Ray Marching / SDF](ray-marching-sdf/) | A 3D scene drawn only from formulas, circled by a camera. Best for art pages. |
+| [GPGPU Particle System](gpgpu-particle-system/) | Tens of thousands of particles flow on the graphics chip. Best for hero effects. |
+| [Image Distortion on Hover](image-distortion-hover/) | The picture ripples and bends around your pointer. Best for portfolio images. |
+| [Cloth Simulation](cloth-simulation/) | A cloth sways in the wind, and you can drag it around. Best for playful pages. |
+| [Volumetric Smoke](volumetric-smoke/) | Soft smoke curls upward, drawn as a real 3D cloud. Best for moody backgrounds. |
+| [Morphing Blob](morphing-blob/) | Blobs melt together, and one drop chases your pointer. Best for hero sections. |
+| [3D Flip Card](flip-card-3d/) | A card turns over in 3D to show its back. Best for profile and product cards. |
 
 ## Key concepts
 
