@@ -8,11 +8,14 @@ fix a bug, or improve an explanation are all welcome.
 
 - **One technique = one folder** under `animations/<category>/<slug>/`.
 - **Each folder contains exactly** `index.html` and `README.md` (optionally a `preview.gif`/`preview.png`).
-- **No build step, no frameworks, no dependencies.** Plain HTML + CSS + vanilla JS, all in one file.
+- **No build step, no frameworks, no dependencies.** Plain HTML + CSS + vanilla JS. The
+  animation itself lives in the one HTML file; the page around it comes from two shared
+  files (see [The demo page](#the-demo-page)).
 - **No CDN / external requests.** If a technique needs a library in production (GSAP, Three.js),
   mention it in the README's *Production notes* — but demonstrate the principle with vanilla code.
 - **Keep demos under ~300 lines.** If it's longer, the explanation has failed.
-- **Must work offline.** Open the HTML in a browser and it runs.
+- **Must work offline.** Open the HTML in a browser and it runs (from a checkout of the
+  repository, which holds the shared files the page links).
 - **This catalogs techniques, not tools.** GSAP, Framer Motion, and Lottie are tools that
   *implement* techniques. They belong in *Production notes*, never as their own entry.
 
@@ -30,11 +33,11 @@ fix a bug, or improve an explanation are all welcome.
 
 ## Adding a new technique
 
-1. **Open an issue** using the *New technique* template so we can agree on the category and slug.
-2. Create `animations/<category>/<slug>/index.html` — a self-contained demo with:
-   - a `<header>` with the technique name (`<h1>`) and a one-sentence description (`<p>`);
-   - a controls panel to adjust key parameters live, when relevant;
-   - CSS variables for colors, dark stage / light cards by default.
+1. **Open an issue** using the *New technique* template so we can agree on the category,
+   the slug and the kind of page (see [Page kinds](#page-kinds)).
+2. Create `animations/<category>/<slug>/index.html`. Copy the closest existing page of the
+   same kind and change the demo, its settings and its texts, so the shared parts of the
+   page stay exactly as they are (see [The demo page](#the-demo-page)).
 3. Create `README.md` with **exactly** these six sections:
    1. **What it is** — 2–3 sentence definition
    2. **When to use it** — bullets of real use cases
@@ -42,18 +45,122 @@ fix a bug, or improve an explanation are all welcome.
    4. **Key parameters** — the values that matter
    5. **Production notes** — gotchas, library equivalents
    6. **See also** — links to related entries
-4. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description).
-5. Add it to the category's `README.md` list.
+
+   The page loads *What it is* and *See also* from this file, so write them in plain words
+   with no code. Each *See also* line is `- [Title](../slug/) — one plain phrase`, where
+   Title is the linked page's `<h1>`. *Key parameters* has one row per setting in Try it,
+   named exactly as on the page. The other sections are for GitHub readers.
+4. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description)
+   and add the page to `sitemap.xml`. The description is the page's one-line description,
+   word for word.
+5. Add it to the category's `README.md` list and to the list in the root `README.md`, with
+   the same name and description, and update the technique count where it is written
+   (the root `README.md`, the home page and `tests/pages.test.js`).
+6. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check)).
+
+## The demo page
+
+Every demo is one column with three steps, then a short explanation:
+
+1. **Watch it** — the stage, with the player bar right below it.
+2. **Try it** — one to three plain settings, each with a hint, and the rest under
+   **More options**. A demo with no settings leaves this step out.
+3. **Copy the prompt** — the prompt, the "Your settings" chips and a **Copy prompt** button.
+
+Then **What it is** (from the README), **Good for** (3–5 short tags) and **Avoid on**
+(1–3 tags), and **Similar animations** (from the README's *See also*). Above it all sit a
+top bar with Previous and Next links and a header: the category line, the title and a
+one-line description in plain words that ends "Best for …". That one sentence is also the
+page's meta, Open Graph, Twitter and JSON-LD description, its card on the home page and its
+line in both READMEs.
+
+### Shared files
+
+Two files draw and run the page around the demo. Every page links them after its own
+`<style>`, with the same version number `N`:
+
+```html
+<link rel="stylesheet" href="../../../assets/css/demo-page.css?v=N">
+<script src="../../../assets/js/demo-page.js?v=N" defer></script>
+```
+
+`assets/css/demo-page.css` holds the layout and the site font; `assets/js/demo-page.js` fills
+in "Your settings", Copy prompt, What it is and Similar animations, and runs playing on
+arrival, Pause, Slow motion, Show me, Play and reduced motion. **When either file changes,
+bump `N` on every page in the same change**, so visitors do not keep a cached older copy. A
+test fails when the pages do not all use the same `N`.
+
+The page owns the stage's width, border, corners and height. The demo owns everything
+drawn inside it (overflow, background, alignment, perspective).
+
+### Page kinds
+
+Set the kind on the body: `<body class="hb" data-hb-kind="once|loop|do|scroll">`. It decides
+the player bar under the stage.
+
+| Kind | Step 1 | Controls | On arrival | Reduced motion |
+|---|---|---|---|---|
+| `once`, plays once | Watch it | **Replay** (`data-hb-replay`), **Loop** (`data-hb-loop`), **Slow motion** (`data-hb-slowmo`) | Loop switches on, so it plays and repeats | Loop and Slow motion off and greyed out; Replay plays it once |
+| `loop`, moves by itself | Watch it | **Pause**/Play (`data-hb-pause`), **Slow motion**, sometimes **Reset** (`data-hb-reset`) | Nothing; it is already moving | Starts paused; Slow motion off and greyed out |
+| `do`, the visitor acts | Hover it, Click it, Drag it or Press Tab | **Show me** (`data-hb-demo`), **Reset** where there is a state to reset, **Slow motion** where it works | Show me runs once | Show me does not run on arrival; it works when pressed |
+| `scroll`, driven by scroll | Scroll it | **Play** (`data-hb-autoscroll`), **Back to top** (`data-hb-top`) | Play runs once: the box scrolls to its end in about six seconds | Play does not run on arrival; it works when pressed |
+
+Put `data-hb-autoplay` on the body of every kind except `loop`. Copy the player bar from a
+page of the same kind so its buttons match exactly; the tests check them. A few details:
+
+- A do-it page's Show me run stops when the visitor uses the stage. The shared script sends
+  `hb:input` on `document` for a real press, key, wheel, touch or click, and the demo listens.
+- A loop with its own timers listens to `hb:pause` (`detail.paused`) to stop and start them.
+- `data-hb-slowmo="css"` and `data-hb-pause="css"` let the shared script slow or hold the
+  stage's CSS animations; with no value the demo does it itself.
+- On a scroll page the scroller is the stage, or the element marked `data-hb-scroller`. Play
+  scrolls it at a steady speed and any real input in the stage stops it.
+- `data-hb-skip` leaves a control out of "Your settings"; `data-hb-label` sets its label.
+
+### Settings
+
+Give each setting a plain label that says what changes ("How much it spins", not "Rotation
+(deg)"), the control, and one hint line. Prefer named choices ("Slow · Normal · Fast") to
+numbers, switches for on/off ("Grows from small"), and a slider only when sliding is the
+point. Playback is not a setting; the player bar has it. Every control has a label and
+`autocomplete="off"`, and each group of choice buttons has exactly one pressed. The "Your
+settings" chips and the copied prompt list each setting as `label: value`. Copy the markup
+from a page that uses the control you need.
+
+### The copyable prompt
+
+The prompt is written in the page, in plain words: 60 to 130 words, never more, with no code.
+It starts with what to build and where ("Add a … to [the element you want to animate]"), with
+the parts to fill in in [square brackets]. It says what the viewer sees, the one or two rules
+that make it look right, how to keep it smooth, what to do under reduced motion, and the
+touch equivalent of a hover or drag. It does not state a value that a setting controls, and
+it ends with "Match the settings listed below." when the page has a Try it step.
+
+### Font
+
+The site font is Schibsted Grotesk, loaded by the shared stylesheet. Stage text uses it too,
+so a demo does not set its own family. A typewriter (monospace) font is only for effects
+about typing.
+
+### Reduced motion
+
+When the visitor asks for reduced motion, Loop and Slow motion are shown off and greyed out
+with a short note in the player bar, and loops start paused. On arrival a plays-once page
+plays its reduced version once, so the stage is not empty; Show me and Play wait to be
+pressed. Replay, Pause, Show me and Play still work when pressed. The demo's own CSS and
+script show the end state or a fade instead of movement.
 
 ## Responsiveness (mandatory)
 
 Every demo must work on mobile, tablet, and desktop.
 
 - Layouts use Grid/Flexbox with `%`, `fr`, `minmax()`, or `clamp()` — no fixed pixel widths.
-- Side panels stack **below** the stage under 600px.
+- The page is one column at every size: the player bar sits right below the stage and the
+  settings below it, with nothing beside the stage.
 - Touch targets are at least **44×44px**; gate hover effects behind `@media (hover: hover)`.
 - Drag interactions use Pointer Events, not mouse events.
 - Animate `transform` and `opacity` only — never `width`, `height`, `top`, `left`, or `box-shadow`.
+- Text is at least 4.5:1 against its background.
 - Respect `@media (prefers-reduced-motion: reduce)`.
 
 ### Self-check before opening a PR
@@ -61,17 +168,45 @@ Every demo must work on mobile, tablet, and desktop.
 - [ ] Layout reflows cleanly at 375px width.
 - [ ] All touch targets ≥ 44px.
 - [ ] Works with touch scroll / drag, not just mouse.
-- [ ] Text stays readable at every size.
-- [ ] Side panel stacked below the stage on mobile.
+- [ ] Text stays readable at every size, at least 4.5:1 against its background.
+- [ ] The player bar is right below the stage and Try it under it; nothing beside the stage on mobile.
 - [ ] Respects `prefers-reduced-motion`.
 - [ ] Runs offline with no external requests.
+- [ ] The tests and the page check pass.
+
+## Tests and the page check
+
+Run the tests from the repo root:
+
+```
+node --test "tests/*.test.js"
+```
+
+They check every page (the template's parts, the player bar of its kind, labels, the prompt
+rules, one description across the page, its meta tags and its home card, one `?v=N`), every
+page's README, the shared stylesheet and the home page. Nothing to install.
+
+For the page itself, serve the repo and run the page check on the page or a whole category
+folder. It drives Chrome:
+
+```
+python -m http.server <port> --bind 127.0.0.1
+node tools/check-pages.mjs --base http://127.0.0.1:<port> animations/02-entrance-and-exit/rotate-in
+```
+
+It opens each page at six screen setups (1280×800, 1366×657, 768×1024, 375×812, 375×812 with
+reduced motion, 320×640) and prints one line for each, so a passing page gives **six `ok`
+lines**. A problem prints `FAIL` with the reason.
 
 ## Writing style
 
 Prose, not bullet-soup. Show, then explain. Avoid hype ("stunning", "powerful") — describe
-what it does. Comment code only where it isn't self-explanatory.
+what it does. Comment code only where it isn't self-explanatory. On the pages, write for
+someone new to animation: plain labels, hints, descriptions and prompts, with no code and no
+CSS property names.
 
 ## Fixing a bug
 
 Open an issue (or a PR directly for small fixes). Preserve every demo's behavior — visual
-parity matters more than code elegance. Never combine multiple animations into one file.
+parity matters more than code elegance. Never combine multiple animations into one file. If
+you change a shared file, bump `?v=N` on every page.
