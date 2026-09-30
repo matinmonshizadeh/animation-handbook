@@ -952,7 +952,7 @@ None: leave out the `details.hb-options` block.
   - `hb:input` has nothing to stop.
 - **Reset:** dismisses every toast, as "Dismiss all" did (each leaves the way it came), after `stopRun()`.
 - **Slow motion:** none.
-- **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, the bar is hidden, and a timer dismisses each one.
+- **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, and the bar is hidden (`.toast .prog{visibility:hidden}`) but keeps counting down, so its `animationend` still dismisses each toast after Time on screen, and hover, focus inside the toast and a held finger still pause it. This is a change of the final wave: the bar used to be removed (`animation:none`) and a `setTimeout` in `spawn()` dismissed each toast whatever the pointer or the focus was doing, so a toast could go while it was hovered or while a keyboard user was on ×, and the focus fell back to `<body>`. The timer, and the `clearTimeout` calls for it in `leave()` and `toRest()`, are gone. A toast under reduced motion still lives Time on screen (measured 2.5 s and 4 s).
 - **Touch:** already Pointer Events: a drag past 35% of its width or a tap dismisses a toast. Holding a finger on a toast pauses its countdown (the `paused` class). Pointing at a toast pauses it too, inside `@media (hover: hover)`, as today.
 - **Stage font:** site font. `.toast .ic` and `.toast .ti` drop `font-family:var(--disp)`; `.toast .x` and the new `.send` get `font-family:inherit`. `.toast .ms` goes up to 11px (was 10.5px).
 - **Stage:** the corner stack stays.
@@ -1008,7 +1008,7 @@ None: leave out the `details.hb-options` block.
   - [Modal Expand](../modal-expand/) — a window that must be closed before you go on
   - [Success Confetti](../success-confetti/) — a celebration for a finished task
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** the "Respect reduced motion" bullet says to drop the slide/scale, to appear and disappear instantly, and to hide the bar but keep its countdown running unseen, so `animationend` still dismisses the toast and hover and focus still pause it (it advised a `setTimeout` fallback, which ignores both). The rest is unchanged.
 - **Category line:** `04.27 · Micro-Interactions`
 - **Pager:** Previous: Star Rating (`../star-rating/`) · Next: Segmented Control (`../segmented-control/`)
 

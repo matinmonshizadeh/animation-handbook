@@ -52,7 +52,8 @@
     @container (max-height:300px) or (max-width:323px){.toaster{gap:6px;padding:8px}.toast{padding-top:8px;padding-bottom:8px}}
     /* A short stage under 760px wide (a phone held sideways) would let a full stack reach the centred button: it steps to the side the stack is not on */
     @container (max-width:759px) and (max-height:360px){.send,.send.at-top{top:50%;bottom:auto;left:16px;right:auto;transform:translateY(-50%)}.send.at-right{left:auto;right:16px}}
-    @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{animation:none!important;transform:scaleX(0)}}
+    /* Reduced motion: toasts come and go without movement, and the bar is hidden but keeps counting down, so it still ends the toast and hover and focus still pause it */
+    @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{visibility:hidden}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
   <script src="../../../assets/js/demo-page.js?v=4" defer></script>
@@ -213,17 +214,15 @@
     toasts.push(el);wire(el);
     play(prev); // in the bottom corners the others rise to make room; in the top corners nothing moves
     void el.offsetWidth;
-    if(reduceMotion.matches){
-      el.style.opacity='1';el.style.transform='none';
-      el._to=setTimeout(()=>dismiss(el),dur*1000); // no bar to end the countdown, so a timer does
-    }else requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none'});
+    if(reduceMotion.matches){el.style.opacity='1';el.style.transform='none'}
+    else requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none'});
   }
   // Toasts leave together. Each slides out from where it stands but stops taking room in the stack at once (taken out of the flow at its measured
   // place, under the others), so the others, measured first, glide into the gap at once instead of waiting for the exit. The timer only removes the node.
   function leave(going,dir){
     going=going.filter(el=>el&&!el._gone);
     if(!going.length)return;
-    going.forEach(el=>{el._gone=true;clearTimeout(el._to);const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1)});
+    going.forEach(el=>{el._gone=true;const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1)});
     if(reduceMotion.matches){going.forEach(el=>el.remove());return}
     const prev=snap(),top=corner.startsWith('t'),cs=getComputedStyle(toaster),gap=parseFloat(cs.rowGap)||0;
     const stack=[...toaster.children].filter(t=>t.style.position!=='absolute');
@@ -269,7 +268,7 @@
   send.addEventListener('click',()=>spawn()); // not addEventListener('click',spawn): that would pass the click as the message
   // Show me starts with no toasts on the stage: every one, the ones still leaving included, is taken away at once (no exit).
   function toRest(){
-    toaster.querySelectorAll('.toast').forEach(el=>{el._gone=true;clearTimeout(el._to);clearTimeout(el._exit);el.remove()});
+    toaster.querySelectorAll('.toast').forEach(el=>{el._gone=true;clearTimeout(el._exit);el.remove()});
     toasts=[];
   }
   // Show me is one press of the stage's button. It leaves no timer behind (the toast it sends counts itself down and leaves
