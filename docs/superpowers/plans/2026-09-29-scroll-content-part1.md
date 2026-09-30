@@ -447,7 +447,7 @@ None: leave out the `details.hb-options` block.
     | 06 | Open Studio | Workshop | Two days of making things by hand. |
     | 07 | Tide Tables | App | Daily tides for every beach on the coast. |
 
-  - The card button reads "View project →" (owner decision 6; the page checks forbid "Read more").
+  - The card button reads "View project →" (owner decision 6; the page checks forbid "Read more"). It is decoration: the card is not a link and the button takes no press, so `buildCards()` writes it as `<div class="card-btn" aria-hidden="true">` and a screen reader does not announce an action that is not there (before, it read "View project →" once for every card).
   - The big faded number becomes a watermark (owner decision 5): it keeps its 52px size and its opacity .1 but leaves the text column's flow, `.card-num{position:absolute;top:clamp(8px,3cqh,16px);right:clamp(12px,2.5vw,24px);margin:0;line-height:1}` with `.card__text{position:relative}`, and each number gets `aria-hidden="true"` in `buildCards()` (shared rule 12).
   - `.card__text` padding follows the box's height: `padding:clamp(14px,6cqh,32px) clamp(18px,3vw,32px)` (was `clamp(18px,3vw,32px)` all round; `6cqh` is 6% of the box).
   - On the shortest cards the one-line text hides, so the title, the kind and the button fit. `measure()` works out a card's height, `stage.clientHeight - 12 - (numCards - 1) * peekPx`, and toggles the class `short` on `#cards` when it is under 170px, with `#cards.short .card-body{display:none}`. `measure()` already runs after `buildCards()`, after a change of Edge that shows and on `resize`. The line hides only with seven cards and the Large edge (in the 258px and 288px boxes of short laptop windows and on phones), and with five cards and the Large edge or seven and Medium in the 258px box.
@@ -513,6 +513,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** in the "Size cards to include their own offset" bullet, `stage − 24px − (N−1) × peek` becomes `stage − 12px − (N−1) × peek`. The rest is unchanged.
 - **Category line:** `01.06 · Scroll-Based`
 - **Pager:** Previous: Fly-in Fly-out Contact List (`../fly-in-fly-out-contact-list/`) · Next: ScrollTrigger Animation (`../scroll-trigger/`)
+- **Final fix wave:** the decorative "View project →" button is `aria-hidden="true"` (see the card button under Stage): the accessibility tree no longer holds it, and the cards' titles and text are read as before.
 
 ---
 
