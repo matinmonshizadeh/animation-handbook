@@ -1734,8 +1734,18 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 // ---------- Views, search and the address ----------
 const PAGE=8;
 const STOP=new Set(['a','an','and','the','that','this','to','for','with','when','on','in','of','my','it','i','want','make','some']);
-const stem=w=>w.length>3?w.replace(/(ing|ed|es|s)$/,''):w;
-function queryWords(text){return [...new Set(wordsOf(text).filter(w=>!STOP.has(w)).map(stem).filter(w=>w.length>=2))];}
+// A typed word drops the first of these endings that leaves three letters with a vowel ("ring" stays whole), never the s of
+// "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while three stay (snapping → snap, added → add).
+function stem(w){
+  if(w.endsWith('ss'))return w;
+  for(const end of ['ies','ing','ed','es','s']){
+    const rest=w.slice(0,-end.length);
+    if(!w.endsWith(end)||rest.length<3||!/[aeiouy]/.test(rest))continue;
+    return (end==='ing'||end==='ed')&&rest.length>3&&/([bcdghjkmnpqrtvwx])\1$/.test(rest)?rest.slice(0,-1):rest;
+  }
+  return w;
+}
+function queryWords(text){return [...new Set(wordsOf(text).filter(w=>!STOP.has(w)).map(stem))];}
 // A word counts 3 in the name, 2 in a place name, 1 in the description or category; each is matched by the start of a word.
 function score(e,words){
   let s=0;
@@ -1804,13 +1814,14 @@ function render(){
   [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
   qClear.hidden=!q.value;
 }
+// Spaces go in as %20, not +, as the spec shows; readURL() reads both.
 function writeURL(push){
-  const p=new URLSearchParams();
-  if(state.q)p.set('q',state.q);
-  else if(state.place)p.set('place',PLACE[state.place].url);
-  else if(state.view)p.set('view','all');
-  if(state.all&&(state.q||state.place))p.set('all','1');
-  const url=p.toString()?'?'+p:location.pathname;
+  const p=[];
+  if(state.q)p.push('q='+encodeURIComponent(state.q));
+  else if(state.place)p.push('place='+PLACE[state.place].url);
+  else if(state.view)p.push('view=all');
+  if(state.all&&(state.q||state.place))p.push('all=1');
+  const url=p.length?'?'+p.join('&'):location.pathname;
   history[push?'pushState':'replaceState'](null,'',url);
 }
 // Reads the view from the address. Returns the category of an old ?cat= link, to scroll to.

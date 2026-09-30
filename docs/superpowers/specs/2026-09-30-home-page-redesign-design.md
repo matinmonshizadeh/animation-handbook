@@ -84,7 +84,9 @@ category's name in the form today's chips write it) opens All animations at that
 Search looks at each animation's name, its one-line description, the names of its places and its category name. The
 query is split into words; common small words are dropped (a, an, and, the, that, this, to, for, with, when, on, in,
 of, my, it, i, want, make, some); each word is matched by its start, so "bounces", "bounce" and "bouncing" all match
-"bounce" (a word of four letters or more drops a final "s", "es", "ing" or "ed" before matching). An animation matches when at least one word matches;
+"bounce" (a typed word drops the first of the endings "ies", "ing", "ed", "es" and "s" that leaves three letters with a
+vowel, but not the last "s" of "ss"; after "ing" or "ed", a doubled last letter other than l, s, f or z loses one letter
+while three remain: "snapping" finds "snap", "ring" stays whole). An animation matches when at least one word matches;
 results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the description 1),
 ties in home order. "a button that bounces when clicked" therefore puts Click / Tap Ripple, Bounce In and the other
 button animations at the top.
