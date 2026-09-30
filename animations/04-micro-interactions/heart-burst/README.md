@@ -42,7 +42,7 @@ function tick(ts) {
 }
 ```
 
-A burst's first frame counts as one 60 Hz frame, and a gap longer than 50ms (a tab coming back from the background) counts as 50ms, so nothing jumps. The demo also takes a step longer than 1.5 frames, which is a 30 Hz screen, in two halves, so the arc stays close to the one a 60 Hz screen draws, and Slow motion multiplies `k` by a third.
+A burst's first frame counts as one 60 Hz frame, and a gap longer than 50ms (a tab coming back from the background) counts as 50ms, so nothing jumps. The demo also takes a step longer than 1.5 frames (as on a 30 Hz screen, or after a dropped frame) in two halves, so the arc stays close to the one a 60 Hz screen draws, and Slow motion multiplies `k` by a third.
 
 The `-1` bias on initial `vy` makes the burst lean upward before gravity pulls it down. The pop is retriggered by removing and re-adding the animation class (`btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop')`) so repeated likes always re-fire.
 
