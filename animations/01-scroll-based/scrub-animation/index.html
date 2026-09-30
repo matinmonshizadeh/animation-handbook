@@ -51,8 +51,9 @@
          border:1px solid var(--ui-border);border-radius:20px;padding:4px 10px;white-space:nowrap}
     .dir.fwd{color:var(--ui-accent);border-color:var(--ui-accent)}
     .dir.rev{color:#f0883e;border-color:#f0883e}
-    .seek{position:relative;height:8px;border-radius:6px;background:rgba(255,255,255,.07)}
-    .seek-fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px;background:var(--ui-accent)}
+    .seek{position:relative;height:8px;border-radius:6px;background:rgba(255,255,255,.07);container-type:inline-size}
+    .seek-clip{position:absolute;inset:0;border-radius:6px;overflow:hidden}
+    .seek-fill{position:absolute;inset:0;border-radius:6px;background:var(--ui-accent);transform:translateX(-100%)}
     .seek-head{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;
                background:var(--ui-text);border:3px solid var(--ui-accent)}
     .ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ui-muted)}
@@ -100,7 +101,7 @@
               <div class="dir" id="dir" aria-hidden="true">Still</div>
             </div>
             <div class="seek">
-              <div class="seek-fill" id="seek-fill"></div>
+              <div class="seek-clip"><div class="seek-fill" id="seek-fill"></div></div>
               <div class="seek-head" id="seek-head"></div>
             </div>
             <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
@@ -236,7 +237,7 @@
       frameEl.firstChild.nodeValue = String(v).padStart(3, '0');
       frameEl.setAttribute('aria-label', `Frame ${v} of ${FRAMES}`);
     });
-    set('pct', pct, v => { seekFill.style.width = v + '%'; seekHead.style.left = v + '%'; });
+    set('pct', pct, v => { seekFill.style.transform = `translateX(${v - 100}%)`; seekHead.style.transform = `translateX(${v}cqw)`; });
     set('marks', Math.floor(e * 4 + 1e-6), v => {
       [...marks.querySelectorAll('.mark')].forEach((c, i) => c.classList.toggle('done', i <= v));
     });
