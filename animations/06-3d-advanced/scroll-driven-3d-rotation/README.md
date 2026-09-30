@@ -46,8 +46,10 @@ The demo's keyframes are four poses, one for each quarter of the scroll: a quart
 
 ```js
 const FRAME = 1000 / 60;                   // one frame on a 60 Hz screen, in milliseconds
+let last = null;                           // the time of the previous frame; null until the loop has run once
 function animate(now) {
-  const ease = 1 - Math.pow(0.9, Math.min(now - last, 50) / FRAME);  // 0.1 at 60 Hz, 0.19 at 30 Hz
+  const dt = last === null ? FRAME : Math.min(now - last, 50);  // the first frame counts as one 1/60 s
+  const ease = 1 - Math.pow(0.9, dt / FRAME);                   // 0.1 at 60 Hz, 0.19 at 30 Hz
   last = now;
   currentRx += (targetRx - currentRx) * ease;
   currentRy += (targetRy - currentRy) * ease;
