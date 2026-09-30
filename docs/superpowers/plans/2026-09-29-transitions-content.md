@@ -818,6 +818,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - 1200ms after the opening ends (the `dur+50` timer), it goes back to the page it started from the way a click on that page's name does, with the circle opening from the middle of the page area.
   - This takes about 3.7s.
   - `hb:input` cancels the way back.
+  - A visitor who tabs into the box during a run takes over too. Shift+Tab from Show me lands on the portal of the page on show, and that sends no `hb:input`, so a trusted `focusin` on the stage does the same job: it clears `afterMove` and the way-back timer and the visitor's focus stays where they put it. The page's own focus move (see Stage) is wrapped in an `ownFocus` flag that this listener ignores, because a script's `focus()` sends a trusted `focusin` too; without the flag that move would stop the run after its first opening.
 - **Reset:** yes. Home at once; every page's `clipPath`, `transition` and `zIndex` are cleared.
 - **Slow motion:** multiplies `dur` by 3, along with that part of the timer.
 - **Reduced motion:** the demo's `motionOk` branch stays: the pages swap at once. Its CSS rule `#zoom-mask{transition:none!important}` goes with the mask. Show me swaps to Gallery and back.
@@ -827,10 +828,15 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - The unused `#zoom-mask` goes, with its CSS and its `--dur` and `--ease` variables. It never shows: the reveal is the incoming page's own `clip-path`.
   - **The portal moves to the top-right corner.** In the shorter shared stage its old bottom-right spot covers the Gallery grid (the grid reaches 226px of the laptop's 260px page area, and the portal starts at 148px). Its position and size move from the inline style into the `.portal` rule, and only the page's portal colour stays inline:
     - computers and tablets: `top:24px;right:24px;width:80px;height:80px`;
-    - phones (`@media (max-width:600px)`): `top:16px;right:16px;width:64px;height:64px`.
+    - phones and short windows (`@media (max-width:600px),(max-height:640px)`): `top:16px;right:16px;width:64px;height:64px`;
+    - short windows wider than a phone (`@media (max-height:640px) and (min-width:601px)`): `top:8px`, because the page area there is under 220px. A portrait phone up to 640px tall keeps its 16px; measured, the circle stays at least 24px from any text or tile at 320px wide, 48.8px at 360×640 and 51.5px at 568×320. Every short window (`@media (max-height:640px)`) also tightens the pages' spacing, `.pc{gap:8px}.gi{padding:12px}`.
   - The portal's label moves from its inline style (9px at `opacity:.6`) into the existing, unused `.portal-label` rule, which becomes `font-size:11px;opacity:.8;text-align:center;padding:4px;line-height:1.3;pointer-events:none`: 4.1:1 on the Gallery portal becomes 5.9:1.
   - The Home page keeps its line "Click the portal to travel to the gallery."
   - `--hb-stage-h-phone:360px`: at 320px wide, the About heading reaches under a top-right portal on the 300px stage; 360px clears it.
+  - **Each portal is a real button:** `<button type="button" class="portal">` (it was a `div`), with `color:inherit;font:inherit` so its label looks as before. It is in the Tab order, Enter and Space open the next page, and the site's focus ring shows on it.
+  - **Pages that are not on show are `visibility:hidden`** (with `opacity:0` and `pointer-events:none`), so the portal on such a page is not a Tab stop and not in the accessibility tree. A page is visible again the moment it gets `active`, which is when its opening starts.
+  - **Focus follows the opening.** When an opening ends and the focus was on the portal of the page that is now hidden, `finish()` moves it to the portal of the page on show, so a keyboard visitor keeps their place. The move sits between `ownFocus=true` and `ownFocus=false` (see Show me).
+  - **Reduced motion** also switches off the portal's hover grow (`transition:transform .2s ease`, on `@media (hover:hover)` only) with `@media (prefers-reduced-motion:reduce){.portal{transition:none}}`.
   - `.pstat b` stays `var(--ui-accent)`.
 
 **Main settings**
@@ -880,6 +886,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README Production notes:** unchanged
 - **Category line:** `03.10 · Page Transitions`
 - **Pager:** Previous: Elastic Transition (`../elastic-transition/`) · Next: Dissolve Transition (`../dissolve/`)
+- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. A portrait phone up to 640px tall keeps the portal at 16px from the top (it had 8px), so the short-window rule now covers only windows wider than 600px.
 
 ---
 

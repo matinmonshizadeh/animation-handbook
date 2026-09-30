@@ -46,10 +46,12 @@
     .pstat{display:flex;gap:16px;margin-top:4px}
     .pstat b{display:block;font-size:clamp(16px,2.2vw,22px);color:var(--ui-accent)}
     .pstat span{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
-    /* Phones and short windows get a smaller portal in a tighter corner. Short windows leave the page area under 220px: it sits a
-       little higher, and tighter spacing keeps the tallest page clear of it and of the edges */
+    /* Phones and short windows get a smaller portal in a tighter corner. Short windows leave the page area under 220px: tighter
+       spacing keeps the tallest page clear of the portal and the edges, and a short window wider than a phone also lifts the portal
+       to 8px. A phone keeps its 16px corner: measured, the circle stays 24px or more from any text or tile there */
     @media(max-width:600px),(max-height:640px){.portal{top:16px;right:16px;width:64px;height:64px}}
-    @media(max-height:640px){.portal{top:8px}.pc{gap:8px}.gi{padding:12px}}
+    @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+    @media(max-height:640px) and (min-width:601px){.portal{top:8px}}
     @media(prefers-reduced-motion:reduce){.portal{transition:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
@@ -172,7 +174,7 @@
   ];
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let current=0,animating=false,shape='circle',dur=1200,ease='ease-in',afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,shape='circle',dur=1200,ease='ease-in',afterMove=null,wayBack=0,timers=[],ownFocus=false;
   const pages=[],portals=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -203,7 +205,7 @@
     if(i>-1)timers.splice(i,1);
   }
 
-  function updateNav(n){navBtns.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
   // One page's resting look: its class alone shows or hides it, with the opening's clip, transition and stacking gone (its background stays)
   function rest(el,on){
     el.classList.toggle('active',on);
@@ -220,7 +222,7 @@
     animating=false;
     // Focus that was on the portal of the page now hidden moves to the portal of the page on show, so a keyboard visitor keeps their place
     const at=document.activeElement;
-    if(at&&pages.some(p=>p.contains(at))&&!pages[current].contains(at))portals[current].focus({preventScroll:true});
+    if(at&&pages.some(p=>p.contains(at))&&!pages[current].contains(at)){ownFocus=true;portals[current].focus({preventScroll:true});ownFocus=false}
     const then=afterMove;afterMove=null;
     if(then)then();
   }
@@ -271,6 +273,8 @@
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. An opening already under way finishes on its own.
   document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  // A visitor who tabs into the box takes over, as a press does; the page's own focus move (in finish) does not count
+  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&!ownFocus){afterMove=null;cancel(wayBack);wayBack=0}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
