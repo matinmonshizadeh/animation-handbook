@@ -272,10 +272,9 @@ button,input{font:inherit;color:inherit}
   .search{padding:5px 5px 5px 18px}
   #q{min-height:44px;margin-left:10px;font-size:16px}
   .go{width:44px;min-height:44px;padding:0}
-  .go-l{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .go-l,.home-hero .pop>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap} /* hidden from sight, still read out: "Popular:" still labels the suggestions */
   .go .i{display:block}
   .home-hero .pop{flex-wrap:nowrap;justify-content:flex-start;gap:8px;width:calc(100% + 2 * var(--gut));margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);overflow-x:auto;scrollbar-width:none}
-  .home-hero .pop>span{display:none}
   .home-hero .pop button{flex:none;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;text-decoration:none;white-space:nowrap}
   .places-h{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;margin-top:28px;font-size:18px;font-weight:800;letter-spacing:-.01em}
   .places{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px;margin-top:14px}
@@ -1002,7 +1001,7 @@ button,input{font:inherit;color:inherit}
     <form class="search" id="search-form" role="search" action="./" method="get">
       <label class="sr" for="q">Describe the animation you want</label>
       <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="q" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="For example: a button that bounces when clicked">
+      <input id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="For example: a button that bounces when clicked">
       <button type="button" class="clear" id="q-clear" aria-label="Clear the search" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <button type="submit" class="go"><span class="go-l">Search</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
@@ -1028,7 +1027,7 @@ button,input{font:inherit;color:inherit}
     <div class="pinbar" id="pinbar">
       <div class="pinrow">
         <button type="button" class="pin-back" id="pin-back" aria-label="Back to the start"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
-        <div class="pin-search"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" type="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></div>
+        <form class="pin-search" id="pin-form" role="search" action="./" method="get"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></form>
       </div>
       <div class="pchips" role="group" aria-label="Places">
         <button type="button" class="pchip" data-place="btn" aria-pressed="false">Buttons</button>
@@ -1835,6 +1834,13 @@ function render(){
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}
   else moreBox.hidden=true;
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
+  // The picked chip is scrolled fully into the phone bar's row, clear of the row's edge margin; only the row moves, never the page.
+  const chip=pinbar.querySelector('.pchip[aria-pressed="true"]');
+  if(chip&&chip.getClientRects().length){
+    const row=chip.parentElement,r=row.getBoundingClientRect(),b=chip.getBoundingClientRect(),edge=parseFloat(getComputedStyle(row).paddingLeft)||0;
+    if(b.left<r.left+edge)row.scrollLeft-=r.left+edge-b.left;
+    else if(b.right>r.right-edge)row.scrollLeft+=b.right-(r.right-edge);
+  }
   [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
   qClear.hidden=!q.value;
 }
@@ -1891,7 +1897,11 @@ q.addEventListener('input',()=>typed(q));
 q2.addEventListener('input',()=>typed(q2));
 // Moving between the bar's own buttons does not count: a tap on a chip must still find the chip.
 pinbar.addEventListener('focusout',e=>{if(!pinbar.contains(e.relatedTarget))syncBar();});
-$('search-form').addEventListener('submit',e=>{e.preventDefault();toResults();});
+// The Search button, or the keyboard's Search key in either box: the results come into view and keyboard focus goes to their
+// heading, out of the box, so a phone's keyboard closes instead of covering them. The bar stays while a search or place is shown.
+const submitted=e=>{e.preventDefault();toResults();toTitle();};
+$('search-form').addEventListener('submit',submitted);
+$('pin-form').addEventListener('submit',submitted);
 qClear.addEventListener('click',()=>{q.value='';typed(q);q.focus();});
 clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
 // The arrow goes away with the bar, and the page goes back to the top, where the first place tile takes keyboard focus.
@@ -1983,9 +1993,10 @@ cardsBox.addEventListener('click',e=>{
   if(btn.classList.contains('fail')){location.href=(FROM_DISK?url+'index.html':url)+'#hb-prompt-title';return;}
   writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
 });
-// Reading the page starts when the pointer rests on a card or a card gets focus, so the copy is quick.
+// Reading the page starts when a mouse pointer rests on a card or a card gets focus, so the copy is quick. A finger does not
+// count: on a phone the touch that sends it opens the card or scrolls the page.
 const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(!card)return;const url=urlOf(card);if(!failedPages.has(url))promptFor(url).catch(()=>{});};
-cardsBox.addEventListener('pointerover',warm);
+cardsBox.addEventListener('pointerover',e=>{if(e.pointerType==='mouse')warm(e);});
 cardsBox.addEventListener('focusin',warm);
 </script>
 </body>
