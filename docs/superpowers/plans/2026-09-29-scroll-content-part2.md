@@ -790,7 +790,7 @@ None: leave out the `details.hb-options` block.
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Highlight color | Swatches; shown only when Highlights the current word is on | Blue · Green · Orange | Blue | The color of the word being filled. | `--fill-accent` on the text: `#6ea8ff` / `#5fd88a` / `#ff9d5c` |
+| Highlight color | Swatches; shown only when Highlights the current word is on (More options, which holds only it, is hidden with it) | Blue · Green · Orange | Blue | The color of the word being filled. | `--fill-accent` on the text: `#6ea8ff` / `#5fd88a` / `#ff9d5c` |
 
 - **Removed:**
   - The note, and the Scroll and Words filled readouts.
@@ -822,6 +822,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.22 · Scroll-Based`
 - **Pager:** Previous: Smooth (Inertia) Scroll (`../smooth-scroll/`) · Next: Scroll Velocity Skew (`../scroll-velocity-skew/`)
+- **Final fix wave (2026-09-30):** the final category review found More options opening onto nothing when Highlights the current word is off, because Highlight color is the only setting in it. `details.hb-options` is now hidden together with the color setting (`colorSetting.hidden = moreOptions.hidden`), as Section Wipe does, and shows again with the switch.
 
 ---
 
