@@ -42,7 +42,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 
 The demo's keyframes are four poses, one for each quarter of the scroll: a quarter turn to the side, a forward tilt, a larger size (1.4 times), then turning round to show the back.
 
-**Smooth scrub** adds a lerp each frame to ease between the raw scroll value and the applied rotation — this gives a cinematic feel:
+**Smooth follow** adds a lerp each frame to ease between the raw scroll value and the applied rotation — this gives a cinematic feel:
 
 ```js
 function animate() {
@@ -63,7 +63,7 @@ The demo asks for another frame only while the cube is still catching up, and st
 
 ## Production notes
 - **CSS Scroll-Driven Animations API** (Chrome 115+): `animation-timeline: scroll()` and `animation-range` can drive CSS transforms directly without JavaScript. The spec covers this natively, but browser support is still catching up for complex choreography.
-- **GSAP ScrollTrigger**: in production, `gsap.timeline().to(obj, { rotateY: 360 }).scrollTrigger({ trigger, scrub: 1 })` is the idiomatic implementation. `scrub: 1` adds a 1-second smoothing lag.
+- **GSAP ScrollTrigger**: in production, `gsap.to(obj, { rotateY: 360, scrollTrigger: { trigger, scrub: 1 } })` is the idiomatic implementation. `scrub: 1` adds a 1-second smoothing lag.
 - **Performance**: CSS `transform` on a 3D element with `will-change: transform` runs on the compositor thread — scroll-driven rotation does not trigger layout or paint.
 - **Mobile scroll budget**: 400vh of scroll on mobile means the user must scroll a lot. Consider reducing section height for mobile, or switching to a swipe-driven (touch-drag) interaction.
 
