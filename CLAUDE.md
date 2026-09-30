@@ -31,7 +31,9 @@ A page is one HTML file: the demo's own CSS in a `<style>` and JS in a `<script>
 guided-steps page. Copy the closest page of the same kind and change the demo, its settings and its
 texts; the tests pin the Pause, Show me, Reset, Play and Back to top buttons character by character.
 Starting points: `rotate-in` (plays once), `aurora` (loop in CSS), `starfield` (loop in JavaScript),
-`checkmark-draw` (do it), `snap-scrolling` (scroll).
+`checkmark-draw` (do it), `snap-scrolling` (scroll). The `<head>` has the title `Name — Animation Handbook`,
+the canonical URL, the favicons, and the Open Graph, Twitter and JSON-LD tags that repeat the name and
+description: copy them from a neighbor page and change them together.
 
 **Shared files.** Every page links these after its own `<style>`, with one version `N` on every page.
 **When either file changes, bump N on every page in the same change**, or visitors keep a cached copy (a
@@ -53,11 +55,9 @@ test fails if the pages differ). `demo-page.css` draws the page around the demo;
    step title and help line are written per page.
 4. **2 · Try it** (`section.hb-try`): one to three settings, the rest under **More options**
    (`details.hb-options`). No settings: leave it out and number the steps 1 and 2.
-5. **3 · Copy the prompt** (`section.hb-prompt-step`): the prompt (`p.hb-prompt`), "Your settings" chips,
-   **Copy prompt**.
+5. **3 · Copy the prompt** (`section.hb-prompt-step`): prompt (`p.hb-prompt`), "Your settings" chips, **Copy prompt**.
 6. **About** (`section.hb-about`): **What it is** (from the README) beside **Good for** (3–5 tags) and
-   **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`, from the README's See also)
-   and the footer.
+   **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`) and the footer.
 
 The page owns the stage's width, border, corners and height (`--hb-stage-h` and `--hb-stage-h-phone` set
 another one); the demo owns overflow, background, alignment and perspective. `hb-dots` adds a dotted
@@ -75,6 +75,8 @@ of each, and the Loop and Slow motion switches start unchecked.
 | **do** (the visitor acts) | Hover it, Click it, Drag it, Scroll it or Press Tab | **Show me** `data-hb-demo`, **Reset** where there is a state to reset, **Slow motion** where it works | Show me is pressed once |
 | **scroll** (driven by scroll position) | Scroll it | **Play** `data-hb-autoscroll`, **Back to top** `data-hb-top` | Play is pressed once: the box scrolls to its end in about six seconds |
 
+- `data-hb-replay` plays from the start (and keeps looping if Loop is on); `data-hb-loop` repeats while
+  checked; `data-hb-reset` returns the demo to its start.
 - `data-hb-slowmo`: three times slower. With the value `css` the script slows every CSS animation and transition
   in the stage (later ones too); with no value the demo slows itself (its durations and timers, not the pauses).
 - `data-hb-pause`: with the value `css` the script holds the stage's CSS animations (class `hb-paused`); with no
@@ -83,9 +85,10 @@ of each, and the Loop and Slow motion switches start unchecked.
   reduced motion the event is sent once at boot, before `DOMContentLoaded`.
 - `data-hb-demo`: plays one example (two to four seconds) and returns to rest. A real press, key, wheel, touch or
   click in the stage is sent as `hb:input` on `document` (`detail.type`), so the page can stop a run.
-- `data-hb-autoscroll`: scrolls the scroller to its end at a steady speed (the whole box in about six seconds)
-  until the visitor's own input in the stage stops it; `data-hb-top` stops it and jumps to the top;
-  `data-hb-scroller` marks the scroller when it is not the stage.
+- `data-hb-autoscroll`: scrolls the scroller to its end at a steady speed (the whole box in about six seconds;
+  it restarts from the top if already at the end, with CSS snapping off while it runs) until the visitor's own
+  input in the stage stops it; `data-hb-top` stops it and jumps to the top; `data-hb-scroller` marks the
+  scroller when it is not the stage.
 
 A setting change replays a plays-once demo about 250 ms later; on other kinds it shows while the demo runs or
 at the next Show me, Play or interaction. Three owner rulings hold on every page: Pause freezes the stage at
@@ -94,17 +97,16 @@ Back to top or any jump, a scroll page shows the state for the new position at o
 
 #### Reduced motion
 When the device asks for reduced motion, Loop and Slow motion are switched off and grayed out (they cannot be
-switched on) with a short note in the player bar, and loops start paused. Nothing is pressed for the visitor
-on arrival, except that a plays-once page plays its reduced version once so the stage is not empty. Replay,
-Pause/Play, Show me and Play still work when pressed. The demo's own CSS and script show the end state or a
-fade instead of movement.
+switched on) with a short note in the player bar, and loops start paused. Nothing is pressed for the visitor on
+arrival, except that a plays-once page plays its reduced version once so the stage is not empty. Replay,
+Pause/Play, Show me and Play still work when pressed. The demo itself shows the end state or a fade, not movement.
 
 #### Try it
 Show one to three settings (two or three is usual); the rest go under More options. Each has a plain label that
 says what changes ("How much it spins", never "Rotation (deg)" or a CSS name), the control and one hint line;
 every field has `autocomplete="off"`. Prefer named choices ("Slow · Normal · Fast") to numbers, switches for
-on/off ("Grows from small") and a slider only when sliding is the point. Playback is not a setting, and Try it
-shows no status lines or code values.
+on/off ("Grows from small") and a slider only when sliding is the point (it shows its value in plain words).
+Playback is not a setting, and Try it shows no status lines or code values.
 
 Write each control one way. Choice buttons: `div.seg[role=group]` with `aria-pressed`, exactly one pressed.
 Switch: `label.hb-switch-row` around `input.hb-switch[role=switch]`. Colors: `div.swatches` buttons with the
@@ -144,7 +146,8 @@ The tests require What it is, When to use it, Key parameters and See also; the o
 convention. The page loads **What it is** and **See also** from the README; What it is and Key parameters
 contain no code. Each See also line is `- [Title](../slug/) — one plain phrase`, Title being the linked
 page's `<h1>`. Key parameters has one row per setting in Try it, named as on the page (a page without Try it
-lists the technique's own values). How it works matches the demo's code.
+lists the technique's own values). How it works matches the demo's code. Opened from disk (`file://`), a page
+shows a README link in place of What it is and hides Similar animations; that is expected.
 
 ## Taxonomy (do not invent new top-level categories without asking)
 
@@ -166,6 +169,8 @@ inside an entry's "Production notes" section, never as their own entry.
 - Show, then explain. The demo is the main artifact; words support it.
 - Avoid hype. No "stunning", "amazing", "powerful". Describe what it does.
 - Code comments only when the code isn't self-explanatory.
+- On the pages, write for someone new to animation: plain labels, hints, descriptions and prompts, with no code
+  and no CSS property names.
 - Use American spelling (color, behavior, center, neighbor, gray).
 
 ## When asked to add a new animation
@@ -173,15 +178,16 @@ inside an entry's "Production notes" section, never as their own entry.
 2. Create the folder under `animations/<category>/<slug>/`.
 3. Create `index.html` by copying the closest page of the same kind and following the template above.
 4. Create `README.md` with all 6 required sections.
-5. Link it in: the page before it gets a Next link to it (replacing its old one), the page after it a
-   Previous link to it, and the new page links back to both (`rel="next"` / `rel="prev"`, the linked
-   page's `<h1>` in the link text and in the `aria-label`; copy the markup from a neighbor). Adding a page
-   mid-category renumbers the `NN.MM` category line of every later page.
+5. Link it in: the page before it gets a Next link to it and the page after it a Previous link to it, each
+   replacing its old one, if any (a page never has two `rel="next"` or two `rel="prev"` links); the new page
+   links back to both. A new first or last page has one neighbor, so one link. The link text and `aria-label`
+   use the linked page's `<h1>`; copy the markup from a neighbor. Adding a page mid-category renumbers the
+   `NN.MM` category line of every later page.
 6. Update the root `index.html` index page to link to it: add a card to the category's `entries` in the
    `CATS` array (slug, name, the page's one-line description), and add the page to `sitemap.xml`.
 7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line
-   description, in home page order), and the technique count wherever it is written: the root
-   `README.md`, the home page, `tests/pages.test.js` and `.github/ISSUE_TEMPLATE/config.yml`.
+   description, in home page order), and the technique count wherever it is written: the root `README.md`,
+   the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md`.
 8. Run the tests and the page check on the new folder and on every page you edited.
 
 ## When asked to refactor
@@ -198,10 +204,11 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   `node tools/check-pages.mjs --base http://127.0.0.1:<port> <page or category folder>`. It drives Chrome (set
   `CHROME` to its path if it is not in the default Windows folder) and loads each page at six setups (1280×800,
   1366×657, 768×1024, 375×812, 375×812 with reduced motion, 320×640), printing `ok` or `FAIL` for each: a passing
-  page gives **six `ok` lines**, a failure exits with 1. It reports console errors, overflow, small touch targets
-  on phones, a stage or player bar below a laptop's first screen and chips that do not match the settings, and
-  works the controls of the page's kind. It skips controls inside `.stage` when it measures touch targets, so
-  check buttons and handles a demo draws there by hand.
+  page gives **six `ok` lines**, a failure exits with 1. It fails a page on console errors and warnings (a control
+  with no label or value is left out and the console warns), overflow, small touch targets on phones, a stage or
+  player bar below a laptop's first screen and chips that do not match the settings, and it works the controls
+  of the page's kind. It skips controls inside `.stage` when it measures touch targets, so check buttons and
+  handles a demo draws there by hand.
 
 ## Out of scope
 - Backend code, databases, APIs.
