@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reveal on Scroll — Animation Handbook</title>
-  <meta name="description" content="7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.">
+  <meta name="description" content="Cards appear as they cross a line in the box. Best for long landing pages.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,37 +12,28 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Reveal on Scroll — Animation Handbook">
-  <meta property="og:description" content="7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.">
+  <meta property="og:description" content="Cards appear as they cross a line in the box. Best for long landing pages.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Reveal on Scroll — Animation Handbook">
-  <meta name="twitter:description" content="7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.">
+  <meta name="twitter:description" content="Cards appear as they cross a line in the box. Best for long landing pages.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Reveal on Scroll", "name": "Reveal on Scroll", "description": "7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Reveal on Scroll"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Reveal on Scroll", "name": "Reveal on Scroll", "description": "Cards appear as they cross a line in the box. Best for long landing pages.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Reveal on Scroll"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:600px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#6ea8ff;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage-wrap{flex:1;min-width:0;position:relative}
-    .stage{width:100%;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px;position:relative}
-    .stage::-webkit-scrollbar{display:none}
-    #trigger-line{position:absolute;left:0;right:0;height:1px;background:none;border-top:2px dashed var(--ui-accent);pointer-events:none;z-index:10;opacity:.7}
-    #trigger-label{position:absolute;right:8px;top:-18px;font-size:9px;color:var(--ui-accent);letter-spacing:1px;opacity:.7}
-    .cards-list{padding:40px 24px;display:flex;flex-direction:column;gap:18px;padding-bottom:200px}
-    .card{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:22px 24px;transition:border-color .3s}
-    .card.revealed{border-color:var(--ui-border)}
-    .card-tag{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:8px;opacity:.7}
+    .stage{position:relative;overflow:hidden;background:#0b0b0d}
+    .scroller{height:100%;overflow-y:auto;scrollbar-width:none;position:relative}
+    .scroller::-webkit-scrollbar{display:none}
+    /* The line sits beside the scroller, not inside it: a child of the scroller would scroll away with the cards */
+    #trigger-line{position:absolute;left:0;right:0;height:1px;background:none;border-top:2px dashed rgba(110,168,255,.7);pointer-events:none;z-index:10}
+    #trigger-label{position:absolute;right:8px;top:-18px;font-size:11px;color:var(--ui-accent);letter-spacing:1px}
+    .cards-list{padding:40px 24px 200px;display:flex;flex-direction:column;gap:18px}
+    .card{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:10px;padding:22px 24px}
+    .card-tag{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:8px}
     .card-title{font-size:clamp(14px,1.8vw,17px);font-weight:bold;margin-bottom:6px}
-    .card-body{font-size:11px;opacity:.5;line-height:1.6}
+    .card-body{font-size:14px;opacity:.5;line-height:1.6}
     /* Pre-reveal states */
     .card[data-fx="fade"]{opacity:0;transition:opacity .6s ease}
     .card[data-fx="slide-up"]{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
@@ -68,112 +59,126 @@
     .card.revealed[data-fx="stagger"] .stagger-child:nth-child(3){transition-delay:160ms}
     .card.revealed[data-fx="stagger"] .stagger-child:nth-child(4){transition-delay:240ms}
     .stagger-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-    .stagger-chip{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;padding:6px 12px;font-size:10px}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text);font-size:10px}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:34px;text-align:right;color:var(--ui-text)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button{min-height:44px}
-    .code-block{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:4px;padding:8px;font-size:9px;color:#56d364;line-height:1.6;overflow-x:auto}
-    .log{display:flex;flex-direction:column;gap:2px;max-height:80px;overflow:hidden}
-    .log-row{font-size:9px;opacity:.6}
-    .state-list{display:flex;flex-direction:column;gap:2px}
-    .state-row{display:flex;justify-content:space-between;font-size:9px;color:var(--ui-muted)}
-    .state-row .state-v{color:var(--ui-text)}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}}
+    .stagger-chip{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;padding:6px 12px;font-size:12px}
+    /* Back to top hides every card at once, so for that one step the transitions are off */
+    .scroller.resetting .card,.scroller.resetting .card .stagger-child{transition:none!important}
     @media(prefers-reduced-motion:reduce){.card,.card .stagger-child{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../scrollytelling/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../stagger-reveal/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/reveal-on-scroll/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Reveal on Scroll</h1>
-  <p>7 reveal techniques fired by IntersectionObserver — dashed line marks the trigger threshold.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
-    <div class="stage" id="stage">
-      <div class="cards-list" id="cards-list"></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scrollytelling/" rel="prev" aria-label="Previous: Scrollytelling"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Scrollytelling</span></a><a href="../stagger-reveal/" rel="next" aria-label="Next: Stagger Reveal"><span><span class="hb-dir">Next: </span>Stagger Reveal</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.12 · Scroll-Based</p>
+    <h1>Reveal on Scroll</h1>
+    <p class="hb-lede">Cards appear as they cross a line in the box. Best for long landing pages.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play. Back to top hides the cards again.</p></div>
     </div>
-    <!-- The marker lives OUTSIDE .stage. An absolutely positioned child of a scroll
-         container scrolls away with the content, so in there it drifted from the real
-         trigger the moment you scrolled. .stage-wrap does not scroll, so it stays put. -->
-    <div id="trigger-line"><div id="trigger-label">trigger</div></div>
-  </div>
-  <aside>
-    <p class="note">IntersectionObserver fires at the compositor level — no JS per scroll frame. rootMargin shifts the viewport boundary to match the trigger line position.</p>
-    <div><div class="lbl" id="thr-lbl">Trigger position</div>
-      <div class="sr"><input type="range" id="thr-sl" aria-labelledby="thr-lbl" min="30" max="90" value="70" step="5"><span class="sv" id="thr-val">70%</span></div>
+    <div class="stage">
+      <div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">
+        <div class="cards-list" id="cards-list"></div>
+      </div>
+      <div id="trigger-line" aria-hidden="true"><div id="trigger-label">trigger</div></div>
     </div>
-    <div class="div"></div>
-    <div class="lbl">Observer config</div>
-    <div class="code-block" id="obs-code"></div>
-    <div class="div"></div>
-    <label class="tog" for="repeat-tog"><input type="checkbox" id="repeat-tog"><span>Repeat on re-enter</span></label>
-    <div class="div"></div>
-    <div class="lbl">Event log</div>
-    <div class="log" id="event-log"></div>
-    <div class="div"></div>
-    <div class="lbl">Card states</div>
-    <div class="state-list" id="state-list"></div>
-    <div class="div"></div>
-    <button class="rst" id="reset-btn">Reset all cards</button>
-  </aside>
-</div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="line-lbl">Trigger line</p>
+        <div class="seg" id="line-seg" role="group" aria-labelledby="line-lbl">
+          <button type="button" data-line="50" aria-pressed="false">Higher</button>
+          <button type="button" data-line="70" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-line="90" aria-pressed="false">Lower</button>
+        </div>
+        <p class="hb-hint">How far up the box a card must come to appear.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Plays every time</span><input class="hb-switch" type="checkbox" role="switch" id="repeat-tog" autocomplete="off"></label>
+        <p class="hb-hint">Cards hide again below the line and replay each time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add reveal-on-scroll animations to [the sections or cards on your page]. Keep each element in a hidden starting state, such as faded, shifted, shrunk, blurred or clipped, until it rises past a trigger line inside the view, then let it settle into its normal state. Watch the elements with the browser's intersection observer rather than on every scroll, and count an element that is already above the line as crossed, so a fast scroll never skips one. Reveal each element once, or every time it crosses, as the settings say. If the visitor has reduced motion turned on, show each element without movement. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Landing pages</li><li>Feature lists</li><li>Blog sections</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Key information</li><li>Forms</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const CARDS=[
-    {fx:'fade',      title:'Fade',         body:'opacity 0 → 1',                                    tag:'Technique 01'},
-    {fx:'slide-up',  title:'Slide Up',     body:'translateY 28px → 0 + fade',                      tag:'Technique 02'},
-    {fx:'slide-left',title:'Slide from Left',body:'translateX −44px → 0 + fade',                   tag:'Technique 03'},
-    {fx:'scale',     title:'Scale In',     body:'scale 0.86 → 1 + fade',                           tag:'Technique 04'},
-    {fx:'blur',      title:'Blur In',      body:'filter blur 12px → 0 + fade',                     tag:'Technique 05'},
-    {fx:'mask',      title:'Mask Reveal',  body:'clip-path inset(0 100% 0 0) → inset(0 0% 0 0)',  tag:'Technique 06'},
-    {fx:'stagger',   title:'Stagger Group','body':'4 children with cascading 80ms delays',           tag:'Technique 07'},
+    {fx:'fade',      title:'Fade',           body:'Goes from see-through to solid.',                  tag:'Technique 01'},
+    {fx:'slide-up',  title:'Slide Up',       body:'Rises a little as it fades in.',                   tag:'Technique 02'},
+    {fx:'slide-left',title:'Slide from Left',body:'Slides in from the left as it fades in.',          tag:'Technique 03'},
+    {fx:'scale',     title:'Scale In',       body:'Grows from slightly smaller as it fades in.',      tag:'Technique 04'},
+    {fx:'blur',      title:'Blur In',        body:'Sharpens from a blur as it fades in.',             tag:'Technique 05'},
+    {fx:'mask',      title:'Mask Reveal',    body:'Uncovered from left to right.',                    tag:'Technique 06'},
+    {fx:'stagger',   title:'Stagger Group',                                                            tag:'Technique 07'},
   ];
-  const stage=document.getElementById('stage');
-  const thrSl=document.getElementById('thr-sl'),thrVal=document.getElementById('thr-val');
-  const repeatTog=document.getElementById('repeat-tog'),obsCode=document.getElementById('obs-code');
-  const eventLog=document.getElementById('event-log'),stateList=document.getElementById('state-list');
-  const triggerLine=document.getElementById('trigger-line');
-  let observer,threshold=70,events=[];
+  const scroller=document.getElementById('scroller');
+  const repeatTog=document.getElementById('repeat-tog'),triggerLine=document.getElementById('trigger-line');
+  let observer,threshold=70,resetTimer;
 
   // Build cards
-  const cardEls=CARDS.map((c,i)=>{
+  const cardEls=CARDS.map(c=>{
     const el=document.createElement('div');
-    el.className='card';el.dataset.fx=c.fx;el.dataset.i=i;
-    let inner=`<div class="card-tag" style="color:var(--ui-accent)">${c.tag} · ${c.fx}</div>
-      <div class="card-title">${c.title}</div>`;
+    el.className='card';el.dataset.fx=c.fx;
+    let inner=`<div class="card-tag">${c.tag}</div><div class="card-title">${c.title}</div>`;
     if(c.fx==='stagger'){
       inner+=`<div class="stagger-row">${['Alpha','Beta','Gamma','Delta'].map(n=>`<div class="stagger-chip stagger-child">${n}</div>`).join('')}</div>`;
     }else{inner+=`<div class="card-body">${c.body}</div>`;}
     el.innerHTML=inner;
     document.getElementById('cards-list').appendChild(el);
-    // State row in panel
-    const sr=document.createElement('div');sr.className='state-row';sr.id='sr-'+i;
-    sr.innerHTML=`<span>${c.fx}</span><span class="state-v" id="sv-${i}">idle</span>`;
-    stateList.appendChild(sr);
     return el;
   });
 
@@ -183,61 +188,67 @@ body{padding-top:46px}
   // stays at opacity 0 for good. Extending the root upwards makes "at or above the
   // line" always count, so a card can only leave by dropping back below the line.
   function rootMargin(){return `9999px 0px ${-(100-threshold)}% 0px`}
-  function obsSnippet(){return `new IntersectionObserver(cb,{\n  root: stage,\n  rootMargin: "${rootMargin()}",\n  threshold: 0\n})`}
+
+  // A card is watched where it changes: the card itself, and for the stagger group its row of chips. The chips sit
+  // lower in the card, so watching the card's top would start the cascade below the box on the lower lines.
+  const watched=el=>el.querySelector('.stagger-row')||el;
 
   function buildObserver(){
     if(observer)observer.disconnect();
-    obsCode.textContent=obsSnippet();
     observer=new IntersectionObserver(entries=>{
       entries.forEach(e=>{
-        const i=+e.target.dataset.i,fx=e.target.dataset.fx;
+        const card=e.target.closest('.card');
         if(e.isIntersecting){
-          reveal(e.target,fx,i);
-          logEvent(`→ enter: ${fx}`);
+          reveal(card);
           if(!repeatTog.checked)observer.unobserve(e.target);
         }else if(repeatTog.checked){
-          hide(e.target,fx,i);
-          logEvent(`← leave: ${fx}`);
+          hide(card);
         }
       });
-    },{root:stage,rootMargin:rootMargin(),threshold:0});
-    cardEls.forEach(el=>observer.observe(el));
+    },{root:scroller,rootMargin:rootMargin(),threshold:0});
+    cardEls.forEach(el=>observer.observe(watched(el)));
   }
 
   // The class alone drives every effect, stagger included — see the transition-delay
   // rules above. Nothing here schedules work that could outlive the state that started it.
-  function reveal(el,fx,i){
-    el.classList.add('revealed');
-    document.getElementById('sv-'+i).textContent='revealed';
-  }
-  function hide(el,fx,i){
-    el.classList.remove('revealed');
-    document.getElementById('sv-'+i).textContent='idle';
-  }
-  function logEvent(msg){
-    events.unshift(msg);if(events.length>5)events.pop();
-    eventLog.innerHTML=events.map(e=>`<div class="log-row">${e}</div>`).join('');
-  }
-  // Depends only on the threshold and the stage's height — neither changes while
+  function reveal(el){el.classList.add('revealed')}
+  function hide(el){el.classList.remove('revealed')}
+
+  // Depends only on the threshold and the scroller's height — neither changes while
   // scrolling, so this runs on threshold change and resize, never per scroll event.
-  // stage.clientTop is the stage's border, which offsets it inside .stage-wrap.
   function updateLine(){
-    triggerLine.style.top=(stage.clientTop+threshold/100*stage.clientHeight)+'px';
-    thrVal.textContent=threshold+'%';
-    obsCode.textContent=obsSnippet();
+    triggerLine.style.top=(scroller.clientTop+threshold/100*scroller.clientHeight)+'px';
   }
 
-  thrSl.addEventListener('input',()=>{threshold=+thrSl.value;updateLine();buildObserver()});
-  repeatTog.addEventListener('change',buildObserver);
-  document.getElementById('reset-btn').addEventListener('click',()=>{
-    cardEls.forEach((el,i)=>{hide(el,el.dataset.fx,i)});
-    stage.scrollTop=0;events=[];eventLog.innerHTML='';
-    setTimeout(buildObserver,50);
+  // Back to top, and Play pressed at the end (which starts again from the top), hide every card and arm the reveals again.
+  // Hiding is instant, so the finished cards never show at the top. These listeners are registered before the shared
+  // script's (it loads with defer), so they still see the box where it was, before it jumps to the top.
+  function resetCards(){
+    scroller.classList.add('resetting');
+    cardEls.forEach(hide);
+    void scroller.offsetWidth;
+    scroller.classList.remove('resetting');
+    clearTimeout(resetTimer);
+    resetTimer=setTimeout(buildObserver,50);
+  }
+  document.getElementById('btn-top').addEventListener('click',resetCards);
+  document.getElementById('btn-scroll').addEventListener('click',()=>{
+    if(scroller.scrollTop>=scroller.scrollHeight-scroller.clientHeight-2)resetCards();
   });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('line-seg',d=>{threshold=+d.line;updateLine();buildObserver()});
+  repeatTog.addEventListener('change',buildObserver);
 
   let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(updateLine,150)});
   updateLine();buildObserver();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(updateLine);
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

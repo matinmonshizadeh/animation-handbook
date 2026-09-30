@@ -17,9 +17,9 @@ Techniques driven by scroll position.
 - [Stacking Cards](stacking-cards/) — cards fan into a deck as they stack; per-index sticky
   offset creates the peek, CSS Scroll-Driven Animations drive the scale.
 - [ScrollTrigger Animation](scroll-trigger/) — demonstrates the onEnter/onLeave/onEnterBack/
-  onLeaveBack lifecycle using IntersectionObserver and vanilla scroll events.
+  onLeaveBack lifecycle with vanilla scroll-position checks across four zones.
 - [Scrub Animation](scrub-animation/) — a plane flies a drawn curve that doubles as the timeline;
-  every transform is welded to scroll position with no autoplay.
+  every transform is welded to scroll position; nothing plays on a timer.
 - [Pin Animation](pin-animation/) — a phone mockup and feature copy pin to the viewport via
   CSS sticky while four features swap in sequence during the scroll.
 - [Snap Scrolling](snap-scrolling/) — CSS scroll-snap-type creates a paginated, magnetic feel;
