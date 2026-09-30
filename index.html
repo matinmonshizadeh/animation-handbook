@@ -1290,8 +1290,9 @@ function counter(pv){
 function particlesFactory(pv,count,connect){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
   let w,h,ps,raf=null,last=null;const D=devicePixelRatio,R=60*D;
+  // with reduced motion the card never plays, so size() also draws one still frame
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*D;h=c.height=r.height*D;
-    ps=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5*D,vy:(Math.random()-.5)*.5*D}));}
+    ps=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5*D,vy:(Math.random()-.5)*.5*D}));if(reduce)draw(0);}
   function draw(steps){ctx.clearRect(0,0,w,h);
     for(const p of ps){p.x+=p.vx*steps;p.y+=p.vy*steps;if(p.x<0&&p.vx<0||p.x>w&&p.vx>0)p.vx*=-1;if(p.y<0&&p.vy<0||p.y>h&&p.vy>0)p.vy*=-1;}
     if(connect){ctx.strokeStyle='rgba(63,214,196,.5)';ctx.lineWidth=D;
