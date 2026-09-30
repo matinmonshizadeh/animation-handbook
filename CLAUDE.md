@@ -224,7 +224,8 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   handles a demo draws there by hand.
 - **Home page:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> home` checks the home page at the same
   six setups (six `ok` lines). Its desktop run also tries the tiles, the search and Show all, and compares
-  Copy prompt on the home page with every page's own; run it after changing any page's settings or prompt.
+  Copy prompt on the home page with every page's own; its phone run tries a tile and the slim bar. Run it after
+  changing any page's settings or prompt.
 
 ## Out of scope
 - Backend code, databases, APIs.
