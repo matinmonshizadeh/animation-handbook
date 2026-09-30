@@ -840,7 +840,7 @@ None: leave out the `details.hb-options` block.
   - The rows are built by the script as today, with `for(let i=0;i<28;i++)`, the title `String(i+1).padStart(2,'0')+' — '+NAMES[i%14]`, and the hue `(210+i*22)%360`.
   - The "scroll to shear" line on every row (`.m-tag`) goes.
   - Script: `tick()` and `applySkew()` stay; the readout lines, `measure()` and `maxScroll` go (they only fed the Position readout). Two changes follow rule B8:
-    - **Speed per 1/60 s.** `tick(now)` works out `dt`, the time since the previous frame, kept between 1ms and 50ms: `dt=lastTime?Math.min(Math.max(now-lastTime,1),50):FRAME`, with `FRAME=1000/60`. It uses `raw=(top-lastTop)*FRAME/dt`, and the smoothing step uses the same time: `vel+=(raw-vel)*(1-Math.pow(1-SMOOTH,dt/FRAME))`. So a 120Hz screen leans and springs back as a 60Hz one does. Where the `scroll` listener starts the loop, it also sets `lastTime=0`, so the first frame of a run counts as 1/60 s. A frame's timestamp can be earlier than the moment the loop started, so a measured first `dt` would inflate the speed.
+    - **Speed per 1/60 s.** `tick(now)` works out `dt`, the time since the previous frame, at least 1ms and with no upper limit: `dt=lastTime?Math.max(now-lastTime,1):FRAME`, with `FRAME=1000/60`. It uses `raw=(top-lastTop)*FRAME/dt`, and the smoothing step uses the same time: `vel+=(raw-vel)*(1-Math.pow(1-SMOOTH,dt/FRAME))`. So a 120Hz screen leans and springs back as a 60Hz one does. Where the `scroll` listener starts the loop, it also sets `lastTime=0`, so the first frame of a run counts as 1/60 s. A frame's timestamp can be earlier than the moment the loop started, so a measured first `dt` would inflate the speed. A stalled frame counts for its real length, so the step it saw is divided by the time it took and the speed stays the speed the box was moving at (a cap at 50ms, the first version, read a 200ms stall as four times the speed).
     - **Instant jumps are ignored.** Back to top, and Play restarting from the top, move the box in one frame, which today leans the rows to the full limit for a moment. The shared script moves the box while it handles the click, before the click reaches the document, so a `click` listener on the document (for `#btn-top` and `#btn-scroll`, matched by id) sets `lastTop=seenTop=stage.scrollTop`: the jump adds no speed, and no flag is left behind that could swallow a later move. Built as the review of Task 13 accepted it, replacing the `jumped` flag that `tick()` would read. A `resize` listener does the same, because a resize can move the box too (1280×800 to 768×1024 while resting at the end leaned the rows to -12° for a second).
     - **A run starts from where the box was before its first move.** `seenTop` is where the last `scroll` event left the box. When the listener starts a run it sets `lastTop=seenTop` (the original set it to the position after the move), so a single instant notch of the wheel counts as speed (5.04° at Normal; 0° with the original start, in a browser with smooth scrolling off).
     - `.content` gets `overflow:clip`: a leaning row draws outside its box, which made the scrollable area up to 131px taller while the rows leaned and shorter again afterwards. Clipping at the padding box changes no picture (the clip edges are the edges of the scrolling content) and keeps the range constant.
@@ -895,7 +895,7 @@ None: leave out the `details.hb-options` block.
 
     ```js
     function tick(now) {
-      const dt = lastTime ? Math.min(Math.max(now - lastTime, 1), 50) : FRAME;   // ms since the last frame
+      const dt = lastTime ? Math.max(now - lastTime, 1) : FRAME;   // ms since the last frame
       lastTime = now;
       const raw = (el.scrollTop - lastTop) * FRAME / dt;      // px moved per 1/60 s
       lastTop = el.scrollTop;
@@ -911,6 +911,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.23 · Scroll-Based`
 - **Pager:** Previous: Text Fill on Scroll (`../text-fill-on-scroll/`) · Next: SVG Line Draw on Scroll (`../svg-line-draw/`)
+- **Final fix wave:** `dt` has no upper limit any more: the page, the README snippet and the two places above that quote the formula (Speed per 1/60 s, and README How it works) lost the 50ms cap. With the cap a stalled frame's step was divided by 50ms instead of the time it took, so at 630px/s (Normal, a laptop) a stall of 100, 200 or 400ms added 1.2°, 3.5° and 8.2° of lean; now it adds under 0.03° (and under 0.03° at 375px/s on a phone). Ordinary scrolling is unchanged: the steady lean at 630px/s is 3.67° before and after.
 
 ---
 

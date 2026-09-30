@@ -17,7 +17,7 @@ Every technique elsewhere in this section maps scroll **position** to animation 
 
 ```js
 function tick(now) {
-  const dt = lastTime ? Math.min(Math.max(now - lastTime, 1), 50) : FRAME;   // ms since the last frame
+  const dt = lastTime ? Math.max(now - lastTime, 1) : FRAME;   // ms since the last frame
   lastTime = now;
   const raw = (el.scrollTop - lastTop) * FRAME / dt;      // px moved per 1/60 s
   lastTop = el.scrollTop;
