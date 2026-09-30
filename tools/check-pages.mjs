@@ -464,26 +464,48 @@ async function homeCopyProblems() {
   return problems;
 }
 
-// Home page, desktop run: a tile press shows that place and changes the address, Show all shows the rest, Back returns to
-// the start, a plain sentence finds the right animations, a word with no match says so, All animations lists every card
-// under its seven headings, and the old ?q= and ?cat= links still work. Keyboard focus is not dropped or left behind when a
-// pressed button hides or the page scrolls away: Show all puts it on the first new card; Clear, a suggestion in the
-// Nothing-found panel and Browse all (the button and the link) put it on the results heading. Leaves the home page on
-// ?cat=micro-interactions.
+// Home page, desktop run: a tile press shows that place, presses that tile (and no other) and changes the address, Show
+// all shows the rest, Back returns to the start, a plain sentence finds the right animations, a typed word finds the other
+// forms of its word and one letter already finds cards, typing only replaces the address (spaces as %20), a word with no
+// match says so, All animations lists every card under its seven headings with the card titles a level below them, Browse
+// all pressed there adds no history step, an address opened directly shows its view, "/" puts keyboard focus in the search
+// box and Escape on the empty box keeps the picked place, and the old ?q= and ?cat= links still work. Keyboard focus is not
+// dropped or left behind when a pressed button hides or the page scrolls away: Show all puts it on the first new card;
+// Clear, a suggestion in the Nothing-found panel, Browse all (the button and the link) and Back after Show all put it on
+// the results heading. A tile pressed while a search box keeps focus (a tap on iOS leaves it there) empties both boxes.
+// Leaves the home page on ?cat=micro-interactions.
 async function homeViewProblems() {
   const problems = [];
   const view = () => evaluate(`({ title: document.getElementById('results-title').textContent, cards: document.querySelectorAll('#cards .card').length,
-    more: document.getElementById('more').hidden ? '' : document.getElementById('more-label').textContent, search: location.search })`);
+    groups: document.querySelectorAll('#cards .group').length, more: document.getElementById('more').hidden ? '' : document.getElementById('more-label').textContent,
+    search: location.search, pressed: [...document.querySelectorAll('#places .place[aria-pressed="true"]')].map(b => b.dataset.place).join() })`);
   const type = text => evaluate(`(() => { const q = document.getElementById('q'); q.value = ${JSON.stringify(text)}; q.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+  // The cards a search shows, its results line, and whether it says that nothing matches.
+  const results = () => evaluate(`({ names: [...document.querySelectorAll('#cards .card .title a')].map(a => a.textContent),
+    sub: document.getElementById('results-sub').textContent, none: !document.getElementById('empty').hidden })`);
   // Where keyboard focus is: an id, "card link N" for a card's title link, or the tag name.
   const focused = () => evaluate(`(() => { const a = document.activeElement, links = [...document.querySelectorAll('#cards .card .title a')];
     return a.id || (links.includes(a) ? 'card link ' + (links.indexOf(a) + 1) : a.tagName.toLowerCase()); })()`);
   // A press as the keyboard makes it: the control has focus, then it is activated.
   const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.focus(); el.click(); })()`);
+  // A real key press, which goes to whatever has keyboard focus.
+  const key = async (name, code, keyCode, text) => {
+    await send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', key: name, code, text, windowsVirtualKeyCode: keyCode });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: name, code, windowsVirtualKeyCode: keyCode });
+  };
+  // Opens an address as a new visit would.
+  const load = async query => {
+    let onLoad;
+    const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+    await send('Page.navigate', { url: `${BASE}/${query}` });
+    try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`${query} did not load`); }
+    listeners.delete(onLoad);
+    await sleep(300);
+  };
   await evaluate(`document.querySelector('.place[data-place="btn"]').click()`);
   await sleep(300);
   let v = await view();
-  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.search !== '?place=buttons') problems.push(`Buttons tile: ${JSON.stringify(v)}`);
+  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.search !== '?place=buttons' || v.pressed !== 'btn') problems.push(`Buttons tile: ${JSON.stringify(v)}`);
   await press('#more-btn');
   await sleep(300);
   v = await view();
@@ -493,7 +515,9 @@ async function homeViewProblems() {
   await evaluate(`history.back()`);
   await sleep(500);
   v = await view();
-  if (v.title !== 'Good places to start' || v.cards !== 8 || v.search !== '') problems.push(`Back: ${JSON.stringify(v)}`);
+  if (v.title !== 'Good places to start' || v.cards !== 8 || v.search !== '' || v.pressed !== '') problems.push(`Back: ${JSON.stringify(v)}`);
+  on = await focused();
+  if (on !== 'results-title') problems.push(`Back after Show all: keyboard focus is on ${on}, not on the results heading`);
   await evaluate(`document.querySelector('.place[data-place="text"]').click()`);
   await sleep(300);
   await press('#clear-view');
@@ -501,10 +525,43 @@ async function homeViewProblems() {
   v = await view();
   on = await focused();
   if (v.title !== 'Good places to start' || v.cards !== 8 || on !== 'results-title') problems.push(`Clear: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
+  await evaluate(`document.getElementById('q').focus()`);
+  await type('fade');
+  await sleep(300);
+  await evaluate(`document.querySelector('.place[data-place="text"]').click()`);
+  await sleep(300);
+  v = await view();
+  const boxes = await evaluate(`[document.getElementById('q').value, document.getElementById('q2').value]`);
+  if (v.title !== 'Text' || v.pressed !== 'text' || boxes.join('') !== '') problems.push(`Text tile pressed while the search box has focus: ${JSON.stringify(v)}, the boxes hold ${JSON.stringify(boxes)}`);
   await type('a button that bounces when clicked');
   await sleep(300);
   const found = await evaluate(`[...document.querySelectorAll('#cards .card .title a')].map(a => a.textContent)`);
   if (found[0] !== 'Click / Tap Ripple' || !found.slice(0, 4).includes('Bounce In')) problems.push(`search order: ${found.slice(0, 5).join(', ')}`);
+  if ((v = await view()).pressed) problems.push(`search: a tile stays pressed: ${JSON.stringify(v)}`);
+  // Word endings: "snapping" and "blurred" find their short forms, "ring" is not cut down to "r" (Ambient Ripple Effect
+  // says "Rings"), "scrolling" finds as many as "scroll", and the first letter typed already finds cards.
+  for (const [word, name] of [['snapping', 'Snap Scrolling'], ['blurred', 'Blur In'], ['ring', 'Ambient Ripple Effect']]) {
+    await type(word);
+    await sleep(300);
+    const got = await results();
+    if (!got.names.includes(name)) problems.push(`search "${word}" does not find ${name}: ${got.none ? 'nothing matches' : got.names.join(', ')}`);
+  }
+  await type('scroll');
+  await sleep(300);
+  const scroll = (await results()).sub;
+  await type('scrolling');
+  await sleep(300);
+  const scrolling = (await results()).sub;
+  if (scrolling !== scroll) problems.push(`search "scrolling": ${scrolling}, "scroll": ${scroll}`);
+  await type('b');
+  await sleep(300);
+  const letter = await results();
+  if (letter.none || !letter.names.length) problems.push(`search "b": ${letter.none ? 'nothing matches' : 'no cards'}`);
+  const steps = await evaluate(`history.length`);
+  await type('fade in');
+  await sleep(300);
+  const address = await evaluate(`({ search: location.search, steps: history.length })`);
+  if (address.search !== '?q=fade%20in' || address.steps !== steps) problems.push(`typing "fade in": the address is ${address.search}${address.steps !== steps ? ' and a history step was added' : ''}`);
   await type('zebra');
   await sleep(300);
   const empty = await evaluate(`!document.getElementById('empty').hidden && document.getElementById('empty-title').textContent`);
@@ -521,20 +578,43 @@ async function homeViewProblems() {
   v = await view();
   on = await focused();
   if (v.title !== 'All animations' || on !== 'results-title') problems.push(`Browse all button: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
+  const stepsBefore = await evaluate(`history.length`);
   await press('#nav-all');
   await sleep(500);
-  const all = await evaluate(`({ groups: document.querySelectorAll('#cards .group').length, cards: document.querySelectorAll('#cards .card').length, search: location.search })`);
-  if (all.groups !== 7 || all.cards !== 129 || all.search !== '?view=all') problems.push(`All animations: ${JSON.stringify(all)}`);
+  const all = await evaluate(`({ groups: document.querySelectorAll('#cards .group').length, cards: document.querySelectorAll('#cards .card').length, search: location.search,
+    steps: history.length, level4: document.querySelectorAll('#cards .card .title[aria-level="4"]').length, named: document.querySelectorAll('#cards .group[aria-labelledby]').length,
+    pressed: document.querySelectorAll('#places .place[aria-pressed="true"]').length })`);
+  if (all.groups !== 7 || all.cards !== 129 || all.search !== '?view=all' || all.pressed) problems.push(`All animations: ${JSON.stringify(all)}`);
+  if (all.steps !== stepsBefore) problems.push('Browse all pressed in All animations adds a history step');
+  if (all.level4 !== 129 || all.named) problems.push(`All animations: ${all.level4} card titles at level 4, not 129, and ${all.named} group sections named, not 0`);
   on = await focused();
   if (on !== 'results-title') problems.push(`Browse all link: keyboard focus is on ${on}, not on the results heading`);
+  await type('fade');
+  await sleep(300);
+  const levels = await evaluate(`document.querySelectorAll('#cards .card .title[aria-level]').length`);
+  if (levels) problems.push(`search after All animations: ${levels} card titles keep a level`);
+  // An address opened directly shows its view. There "/" puts keyboard focus in the search box, and Escape on the empty
+  // box only leaves the box: the place and its address stay.
+  await load('?place=buttons');
+  v = await view();
+  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.pressed !== 'btn') problems.push(`?place=buttons: ${JSON.stringify(v)}`);
+  await key('/', 'Slash', 191, '/');
+  await sleep(100);
+  on = await focused();
+  if (on !== 'q') problems.push(`"/": keyboard focus is on ${on}, not in the search box`);
+  await key('Escape', 'Escape', 27);
+  await sleep(300);
+  v = await view();
+  on = await focused();
+  if (v.title !== 'Buttons' || v.search !== '?place=buttons' || v.pressed !== 'btn' || on === 'q') problems.push(`Escape in the empty search box: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
+  for (const [query, want] of [['?view=all', { title: 'All animations', groups: 7, cards: 129, pressed: '' }], ['?place=buttons&all=1', { title: 'Buttons', cards: 15, more: '', pressed: 'btn' }]]) {
+    await load(query);
+    v = await view();
+    if (Object.keys(want).some(k => v[k] !== want[k])) problems.push(`${query}: ${JSON.stringify(v)}`);
+  }
   // Old links keep working: ?q= opens the search, ?cat= opens All animations at that category's heading.
   for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=micro-interactions', 'All animations']]) {
-    let onLoad;
-    const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
-    await send('Page.navigate', { url: `${BASE}/${query}` });
-    try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`${query} did not load`); }
-    listeners.delete(onLoad);
-    await sleep(300);
+    await load(query);
     const got = await evaluate(`({ title: document.getElementById('results-title').textContent,
       top: (() => { const g = document.getElementById('cat-micro-interactions'); return g ? Math.round(g.getBoundingClientRect().top) : null; })() })`);
     if (got.title !== want) problems.push(`${query}: heading "${got.title}"`);
@@ -544,21 +624,40 @@ async function homeViewProblems() {
 }
 
 // Home page, phone run: a tile press scrolls to the results, and the slim bar sticks to the top with that place pressed.
-// Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A chip pressed again
-// goes away with the bar, so keyboard focus moves to the results heading. The back arrow goes away too and scrolls to the
-// top, so keyboard focus moves to the first place tile, which is on screen there.
+// There, and again in All animations, every control in the bar, on the cards and under them is at least 44×44 and nothing
+// overflows sideways. Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A
+// chip pressed again goes away with the bar, so keyboard focus moves to the results heading. The back arrow goes away too
+// and scrolls to the top, so keyboard focus moves to the first place tile, which is on screen there.
 async function homePhoneProblems() {
   const now = () => evaluate(`(() => { const a = document.activeElement;
     return { title: document.getElementById('results-title').textContent, focus: a.id || (a.matches('.place') ? 'tile ' + a.dataset.place : a.tagName.toLowerCase()),
       shown: getComputedStyle(document.getElementById('pinbar')).display !== 'none', scrolled: Math.round(scrollY) }; })()`);
   const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.focus(); el.click(); })()`);
   const typeInBar = text => evaluate(`(() => { const box = document.getElementById('q2'); box.value = ${JSON.stringify(text)}; box.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+  // Every visible button, link and field in the bar, on the cards and under them is at least 44×44, and nothing overflows
+  // sideways. A card's title link is stretched over its whole card (an absolutely placed ::after), so it counts as the card.
+  const fit = where => evaluate(`(() => {
+    const r = el => el.getBoundingClientRect();
+    const stretched = el => { const after = getComputedStyle(el, '::after');
+      return el.tagName === 'A' && el.offsetParent && after.content !== 'none' && after.display !== 'none' && after.position === 'absolute'
+        && ['top', 'right', 'bottom', 'left'].every(side => after[side] === '0px'); };
+    const small = [...document.querySelectorAll('#pinbar :is(button, a, input), #cards :is(button, a, input), #more :is(button, a, input)')]
+      .filter(el => el.getClientRects().length)
+      .map(el => [el, r(stretched(el) ? el.offsetParent : el)])
+      .filter(([, b]) => b.width < 44 || b.height < 44)
+      .map(([el, b]) => (el.id || el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '')) + ' ' + Math.round(b.width) + 'x' + Math.round(b.height));
+    const found = [];
+    if (small.length) found.push('small targets: ' + small.slice(0, 6).join(', ') + (small.length > 6 ? ' and ' + (small.length - 6) + ' more' : ''));
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) found.push('horizontal overflow');
+    return found;
+  })()`).then(found => found.map(p => `phone, ${where}: ${p}`));
   await evaluate(`document.querySelector('.place[data-place="text"]').click()`);
   await sleep(900);
   const v = await evaluate(`(() => { const bar = document.getElementById('pinbar');
     return { title: document.getElementById('results-title').textContent, shown: getComputedStyle(bar).display !== 'none',
       top: Math.round(bar.getBoundingClientRect().top), pressed: [...bar.querySelectorAll('[aria-pressed="true"]')].map(b => b.textContent) }; })()`);
   const problems = v.title === 'Text' && v.shown && Math.abs(v.top) <= 1 && v.pressed.join() === 'Text' ? [] : [`phone, Text tile: ${JSON.stringify(v)}`];
+  problems.push(...await fit('Text'));
   // This headless Chrome never has its page in focus, so a script's focus() and blur() send no focus events, and the bar
   // listens for one (leaving its box). The page counts as focused for the rest of this run, as it does for a visitor.
   await send('Emulation.setFocusEmulationEnabled', { enabled: true });
@@ -586,6 +685,11 @@ async function homePhoneProblems() {
     await sleep(1300);
     b = await now();
     if (b.title !== 'Good places to start' || b.shown || b.focus !== 'tile btn' || b.scrolled > 1) problems.push(`phone, back arrow: ${JSON.stringify(b)}`);
+    await press('#more-btn');
+    await sleep(900);
+    b = await now();
+    if (b.title !== 'All animations' || !b.shown) problems.push(`phone, Browse all: ${JSON.stringify(b)}`);
+    problems.push(...await fit('All animations'));
   } finally {
     await send('Emulation.setFocusEmulationEnabled', { enabled: false });
   }
