@@ -847,7 +847,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Play · Back to top
 - **Try it:** none (owner decision 1). The demo has no settings today (its aside holds only a Jump to chapter list and Return to surface). The page has steps 1 and 2.
 - **Scroller:** the stage (a row: the porthole column sticks while the chapters scroll).
-- **What scrolling shows:** six chapters, from the surface down to the deepest trench, scroll up beside a porthole that holds still. As each chapter passes a reading line 42% down the box, the porthole's water and ring blend smoothly toward the next chapter's colours, darkening as you sink, and the depth under it counts up from 0 to 10,935 metres. Under 600px wide the porthole and the depth sit in a strip across the top and the chapters scroll under it.
+- **What scrolling shows:** six chapters, from the surface down to the deepest trench, scroll up beside a porthole that holds still. As each chapter passes a reading line 42% down the box, the porthole's water and ring blend smoothly toward the next chapter's colours, darkening as you sink, and the depth under it counts up from 0 to 10,935 meters. Under 600px wide the porthole and the depth sit in a strip across the top and the chapters scroll under it.
 - **Scroll distance and Play:** six chapters of at least 90cqh (their text makes some taller): about 4.5 box heights at 1280×800 (1,683px) and 5.4 on a 375px phone (1,600px). Play sinks through a chapter about every second.
 - **Reduced motion:** nothing scrolls by itself, and nothing needs simplifying: the water's colour, the ring and the depth follow the visitor's own scrolling directly. The demo's `#ph-bg{transition:background 1.2s ease}` and its reduced-motion rule (`#ph-bg{transition:none!important}`) both go: a gradient background cannot be transitioned, so neither ever did anything.
 - **Stage font:** site font. `.ch-fact` drops its italic.
@@ -857,7 +857,7 @@ None: leave out the `details.hb-options` block.
   - The porthole shrinks in short boxes so the column fits: `#porthole{width:min(220px,85%,calc(100cqh - 106px))}` (was `min(220px,85%)`). Today, in the 258px box of a 1280×590 window, the porthole and the depth need 306px and overflow the column by 24px at each end; with the new width the porthole is 152px there (content 238px), 219px at 1366×657 and 220px from 1280×800 up (measured).
   - Phone rules (under 600px), today's with new sizes: `.stage{flex-direction:column}`; `.vis{position:sticky;top:0;width:100%;height:112px;flex-direction:row;gap:16px;padding:14px 16px;z-index:2;background:#0b0b0d}` (was 200px tall, two-thirds of the new 300px box, and without a background, so the text showed through it); `#porthole{width:84px;border-width:3px}` (was 140px); `.chapters{padding:12px 16px}`. Measured: the strip's content fits (14–98px of 112) and the chapters get 186px of the phone box.
   - Text sizes: `.ch-body` 14px (was 12px), `.ch-fact` 14px (was 10px), `.ch-eye` 11px (was 10px), `#depth-lbl` 11px `#8a8a92` without the opacity .4 (today about 3.5:1).
-  - Text that changes every frame (shared rule 10): `#depth-num` gets `role="img"`, and `update()` sets its `aria-label` with its text ("1,000 metres deep"); `#depth-lbl` gets `aria-hidden="true"`, because its words are in that label. It is not a live region. The porthole (`#porthole`) gets `aria-hidden="true"` (shared rule 12).
+  - Text that changes every frame (shared rule 10): `#depth-num` gets `role="img"`, and `update()` sets its `aria-label` with its text ("1,000 meters deep"); `#depth-lbl` gets `aria-hidden="true"`, because its words are in that label. It is not a live region. The porthole (`#porthole`) gets `aria-hidden="true"` (shared rule 12).
   - The depth number and the chapter labels mix their chapter colour half and half with `#f4f4f2`: `depNum.style.color = lerpCol(col, '#f4f4f2', 0.5)`, and each `.ch-eye` gets `lerpCol(c.ac, '#f4f4f2', 0.5)` without its opacity .6. The three deepest colours (`#003d55`, `#001f30`, `#000e18`) are nearly invisible on the dark stage today; mixed, the darkest reads about 5:1. The porthole's ring and water keep the full colours, which is where the darkening shows.
   - The chapter texts stay.
   - Script: `update()` keeps the fraction, the depth, the water and the ring; the Scroll and Chapter readouts and the jump buttons' `on` class go, and so does the jump list's build.
@@ -874,7 +874,7 @@ None: leave out the `details.hb-options` block.
 - **Copy prompt hint:** "Replace the words in brackets with your own story and picture."
 - **README What it is:** rewritten:
 
-  > Scrollytelling ties a picture to a story told in scrolling text. As you read down, the picture beside the text changes with you, blending smoothly between chapters instead of switching at each one. In the demo you sink through six layers of the ocean while the porthole's water darkens and the depth counts up to 10,935 metres.
+  > Scrollytelling ties a picture to a story told in scrolling text. As you read down, the picture beside the text changes with you, blending smoothly between chapters instead of switching at each one. In the demo you sink through six layers of the ocean while the porthole's water darkens and the depth counts up to 10,935 meters.
 
 - **README Key parameters:** the technique's own values (the page has no settings):
 
