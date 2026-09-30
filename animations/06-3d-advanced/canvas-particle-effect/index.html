@@ -247,21 +247,25 @@ function draw(washes=1){
 
 // One step is 1/60 s, so the dots drift at the same speed whatever the screen's refresh rate.
 const FRAME=1000/60;
-// The loop keeps exactly one pending frame in raf. Each drawn frame moves the dots by the time since the last drawn one (a gap
-// counts for at most 50 ms), and by a third of that while Slow motion is on. The Trails wash is laid over the picture once for
-// every 1/60 s of frame time (twice on a 30 Hz screen), always at the same 15%, and Slow motion does not slow it: a smaller
-// wash is rounded differently by the 8-bit canvas, and the faint leftovers of a trail would end up another color. "owed" carries
-// the part of a wash a frame did not use (Math.round, so a frame a little short of 1/60 s still washes once). At most one
-// picture is drawn per 16 ms. A tab that comes back to the front starts again from its next frame, so the time away adds no step.
+// The loop looks at every frame the screen offers and draws only when a Trails wash is due. "steps" is the time since the last
+// drawn frame in steps of 1/60 s (a gap counts for at most 50 ms); "due" is the same, except that a value within 5% of a whole
+// number counts as that number, so a screen a little off 60 Hz, or a little unsteady, still washes exactly once a frame. "owed"
+// adds the steps up, and a wash is due once Math.round(owed + .05) reaches 1 (twice on a 30 Hz screen); the .05 keeps half a step,
+// which is what a frame is at exactly 120 or 240 Hz, from sitting on a tie that timestamp noise could decide either way. A frame
+// with no wash due draws nothing and changes nothing, so its time carries to the next frame; that keeps the drawing near 60
+// pictures a second on faster screens. A drawn frame moves the dots by all the time since the last one, and by a third of that while Slow motion is on, and
+// lays the wash over the picture once for every step due, always at the same 15%; Slow motion does not slow it: a smaller wash
+// is rounded differently by the 8-bit canvas, and the faint leftovers of a trail would end up another color. A tab that comes
+// back to the front starts again from its next frame, so the time away adds no step.
 let owed=0;
 function loop(t){
   raf=requestAnimationFrame(loop);
   if(last===null){last=t;return;} // the first frame after a start only takes the time
-  const dt=t-last;if(dt<16)return;
+  const steps=Math.min(t-last,50)/FRAME,whole=Math.max(1,Math.round(steps)),due=Math.abs(steps-whole)<.05?whole:steps;
+  if(Math.round(owed+due+.05)<1)return;
   last=t;
-  const steps=Math.min(dt,50)/FRAME,k=steps*(slowTog.checked?1/3:1);
-  particles.forEach(p=>p.update(k));
-  owed+=steps;const washes=Math.round(owed);owed-=washes;
+  particles.forEach(p=>p.update(steps*(slowTog.checked?1/3:1)));
+  owed+=due;const washes=Math.round(owed+.05);owed-=washes;
   draw(washes);
 }
 function start(){if(raf)return;last=null;owed=0;raf=requestAnimationFrame(loop);}

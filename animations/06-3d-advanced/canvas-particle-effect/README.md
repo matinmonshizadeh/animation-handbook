@@ -35,14 +35,24 @@ class Particle {
   }
 }
 
-const steps = Math.min(elapsed, 50) / (1000 / 60);  // elapsed: ms since the last drawn frame; a long gap counts for at most 50 ms
-const k = steps * (slow ? 1 / 3 : 1);               // Slow motion slows the dots ...
-particles.forEach(p => p.update(k));
-owed += steps;                                      // ... but not the Trails fade: one wash of 15% for every 1/60 s
-const washes = Math.round(owed);                    // (Math.round, so a frame a little short of 1/60 s still washes once)
-owed -= washes;
-draw(washes);                                       // lays the wash over the picture that many times, then draws the dots
+let owed = 0;                 // steps of Trails wash not laid yet: 0 to start with, and cleared again when the loop restarts (Play, a tab coming back)
+
+function frame(elapsed) {     // called for every frame the screen offers; elapsed: ms since the last frame that was drawn
+  const steps = Math.min(elapsed, 50) / (1000 / 60);   // a long gap counts for at most 50 ms
+  const whole = Math.max(1, Math.round(steps));
+  const due = Math.abs(steps - whole) < 0.05 ? whole : steps;   // within 5% of a whole number counts as that number
+  if (Math.round(owed + due + 0.05) < 1) return;   // no wash due: draw nothing and change nothing, the time waits for the next frame
+
+  const k = steps * (slow ? 1 / 3 : 1);
+  particles.forEach(p => p.update(k));      // Slow motion slows the dots ...
+  owed += due;                              // ... but not the Trails fade: one wash of 15% for every step
+  const washes = Math.round(owed + 0.05);   // (Math.round, so a frame a little short of 1/60 s still washes once)
+  owed -= washes;
+  draw(washes);                             // lays the wash over the picture that many times, then draws the dots
+}
 ```
+
+The wash count is worked out apart from the movement so that a screen a little off 60 Hz (59.94 or 60.06), or one whose frames arrive a little unevenly, still washes exactly once a frame. The 0.05 added before rounding keeps half a step, which is what a frame is at exactly 120 or 240 Hz, from sitting on a tie that timestamp noise could decide either way. A frame that comes before a wash is due draws nothing, which also keeps the drawing near 60 pictures a second on a faster screen.
 
 **Connections** — O(n²) distance check per frame:
 
@@ -85,7 +95,7 @@ Stroking each link on its own costs one draw call per line, thousands a frame; g
 - **Phones and tablets**: the demo draws 30 to 60 dots on phones (screens 600px wide or less, or 500px tall or less when held sideways) and 60 to 120 on other screens up to 1024px wide, and strokes the links in six batches instead of one call per line.
 - **Canvas vs DOM**: `<canvas>` is mandatory for 50+ particles. DOM elements at that density create thousands of layout calculations per frame — the browser cannot keep up.
 - **Particles.js / tsParticles**: the dominant production library. Handles everything in this demo plus themes, shape variety, responsive density, and performance at high counts.
-- **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (turn on Trails in the demo). The demo washes once for every 1/60 s of frame time (twice on a 30 Hz screen), always at 15% and whatever Slow motion does, so the streaks last as long on a 30 Hz phone as on a 60 Hz screen. One smaller wash would fade the same amount, but an 8-bit canvas rounds it differently, and the faint leftovers of a trail would end up another color.
+- **`ctx.clearRect` vs `fillRect`**: using `fillRect` with a semi-transparent background instead of `clearRect` creates a motion-trail effect where older frames linger (turn on Trails in the demo). The demo washes once for every 1/60 s of frame time (twice on a 30 Hz screen, once on each drawn frame from 59.94 Hz up), always at 15% and whatever Slow motion does, so the streaks last as long on a 30 Hz phone as on a 60 Hz screen. One smaller wash would fade the same amount, but an 8-bit canvas rounds it differently, and the faint leftovers of a trail would end up another color.
 - **Time, not frames**: a fixed step per frame follows the screen's refresh rate, so the dots would drift twice as fast at 120 Hz and half as fast at 30 Hz. Cap the time of one frame (this demo uses 50 ms) so a tab that comes back does not lurch, and let a returning tab start from its next frame.
 - **Device pixel ratio**: size the backing store to `clientWidth * devicePixelRatio` (capped at 2) and scale the context, or sub-pixel dots and 0.5px connection lines blur on retina screens.
 - **`prefers-reduced-motion`**: stop all particle movement. Consider keeping the static dot layout visible as a texture.
