@@ -183,8 +183,9 @@ function resize(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
-// Hangs a fresh cloth and draws it, so a cloth that is paused (or not yet moving) is never an empty stage.
-function initCloth(){
+// Hangs a fresh cloth and draws it, so a cloth that is paused (or not yet moving) is never an empty stage. With settle, 120 silent
+// physics steps run first, so a cloth shown still (at load, or while paused) already hangs.
+function initCloth(settle){
   const w=W*.8,h=H*.65;
   const ox=W*.1,oy=H*.1;
   const sw=w/COLS,sh=h/ROWS;
@@ -207,6 +208,7 @@ function initCloth(){
     if(c<COLS){const rest=Math.hypot(pts[n(r,c+1)][0]-pts[n(r,c)][0],pts[n(r,c+1)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r,c+1),rest]);}
     if(r<ROWS){const rest=Math.hypot(pts[n(r+1,c)][0]-pts[n(r,c)][0],pts[n(r+1,c)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r+1,c),rest]);}
   }}
+  if(settle)for(let i=0;i<120;i++){windT+=16;update();}
   draw();
 }
 
@@ -275,7 +277,7 @@ function loop(ts){
   update();draw();
 }
 // Hangs a fresh cloth to the size of the stage (Detail, a resize) ...
-function rebuild(){resize();initCloth();}
+function rebuild(settle){resize();initCloth(settle);}
 // ... and Play carries on with the cloth as it is; it never stacks a second loop.
 function resume(){if(raf!==null)return;lastT=performance.now();raf=requestAnimationFrame(loop);}
 
@@ -287,7 +289,7 @@ document.addEventListener('hb:pause',e=>{
   else resume();
 });
 
-rebuild();resume();
+rebuild(true);resume();
 
 // Drag interaction: Pointer Events cover mouse, touch and pen; capture keeps the drag alive outside the stage.
 function getClosestVertex(x,y,maxDist=30){
@@ -308,7 +310,7 @@ const endDrag=e=>{if(e.isPrimary)dragIdx=-1;};
 ['pointerup','pointercancel','lostpointercapture'].forEach(type=>stage.addEventListener(type,endDrag));
 
 // A phone's address bar showing or hiding changes only the window's height, not the stage's, so nothing is hung again
-window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;rebuild();});
+window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;rebuild(paused);});
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
@@ -318,17 +320,17 @@ function choices(id,pick){
   }));
 }
 // Choosing what is already chosen must not hang a fresh cloth again
-choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;initCloth();});
+choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;initCloth(paused);});
 choices('wind-seg',d=>{WIND=+d.wind;});
 choices('stiff-seg',d=>{ITERS=+d.iters;});
 choices('grav-seg',d=>{GRAVITY=+d.grav;});
 choices('detail-seg',d=>{
   const n=+d.cols;
   if(n===COLS)return;
-  COLS=n;ROWS=Math.round(COLS*.75);rebuild();
+  COLS=n;ROWS=Math.round(COLS*.75);rebuild(paused);
 });
 document.getElementById('verts-tog').addEventListener('change',e=>{SHOW_VERTS=e.target.checked;if(paused)draw();});
-document.getElementById('btn-reset').addEventListener('click',()=>initCloth());
+document.getElementById('btn-reset').addEventListener('click',()=>initCloth(paused));
 </script>
 </body>
 </html>

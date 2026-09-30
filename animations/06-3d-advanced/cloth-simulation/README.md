@@ -75,7 +75,7 @@ for (let r = 0; r < ROWS; r++) {
 - **GPU cloth simulation**: AAA games simulate cloth on the GPU using compute shaders (DirectX/Vulkan/Metal) or GPGPU passes (same ping-pong texture technique as the GPGPU particle demo). WebGPU enables this in browsers as of Chrome 113+.
 - **Cannon.js / Rapier.js**: JavaScript physics engines that include cloth/soft-body simulation with more accuracy and more constraint types. Rapier (Rust/WASM) is the fastest modern option.
 - **Self-collision**: this demo does not prevent cloth from passing through itself (self-intersection). Self-collision detection is O(n²) and requires spatial hashing or BVH acceleration structures.
-- **Performance**: at 40×30 resolution (1200 vertices, ~3600 constraints, 4 iterations = 14400 constraint solves per frame), expect ~45fps on mid-range mobile. The demo starts at 16×12 on screens 600px wide or less; its Detail setting still lets you pick more.
+- **Performance**: at 40×30 (1,271 points, 2,470 links, 4 passes = 9,880 link corrections a frame) a phone-class CPU manages about 17 frames a second, and 24×18 about 47. The demo starts at 16×12 on phones (screens 600px wide or less, or 500px tall or less), where it holds 60; its Detail setting still lets you pick more.
 - **Canvas resolution**: the backing store is sized to `devicePixelRatio` (capped at 2) and the context is scaled to match, so the mesh stays crisp on phones without paying for a 3× framebuffer.
 
 ## See also
