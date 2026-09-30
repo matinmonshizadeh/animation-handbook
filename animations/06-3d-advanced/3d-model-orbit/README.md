@@ -16,7 +16,7 @@ A WebGL program needs three components: geometry (vertex data), shaders (GPU pro
 
 ```glsl
 attribute vec3 aPos, aNorm;
-uniform mat4 uMVP, uM;        /* model-view-projection, model */
+uniform mat4 uMVP, uM;        /* model-view-projection, model-view */
 varying vec3 vN, vP;
 
 void main() {

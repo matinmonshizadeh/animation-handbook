@@ -267,7 +267,7 @@ const slowTog=document.getElementById('slow-tog');
 let W,H,gl,prog,posBuf,nrmBuf,idxBuf,lineBuf,idxCount,lineCount;
 const TILT=.3; // the forward tilt it starts with, and returns to when the shape changes: at 0 a ring is seen edge-on
 let raf=null,paused=false,last=null,clock=0,rx=TILT,ry=0;
-let MODE='orbit',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
+let MODE='orbit',SHAPE='cube',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let rollSpeed=.2,tumbles=true;
 let mouseNX=0,mouseNY=0;
 
@@ -385,7 +385,7 @@ function choices(id,pick){
 }
 const speedSetting=document.getElementById('speed-setting'),tumbleSetting=document.getElementById('tumble-setting');
 function setRoll(){SX=tumbles?rollSpeed:0;}
-choices('shape-seg',d=>{if(!gl)return;loadGeometry(d.shape);rx=TILT;ry=0;redraw();});
+choices('shape-seg',d=>{if(!gl||d.shape===SHAPE)return;SHAPE=d.shape;loadGeometry(SHAPE);rx=TILT;ry=0;redraw();});
 // Speed and Tumbles only matter while it spins
 choices('move-seg',d=>{MODE=d.mode;speedSetting.hidden=tumbleSetting.hidden=MODE!=='orbit';});
 choices('speed-seg',d=>{SY=+d.sy;rollSpeed=+d.sx;setRoll();});
