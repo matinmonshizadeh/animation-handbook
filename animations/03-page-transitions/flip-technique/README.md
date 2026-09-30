@@ -51,7 +51,7 @@ Cards are matched across the re-render by a stable `id`, so a card that moves fr
 - **Read then write, once.** Batch all `getBoundingClientRect` reads (First) before any style writes (Last/Invert) to avoid layout thrashing. Reading and writing in an interleaved loop forces repeated synchronous layouts.
 - **Size changes need scale.** This demo animates position via `translate`; when cards also change dimensions (list mode), add `scaleX`/`scaleY` from the old size to the new, or the resize will pop rather than glide.
 - **`will-change: transform`** on the animated cards hints the compositor to promote them to their own layer ahead of time, smoothing the first frame — used here on `.flip-card`.
-- **Library equivalents.** React's `<AnimatePresence>` and Framer Motion's `layout` prop implement FLIP automatically for layout changes. GSAP's Flip plugin is a direct, batteries-included implementation. The View Transitions API achieves similar layout-change animation natively by snapshotting before and after, without manual rect math.
+- **Library equivalents.** Framer Motion's `layout` prop implements FLIP automatically for layout changes (its `AnimatePresence` handles items that leave). GSAP's Flip plugin is a direct, batteries-included implementation. The View Transitions API achieves similar layout-change animation natively by snapshotting before and after, without manual rect math.
 
 ## See also
 - [Shared Element Transition](../shared-element-transition/) — the same method for one element across pages
