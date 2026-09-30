@@ -377,7 +377,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Slow motion (css). No Reset: the button always springs home.
 - **What the visitor does:**
   - With a mouse: moving over the stage pulls the button toward the pointer while it is within Reach, and leaving the stage or the reach sends it home (inside the `(hover: hover)` branch, as today).
-  - The tap equivalent, new (today a touch screen only changes a hint): on a touch, `pointerdown` on the stage pulls the button toward the finger, `pointermove` while the finger is down follows it, and `pointerup` or `pointercancel` sends it home. These handlers act only when `e.pointerType` is not `"mouse"`. The stage keeps `touch-action:manipulation`, so a swipe still scrolls the page, which cancels the touch and sends the button home.
+  - The tap equivalent, new (today a touch screen only changes a hint): on a touch, `pointerdown` on the stage pulls the button toward the finger, `pointermove` while the finger is down follows it, and `pointerup`, `pointercancel` or `pointerleave` sends it home (a pen or finger that leaves the stage ends the pull too: a pen lifted outside sends its `pointerup` elsewhere, and the button would stay pulled). These handlers act only when `e.pointerType` is not `"mouse"`. The stage keeps `touch-action:manipulation`, so a swipe still scrolls the page, which cancels the touch and sends the button home.
   - Pressing the button still shrinks it slightly (`pressed`), as today.
   - The pull is one function that takes a point on the stage (today's `pointermove` body): the mouse, the touch and Show me all call it.
 - **Show me:** moves a pretend pointer around the button, calling the pull function with three points.
@@ -391,7 +391,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** css (the button's and label's `.55s` transform transitions). `later()` triples each 550ms glide, not the 150ms holds.
 - **Reduced motion:** the demo's rule stays: the button still follows, with a short, even move (`.12s linear`) instead of the slow glide. Show me still moves it to each point.
 - **Stage font:** site font. `.mag` drops `var(--disp)` and keeps `font-weight:700`.
-- **Stage:** only the button stays ("Get Started"). The dashed radius ring (`.ring`) and the hint under the button (`.hint`) go. `hb-dots`: yes. Measured: 65px of content, centred.
+- **Stage:** only the button stays ("Get Started"). The dashed radius ring (`.ring`) and the hint under the button (`.hint`) go. `hb-dots`: yes. Measured: 63px of content on laptops and 59px on phones, centred.
   - The label's class `lbl` becomes `mag-label` in the CSS (`.mag .mag-label` and the reduced-motion rule), the markup and the script's lookup, because the page checks reject `class="lbl"` (an old panel class).
 
 **Main settings**
@@ -429,7 +429,7 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — the small shrink it also does when pressed
   - [Hover State Animation](../hover-state/) — simpler ways to react to the pointer
   - [Cursor Follower](../cursor-follower/) — a shape that follows the pointer around
-- **README How it works:** the last sentence, "On touch devices (no hover), the magnet is skipped entirely and the button only does a press-scale on tap.", becomes "On touch screens, which cannot hover, the same pull follows a finger while it touches the stage, and the button springs home when the finger lifts." The rest is unchanged; the label's 0.35 multiplier and the return easing, which leave the Key parameters table, are already described there.
+- **README How it works:** the last sentence, "On touch devices (no hover), the magnet is skipped entirely and the button only does a press-scale on tap.", becomes "On touch screens, which cannot hover, the same pull follows a finger while it touches the stage, and the button springs home when the finger lifts." Two more edits: the sentence "The inner label uses a smaller multiplier, so it lags behind the button body." becomes "The label, inside the button, is moved another 35% of the same offset, so it travels a little further than the button and seems to float above it." (the label is a child of the button, so it travels 1.35 times as far, and leads), and the snippet's finger and pen handler listens for `['pointerup', 'pointercancel', 'pointerleave']`, its comment reading "spring home when it lifts or leaves the stage". The rest is unchanged; the return easing, which leaves the Key parameters table, is already described there.
 - **README Production notes:** the "Gate on hover capability" bullet becomes: "**Gate on hover capability**: bind the hover magnet only where `window.matchMedia('(hover: hover)').matches`. On touch screens `pointermove` fires only while a finger is down, so pull toward the touch point while it is down and send the button home when it lifts, or fall back to a plain press-scale." The "Reduced motion" bullet becomes: "**Reduced motion**: shorten the transition to a quick, even move, so the button still follows the pointer without the slow glide." The rest is unchanged.
 - **Category line:** `04.05 · Micro-Interactions`
 - **Pager:** Previous: Button Press Scale (`../button-press-scale/`) · Next: Toggle / Switch Slide (`../toggle-switch/`)

@@ -10,7 +10,7 @@ A magnetic button seems to be drawn to the pointer. When the pointer comes close
 - Sparingly — one or two magnetic elements per view, not every button
 
 ## How it works
-On every `pointermove` over the stage, you measure the vector from the button's center to the pointer. If the distance is within the activation radius, you translate the button by that vector scaled by a strength factor, with a falloff so the pull eases to zero at the radius edge. The inner label uses a smaller multiplier, so it lags behind the button body. The pull is one function that takes a point on the stage, so the mouse and a finger can both call it:
+On every `pointermove` over the stage, you measure the vector from the button's center to the pointer. If the distance is within the activation radius, you translate the button by that vector scaled by a strength factor, with a falloff so the pull eases to zero at the radius edge. The label, inside the button, is moved another 35% of the same offset, so it travels a little further than the button and seems to float above it. The pull is one function that takes a point on the stage, so the mouse and a finger can both call it:
 
 ```js
 function pull(px, py) {
@@ -39,14 +39,14 @@ const pointAt = e => {
 stage.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') pointAt(e); });
 stage.addEventListener('pointerleave', home);
 
-// Finger or pen: pull while it touches the stage, spring home when it lifts
+// Finger or pen: pull while it touches the stage, spring home when it lifts or leaves the stage
 let touchId = null;
 stage.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse') return;
   touchId = e.pointerId; pointAt(e);
 });
 stage.addEventListener('pointermove', e => { if (e.pointerId === touchId) pointAt(e); });
-['pointerup', 'pointercancel'].forEach(type => stage.addEventListener(type, e => {
+['pointerup', 'pointercancel', 'pointerleave'].forEach(type => stage.addEventListener(type, e => {
   if (e.pointerId === touchId) { touchId = null; home(); }
 }));
 ```

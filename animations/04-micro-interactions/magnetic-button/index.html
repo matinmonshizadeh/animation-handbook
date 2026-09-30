@@ -173,7 +173,8 @@
     });
     stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')stopRun()});
   }
-  // A finger or pen pulls while it touches the stage, follows it while it moves and sends the button home when it lifts.
+  // A finger or pen pulls while it touches the stage, follows it while it moves and sends the button home when it lifts or leaves the stage
+  // (a pen lifted outside would send its pointerup elsewhere).
   // A swipe that scrolls the page cancels the touch. Pointer events, so a tap's follow-up mouse events leave no pointer behind.
   let touchId=null;
   stage.addEventListener('pointerdown',e=>{
@@ -181,7 +182,7 @@
     touchId=e.pointerId;pointAt(e);
   });
   stage.addEventListener('pointermove',e=>{if(e.pointerId===touchId)pointAt(e)});
-  ['pointerup','pointercancel'].forEach(type=>stage.addEventListener(type,e=>{
+  ['pointerup','pointercancel','pointerleave'].forEach(type=>stage.addEventListener(type,e=>{
     if(e.pointerId!==touchId)return;
     touchId=null;home();
   }));
