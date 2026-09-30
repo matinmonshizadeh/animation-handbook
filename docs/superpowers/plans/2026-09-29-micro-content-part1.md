@@ -303,7 +303,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Shrinks as you press it and springs back as you let go. Best for main buttons.
 - **Step 1:** Click it — help line: "Press and hold a button, then let go, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: a button always returns to full size when it is let go.
-- **What the visitor does:** pressing a button adds `pressed` (`pointerdown`, or Space and Enter), and letting go removes it (`pointerup`, or the key coming up), as today; `pointercancel` lets go too. Touch works the same way.
+- **What the visitor does:** pressing a button adds `pressed` (`pointerdown`, or Space and Enter), and letting go removes it (`pointerup`, or the key coming up), as today; `pointercancel` lets go too, and so does `blur`: a Space or Enter held down when Tab moves the focus away sends its key-up to the next button, and without `blur` the first button stayed pressed (a change of the final wave). Touch works the same way.
 - **Show me:** presses each button once, top to bottom (Confirm, Save Draft, Cancel).
   - Button i (0 to 2) goes down (`pressed` on) with `later(down, i*(pd+rd), i*540)` and comes up with `later(up, i*(pd+rd)+pd, i*540+320)`. `pd` is Press speed and `rd` Release speed: each press shrinks, holds 320ms and springs back, and 220ms pass before the next press.
   - At the defaults the buttons go down at 0, 800 and 1600ms and come up 400ms later each. The run is at rest by about 2.2 s, or about 3.7 s with Slow motion.
@@ -362,8 +362,8 @@ None: leave out the `details.hb-options` block.
   - [Click / Tap Ripple](../click-ripple/) — a ripple spreads from the spot you press
   - [Hover State Animation](../hover-state/) — items react before they are clicked
   - [Checkmark Draw](../checkmark-draw/) — a tick draws itself once the task is done
-- **README How it works:** unchanged
-- **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this." The rest is unchanged.
+- **README How it works:** the JS snippet's `pointerdown` handler also captures the pointer, `e => { press(); btn.setPointerCapture(e.pointerId); }`, and the snippet gains `btn.addEventListener('blur', release);` after the key handlers, as the page has them. One sentence after the paragraph on the asymmetric timing says the glow crossfades a resting shadow on `::before` and a pressed shadow on `::after` by opacity, with the same timing as the size, rather than animating `box-shadow`. The rest is unchanged.
+- **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this." The `pointercancel` bullet gains: "Two more ways to get stuck are covered in the snippet: without `setPointerCapture` the release is missed when the pointer has moved off the button, and without the `blur` listener a key held down while Tab moves the focus away sends its `keyup` to the next element." The rest is unchanged.
 - **Category line:** `04.04 · Micro-Interactions`
 - **Pager:** Previous: Focus Ring Animation (`../focus-ring/`) · Next: Magnetic Button (`../magnetic-button/`)
 
@@ -442,7 +442,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** The knob slides across as the switch turns on or off. Best for settings.
 - **Step 1:** Click it — help line: "Click or tap a switch to turn it on or off, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset (owner decision): a second click flips a switch back, and Show me starts from the arrival state.
-- **What the visitor does:** clicking or tapping a switch (or pressing Space on it) flips its checkbox, and the CSS `:checked` rules slide the knob and colour the track, as today.
+- **What the visitor does:** clicking or tapping a switch or its name (or pressing Space on the switch) flips its checkbox, and the CSS `:checked` rules slide the knob and colour the track, as today. The names flipping their switch is new (see Stage).
 - **Show me:** starts from rest. `toRest()` puts the switches back as they are on arrival (Notifications on, Appearance off, Auto-save on) without animating. Then the run flips each switch and flips it back.
   - Switch i (0 to 2) flips with `later(flip, i*dur, i*200)` and flips back with `later(back, (3+i)*dur, 1000+i*200)`, where `dur` is Speed. Each slide takes Speed, 200ms pass between switches, and all three rest 600ms before they flip back.
   - At the defaults they flip at 0, 400 and 800ms and back at 1600, 2000 and 2400ms. The run is at rest by about 2.6 s, or about 5 s with Slow motion.
@@ -452,7 +452,10 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** css. `later()` triples each slide (Speed), not the 200ms and 600ms holds.
 - **Reduced motion:** the demo's rule stays: the knob jumps and the track colour changes over 0.1s. Show me still flips each switch.
 - **Stage font:** site font. `.tog-label` gets `font-size:15px` and `font-weight:600`.
-- **Stage:** the three switches and their names stay (Notifications, Appearance, Auto-save). The grey lines under the names (`.tog-sub`) go; the third one ("Elastic release overshoot") would be wrong with Springy knob off. The On/Off status readout (`.status-row`) goes. `hb-dots`: yes. Measured: 270px on phones and laptops.
+- **Stage:** the three switches and their names stay (Notifications, Appearance, Auto-save). The grey lines under the names (`.tog-sub`) go; the third one ("Elastic release overshoot") would be wrong with Springy knob off. The On/Off status readout (`.status-row`) goes. `hb-dots`: yes. Measured: 270px on phones and laptops (268px: three 44px rows, two 36px gaps and 32px of padding on each side).
+  - Short windows: a window wider than 600px and at most 620px tall (a short laptop window, a phone held sideways) gives the stage 260px, which is less than the 268px above. `@media(min-width:601px) and (max-height:620px){.stage{gap:20px;padding:20px}}` takes the rows and padding down to 212px, so 48px are spare in a 260px stage; the switches keep their size (measured at 1366×580 and 667×375).
+  - The names are the switches' labels: each `.tog-label` is `<label class="tog-label" for="sw0">` (`sw1`, `sw2`), so a tap on a name flips its switch, as the prompt asks ("Make the whole switch and its label easy to tap"). `.tog-label` gets `display:flex;align-items:center;min-height:44px;cursor:pointer;user-select:none` (with the `-webkit-` prefix) and `touch-action:manipulation`: a 44px tap target that fills the row up to the switch (19px tall before).
+  - The checkboxes are named by their labels: "Notifications", "Appearance" and "Auto-save". The `aria-label`s on the `label.sw` wrappers ("Toggle notifications" and so on) go, and each `.sw-thumb` is `aria-hidden="true"`, or the moon and sun that Appearance's thumb draws with generated content would join its name ("Appearance 🌙").
   - Keyboard focus: the checkbox is invisible (`opacity:0` and no size), so a Tab press showed nothing. The track now shows it, as the switch's own focus look (see the preamble): `.sw input:focus-visible ~ .sw-track{outline:2px solid var(--ui-accent);outline-offset:2px}`.
   - The knob's transitions keep only `transform`: `box-shadow` and `background` leave them, because neither changes.
 
@@ -498,8 +501,8 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
   - [Form Field Morph](../form-field-morph/) — the label moves up when a field is focused
   - [Accordion Open/Close](../accordion/) — a panel opens and closes smoothly
-- **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README How it works:** the CSS snippet gains `.sw input:focus-visible ~ .track { outline: 2px solid #ff9d5c; outline-offset: 2px; }`, and a sentence after it says the checkbox is invisible, so keyboard focus is drawn on the track beside it (a copy of the snippet without that rule would have no visible focus). The rest is unchanged.
+- **README Production notes:** the Label wrapping bullet gains: "The demo's switch names are labels too: each name is a `<label for>` pointing at its checkbox, so tapping the name flips the switch, and it is the name a screen reader announces." The rest is unchanged.
 - **Category line:** `04.06 · Micro-Interactions`
 - **Pager:** Previous: Magnetic Button (`../magnetic-button/`) · Next: Heart / Like Burst (`../heart-burst/`)
 
@@ -1022,6 +1025,7 @@ None: leave out the `details.hb-options` block.
 - **Stage:** Full name (underlined), Company (boxed) and Message (underlined, several lines) stay. The Email address field goes (owner decision): it is a second underlined field like Full name, and without it the form fits the phone stage. The stage gets `padding:16px`, `.form` gets `gap:16px` (was 24px), and the textarea `min-height:56px` (was 80px). `hb-dots`: yes. Measured: 282px on phones and laptops.
   - The fields keep their own focus look: the line, the label colour and the box border. The site's focus ring (`body.hb :focus-visible`, specificity 0,2,1) beats their `outline:none` (0,1,1). It would draw an orange box around each focused field, through its raised label.
   - So the page adds `.stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}` (0,3,1).
+  - The focused Company box stays opaque: its focused background mixes 4% of the focus colour into the stage's own `#0b0b0d` (`color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)`, `rgb(14,17,23)` with Blue), not into `transparent`. Over `transparent` the stage's `hb-dots` grid showed through the focused box; the unfocused box was already opaque (`--ui-bg`). Changed in the final wave.
 
 **Main settings**
 
@@ -1086,6 +1090,7 @@ How far it rises and Size when raised move the underlined fields' labels; the bo
 - **Stage font:** site font. `.icon-label` becomes 11px, keeping its `--ui-muted` grey; the number in the badge becomes 11px and dark (`#0b0b0d`), not white: white on the five badge colors is 3.35 to 1.94:1 and the dark number 5.87 to 10.15:1 (text needs 4.5:1).
 - **Stage:** the three icons stay. Their two-line labels become one word each: "Number", "Dot" and "Online" (were "Bell numbered", "Inbox dot" and "Avatar online"). The avatar's inline style moves into a class. `hb-dots`: yes. Measured: 90px of content (the badges stick out 8px above it), centred; it fits every stage, the 260px one included.
 - **Halo layering:** the halo (`::after`) is drawn over the badge's color and under its number: `.badge{isolation:isolate}` makes the badge a stacking context and `.badge::after{z-index:-1}` puts the halo inside it, below the text. A halo painted over the number took it below 4.5:1 (2.66:1 on Red at the start of every Ring or Both pulse, 3.27 to 4.15:1 at rest); with the halo under it the number measures 5.86:1 or better in every state.
+- **Halo and clicks:** the halo takes no pointer: `.badge::after,.dot-badge::after{pointer-events:none}` (a change of the final wave). It grows to 2.2 times the badge and, faded out or not, covered the empty stage around the icon's corner, so a click there reached the icon's handler and cleared the badge (up to 100 of 529 points sampled around the bell's badge, and 44 around the inbox dot, were such clicks). Now only the icon and the badge itself take a click.
 
 **Main settings**
 
@@ -1134,7 +1139,7 @@ White stays left out (it was left out when the number was white; the number is d
   - [Tooltip Reveal](../tooltip-reveal/) — pointing at an icon shows a short note
   - [Loading Spinner](../loading-spinner/) — another sign that something is going on
   - [Hover State Animation](../hover-state/) — items react when the pointer is over them
-- **README How it works:** the halo snippet gains `.badge{isolation:isolate}` and `z-index:-1` on `.badge::after`, with a sentence saying the ring is drawn under the number, and a sentence after it says the three-pulse run uses `animation-iteration-count:3` and `animation-fill-mode:forwards`. The rest is unchanged.
+- **README How it works:** the halo snippet gains `.badge{isolation:isolate}`, and `z-index:-1` and `pointer-events:none` on `.badge::after`, with a sentence saying the ring is drawn under the number. After the snippet, one sentence says why the ring takes no pointer (it grows to 2.2 times the badge, past the icon's corner, and catches clicks there even when faded out), and the next says the three-pulse run uses `animation-iteration-count:3` and `animation-fill-mode:forwards`; without the fill mode "the halo would fall back to its resting style, a faint ring around the badge". The rest is unchanged.
 - **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: under reduced motion the demo starts paused, so the badges stay still until the visitor presses Play. In production, turn the pulse off: the badge stays visible, just without motion." The rest is unchanged.
 - **Category line:** `04.15 · Micro-Interactions`
 - **Pager:** Previous: Form Field Morph (`../form-field-morph/`) · Next: Tooltip Reveal (`../tooltip-reveal/`)

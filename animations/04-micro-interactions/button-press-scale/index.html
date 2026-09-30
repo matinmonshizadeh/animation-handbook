@@ -172,13 +172,15 @@
   const vars=document.documentElement.style;
   let pd=80,rd=180,runTimers=[];
 
-  // A press adds "pressed" (pointer down, or Space and Enter) and letting go removes it (pointer up, cancel, or the key coming up).
+  // A press adds "pressed" (pointer down, or Space and Enter) and letting go removes it (pointer up, cancel, the key coming up, or
+  // the focus leaving the button: a key held while Tab moves the focus away sends its keyup to the next element).
   btns.forEach(btn=>{
     const press=()=>btn.classList.add('pressed');
     const release=()=>btn.classList.remove('pressed');
     btn.addEventListener('pointerdown',e=>{press();btn.setPointerCapture(e.pointerId)});
     btn.addEventListener('pointerup',release);
     btn.addEventListener('pointercancel',release);
+    btn.addEventListener('blur',release);
     btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')press()});
     btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')release()});
   });

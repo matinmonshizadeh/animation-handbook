@@ -79,7 +79,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   Each item keeps its `show()` and `hide()` where the run can reach them (for example `wrap.show`, `wrap.hide`). The run also stops on a trusted `pointermove` over the stage (see the preamble). On that or on `hb:input`: `stopRun()`, then the gear's `hide()` unless the pointer or focus is on it (`wrap.matches(':hover,:focus-within')`).
 - **Slow motion:** css. The fade is the run's only movement (Speed); the delay before showing and the 1600ms are holds, and the items' own delays keep their length. A slowed run takes about 2.9 s.
 - **Reduced motion:** the demo's rule stays: the tooltip fades without growing.
-- **Touch:** today's `touchstart` toggle stays: a tap shows or hides an item's tooltip at once.
+- **Touch:** today's `touchstart` toggle stays: a tap shows a hidden tooltip at once and hides a shown one only when the item already has the focus (`tip.classList.contains('visible')&&wrap.contains(document.activeElement)`). The tooltip Show me shows has no focus behind it, so a tap on the gear during the arrival run keeps it. Hiding it (the old condition looked only at `visible`) made it blink: it went at once and came back about 360ms later, when the tap's `focusin` showed it again (a change of the final wave).
 - **Stage font:** site font. `.help-input` gets `font-family:inherit` (was `var(--mono)`).
 - **Stage:** the four items stay: the gear button (tooltip below), the cut-off text (tooltip above), the Username field (tooltip to its right) and the avatar (tooltip above).
   - The "Total shown" readout goes, so `show()` no longer counts.
@@ -963,7 +963,7 @@ None: leave out the `details.hb-options` block.
   - `hb:input` has nothing to stop.
 - **Reset:** dismisses every toast, as "Dismiss all" did (each leaves the way it came), after `stopRun()`.
 - **Slow motion:** none.
-- **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, the bar is hidden, and a timer dismisses each one.
+- **Reduced motion:** the demo's rules stay: toasts appear and disappear without movement, and the bar is hidden (`.toast .prog{visibility:hidden}`) but keeps counting down, so its `animationend` still dismisses each toast after Time on screen, and hover, focus inside the toast and a held finger still pause it. This is a change of the final wave: the bar used to be removed (`animation:none`) and a `setTimeout` in `spawn()` dismissed each toast whatever the pointer or the focus was doing, so a toast could go while it was hovered or while a keyboard user was on ×, and the focus fell back to `<body>`. The timer, and the `clearTimeout` calls for it in `leave()` and `toRest()`, are gone. A toast under reduced motion still lives Time on screen (measured 2.5 s and 4 s).
 - **Touch:** already Pointer Events: a drag past 35% of its width or a tap dismisses a toast. Holding a finger on a toast pauses its countdown (the `paused` class). Pointing at a toast pauses it too, inside `@media (hover: hover)`, as today.
 - **Stage font:** site font. `.toast .ic` and `.toast .ti` drop `font-family:var(--disp)`; `.toast .x` and the new `.send` get `font-family:inherit`. `.toast .ms` goes up to 11px (was 10.5px).
 - **Stage:** the corner stack stays.
@@ -1019,7 +1019,7 @@ None: leave out the `details.hb-options` block.
   - [Modal Expand](../modal-expand/) — a window that must be closed before you go on
   - [Success Confetti](../success-confetti/) — a celebration for a finished task
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** the "Respect reduced motion" bullet says to drop the slide/scale, to appear and disappear instantly, and to hide the bar but keep its countdown running unseen, so `animationend` still dismisses the toast and hover and focus still pause it (it advised a `setTimeout` fallback, which ignores both). The rest is unchanged.
 - **Category line:** `04.27 · Micro-Interactions`
 - **Pager:** Previous: Star Rating (`../star-rating/`) · Next: Segmented Control (`../segmented-control/`)
 

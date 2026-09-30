@@ -220,7 +220,9 @@
     wrap.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'&&canHover.matches)hide()});
     wrap.addEventListener('focusin',()=>show());
     wrap.addEventListener('focusout',()=>hide());
-    wrap.addEventListener('touchstart',()=>{if(tip.classList.contains('visible'))hide(0);else show(0)},{passive:true});
+    // A tap hides a shown tooltip only when the item already has the focus. Without it (a tooltip Show me shows) the tap keeps it,
+    // or the focus the tap brings would show it again a moment later: a blink.
+    wrap.addEventListener('touchstart',()=>{if(tip.classList.contains('visible')&&wrap.contains(document.activeElement))hide(0);else show(0)},{passive:true});
   });
   // Escape closes every shown tooltip at once; one comes back only when the pointer or the focus leaves its item and returns
   document.addEventListener('keydown',e=>{if(e.key==='Escape')wraps.forEach(w=>w.dismiss())});

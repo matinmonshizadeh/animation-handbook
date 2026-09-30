@@ -44,7 +44,10 @@ The toggle is built entirely in CSS using a hidden `<input type="checkbox">`. Th
 
 .sw input:checked ~ .track { background: var(--on-color); }
 .sw input:checked ~ .thumb { transform: translateX(22px); }
+.sw input:focus-visible ~ .track { outline: 2px solid #ff9d5c; outline-offset: 2px; }
 ```
+
+The checkbox itself is invisible, so keyboard focus is drawn on the track beside it; without the last rule, someone tabbing to the switch would see nothing.
 
 For an elastic feel, swap the thumb transition easing to `cubic-bezier(.34, 1.56, .64, 1)` — this causes a slight overshoot before settling.
 
@@ -58,7 +61,7 @@ For an elastic feel, swap the thumb transition easing to `cubic-bezier(.34, 1.56
 
 ## Production notes
 - **Accessibility**: the hidden `<input type="checkbox">` provides keyboard control, `aria-checked` state, and screen reader announcements for free — no JS needed for state management.
-- **Label wrapping**: wrapping the entire component in `<label>` makes the full surface (track + thumb) the click/tap target — no `for`/`id` wiring required.
+- **Label wrapping**: wrapping the entire component in `<label>` makes the full surface (track + thumb) the click/tap target — no `for`/`id` wiring required. The demo's switch names are labels too: each name is a `<label for>` pointing at its checkbox, so tapping the name flips the switch, and it is the name a screen reader announces.
 - **`touch-action: manipulation`**: add this to the label to suppress the 300ms delay on mobile browsers.
 - **Elastic easing pitfall**: the spring overshoot in `cubic-bezier(.34,1.56,.64,1)` can clip visually if the thumb reaches the edge of the track before the bounce completes. Add 1–2px of extra track padding to compensate.
 - **Headless UI / Radix UI**: `<Switch>` components handle all ARIA and keyboard events. Style via `data-state="checked"` attribute.

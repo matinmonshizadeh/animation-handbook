@@ -34,16 +34,17 @@ Two separate transitions handle press and release with different timings — pre
 const press = () => btn.classList.add('pressed');
 const release = () => btn.classList.remove('pressed');
 
-btn.addEventListener('pointerdown', press);
+btn.addEventListener('pointerdown', e => { press(); btn.setPointerCapture(e.pointerId); });
 btn.addEventListener('pointerup', release);
 btn.addEventListener('pointercancel', () => btn.classList.remove('pressed'));
 
 // Keyboard support
 btn.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') press() });
 btn.addEventListener('keyup',   e => { if (e.key === ' ' || e.key === 'Enter') release() });
+btn.addEventListener('blur', release);
 ```
 
-The asymmetric timing is the key insight: pressing (80ms) mirrors the physical suddenness of contact; releasing (180ms) mirrors the slower mechanical spring-back of a real button.
+The asymmetric timing is the key insight: pressing (80ms) mirrors the physical suddenness of contact; releasing (180ms) mirrors the slower mechanical spring-back of a real button. The glow crossfades a resting shadow on `::before` and a pressed shadow on `::after` by opacity, with the same timing as the size, rather than animating `box-shadow` itself, which repaints on every frame.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -54,7 +55,7 @@ The asymmetric timing is the key insight: pressing (80ms) mirrors the physical s
 | Press speed | Normal | How long the shrink takes: slow is 130ms, normal 80ms and fast 50ms; a press should feel instant |
 
 ## Production notes
-- **`pointercancel` handling**: always listen for `pointercancel` in addition to `pointerup`. If the user starts a scroll gesture after pressing, `pointerup` may not fire, leaving the button stuck in its pressed state.
+- **`pointercancel` handling**: always listen for `pointercancel` in addition to `pointerup`. If the user starts a scroll gesture after pressing, `pointerup` may not fire, leaving the button stuck in its pressed state. Two more ways to get stuck are covered in the snippet: without `setPointerCapture` the release is missed when the pointer has moved off the button, and without the `blur` listener a key held down while Tab moves the focus away sends its `keyup` to the next element.
 - **`touch-action: manipulation`** on the button element suppresses the 300ms tap delay on mobile browsers without needing a separate fast-tap library.
 - **Shadow pairing**: coupling a shadow-shrink to the scale change increases realism — a button that lifts slightly on hover and drops on press mirrors physical button behavior.
 - **`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this.

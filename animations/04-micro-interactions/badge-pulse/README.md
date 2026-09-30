@@ -47,6 +47,7 @@ The halo variant adds a radiating ring that expands and fades. The ring is drawn
   position: absolute;
   inset: -4px;
   z-index: -1;
+  pointer-events: none;
   border-radius: 50%;
   background: var(--badge-color);
   opacity: 0.4;
@@ -59,7 +60,9 @@ The halo variant adds a radiating ring that expands and fades. The ring is drawn
 }
 ```
 
-Stopping after three pulses takes two more declarations on the animated parts, `animation-iteration-count: 3` and `animation-fill-mode: forwards`. Without the fill mode the badge would fall back to the halo's resting style, a faint ring, when the last pulse ends; with it the run stays on its last keyframes, the badge at scale 1 and the halo invisible.
+The ring grows to 2.2 times the badge, well past the icon's corner, and it catches the pointer even when it has faded out. So it has `pointer-events: none`; without that, a click on the empty space beside the icon would land on the ring and count as a click on the badge.
+
+Stopping after three pulses takes two more declarations on the animated parts, `animation-iteration-count: 3` and `animation-fill-mode: forwards`. Without the fill mode the halo would fall back to its resting style, a faint ring around the badge, when the last pulse ends; with it the run stays on its last keyframes, the badge at scale 1 and the halo invisible.
 
 ## Key parameters
 | Parameter | Default | Effect |

@@ -39,7 +39,7 @@ The region is `role="status" aria-live="polite"` so each toast's text is announc
 - **Announce, don't trap.** Wrap the region in `aria-live="polite"` and `role="status"` so screen readers hear the message; never move focus into a toast — that is dialog behavior, not notification behavior. Errors that demand action belong in an alert, not a toast.
 - **Cap the stack.** An unbounded stack buries the screen and defeats the purpose. Keep a small limit (3–5) and evict the oldest, or coalesce duplicates into a single count.
 - **Pause on hover and focus.** A toast that vanishes while being read is hostile. Pausing the progress animation on `:hover`/`:focus-within` pauses the timer too when dismissal is driven by `animationend`.
-- **Respect reduced motion.** Under `prefers-reduced-motion: reduce`, drop the slide/scale and the sweeping bar; appear and disappear instantly and fall back to a `setTimeout` for the auto-dismiss so the behavior survives without the animation.
+- **Respect reduced motion.** Under `prefers-reduced-motion: reduce`, drop the slide/scale; appear and disappear instantly, and hide the bar but keep its countdown running unseen, so `animationend` still dismisses the toast and hover and focus still pause it.
 - **Reflow with transforms, never layout.** Animating `top`/`height` to close the gap thrashes layout; FLIP keeps the motion on the GPU-friendly `transform`.
 - **Library equivalents**: [Sonner](https://sonner.emilkowal.ski/) and `react-hot-toast` provide stacking, swipe, and pause-on-hover out of the box; Radix Toast supplies the accessible primitives (live region, swipe, timers) for a custom skin.
 
