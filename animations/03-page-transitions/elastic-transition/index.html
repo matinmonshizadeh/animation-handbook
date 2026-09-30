@@ -117,7 +117,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add an elastic transition to [the pages or panels you want to move between]. The new page should slide in from the side, go a little past its place and spring back before settling, as if pulled by a rubber band, while the old page slides away. The bounce can be planned ahead as a fixed path, which is cheap, or worked out live with a simple spring, which can react if the visitor interrupts it; with a live spring, limit each time step so one slow frame cannot throw it off. If the visitor has reduced motion turned on, switch pages without movement. Match the settings listed below.</p>
+      <p class="hb-prompt">Add an elastic transition to [the pages or panels you want to move between]. The new page should slide in from the side, go a little past its place and spring back before settling, as if pulled by a rubber band, while the old page slides away. The bounce can be planned ahead as a fixed path, which is cheap, or worked out live with a simple spring, which can react if the visitor interrupts it; with a live spring, advance it in small fixed time steps so it moves the same on every screen, and limit the time one frame adds so a slow frame cannot throw it off. If the visitor has reduced motion turned on, switch pages without movement. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -158,9 +158,10 @@
   const kfStyle=document.getElementById('kf-style');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   // Bounce size (Small, Medium, Large) and Speed (Slow, Normal, Fast) each pick one value for both ways of bouncing
-  const OVERSHOOT=[30,60,100],DURATION=[1400,900,550],STIFFNESS=[70,180,500];
-  // The live spring's damping for each size (row) and speed (column), found by running its loop so that it goes about as far past its place as the planned path does
-  const DAMPING=[[12,18,28],[10,16,25],[9,14,23]];
+  const OVERSHOOT=[30,60,100],DURATION=[1400,900,550],STIFFNESS=[75,200,640];
+  // The live spring's damping for each size (row) and speed (column); it and the stiffness above were found by running its loop so that it goes about as far past its place as the planned path does
+  const DAMPING=[[12.8,19.7,33.6],[10.6,17.4,29.7],[9.5,15.2,27.2]];
+  const STEP=1/120,STEPS_MAX=8; // the live spring moves in steps of 1/120 s, and takes at most 8 of them in one frame
   let current=0,animating=false,mode='css',size=1,speed=1,rafId=0,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
 
@@ -253,22 +254,25 @@
     later(()=>{rest(o,false);rest(n,true);finish()},d+50);
   }
 
-  // Live spring: the old page slides away simply, the new one is pulled in from the right by a spring worked out on every frame
+  // Live spring: the old page slides away simply, the new one is pulled in from the right by a spring worked out in fixed steps: each frame adds up the time
+  // that has passed and takes the steps it covers, so the spring moves the same on every screen. The last step can end a little after the frame, so the page is
+  // drawn between the last two steps, at the frame's own time.
   function doSpring(o,n,k,stiffness,damping){
     const out=300*k;
     o.style.transition=`transform ${out}ms ease-in, opacity ${out}ms ease-in`;
     o.style.transform='translateX(-40%)';o.style.opacity='0';
-    let pos=100,vel=0,target=0,lastTime=null;
+    let pos=100,before=pos,vel=0,target=0,acc=0,lastTime=null;
     n.style.transform=`translateX(${pos}%)`;n.classList.add('active');
     function tick(now){
-      if(!lastTime)lastTime=now;
-      const dt=Math.min((now-lastTime)/1000,0.05)/k; // the 50ms limit first, then a third of the step in slow motion
+      if(lastTime!==null)acc+=Math.min(now-lastTime,50)/1000/k; // the 50ms limit first, then a third of the time in slow motion; the first frame adds none
       lastTime=now;
-      const f=-stiffness*(pos-target)-damping*vel;
-      vel+=f*dt;pos+=vel*dt;
-      n.style.transform=`translateX(${pos.toFixed(2)}%)`;
-      if(Math.abs(pos-target)<0.5&&Math.abs(vel)<0.5){rafId=0;rest(o,false);rest(n,true);finish()}
-      else rafId=requestAnimationFrame(tick);
+      for(let i=0;acc>0&&i<STEPS_MAX;i++){
+        before=pos;vel+=(-stiffness*(pos-target)-damping*vel)*STEP;pos+=vel*STEP;acc-=STEP;
+        if(Math.abs(pos-target)<0.5&&Math.abs(vel)<0.5){rafId=0;rest(o,false);rest(n,true);finish();return}
+      }
+      const shown=pos+(before-pos)*(-acc/STEP);
+      n.style.transform=`translateX(${shown.toFixed(2)}%)`;
+      rafId=requestAnimationFrame(tick);
     }
     later(()=>{rafId=requestAnimationFrame(tick)},100*k);
   }
