@@ -136,7 +136,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add a cursor follower to [the page or section where it should appear]. Draw a small shape that follows the pointer with a slight delay: on every frame, move it a set share of the way toward the pointer, so it glides after it and eases in. Hide it when the pointer leaves. When the settings include them, let it flip the colors beneath it so it stays visible on light and dark areas alike, and let it grow over buttons and links. Move it with transforms only. Touch screens have no pointer, so hide it there or let it glide to where the visitor taps. If the visitor has reduced motion turned on, keep the normal cursor instead. Match the settings listed below.</p>
+      <p class="hb-prompt">Add a cursor follower to [the page or section where it should appear]. Draw a small shape that follows the pointer with a slight delay: each frame, close a share of the gap that is exponential in the time since the last frame, so it follows at the same pace on every screen. Hide it when the pointer leaves. When the settings include them, let it flip the colors beneath it so it stays visible on light and dark areas alike, and let it grow over buttons and links. Move it with transforms only. Touch screens have no pointer, so hide it there or let it glide to where the visitor taps. If the visitor has reduced motion turned on, keep the normal cursor instead. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -174,8 +174,9 @@
   const buttons=[...stage.querySelectorAll('[data-hover]')];
   const pieces=[follower.querySelector('.shape'),follower.querySelector('circle')];
   const vars=document.documentElement.style;
-  // mx,my: where the dot is heading; fx,fy: where it is; px,py: the last spot a pointer or a tap put on the stage
-  let mx=0,my=0,fx=0,fy=0,px=null,py=null,ease=0.15,inside=false,expandOnHover=true,runTimers=[];
+  const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: ease is the share of the gap the dot closes in one of them
+  // mx,my: where the dot is heading; fx,fy: where it is; px,py: the last spot a pointer or a tap put on the stage; last: the previous frame's time
+  let mx=0,my=0,fx=0,fy=0,px=null,py=null,ease=0.15,inside=false,expandOnHover=true,runTimers=[],last=null;
 
   // Every spot is measured on the stage, from the top left of its inner box, which is where the dot's left:0, top:0 lies
   function spot(x,y){const r=stage.getBoundingClientRect();return [x-r.left-stage.clientLeft,y-r.top-stage.clientTop]}
@@ -191,11 +192,14 @@
     grow(onButton);
   }
 
-  function loop(){
-    if(inside){fx+=(mx-fx)*ease;fy+=(my-fy)*ease;draw()}
+  // A frame longer or shorter than a 60 Hz one closes the share of the gap that fits its time, so the lag is the same on every screen.
+  // The first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms.
+  function loop(ts){
+    const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
+    if(inside){const a=1-Math.pow(1-ease,dt/FRAME);fx+=(mx-fx)*a;fy+=(my-fy)*a;draw()}
     requestAnimationFrame(loop);
   }
-  loop();
+  requestAnimationFrame(loop);
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run and shrinks the dot.
   // later(fn, move, hold) waits move + hold ms; this page has no Slow motion, so every step is a hold: later(step, 0, ms).

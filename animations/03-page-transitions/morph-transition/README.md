@@ -1,7 +1,7 @@
 # Morph Transition
 
 ## What it is
-A morph transition interpolates one SVG shape into another by moving each point of the path toward its counterpart in the target shape. Instead of fading or swapping graphics, the outline flows continuously — a circle unfolds into a hexagon, a hexagon sharpens into a star. The demo ties the morph to page navigation: a logo mark reshapes as the user moves between Home, Gallery, and About.
+A morph transition turns one shape into another by moving each point of its outline toward a matching point in the new shape. Instead of swapping pictures, the outline flows: a circle unfolds into a hexagon, and a hexagon sharpens into a star. In the demo, a small logo changes shape to match each page as you move between Home, Gallery and About.
 
 ## When to use it
 - Logo or brand marks that reshape to signal section changes
@@ -27,15 +27,13 @@ function startMorph(from,to,done){
 }
 ```
 
-The shapes are generated to guarantee matching vertex counts: the circle samples 12 points around its radius, the hexagon interleaves its 6 corners with 6 edge midpoints, and the star alternates 6 outer and 6 inner points. Because index `i` of the source maps to index `i` of the target, each point has a well-defined destination and the outline never tears. A "show control points" toggle overlays the 12 vertices so the correspondence is visible.
+The shapes are generated to guarantee matching vertex counts: the circle samples 12 points around its radius, the hexagon interleaves its 6 corners with 6 edge midpoints, and the star alternates 6 outer and 6 inner points. Because index `i` of the source maps to index `i` of the target, each point has a well-defined destination and the outline never tears.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Morph duration | 700ms | Length of the point interpolation; slower reads as more deliberate |
-| Easing | ease-in-out | `easeFn` selects linear, ease-out (`1-(1-t)³`), ease-in-out, or a springy overshoot |
-| Vertex count | 12 | Every shape is normalized to this; source and target must match exactly |
-| Point order | clockwise from top | Mismatched ordering makes the shape twist or collapse mid-morph |
+| Speed | Normal | How long the change of shape takes: slow is 1100ms, normal 700ms and fast 400ms; slower reads as more deliberate |
+| Feel | Gentle | Gentle eases in and out; Smooth slows to a stop; Springy stretches a little past the new shape and settles back; Even keeps one steady pace |
 
 ## Production notes
 - **Point count and order are everything.** If two paths differ in vertex count, you must resample one to match before interpolating — mismatches produce garbage. Tools like flubber solve this by inserting and pairing points automatically.
@@ -45,7 +43,7 @@ The shapes are generated to guarantee matching vertex counts: the circle samples
 - **Library equivalents**: GSAP's MorphSVG plugin and the standalone flubber library handle point resampling and pairing for arbitrary paths. Framer Motion animates simple SVG `path` values; Lottie bakes shape morphs exported from After Effects.
 
 ## See also
-- [Shared Element Transition](../shared-element-transition/) — continuity via position rather than shape
-- [Flip Technique](../flip-technique/) — another measure-and-interpolate approach
-- [Crossfade](../crossfade/) — the page-content transition paired with this morph
-- [Elastic Transition](../elastic-transition/) — spring-based motion related to the springy easing option
+- [Shared Element Transition](../shared-element-transition/) — one element moves instead of changing shape
+- [FLIP Technique](../flip-technique/) — elements glide to their new places
+- [Crossfade Transition](../crossfade/) — the fade that carries the page content
+- [Elastic Transition](../elastic-transition/) — a spring that goes past and settles

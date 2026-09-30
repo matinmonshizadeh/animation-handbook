@@ -143,7 +143,8 @@
         lbl=document.getElementById('btn-lbl'),cv=document.getElementById('cv'),ctx=cv.getContext('2d'),
         reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
   const COLORS=['#ff9d5c','#ff5470','#3fb950','#58a6ff','#ffd166','#c792ea'];
-  let particles=[],raf=null,dpr=1,pCount=120,spreadDeg=110,gravity=0.28,runTimers=[];
+  const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: every step below is measured in these
+  let particles=[],raf=null,last=null,dpr=1,pCount=120,spreadDeg=110,gravity=0.28,runTimers=[];
 
   // The canvas has one pixel per screen pixel (two at most per CSS pixel), so the pieces stay sharp on dense screens.
   function resize(){
@@ -167,13 +168,18 @@
         w:6+Math.random()*6,h:3+Math.random()*5,rot:Math.random()*Math.PI,
         spin:(Math.random()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1});
     }
-    if(!raf)raf=requestAnimationFrame(tick);
+    if(!raf){last=null;raf=requestAnimationFrame(tick)}
   }
-  function tick(){
+  function tick(ts){
     ctx.clearRect(0,0,cv.width,cv.height);
     particles=particles.filter(p=>p.life>0&&p.y<stage.clientHeight+40);
+    // Each step is scaled by the time since the last frame, in 60 Hz frames (1 at 60 Hz, 0.5 at 120 Hz, 2 at 30 Hz), so the confetti
+    // lasts the same on every screen. A burst's first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms.
+    // A step over 1.5 frames (a 30 Hz screen) is taken in two halves, which keeps the arc close to the one a 60 Hz screen draws.
+    const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
+    const k=dt/FRAME,parts=k>1.5?2:1,h=k/parts,drag=0.99**h;
     for(const p of particles){
-      p.vy+=gravity;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.spin;p.life-=0.008;
+      for(let i=0;i<parts;i++){p.vy+=gravity*h;p.vx*=drag;p.x+=p.vx*h;p.y+=p.vy*h;p.rot+=p.spin*h;p.life-=0.008*h}
       ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
       ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
       ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();

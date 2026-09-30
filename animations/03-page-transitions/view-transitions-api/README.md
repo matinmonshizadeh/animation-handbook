@@ -1,7 +1,7 @@
 # View Transitions API
 
 ## What it is
-The View Transitions API is a browser feature that animates between two DOM states without you having to coordinate the old and new elements by hand. You call `document.startViewTransition()` and pass a callback that mutates the DOM; the browser snapshots the page before and after, then cross-fades or otherwise animates between the two snapshots. The choreography is customized entirely through CSS pseudo-elements, so the same JavaScript can drive a fade, a slide, or a zoom.
+The View Transitions API is a browser feature that animates a change of page for you. You tell the browser when the page is about to change; it takes a picture of the page before and after, then animates from one picture to the other. CSS decides how the pictures move, so the same click can fade, slide, zoom or tilt.
 
 ## When to use it
 - Same-document navigation in SPAs where you swap page content in place
@@ -15,14 +15,16 @@ Wrap the DOM mutation in `startViewTransition()`. The browser captures the curre
 ```js
 async function navigate(next){
   if(next===current||animating)return;
-  const prev=current;current=next;
+  animating=true;current=next;
   document.documentElement.dataset.vt = style==='crossfade' ? '' : style;
+  document.documentElement.style.setProperty('--vt-dur', dur+'ms');
   if(supportsVT){
-    const t = document.startViewTransition(()=>switchPage(prev,next));
+    const t = document.startViewTransition(()=>showPage(current));
     await t.finished;
   }else{
     /* manual opacity fallback */
   }
+  animating=false;
 }
 ```
 
@@ -36,25 +38,26 @@ async function navigate(next){
 @keyframes vt-in { from{opacity:0} to{opacity:1} }
 ```
 
-Switching the `data-vt` attribute swaps in a different keyframe set (slide, zoom, or a rotate-based custom style), so one code path produces four distinct transitions. `t.finished` resolves when the animation completes, which the demo awaits to gate re-entry.
+Switching the `data-vt` attribute swaps in a different keyframe set (slide, zoom, or a slight tilt), so one code path produces four distinct transitions, and Speed and Feel set the `--vt-dur` and `--vt-ease` custom properties the keyframes read. `t.finished` resolves when the animation completes, which the demo awaits to gate re-entry. The update callback shows the resting state for the current page as it is when the callback runs, so a transition that is skipped (by Reset, or by pressing Show me again) cannot bring back an older page.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `--vt-dur` | 500ms | Snapshot animation length; under ~150ms reads as an instant swap |
-| `--vt-ease` | ease-in-out | Timing curve applied to both old and new pseudo-elements |
-| `view-transition-name` | `page-content` | Names the tracked region; each name animates as its own snapshot pair |
-| Transition style | crossfade | Selects the keyframe set (crossfade / slide / zoom / custom rotate) |
+| Transition style | Fade | Fade blends the two pictures; Slide pushes the old one out to the left as the new one comes in from the right; Zoom shrinks the old one away as the new one settles from slightly larger; Tilt turns both slightly as they fade |
+| Speed | Normal | How long the change takes: slow is 800ms, normal 500ms and fast 300ms; under about 150ms it reads as an instant swap |
+| Feel | Gentle | Gentle eases in and out; Smooth slows to a stop; Even keeps one steady pace |
 
 ## Production notes
-- **Feature-detect** with `'startViewTransition' in document` and fall back to a manual opacity cross-fade — the demo does exactly this so unsupported browsers still transition.
+- **Feature-detect** with `'startViewTransition' in document` and fall back to a manual opacity cross-fade — the demo does exactly this, so browsers without the API still get a simple 300ms fade, whatever the Transition style and Speed.
+- **Browser support.** Same-document view transitions — `document.startViewTransition()`, as in this demo — work in Chrome and Edge 111 and later, Safari 18 and Firefox 144. Cross-document ones, turned on for full page loads with `@view-transition { navigation: auto; }`, work in Chrome and Edge 126 and Safari 18.2; check current support for Firefox. Keep the fallback for older browsers.
 - **Suppress the root animation** (`::view-transition-old(root)`) when you only want a sub-region to animate; otherwise the whole page cross-fades underneath your named region.
-- **Every `view-transition-name` must be unique** on the page at capture time. Two elements sharing a name in the same snapshot throws and aborts the transition.
-- **Honor reduced motion** — the demo drops straight to `switchPage()` with no animation when `prefers-reduced-motion: reduce` is set.
-- **Library equivalents**: Astro's `<ViewTransitions />` and Next.js's experimental view-transition support wrap this API for cross-document navigation. Barba.js and Swup predate it and polyfill the same idea with manual snapshotting; on supported browsers you often no longer need them.
+- **Every `view-transition-name` must be unique** on the page at capture time. Two elements sharing a name in the same snapshot make the browser skip the transition: the page still changes, with no animation.
+- **Honor reduced motion** — the demo drops straight to `showPage()` with no animation when `prefers-reduced-motion: reduce` is set.
+- **Presses wait for the transition.** While a view transition runs, Chrome sends every press on the page to the root element, so buttons do not respond until it ends (`pointer-events: none` on the transition's pseudo-elements does not change this while the root is captured, as it is by default); keep page transitions short. The demo passes a press over its box on as the visitor taking over, so a click there still stops Show me.
+- **Library equivalents**: Astro's `<ClientRouter />` (named `<ViewTransitions />` before Astro 5) and React's `<ViewTransition>` component, which Next.js's App Router supports, wrap this API for client-side page changes; between full page loads the CSS rule `@view-transition { navigation: auto; }` does it without JavaScript. Barba.js and Swup predate the API and animate the old and new page content themselves; on supported browsers you often no longer need them.
 
 ## See also
-- [Crossfade](../crossfade/) — the default View Transitions style, built manually for comparison
-- [Slide Transition](../slide-transition/) — the slide keyframe set as a standalone technique
-- [Zoom Transition](../zoom-transition/) — the zoom keyframe set as a standalone technique
-- [Shared Element Transition](../shared-element-transition/) — continuity for a single element rather than the whole page
+- [Crossfade Transition](../crossfade/) — the same fade, built by hand
+- [Slide Transition](../slide-transition/) — pages slide, with a sense of direction
+- [Zoom Transition](../zoom-transition/) — three ways to zoom between pages
+- [Shared Element Transition](../shared-element-transition/) — one picture grows into the next page
