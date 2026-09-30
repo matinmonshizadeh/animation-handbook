@@ -63,7 +63,7 @@ class DriftStar {
 }
 ```
 
-`k` is the number of 60 Hz frames the last frame stands for, so a 30 Hz phone and a 144 Hz monitor show the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, a long gap between frames counts for at most 50 ms, and slow motion takes a third of `k`:
+`k` is the number of 60 Hz frames the last frame stands for, so a 30 Hz phone and a 144 Hz monitor show the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap between frames counts for at most 50 ms. The stars move by `k`, or by a third of it in slow motion:
 
 ```js
 const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
@@ -71,7 +71,7 @@ last = now;
 const k = dt / (1000 / 60);                                 // 1 at 60 Hz, 2 at 30 Hz
 ```
 
-The short trails come from covering the canvas with a see-through black layer on every frame instead of clearing it. The layer is made stronger for a longer frame, `1 - 0.15 ** k`, which is the usual 0.85 when `k` is 1, so the trails last as long in seconds on every screen.
+The short trails come from covering the canvas with a see-through black layer on every frame instead of clearing it. The layer is made stronger for a longer frame, `1 - 0.15 ** k`, which is the usual 0.85 when `k` is 1, so the trails last as long in seconds on every screen. Slow motion does not slow them.
 
 ## Key parameters
 | Parameter | Default | Effect |
