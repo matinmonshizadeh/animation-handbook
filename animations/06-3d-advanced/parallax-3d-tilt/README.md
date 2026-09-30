@@ -10,7 +10,7 @@ A 3D tilt makes a flat card lean toward the pointer, as if you were looking at a
 - NFT and gaming UIs where the tactile metaphor matches the product
 
 ## How it works
-`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's centre, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges:
+`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's centre, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges.
 
 Bind **pointer** events, not mouse events — the same handler then covers mouse, pen and touch:
 
@@ -88,7 +88,7 @@ function step(now) {                           // t0 = the time of the first fra
 
 ## Production notes
 - **Touch devices**: use Pointer Events (`pointerdown`/`pointermove`/`pointerleave`) plus `touch-action: none` and the effect works on touch for free — a drag tilts the card, a tap sets it once. Do not gate the effect on `@media (hover: hover)`: hybrid touchscreen laptops match it, and a phone with a paired mouse can match it too, so branching on the media query kills the interaction on real devices. If you need to branch, branch on the live `event.pointerType`.
-- **`will-change: transform`**: add only during hover (`mouseenter`/`mouseleave`) to avoid permanent GPU layer allocation. Permanent `will-change` on many cards multiplies GPU memory use.
+- **`will-change: transform`**: on a page with many tilt cards, add it only while the pointer is over a card (`pointerenter`/`pointerleave`), to avoid permanent GPU layer allocation: a permanent `will-change` on many cards multiplies GPU memory use. The demo has one card, so it keeps it on.
 - **VanillaTilt.js**: a zero-dependency library that handles this pattern with configurable tilt, glare, scale, and perspective. 2KB gzipped — use in production rather than hand-rolling.
 - **`overflow: hidden` flattens 3D**: any ancestor with `overflow` other than `visible` (or a `filter`, or `opacity < 1`) forces `transform-style` to its flat used value, so `translateZ` on a child silently does nothing. A card that clips its own contents therefore cannot also be a `preserve-3d` container — give it its own `perspective` so its inner depth layers still project, or move the clip to a wrapper outside the 3D chain.
 - **Performance**: `rotateX`/`rotateY` on a GPU-composited element runs at 60fps with no paint. Keep everything else that follows the pointer to `transform` and `opacity` as well: the demo moves its light as a layer (see Shine highlight) and leaves the card's shadow fixed in CSS, where it turns with the card. Rewriting a gradient or a `box-shadow` on every move repaints the whole card each frame, which shows on phones and adds up across a grid.
