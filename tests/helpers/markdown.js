@@ -1,4 +1,4 @@
-/* Markdown parsing helpers for tests. Extracted from assets/js/handbook.js. */
+/* Markdown helpers for the page tests: a README split into its sections, and its Key parameters table read as rows. */
 'use strict';
 
 function escapeHtml(s) {
