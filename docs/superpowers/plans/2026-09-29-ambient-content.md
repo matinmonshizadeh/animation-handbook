@@ -38,7 +38,7 @@ Eleven pages move their picture with `requestAnimationFrame`: Grain / Film Noise
 - The loop keeps exactly one pending frame in `raf`. `start()` returns at once when `raf` is set; otherwise it forgets the time of the last frame and requests a frame.
 - The page listens for `hb:pause`, registered at the top level of its inline script. Paused: `cancelAnimationFrame(raf); raf=null;` and the picture on screen stays as it is. Not paused: `start()`, which carries on from the current state. The page keeps its own `paused` flag from this event; the old panel's flag and button go.
 - Every other path that used to restart the loop (`visibilitychange` on Matrix Rain and Plasma Field, the mouse leaving Grid / Dot Pattern Parallax, a resize) restarts it only while not paused.
-- Where the movement follows the clock (Ambient Ripple Effect, Grid / Dot Pattern Parallax, Plasma Field), the page keeps its own clock, which adds up each frame's time (at most 50 ms, and nothing on the first frame after a start), so Play never jumps. Matrix Rain keeps today's step timer and Grain / Film Noise Overlay today's redraw interval; after a pause, each takes at most one step. Where the movement is a step per frame, it stays a step per frame, and the existing 16 ms frame gate (`if(dt<16)return`) stays.
+- Where the movement follows the clock (Ambient Ripple Effect, Grid / Dot Pattern Parallax, Plasma Field), the page keeps its own clock, which adds up each frame's time (at most 50 ms, and nothing on the first frame after a start), so Play never jumps. Matrix Rain keeps today's step timer and Grain / Film Noise Overlay today's redraw interval; after a pause, each takes at most one step. Where the movement is a step per frame, the step scales with the time since the last frame, in 60ths of a second (`dt / (1000/60)`, `dt` at most 50 ms, and no step on the first frame after a start); the frame-rate wrap-up did this on Floating Elements, Flow Field, Particle Constellation, Starfield / Space Particles, Synthwave Grid and Ambient Ripple Effect's source drift (see their sections), as Abstract Geometric Motion already did. The existing 16 ms frame gate (`if(dt<16)return`) stays where a page has one, except on Flow Field and Starfield / Space Particles, which draw only when a whole 60th of a second is due.
 - **The first picture:** the page draws a frame at load, before the loop starts (or the settled picture its section names), so a loop that is paused on arrival never shows an empty stage.
 - **While paused,** a setting change draws the picture again so the change shows: without moving anything, or, on Flow Field and Matrix Rain, as a fresh settled picture (their trails need steps to show a change). This is the loop rule "changing a setting while paused shows the new setting without starting the loop again". The sections name the function that draws.
 - **Resizes:** a page acts on a resize only when its stage's size has really changed. It compares the stage's `clientWidth` and `clientHeight` with the size it last drew for, and otherwise does nothing. Phones fire `resize` whenever the address bar slides in or out, and Matrix Rain's `ResizeObserver` reports once as soon as it starts watching; without the check, each of those would clear the canvas or start the picture again from scratch. After a real change, the page draws its picture again at once, playing or paused (the sections name the function).
@@ -647,13 +647,13 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** Stars stream toward you out of the dark. Best for space themes.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) is `paint(true)`:
-  - it covers the canvas with `rgba(0,0,0,.85)`, which leaves short trails;
-  - it draws the haze when Nebula haze is on;
-  - it moves every star (`update()`) and draws it.
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame is `paint(true, n, nf)` (see the frame-rate fix below for `n` and `nf`):
+  - it covers the canvas `nf` times with `rgba(0,0,0,.85)`, which leaves short trails;
+  - it draws the haze after each cover when Nebula haze is on;
+  - it moves every star (`update(k)`) and draws it.
 
   `paint(false)` draws the same frame without moving the stars, and covers the canvas with opaque black (`#000`) first. The see-through `rgba(0,0,0,.85)` cover belongs only to `paint(true)`, where it makes the trails while playing; a still picture repainted after a setting change while paused must leave no ghost of the old stars. `paint(false)` runs at load, after `initStars()`, so a loop paused on arrival shows the stars. It also runs after a setting change while paused, which replaces today's `redraw()` (it only worked under reduced motion), and after a real resize (see the preamble), playing or paused, following `initStars()`. The fps measurement and both readouts go.
-- **Slow motion:** while the switch is on, `update()` moves each star, and advances its twinkle, by a third of the usual step (outward: `dist`; sideways: `x`; and `twinklePhase`), from the next frame.
+- **Slow motion:** while the switch is on, `update()` moves each star, and advances its twinkle, by a third of the usual step (outward: `dist`; sideways: `x`; and `twinklePhase`), from the next frame. The covers, which make the trails, are not slowed.
 - **Reduced motion:** the page's `REDUCED` checks go (see the preamble).
 - **Stage font:** site font, on the card as in the preamble. `.fg-eyebrow` becomes `color:rgba(255,255,255,.6)` (was .4, which is 3.4:1).
 - **Stage:** the canvas and the card stay; the fps badge goes.
@@ -697,7 +697,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Direction | Outward | Outward streams the stars from the center; sideways drifts them past, the nearer ones faster |
-  | Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65 pixels a frame near the center, faster toward the edge; keep it slow for a calm background |
+  | Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65, about the pixels a star covers in a 60th of a second out at the edge (16, 25 and 41 pixels a second), and about a third of that near the center; keep it slow for a calm background |
   | Number of stars | Medium | Few is 150, medium 300 and many 600; phones show at most 300 |
   | Star color | White | White, a warm white, or a different pale color for each star |
   | Twinkling | on | Each star gently brightens and dims on its own rhythm |
@@ -707,10 +707,11 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Aurora / Northern Lights](../aurora/) — bands of light that pair with a night sky
   - [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — particles that link up and react to the pointer
   - [Floating Elements](../floating-elements/) — shapes that drift slowly on their own paths
-- **README How it works:** the Star snippet matches the demo's speed rule and size. In `update()`, `this.dist += this.speed;` comes first, then `const ratio = …`, then `this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge`, and the reset branch also sets `this.speed = (Math.random() * 0.6 + 0.2) * BASE_SPEED;`. In `draw()`, `1 + ratio * 2` becomes `1 + ratio * 1.5`. The rest is unchanged.
-- **README Production notes:** add a bullet after "Canvas vs DOM": "**Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost." The rest is unchanged.
+- **README How it works:** the Star snippet matches the demo's speed rule and size. In `update(k)`, `this.dist += this.speed * k;` comes first, then `const ratio = …`, then `this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge`, and the reset branch also sets `this.speed = (Math.random() * 0.6 + 0.2) * BASE_SPEED;`. In `draw()`, `1 + ratio * 2` becomes `1 + ratio * 1.5`. The frame-rate fix (below) adds to it: the sentence before the snippet says the distance grows by the speed times `k`; the DriftStar snippet reads `update(k) { this.x -= this.depth * SPEED * 2 * k; … }`; and after that snippet come a paragraph and snippet on `n` and `k`, then a paragraph and snippet on the counted covers (`w`, `f`, `nf`, `fa`, and the haze after each cover), with a closing paragraph on why the same cover is repeated instead of one stronger cover (`1 - 0.15 ** n`). The rest is unchanged.
+- **README Production notes:** add a bullet after "Canvas vs DOM": "**Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost." The rest is unchanged, except that the frame-rate fix replaces the "`requestAnimationFrame` throttling" bullet, which said the loop runs twice as fast on 120Hz displays, with "**Same speed on every screen**: a fixed step per `requestAnimationFrame` frame runs twice as fast on a 120Hz display and half as fast on a 30Hz phone. The demo scales each step by the time since the last drawn frame (in 60ths of a second, capped at 50 ms), so the stars move at the same speed everywhere, and it draws only when a whole 60th of a second is due, at most about 60 times a second on any display, so a fast display does no extra work.".
 - **Category line:** `07.07 · Ambient &amp; Background`
 - **Pager:** Previous: Light Leak (`../light-leak/`) · Next: Breathing / Pulsing Glow (`../breathing-glow/`)
+- **Frame-rate fix (wrap-up):** each drawn frame stands for `n`, the time since the last drawn frame in 60ths of a second (`FRAME = 1000/60`, at most 50 ms): 1 at 60 Hz, 2 at 30 Hz. The stars move by `k = n`, or a third of it in slow motion, so their speed is the same on every screen. The trail cover is not scaled: the same `rgba(0,0,0,.85)` cover goes on once for every 60th of a second, `nf` covers per drawn frame with the haze redrawn after each. `nf` comes from `n` plus a carried remainder, and a step within 5% of a whole number counts as that number, so a 59.94 or 60.06 Hz screen still gets exactly one cover a frame. A frame with no whole cover due draws nothing and its time carries to the next one, which replaces the 16 ms gate and keeps drawing at about 60 frames a second at most. The first frame after a start, a Play or a return from a hidden tab (`visibilitychange`) only takes the time.
 
 ---
 
@@ -803,7 +804,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
 - **Sequence:** the canvas loop as in the preamble, with the page's own clock `clock` (ms). Each drawn frame (at most one per 16ms, as today) adds the time since the last frame to `clock`, at most 50ms and nothing on the first frame after a start. Then:
-  - `advance()` drifts the sources when Sources drift is on (one step a frame).
+  - `advance(k * dt / FRAME)` drifts the sources when Sources drift is on (a step for every 60th of a second, `FRAME = 1000/60`: one at 60 Hz, two at 30 Hz; `k` is 1, or a third in slow motion).
   - A source whose `nextEmit` has come adds a ring born at `clock`, and its next ring is due one Time between ripples later (up to 40% earlier or later at random when Uneven timing is on).
   - Rings older than their life (Speed) go.
   - `draw()` clears the canvas and draws the source dots and every ring from `clock` (its radius and fade come from its age).
@@ -886,11 +887,12 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - In the `Ring` constructor, the comment on `this.born = now;` becomes `// the page's own clock, which stops while paused`, and the comment on the next line goes.
   - In `update`, the fade `(1 - progress) * 0.6` becomes `(1 - progress) * 0.5`, the value the demo draws.
   - In `scheduleEmit`, `performance.now()` becomes `clock`.
-  - In the drift snippet, `source.x += source.vx;` and `source.y += source.vy;` become `source.x += source.vx * k;   // k is 1, or a third in slow motion` and `source.y += source.vy * k;`.
+  - In the drift snippet, `source.x += source.vx;` and `source.y += source.vy;` become `source.x += source.vx * k;   // k is the time since the last frame in 60ths of a second: 1 at 60 Hz, 2 at 30 Hz, a third of it in slow motion` and `source.y += source.vy * k;`.
   - After the first snippet, add: "`now` is the page's own clock: each frame adds the time since the last one (a third of it in slow motion), and it stops while the animation is paused, so rings freeze in place and carry on without jumping."
 - **README Production notes:** the "Ring density calibration" bullet, which said there are always about three rings from each source on screen, becomes "**Ring density calibration**: with the defaults (three sources, a ring every 3s, each living 2.5s) each source has at most one ring out most of the time, so two or three rings are on screen at once, with short quiet spells. Shorter gaps or longer lives overlap more rings; single, evenly spaced rings look like a clock, too many look frantic." The rest is unchanged.
 - **Category line:** `07.09 · Ambient &amp; Background`
 - **Pager:** Previous: Breathing / Pulsing Glow (`../breathing-glow/`) · Next: Floating Elements (`../floating-elements/`)
+- **Frame-rate fix (wrap-up):** only the drift needed it, because the rings already run on `clock`, which adds the frame's time. `advance(k * dt / FRAME)` moves the sources by the frame's time in 60ths of a second, so they wander at the same speed on every screen. A `visibilitychange` listener sets the last frame time back to `null`, so the first frame back from a hidden tab adds no time (the page already did this on a start). The 16 ms gate stays.
 
 ---
 
@@ -900,9 +902,9 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** Small shapes drift slowly, each on its own path. Best for hero backgrounds.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the loop as in the preamble, moving elements rather than drawing on a canvas. Each frame:
-  - it adds Speed × 0.005 to `t`;
-  - when Shapes turn is on, it turns each shape by its own step (`e.rot += e.rotSpd`);
+- **Sequence:** the loop as in the preamble, moving elements rather than drawing on a canvas. Each frame, with `k` the frame's time in 60 Hz frames, or a third of that in slow motion (see the frame-rate fix below):
+  - it adds Speed × 0.005 × `k` to `t`;
+  - when Shapes turn is on, it turns each shape by its own step (`e.rot += e.rotSpd * k`);
   - then `place()` writes every shape's `transform` and `opacity` for the current `t`, as today's loop body does, including the push away from the pointer.
 
   `place()` also runs at the end of `rebuild()`. So the shapes are in place at load, playing or paused; today they sit in the stage's top-left corner until the first frame. It also runs after any setting change while paused. The four settings that rebuild the shapes (Number of shapes, How far they drift, Shapes and Colors) ignore a press on the choice already made, so it does not scatter a new arrangement.
@@ -967,7 +969,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Ambient Ripple Effect](../ambient-ripple/) — rings spreading out instead of shapes drifting
   - [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion
 - **README How it works:** the snippets match the demo's code:
-  - In the first snippet, the turn line becomes `if (el.rotation) el.rot += el.rotSpeed; // its own small turn each frame`, followed by `const rot = el.rotation ? el.rot : 0;`: each shape turns by its own step every frame, not by a multiple of `t`.
+  - In the first snippet, the turn line becomes `const rot = el.rotation ? el.rot : 0;   // its own small turn, added up in the loop below`: each shape turns by its own step, not by a multiple of `t`, and the loop adds that step up (`el.rot += el.rotSpeed * k`). The frame-rate fix (below) also rewords the sentence before the snippet (the position comes from the base position plus sinusoidal offsets of a running time `t`) and adds, after the snippet, a paragraph and a `loop(now)` snippet: `FRAME`, `last`, `dt`, `k`, `t += speed * 0.005 * k`, the shapes' turn and `animate(t)`.
   - In "Key construction", `amp` becomes `const amp = RANGE * 0.5 + Math.random() * RANGE * 0.5; // half to all of How far they drift (30, 50 or 90px)`, and the comment on `freq` becomes `// its own pace, 0.3 to 0.8 times as fast as t` (`t` is not seconds).
   - The "CSS shape generation" block, whose `.shape-*` classes no shape has, becomes "**Shape generation** — shapes without image assets, styled in code:" followed by the demo's own `if (shape === 'ring') … else if (shape === 'square') … else …`, which sets `borderRadius`, `border` and `background` on each shape.
   - In the mouse repulsion snippet, `if (d < 120) {` becomes `if (d > 0 && d < 120) {`, the demo's guard for a pointer exactly on a shape's centre.
@@ -975,6 +977,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **README Production notes:** unchanged
 - **Category line:** `07.10 · Ambient &amp; Background`
 - **Pager:** Previous: Ambient Ripple Effect (`../ambient-ripple/`) · Next: Grid / Dot Pattern Parallax (`../grid-dot-pattern-parallax/`)
+- **Frame-rate fix (wrap-up):** a frame adds `k = dt / FRAME * (slow ? 1/3 : 1)` steps instead of one, where `FRAME = 1000/60` and `dt` is the time since the last frame: at most 50 ms, and 0 on the first frame after a start, a Play or a return to a hidden tab (`start()` and a `visibilitychange` listener set the last frame time back to `null`). `t` and each shape's turn move by `k`, so the shapes drift and turn at the same speed on a 30, 60 or 144 Hz screen. The page still has no frame gate: it moves the shapes on every display frame.
 
 ---
 
@@ -1163,20 +1166,20 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** Drifting dots link up with lines whenever they come close. Best for tech sites.
 - **Watch it help line:** It moves by itself, and the dots gather toward your pointer or finger. Pause it to look closely, or turn on slow motion.
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `step()`, then `draw()`:
-  - `step()` moves every dot by its velocity × Speed.
-  - With Dots follow the pointer on, a dot within about 160px of the pointer is pulled toward it (today's `d2<26000`, with a pull `f = .04 / d`).
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `step(k)`, then `draw()`, where `k` is the frame's time in 60 Hz frames, or a third of that in slow motion (see the frame-rate fix below):
+  - `step(k)` moves every dot by its velocity × Speed × `k`.
+  - With Dots follow the pointer on, a dot within about 160px of the pointer is pulled toward it (today's `d2<26000`, with a pull `f = .04 / d`, times `k`).
   - The dot's velocity then eases back toward its own cruising velocity, and it bounces off the edges.
   - `draw()` draws the links and the dots, as today.
 
   **The drift fix (needed for a loop):** today `step()` multiplies each velocity by 0.99 every frame, so the dots stop within about fifteen seconds and the loop stands still. Measured at the default settings: the average step is 0.07px a frame after 2 seconds and 0.0000px after 16 seconds.
   - `init()` stores each dot's starting velocity as its cruising velocity (`p.cvx`, `p.cvy`).
-  - `step()` eases toward it: `p.vx += (p.cvx - p.vx) * .01`, and the same for `vy`, in place of `p.vx *= .99`.
+  - `step(k)` eases toward it: `p.vx += (p.cvx - p.vx) * .01 * k`, and the same for `vy`, in place of `p.vx *= .99`.
   - A bounce points both the velocity and the cruising velocity away from the wall the dot crossed. Past the left or top edge both become positive (`p.vx = Math.abs(p.vx); p.cvx = Math.abs(p.cvx)`), past the right or bottom edge both become negative, and the dot is kept inside, as today's clamp does. Today's `p.vx *= -1` only flips the sign, so a dot the pointer has pulled against a wall, already moving back inward, would be sent straight into the wall again; flipping the cruising velocity the same way would do the same.
   - A pull from the pointer still fades within a second or two, as before, and the drift never dies.
 
   **The first picture:** the page calls `draw()` after `init()` at load and after a real resize (see the preamble; today every `resize` event, including a phone's address bar sliding, scattered the dots again), so a loop paused on arrival shows the dots and links. **While paused,** every setting change calls `draw()`; Number of dots calls `init()` first.
-- **Slow motion:** while the switch is on, the whole movement runs at a third of its speed: the position step (`p.x += p.vx * SPD / 3`, and the same for `y`), the pull toward the pointer (`f / 3`) and the easing (`.01 / 3`). So a slowed dot follows the same path, three times slower, pointer included. From the next frame.
+- **Slow motion:** while the switch is on, `k` is a third of the frame's time in 60 Hz frames, so the whole movement runs at a third of its speed: the position step (`p.x += p.vx * SPD * k`, and the same for `y`), the pull toward the pointer (`f * k`) and the easing (`.01 * k`) all shrink with it. So a slowed dot follows the same path, three times slower, pointer included. From the next frame.
 - **Reduced motion:** the demo's rule `.fps-badge,#pause-btn{display:none}` and the `reduce` checks go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas; the fps badge goes. `hb-dots`: no. Default height.
@@ -1228,13 +1231,14 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Starfield / Space Particles](../starfield/) — particles that show depth instead of links
   - [Floating Elements](../floating-elements/) — shapes that drift on their own paths
   - [Grid / Dot Pattern Parallax](../grid-dot-pattern-parallax/) — a still grid that shifts against the pointer
-- **README How it works:** after the sentence "Optional mouse attraction nudges each node's velocity toward the pointer, so the mesh gathers where the cursor rests.", add: "Each node remembers the velocity it started with and eases back to it every frame, so a pull from the pointer fades away while the slow drift goes on. On touch screens the pointer's position also comes from `pointerdown`, so a resting finger works too." The rest is unchanged.
+- **README How it works:** after the sentence "Optional mouse attraction nudges each node's velocity toward the pointer, so the mesh gathers where the cursor rests.", add: "Each node remembers the velocity it started with and eases back to it by 1% for every 60th of a second, so a pull from the pointer fades away while the slow drift goes on. On touch screens the pointer's position also comes from `pointerdown`, so a resting finger works too." The frame-rate fix (below) adds a paragraph and a snippet after that paragraph (`dt`, `k`, and the drift, pull and easing lines). The rest is unchanged.
 - **README Production notes:**
-  - The "Velocity damping" bullet becomes: "**Velocity easing**: each frame, a node's velocity eases 1% of the way back to the velocity it started with. That keeps pulls from the pointer from building into runaway speeds, and unlike multiplying the velocity by 0.99, which slows every node to a stop within seconds, it never lets the drift die out."
+  - The "Velocity damping" bullet becomes: "**Velocity easing**: for every 60th of a second, a node's velocity eases 1% of the way back to the velocity it started with. That keeps pulls from the pointer from building into runaway speeds, and unlike multiplying the velocity by 0.99 every 60th of a second, which slows every node to a stop within seconds, it never lets the drift die out. Scaling the 1% by `k` is a linear shortcut that differs from the exact `1 - 0.99^k` by about 1% at most, on a 50 ms frame."
   - The "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing one still frame, until the visitor presses Play. In production, show these visitors the still frame."
   - The rest is unchanged.
 - **Category line:** `07.13 · Ambient &amp; Background`
 - **Pager:** Previous: Abstract Geometric Motion (`../abstract-geometric-motion/`) · Next: Flow Field (`../flow-field/`)
+- **Frame-rate fix (wrap-up):** `step(k)` gets `k = dt / FRAME * (slow ? 1/3 : 1)`, with `FRAME = 1000/60` and `dt` the time since the last drawn frame: at most 50 ms, and 0 on the first frame after a start, a Play or a return to a hidden tab (`start()` and a `visibilitychange` listener set the last frame time back to `null`). The drift, the pull toward the pointer and the easing back all take `k`, so the dots drift, gather and settle at the same speed on a 30, 60 or 144 Hz screen. The easing is the linear `.01 * k`, within about 1% of the exact `1 - .99^k` on a 50 ms frame. The 16 ms gate stays, as a cap of 60 drawn frames a second.
 
 ---
 
@@ -1244,15 +1248,15 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** Particles ride invisible currents, leaving fading trails. Best for art pages.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) runs `frame()`:
-  - it dims the canvas with a see-through fill (Trail length), instead of clearing it;
-  - it moves every particle one step along the angle of the field under it, and draws that step;
-  - it respawns particles that leave the canvas, and adds 0.01 to the field's time `t`.
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame runs `frame(s, nf)`, where `s` is the frame's time in 60 Hz frames and `nf` the number of dims due (see the frame-rate fix below):
+  - it dims the canvas `nf` times with a see-through fill (Trail length), instead of clearing it;
+  - it moves every particle a step of Speed × `k` along the angle of the field under it, and draws that step (`k` is `s`, or a third of it in slow motion);
+  - it respawns particles that leave the canvas, and adds 0.01 × `k` to the field's time `t`.
 
   **The first picture:** `prerender()` (40 frames at once) runs at load and after every real resize, for every visitor; today only reduced motion saw it. So the stage opens with trails already drawn, and a loop paused on arrival shows them. "Real" matters here: phones fire `resize` each time the address bar slides (about every 130ms while it moves), and restarting the field and redrawing 40 frames each time would visibly jump; `resize()` returns at once unless the stage's size changed (see the preamble).
 
   **While paused,** a setting change runs `prerender()`, so the change shows; Number of particles calls `init()` first. The picture moves on by those 40 steps, but the loop stays paused. Speed changes no picture: it keeps the one on screen and takes effect once the loop plays.
-- **Slow motion:** while the switch is on, each frame moves the particles a third of a step (`SPD / 3`) and adds a third of 0.01 to `t`, from the next frame. The trail fade stays per frame, so the trails look shorter while it is on. Stretching the fade too would leave marks that never fade (the README's warning about very low trail values).
+- **Slow motion:** while the switch is on, each frame moves the particles a third of a step (`SPD × k`, with `k` a third of `s`) and adds a third of 0.01 × `s` to `t`, from the next frame. The trail fade stays once per 60th of a second, so the trails look shorter while it is on. Stretching the fade too would leave marks that never fade (the README's warning about very low trail values).
 - **Reduced motion:** the `reduce` checks and the rule `.fps-badge{display:none}` go (see the preamble).
 - **Stage font:** no text on the stage.
 - **Stage:** only the canvas; the fps badge goes. `hb-dots`: no. Default height.
@@ -1264,7 +1268,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 |---|---|---|---|---|---|
 | Swirl size | Choice buttons | Small · Medium · Large | Medium | Large swirls look calm; small ones look stormy. | `SCALE`: 20 / 34 / 60 |
 | Trail length | Choice buttons | Short · Medium · Long | Medium | How long each particle's trail lingers. | `TRAIL`: 0.12 / 0.06 / 0.04 (not lower: the README warns that very low values leave marks that never fade) |
-| Speed | Choice buttons | Slow · Normal · Fast | Normal | How far each particle moves every frame. | `SPD`: 0.6 / 1.0 / 1.6 |
+| Speed | Choice buttons | Slow · Normal · Fast | Normal | How fast each particle moves. | `SPD`: 0.6 / 1.0 / 1.6 |
 
 **More options**
 
@@ -1282,7 +1286,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Good for:** Art and creative sites · Hero sections · Loading screens · Data art · **Avoid on:** Busy layouts · Long reading pages
 - **Prompt:**
 
-  > Add a flow field background to [the section you want it behind]. Fill a canvas with many particles, give every point a direction that changes smoothly from one spot to the next (smooth random noise does this), and move each particle a small step along the direction under it every frame, so neighbours curve together into currents. Instead of clearing the canvas, cover it with a see-through dark layer each frame, so every particle leaves a trail that slowly fades. Let the directions change slowly over time, and use fewer particles on phones. If the visitor has reduced motion turned on, show one still frame of trails. Match the settings listed below.
+  > Add a flow field background to [the section you want it behind]. Fill a canvas with many particles and give every point a direction that changes smoothly from spot to spot (smooth random noise does this). Each frame, move each particle a small step along the direction under it, scaled by the time since the last frame so it runs at the same speed on every screen. Instead of clearing the canvas, cover it with a see-through dark layer once for every 60th of a second that passes, so each particle leaves a fading trail. Let the directions change slowly over time, and use fewer particles on phones. If the visitor has reduced motion turned on, show one still frame of trails. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -1293,8 +1297,8 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   | Parameter | Default | Effect |
   |-----------|---------|--------|
   | Swirl size | Medium | How large the currents are: the direction turns over about 20px (small), 34px (medium) or 60px (large); larger looks calm, smaller turbulent |
-  | Trail length | Medium | How long trails linger: short fades 12% a frame, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
-  | Speed | Normal | How far each particle moves every frame: slow is 0.6px, normal 1px and fast 1.6px |
+  | Trail length | Medium | How long trails linger: short fades 12% every 60th of a second, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade |
+  | Speed | Normal | How far each particle moves in a 60th of a second: slow is 0.6px, normal 1px and fast 1.6px (36, 60 and 96px a second) |
   | Number of particles | Medium | Few is 400, medium 900 and many 1,500; phones show at most 500 |
   | Color | Mint | Mint, ember or ice, or rainbow, where the color changes across the stage and over time |
 
@@ -1302,10 +1306,11 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
   - [Particle Constellation](../particle-constellation/) — particles that link up instead of flowing
   - [Aurora / Northern Lights](../aurora/) — flowing bands of color made with blur
   - [Mesh Gradient Animation](../mesh-gradient/) — smooth drifting color with no particles
-- **README How it works:** unchanged
+- **README How it works:** unchanged, except that the frame-rate fix (below) changes the per-frame lines of the last snippet (`s`, `w`, `f`, `nf`, `fa`, the dim loop, `k` and `p.x += Math.cos(a) * SPD * k`) and adds a paragraph after it on the whole-dim rule.
 - **README Production notes:** the "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing about 40 frames drawn at once as a still, settled picture, until the visitor presses Play. The same 40 frames are drawn whenever the page opens, so the stage never starts empty." The rest is unchanged.
 - **Category line:** `07.14 · Ambient &amp; Background`
 - **Pager:** Previous: Particle Constellation (`../particle-constellation/`) · Next: Synthwave Grid (`../synthwave-grid/`)
+- **Frame-rate fix (wrap-up):** particles move by `s`, the time since the last drawn frame in 60ths of a second (`FRAME = 1000/60`, at most 50 ms; 1 at 60 Hz, 2 at 30 Hz), and the field's time moves with them, so the speed is the same on every screen. The trail dim is not scaled: the canvas is dimmed with the same `rgba(5,6,10,TRAIL)` once for every 60th of a second, `nf` dims per drawn frame (two at 30 Hz). `nf` comes from `s` plus a carried remainder `fa`, and a step within 5% of a whole number counts as that number, so a 59.94 or 60.06 Hz screen still gets exactly one dim a frame. A frame with no whole dim due draws nothing and its time carries to the next one, which replaces the 16 ms gate and keeps drawing at about 60 frames a second at most. `prerender()` runs 40 frames of `s = 1` with one dim each, so the settled picture is the same on every screen. The first frame after a start, a Play or a return from a hidden tab (`visibilitychange`) only takes the time.
 
 ---
 
@@ -1315,7 +1320,7 @@ None of these is a CSS `:hover` rule, so no `@media (hover: hover)` gate is need
 - **Description:** A glowing grid rolls toward you under a striped sun. Best for music and games.
 - **Watch it help line:** default
 - **Player bar:** Pause (page) · Slow motion (page)
-- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) adds Speed × 0.02 to `offset` and redraws the sky, the sun and the grid (`frame()`). **The first picture:** `frame()` runs at load. **While paused,** Number of lines and Grid color call `frame()` at once, playing or paused; Speed draws nothing, and the floor carries on from where it is. After a real resize (see the preamble), `frame()` runs at once, playing or paused.
+- **Sequence:** the canvas loop as in the preamble. Each drawn frame (at most one per 16ms, as today) adds Speed × 0.02 × `dt / FRAME` to `offset` (`FRAME = 1000/60`; see the frame-rate fix below) and redraws the sky, the sun and the grid (`frame()`). **The first picture:** `frame()` runs at load. **While paused,** Number of lines and Grid color call `frame()` at once, playing or paused; Speed draws nothing, and the floor carries on from where it is. After a real resize (see the preamble), `frame()` runs at once, playing or paused.
 
   **The sun** is a half disc filled with a vertical gradient and striped with seven gaps in the sky's dark color across its lower half, wider toward the horizon: `for(let i=0;i<7;i++)ctx.fillRect(cx-rad,cy-rad*.55+i*rad*.08,rad*2,rad*(.015+i*.009))`. The earlier loop began 15% of the radius above the horizon and stepped 16% of it, so six of its seven gaps fell below the sun's base, outside the clipped half disc, and only one showed, though the Description, lede, prompt and README all say "striped". Counted on the sun's centre line at 1280×800, 1366×657, 375×812 and 812×375: seven stripes, against one.
 - **Slow motion:** while the switch is on, each frame adds a third of the usual step to `offset`, from the next frame.
@@ -1364,10 +1369,11 @@ None: leave out the `details.hb-options` block.
   - [Scanline Effect](../scanline/) — dark lines that finish the old-screen look
   - [Grid / Dot Pattern Parallax](../grid-dot-pattern-parallax/) — a flat grid that shifts against the pointer
   - [Animated Gradient Background](../animated-gradient-background/) — a gradient like the sky's, moving on its own
-- **README How it works:** unchanged
+- **README How it works:** unchanged, except that the frame-rate fix (below) adds a paragraph and a `dt` snippet (`offset += speed * 0.02 * dt / (1000 / 60) * (slow ? 1 / 3 : 1)`) after the grid-lines snippet.
 - **README Production notes:** the "Reduced motion" bullet becomes: "**Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene." The rest is unchanged, except the "CSS alternative" bullet, whose claim that an animated `background-position` offloads to the compositor was wrong; it becomes "**CSS alternative**: this can also be built with a `transform: perspective()` plane and a repeating linear-gradient scrolled toward the viewer. Scrolling it with `background-position` repaints every frame; sliding an oversized plane one grid square with `transform: translateY()` and jumping back lets the compositor run it. The canvas version wins on control over per-line fade and glow."
 - **Category line:** `07.15 · Ambient &amp; Background`
 - **Pager:** Previous: Flow Field (`../flow-field/`) · Next: Matrix Rain (`../matrix-rain/`)
+- **Frame-rate fix (wrap-up):** the step scales with the time since the last drawn frame: `offset += SPD * 0.02 * dt / FRAME`, times a third in slow motion, with `FRAME = 1000/60` and `dt` at most 50 ms, and 0 on the first frame after a start, a Play or a return to a hidden tab (`start()` and a `visibilitychange` listener set the last frame time back to `null`). At normal speed the floor rolls 1.2 lines a second on every screen. The 16 ms gate stays, as a cap of 60 drawn frames a second.
 
 ---
 
