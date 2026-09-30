@@ -147,6 +147,14 @@ const RECORD = `(() => {
   document.addEventListener('hb:input', e => window.__hbInput.push(e.detail && e.detail.type));
 })()`;
 
+// Runs at the start of every document when the run checks the home page: stores a GitHub star count in the home page's own
+// format, with a fresh time, so the page shows it and never asks api.github.com. That request depends on the network and on
+// GitHub's limit (60 an hour per address, and every run starts with an empty profile), and Chrome logs a failed one as a
+// console error, which would fail every setup. The four digits give the button the width of a well-known repository's count.
+const STARS = `(() => {
+  try { localStorage.setItem('gh-star-count', JSON.stringify({ count: 1234, ts: Date.now() })); } catch {}
+})()`;
+
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const withTimeout = (promise, ms) => Promise.race([promise, sleep(ms).then(() => { throw new Error('timeout'); })]);
 
@@ -786,6 +794,7 @@ try {
   await send('Runtime.enable');
   await send('Log.enable');
   await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD });
+  if (pages.includes('home')) await send('Page.addScriptToEvaluateOnNewDocument', { source: STARS });
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
