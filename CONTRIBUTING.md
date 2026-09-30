@@ -136,6 +136,12 @@ that make it look right, how to keep it smooth, what to do under reduced motion,
 touch equivalent of a hover or drag. It does not state a value that a setting controls, and
 it ends with "Match the settings listed below." when the page has a Try it step.
 
+### Colors
+
+The demo's own styles use CSS variables for colors and default to a dark stage with light
+cards. Set `--ui-accent` in `:root` to your category's color (copy it from another page in
+the category); the shared stylesheet uses it for the step numbers, chips and pressed buttons.
+
 ### Font
 
 The site font is Schibsted Grotesk, loaded by the shared stylesheet. Stage text uses it too,
