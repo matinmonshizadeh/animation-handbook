@@ -182,13 +182,15 @@ function build(n){
   }
 }
 
-// Time moves on here and nowhere else: the drift phase, and the drop closing in on the pointer.
-// Integrating the phase instead of multiplying absolute time means a new speed changes the rate
-// without teleporting the circles. Slow motion adds a third of the phase and a third of the pull.
+// Time moves on here and nowhere else: the drift phase, and the drop closing in on the pointer. dt is the time in
+// milliseconds since the last frame. Integrating the phase instead of multiplying absolute time means a new speed
+// changes the rate without teleporting the circles. The drop closes 0.09 of its gap to the pointer in every 1/60 s
+// (FRAME), so it takes the same time to arrive on any screen. Slow motion adds a third of the phase and closes 0.03.
+const FRAME=1000/60;
 function step(dt){
   const slow=slowTog.checked;
-  phase+=dt*speed/(slow?3:1);
-  const pull=slow?0.03:0.09;
+  phase+=dt/1000*speed/(slow?3:1);
+  const pull=1-Math.pow(1-(slow?0.03:0.09),dt/FRAME);
   drop.x+=(pointer.x-drop.x)*pull;
   drop.y+=(pointer.y-drop.y)*pull;
 }
@@ -208,14 +210,16 @@ function place(){
 }
 
 // The loop keeps exactly one pending frame in raf. The first frame after a start adds nothing, and a long
-// gap between frames (a background tab) counts for at most a tenth of a second.
+// gap between frames counts for at most 50 ms. A tab that comes back to the front starts again from its next
+// frame, so the time away adds nothing either.
 function frame(ts){
   raf=requestAnimationFrame(frame);
-  const dt=last===null?0:Math.min(ts-last,100)/1000;
+  const dt=last===null?0:Math.min(ts-last,50);
   last=ts;
   step(dt);place();
 }
 function start(){if(raf)return;last=null;raf=requestAnimationFrame(frame);}
+document.addEventListener('visibilitychange',()=>{last=null;});
 
 // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
 // loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
