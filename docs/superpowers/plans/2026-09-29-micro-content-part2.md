@@ -580,8 +580,12 @@ None: leave out the `details.hb-options` block.
   - [Focus Ring Animation](../focus-ring/) — a ring that follows keyboard focus
   - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
   - [Checkmark Draw](../checkmark-draw/) — the tick that says yes
-- **README How it works:** after the CSS snippet, add: "The demo writes this keyframe rule from JavaScript, so the Number of swings setting can give it as many swings as it asks for, each smaller than the last." The rest is unchanged.
+- **README How it works:** after the CSS snippet, add: "The demo writes this keyframe rule from JavaScript, so the Number of swings setting can give it as many swings as it asks for, each smaller than the last." The rest is unchanged, except that the CSS snippet now shows the six-swing set (final fix wave, below).
 - **README Production notes:** unchanged
+- **Final fix wave (after the category review):**
+  - The press the shared script makes on arrival no longer touches a visitor who is already typing. Show me's handler begins `e=>{if(!e.isTrusted&&stage.contains(document.activeElement))return;` (the guard Form Field Morph has), so a password being typed is not emptied and replaced by "abc123". A visitor's own press on Show me still runs the demo.
+  - The comment above the stylesheet's `@keyframes shake` now says what is true: `buildShake()` rewrites the rule when the page loads, with swings that decay (six by default), and the copy in the stylesheet only stands in until then (its 80% and 90% swings return to full size).
+  - README How it works: the CSS snippet is the six-swing decaying set that `buildShake(6)` writes, rounded: 0% and 100% at 0, then 14% −0.86, 29% 0.71, 43% −0.57, 57% 0.43, 71% −0.29 and 86% 0.14 times `--shake-x`. The old snippet swung back to full size at 80% and 90% while the text called the shake decaying.
 - **Category line:** `04.21 · Micro-Interactions`
 - **Pager:** Previous: Cursor Follower (`../cursor-follower/`) · Next: Swipe to Dismiss (`../swipe-to-dismiss/`)
 

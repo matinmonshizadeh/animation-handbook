@@ -13,12 +13,15 @@ An error shake tells someone that what they entered was not accepted. The field 
 The field is animated by toggling an `error` class that applies a `@keyframes` translateX wobble. The keyframe swings the element left and right with **decaying amplitude**, then returns to `translateX(0)`. Because only `transform` is animated, it stays on the compositor and never triggers layout:
 
 ```css
+/* the default six swings, as the demo's buildShake(6) writes them (values rounded) */
 @keyframes shake {
-  10%,90% { transform: translateX(calc(var(--shake-x) * -1)); }
-  20%,80% { transform: translateX(calc(var(--shake-x) *  1)); }
-  30%,50%,70% { transform: translateX(calc(var(--shake-x) * -0.6)); }
-  40%,60% { transform: translateX(calc(var(--shake-x) *  0.6)); }
-  100% { transform: translateX(0); }
+  0%, 100% { transform: translateX(0); }
+  14% { transform: translateX(calc(var(--shake-x) * -0.86)); }
+  29% { transform: translateX(calc(var(--shake-x) *  0.71)); }
+  43% { transform: translateX(calc(var(--shake-x) * -0.57)); }
+  57% { transform: translateX(calc(var(--shake-x) *  0.43)); }
+  71% { transform: translateX(calc(var(--shake-x) * -0.29)); }
+  86% { transform: translateX(calc(var(--shake-x) *  0.14)); }
 }
 .field.error input { border-color: var(--err); animation: shake var(--shake-dur) cubic-bezier(.36,.07,.19,.97) both; }
 ```

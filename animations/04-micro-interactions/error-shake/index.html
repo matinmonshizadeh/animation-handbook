@@ -42,7 +42,7 @@
     .field.error .msg{opacity:1;transform:none}
     .field.ok input{border-color:var(--ok)}
     .field.ok .msg{opacity:1;transform:none;color:var(--ok)}
-    /* The decaying horizontal wobble. translateX only -> compositor-friendly. */
+    /* buildShake() rewrites this rule when the page loads, with swings that decay (six by default); this copy only stands in until then. translateX only -> compositor-friendly. */
     @keyframes shake{
       10%,90%{transform:translateX(calc(var(--shake-x) * -1))}
       20%,80%{transform:translateX(calc(var(--shake-x) * 1))}
@@ -262,8 +262,10 @@
     parts.forEach(p=>p.style.removeProperty('transition'));
   }
   // A wrong password appears as dots, the field shakes as it does for a visitor (no submit, no focus, nothing said aloud),
-  // and once the shake has run and been seen the field is emptied.
-  document.getElementById('btn-demo').addEventListener('click',()=>{
+  // and once the shake has run and been seen the field is emptied. The press the shared script makes on arrival leaves a
+  // visitor who is already in the form alone: it would empty and replace a password being typed.
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&stage.contains(document.activeElement))return;
     stopRun();
     toRest();
     input.value=DEMO_PASSWORD;
