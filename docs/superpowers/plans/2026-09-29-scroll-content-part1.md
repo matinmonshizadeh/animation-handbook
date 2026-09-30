@@ -868,7 +868,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Reading line | 42% down the box | A chapter becomes current once its top passes this line; a lower line changes chapters later |
+  | Reading line | 42% down the box | A chapter becomes current once its top passes this line; a higher line changes chapters later, a lower one sooner |
   | Chapter height | At least 90% of the box | How much scrolling each chapter takes; taller chapters make slower, finer blends |
   | Number of chapters | 6 | Each chapter adds its colours and its depth to the blend |
 
@@ -881,6 +881,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the Reduced motion bullet becomes: "**Reduced motion**: nothing here moves on its own; the colours and the depth follow the reader's scrolling, so there is nothing to switch off. A CSS transition on the porthole's gradient would not help anyway: gradients cannot be transitioned, which is why the blend is worked out in JavaScript." The rest is unchanged.
 - **Category line:** `01.11 · Scroll-Based`
 - **Pager:** Previous: Snap Scrolling (`../snap-scrolling/`) · Next: Reveal on Scroll (`../reveal-on-scroll/`)
+- **Final fix wave:** wording only. The Reading line row of the README's Key parameters (and the copy of it above) said a lower line changes chapters later; it is the other way round. A chapter is reached at the scroll position that equals its top in the content minus the line's distance down the box (`reach` in `update()`, with the line at 42% of the box's height), so a lower line is reached after less scrolling and changes chapters sooner, and a higher one later (measured at 1280×800, 40% of the way down the scroll: the depth reads 1,425 m with the line at 20% of the box, 2,159 m at 42% and 2,759 m at 60%).
 
 ---
 
