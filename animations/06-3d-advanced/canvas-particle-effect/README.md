@@ -40,7 +40,7 @@ let owed = 0;                 // steps of Trails wash not laid yet: 0 to start w
 function frame(elapsed) {     // called for every frame the screen offers; elapsed: ms since the last frame that was drawn
   const steps = Math.min(elapsed, 50) / (1000 / 60);   // a long gap counts for at most 50 ms
   const whole = Math.max(1, Math.round(steps));
-  const due = Math.abs(steps - whole) < 0.05 ? whole : steps;   // within 5% of a whole number counts as that number
+  const due = Math.abs(steps - whole) < 0.05 ? whole : steps;   // within 0.05 of a whole number counts as that number
   if (Math.round(owed + due + 0.05) < 1) return;   // no wash due: draw nothing and change nothing, the time waits for the next frame
 
   const k = steps * (slow ? 1 / 3 : 1);
@@ -52,7 +52,7 @@ function frame(elapsed) {     // called for every frame the screen offers; elaps
 }
 ```
 
-The wash count is worked out apart from the movement so that a screen a little off 60 Hz (59.94 or 60.06), or one whose frames arrive a little unevenly, still washes exactly once a frame. The 0.05 added before rounding keeps half a step, which is what a frame is at exactly 120 or 240 Hz, from sitting on a tie that timestamp noise could decide either way. A frame that comes before a wash is due draws nothing, which also keeps the drawing near 60 pictures a second on a faster screen.
+The wash count is worked out apart from the movement so that a screen a little off 60 Hz (59.94 or 60.06), or one whose frames arrive a little unevenly, still washes exactly once a frame. The 0.05 added before rounding keeps the half step of carried time that sits at the draw decision on exact 120 and 240 Hz screens from sitting on a tie that timestamp noise could decide either way. A frame that comes before a wash is due draws nothing (with Trails off too, since the same count sets the pace), which also keeps the drawing near 60 pictures a second on a faster screen.
 
 **Connections** — O(n²) distance check per frame:
 
