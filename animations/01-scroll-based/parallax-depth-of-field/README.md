@@ -43,6 +43,7 @@ it a fraction at a time, which turns those discrete steps into continuous motion
 
 ```js
 const dt = last ? Math.min(now - last, 50) : FRAME;                    // FRAME = 1000 / 60; time since the last frame
+last = now;
 current += (target - current) * (1 - Math.pow(1 - EASE, dt / FRAME));  // inside a requestAnimationFrame loop
 ```
 
