@@ -800,10 +800,12 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README How it works:**
   - The first paragraph names the two ways as on the page: "This demo offers two modes. The CSS mode writes" becomes "This demo offers two ways to bounce. The planned path writes"; "with the overshoot amount scaled by a control" becomes "with the overshoot amount set by Bounce size"; and "The JS mode integrates" becomes "The live spring integrates".
   - In the snippet, `let pos = -100, vel = 0, target = 0;           // start off-screen right` becomes `let pos = 100, vel = 0, target = 0;            // start off-screen right`, as in the demo.
+  - The snippet's first line reads `function doSpring(o, n) {`, the names the page gives the old and the new page. It read `function doSpring(prev, next) {`, so the `n` the loop moves was not defined.
   - In the last paragraph, the sentence "Recorded positions are plotted to a small canvas so the overshoot-and-settle curve is visible." is replaced by: "On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (70, 180 or 500) and damping. The damping values were found by running this loop at 60 frames a second, so the spring goes about as far past its place as the planned path does (about 3.6%, 7.2% and 12% of the width). Moving the spring one step per frame calms it more than the usual spring formula expects, so the values were measured rather than worked out."
 - **README Production notes:** a bullet goes in after "**Clamp the time step.**": "**Frame rate.** The demo moves its spring one step per frame, so how far it bounces depends on the frame rate: at 30 frames a second the small bounce hardly shows, and at 120 it is a little larger. A spring that steps by time instead — fixed small steps, as many as the time that has passed needs — bounces the same at any frame rate." The rest is unchanged.
 - **Category line:** `03.09 · Page Transitions`
 - **Pager:** Previous: Blur Transition (`../blur-transition/`) · Next: Portal / Tunnel Zoom (`../portal-zoom/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one; the planned path and the live spring both end in `rest()`. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 
