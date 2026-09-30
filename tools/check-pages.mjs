@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Browser check for guided-steps demo pages: a development tool, not part of the site.
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
-// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder>...
+// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, or home>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 //   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
 //   the search box and the place tiles on the first screen, the tile counts and the eight Start cards.
@@ -68,11 +68,11 @@ mkdirSync(OUT, { recursive: true });
 console.log(`Screenshots go to ${OUT}`);
 
 const SETUPS = [
-  { name: 'desktop', width: 1280, height: 800, full: true, moves: true },
+  { name: 'desktop', width: 1280, height: 800, full: true, moves: true, firstScreen: true },
   { name: 'laptop', width: 1366, height: 657 },
   { name: 'tablet', width: 768, height: 1024 },
-  { name: 'phone', width: 375, height: 812, mobile: true, scale: 2 },
-  { name: 'phone-reduced', width: 375, height: 812, mobile: true, scale: 2, reduce: true },
+  { name: 'phone', width: 375, height: 812, mobile: true, scale: 2, firstScreen: true },
+  { name: 'phone-reduced', width: 375, height: 812, mobile: true, scale: 2, reduce: true, firstScreen: true },
   { name: 'phone-small', width: 320, height: 640, mobile: true, scale: 2 }
 ];
 
@@ -108,24 +108,26 @@ const CHECK = `(() => {
 })()`;
 
 // Runs inside the home page. Returns the problems found: overflow, small targets on phones, the search box and the first
-// row of place tiles on the first screen (1280×800 and 375×812), the tile counts, and the eight Start cards.
-const HOME_CHECK = `(() => {
+// row of place tiles on the first screen (the setups marked firstScreen: 1280×800 and 375×812), the tile counts, and the eight
+// Start cards. A missing search box or place tile is a problem of its own, so the first-screen tests never skip silently.
+const homeCheck = firstScreen => `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
   const problems = [];
   if (!document.getElementById('places')) problems.push('not the new home page');
   if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
   if (phone) {
-    const small = [...document.querySelectorAll('.top a, .top button, .search button, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .foot a')]
+    const small = [...document.querySelectorAll('.top a, .top button, .search button, #q, #q2, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .foot a')]
       .filter(el => el.getClientRects().length)
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
       .map(el => el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
     if (small.length) problems.push('small targets: ' + small.join(', '));
   }
-  const firstScreen = (innerWidth === 1280 && innerHeight === 800) || (innerWidth === 375 && innerHeight === 812);
   const search = document.querySelector('.search'), tile = document.querySelector('.place');
-  if (firstScreen && search && r(search).bottom > innerHeight) problems.push('search box below the first screen');
-  if (firstScreen && tile && r(tile).bottom > innerHeight) problems.push('place tiles below the first screen');
+  if (!search) problems.push('no search box');
+  else if (${firstScreen} && r(search).bottom > innerHeight) problems.push('search box below the first screen');
+  if (!tile) problems.push('no place tiles');
+  else if (${firstScreen} && r(tile).bottom > innerHeight) problems.push('place tiles below the first screen');
   const counts = [...document.querySelectorAll('.pl-count')].map(el => el.textContent.trim());
   if (counts.length !== 9 || counts.some(t => !/^\\d+ animations?$/.test(t))) problems.push('tile counts: ' + counts.join(' | '));
   const cards = document.querySelectorAll('#cards .card').length;
@@ -434,23 +436,63 @@ async function scrollProblems(reduced) {
   return problems;
 }
 
-// Home page, desktop run: the Copy prompt button puts a page's text on the clipboard and says so (the clipboard is stubbed:
-// a headless run cannot grant it), then, for every page, the home page's text equals what the page's own Copy prompt gives
-// before any change. Leaves the home page.
+// Presses the Copy prompt button of the card at index the way a visitor does: scrolled into view, then a real mouse press and
+// release at its center (btn.click() would pass even with the card's stretched link laid over the button). Returns what
+// covers the button at its center, if anything, and then presses nothing (a press on the link would leave the page).
+async function pressCopyButton(index) {
+  const spot = await evaluate(`(() => {
+    const btn = document.querySelectorAll('#cards .card .copy')[${index}];
+    btn.scrollIntoView({ block: 'center' });
+    const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
+    const covered = btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.className ? '.' + String(hit.className).split(' ')[0] : '') : 'nothing';
+    return { x, y, covered };
+  })()`);
+  if (spot.covered) return spot.covered;
+  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  return '';
+}
+
+// Home page, desktop run: the Copy prompt button, pressed for real, puts a page's text on the clipboard and says so (the
+// clipboard is stubbed: a headless run cannot grant it); when the clipboard refuses, it says "Open to copy" and its name says
+// which animation; then, for every page, the home page's text equals what the page's own Copy prompt gives before any change.
+// Leaves the home page.
 async function homeCopyProblems() {
   const problems = [];
-  const wiring = await evaluate(`(async () => {
-    let got = null;
-    navigator.clipboard.write = async items => { got = await (await items[0].getType('text/plain')).text(); };
-    navigator.clipboard.writeText = async text => { got = text; };
-    const btn = document.querySelector('#cards .card .copy');
-    btn.click();
-    for (let i = 0; i < 60 && got === null; i++) await new Promise(r => setTimeout(r, 50));
-    await new Promise(r => setTimeout(r, 50));
-    const url = btn.closest('.card').querySelector('.title a').getAttribute('href');
-    return { same: got === await promptFor(url), label: btn.textContent.trim(), toast: document.getElementById('toast').classList.contains('show') };
+  await evaluate(`(() => {
+    window.__clipboardGot = null;
+    navigator.clipboard.write = async items => { window.__clipboardGot = await (await items[0].getType('text/plain')).text(); };
+    navigator.clipboard.writeText = async text => { window.__clipboardGot = text; };
   })()`);
-  if (!wiring.same || wiring.label !== 'Copied' || !wiring.toast) problems.push(`Copy prompt button: ${JSON.stringify(wiring)}`);
+  const covered = await pressCopyButton(0);
+  if (covered) problems.push(`Copy prompt button is covered by ${covered} at its center`);
+  else {
+    const wiring = await evaluate(`(async () => {
+      for (let i = 0; i < 60 && window.__clipboardGot === null; i++) await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => setTimeout(r, 50));
+      const btn = document.querySelector('#cards .card .copy'), url = btn.closest('.card').querySelector('.title a').getAttribute('href');
+      return { same: window.__clipboardGot === await promptFor(url), label: btn.textContent.trim(), toast: document.getElementById('toast').classList.contains('show') };
+    })()`);
+    if (!wiring.same || wiring.label !== 'Copied' || !wiring.toast) problems.push(`Copy prompt button: ${JSON.stringify(wiring)}`);
+  }
+  // Second pass, on the second card: the browser refuses the clipboard. The button offers to open the page, and its name starts
+  // with what it shows and says which animation it belongs to.
+  await evaluate(`(() => {
+    const refuse = async () => { throw new DOMException('denied', 'NotAllowedError'); };
+    navigator.clipboard.write = refuse;
+    navigator.clipboard.writeText = refuse;
+  })()`);
+  const coveredAgain = await pressCopyButton(1);
+  if (coveredAgain) problems.push(`Copy prompt button of the second card is covered by ${coveredAgain} at its center`);
+  else {
+    const refused = await evaluate(`(async () => {
+      const btn = document.querySelectorAll('#cards .card .copy')[1];
+      for (let i = 0; i < 60 && btn.textContent.trim() === 'Copy prompt'; i++) await new Promise(r => setTimeout(r, 50));
+      return { label: btn.textContent.trim(), name: btn.getAttribute('aria-label') || '', animation: btn.closest('.card').querySelector('.title a').textContent.trim() };
+    })()`);
+    if (refused.label !== 'Open to copy' || !refused.name.startsWith(refused.label) || !refused.name.includes(refused.animation)) {
+      problems.push(`Copy prompt with the clipboard refused: ${JSON.stringify(refused)} (expected "Open to copy" and a name that starts with it and names the animation)`);
+    }
+  }
   const items = await evaluate(`Promise.all(ALL.map(e => promptFor(e.url).then(text => ({ url: e.url, text }), err => ({ url: e.url, text: 'ERROR ' + err.message }))))`);
   for (const { url, text } of items) {
     let onLoad;
@@ -459,7 +501,7 @@ async function homeCopyProblems() {
     try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`${url} did not load`); }
     listeners.delete(onLoad);
     const own = await evaluate(`DemoPage.pageCopyText(document, window)`);
-    if (own !== text) problems.push(`Copy prompt text differs for ${url}`);
+    if (own !== text) problems.push(`Copy prompt text differs for ${url}${text.startsWith('ERROR ') ? ` (${text})` : ''}`);
   }
   return problems;
 }
@@ -764,7 +806,7 @@ try {
         try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`page did not finish loading within ${LOAD_TIMEOUT / 1000} s`); }
         listeners.delete(onLoad);
         await sleep(2000);
-        const result = await evaluate(home ? HOME_CHECK : CHECK);
+        const result = await evaluate(home ? homeCheck(!!setup.firstScreen) : CHECK);
         problems.push(...result.problems);
         if (!home) {
           if (result.kind === 'once' && result.loop !== null && !setup.reduce && !result.loop) {
