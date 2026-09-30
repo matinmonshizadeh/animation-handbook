@@ -326,7 +326,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **Description:** A bar fills as you read down the page. Best for long articles.
 - **Step 1:** Scroll it · help line: default
 - **Player bar:** Play · Back to top
-- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="An article with a reading progress indicator">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the three indicators beside the scroller, so they stay in place while the article moves. The script calls it `scroller` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the scroller's focus ring inset, inside the stage (rule B2).
+- **Scroller:** `<div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="An article with a reading progress indicator">` inside the `.stage`. The `.stage` does the job of today's `.stage-wrap`: it holds the three indicators beside the scroller, with `pointer-events:none`, so they stay in place while the article moves and a wheel turn or a touch over them still scrolls the article. The script calls it `scroller` wherever it said `stage`. The page adds no focus rule: the shared stylesheet draws the scroller's focus ring inset, inside the stage (rule B2).
 - **What scrolling shows:** the article scrolls, and the chosen indicator (a bar along the top, a ring in the top-right corner with the percentage inside, or a rail down the right edge) fills from empty to full, reaching full exactly at the end of the article.
 - **Scroll distance and Play:** the article does not depend on the stage height (measured: 846px on laptops and 1,126px on a 375px phone), so the box scrolls about 1.5 box heights on laptops and nearly 3 on phones. Play fills the indicator from 0 to 100% in six seconds.
 - **Reduced motion:** nothing scrolls by itself, and nothing needs simplifying: the indicators have no transition. The demo's rule goes (it named the old scroller and transitions that do not exist).
@@ -338,6 +338,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - The ring grows from 40px to 48px (`width="48" height="48"`; the `viewBox` stays `0 0 36 36`), and `.circ-text` gets `font-size:9px;font-weight:600;fill:#f4f4f2`, about 12px on screen (today 5.6px).
   - The ring's thickness comes from CSS: `.circ-bg,.circ-fg{stroke-width:var(--bar-thick)}` in place of `stroke-width:3`, and the Thickness handler's two `setAttribute('stroke-width', …)` calls go. Today the CSS `stroke-width:3` beats those attributes, so the thickness slider never changed the ring.
   - Article text: `.art-body{font-size:15px;line-height:1.8;color:#adadb2}` (was 13px at opacity .7); `.art-byline{font-size:12px;color:#8a8a92}` (was opacity .4); `.art-pull{color:#d6d6da}` (was opacity .8); `.art-h2` keeps its size without the opacity.
+  - `.art-title{padding-right:40px}` keeps the title clear of the ring in the top-right corner (48px wide, 8px in from the box's edge): with the Ring indicator on, the title's text ends 394px, 233px, 34px and 19px short of it at 1280×800, 768×1024, 375×812 and 320×640 (the title wraps to two lines on the two phone sizes).
   - The article is rewritten in plain words (today's paragraphs describe scrollTop, requestAnimationFrame and dash arrays). In order:
 
     | Part | Text |
@@ -421,6 +422,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - The rest is unchanged.
 - **Category line:** `01.17 · Scroll-Based`
 - **Pager:** Previous: Counter Animation (`../counter-animation/`) · Next: Section Wipe (`../section-wipe/`)
+- **Final fix wave:** sheet only. It now records that the three indicators (`#top-bar`, `#side-rail`, `svg#circ`) have `pointer-events:none` (Scroller line) and that `.art-title` has `padding-right:40px` to stay clear of the ring (the Stage bullet after Article text).
 
 ---
 
