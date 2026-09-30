@@ -753,7 +753,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** css. The rays, the cut-out circle, the card flip and the button's color slow down; the change is the run's movement (Speed) and the 1000ms is a hold. A slowed run takes about 4 s.
 - **Reduced motion:** the demo's rule stays: the icon and the card switch at once.
 - **Stage font:** site font (no font rule to change). The card's `.face .st` ("preview card") goes up to 11px (was 9px).
-- **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do.
+- **Stage:** the button and the flip card stay. The state label ("Light theme active") goes: it is a readout, and the button's own label says what it will do. That label is the button's `aria-label`, an action ("Switch to dark theme", then "Switch to light theme"), which `setDark()` sets together with the class. The button has no `aria-pressed`: a toggle's name must not change, and with both a screen reader says "Switch to light theme, toggle button, pressed", which contradicts itself.
   - To fit, `--toggle-size` becomes `clamp(72px,12vw,104px)` (the Toggle Size slider goes; see Removed), the card's width becomes `min(220px,80%)` (was `min(260px,80%)`) and the stage's `gap` becomes `clamp(20px,4vh,40px)` (was `clamp(28px,5vh,52px)`). Measured: today the button and the card need 327px on a short laptop, which fills the 327px stage from edge to edge, and 311px on a phone, which overflows its 300px stage. After the change they take about 296px on a short laptop and 270px on a phone.
   - The card's face texts stay; the card is `aria-hidden`, as today.
   - The old phone rule (`height:auto;min-height:440px`) goes.
@@ -797,8 +797,8 @@ None: leave out the `details.hb-options` block.
   - [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between on and off
   - [Hamburger Menu Toggle](../hamburger-menu-toggle/) — three lines that turn into an X
   - [Checkmark Draw](../checkmark-draw/) — a tick that draws itself
-- **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README How it works:** one sentence changes. "Only `transform` and `opacity` animate." becomes "The rays, the disc, the cut-out circle and the card change only `transform` and `opacity`. The icon's color fades from orange to lavender through a `color` transition on the button, which the SVG picks up with `currentColor`." The rest is unchanged.
+- **README Production notes:** the first sentence changes. "The control is a real `<button>` with `aria-pressed` reflecting the current mode and an `aria-label` that names the *action* ("Switch to dark theme"), updated on each toggle so screen readers announce the change." becomes "The control is a real `<button>` whose `aria-label` names the *action* ("Switch to dark theme") and changes with each press, so screen readers say what pressing it will do; leave `aria-pressed` off, because a toggle's name must not change and "Switch to light theme, pressed" contradicts itself (for `aria-pressed`, use a fixed name such as "Dark theme")." Later in the paragraph, "set the class and `aria-pressed`" becomes "set the class and the label". The rest is unchanged.
 - **Category line:** `04.24 · Micro-Interactions`
 - **Pager:** Previous: Hamburger Menu Toggle (`../hamburger-menu-toggle/`) · Next: Copy to Clipboard (`../copy-to-clipboard/`)
 
