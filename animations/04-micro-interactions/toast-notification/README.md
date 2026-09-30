@@ -12,18 +12,16 @@ A toast is a small message that comes into a corner of the screen, stays for a f
 ## How it works
 Each toast enters from the corner's edge with a `transform` (a `translateX` off-screen for slide, `scale(.85)` for scale, or opacity alone for fade), then settles to `transform: none` on the next frame. A `<span class="prog">` runs a CSS `scaleX(1) → scaleX(0)` animation for the auto-dismiss duration; its `animationend` triggers removal, so pausing the animation on `:hover` (or while a finger is held on the toast, or the keyboard focus is inside it) also pauses the dismissal for free.
 
-The gap left by a departing toast is closed with **FLIP**. Before removing the node, record every surviving toast's position; after removal, apply the inverted delta as a `translateY` and let it transition back to zero — layout collapses, but only `transform` animates:
+The gap left by a departing toast is closed with **FLIP**, and it closes at once rather than after the exit. When a toast leaves, record every other toast's position, then take the leaving toast out of the layout where it stands (absolutely positioned at its measured place, under the others), so it keeps sliding out but no longer takes room. Read the others again and play each difference back as a `translate` that animates to zero — layout collapses, but only a transform animates. The separate `translate` property is used so that a glide never replaces the `transform` of a toast that is still sliding in or being swiped, and `composite: 'add'` lets a new glide start on top of one still under way. A new toast makes room first: when the stack is full, the oldest leaves before the new one is placed, so the stack never holds more toasts than the limit. In the bottom corners the new toast is placed nearest the corner, and the same glide lifts the others to make room for it.
 
 ```js
-const prev = new Map(toasts.map(t => [t, t.getBoundingClientRect().top]));
-el.remove();
+const prev = new Map(toasts.map(t => [t, t.getBoundingClientRect().top]));   // First
+leaving.style.position = 'absolute';        // stays where it stands (top, left and width measured before), takes no room
 toasts.forEach(t => {
-  const d = prev.get(t) - t.getBoundingClientRect().top;   // First - Last
+  const d = prev.get(t) - t.getBoundingClientRect().top;                     // First - Last
   if (!d) return;
-  t.style.transition = 'none';
-  t.style.transform = `translateY(${d}px)`;                // Invert
-  void t.offsetWidth;                                      // commit the inverted position
-  requestAnimationFrame(() => { t.style.transition=''; t.style.transform=''; }); // Play
+  t.animate({ translate: [`0 ${d}px`, '0 0'] },                              // Invert, then Play
+            { duration: 340, easing: 'cubic-bezier(.22,1,.36,1)', composite: 'add' });
 });
 ```
 

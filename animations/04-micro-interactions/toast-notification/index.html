@@ -49,7 +49,7 @@
     @keyframes countdown{from{transform:scaleX(1)}to{transform:scaleX(0)}}
     @media(hover:hover){.send:hover{filter:brightness(1.08)}.toast .x:hover{color:var(--ui-text);background:rgba(255,255,255,.06)}.toast:hover .prog{animation-play-state:paused}}
     /* A stage under 300px tall (a window under about 630px tall) has no room for four toasts at full size, and one under 324px wide (a 320px phone) wraps the messages, so a fifth toast arriving while the oldest leaves would reach the button: padding and gaps shrink */
-    @container (max-height:300px),(max-width:323px){.toaster{gap:6px;padding:8px}.toast{padding-top:8px;padding-bottom:8px}}
+    @container (max-height:300px) or (max-width:323px){.toaster{gap:6px;padding:8px}.toast{padding-top:8px;padding-bottom:8px}}
     /* A short stage under 760px wide (a phone held sideways) would let a full stack reach the centred button: it steps to the side the stack is not on */
     @container (max-width:759px) and (max-height:360px){.send,.send.at-top{top:50%;bottom:auto;left:16px;right:auto;transform:translateY(-50%)}.send.at-right{left:auto;right:16px}}
     @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{animation:none!important;transform:scaleX(0)}}
@@ -184,24 +184,22 @@
   const ICON={ok:'✓',err:'✕',info:'i'};
   const signX=()=>corner.endsWith('r')?1:-1;
   // Where a toast starts and ends: off to the side, a little smaller, or (fade) in place
-  function away(dir){
-    return style==='scale'?'scale(.85)':style==='fade'?'none':`translateX(${(dir||signX())*112}%)`;
-  }
-  // FLIP: measure the remaining toasts' tops, then animate the delta with transform
+  const away=dir=>style==='scale'?'scale(.85)':style==='fade'?'none':`translateX(${(dir||signX())*112}%)`;
+  // FLIP: measure the other toasts before the layout changes and again after, then play the difference back as a glide. It uses the separate
+  // translate property, so it never replaces a slide-in or a swipe (transform), and composite:'add' lets it join a glide still under way.
   const snap=()=>{const m=new Map();toasts.forEach(t=>m.set(t,t.getBoundingClientRect().top));return m};
   function play(prev){
     if(reduceMotion.matches)return;
     toasts.forEach(t=>{
       const o=prev.get(t);if(o==null)return;
       const d=o-t.getBoundingClientRect().top;if(!d)return;
-      t.style.transition='none';t.style.transform=`translateY(${d}px)`;
-      void t.offsetWidth; // commit the inverted position before releasing it
-      requestAnimationFrame(()=>{t.style.transition='';t.style.transform=''});
+      t.animate({translate:[`0 ${d}px`,'0 0']},{duration:340,easing:'cubic-bezier(.22,1,.36,1)',composite:'add'});
     });
   }
   // The Send button, the visitor's taps and Show me all bring a toast in here; without a message it picks one at random.
   function spawn(msg){
     const [type,title,text]=msg||TYPES[Math.floor(Math.random()*TYPES.length)];
+    enforce(1); // room first: the oldest leave and the others close the gap before the new toast is placed
     const el=document.createElement('div');
     el.className='toast '+type;
     el.style.setProperty('--dur',dur+'s');
@@ -210,26 +208,37 @@
       `<button class="x" type="button" aria-label="Dismiss">&times;</button><span class="prog"></span>`;
     // enter: start off to the side, then settle to rest next frame
     el.style.opacity='0';el.style.transform=away();
+    const prev=snap();
     corner.startsWith('t')?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
     toasts.push(el);wire(el);
+    play(prev); // in the bottom corners the others rise to make room; in the top corners nothing moves
     void el.offsetWidth;
     if(reduceMotion.matches){
       el.style.opacity='1';el.style.transform='none';
       el._to=setTimeout(()=>dismiss(el),dur*1000); // no bar to end the countdown, so a timer does
     }else requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none'});
-    enforce();
   }
-  // Past the limit, the oldest leaves
-  function enforce(){while(toasts.length>limit)dismiss(toasts[0])}
-  function dismiss(el,dir){
-    if(!el||el._gone)return;el._gone=true;
-    const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1);
-    clearTimeout(el._to);
-    if(reduceMotion.matches){el.remove();return}
-    el.style.transition='transform .3s cubic-bezier(.4,0,1,1),opacity .3s';
-    el.style.opacity='0';el.style.transform=away(dir);el.style.pointerEvents='none';
-    el._exit=setTimeout(()=>{const prev=snap();el.remove();play(prev)},300);
+  // Toasts leave together. Each slides out from where it stands but stops taking room in the stack at once (taken out of the flow at its measured
+  // place, under the others), so the others, measured first, glide into the gap at once instead of waiting for the exit. The timer only removes the node.
+  function leave(going,dir){
+    going=going.filter(el=>el&&!el._gone);
+    if(!going.length)return;
+    going.forEach(el=>{el._gone=true;clearTimeout(el._to);const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1)});
+    if(reduceMotion.matches){going.forEach(el=>el.remove());return}
+    const prev=snap(),top=corner.startsWith('t'),cs=getComputedStyle(toaster),gap=parseFloat(cs.rowGap)||0;
+    const stack=[...toaster.children].filter(t=>t.style.position!=='absolute');
+    // a leaving toast's place is its distance from the edge the stack is anchored to (top or bottom): padding, then the toasts before it and the gaps
+    const spots=going.map(el=>{let at=parseFloat(top?cs.paddingTop:cs.paddingBottom);for(const t of stack){if(t===el)break;at+=parseFloat(getComputedStyle(t).height)+gap}return [at,getComputedStyle(el).width]});
+    going.forEach((el,i)=>{const [at,w]=spots[i];
+      Object.assign(el.style,{position:'absolute',zIndex:-1,left:cs.paddingLeft,width:w,top:top?at+'px':'auto',bottom:top?'auto':at+'px',pointerEvents:'none',
+        transition:'transform .3s cubic-bezier(.4,0,1,1),opacity .3s',opacity:'0',transform:away(dir)});
+      el._exit=setTimeout(()=>el.remove(),300);
+    });
+    play(prev);
   }
+  function dismiss(el,dir){leave([el],dir)}
+  // Past the limit, the oldest leave (extra: room for the toast that is about to arrive)
+  function enforce(extra=0){leave(toasts.slice(0,Math.max(0,toasts.length-limit+extra)))}
   function wire(el){
     el.querySelector('.prog').addEventListener('animationend',e=>{if(e.animationName==='countdown')dismiss(el)});
     el.querySelector('.x').addEventListener('click',e=>{
@@ -258,7 +267,6 @@
     el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
   }
   send.addEventListener('click',()=>spawn()); // not addEventListener('click',spawn): that would pass the click as the message
-
   // Show me starts with no toasts on the stage: every one, the ones still leaving included, is taken away at once (no exit).
   function toRest(){
     toaster.querySelectorAll('.toast').forEach(el=>{el._gone=true;clearTimeout(el._to);clearTimeout(el._exit);el.remove()});
@@ -267,8 +275,8 @@
   // Show me is one press of the stage's button. It leaves no timer behind (the toast it sends counts itself down and leaves
   // like any other), so there is nothing for hb:input to stop and no run to cancel.
   document.getElementById('btn-demo').addEventListener('click',()=>{toRest();spawn(DEMO)});
-  // Reset: every toast leaves the way it came.
-  document.getElementById('btn-reset').addEventListener('click',()=>{[...toasts].forEach(t=>dismiss(t))});
+  // Reset: every toast leaves the way it came, all at once.
+  document.getElementById('btn-reset').addEventListener('click',()=>leave(toasts));
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -278,8 +286,7 @@
   }
   choices('corner-seg',d=>{
     corner=d.corner;toaster.className='toaster '+corner;
-    send.classList.toggle('at-top',corner.startsWith('b'));
-    send.classList.toggle('at-right',corner.endsWith('l'));
+    send.classList.toggle('at-top',corner.startsWith('b'));send.classList.toggle('at-right',corner.endsWith('l'));
   });
   choices('style-seg',d=>{style=d.style});
   choices('time-seg',d=>{dur=+d.sec});
