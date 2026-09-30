@@ -88,7 +88,7 @@ const CHECK = `(() => {
     const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-rel')]
       .filter(el => el.getClientRects().length && !el.closest('.stage'))
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
-      .map(el => el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+      .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
     if (small.length) problems.push('small targets: ' + small.join(', '));
   }
   const firstScreen = document.querySelector('.hb-player') || document.querySelector('.hb-page .stage');
@@ -120,7 +120,7 @@ const homeCheck = firstScreen => `(() => {
     const small = [...document.querySelectorAll('.top a, .top button, .search button, #q, #q2, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .foot a')]
       .filter(el => el.getClientRects().length)
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
-      .map(el => el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+      .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
     if (small.length) problems.push('small targets: ' + small.join(', '));
   }
   const search = document.querySelector('.search'), tile = document.querySelector('.place');
@@ -129,7 +129,7 @@ const homeCheck = firstScreen => `(() => {
   if (!tile) problems.push('no place tiles');
   else if (${firstScreen} && r(tile).bottom > innerHeight) problems.push('place tiles below the first screen');
   const counts = [...document.querySelectorAll('.pl-count')].map(el => el.textContent.trim());
-  if (counts.length !== 9 || counts.some(t => !/^\\d+ animations?$/.test(t))) problems.push('tile counts: ' + counts.join(' | '));
+  if (counts.length !== 9 || counts.some(t => !/^[1-9]\\d* animations?$/.test(t))) problems.push('tile counts: ' + counts.join(' | '));
   const cards = document.querySelectorAll('#cards .card').length;
   if (cards !== 8) problems.push('Start shows ' + cards + ' cards, not 8');
   return { problems };
@@ -446,19 +446,21 @@ async function scrollProblems(reduced) {
   return problems;
 }
 
-// Presses the Copy prompt button of the card at index the way a visitor does: scrolled into view, then a real mouse press and
-// release at its center (btn.click() would pass even with the card's stretched link laid over the button). Returns what
-// covers the button at its center, if anything, and then presses nothing (a press on the link would leave the page).
+// Presses the Copy prompt button of the card at index the way a visitor does: scrolled into view, the pointer moved onto it with
+// no button held, then a real mouse press and release at its center (btn.click() would pass even with the card's stretched link
+// laid over the button). Returns what covers the button at its center, if anything, and then presses nothing (a press on the
+// link would leave the page).
 async function pressCopyButton(index) {
   const spot = await evaluate(`(() => {
     const btn = document.querySelectorAll('#cards .card .copy')[${index}];
     btn.scrollIntoView({ block: 'center' });
     const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
-    const covered = btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.className ? '.' + String(hit.className).split(' ')[0] : '') : 'nothing';
+    const covered = btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing';
     return { x, y, covered };
   })()`);
   if (spot.covered) return spot.covered;
-  for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
   return '';
 }
 
