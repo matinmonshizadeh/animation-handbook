@@ -212,7 +212,7 @@ button,input{font:inherit;color:inherit}
 .card:has(.title a:focus-visible){outline:3px solid var(--brand);outline-offset:3px}
 .stage{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:#08080a}
 .pv{position:absolute;inset:0;width:100%;height:100%;transition:transform .6s var(--ease);--ink:#f4f4f2;--ink-dim:#adadb2;--muted:#77777e;--line:rgba(255,255,255,.085)}
-.tag{position:absolute;z-index:1;left:10px;top:10px;max-width:calc(100% - 10px);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{position:absolute;z-index:1;left:10px;top:10px;max-width:calc(100% - 20px);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .results.no-tags .tag{display:none}
 .meta{display:flex;flex-direction:column;flex:1;padding:14px 8px 6px}
 .title{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
@@ -303,7 +303,7 @@ button,input{font:inherit;color:inherit}
   .card{padding:6px;border-radius:16px}
   .title a::after{border-radius:16px}
   .stage{border-radius:10px}
-  .tag{left:6px;top:6px;max-width:calc(100% - 6px);padding:3px 8px;font-size:11px}
+  .tag{left:6px;top:6px;max-width:calc(100% - 12px);padding:3px 8px;font-size:11px}
   .meta{padding:10px 6px 4px}
   .title{font-size:15px}
   .desc{margin-top:4px;font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -329,7 +329,7 @@ button,input{font:inherit;color:inherit}
 @media(max-width:360px){ /* two narrow cards across: the pill and the place label on the preview stay on one line */
   .copy{gap:5px;padding:0 4px;font-size:12px}
   .copy .i{width:16px;height:16px}
-  .tag{left:5px;top:5px;max-width:calc(100% - 5px);padding:3px 6px;font-size:10px}
+  .tag{left:5px;top:5px;max-width:calc(100% - 10px);padding:3px 6px;font-size:10px}
 }
 
 /* ── preview library ── */
@@ -1767,8 +1767,9 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 });
 // ---------- Views, search and the address ----------
 const PAGE=8;
-// A typed word drops the first of these endings that leaves three letters with a vowel ("ring" stays whole), never the s of
-// "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while three stay (snapping → snap, added → add).
+// A typed word drops the first of these endings that leaves at least three letters with a vowel ("ring" stays whole), never
+// the s of "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while at least three stay
+// (snapping → snap, added → add).
 function stem(w){
   if(w.endsWith('ss'))return w;
   for(const end of ['ies','ing','ed','es','s']){
@@ -1864,9 +1865,9 @@ function writeURL(push){
   else if(state.place)p.push('place='+PLACE[state.place].url);
   else if(state.view)p.push('view=all');
   if(state.all&&(state.q||state.place))p.push('all=1');
-  const search=p.length?'?'+p.join('&'):'';
-  const moved=String(new URLSearchParams(search))!==String(new URLSearchParams(location.search));
-  try{history[push&&moved?'pushState':'replaceState'](null,'',search||location.pathname);}catch(e){}
+  const query=p.length?'?'+p.join('&'):'';
+  const moved=String(new URLSearchParams(query))!==String(new URLSearchParams(location.search));
+  try{history[push&&moved?'pushState':'replaceState'](null,'',query||location.pathname);}catch(e){}
 }
 // The view the address shows, and the category of an old ?cat= link (to scroll to).
 function fromURL(){
@@ -1992,7 +1993,7 @@ function toast(message){
   },2400);
 }
 // Only the icon is swapped and the text of the label changes: the label is a live region, and a screen reader announces a change
-// inside one but not a new one. The name of the button always starts with what it shows.
+// inside one but not a new one. The name of the button always contains what it shows.
 function copyState(btn,kind){
   const name=btn.closest('.card').querySelector('.title a').textContent;
   clearTimeout(btn._timer);
