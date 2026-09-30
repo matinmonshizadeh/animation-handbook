@@ -356,7 +356,9 @@
     // can stop a Show me run that is under way and leave the visitor in control. Click is there for an activation that comes
     // with no pointer or key event (assistive technology); a press sends one for the press and then one for the click.
     // The same input, or focus arriving in the stage (a Tab into a field), also means the visitor got there before the Show me
-    // press on arrival, and that press is then skipped, so it cannot wipe or replace what they are doing.
+    // press on arrival, and that press is then skipped, so it cannot wipe or replace what they are doing. Focus counts whoever
+    // asks for it: a page's own focus() call makes a trusted focusin in Chrome too, so a do-it page must not move focus into
+    // its stage before that press (none does).
     var visitorActed = false;
     function setUpVisitorInput() {
       ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click'].forEach(function (type) {
@@ -366,7 +368,7 @@
           doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
         }, { capture: true, passive: true });
       });
-      stage.addEventListener('focusin', function (e) { if (e.isTrusted) visitorActed = true; });
+      stage.addEventListener('focusin', function (e) { if (e.isTrusted) visitorActed = true; }, { capture: true, passive: true });
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six

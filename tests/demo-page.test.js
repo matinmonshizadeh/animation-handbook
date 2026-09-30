@@ -164,7 +164,8 @@ test('the Show me press on arrival is skipped after focus arrives in the stage, 
   assert.equal(page.sent.length, 0);
 });
 
-test('input and focus that the page made itself do not count as the visitor acting', () => {
+// Only dispatched events can be tried here: a real focus() call makes a trusted focusin, which does count.
+test('events dispatched by script (isTrusted false) do not count as the visitor acting', () => {
   const page = standInPage('do', false);
   for (const type of ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click', 'focusin']) page.stage.emit(type, script);
   page.runTimers();
