@@ -29,7 +29,7 @@ function animate(t) {
 }
 ```
 
-The clock `t` and each shape's turn move by the time that has passed, not by a fixed amount per frame. Every 60th of a second adds `speed * 0.005` to `t`, however many frames that takes, so a 30 Hz phone and a 144 Hz monitor drift at the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap between frames counts for at most 50 ms:
+The clock `t` and each shape's turn move by the time that has passed, not by a fixed amount per frame. Every 60th of a second adds `speed * 0.005` to `t` (a third of that in slow motion), however many frames that takes, so a 30 Hz phone and a 144 Hz monitor drift at the same speed. The first frame after a start, a pause or a return from a hidden tab adds nothing, and a long gap between frames counts for at most 50 ms:
 
 ```js
 const FRAME = 1000 / 60;                  // what one 60 Hz frame adds up to
@@ -39,7 +39,7 @@ function loop(now) {
   requestAnimationFrame(loop);
   const dt = last === null ? 0 : Math.min(now - last, 50);   // ms since the last frame
   last = now;
-  const k = dt / FRAME;                   // 1 at 60 Hz, 2 at 30 Hz, about 0.42 at 144 Hz
+  const k = dt / FRAME * (slow ? 1 / 3 : 1);   // 1 at 60 Hz, 2 at 30 Hz, about 0.42 at 144 Hz; a third of that in slow motion
   t += speed * 0.005 * k;
   if (rotates) elements.forEach(el => { el.rot += el.rotSpeed * k; });
   animate(t);
