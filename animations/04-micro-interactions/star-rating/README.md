@@ -1,7 +1,7 @@
 # Star Rating
 
 ## What it is
-An interactive five-star control for capturing a rating. Moving the pointer across the row fills the stars up to the pointer with an accent color; the fill cascades smoothly as you move. Clicking (or tapping) commits that value and plays a short scale pop on the selected star. Arrow keys drive the same control from the keyboard, and an option lets each star resolve to a half.
+A star rating lets someone give a score by choosing a star. As the pointer moves along the row, the stars fill up to the one under it, so the choice shows before it is made; clicking or tapping a star chooses it and makes it pop. The arrow keys change the rating too, and a setting lets each star count in halves.
 
 ## When to use it
 - Product, review, and feedback forms where a coarse 1–5 score is enough
@@ -11,7 +11,7 @@ An interactive five-star control for capturing a rating. Moving the pointer acro
 - Not for precise measurements — five (or ten) buckets is the whole point; use a slider or number field when finer values matter
 
 ## How it works
-Each star is two stacked shapes in one box: a muted outline drawn with `currentColor`, and an accent-colored fill. A full star is just a color swap on the outline; a half star reveals an overlaid accent copy clipped to the left 50%. Because the swap is a `transition` on `color`, sweeping the pointer across the row makes the stars fill one after another — the animation is the cascade, not a per-star width tween. Committing retriggers a `transform: scale` pop on the chosen star:
+Each star is one star shape drawn in `currentColor`, with a second copy in the accent color stacked on top of it and clipped to the left 50%. A full star is just a color swap on the shape, from muted to accent; a half star reveals the clipped accent copy. Because the swap is a `transition` on `color`, sweeping the pointer across the row makes the stars fill one after another — the animation is the cascade, not a per-star width tween. Committing retriggers a `transform: scale` pop on the chosen star:
 
 ```css
 .star{ color: var(--ui-muted); transition: color var(--fill-dur) ease; }
@@ -28,10 +28,10 @@ The pointer position within a star decides the value — left half rounds to `.5
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Star count | 5 | How many buckets; the control rebuilds and `aria-valuemax` follows |
-| Pop intensity | 1.35× | Peak scale of the commit pop. Above ~1.6 reads as rubbery |
-| Fill duration | 180ms | Color-transition time per star — the perceived smoothness of the cascade |
-| Allow half-stars | off | Switches the step and pointer rounding between 1 and 0.5 |
+| Pop size | Medium | How big the chosen star grows as it pops: 1.15, 1.35 or 1.6 times its size; above about 1.6 it looks rubbery |
+| Speed | Normal | How long each star takes to fill with color: slow is 300ms, normal 180ms and fast 110ms; it sets how smoothly the fill follows the pointer |
+| Allows half stars | off | Pointing at the left half of a star gives half a point, and the arrow keys move in halves |
+| Number of stars | Five | Three, five or ten stars; five is the usual scale |
 
 ## Production notes
 - **Accessibility**: this demo exposes the row as a single `role="slider"` with `aria-valuemin/max/now` and an `aria-valuetext` ("3 out of 5"), which handles half-steps cleanly from the keyboard. A `role="radiogroup"` of `radio` stars is the other idiomatic choice and maps better to discrete whole-star ratings; pick the model that matches whether half values exist.
@@ -42,6 +42,6 @@ The pointer position within a star decides the value — left half rounds to `.5
 - **Library equivalents**: Framer Motion can drive the pop with a `whileTap`/`animate` scale spring; many form kits (e.g. rating inputs in headless UI libraries) ship the radiogroup semantics so you only style the stars.
 
 ## See also
-- [Heart Burst](../heart-burst/) — a sibling reward interaction where the commit is a particle burst instead of a fill
-- [Button Press Scale](../button-press-scale/) — the scale-overshoot mechanic behind the star pop
-- [Toggle / Switch Slide](../toggle-switch/) — another small, committed form control with a state animation
+- [Heart / Like Burst](../heart-burst/) — a like button that bursts into small hearts
+- [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
+- [Toggle / Switch Slide](../toggle-switch/) — another small control that animates its state

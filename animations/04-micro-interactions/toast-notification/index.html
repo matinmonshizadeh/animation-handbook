@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Toast Notification — Animation Handbook</title>
-  <meta name="description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <meta name="description" content="Short messages slide into a corner, then leave on their own. Best for updates.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,212 +12,285 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Toast Notification — Animation Handbook">
-  <meta property="og:description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <meta property="og:description" content="Short messages slide into a corner, then leave on their own. Best for updates.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Toast Notification — Animation Handbook">
-  <meta name="twitter:description" content="Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.">
+  <meta name="twitter:description" content="Short messages slide into a corner, then leave on their own. Best for updates.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Toast Notification", "name": "Toast Notification", "description": "Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Toast Notification"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Toast Notification", "name": "Toast Notification", "description": "Short messages slide into a corner, then leave on their own. Best for updates.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toast-notification/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Toast Notification"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--ok:#5ad19a;--err:#f4515b;--info:#6ea8ff}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--ok:#5ad19a;--err:#f4515b;--info:#6ea8ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage-wrap{flex:1;min-width:0}
-    .stage{position:relative;overflow:hidden;min-height:min(62vh,480px);border:1px solid var(--ui-border);border-radius:8px;background:radial-gradient(120% 100% at 50% 0,#141418,#0b0b0d)}
-    .hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ui-muted);text-align:center;pointer-events:none;padding:0 16px}
-    /* Toast region — anchored to a corner of the stage */
-    .toaster{position:absolute;display:flex;flex-direction:column;gap:10px;width:min(300px,calc(100% - 24px));padding:12px;z-index:2}
+    /* A container, so the rules for a short or narrow stage below follow the stage's own size, whatever the window */
+    .stage{--hb-stage-h-phone:420px;position:relative;overflow:hidden;container-type:size;background:radial-gradient(120% 100% at 50% 0,#141418,#0b0b0d)}
+    /* The button that sends a toast: centred on the edge opposite the corner the toasts stack in */
+    .send{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;min-height:44px;padding:0 22px;border:0;border-radius:8px;background:var(--ui-accent);color:#1a0f08;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;touch-action:manipulation}
+    .send.at-top{bottom:auto;top:16px}
+    /* The site focus ring is drawn inside the button, where it is as light as the fill, so it turns dark */
+    .hb-page .stage .send:focus-visible{outline-color:#0b0b0d}
+    /* Toast region: anchored to a corner of the stage; only the toasts take the pointer, so the empty box never covers the button */
+    .toaster{position:absolute;display:flex;flex-direction:column;gap:10px;width:min(300px,calc(100% - 24px));padding:12px;z-index:2;pointer-events:none}
     .toaster.tl{top:0;left:0;align-items:flex-start}
     .toaster.tr{top:0;right:0;align-items:flex-end}
     .toaster.bl{bottom:0;left:0;flex-direction:column-reverse;align-items:flex-start}
     .toaster.br{bottom:0;right:0;flex-direction:column-reverse;align-items:flex-end}
-    .toast{position:relative;width:100%;overflow:hidden;border:1px solid var(--ui-border);border-left:3px solid var(--tc,var(--info));border-radius:8px;background:var(--ui-bg);padding:12px 44px 12px 12px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .34s;will-change:transform,opacity}
+    .toast{position:relative;width:100%;overflow:hidden;border:1px solid var(--ui-border);border-left:3px solid var(--tc,var(--info));border-radius:8px;background:var(--ui-bg);color:var(--ui-text);padding:12px 44px 12px 12px;display:flex;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;pointer-events:auto;transition:transform .34s cubic-bezier(.22,1,.36,1),opacity .34s;will-change:transform,opacity}
     .toast.ok{--tc:var(--ok)} .toast.err{--tc:var(--err)} .toast.info{--tc:var(--info)}
-    .toast .ic{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#0b0b0d;font-family:var(--disp);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
+    .toast .ic{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#0b0b0d;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1}
     .toast .body{min-width:0}
-    .toast .ti{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:-.01em}
-    .toast .ms{font-size:10.5px;color:var(--ui-muted);margin-top:2px;line-height:1.4}
-    .toast .x{position:absolute;top:50%;right:0;transform:translateY(-50%);width:44px;height:44px;border:0;background:transparent;color:var(--ui-muted);font-size:15px;cursor:pointer;border-radius:6px;line-height:1}
-    @media(hover:hover){.toast .x:hover{color:var(--ui-text);background:rgba(255,255,255,.06)}}
-    .toast .prog{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--tc);transform-origin:left;transform:scaleX(1);animation:ah_prog var(--dur,4s) linear forwards}
-    @media(hover:hover){.toast:hover .prog{animation-play-state:paused}}
-    .toast.paused .prog{animation-play-state:paused}
-    @keyframes ah_prog{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-    /* controls */
-    aside{width:clamp(210px,24vw,250px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .row{display:flex;flex-direction:column;gap:6px}
-    select{width:100%;min-height:44px;background:var(--bg);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:6px;font-family:var(--mono);font-size:11px;padding:0 8px}
-    .sr{display:flex;align-items:center;gap:8px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sval{width:46px;text-align:right;color:var(--ui-text)}
-    .trigger{background:var(--ui-accent);border:0;color:#1a0f08;font-family:var(--disp);font-weight:700;font-size:12px;padding:14px 8px;border-radius:6px;cursor:pointer;width:100%;min-height:44px}
-    .clear{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:12px 8px;border-radius:6px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){.trigger:hover{filter:brightness(1.08)}.clear:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    .div{height:1px;background:var(--ui-border)}
-    @media(max-width:600px){.layout{flex-direction:column}.stage-wrap,aside{width:100%}}
+    .toast .ti{font-weight:700;font-size:12px;letter-spacing:-.01em}
+    .toast .ms{font-size:11px;color:var(--ui-muted);margin-top:2px;line-height:1.4}
+    .toast .x{position:absolute;top:50%;right:0;transform:translateY(-50%);width:44px;height:44px;border:0;background:transparent;color:var(--ui-muted);font-family:inherit;font-size:15px;cursor:pointer;border-radius:6px;line-height:1}
+    /* The bar empties over the toast's time on screen; when it ends, the toast leaves. Holding a finger on a toast, or the keyboard focus inside it, pauses the bar */
+    .toast .prog{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--tc);transform-origin:left;transform:scaleX(1);animation:countdown var(--dur,4s) linear forwards}
+    .toast.paused .prog,.toast:focus-within .prog{animation-play-state:paused}
+    @keyframes countdown{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+    @media(hover:hover){.send:hover{filter:brightness(1.08)}.toast .x:hover{color:var(--ui-text);background:rgba(255,255,255,.06)}.toast:hover .prog{animation-play-state:paused}}
+    /* A stage under 300px tall (a window under about 630px tall) has no room for four toasts at full size, and one under 324px wide (a 320px phone) wraps the messages, so a fifth toast arriving while the oldest leaves would reach the button: padding and gaps shrink */
+    @container (max-height:300px) or (max-width:323px){.toaster{gap:6px;padding:8px}.toast{padding-top:8px;padding-bottom:8px}}
+    /* A short stage under 760px wide (a phone held sideways) would let a full stack reach the centred button: it steps to the side the stack is not on */
+    @container (max-width:759px) and (max-height:360px){.send,.send.at-top{top:50%;bottom:auto;left:16px;right:auto;transform:translateY(-50%)}.send.at-right{left:auto;right:16px}}
     @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{animation:none!important;transform:scaleX(0)}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../star-rating/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../segmented-control/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/04-micro-interactions/toast-notification/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Toast Notification</h1>
-  <p>Transient cards slide into a corner, stack, count down a progress bar, then auto-dismiss as the rest reflow to close the gap.</p>
-</header>
-<div class="layout">
-  <div class="stage-wrap">
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../star-rating/" rel="prev" aria-label="Previous: Star Rating"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Star Rating</span></a><a href="../segmented-control/" rel="next" aria-label="Next: Segmented Control"><span><span class="hb-dir">Next: </span>Segmented Control</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.27 · Micro-Interactions</p>
+    <h1>Toast Notification</h1>
+    <p class="hb-lede">Short messages slide into a corner, then leave on their own. Best for updates.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Send a toast, then tap or swipe it away early, or press Show me.</p></div>
+    </div>
     <div class="stage">
-      <div class="hint" id="hint">Trigger a toast &rarr;</div>
+      <button class="send" id="send" type="button">Send a toast</button>
       <div class="toaster tr" id="toaster" role="status" aria-live="polite" aria-atomic="false"></div>
     </div>
-  </div>
-  <aside>
-    <p class="note">Each toast auto-dismisses when its progress bar empties. Hover (or drag) to pause the countdown; tap, swipe, or press &times; to dismiss early.</p>
-    <div class="row"><span class="lbl">Corner</span>
-      <select id="corner">
-        <option value="tr" selected>Top right</option>
-        <option value="tl">Top left</option>
-        <option value="br">Bottom right</option>
-        <option value="bl">Bottom left</option>
-      </select>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
     </div>
-    <div class="row"><span class="lbl">Animation</span>
-      <select id="style">
-        <option value="slide" selected>Slide</option>
-        <option value="fade">Fade</option>
-        <option value="scale">Scale</option>
-      </select>
-    </div>
-    <div class="row"><span class="lbl">Auto-dismiss</span>
-      <div class="sr"><input type="range" id="dur" min="2" max="8" step="0.5" value="4"><span class="sval" id="durv">4.0s</span></div>
-    </div>
-    <div class="row"><span class="lbl">Stack limit</span>
-      <div class="sr"><input type="range" id="limit" min="1" max="6" step="1" value="4"><span class="sval" id="limitv">4</span></div>
-    </div>
-    <button class="trigger" id="trigger">Trigger toast</button>
-    <div class="div"></div>
-    <button class="clear" id="clear">Dismiss all</button>
-  </aside>
-</div>
-<script>
-  const toaster=document.getElementById('toaster'), hint=document.getElementById('hint');
-  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let corner='tr', style='slide', dur=4, limit=4, toasts=[], n=0;
+  </section>
 
-  const TYPES=[
-    ['ok','Saved','Your changes were published.'],
-    ['ok','Uploaded','profile.png finished uploading.'],
-    ['err','Failed','Could not reach the server.'],
-    ['err','Rejected','Card was declined — try another.'],
-    ['info','Heads up','A new version is available.'],
-    ['info','Synced','3 items synced across devices.']
-  ];
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="corner-lbl">Corner</p>
+        <div class="seg" id="corner-seg" role="group" aria-labelledby="corner-lbl">
+          <button type="button" data-corner="tl" aria-pressed="false">Top left</button>
+          <button type="button" data-corner="tr" class="on" aria-pressed="true">Top right</button>
+          <button type="button" data-corner="bl" aria-pressed="false">Bottom left</button>
+          <button type="button" data-corner="br" aria-pressed="false">Bottom right</button>
+        </div>
+        <p class="hb-hint">Where toasts appear and stack.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="style-lbl">How it comes in</p>
+        <div class="seg" id="style-seg" role="group" aria-labelledby="style-lbl">
+          <button type="button" data-style="slide" class="on" aria-pressed="true">Slides</button>
+          <button type="button" data-style="fade" aria-pressed="false">Fades</button>
+          <button type="button" data-style="scale" aria-pressed="false">Grows</button>
+        </div>
+        <p class="hb-hint">How each toast arrives and leaves.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="time-lbl">Time on screen</p>
+        <div class="seg" id="time-seg" role="group" aria-labelledby="time-lbl">
+          <button type="button" data-sec="2.5" aria-pressed="false">Short</button>
+          <button type="button" data-sec="4" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-sec="6.5" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How long a toast stays before it leaves.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="limit-lbl">Most at once</p>
+          <div class="seg" id="limit-seg" role="group" aria-labelledby="limit-lbl">
+            <button type="button" data-n="2" aria-pressed="false">Two</button>
+            <button type="button" data-n="3" aria-pressed="false">Three</button>
+            <button type="button" data-n="4" class="on" aria-pressed="true">Four</button>
+          </div>
+          <p class="hb-hint">The oldest leaves when a new one needs room.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add toast notifications to [the actions in your app that should be confirmed quietly, such as saving]. Each toast comes into a corner of the screen with a short message and a thin bar that empties as it counts down, then leaves on its own. New toasts stack; when one leaves, the others glide over to close the gap, moved with transforms rather than by changing the layout. Pause the countdown while the pointer is over a toast, and let a tap, a sideways swipe or a close button dismiss it early. Announce each message to screen readers without moving focus. If the visitor has reduced motion turned on, show and hide toasts without movement. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Save confirmations</li><li>Upload updates</li><li>Sync notices</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Errors that need action</li><li>Long messages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const toaster=document.getElementById('toaster'),send=document.getElementById('send');
+  const reduceMotion=matchMedia('(prefers-reduced-motion:reduce)');
+  let corner='tr',style='slide',dur=4,limit=4,toasts=[];
+  const TYPES=[['ok','Saved','Your changes were published.'],['ok','Uploaded','profile.png finished uploading.'],
+    ['err','Failed','Could not reach the server.'],['err','Rejected','Card was declined — try another.'],
+    ['info','Heads up','A new version is available.'],['info','Synced','3 items synced across devices.']];
+  // What Show me sends: a neutral example, so a run is always the same and screen readers hear an honest message
+  const DEMO=['ok','Example','A toast like this confirms an action.'];
   const ICON={ok:'✓',err:'✕',info:'i'};
   const signX=()=>corner.endsWith('r')?1:-1;
-
-  // Enter/exit transforms per animation style
-  function tf(state){
-    if(style==='fade')return state==='rest'?'none':'none';
-    if(style==='scale')return state==='rest'?'none':'scale(.85)';
-    return state==='rest'?'none':`translateX(${signX()*112}%)`; // slide
-  }
-  function offscreen(el,dir){
-    el.style.opacity='0';
-    el.style.transform=style==='scale'?'scale(.85)':style==='fade'?'none':`translateX(${(dir||signX())*112}%)`;
-  }
-
-  // FLIP: measure remaining toasts' tops, then animate the delta with transform
-  const snap=()=>{const m=new Map();toasts.forEach(t=>m.set(t,t.getBoundingClientRect().top));return m;};
+  // Where a toast starts and ends: off to the side, a little smaller, or (fade) in place
+  const away=dir=>style==='scale'?'scale(.85)':style==='fade'?'none':`translateX(${(dir||signX())*112}%)`;
+  // FLIP: measure the other toasts before the layout changes and again after, then play the difference back as a glide. It uses the separate
+  // translate property, so it never replaces a slide-in or a swipe (transform), and composite:'add' lets it join a glide still under way.
+  const snap=()=>{const m=new Map();toasts.forEach(t=>m.set(t,t.getBoundingClientRect().top));return m};
   function play(prev){
-    if(reduce)return;
+    if(reduceMotion.matches)return;
     toasts.forEach(t=>{
-      const o=prev.get(t); if(o==null)return;
-      const d=o-t.getBoundingClientRect().top; if(!d)return;
-      t.style.transition='none'; t.style.transform=`translateY(${d}px)`;
-      void t.offsetWidth; // commit the inverted position before releasing it
-      requestAnimationFrame(()=>{t.style.transition='';t.style.transform='';});
+      const o=prev.get(t);if(o==null)return;
+      const d=o-t.getBoundingClientRect().top;if(!d)return;
+      t.animate({translate:[`0 ${d}px`,'0 0']},{duration:340,easing:'cubic-bezier(.22,1,.36,1)',composite:'add'});
     });
   }
-
-  function spawn(){
-    const [type,title,msg]=TYPES[Math.floor(Math.random()*TYPES.length)];
+  // The Send button, the visitor's taps and Show me all bring a toast in here; without a message it picks one at random.
+  function spawn(msg){
+    const [type,title,text]=msg||TYPES[Math.floor(Math.random()*TYPES.length)];
+    enforce(1); // room first: the oldest leave and the others close the gap before the new toast is placed
     const el=document.createElement('div');
     el.className='toast '+type;
     el.style.setProperty('--dur',dur+'s');
-    el.innerHTML=`<span class="ic">${ICON[type]}</span>`+
-      `<div class="body"><div class="ti">${title}</div><div class="ms">${msg}</div></div>`+
-      `<button class="x" aria-label="Dismiss">&times;</button><span class="prog"></span>`;
-    // enter: start off, then settle to rest next frame
-    el.style.opacity='0'; el.style.transform=tf('enter');
-    const top=corner.startsWith('t');
-    top?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
-    toasts.push(el); wire(el,type);
-    if(!reduce){void el.offsetWidth;requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none';});}
-    else{el.style.opacity='1';el.style.transform='none';}
-    if(reduce)el._to=setTimeout(()=>dismiss(el),dur*1000);
-    enforce(); hint.style.display='none';
+    el.innerHTML=`<span class="ic" aria-hidden="true">${ICON[type]}</span>`+
+      `<div class="body"><div class="ti">${title}</div><div class="ms">${text}</div></div>`+
+      `<button class="x" type="button" aria-label="Dismiss">&times;</button><span class="prog"></span>`;
+    // enter: start off to the side, then settle to rest next frame
+    el.style.opacity='0';el.style.transform=away();
+    const prev=snap();
+    corner.startsWith('t')?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
+    toasts.push(el);wire(el);
+    play(prev); // in the bottom corners the others rise to make room; in the top corners nothing moves
+    void el.offsetWidth;
+    if(reduceMotion.matches){
+      el.style.opacity='1';el.style.transform='none';
+      el._to=setTimeout(()=>dismiss(el),dur*1000); // no bar to end the countdown, so a timer does
+    }else requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none'});
   }
-
-  function enforce(){ while(toasts.filter(t=>!t._gone).length>limit)dismiss(toasts.find(t=>!t._gone)); }
-
-  function dismiss(el,dir,now){
-    if(!el||el._gone)return; el._gone=true;
-    const i=toasts.indexOf(el); if(i>-1)toasts.splice(i,1);
-    clearTimeout(el._to);
-    const close=()=>{const prev=snap();el.remove();play(prev);if(!toasts.length)hint.style.display='';};
-    if(reduce||now){el.remove();if(!toasts.length)hint.style.display='';return;}
-    el.style.transition='transform .3s cubic-bezier(.4,0,1,1),opacity .3s';
-    offscreen(el,dir);
-    setTimeout(close,300);
+  // Toasts leave together. Each slides out from where it stands but stops taking room in the stack at once (taken out of the flow at its measured
+  // place, under the others), so the others, measured first, glide into the gap at once instead of waiting for the exit. The timer only removes the node.
+  function leave(going,dir){
+    going=going.filter(el=>el&&!el._gone);
+    if(!going.length)return;
+    going.forEach(el=>{el._gone=true;clearTimeout(el._to);const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1)});
+    if(reduceMotion.matches){going.forEach(el=>el.remove());return}
+    const prev=snap(),top=corner.startsWith('t'),cs=getComputedStyle(toaster),gap=parseFloat(cs.rowGap)||0;
+    const stack=[...toaster.children].filter(t=>t.style.position!=='absolute');
+    // a leaving toast's place is its distance from the edge the stack is anchored to (top or bottom): padding, then the toasts before it and the gaps
+    const spots=going.map(el=>{let at=parseFloat(top?cs.paddingTop:cs.paddingBottom);for(const t of stack){if(t===el)break;at+=parseFloat(getComputedStyle(t).height)+gap}return [at,getComputedStyle(el).width]});
+    going.forEach((el,i)=>{const [at,w]=spots[i];
+      Object.assign(el.style,{position:'absolute',zIndex:-1,left:cs.paddingLeft,width:w,top:top?at+'px':'auto',bottom:top?'auto':at+'px',pointerEvents:'none',
+        transition:'transform .3s cubic-bezier(.4,0,1,1),opacity .3s',opacity:'0',transform:away(dir)});
+      el._exit=setTimeout(()=>el.remove(),300);
+    });
+    play(prev);
   }
-
-  function wire(el,type){
-    const prog=el.querySelector('.prog');
-    prog.addEventListener('animationend',e=>{if(e.animationName==='ah_prog')dismiss(el);});
-    el.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();dismiss(el);});
+  function dismiss(el,dir){leave([el],dir)}
+  // Past the limit, the oldest leave (extra: room for the toast that is about to arrive)
+  function enforce(extra=0){leave(toasts.slice(0,Math.max(0,toasts.length-limit+extra)))}
+  function wire(el){
+    el.querySelector('.prog').addEventListener('animationend',e=>{if(e.animationName==='countdown')dismiss(el)});
+    el.querySelector('.x').addEventListener('click',e=>{
+      e.stopPropagation();
+      if(el.contains(document.activeElement))send.focus({preventScroll:true}); // the toast is about to go: keep the keyboard's place
+      dismiss(el);
+    });
     // swipe / tap dismiss
     let x0=0,dx=0,drag=false;
-    el.addEventListener('pointerdown',e=>{if(e.target.closest('.x'))return;drag=true;dx=0;x0=e.clientX;el.classList.add('paused');el.style.transition='none';el.setPointerCapture(e.pointerId);});
-    el.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px)`;el.style.opacity=String(Math.max(.3,1-Math.abs(dx)/(el.offsetWidth*.8)));});
-    function up(e){if(!drag)return;drag=false;el.classList.remove('paused');
-      if(e.type!=='pointercancel'&&(Math.abs(dx)>el.offsetWidth*.35||Math.abs(dx)<6)){dismiss(el,dx<0?-1:1);}
-      else{el.style.transition='transform .3s cubic-bezier(.22,1,.36,1),opacity .3s';el.style.transform='none';el.style.opacity='1';}}
-    el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+    el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.x')||el._gone)return;
+      drag=true;dx=0;x0=e.clientX;el.classList.add('paused');el.style.transition='none';el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove',e=>{
+      if(!drag)return;
+      dx=e.clientX-x0;
+      el.style.transform=`translateX(${dx}px)`;
+      el.style.opacity=String(Math.max(.3,1-Math.abs(dx)/(el.offsetWidth*.8)));
+    });
+    function up(e){
+      if(!drag)return;drag=false;el.classList.remove('paused');
+      if(el._gone)return;
+      if(e.type!=='pointercancel'&&(Math.abs(dx)>el.offsetWidth*.35||Math.abs(dx)<6))dismiss(el,dx<0?-1:1);
+      else{el.style.transition='transform .3s cubic-bezier(.22,1,.36,1),opacity .3s';el.style.transform='none';el.style.opacity='1'}
+    }
+    el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
   }
-
-  // controls
-  document.getElementById('trigger').addEventListener('click',spawn);
-  document.getElementById('clear').addEventListener('click',()=>{[...toasts].forEach(t=>dismiss(t));});
-  document.getElementById('corner').addEventListener('change',e=>{corner=e.target.value;toaster.className='toaster '+corner;});
-  document.getElementById('style').addEventListener('change',e=>style=e.target.value);
-  document.getElementById('dur').addEventListener('input',e=>{dur=+e.target.value;document.getElementById('durv').textContent=dur.toFixed(1)+'s';});
-  document.getElementById('limit').addEventListener('input',e=>{limit=+e.target.value;document.getElementById('limitv').textContent=limit;enforce();});
+  send.addEventListener('click',()=>spawn()); // not addEventListener('click',spawn): that would pass the click as the message
+  // Show me starts with no toasts on the stage: every one, the ones still leaving included, is taken away at once (no exit).
+  function toRest(){
+    toaster.querySelectorAll('.toast').forEach(el=>{el._gone=true;clearTimeout(el._to);clearTimeout(el._exit);el.remove()});
+    toasts=[];
+  }
+  // Show me is one press of the stage's button. It leaves no timer behind (the toast it sends counts itself down and leaves
+  // like any other), so there is nothing for hb:input to stop and no run to cancel.
+  document.getElementById('btn-demo').addEventListener('click',()=>{toRest();spawn(DEMO)});
+  // Reset: every toast leaves the way it came, all at once.
+  document.getElementById('btn-reset').addEventListener('click',()=>leave(toasts));
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('corner-seg',d=>{
+    corner=d.corner;toaster.className='toaster '+corner;
+    send.classList.toggle('at-top',corner.startsWith('b'));send.classList.toggle('at-right',corner.endsWith('l'));
+  });
+  choices('style-seg',d=>{style=d.style});
+  choices('time-seg',d=>{dur=+d.sec});
+  choices('limit-seg',d=>{limit=+d.n;enforce()});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

@@ -20,9 +20,10 @@ compositor.
 
 ```css
 .bar{transition:transform var(--dur) var(--ease),opacity calc(var(--dur)*.6) var(--ease)}
-.burger[aria-expanded="true"] .bar.top{transform:translateY(16px) rotate(45deg)}
+/* Half the 36px box minus half a line, so the lines meet at any thickness */
+.burger[aria-expanded="true"] .bar.top{transform:translateY(calc(18px - var(--bar-h)/2)) rotate(45deg)}
 .burger[aria-expanded="true"] .bar.mid{opacity:0;transform:scaleX(.2)}
-.burger[aria-expanded="true"] .bar.bot{transform:translateY(-16px) rotate(-45deg)}
+.burger[aria-expanded="true"] .bar.bot{transform:translateY(calc(var(--bar-h)/2 - 18px)) rotate(-45deg)}
 ```
 
 The `translateY` value must equal the distance from each outer bar to the box
@@ -33,11 +34,9 @@ rotation pivot on that meeting point.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| `--dur` | `340ms` | Length of the morph. Below ~200ms it snaps; above ~500ms it drags. |
-| `--ease` | `cubic-bezier(.65,0,.35,1)` | Timing curve. A back/overshoot curve adds a small spring on the cross. |
-| `--bar-w` | `44px` | Bar length; also the visual width of the icon. |
-| `--bar-h` | `4px` | Bar thickness. Thicker bars read better at small sizes. |
-| `translateY` | `16px` | Vertical travel that brings the outer bars together — tie it to the box height. |
+| Speed | Normal | How long the change takes: slow is 550ms, normal 340ms and fast 200ms; below about 200ms it snaps and above 500ms it drags |
+| Feel | Gentle | Gentle eases in and out; Springy lets the X overshoot a little, then settle; Smooth slows to a stop; Even keeps one steady speed |
+| Line thickness | Medium | The lines are 2px, 4px or 6px thick; thicker lines read better at small sizes |
 
 ## Production notes
 Toggle `aria-expanded` on a real `<button>` (not a `<div>`) and update
@@ -52,6 +51,6 @@ morph from a hidden checkbox (`:checked ~`) instead of JavaScript, at the cost
 of the ARIA state.
 
 ## See also
-- [Toggle / Switch Slide](../toggle-switch/)
-- [Drawer Slide](../drawer-slide/)
-- [Modal Expand](../modal-expand/)
+- [Toggle / Switch Slide](../toggle-switch/) — a switch that slides between on and off
+- [Drawer / Panel Slide](../drawer-slide/) — the side panel such a button often opens
+- [Modal Expand](../modal-expand/) — a window that grows out of the button you pressed
