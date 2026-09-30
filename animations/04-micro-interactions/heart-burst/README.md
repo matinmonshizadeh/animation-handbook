@@ -10,7 +10,7 @@ A like button that celebrates the moment you like something. The heart quickly s
 - Not for destructive or neutral toggles — the celebration implies approval
 
 ## How it works
-The heart itself is an inline SVG whose fill color transitions on a `.on` class, plus a keyframed pop for the overshoot. The burst is a particle system drawn on a `<canvas>` overlay stretched across the stage. On like, you spawn N particles at the heart's center, each with a random angle and velocity; every frame you advance them, apply gravity, and decrement life until they fade out:
+The heart itself is an inline SVG whose fill color transitions on a `.on` class, plus a keyframed pop for the overshoot. The burst is a particle system drawn on a `<canvas>` overlay stretched across the stage. On like, you spawn N particles at the heart's center, each with a random angle and velocity; every frame you advance them, apply gravity and a little sideways drag, and decrement life until they fade out:
 
 ```js
 function spawn() {
@@ -27,7 +27,7 @@ function tick() {
   ctx.clearRect(0, 0, cv.width, cv.height);
   particles = particles.filter(p => p.life > 0);
   for (const p of particles) {
-    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 0.022;  // move, gravity, fade
+    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.vx *= 0.98; p.life -= 0.022;  // move, gravity, drag, fade
     ctx.globalAlpha = p.life;
     /* draw heart or dot at p.x, p.y */
   }

@@ -517,7 +517,7 @@ None: leave out the `details.hb-options` block.
 - **Slow motion:** css for the pop and the fill. While the switch is on, the page also slows the burst: each frame moves every particle a third of its usual step. Position, the gravity added to `vy` and the life drain are multiplied by 1/3, and the `0.98` drag becomes `0.98 ** (1/3)`. It takes effect from the next frame. `later()` triples the burst (750ms), not the 300ms and 950ms holds.
 - **Reduced motion:** as today, a like only fills the heart, with no pop and no burst (the demo's rule and its `reduce` check stay). Show me still fills and empties the heart.
 - **Stage font:** site font. `.count b` drops `var(--disp)`. The "Likes" count and the empty heart's outline both use `--ui-muted`, so both take the new grey.
-- **Stage:** the canvas, the heart and the "Likes 128" count stay. The count is part of a real like button, not a readout. `hb-dots`: yes. Measured: 133px of content, centred.
+- **Stage:** the canvas, the heart and the "Likes 128" count stay. The count is part of a real like button, not a readout. `hb-dots`: yes. Measured: 131px of content, centred.
 
 **Main settings**
 
@@ -554,8 +554,11 @@ None: leave out the `details.hb-options` block.
   - [Notification Badge Pulse](../badge-pulse/) — a badge pulses to catch the eye
   - [Checkmark Draw](../checkmark-draw/) — success shown without a burst
   - [Click / Tap Ripple](../click-ripple/) — a calmer response from the spot you press
-- **README How it works:** unchanged
+- **README How it works:** unchanged, except that the `tick()` snippet gained the drag line (final fix wave, below)
 - **README Production notes:** unchanged
+- **Final fix wave (after the category review):**
+  - README How it works: the `tick()` snippet lacked the drag the page applies to each piece's sideways speed every frame. Its line now reads `p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.vx *= 0.98; p.life -= 0.022;  // move, gravity, drag, fade`, and the sentence before the snippet names the drag next to gravity.
+  - Stage: the measured content height is 131px on phones and laptops (the 96px button, the 20px gap and the 15px count), not 133px. The line above is corrected.
 - **Category line:** `04.07 · Micro-Interactions`
 - **Pager:** Previous: Toggle / Switch Slide (`../toggle-switch/`) · Next: Success Confetti (`../success-confetti/`)
 
