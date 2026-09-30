@@ -603,7 +603,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
   - Script:
     - `updateTarget()` measures the track in the stage: `const span=track.offsetHeight-stage.clientHeight; const p=span>0?Math.min(Math.max((stage.scrollTop-track.offsetTop)/span,0),1):0;` then `targetFrame=p*(TOTAL-1)` as today.
     - It listens to the stage's `scroll` event (`stage.addEventListener('scroll',updateTarget,{passive:true})`) instead of the window's. The window's `resize` listener stays (`resize(); updateTarget();`).
-    - `resize()`, `drawFrame()` and the `loop()` are unchanged, except that `loop()` no longer writes the frame counter.
+    - `resize()`, `drawFrame()` and the `loop()` are unchanged, except that `loop()` no longer writes the frame counter and, since the frame-rate fix (below), takes the time `now` and eases by it.
   - Phone rules: none. Today's mobile block held only the settings panel.
   - `hb-dots`: no. Default height.
 
@@ -612,7 +612,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
 | Number of frames | Choice buttons | Few · Normal · Many | Normal | Fewer frames step visibly; more frames look smooth. | `TOTAL`: 24 / 120 / 240, then `updateTarget()` |
-| Glides between frames | Switch | on / off | on | Off, the picture jumps straight to each frame. | `smoothEl.checked`: each frame, `shownFrame` moves 0.18 of the way to `targetFrame` / equals it |
+| Glides between frames | Switch | on / off | on | Off, the picture jumps straight to each frame. | `smoothEl.checked`: each frame, `shownFrame` moves `1 - (1 - EASE) ** (dt / FRAME)` of the way to `targetFrame` (`EASE = 0.18`, so 0.18 at 60 Hz) / equals it |
 
 **More options**
 
@@ -658,11 +658,13 @@ None: leave out the `details.hb-options` block.
     ```
 
   - "(the smoothing toggle)" becomes "(the Glides between frames setting)".
+  - The frame-rate fix (below) changes the easing line of the second snippet to the time-based form (`dt`, `last`, and `(1 - Math.pow(1 - EASE, dt / FRAME))` in place of `* 0.18`) and adds a paragraph after it on `EASE`, `dt` and `last`.
   - The rest is unchanged.
 - **README Production notes:** unchanged
 - **Category line:** `01.20 · Scroll-Based`
 - **Pager:** Previous: Zoom Into Image (`../zoom-into-image/`) · Next: Smooth (Inertia) Scroll (`../smooth-scroll/`)
 - **Final fix wave (Scroll-Based final review, 2026-09-30).** A `click` listener on the document, for `#btn-top` and `#btn-scroll` (by id, as Velocity Skew and SVG Line Draw do), runs `updateTarget(); shownFrame=targetFrame`, so the picture stands at the frame for the box's new position in the same click instead of playing backwards through the exploded frames. The shared script has already moved the box when the click reaches the document. README How it works: "…multiply by the frame count, and draw that frame" becomes "…and multiply it by the frame count; a frame loop draws that frame" (the scroll handler only sets the target frame; the loop draws), and a sentence says a click on either button sets the shown frame to the target at once.
+- **Frame-rate fix (wrap-up):** `loop(now = 0)` eases `shownFrame` by `1 - Math.pow(1 - EASE, dt / FRAME)` of the distance left, with `EASE = 0.18` (now a named constant: the share covered in 1/60 s), `FRAME = 1000/60` and `dt = last ? Math.min(now - last, 50) : FRAME`. The loop never stops, so `last` is kept from frame to frame; the first direct call at load passes no time, which leaves `last` at 0, so the first real frame counts as 1/60 s. The picture catches up with the scroll in the same time on a 30, 60 or 120 Hz screen (95% of the way in about a quarter of a second), where a fixed 18% a frame took half as long at 120 Hz and twice as long at 30 Hz. At 60 Hz nothing changes. The prompt and Key parameters say nothing per frame and are unchanged.
 
 ---
 
@@ -715,7 +717,7 @@ None: leave out the `details.hb-options` block.
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Glide | Choice buttons | Long · Medium · Short | Medium | How long the content keeps moving after you stop. | `ease`: 0.05 / 0.09 / 0.16 (the share of the remaining distance covered each frame) |
+| Glide | Choice buttons | Long · Medium · Short | Medium | How long the content keeps moving after you stop. | `ease`: 0.05 / 0.09 / 0.16 (the share of the remaining distance covered in a sixtieth of a second) |
 | Normal scrolling | Switch; its `div.hb-setting` has `data-hb-skip` (owner decision 10), so it stays out of "Your settings" and the copied prompt | on / off | off | Turn it on to compare with the browser's own scroll. | `nativeChk.checked`: `enableNative()` / `enableSmooth()`; either way `showTimer` is cleared |
 
 **More options**
@@ -730,7 +732,7 @@ None: leave out the `details.hb-options` block.
 - **Good for:** Portfolio sites · Brand pages · Scroll stories · **Avoid on:** Documentation · Forms · Dashboards
 - **Prompt:**
 
-  > Add smooth scrolling to [the scrolling area or page you want to glide]. Catch the visitor's wheel, swipe and drag and turn each one into a target position, then on every frame move the content part of the remaining distance toward that target, so it glides and slows to a stop instead of jumping. Move the content with a transform and keep a custom scrollbar in step with it. Keep keyboard scrolling, links to headings and find-in-page working. If the visitor has reduced motion turned on, use the browser's normal scrolling with no glide. Match the settings listed below.
+  > Add smooth scrolling to [the scrolling area or page you want to glide]. Catch the visitor's wheel, swipe and drag and turn each one into a target position, then on every frame move the content part of the remaining distance toward that target, so it glides and slows to a stop instead of jumping. Make that part exponential in the time since the last frame (one minus a fixed fraction to the power of that time), so the pace is the same on every screen. Move the content with a transform and keep a custom scrollbar in step with it. Keep keyboard scrolling, links to headings and find-in-page working. If the visitor has reduced motion turned on, use the browser's normal scrolling with no glide. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -740,7 +742,7 @@ None: leave out the `details.hb-options` block.
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Glide | Medium | How much of the remaining distance the content covers each frame: long is 5%, medium 9% and short 16%; long feels heavy and floaty, short is closer to normal scrolling |
+  | Glide | Medium | How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling |
   | Normal scrolling | off | Turns the glide off so the box scrolls the browser's own way, to compare the two |
 
 - **README See also:**
@@ -749,12 +751,14 @@ None: leave out the `details.hb-options` block.
   - [Horizontal Scroll](../horizontal-scroll/) — scrolling down moves a row of panels sideways
 - **README How it works:**
   - In the first snippet, `stage.addEventListener('wheel'` becomes `viewport.addEventListener('wheel'`.
+  - The loop at the end of that snippet is the time-based one (frame-rate fix, below): `const FRAME = 1000 / 60;`, then `loop(now)` with `raf = 0;`, `const dt = last ? Math.min(now - last, 50) : FRAME;`, `last = now;`, `current += (target - current) * (1 - Math.pow(1 - ease, dt / FRAME));` and `raf = requestAnimationFrame(loop)`, followed by `function kick() { if (!raf) { last = 0; raf = requestAnimationFrame(loop); } }`.
   - "The demo keeps all of this inside a scoped stage element with `overflow: hidden`" becomes "The demo keeps all of this inside a scoped box with `overflow: hidden`".
   - After the paragraph on touch drag, add: "The keyboard moves the same target: in the glide mode a `keydown` handler on the box moves it 40px for an arrow key, 90% of the box for Page Up, Page Down and Space, and to the top or the bottom for Home and End."
-  - The paragraph "A fixed lerp factor is frame-rate dependent … `1 - Math.pow(1 - ease, dt * 60)`." moves from Key parameters to the end of How it works, because the Key parameters section may hold no code.
+  - The paragraph "A fixed lerp factor is frame-rate dependent … `1 - Math.pow(1 - ease, dt * 60)`." moves from Key parameters to the end of How it works, because the Key parameters section may hold no code. The frame-rate fix (below) rewrites it, since the demo now does what it advised: "The share moved each frame depends on how long the frame took. A fixed lerp factor per frame is frame-rate dependent: the same value settles twice as fast on a 120Hz display as on 60Hz, and half as fast on a 30Hz phone. Here `ease` is the share covered in 1/60 s, and a frame that lasted `dt` covers `1 - Math.pow(1 - ease, dt / FRAME)` of the distance left, so the distance left shrinks exponentially with time and the glide takes the same time on every screen. `kick()` clears `last`, so the first frame after a start counts as 1/60 s rather than the time since some old frame, and `dt` is capped at 50ms, so a hidden tab does not make the content jump."
 - **README Production notes:** unchanged
 - **Category line:** `01.21 · Scroll-Based`
 - **Pager:** Previous: Scroll Image Sequence (`../scroll-image-sequence/`) · Next: Text Fill on Scroll (`../text-fill-on-scroll/`)
+- **Frame-rate fix (wrap-up):** `loop(now)` moves `current` by `1 - Math.pow(1 - ease, dt / FRAME)` of the distance left, with `ease` the share covered in 1/60 s (the Glide values 0.05 / 0.09 / 0.16 are unchanged), `FRAME = 1000/60` and `dt = last ? Math.min(now - last, 50) : FRAME`. `kick()` sets `last = 0` when it starts the loop, so the first frame after a start counts as 1/60 s; a `kick()` while the loop runs leaves it alone. The glide takes as long on a 30, 60 or 120 Hz screen (Medium stops after about 1.4 s), and so do Show me's flick and its glide back, and a touch drag. At 60 Hz nothing changes. The prompt gained a sentence (130 words, the test's cap), and the Glide row of Key parameters and the closing paragraph of How it works changed (above). The stage's card "A little closer each frame" stays, because it is still true.
 
 ---
 
