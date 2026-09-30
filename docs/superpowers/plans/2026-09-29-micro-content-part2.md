@@ -159,6 +159,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Slow motion:** css. The slide is the run's movement (Opening speed); the 1500ms is a hold. A slowed run takes about 3 s.
 - **Reduced motion:** the demo's rule stays: the drawer and the dimming appear and disappear without sliding or fading.
 - **Touch:** the swipe to close already uses Pointer Events (`pointerdown` on the drawer, `pointerup` on the document, 50px toward its edge).
+- **Mouse swipe:** the drawer has `user-select:none` (with the `-webkit-` prefix). Without it, the first mouse swipe selects the words it starts on, and the next swipe begins on selected text, which the browser turns into a native text drag: no `pointerup` arrives and the drawer stays open, although the help line promises "or a swipe". With it, every mouse swipe closes the drawer, on every side.
 - **Stage font:** site font. `.hamburger` gets `font-family:inherit` (was `monospace`), and so does `.close-btn`. The ☰ comes from the system's fallback font, as it does today.
 - **Stage:** the small app screen stays: the header with the menu button and "Atlas App", the gray content lines, the dimming layer and the drawer.
   - The State readout goes.
@@ -212,7 +213,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Accordion Open/Close](../accordion/) — sections that open in place instead of over the page
   - [Tooltip Reveal](../tooltip-reveal/) — a small label for a short explanation
 - **README How it works:** in the JS snippet, `open()` also does `drawer.inert = false;` and `close()` does `drawer.inert = true;`, with the comment `// a closed drawer cannot be reached with Tab`. The rest is unchanged.
-- **README Production notes:** unchanged
+- **README Production notes:** the "Swipe-to-close on touch" bullet gets one more sentence: "With a mouse, give the drawer `user-select: none`, or the first drag selects its text and the next one becomes a native text drag." The rest is unchanged.
 - **Category line:** `04.17 · Micro-Interactions`
 - **Pager:** Previous: Tooltip Reveal (`../tooltip-reveal/`) · Next: Modal Expand (`../modal-expand/`)
 

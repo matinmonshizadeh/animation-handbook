@@ -89,7 +89,7 @@ drawer.addEventListener('pointerup',   e => { if (e.clientX - dragStartX < -50) 
 - **`aria-modal="true"` and `role="dialog"`**: required for screen readers to announce the drawer as a modal context. Add `aria-label` or `aria-labelledby` for the drawer title.
 - **`will-change: transform`**: promotes the drawer to its own compositing layer, preventing paint during the slide. Remove `will-change` after the animation completes if memory is a concern on low-end devices.
 - **Right/bottom drawers**: for filters, slides from right (`translateX(100%)`); for action sheets, slides from bottom (`translateY(100%)`).
-- **Swipe-to-close on touch**: use `pointerdown`/`pointermove`/`pointerup` (not mouse/touch events separately). Measure the delta and close if the swipe distance exceeds ~50px in the close direction.
+- **Swipe-to-close on touch**: use `pointerdown`/`pointermove`/`pointerup` (not mouse/touch events separately). Measure the delta and close if the swipe distance exceeds ~50px in the close direction. With a mouse, give the drawer `user-select: none`, or the first drag selects its text and the next one becomes a native text drag.
 - **Radix UI Sheet / shadcn Drawer**: fully accessible, animated drawer components. Vaul (Emil Kowalski) adds native mobile-style drag-to-dismiss for bottom drawers.
 
 ## See also
