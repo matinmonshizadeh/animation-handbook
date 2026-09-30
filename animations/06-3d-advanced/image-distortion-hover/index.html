@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Distortion on Hover — Animation Handbook</title>
-  <meta name="description" content="Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.">
+  <meta name="description" content="The picture ripples and bends around your pointer. Best for portfolio images.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/image-distortion-hover/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,93 +12,141 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Image Distortion on Hover — Animation Handbook">
-  <meta property="og:description" content="Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.">
+  <meta property="og:description" content="The picture ripples and bends around your pointer. Best for portfolio images.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/image-distortion-hover/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Image Distortion on Hover — Animation Handbook">
-  <meta name="twitter:description" content="Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.">
+  <meta name="twitter:description" content="The picture ripples and bends around your pointer. Best for portfolio images.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Image Distortion on Hover", "name": "Image Distortion on Hover", "description": "Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/image-distortion-hover/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Image Distortion on Hover"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Image Distortion on Hover", "name": "Image Distortion on Hover", "description": "The picture ripples and bends around your pointer. Best for portfolio images.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/image-distortion-hover/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Image Distortion on Hover"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    .stage{position:relative;background:#0b0b0d}
     canvas{display:block;width:100%;height:100%;touch-action:none}
-    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:3px 8px;border-radius:4px;pointer-events:none}
-    .src-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(11,11,13,.92);border-top:1px solid var(--ui-border);padding:12px;font-size:9px;color:var(--ui-muted);font-family:var(--mono);line-height:1.5;max-height:180px;overflow-y:auto;display:none;white-space:pre-wrap}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%;min-height:44px}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:11px;line-height:1.7;color:var(--ui-muted);white-space:pre-wrap}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}
-      .tog input{width:44px;height:44px}}
+    .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,32px);font-size:13px;line-height:1.7;color:rgba(255,255,255,.72);white-space:pre-wrap;overflow-y:auto}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../gpgpu-particle-system/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../cloth-simulation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/image-distortion-hover/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Image Distortion on Hover</h1>
-  <p>Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, or pixelate.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="fps-badge" id="fps">— fps</div>
-    <div class="src-panel" id="src-panel"></div>
-  </div>
-  <aside>
-    <p class="note">The shader samples the pattern at distorted UVs — the texture itself never changes. Production: replace the procedural pattern with a texture sampler for real images.</p>
-    <div class="lbl">Distortion Type</div>
-    <select id="type-sel">
-      <option value="0" selected>Ripple (wave)</option>
-      <option value="1">Push (radial)</option>
-      <option value="2">Liquid (turbulence)</option>
-      <option value="3">Pixelate</option>
-    </select>
-    <div class="lbl">Strength</div>
-    <div class="sr"><input type="range" id="str-sl" min="1" max="20" value="8" step="1"><span class="sv" id="str-v">8</span></div>
-    <div class="lbl">Radius</div>
-    <div class="sr"><input type="range" id="rad-sl" min="5" max="50" value="25" step="1"><span class="sv" id="rad-v">0.25</span></div>
-    <div class="lbl">Decay Speed</div>
-    <div class="sr"><input type="range" id="dec-sl" min="1" max="20" value="5" step="1"><span class="sv" id="dec-v">0.5</span></div>
-    <label class="tog"><input type="checkbox" id="ripple-tog" checked><span>Animate ripple over time</span></label>
-    <label class="tog"><input type="checkbox" id="src-tog"><span>View shader source</span></label>
-    <div class="div"></div>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../gpgpu-particle-system/" rel="prev" aria-label="Previous: GPGPU Particle System"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>GPGPU Particle System</span></a><a href="../cloth-simulation/" rel="next" aria-label="Next: Cloth / Soft-Body Simulation"><span><span class="hb-dir">Next: </span>Cloth / Soft-Body Simulation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.14 · 3D &amp; Advanced</p>
+    <h1>Image Distortion on Hover</h1>
+    <p class="hb-lede">The picture ripples and bends around your pointer. Best for portfolio images.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the picture, drag a finger across it, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="A blue, purple and green patterned picture with a faint grid, bending where the pointer touches it"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="type-lbl">Effect</p>
+        <div class="seg" id="type-seg" role="group" aria-labelledby="type-lbl">
+          <button type="button" data-type="0" class="on" aria-pressed="true">Ripple</button>
+          <button type="button" data-type="1" aria-pressed="false">Push</button>
+          <button type="button" data-type="2" aria-pressed="false">Liquid</button>
+          <button type="button" data-type="3" aria-pressed="false">Pixels</button>
+        </div>
+        <p class="hb-hint">Rings, a bulge, a liquid swirl, or big square pixels.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="str-lbl">Strength</p>
+        <div class="seg" id="str-seg" role="group" aria-labelledby="str-lbl">
+          <button type="button" data-str="4" aria-pressed="false">Gentle</button>
+          <button type="button" data-str="8" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-str="14" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How far the picture bends.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="rad-lbl">Size</p>
+        <div class="seg" id="rad-seg" role="group" aria-labelledby="rad-lbl">
+          <button type="button" data-rad="0.15" aria-pressed="false">Small</button>
+          <button type="button" data-rad="0.25" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-rad="0.4" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How wide an area around the pointer bends.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="dec-lbl">Fade-out speed</p>
+          <div class="seg" id="dec-seg" role="group" aria-labelledby="dec-lbl">
+            <button type="button" data-decay="0.9" aria-pressed="false">Slow</button>
+            <button type="button" data-decay="1.5" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-decay="2.4" aria-pressed="false">Fast</button>
+          </div>
+          <p class="hb-hint">How fast the picture settles after the pointer leaves.</p>
+        </div>
+        <div class="hb-setting" id="ripple-set">
+          <label class="hb-switch-row"><span>Moving ripples</span><input class="hb-switch" type="checkbox" role="switch" id="ripple-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">The rings keep moving outward.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a hover distortion to [the image you want to react]. Draw the image with a WebGL shader and, in a circle around the pointer, read each pixel from a slightly shifted spot, so the picture seems to ripple, bulge, swirl like liquid or break into squares there while the image itself never changes. The bending fades out smoothly after the pointer leaves. On touch screens, dragging a finger across the image should do the same. If the visitor has reduced motion turned on, keep the image still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Portfolio images</li><li>Gallery tiles</li><li>Hero images</li><li>Product photos</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Small thumbnails</li><li>Images with text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 const FS=`
@@ -144,10 +192,14 @@ void main(){
 }`;
 
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
-const fpsEl=document.getElementById('fps'),srcPanel=document.getElementById('src-panel');
-let W,H,DPR=1,gl,prog,U={},raf=null,paused=false,lastT=0,startT=0,lastDraw=0,glErr='';
-let TYPE=0,STR=8,RAD=0.25,DECAY=0.5,ANIMATE=true;
-let mouseX=-999,mouseY=-999,phase=0,amp=0,active=false,t0=0;
+const RUN_MS=3000;
+let W=0,H=0,gl,prog,U={},raf=null,lastT=0,startT=0,wasPhone=false,glErr='';
+let TYPE=0,STR=8,RAD=0.25,DECAY=1.5,ANIMATE=true;
+// The distortion is centred on (mouseX, mouseY), in canvas pixels. It is drawn at full strength while active (the pointer is on
+// the picture or Show me is running) and fades by DECAY once it is not. demoStart is when the Show me run began, 0 when none is.
+let mouseX=-999,mouseY=-999,phase=0,amp=0,active=false,demoStart=0;
+// Phones are screens up to 600px wide, or up to 500px tall when held sideways
+const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
 
 function init(){
   gl=cvs.getContext('webgl');
@@ -171,34 +223,23 @@ function init(){
   gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   return true;
 }
-function resize(){
-  // Cap the backing store: full DPR is wasted on a fullscreen fragment shader,
-  // and phones pay for every extra pixel.
-  DPR=Math.min(window.devicePixelRatio||1,innerWidth<=600?1.5:2);
-  W=cvs.width=Math.max(1,Math.round(stage.clientWidth*DPR));
-  H=cvs.height=Math.max(1,Math.round(stage.clientHeight*DPR));
+// Setting the canvas size clears it, so nothing is touched when the stage is the same size and the phone limit is the same
+// (a phone's address bar showing or hiding also fires resize). Full pixel density is wasted on a fullscreen fragment shader,
+// and phones pay for every extra pixel: it is capped at 2, and at 1.5 on phones.
+function layout(force){
+  const phone=PHONE.matches,dpr=Math.min(window.devicePixelRatio||1,phone?1.5:2);
+  const w=Math.max(1,Math.round(stage.clientWidth*dpr)),h=Math.max(1,Math.round(stage.clientHeight*dpr));
+  if(!force&&w===W&&h===H&&phone===wasPhone)return false;
+  W=cvs.width=w;H=cvs.height=h;wasPhone=phone;
   if(gl)gl.viewport(0,0,W,H);
-  poke();
+  return true;
 }
-// Resizing the canvas clears it, and control changes are invisible while
-// paused — repaint the held frame in both cases.
-function poke(){if(paused&&gl&&prog)draw(lastDraw||t0);}
 
-function render(ts){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(render);
-  const dt=ts-lastT;if(dt<15)return;
-  fpsEl.textContent=Math.round(1000/(dt||16))+' fps';lastT=ts;
-  phase+=(ts-startT)*.003;if(phase>Math.PI*10)phase-=Math.PI*10;startT=ts;
-  if(!active){amp*=Math.max(0,1-DECAY*dt/1000);if(amp<.005){amp=0;mouseX=mouseY=-999;}}
-  draw(ts);
-}
-function draw(ts){
-  lastDraw=ts;
+function draw(){
   gl.useProgram(prog);
   gl.uniform2f(U.uRes,W,H);
   gl.uniform2f(U.uMouse,mouseX,mouseY);
-  gl.uniform1f(U.uT,(ts-t0)/1000);
+  gl.uniform1f(U.uT,0); // the picture stands still, as a real image would: only the distortion moves
   gl.uniform1f(U.uStr,STR*amp);
   gl.uniform1f(U.uRad,RAD);
   gl.uniform1f(U.uPhase,phase);
@@ -206,51 +247,81 @@ function draw(ts){
   gl.uniform1i(U.uAnimate,ANIMATE?1:0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
+// The loop runs only while something moves: the pointer is on the picture, the distortion is fading or Show me is running.
+// Otherwise raf is null and the picture at rest is not drawn again.
+function render(ts){
+  const dt=ts-lastT;
+  if(dt>=15){
+    lastT=ts;
+    phase+=(ts-startT)*.003;if(phase>Math.PI*10)phase-=Math.PI*10;startT=ts;
+    if(demoStart){
+      const p=Math.min(1,Math.max(0,(ts-demoStart)/RUN_MS));
+      point(W*(.2+.6*p),H*(.5+.18*Math.sin(2*Math.PI*p)));
+      if(p>=1){demoStart=0;active=false;}
+    }
+    if(!active){amp*=Math.max(0,1-DECAY*dt/1000);if(amp<.01){amp=0;mouseX=mouseY=-999;}}
+    draw();
+  }
+  raf=(active||amp>0||demoStart)?requestAnimationFrame(render):null;
+}
+// Starts the loop again after it stopped; the clock restarts so the ripple phase does not jump.
+function wake(){if(raf!==null||!gl)return;lastT=startT=performance.now();raf=requestAnimationFrame(render);}
+// While the loop is stopped a setting or a resize draws the picture once, so the change shows.
+function redraw(){if(raf===null&&gl)draw();}
 
-srcPanel.textContent=FS;
+// The visitor's pointer, a finger and Show me all move the distortion through point().
+function point(x,y){mouseX=x;mouseY=y;active=true;amp=1;}
+function stopRun(){demoStart=0;active=false;}
+function show(){if(!gl)return;demoStart=performance.now();wake();}
+// The visitor pressed, typed, scrolled or touched inside the stage: only a run that is under way stops. A tap sends this twice,
+// the second time after the picture has started to bend under the finger, so it must leave the finger's distortion alone.
+document.addEventListener('hb:input',()=>{if(demoStart)stopRun();});
+
 if(init()){
-  resize();t0=startT=performance.now();lastT=startT;
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches){
-    // Reduced motion: show one static frame; the user can opt in with Resume.
-    paused=true;document.getElementById('pause-btn').textContent='▶ Resume';fpsEl.textContent='paused';draw(t0);
-  }else raf=requestAnimationFrame(render);
-  // Pointer, not mouse: touch and pen drive the distortion the same way.
-  const track=e=>{const r=cvs.getBoundingClientRect();mouseX=(e.clientX-r.left)*DPR;mouseY=(e.clientY-r.top)*DPR;active=true;amp=1;};
+  layout(true);
+  draw(); // the first picture
+  document.getElementById('btn-demo').addEventListener('click',show);
+  // Pointer events, not mouse: touch and pen bend the picture the same way, and a tap leaves no pointer behind.
+  // Moving over the stage ends a Show me run first, so the visitor's own pointer takes over at once.
+  const track=e=>{
+    if(e.isTrusted&&demoStart)demoStart=0;
+    const r=cvs.getBoundingClientRect();
+    point((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height);
+    wake();
+  };
   const release=()=>{active=false;};
   stage.addEventListener('pointermove',track);
   stage.addEventListener('pointerdown',track);
   stage.addEventListener('pointerleave',release);
   stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')release();});
   stage.addEventListener('pointercancel',release);
-  window.addEventListener('resize',resize);
+  window.addEventListener('resize',()=>{if(layout())draw();});
   cvs.addEventListener('webglcontextlost',e=>{
-    e.preventDefault();if(raf)cancelAnimationFrame(raf);raf=null;fpsEl.textContent='context lost';
+    e.preventDefault();if(raf!==null)cancelAnimationFrame(raf);raf=null;
   });
   cvs.addEventListener('webglcontextrestored',()=>{
     if(!init())return;
-    resize();
-    if(paused)draw(lastDraw||performance.now());
-    else{lastT=startT=performance.now();raf=requestAnimationFrame(render);}
-    fpsEl.textContent='— fps';
+    layout(true);draw();
+    if(active||amp>0||demoStart)wake();
   });
 }else{
-  fpsEl.textContent='—';
-  const msg=document.createElement('div');msg.className='fallback';msg.textContent=glErr;
+  cvs.hidden=true;
+  const msg=document.createElement('div');msg.className='fallback';msg.setAttribute('role','status');msg.textContent=glErr;
   stage.appendChild(msg);
 }
 
-document.getElementById('type-sel').addEventListener('change',e=>{TYPE=+e.target.value;poke();});
-document.getElementById('str-sl').addEventListener('input',e=>{STR=+e.target.value;document.getElementById('str-v').textContent=STR;poke();});
-document.getElementById('rad-sl').addEventListener('input',e=>{RAD=e.target.value/100;document.getElementById('rad-v').textContent=RAD.toFixed(2);poke();});
-document.getElementById('dec-sl').addEventListener('input',e=>{DECAY=e.target.value/10;document.getElementById('dec-v').textContent=DECAY.toFixed(1);});
-document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.target.checked;poke();});
-document.getElementById('src-tog').addEventListener('change',e=>{srcPanel.style.display=e.target.checked?'block':'none';});
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(paused){if(raf)cancelAnimationFrame(raf);raf=null;fpsEl.textContent='paused';}
-  else if(gl&&!raf){lastT=performance.now();startT=lastT;raf=requestAnimationFrame(render);}
-});
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('type-seg',d=>{TYPE=+d.type;document.getElementById('ripple-set').hidden=TYPE!==0;redraw();});
+choices('str-seg',d=>{STR=+d.str;redraw();});
+choices('rad-seg',d=>{RAD=+d.rad;redraw();});
+choices('dec-seg',d=>{DECAY=+d.decay;});
+document.getElementById('ripple-tog').addEventListener('change',e=>{ANIMATE=e.target.checked;redraw();});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
