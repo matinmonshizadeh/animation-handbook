@@ -9,7 +9,7 @@
 <meta name="keywords" content="web animation, CSS animation, animation examples, scroll animation, page transitions, micro-interactions, kinetic typography, WebGL, frontend animation reference, motion design, animation handbook">
 <meta name="author" content="matinmonshizadeh">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#0b0b0d">
+<meta name="theme-color" content="#f8f7f4">
 <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -45,7 +45,11 @@
   "keywords": "web animation, CSS animation, scroll animation, page transitions, micro-interactions, kinetic typography, WebGL, motion design"
 }
 </script>
-<script>document.documentElement.classList.add('js');(function(){try{var t=localStorage.getItem('ah-theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<script>document.documentElement.classList.add('js');
+// The theme is the visitor's own pick (ah-theme), else the system's, which is read first, outside the try: blocked storage
+// throws, and the system's setting must still count. The browser's bar (theme-color) takes the page's background of the theme.
+function setTheme(t){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0e0e11':'#f8f7f4';}
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();</script>
 <script src="assets/js/demo-page.js?v=6" defer></script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -208,7 +212,7 @@ button,input{font:inherit;color:inherit}
 .card:has(.title a:focus-visible){outline:3px solid var(--brand);outline-offset:3px}
 .stage{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:#08080a}
 .pv{position:absolute;inset:0;width:100%;height:100%;transition:transform .6s var(--ease);--ink:#f4f4f2;--ink-dim:#adadb2;--muted:#77777e;--line:rgba(255,255,255,.085)}
-.tag{position:absolute;z-index:1;left:10px;top:10px;max-width:calc(100% - 10px);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{position:absolute;z-index:1;left:10px;top:10px;max-width:calc(100% - 20px);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .results.no-tags .tag{display:none}
 .meta{display:flex;flex-direction:column;flex:1;padding:14px 8px 6px}
 .title{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
@@ -272,10 +276,9 @@ button,input{font:inherit;color:inherit}
   .search{padding:5px 5px 5px 18px}
   #q{min-height:44px;margin-left:10px;font-size:16px}
   .go{width:44px;min-height:44px;padding:0}
-  .go-l{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .go-l,.home-hero .pop>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap} /* hidden from sight, still read out: "Popular:" still labels the suggestions */
   .go .i{display:block}
   .home-hero .pop{flex-wrap:nowrap;justify-content:flex-start;gap:8px;width:calc(100% + 2 * var(--gut));margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);overflow-x:auto;scrollbar-width:none}
-  .home-hero .pop>span{display:none}
   .home-hero .pop button{flex:none;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;text-decoration:none;white-space:nowrap}
   .places-h{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;margin-top:28px;font-size:18px;font-weight:800;letter-spacing:-.01em}
   .places{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px;margin-top:14px}
@@ -300,7 +303,7 @@ button,input{font:inherit;color:inherit}
   .card{padding:6px;border-radius:16px}
   .title a::after{border-radius:16px}
   .stage{border-radius:10px}
-  .tag{left:6px;top:6px;max-width:calc(100% - 6px);padding:3px 8px;font-size:11px}
+  .tag{left:6px;top:6px;max-width:calc(100% - 12px);padding:3px 8px;font-size:11px}
   .meta{padding:10px 6px 4px}
   .title{font-size:15px}
   .desc{margin-top:4px;font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -321,16 +324,17 @@ button,input{font:inherit;color:inherit}
 @media(max-width:1238px){.fl2,.fl5{display:none}} /* the two shapes that would crowd the 720px search box below 1239px */
 .acts{flex-wrap:wrap} /* a narrow card puts Try it under Copy prompt */
 #q{text-overflow:ellipsis} /* a placeholder that does not fit ends in an ellipsis, not cut by the button */
+.rtitle,.empty-t{overflow-wrap:anywhere} /* the headings that repeat the typed words break inside a word too long for the line */
 @media(min-width:601px) and (max-width:700px){.copy{gap:6px;padding:0 10px;font-size:13px}.tag{padding:4px 9px;font-size:11px}} /* three cards across leave the pill about 135px and the preview about 150px: Copy prompt and the place label stay on one line with room to spare */
 @media(max-width:360px){ /* two narrow cards across: the pill and the place label on the preview stay on one line */
   .copy{gap:5px;padding:0 4px;font-size:12px}
   .copy .i{width:16px;height:16px}
-  .tag{left:5px;top:5px;max-width:calc(100% - 5px);padding:3px 6px;font-size:10px}
+  .tag{left:5px;top:5px;max-width:calc(100% - 10px);padding:3px 6px;font-size:10px}
 }
 
 /* ── preview library ── */
 .pv *{will-change:transform,opacity}
-.card:not(.playing) .pv .anim{animation-play-state:paused!important}
+.card:not(.playing) .pv .anim,.card:not(.playing) .pv .anim::before,.card:not(.playing) .pv .anim::after{animation-play-state:paused!important}
 
 /* signature: 01 scroll */
 .pv-sig1{background:#08090c;overflow:hidden;-webkit-mask:linear-gradient(#0000,#000 18%,#000 82%,#0000);mask:linear-gradient(#0000,#000 18%,#000 82%,#0000)}
@@ -858,10 +862,10 @@ button,input{font:inherit;color:inherit}
 .pv-flow{background:#05060a}
 
 @media(prefers-reduced-motion:reduce){
-  .pv .anim{animation-play-state:paused!important}
+  .pv .anim,.pv .anim::before,.pv .anim::after{animation-play-state:paused!important} /* each preview holds one clear frame: hold() in the script picks it */
   .art *,.art *::before,.art *::after,.pill-dot::after{animation-play-state:paused!important}
   .float{display:none}
-  .card,.card:hover,.card:hover .pv,.place:hover .art{transform:none;transition:none}
+  .card,.card:hover,.card:hover .pv,.card:hover .try .i,.place:hover .art{transform:none;transition:none}
   .toast{transform:translate(-50%,0);transition:opacity .25s} /* the message fades in place, it does not slide */
 }
 
@@ -1002,7 +1006,7 @@ button,input{font:inherit;color:inherit}
     <form class="search" id="search-form" role="search" action="./" method="get">
       <label class="sr" for="q">Describe the animation you want</label>
       <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="q" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="For example: a button that bounces when clicked">
+      <input id="q" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="For example: a button that bounces when clicked">
       <button type="button" class="clear" id="q-clear" aria-label="Clear the search" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <button type="submit" class="go"><span class="go-l">Search</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
@@ -1028,7 +1032,7 @@ button,input{font:inherit;color:inherit}
     <div class="pinbar" id="pinbar">
       <div class="pinrow">
         <button type="button" class="pin-back" id="pin-back" aria-label="Back to the start"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
-        <div class="pin-search"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" type="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></div>
+        <form class="pin-search" id="pin-form" role="search" action="./" method="get"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></form>
       </div>
       <div class="pchips" role="group" aria-label="Places">
         <button type="button" class="pchip" data-place="btn" aria-pressed="false">Buttons</button>
@@ -1619,6 +1623,7 @@ function scramble(pv){
 }
 function counter(pv){
   const el=pv.querySelector('.num'),target=1240;let raf=null,start=null;
+  if(reduce)el.textContent=target.toLocaleString(); // the still frame shows the number it counts up to, before it is ever on screen
   function frame(ts){if(start==null)start=ts;const p=Math.min((ts-start)/1600,1),e=1-Math.pow(1-p,3);
     el.textContent=Math.round(e*target).toLocaleString();
     if(p<1)raf=requestAnimationFrame(frame);
@@ -1681,12 +1686,16 @@ const PLACE=Object.fromEntries(PLACE_LIST.map(p=>[p.key,p]));
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const slugify=x=>x.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const wordsOf=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
+// Small words that say nothing about an animation, left out of what is typed and of the cards' own words. "best" is one: every
+// description ends "Best for …", so it (like "for") would match every card, and a first "b" or "f" would find them all.
+const STOP=new Set(['a','an','and','the','that','this','to','for','with','when','on','in','of','my','it','i','want','make','some','best']);
+const keyWords=s=>wordsOf(s).filter(w=>!STOP.has(w));
 // Every animation in home order, with the words search looks at.
 const ALL=[];
 CATS.forEach(cat=>cat.entries.forEach(([slug,name,desc])=>{
   const places=PLACES[slug]||[];
   ALL.push({slug,name,desc,cat,places,order:ALL.length,url:`${cat.folder}/${slug}/`,
-    nameW:wordsOf(name),placeW:wordsOf(places.map(k=>PLACE[k].name).join(' ')),descW:wordsOf(desc+' '+cat.name)});
+    nameW:keyWords(name),placeW:keyWords(places.map(k=>PLACE[k].name).join(' ')),descW:keyWords(desc+' '+cat.name)});
 }));
 const BY_SLUG=Object.fromEntries(ALL.map(e=>[e.slug,e]));
 const ICON_COPY='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
@@ -1710,6 +1719,7 @@ function buildCard(e){
     `<span class="try" aria-hidden="true">Try it${ICON_ARROW}</span></div></div>`;
   if(reduce)card.querySelectorAll('animate').forEach(a=>a.remove());
   const eng=engines[pv]?engines[pv](card.querySelector('.pv')):null;
+  card._canvas=!!card.querySelector('canvas');
   card._play=()=>{card.classList.add('playing');eng&&eng.play();};
   card._pause=()=>{card.classList.remove('playing');eng&&eng.pause();};
   card.addEventListener('focusin',card._play);
@@ -1720,12 +1730,29 @@ const CARD=Object.fromEntries(ALL.map(e=>[e.slug,buildCard(e)]));
 const $=id=>document.getElementById(id);
 const resultsEl=$('results'),cardsBox=$('cards');
 let shown=[];
-// Cards that left the page stop. The canvas previews size themselves on resize, so one resize lets them measure their new place.
+// Under reduced motion every preview holds one still, clear frame. A card that is placed starts its CSS animations anew, held
+// by the styles at their first moment, where many show an empty stage; so each placing sets them to one moment of their loop:
+// the middle of the first animation's cycle, or the share of it that STILL names (where the middle is empty, cut off, hidden
+// under the place label or between two states). Nothing here runs without reduced motion.
+const STILL={
+  cover:.1,curtain:.6,kinetic:.25,carousel:.1,typewriter:.55,textclip:.7,svgpath:.7,smoke:.3,leak:.7,
+  flash:.41,blurpage:.2,toggle:.7,shake:.8
+};
+function hold(card){
+  const anims=card.querySelector('.pv').getAnimations({subtree:true});
+  if(!anims.length)return;
+  const at=(STILL[card.dataset.pv]??.5)*anims[0].effect.getTiming().duration;
+  for(const a of anims)a.currentTime=at;
+}
+// Cards that left the page stop. The canvas previews size themselves on resize, so when a card with a canvas has just come in,
+// one resize lets it measure its place; the canvases already shown keep theirs, so typing does not start them over.
 function place(cards){
+  const before=new Set(shown);
   shown.forEach(c=>{if(!cards.includes(c))c._pause();});
   shown=cards;
   if(!io)cards.forEach(c=>c._play());
-  dispatchEvent(new Event('resize'));
+  if(reduce)cards.forEach(hold);
+  if(cards.some(c=>c._canvas&&!before.has(c)))dispatchEvent(new Event('resize'));
 }
 function showCards(list){
   const grid=document.createElement('div');grid.className='grid';
@@ -1740,9 +1767,9 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 });
 // ---------- Views, search and the address ----------
 const PAGE=8;
-const STOP=new Set(['a','an','and','the','that','this','to','for','with','when','on','in','of','my','it','i','want','make','some']);
-// A typed word drops the first of these endings that leaves three letters with a vowel ("ring" stays whole), never the s of
-// "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while three stay (snapping → snap, added → add).
+// A typed word drops the first of these endings that leaves at least three letters with a vowel ("ring" stays whole), never
+// the s of "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while at least three stay
+// (snapping → snap, added → add).
 function stem(w){
   if(w.endsWith('ss'))return w;
   for(const end of ['ies','ing','ed','es','s']){
@@ -1752,7 +1779,7 @@ function stem(w){
   }
   return w;
 }
-function queryWords(text){return [...new Set(wordsOf(text).filter(w=>!STOP.has(w)).map(stem))];}
+function queryWords(text){return [...new Set(keyWords(text).map(stem))];}
 // A word counts 3 in the name, 2 in a place name, 1 in the description or category; each is matched by the start of a word.
 function score(e,words){
   let s=0;
@@ -1787,7 +1814,6 @@ const state={q:'',place:'',view:'',all:false};
 const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
-const phone=matchMedia('(max-width:600px)');
 let moreAction='all';
 const pinbar=$('pinbar');
 // The phone bar is there while a view other than Start is open and while its own search box has focus, so emptying the box does not take the box away.
@@ -1820,6 +1846,13 @@ function render(){
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}
   else moreBox.hidden=true;
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
+  // The picked chip is scrolled fully into the phone bar's row, clear of the row's edge margin; only the row moves, never the page.
+  const chip=pinbar.querySelector('.pchip[aria-pressed="true"]');
+  if(chip&&chip.getClientRects().length){
+    const row=chip.parentElement,r=row.getBoundingClientRect(),b=chip.getBoundingClientRect(),edge=parseFloat(getComputedStyle(row).paddingLeft)||0;
+    if(b.left<r.left+edge)row.scrollLeft-=r.left+edge-b.left;
+    else if(b.right>r.right-edge)row.scrollLeft+=b.right-(r.right-edge);
+  }
   [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
   qClear.hidden=!q.value;
 }
@@ -1832,33 +1865,41 @@ function writeURL(push){
   else if(state.place)p.push('place='+PLACE[state.place].url);
   else if(state.view)p.push('view=all');
   if(state.all&&(state.q||state.place))p.push('all=1');
-  const search=p.length?'?'+p.join('&'):'';
-  const moved=String(new URLSearchParams(search))!==String(new URLSearchParams(location.search));
-  try{history[push&&moved?'pushState':'replaceState'](null,'',search||location.pathname);}catch(e){}
+  const query=p.length?'?'+p.join('&'):'';
+  const moved=String(new URLSearchParams(query))!==String(new URLSearchParams(location.search));
+  try{history[push&&moved?'pushState':'replaceState'](null,'',query||location.pathname);}catch(e){}
 }
-// Reads the view from the address. Returns the category of an old ?cat= link, to scroll to.
-function readURL(){
+// The view the address shows, and the category of an old ?cat= link (to scroll to).
+function fromURL(){
   const p=new URLSearchParams(location.search),found=PLACE_LIST.find(x=>x.url===p.get('place')),cat=p.get('cat')||'';
-  Object.assign(state,{q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'});
-  if(!state.q&&found)state.place=found.key;
-  else if(!state.q&&(p.get('view')==='all'||cat))state.view='all';
-  q.value=q2.value=state.q;
-  return cat;
+  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'};
+  if(!next.q&&found)next.place=found.key;
+  else if(!next.q&&(p.get('view')==='all'||cat))next.view='all';
+  return {next,cat};
 }
+// Takes the view from the address. Returns the category of an old ?cat= link, to scroll to.
+function readURL(){const {next,cat}=fromURL();Object.assign(state,next);q.value=q2.value=state.q;return cat;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
 function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+// A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
+// of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
+// control that scrolled away. Returns whether it scrolled.
+function showResults(){
+  const top=titleEl.getBoundingClientRect().top;
+  if(top>=Math.max(0,pinbar.getBoundingClientRect().bottom)&&top<=innerHeight*.6)return false;
+  toResults();toTitle();return true;
+}
 document.addEventListener('click',e=>{
   const tile=e.target.closest('[data-place]');
   if(tile){
     const key=tile.dataset.place;
-    go(!state.q&&state.place===key?{}:{place:key},true);
-    if(phone.matches&&state.place)toResults();
-    if(gone(tile))toTitle();
+    go(!state.q&&state.place===key?{}:{place:key},true); // the picked one pressed again goes back to Start, where the page is
+    if(!(state.place&&showResults())&&gone(tile))toTitle();
     return;
   }
   const pick=e.target.closest('[data-q]');
-  if(pick){go({q:pick.dataset.q},true);if(phone.matches)toResults();if(gone(pick))toTitle();}
+  if(pick){go({q:pick.dataset.q},true);if(!showResults()&&gone(pick))toTitle();}
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
@@ -1869,7 +1910,11 @@ q.addEventListener('input',()=>typed(q));
 q2.addEventListener('input',()=>typed(q2));
 // Moving between the bar's own buttons does not count: a tap on a chip must still find the chip.
 pinbar.addEventListener('focusout',e=>{if(!pinbar.contains(e.relatedTarget))syncBar();});
-$('search-form').addEventListener('submit',e=>{e.preventDefault();toResults();});
+// The Search button, or the keyboard's Search key in either box: the results come into view and keyboard focus goes to their
+// heading, out of the box, so a phone's keyboard closes instead of covering them. The bar stays while a search or place is shown.
+const submitted=e=>{e.preventDefault();toResults();toTitle();};
+$('search-form').addEventListener('submit',submitted);
+$('pin-form').addEventListener('submit',submitted);
 qClear.addEventListener('click',()=>{q.value='';typed(q);q.focus();});
 clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
 // The arrow goes away with the bar, and the page goes back to the top, where the first place tile takes keyboard focus.
@@ -1880,8 +1925,13 @@ $('more-btn').addEventListener('click',()=>{
 });
 // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
 $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-// Back and Forward can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
-addEventListener('popstate',()=>{readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();});
+// Back and Forward over a fragment only (the skip link, How it works, Back to top) leave the view and keyboard focus as they
+// are. A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
+addEventListener('popstate',()=>{
+  const {next}=fromURL();
+  if(Object.keys(next).every(k=>next[k]===state[k]))return;
+  readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();
+});
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
@@ -1893,7 +1943,7 @@ if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 
 (function(){const btn=$('theme-toggle');if(!btn)return;
   btn.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
-    document.documentElement.dataset.theme=next;try{localStorage.setItem('ah-theme',next);}catch(e){}});})();
+    setTheme(next);try{localStorage.setItem('ah-theme',next);}catch(e){}});})();
 
 // ---------- Copy prompt on the cards ----------
 // The text is the page's own: the home page reads the page's HTML and builds the text with the shared page script
@@ -1943,7 +1993,7 @@ function toast(message){
   },2400);
 }
 // Only the icon is swapped and the text of the label changes: the label is a live region, and a screen reader announces a change
-// inside one but not a new one. The name of the button always starts with what it shows.
+// inside one but not a new one. The name of the button always contains what it shows.
 function copyState(btn,kind){
   const name=btn.closest('.card').querySelector('.title a').textContent;
   clearTimeout(btn._timer);
@@ -1961,9 +2011,10 @@ cardsBox.addEventListener('click',e=>{
   if(btn.classList.contains('fail')){location.href=(FROM_DISK?url+'index.html':url)+'#hb-prompt-title';return;}
   writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
 });
-// Reading the page starts when the pointer rests on a card or a card gets focus, so the copy is quick.
+// Reading the page starts when a mouse pointer rests on a card or a card gets focus, so the copy is quick. A finger does not
+// count: on a phone the touch that sends it opens the card or scrolls the page.
 const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(!card)return;const url=urlOf(card);if(!failedPages.has(url))promptFor(url).catch(()=>{});};
-cardsBox.addEventListener('pointerover',warm);
+cardsBox.addEventListener('pointerover',e=>{if(e.pointerType==='mouse')warm(e);});
 cardsBox.addEventListener('focusin',warm);
 </script>
 </body>

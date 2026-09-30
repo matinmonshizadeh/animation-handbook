@@ -546,14 +546,16 @@ async function homeCopyProblems() {
 
 // Home page, desktop run: a tile press shows that place, presses that tile (and no other) and changes the address, Show
 // all shows the rest, Back returns to the start, a plain sentence finds the right animations, a typed word finds the other
-// forms of its word and one letter already finds cards, typing only replaces the address (spaces as %20), a word with no
-// match says so, All animations lists every card under its seven headings with the card titles a level below them, Browse
-// all pressed there adds no history step, an address opened directly shows its view, "/" puts keyboard focus in the search
-// box and Escape on the empty box keeps the picked place, and the old ?q= and ?cat= links still work. Keyboard focus is not
-// dropped or left behind when a pressed button hides or the page scrolls away: Show all puts it on the first new card;
-// Clear, a suggestion in the Nothing-found panel, Browse all (the button and the link) and Back after Show all put it on
-// the results heading. A tile pressed while a search box keeps focus (a tap on iOS leaves it there) empties both boxes.
-// Leaves the home page on ?cat=micro-interactions.
+// forms of its word and one letter already finds cards (but not every card: "best" and "for" are no card's words, and a
+// typed "best" is left out), typing only replaces the address (spaces as %20), a word with no match says so, All
+// animations lists every card under its seven headings with the card titles a level below them, Browse all pressed there
+// adds no history step, an address opened directly shows its view, "/" puts keyboard focus in the search box and Escape on
+// the empty box keeps the picked place, a tile or Popular suggestion press brings the results heading into view with
+// keyboard focus (the picked tile pressed again does not scroll), and the old ?q= and ?cat= links still work. Keyboard
+// focus is not dropped or left behind when a pressed button hides or the page scrolls away: Show all puts it on the first
+// new card; Clear, a suggestion in the Nothing-found panel, Browse all (the button and the link) and Back after Show all
+// put it on the results heading. A tile pressed while a search box keeps focus (a tap on iOS leaves it there) empties both
+// boxes. Leaves the home page on ?cat=micro-interactions.
 async function homeViewProblems() {
   const problems = [];
   const view = () => evaluate(`({ title: document.getElementById('results-title').textContent, cards: document.querySelectorAll('#cards .card').length,
@@ -637,6 +639,17 @@ async function homeViewProblems() {
   await sleep(300);
   const letter = await results();
   if (letter.none || !letter.names.length) problems.push(`search "b": ${letter.none ? 'nothing matches' : 'no cards'}`);
+  // Every description ends "Best for …", so neither "best" nor "for" may count as a card's word: "b" finds only the cards with
+  // a real word starting with b, and a typed "best" is left out like "for".
+  const every = await evaluate(`ALL.length`);
+  if (letter.sub === `${every} animations match.`) problems.push(`search "b" finds all ${every} animations (the "Best for" of every description counts)`);
+  await type('button');
+  await sleep(300);
+  const button = await results();
+  await type('best button');
+  await sleep(300);
+  const best = await results();
+  if (best.sub !== button.sub || best.names.join() !== button.names.join()) problems.push(`search "best button": ${best.sub} "button": ${button.sub} (a typed "best" counts)`);
   const steps = await evaluate(`history.length`);
   await type('fade in');
   await sleep(300);
@@ -692,6 +705,28 @@ async function homeViewProblems() {
     v = await view();
     if (Object.keys(want).some(k => v[k] !== want[k])) problems.push(`${query}: ${JSON.stringify(v)}`);
   }
+  // The results come into view at every width: a tile press that picks a place and a Popular suggestion press bring the
+  // results heading into the top 60% of the window and give it keyboard focus, so focus is not left on a control that
+  // scrolled away. The picked tile pressed again goes back to Start where the page is, without scrolling. Each reading
+  // waits for the page to hold still (the scroll is smooth).
+  const still = () => evaluate(`new Promise(done => { let last = scrollY, same = 0;
+    const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3) done(); else setTimeout(tick, 100); };
+    setTimeout(tick, 100); })`);
+  const heading = () => evaluate(`(() => { const t = document.getElementById('results-title'), top = Math.round(t.getBoundingClientRect().top);
+    return { title: t.textContent, top, shown: top >= 0 && top <= innerHeight * .6, focus: document.activeElement === t, scrolled: Math.round(scrollY) }; })()`);
+  for (const [what, selector] of [['a tile press', '.place[data-place="btn"]'], ['a Popular suggestion press', '.home-hero [data-q]']]) {
+    await load('');
+    await evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.focus({ preventScroll: true }); el.click(); })()`);
+    await still();
+    const seen = await heading();
+    if (!seen.shown || !seen.focus) problems.push(`results after ${what}: the heading is at ${seen.top}px${seen.shown ? '' : ', not in the top 60% of the window'}${seen.focus ? '' : ', and keyboard focus is not on it'}`);
+    if (selector.startsWith('.place')) {
+      await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
+      await still();
+      const again = await heading();
+      if (again.title !== 'Good places to start' || Math.abs(again.scrolled - seen.scrolled) > 1) problems.push(`the picked tile pressed again: heading "${again.title}", the page scrolled from ${seen.scrolled}px to ${again.scrolled}px`);
+    }
+  }
   // Old links keep working: ?q= opens the search, ?cat= opens All animations at that category's heading.
   for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=micro-interactions', 'All animations']]) {
     await load(query);
@@ -705,9 +740,12 @@ async function homeViewProblems() {
 
 // Home page, phone run: a tile press scrolls to the results, and the slim bar sticks to the top with that place pressed.
 // There, and again in All animations, every control in the bar, on the cards and under them is at least 44×44 and nothing
-// overflows sideways. Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A
+// overflows sideways. A chip far along the bar's row (Page changes), once pressed, is scrolled fully into the row, and the
+// page does not move. Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A
 // chip pressed again goes away with the bar, so keyboard focus moves to the results heading. The back arrow goes away too
-// and scrolls to the top, so keyboard focus moves to the first place tile, which is on screen there.
+// and scrolls to the top, so keyboard focus moves to the first place tile, which is on screen there. The keyboard's Search
+// key in the bar's box takes keyboard focus out of the box (the keyboard closes) and keeps the bar. A 45-letter word in ?q=
+// does not make the page wider than the window.
 async function homePhoneProblems() {
   const now = () => evaluate(`(() => { const a = document.activeElement;
     return { title: document.getElementById('results-title').textContent, focus: a.id || (a.matches('.place') ? 'tile ' + a.dataset.place : a.tagName.toLowerCase()),
@@ -715,17 +753,18 @@ async function homePhoneProblems() {
   const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); el.focus(); el.click(); })()`);
   const typeInBar = text => evaluate(`(() => { const box = document.getElementById('q2'); box.value = ${JSON.stringify(text)}; box.dispatchEvent(new Event('input', { bubbles: true })); })()`);
   // Every visible button, link and field in the bar, on the cards and under them is at least 44×44, and nothing overflows
-  // sideways. A card's title link is stretched over its whole card (an absolutely placed ::after), so it counts as the card.
+  // sideways. A card's title link is stretched over its whole card (an absolutely placed ::after), so it counts as the card;
+  // the link itself must not be positioned, or its ::after would cover only the link.
   const fit = where => evaluate(`(() => {
     const r = el => el.getBoundingClientRect();
     const stretched = el => { const after = getComputedStyle(el, '::after');
-      return el.tagName === 'A' && el.offsetParent && after.content !== 'none' && after.display !== 'none' && after.position === 'absolute'
-        && ['top', 'right', 'bottom', 'left'].every(side => after[side] === '0px'); };
+      return el.tagName === 'A' && el.offsetParent && getComputedStyle(el).position === 'static' && after.content !== 'none' && after.display !== 'none'
+        && after.position === 'absolute' && ['top', 'right', 'bottom', 'left'].every(side => after[side] === '0px'); };
     const small = [...document.querySelectorAll('#pinbar :is(button, a, input), #cards :is(button, a, input), #more :is(button, a, input)')]
       .filter(el => el.getClientRects().length)
       .map(el => [el, r(stretched(el) ? el.offsetParent : el)])
       .filter(([, b]) => b.width < 44 || b.height < 44)
-      .map(([el, b]) => (el.id || el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '')) + ' ' + Math.round(b.width) + 'x' + Math.round(b.height));
+      .map(([el, b]) => (el.id || el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '')) + ' ' + Math.round(b.width) + 'x' + Math.round(b.height));
     const found = [];
     if (small.length) found.push('small targets: ' + small.slice(0, 6).join(', ') + (small.length > 6 ? ' and ' + (small.length - 6) + ' more' : ''));
     if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) found.push('horizontal overflow');
@@ -738,6 +777,17 @@ async function homePhoneProblems() {
       top: Math.round(bar.getBoundingClientRect().top), pressed: [...bar.querySelectorAll('[aria-pressed="true"]')].map(b => b.textContent) }; })()`);
   const problems = v.title === 'Text' && v.shown && Math.abs(v.top) <= 1 && v.pressed.join() === 'Text' ? [] : [`phone, Text tile: ${JSON.stringify(v)}`];
   problems.push(...await fit('Text'));
+  // Page changes, the last chip, lies far past the right edge of the row: pressed, it is scrolled fully into the row, and
+  // only the row moves (the results heading is on screen here, so the page stays where it is).
+  const before = await evaluate(`Math.round(scrollY)`);
+  await evaluate(`document.querySelector('.pchip[data-place="page"]').click()`);
+  await sleep(700);
+  const chip = await evaluate(`(() => { const c = document.querySelector('.pchip[data-place="page"]'), b = c.getBoundingClientRect(), row = c.parentElement.getBoundingClientRect();
+    return { title: document.getElementById('results-title').textContent, pressed: c.getAttribute('aria-pressed'), left: Math.round(b.left), right: Math.round(b.right),
+      row: Math.round(row.left) + '-' + Math.round(row.right), inside: b.left >= row.left - .5 && b.right <= row.right + .5, scrolled: Math.round(scrollY) }; })()`);
+  if (chip.title !== 'Page changes' || chip.pressed !== 'true' || !chip.inside || chip.scrolled !== before) {
+    problems.push(`phone, Page changes chip: ${JSON.stringify(chip)}${chip.inside ? '' : ' (not fully inside the row)'}${chip.scrolled !== before ? ` (the page scrolled from ${before}px)` : ''}`);
+  }
   // This headless Chrome never has its page in focus, so a script's focus() and blur() send no focus events, and the bar
   // listens for one (leaving its box). The page counts as focused for the rest of this run, as it does for a visitor.
   await send('Emulation.setFocusEmulationEnabled', { enabled: true });
@@ -770,9 +820,81 @@ async function homePhoneProblems() {
     b = await now();
     if (b.title !== 'All animations' || !b.shown) problems.push(`phone, Browse all: ${JSON.stringify(b)}`);
     problems.push(...await fit('All animations'));
+    // The keyboard's Search key (Enter) in the bar's box: keyboard focus leaves the box, so the phone's keyboard closes over
+    // the results, and the bar stays while the search is shown.
+    await evaluate(`document.getElementById('q2').focus()`);
+    await typeInBar('fade');
+    await sleep(200);
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', windowsVirtualKeyCode: 13 });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    await sleep(900);
+    b = await now();
+    if (b.title !== 'Results for “fade”' || !b.shown || b.focus === 'q2') problems.push(`phone, Search key in the bar's box: ${JSON.stringify(b)}${b.focus === 'q2' ? ' (the box keeps keyboard focus)' : ''}`);
   } finally {
     await send('Emulation.setFocusEmulationEnabled', { enabled: false });
   }
+  // A 45-letter word in the address: the headings that repeat it break inside the word, so the page is no wider than the window.
+  let onLoad;
+  const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+  await send('Page.navigate', { url: `${BASE}/?q=pneumonoultramicroscopicsilicovolcanoconiosis` });
+  try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push('phone, ?q= with a 45-letter word did not load'); }
+  listeners.delete(onLoad);
+  await sleep(300);
+  const wide = await evaluate(`({ page: document.documentElement.scrollWidth, window: document.documentElement.clientWidth })`);
+  if (wide.page > wide.window + 1) problems.push(`phone, ?q= with a 45-letter word: the page is ${wide.page}px wide in a ${wide.window}px window`);
+  return problems;
+}
+
+// Home page, reduced-motion phone run, in All animations (every card): nothing runs (every animation in the page, on
+// pseudo-elements too, is paused), neither at once nor once every card has been on screen, and every preview holds a still
+// frame that shows something. The stage is captured with the preview and again with the preview's contents hidden (its dark
+// background stays): the pixels that change must be at least 0.3% of the stage, and the box around them at least 1% of it.
+// That is stricter than looking for a visible element, which passes a text clipped out of sight, a clip-path closed to
+// nothing or a lone typing cursor.
+async function homeMotionProblems() {
+  const problems = [];
+  await evaluate(`document.getElementById('more-btn').click()`);
+  await sleep(800);
+  const running = when => evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
+    const t = a.effect && a.effect.target, card = t && t.closest && t.closest('.card'), cls = t && t.getAttribute && t.getAttribute('class');
+    return (a.animationName || a.transitionProperty || 'an animation') + ' on ' + (card ? card.dataset.slug : t ? t.tagName.toLowerCase() + (cls ? '.' + cls.split(' ')[0] : '') : 'the page') + ((a.effect && a.effect.pseudoElement) || '');
+  })`).then(found => { if (found.length) problems.push(`reduced motion: ${found.length} animations run ${when} (${[...new Set(found)].slice(0, 8).join(', ')})`); });
+  await running('in All animations');
+  const slugs = await evaluate(`[...document.querySelectorAll('#cards .card')].map(c => c.dataset.slug)`);
+  const total = await evaluate(`ALL.length`);
+  if (slugs.length !== total) problems.push(`reduced motion: All animations shows ${slugs.length} cards, not ${total}`);
+  const card = slug => `document.querySelector('#cards .card[data-slug="${slug}"]')`;
+  const frames = n => `new Promise(done => { let left = ${n}; const tick = () => (--left ? requestAnimationFrame(tick) : done()); requestAnimationFrame(tick); })`;
+  const empty = [];
+  for (const slug of slugs) {
+    const box = await evaluate(`(async () => { const s = ${card(slug)}.querySelector('.stage'); s.scrollIntoView({ block: 'center' }); await ${frames(2)};
+      const b = s.getBoundingClientRect(); return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height }; })()`);
+    const drawn = (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+    await evaluate(`(async () => { for (const el of ${card(slug)}.querySelector('.pv').children) el.style.visibility = 'hidden'; await ${frames(2)}; })()`);
+    const bare = (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+    await evaluate(`{ for (const el of ${card(slug)}.querySelector('.pv').children) el.style.visibility = ''; }`);
+    // The pixels that differ by more than 48 (red, green and blue summed) between the two captures: their share of the stage,
+    // and the shares of its width and of its height that the box around them takes.
+    const seen = await evaluate(`new Promise(done => {
+      const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+      Promise.all([load(${JSON.stringify(drawn)}), load(${JSON.stringify(bare)})]).then(([x, y]) => {
+        const read = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
+        const p = read(x), q = read(y), w = x.width, h = x.height;
+        let changed = 0, left = w, right = -1, top = h, bottom = -1;
+        for (let i = 0; i < p.length; i += 4) {
+          if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) <= 48) continue;
+          const px = (i / 4) % w, py = Math.floor(i / 4 / w);
+          changed++; left = Math.min(left, px); right = Math.max(right, px); top = Math.min(top, py); bottom = Math.max(bottom, py);
+        }
+        done({ share: changed / (w * h), wide: changed ? (right - left + 1) / w : 0, tall: changed ? (bottom - top + 1) / h : 0 });
+      });
+    })`);
+    if (seen.share < .003 || seen.wide * seen.tall < .01) {
+      empty.push(`${slug} (${(seen.share * 100).toFixed(2)}% of the stage, in a box of ${Math.round(seen.wide * 100)}% × ${Math.round(seen.tall * 100)}%)`);
+    }
+  }
+  if (empty.length) problems.push(`reduced motion: ${empty.length} previews show nothing: ${empty.join(', ')}`);
+  await running('once every card has been on screen');
   return problems;
 }
 
@@ -875,6 +997,7 @@ try {
         if (home) {
           if (setup.moves) problems.push(...await homeViewProblems());
           if (setup.name === 'phone') problems.push(...await homePhoneProblems());
+          if (setup.name === 'phone-reduced') problems.push(...await homeMotionProblems());
           if (setup.moves) problems.push(...await homeCopyProblems());
         }
       } catch (err) {
