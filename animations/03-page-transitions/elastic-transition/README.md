@@ -29,6 +29,7 @@ function doSpring(o, n, stiffness, damping) {    // o: the old page, n: the new 
       acc -= STEP;
       settled = Math.abs(pos - target) < 0.5 && Math.abs(vel) < 0.5;
     }
+    if (acc > 0) acc = 0;                        // step limit reached: drop the time left
     if (settled) {
       n.style.transform = '';                    // settled — clean up
     } else {
@@ -41,7 +42,7 @@ function doSpring(o, n, stiffness, damping) {    // o: the old page, n: the new 
 }
 ```
 
-A frame adds the time since the last one to `acc`, never more than 50ms, so a dropped frame or a backgrounded tab cannot inject a huge time step that would make the spring explode, and then spends it in whole steps. The first frame adds nothing, because there is no earlier frame to measure from. The last step can end a little after the frame, so the page is drawn between the last two steps, at the frame's own time; a frame that fits no whole step still moves the page. On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (75, 200 or 640) and damping. These values were found by running this loop, so the spring goes about as far past its place as the planned path does (about 3.6%, 7.2% and 12% of the width). Stepping the spring in whole steps calms it more than the usual spring formula expects, so the values were measured rather than worked out.
+A frame adds the time since the last one to `acc`, never more than 50ms, which keeps the spring from jumping ahead after a pause, a slow frame or a backgrounded tab, and then spends it in whole steps. The first frame adds nothing, because there is no earlier frame to measure from. The last step can end a little after the frame, so the page is drawn between the last two steps, at the frame's own time; a frame that fits no whole step still moves the page. On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (75, 200 or 640) and damping. These values were found by running this loop, so the spring goes about as far past its place as the planned path does (about 3.6%, 7.2% and 12% of the width). Stepping the spring in whole steps calms it more than the usual spring formula expects, so the values were measured rather than worked out.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -52,7 +53,7 @@ A frame adds the time since the last one to `acc`, never more than 50ms, so a dr
 
 ## Production notes
 - **Stiffness and damping interact.** Below critical damping (`damping < 2√stiffness`) the spring oscillates; at or above it, it eases in without bounce. Tune the pair together — raising stiffness usually needs more damping to stay tasteful.
-- **Clamp the time a frame adds.** Integrating with the raw frame delta is the classic spring bug: one long frame and `pos` shoots to infinity. The 50ms clamp (`0.05` seconds in the snippet) is not optional, and it also keeps a frame to a handful of steps, so a long pause cannot stall the page.
+- **Clamp the time a frame adds.** One step of the raw frame delta is the classic spring bug: after one long frame `pos` shoots to infinity. Fixed steps avoid that, but the time a frame adds still needs a limit: added whole, a pause or a slow frame would make the spring jump ahead, and the bounce would be over in one frame. The 50ms clamp (`0.05` seconds in the snippet) keeps it moving on from where it was, and it also keeps a frame to a handful of steps.
 - **Frame rate.** The demo moves its spring in fixed steps of 1/120 of a second, as many as the time that has passed needs, so it bounces the same at any frame rate. A spring that takes one step per frame does not: at 30 frames a second a small bounce hardly shows, and at 120 it is a little larger. Draw the page between the last two steps, or a frame that fits no whole step shows the spring standing still.
 - **CSS keyframe overshoot can clip.** If a page translates fully to its edge before the bounce completes, the overshoot slides content out of the visible bounds. Reserve a little slack or let the container overflow during the animation.
 - **Library equivalents.** Framer Motion and React Spring take `stiffness`/`damping` directly and handle interruption for you — reach for them rather than hand-rolling the integrator in production. GSAP's `elastic.out` easing approximates the CSS-keyframe feel. CSS `linear()` easing can now encode a sampled spring curve without JavaScript at all.
