@@ -27,13 +27,17 @@ viewport.addEventListener('wheel', e => {
   kick();                                        // starts the loop if it is idle
 }, { passive: false });
 
-// each frame eases current toward target
-function loop() {
-  current += (target - current) * ease;          // ease ~0.09
+// each frame eases current toward target, by a share that depends on how long the frame took
+const FRAME = 1000 / 60;                         // ease is counted per 1/60 s
+function loop(now) {
+  const dt = last ? Math.min(now - last, 50) : FRAME;   // time since the last frame; 1/60 s for the first
+  last = now;
+  current += (target - current) * (1 - Math.pow(1 - ease, dt / FRAME));   // ease ~0.09
   if (Math.abs(target - current) < 0.1) current = target;
   content.style.transform = `translate3d(0, ${-current}px, 0)`;
   if (current !== target) requestAnimationFrame(loop);
 }
+function kick() { if (!raf) { last = 0; raf = requestAnimationFrame(loop); } }
 ```
 
 Touch drag uses Pointer Events: on `pointerdown` the current target is captured, and `pointermove` offsets it by the drag distance, so the same target/current machinery serves both mouse wheel and finger drag. The gap between `target` and `current` is what produces momentum: a flick pushes `target` ahead, and `current` coasts after it until the two converge.
@@ -42,13 +46,13 @@ The keyboard moves the same target: in the glide mode a `keydown` handler on the
 
 The demo keeps all of this inside a scoped box with `overflow: hidden` — it never touches `window` scroll — so it embeds without hijacking the page.
 
-A fixed lerp factor is frame-rate dependent — the same value settles faster on a 120Hz display than on 60Hz. For rate-independent easing, scale the factor by delta time: `1 - Math.pow(1 - ease, dt * 60)`.
+The share moved each frame depends on how long the frame took. A fixed lerp factor per frame is frame-rate dependent: the same value settles twice as fast on a 120Hz display as on 60Hz, and half as fast on a 30Hz phone. Here `ease` is the share covered in 1/60 s, and a frame that lasted `dt` covers `1 - Math.pow(1 - ease, dt / FRAME)` of the distance left, so the distance left shrinks exponentially with time and the glide takes the same time on every screen. `kick()` clears `last`, so the first frame after a start counts as 1/60 s rather than the time since some old frame, and `dt` is capped at 50ms, so a hidden tab does not make the content jump.
 
 ## Key parameters
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Glide | Medium | How much of the remaining distance the content covers each frame: long is 5%, medium 9% and short 16%; long feels heavy and floaty, short is closer to normal scrolling |
+| Glide | Medium | How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling |
 | Normal scrolling | off | Turns the glide off so the box scrolls the browser's own way, to compare the two |
 
 ## Production notes
