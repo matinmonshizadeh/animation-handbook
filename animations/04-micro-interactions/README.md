@@ -1,6 +1,6 @@
 # 04 — Micro-Interactions & UI Animation
 
-Short, user-triggered animations that provide feedback, confirm actions, and communicate state. Duration is typically ≤300ms — they must feel instant, not decorative.
+Short, user-triggered animations that provide feedback, confirm actions, and communicate state. They start the moment the visitor acts and stay short (see Duration discipline below), so they feel instant, not decorative.
 
 ## Animations
 
