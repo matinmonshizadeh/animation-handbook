@@ -299,7 +299,7 @@ None: leave out the `details.hb-options` block.
 - **Description:** Shrinks as you press it and springs back as you let go. Best for main buttons.
 - **Step 1:** Click it — help line: "Press and hold a button, then let go, or press Show me."
 - **Player bar:** Show me · Slow motion (css). No Reset: a button always returns to full size when it is let go.
-- **What the visitor does:** pressing a button adds `pressed` (`pointerdown`, or Space and Enter), and letting go removes it (`pointerup`, or the key coming up), as today; `pointercancel` lets go too. Touch works the same way.
+- **What the visitor does:** pressing a button adds `pressed` (`pointerdown`, or Space and Enter), and letting go removes it (`pointerup`, or the key coming up), as today; `pointercancel` lets go too, and so does `blur`: a Space or Enter held down when Tab moves the focus away sends its key-up to the next button, and without `blur` the first button stayed pressed (a change of the final wave). Touch works the same way.
 - **Show me:** presses each button once, top to bottom (Confirm, Save Draft, Cancel).
   - Button i (0 to 2) goes down (`pressed` on) with `later(down, i*(pd+rd), i*540)` and comes up with `later(up, i*(pd+rd)+pd, i*540+320)`. `pd` is Press speed and `rd` Release speed: each press shrinks, holds 320ms and springs back, and 220ms pass before the next press.
   - At the defaults the buttons go down at 0, 800 and 1600ms and come up 400ms later each. The run is at rest by about 2.2 s, or about 3.7 s with Slow motion.
@@ -358,8 +358,8 @@ None: leave out the `details.hb-options` block.
   - [Click / Tap Ripple](../click-ripple/) — a ripple spreads from the spot you press
   - [Hover State Animation](../hover-state/) — items react before they are clicked
   - [Checkmark Draw](../checkmark-draw/) — a tick draws itself once the task is done
-- **README How it works:** unchanged
-- **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this." The rest is unchanged.
+- **README How it works:** the JS snippet's `pointerdown` handler also captures the pointer, `e => { press(); btn.setPointerCapture(e.pointerId); }`, and the snippet gains `btn.addEventListener('blur', release);` after the key handlers, as the page has them. One sentence after the paragraph on the asymmetric timing says the glow crossfades a resting shadow on `::before` and a pressed shadow on `::after` by opacity, with the same timing as the size, rather than animating `box-shadow`. The rest is unchanged.
+- **README Production notes:** the `prefers-reduced-motion` bullet becomes: "**`prefers-reduced-motion`**: switch the transitions off for users who request reduced motion, so the button changes size at once instead of animating; the demo does this." The `pointercancel` bullet gains: "Two more ways to get stuck are covered in the snippet: without `setPointerCapture` the release is missed when the pointer has moved off the button, and without the `blur` listener a key held down while Tab moves the focus away sends its `keyup` to the next element." The rest is unchanged.
 - **Category line:** `04.04 · Micro-Interactions`
 - **Pager:** Previous: Focus Ring Animation (`../focus-ring/`) · Next: Magnetic Button (`../magnetic-button/`)
 
