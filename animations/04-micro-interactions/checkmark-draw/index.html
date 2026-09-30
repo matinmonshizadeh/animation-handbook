@@ -213,7 +213,7 @@
     btnText.style.opacity='0';btnSpin.style.opacity='1';
     const failed=showError;
     seqTimer=setTimeout(()=>{
-      btnSpin.style.opacity='0';btnCheck.style.opacity='1';
+      btnCheck.textContent=failed?'✕':'✓';btnSpin.style.opacity='0';btnCheck.style.opacity='1';
       if(failed){btn.style.background='#f85149';iconWrap.classList.add('error','shake')}
       else{btn.style.background='#56d364';iconWrap.classList.add('drawn')}
     },900);
@@ -246,7 +246,9 @@
   }
   // Submit is pressed after 300ms of rest. Its own 900ms wait follows, then the lines draw over 1.4 x Speed (the circle over Speed,
   // the tick starting 0.4 x Speed after it) and rest 1.2 s. At the defaults: the tick is complete at 1.9 s, back to Submit at 3.1 s.
-  document.getElementById('btn-demo').addEventListener('click',()=>{
+  // The arrival press is not the visitor's: it leaves alone a Submit the visitor has already pressed.
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&btn.disabled)return;
     stopRun();
     toRest();
     later(runSequence,0,300);

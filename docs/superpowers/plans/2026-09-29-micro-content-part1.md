@@ -920,7 +920,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Show me · Reset · Slow motion (css).
 - **What the visitor does:** clicking Submit runs today's `runSequence()`.
   - The label fades and a spinner turns in the button for 900ms.
-  - Then the button shows ✓ and turns green while the circle and the tick draw. With Result set to Error, it turns red while the X draws and shakes.
+  - Then the button shows ✓ and turns green while the circle and the tick draw. With Result set to Error, it shows ✕ (never the success tick) and turns red while the X draws and shakes. `runSequence()` sets the glyph from the run's result, `btnCheck.textContent=failed?'✕':'✓'`, just before it fades the glyph in.
   - The button then stays finished (disabled) until Reset.
 - **Show me:** starts from rest: `toRest()` is `reset()` without animating. Then:
   - `later(runSequence, 0, 300)` presses Submit. The sequence's own 900ms loading wait is a hold: it stays in `runSequence()`'s own timer, which does not go through `later()` and is never tripled.
@@ -930,6 +930,7 @@ None: leave out the `details.hb-options` block.
     - After the reset, the lines draw back out over Speed.
   - At the defaults: Submit at 300ms, the tick fully drawn by about 1900ms, back to Submit at 3100ms. With Slow motion, back at about 4.5 s, before the lines draw back out.
   - Stops on `hb:input`: the run's own timers stop, and a sequence already under way still finishes and stays finished until Reset.
+  - The arrival press is the shared script's, not the visitor's. When the visitor has already pressed Submit (the button is disabled, whether it is still loading or finished), the page ignores an untrusted Show me press (`e=>{if(!e.isTrusted&&btn.disabled)return; ...}`), so the arrival run neither resets nor replaces the visitor's own sequence. The visitor's own Show me press still starts a run from rest.
 - **Reset:** calls `stopRun()`, then `reset()`: the finished button stays disabled otherwise, so this is the only way back to Submit besides Show me.
 - **Slow motion:** css (the drawing, the spinner, the shake and the button's colour). `later()` triples the drawing (1.4 × Speed), not the holds; the sequence's 900ms loading wait keeps its length.
 - **Reduced motion:** the demo's rule stays and also stops the button's spinner (`.sp{animation:none}` joins it). The spinner shows still, and the circle and tick, or the X, appear at once, with no shake. Show me still shows the spinner, then the finished result.
