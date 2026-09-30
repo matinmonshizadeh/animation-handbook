@@ -56,7 +56,7 @@ The content element needs `opacity: 0; transition: opacity 400ms ease` to fade i
 - **Real data approximation**: if you know the content length, dynamically size the skeleton lines to match (e.g., profile names are typically 1–2 lines; descriptions are 3–4).
 - **`prefers-reduced-motion`**: disable the pulse animation entirely for users who request it. A static gray block is still a valid skeleton loader.
 - **React**: `react-loading-skeleton` (by Dvtng) is the standard library. It auto-matches skeleton widths to inline text nodes.
-- **Pairing**: skeleton + shimmer (see [Shimmer Effect](../shimmer-effect/)) is the most polished loading state — pulse for structure, shimmer for motion.
+- **Pulse or shimmer**: a skeleton shows loading either by pulsing, as here, or with a sweeping band of light ([Shimmer Effect](../shimmer-effect/)); pick one, since the two together are redundant and visually loud.
 
 ## See also
 - [Shimmer Effect](../shimmer-effect/) — a band of light sweeps across the placeholders

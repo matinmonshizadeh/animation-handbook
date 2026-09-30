@@ -683,7 +683,10 @@ None: leave out the `details.hb-options` block.
   - [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
   - [Progress Animation](../progress-animation/) — a bar that shows how much is done
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** unchanged, except the last bullet (final fix wave, below)
+- **Final fix wave (after the category review):**
+  - Screen readers read the real post text while the placeholders showed. `#real-content` now starts with `aria-hidden="true"`; `showPlaceholders()` sets it again on every play and `reveal()` removes it. So the text is hidden from screen readers exactly while the placeholders show (and hidden at once when Replay or Loop brings them back), and readable after the reveal. Nothing changes for sighted visitors.
+  - README Production notes: the last bullet said skeleton plus shimmer "is the most polished loading state", which contradicted Shimmer Effect's README ("pick one"). It is now "Pulse or shimmer": a skeleton shows loading either by pulsing, as here, or with a sweeping band of light (Shimmer Effect); pick one, since the two together are redundant and visually loud.
 - **Category line:** `04.09 · Micro-Interactions`
 - **Pager:** Previous: Success Confetti (`../success-confetti/`) · Next: Shimmer Effect (`../shimmer-effect/`)
 

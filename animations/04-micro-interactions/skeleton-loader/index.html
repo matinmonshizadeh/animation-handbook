@@ -84,7 +84,7 @@
           <div class="skel sk-line w60"></div>
         </div>
         <!-- Real content -->
-        <div class="real" id="real-content">
+        <div class="real" id="real-content" aria-hidden="true">
           <div class="real-header">
             <div class="avatar">🌊</div>
             <div><div class="real-name">Atlas Studio</div><div class="real-meta">2 hours ago · Design</div></div>
@@ -202,18 +202,20 @@
     },wait);
     timers.push(id);
   }
-  // Brings the placeholders back and hides the content at once: the content's fade is switched off
-  // for the change, a reflow makes it stick, then the fade is switched back on for the reveal.
+  // Brings the placeholders back and hides the content at once, from screen readers too (aria-hidden): the content's
+  // fade is switched off for the change, a reflow makes it stick, then the fade is switched back on for the reveal.
   function showPlaceholders(){
     skelEl.style.visibility='';
     realEl.style.transition='none';
     realEl.classList.remove('visible');
+    realEl.setAttribute('aria-hidden','true');
     void realEl.offsetWidth;
     realEl.style.transition='';
   }
   function reveal(){
     skelEl.style.visibility='hidden';
     realEl.classList.add('visible');
+    realEl.removeAttribute('aria-hidden');
   }
   // One play shows the placeholders for Loading time, then fades the content in. While Loop is on, the content
   // holds 1600ms after its fade ends; Loop is checked then, so switching it off leaves the content shown.
