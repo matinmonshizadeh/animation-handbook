@@ -138,7 +138,7 @@ Expected: PASS, every test.
 Run from the repo root:
 
 ```bash
-node -e "const fs=require('fs'),path=require('path');let n=0;for(const c of fs.readdirSync('animations',{withFileTypes:true}).filter(d=>d.isDirectory()))for(const d of fs.readdirSync(path.join('animations',c.name),{withFileTypes:true}).filter(d=>d.isDirectory())){const f=path.join('animations',c.name,d.name,'index.html');if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,'utf8'),t=s.replace(/demo-page\.(css|js)\?v=5/g,'demo-page.$1?v=6');if(t!==s){fs.writeFileSync(f,t);n++;}}console.log(n+' pages')"
+node -e "const fs=require('fs'),path=require('path');let n=0;for(const c of fs.readdirSync('animations',{withFileTypes:true}).filter(d=>d.isDirectory()))for(const d of fs.readdirSync(path.join('animations',c.name),{withFileTypes:true}).filter(d=>d.isDirectory())){const f=path.join('animations',c.name,d.name,'index.html');if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,'utf8'),t=s.replace(/demo-page\.(css|js)\?v=5/g,'demo-page.\$1?v=6');if(t!==s){fs.writeFileSync(f,t);n++;}}console.log(n+' pages')"
 ```
 
 Expected: `129 pages`. Then `git grep -c "?v=5" -- animations` prints nothing.
@@ -195,7 +195,8 @@ function homeConst(name) {
     else if (ch === open) depth++;
     else if (ch === close && --depth === 0) break;
   }
-  return vm.runInNewContext('(' + HOME.slice(from, i + 1) + ')');
+  // vm builds the value in its own realm; the JSON copy is made of ordinary arrays and objects that deepEqual accepts.
+  return JSON.parse(JSON.stringify(vm.runInNewContext('(' + HOME.slice(from, i + 1) + ')')));
 }
 const PLACE_KEYS = ['btn', 'text', 'imgcard', 'bg', 'menu', 'load', 'intro', 'scroll', 'page'];
 
