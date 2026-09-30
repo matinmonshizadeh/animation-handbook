@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stagger Reveal — Animation Handbook</title>
-  <meta name="description" content="Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.">
+  <meta name="description" content="Items in a group appear one after another as it scrolls in. Best for card grids.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stagger-reveal/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,161 +12,183 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Stagger Reveal — Animation Handbook">
-  <meta property="og:description" content="Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.">
+  <meta property="og:description" content="Items in a group appear one after another as it scrolls in. Best for card grids.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stagger-reveal/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Stagger Reveal — Animation Handbook">
-  <meta name="twitter:description" content="Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.">
+  <meta name="twitter:description" content="Items in a group appear one after another as it scrolls in. Best for card grids.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Stagger Reveal", "name": "Stagger Reveal", "description": "Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stagger-reveal/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Stagger Reveal"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Stagger Reveal", "name": "Stagger Reveal", "description": "Items in a group appear one after another as it scrolls in. Best for card grids.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stagger-reveal/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Stagger Reveal"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#6ea8ff;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);overflow-y:scroll;scrollbar-width:none;border:1px solid var(--ui-border);border-radius:8px}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
+    /* The last group ends with 80px of padding, more than the 20px an item sits low before it appears, so the hidden
+       items never add to the scroll length, which Play reads once when it starts. */
     .section{padding:40px 24px;border-bottom:1px solid var(--ui-border)}
     .section:last-child{padding-bottom:80px;border:none}
-    .sec-head{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:20px;opacity:.7}
+    .sec-head{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:20px}
     /* Grid */
     .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .grid-cell{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px 10px;font-size:10px;text-align:center;position:relative}
-    .delay-badge{position:absolute;top:4px;right:5px;font-size:8px;color:var(--ui-accent);opacity:.5}
+    .grid-cell{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px 10px;font-size:12px;text-align:center}
     /* List */
     .list-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ui-border)}
     .list-row:last-child{border:none}
     .avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--ui-accent)}
-    .list-label{flex:1;font-size:11px}
-    .list-meta{font-size:10px;opacity:.4}
+    .list-label{flex:1;font-size:13px}
+    .list-meta{font-size:12px;color:var(--ui-muted)}
     /* Chips */
     .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:20px;padding:6px 14px;font-size:10px}
+    .chip{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:20px;padding:6px 14px;font-size:12px}
     /* Stagger states */
     .item{opacity:0;transform:translateY(20px);transition:opacity .4s ease,transform .4s ease}
     .item.in{opacity:1;transform:translateY(0)}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:38px;text-align:right;color:var(--ui-text)}
-    .seg{display:flex;gap:3px;flex-wrap:wrap}
-    .seg button{flex:1;background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font-family:monospace;font-size:9px;padding:8px 4px;border-radius:4px;cursor:pointer;min-height:36px}
-    .seg button.on{border-color:var(--ui-accent);color:var(--ui-accent);background:#0d2040}
-    .matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
-    .mdot{width:100%;aspect-ratio:1;border-radius:3px;background:var(--ui-border);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--ui-muted);transition:background .1s}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:monospace;font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}aside{width:100%}:root{--stage-h:480px}.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media(prefers-reduced-motion:reduce){.item{transition:none!important}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../reveal-on-scroll/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../horizontal-scroll/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/01-scroll-based/stagger-reveal/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Stagger Reveal</h1>
-  <p>Groups of elements reveal sequentially — the preview matrix shows cascade order before you scroll.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <div class="section" id="sec-grid">
-      <div class="sec-head">01 · Card Grid (4 × 3)</div>
-      <div class="grid" id="grid"></div>
+<body class="hb" data-hb-kind="scroll" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../reveal-on-scroll/" rel="prev" aria-label="Previous: Reveal on Scroll"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Reveal on Scroll</span></a><a href="../horizontal-scroll/" rel="next" aria-label="Next: Horizontal Scroll"><span><span class="hb-dir">Next: </span>Horizontal Scroll</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.13 · Scroll-Based</p>
+    <h1>Stagger Reveal</h1>
+    <p class="hb-lede">Items in a group appear one after another as it scrolls in. Best for card grids.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play. Back to top hides the groups again.</p></div>
     </div>
-    <div class="section" id="sec-list">
-      <div class="sec-head">02 · List Rows</div>
-      <div id="list"></div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="Three groups of items">
+      <div class="section">
+        <div class="sec-head">01 · Grid</div>
+        <div class="grid" id="grid"></div>
+      </div>
+      <div class="section">
+        <div class="sec-head">02 · List</div>
+        <div id="list"></div>
+      </div>
+      <div class="section">
+        <div class="sec-head">03 · Tags</div>
+        <div class="chips" id="chips"></div>
+      </div>
     </div>
-    <div class="section" id="sec-chips">
-      <div class="sec-head">03 · Tag Chips</div>
-      <div class="chips" id="chips"></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
     </div>
-  </div>
-  <aside>
-    <p class="note">40–60ms is the sweet spot. Below 30ms the eye can't separate items. Above 100ms it feels sluggish. Cap total stagger time at ~600ms on long lists.</p>
-    <div><div class="lbl" id="delay-lbl">Stagger delay</div>
-      <div class="sr"><input type="range" id="delay-sl" aria-labelledby="delay-lbl" min="0" max="150" value="50" step="10"><span class="sv" id="delay-val">50ms</span></div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Play.</p></div>
     </div>
-    <div class="div"></div>
-    <div class="lbl">Cascade direction</div>
-    <div class="seg" id="dir-seg">
-      <button data-d="forward" class="on">→ Forward</button>
-      <button data-d="reverse">← Reverse</button>
-      <button data-d="center">↔ Center</button>
-      <button data-d="random">⁂ Random</button>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="delay-lbl">Delay between items</p>
+        <div class="seg" id="delay-seg" role="group" aria-labelledby="delay-lbl">
+          <button type="button" data-ms="30" aria-pressed="false">Short</button>
+          <button type="button" data-ms="50" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-ms="80" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">Longer delays make the order easier to see.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="order-lbl">Order</p>
+        <div class="seg" id="order-seg" role="group" aria-labelledby="order-lbl">
+          <button type="button" data-dir="forward" class="on" aria-pressed="true">First to last</button>
+          <button type="button" data-dir="reverse" aria-pressed="false">Last to first</button>
+          <button type="button" data-dir="center" aria-pressed="false">From the middle</button>
+          <button type="button" data-dir="random" aria-pressed="false">Random</button>
+        </div>
+        <p class="hb-hint">Which item appears first.</p>
+      </div>
     </div>
-    <div class="div"></div>
-    <div class="lbl">Preview matrix (grid)</div>
-    <div class="matrix" id="matrix"></div>
-    <div class="div"></div>
-    <button class="rst" id="replay-btn">Replay all groups</button>
-  </aside>
-</div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a stagger reveal to [your grid, list or group of items]. When the group scrolls into view, reveal its items one after another instead of all at once: each item fades in and rises a little, starting a short delay after the one before, in the order the settings choose. Make each item's own animation longer than the delay between items, so they overlap into one sweep, and keep the whole cascade under about 600ms on long lists. If the visitor has reduced motion turned on, show the items without movement. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Card grids</li><li>Search results</li><li>Menus</li><li>Galleries</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long lists</li><li>Key information</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
-  const delaySl=document.getElementById('delay-sl'),delayVal=document.getElementById('delay-val');
-  const matrix=document.getElementById('matrix');
-  let staggerMs=50,direction='forward',observers=[];
+  let staggerMs=50,direction='forward',observers=[],timers=[];
 
   const GRID_ITEMS=['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu'];
   const LIST_ITEMS=[
-    {name:'Ada Lovelace',meta:'Algorithmics','color':'#79c0ff'},
-    {name:'Grace Hopper',meta:'Compilation','color':'#56d364'},
-    {name:'Alan Turing',meta:'Computation','color':'#d2a8ff'},
-    {name:'Claude Shannon',meta:'Information theory','color':'#ffa657'},
-    {name:'Tim Berners-Lee',meta:'WWW Protocol','color':'#58a6ff'},
-    {name:'Margaret Hamilton',meta:'Software engineering','color':'#f78166'},
+    {name:'Ada Lovelace',meta:'Algorithmics',color:'#79c0ff'},
+    {name:'Grace Hopper',meta:'Compilation',color:'#56d364'},
+    {name:'Alan Turing',meta:'Computation',color:'#d2a8ff'},
+    {name:'Claude Shannon',meta:'Information theory',color:'#ffa657'},
+    {name:'Tim Berners-Lee',meta:'WWW Protocol',color:'#58a6ff'},
+    {name:'Margaret Hamilton',meta:'Software engineering',color:'#f78166'},
   ];
-  const CHIPS=['CSS Grid','Flexbox','Sticky','IntersectionObserver','clip-path','rAF','View Transitions','WAAPI'];
+  const CHIPS=['Design','Travel','Music','Food','Books','Film','Sport','Science'];
 
+  function add(parent,cls,text){
+    const el=document.createElement('div');el.className=cls;
+    if(text)el.textContent=text;
+    parent.appendChild(el);return el;
+  }
   function buildGrid(){
-    const g=document.getElementById('grid');g.innerHTML='';
-    return GRID_ITEMS.map((t,i)=>{
-      const el=document.createElement('div');el.className='grid-cell item';
-      el.innerHTML=`<div class="delay-badge" id="db${i}">0ms</div>${t}`;
-      g.appendChild(el);return el;
-    });
+    const g=document.getElementById('grid');g.textContent='';
+    return GRID_ITEMS.map(t=>add(g,'grid-cell item',t));
   }
   function buildList(){
-    const l=document.getElementById('list');l.innerHTML='';
-    return LIST_ITEMS.map((d,i)=>{
-      const el=document.createElement('div');el.className='list-row item';
-      el.innerHTML=`<div class="avatar" style="background:${d.color}"></div>
-        <div class="list-label">${d.name}</div><div class="list-meta">${d.meta}</div>`;
-      l.appendChild(el);return el;
+    const l=document.getElementById('list');l.textContent='';
+    return LIST_ITEMS.map(d=>{
+      const row=add(l,'list-row item');
+      add(row,'avatar').style.background=d.color;
+      add(row,'list-label',d.name);add(row,'list-meta',d.meta);
+      return row;
     });
   }
   function buildChips(){
-    const c=document.getElementById('chips');c.innerHTML='';
-    return CHIPS.map((t,i)=>{
-      const el=document.createElement('div');el.className='chip item';el.textContent=t;
-      c.appendChild(el);return el;
-    });
+    const c=document.getElementById('chips');c.textContent='';
+    return CHIPS.map(t=>add(c,'chip item',t));
   }
 
   function getOrder(n){
@@ -176,58 +198,60 @@ body{padding-top:46px}
     const a=Array.from({length:n},(_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
   }
 
-  function staggerIn(items,updateBadges){
-    const order=getOrder(items.length);
-    items.forEach((el,i)=>{
-      const d=order[i]*staggerMs;
-      if(updateBadges){const b=el.querySelector('.delay-badge');if(b)b.textContent=d+'ms';}
-      setTimeout(()=>el.classList.add('in'),d);
-    });
+  // A timer that is remembered while it waits, so rebuild() can cancel the reveals that have not happened yet
+  function later(fn,wait){
+    const id=setTimeout(()=>{timers=timers.filter(t=>t!==id);fn()},wait);
+    timers.push(id);
   }
-  function staggerOut(items){items.forEach(el=>{el.classList.remove('in');});}
-
-  function updateMatrix(){
-    const order=getOrder(12);const max=Math.max(...order)||1;
-    [...matrix.children].forEach((d,i)=>{
-      const norm=order[i]/max;
-      d.style.background=`rgba(88,166,255,${0.15+norm*0.8})`;
-      d.textContent=order[i]+1;
-    });
+  function staggerIn(items){
+    const order=getOrder(items.length);
+    items.forEach((el,i)=>later(()=>el.classList.add('in'),order[i]*staggerMs));
   }
 
   let gridItems=buildGrid(),listItems=buildList(),chipItems=buildChips();
-  // Build matrix dots
-  for(let i=0;i<12;i++){const d=document.createElement('div');d.className='mdot';matrix.appendChild(d);}
-  updateMatrix();
 
+  // Each group plays once, when half of it is in the box or its bottom edge has come into the box. The observers watch the
+  // group's items, not the section around them, so the cascade starts while the items are on screen. A threshold every 5%
+  // makes them report on the way, so a jump straight to the end is not missed and no visible row is left hidden.
+  const STEPS=Array.from({length:21},(_,i)=>i/20);
   function attachObservers(){
     observers.forEach(o=>o.disconnect());observers=[];
-    [[document.getElementById('sec-grid'),gridItems,true],
-     [document.getElementById('sec-list'),listItems,false],
-     [document.getElementById('sec-chips'),chipItems,false]].forEach(([sec,items,badges])=>{
-      const o=new IntersectionObserver(([e])=>{if(e.isIntersecting)staggerIn(items,badges)},{root:stage,threshold:.05});
-      o.observe(sec);observers.push(o);
+    [['grid',gridItems],['list',listItems],['chips',chipItems]].forEach(([id,items])=>{
+      const o=new IntersectionObserver(entries=>{
+        const e=entries[entries.length-1];
+        if(e.isIntersecting&&(e.intersectionRatio>=.5||e.boundingClientRect.bottom<=e.rootBounds.bottom+1)){o.disconnect();staggerIn(items)}
+      },{root:stage,threshold:STEPS});
+      o.observe(document.getElementById(id));observers.push(o);
     });
   }
   attachObservers();
 
-  delaySl.addEventListener('input',()=>{staggerMs=+delaySl.value;delayVal.textContent=staggerMs+'ms';updateMatrix();});
-  document.querySelectorAll('#dir-seg button').forEach(b=>{
-    b.addEventListener('click',()=>{
-      document.querySelectorAll('#dir-seg button').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');direction=b.dataset.d;updateMatrix();
-    });
-  });
-  document.getElementById('replay-btn').addEventListener('click',()=>{
+  // Builds the three groups again, hidden, and watches them again: the groups in the box play at once with the current
+  // settings, the others when they scroll in
+  function rebuild(){
+    timers.forEach(clearTimeout);timers=[];
     gridItems=buildGrid();listItems=buildList();chipItems=buildChips();
-    stage.scrollTop=0;
-    observers.forEach(o=>o.disconnect());observers=[];
-    setTimeout(()=>{
-      attachObservers();
-      setTimeout(()=>staggerIn(gridItems,true),100);
-    },50);
+    void stage.offsetWidth;
+    attachObservers();
+  }
+
+  // Back to top, and Play pressed with the box at its end, hide the groups again. The shared script jumps the box to the top
+  // when it handles the same click, after this listener; the new observers report on the next frame, after the jump, so the
+  // finished groups are never drawn at the top.
+  document.getElementById('btn-top').addEventListener('click',()=>rebuild());
+  document.getElementById('btn-scroll').addEventListener('click',()=>{
+    if(stage.scrollTop>=stage.scrollHeight-stage.clientHeight-2)rebuild();
   });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('delay-seg',d=>{staggerMs=+d.ms;rebuild()});
+  choices('order-seg',d=>{direction=d.dir;rebuild()});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
