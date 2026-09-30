@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { sections, table } = require('../assets/js/handbook.js');
+const { sections, table } = require('./helpers/markdown.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
