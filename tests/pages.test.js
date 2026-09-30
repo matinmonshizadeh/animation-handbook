@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { sections, table } = require('./helpers/markdown.js');
+const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -415,4 +416,45 @@ test('the home page uses Schibsted Grotesk and the new intro line', () => {
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
   for (const old of ['Bricolage', 'PlexMono', 'var(--mono)', '--mono:']) assert.ok(!HOME.includes(old), `still uses ${old}`);
   assert.ok(HOME.includes('See 129 web animations move, learn when to use each one, and copy a prompt to build it.'));
+});
+
+// The value of `const NAME=` in the home page's script: an array or object literal of plain data, read with vm.
+function homeConst(name) {
+  const start = HOME.indexOf(`const ${name}=`);
+  assert.ok(start >= 0, `const ${name} in index.html`);
+  const from = start + `const ${name}=`.length;
+  const open = HOME[from], close = open === '[' ? ']' : '}';
+  let depth = 0, i = from, quote = null;
+  for (; i < HOME.length; i++) {
+    const ch = HOME[i];
+    if (quote) { if (ch === '\\') i++; else if (ch === quote) quote = null; continue; }
+    if (ch === "'" || ch === '"' || ch === '`') quote = ch;
+    else if (ch === open) depth++;
+    else if (ch === close && --depth === 0) break;
+  }
+  // vm builds the value in its own realm; the JSON copy is made of ordinary arrays and objects that deepEqual accepts.
+  return JSON.parse(JSON.stringify(vm.runInNewContext('(' + HOME.slice(from, i + 1) + ')')));
+}
+const PLACE_KEYS = ['btn', 'text', 'imgcard', 'bg', 'menu', 'load', 'intro', 'scroll', 'page'];
+
+test('every animation on the home page has one or more places, all of them known', () => {
+  const places = homeConst('PLACES');
+  const slugs = homeConst('CATS').flatMap(cat => cat.entries.map(e => e[0]));
+  assert.deepEqual(Object.keys(places), slugs, 'PLACES lists every card once, in home order');
+  for (const slug of slugs) {
+    assert.ok(places[slug].length >= 1, `${slug} has a place`);
+    for (const key of places[slug]) assert.ok(PLACE_KEYS.includes(key), `${slug}: unknown place ${key}`);
+    assert.equal(new Set(places[slug]).size, places[slug].length, `${slug} lists a place twice`);
+  }
+});
+
+test('every place holds at least one animation', () => {
+  const used = new Set(Object.values(homeConst('PLACES')).flat());
+  for (const key of PLACE_KEYS) assert.ok(used.has(key), `${key} holds no animation`);
+});
+
+test('the eight Start cards are on the home page', () => {
+  const picks = homeConst('PICKS'), slugs = new Set(Object.keys(homeConst('PLACES')));
+  assert.equal(picks.length, 8);
+  for (const slug of picks) assert.ok(slugs.has(slug), slug);
 });
