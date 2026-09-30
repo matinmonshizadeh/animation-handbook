@@ -30,9 +30,11 @@ function drawWindField() {
       ctx.stroke();
     }
   }
-  time += speed * 0.01;  // advance through noise volume
+  time += speed * 0.01 * (dt / FRAME);  // advance through noise volume
 }
 ```
+
+`dt` is the time in milliseconds since the last drawn frame (capped at 50), and `FRAME` is 1000 / 60, the length of one frame on a 60 Hz screen. The noise therefore moves the same distance in a second on a 30, 60 or 144 Hz screen; a fixed `time += speed * 0.01` on every frame would move it twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone.
 
 The demo sets `step` as a spacing in pixels rather than a number of columns, so a phone's smaller stage draws fewer dots at the same spacing.
 
@@ -59,7 +61,7 @@ The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see
 |-----------|---------|--------|
 | Shape | Field of dots | A field of dots that sway, or one blob whose outline ripples |
 | Pattern size | Medium | How big the noise's patterns are: large moves big areas together, small looks busy and fine |
-| Speed | Normal | How fast the noise moves along: slow is 0.3, normal 0.5 and fast 0.8 |
+| Speed | Normal | How fast the noise moves along: slow is 0.3, normal 0.5 and fast 0.8. Every sixtieth of a second the noise moves on by 0.01 times this, so the speed is the same on every screen |
 | Wobble | Medium | How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px |
 | Space between dots | Medium | The distance between dots in the field: wide is 64px, medium 48px and tight 32px; smaller stages draw fewer dots |
 | Color | Blue | The color of the dots or the blob |
@@ -68,6 +70,7 @@ The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see
 - **Simplex vs Perlin**: Simplex noise (Gustavson 2005) is faster and has fewer directional artifacts than classic Perlin noise. Use Simplex for new projects.
 - **3D noise for time**: sample noise at `(x, y, time)` in 3D for perfectly seamless temporal animation — the pattern never "resets." 2D noise with time as an offset (as in this demo) is simpler but can have slight discontinuities at the spatial edges.
 - **`glsl-noise` / `open-simplex-noise`**: for WebGL shaders, include a GLSL noise implementation inline. For JavaScript, `open-simplex-noise` (npm) is the modern standard.
+- **Time, not frames**: move through the noise by the time since the last frame, because a fixed step per frame follows the screen's refresh rate. Cap that time (this demo uses 50 ms), or a tab that comes back after a minute would jump ahead by a minute of motion, and let a returning tab start from its next frame.
 - **Flow fields**: the wind-field variant is a "flow field" — a classic technique in generative art (Daniel Shiffman's Coding Train). Particles follow the noise field like leaves on a stream.
 
 ## See also

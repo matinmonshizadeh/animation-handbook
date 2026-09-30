@@ -250,16 +250,20 @@ function drawBlob(){
 
 function frame(){ctx.clearRect(0,0,W,H);if(MODE==='grid')drawGrid();else drawBlob();}
 
-// The loop keeps exactly one pending frame in raf. Each drawn frame moves on through the noise by one step,
-// a third of a step while Slow motion is on.
+// One step is 1/60 s: the noise moves on by SPD x 0.01 in that time, whatever the screen's refresh rate.
+const FRAME=1000/60;
+// The loop keeps exactly one pending frame in raf. Each drawn frame moves on through the noise by the time since the last drawn
+// one (a gap counts for at most 50 ms), and by a third of that while Slow motion is on. At most one picture is drawn per 16 ms.
+// A tab that comes back to the front starts again from its next frame, so the time away adds no step.
 function loop(ts){
   raf=requestAnimationFrame(loop);
   if(last===null){last=ts;return;} // the first frame after a start only takes the time
-  if(ts-last<16)return;
-  last=ts;t+=SPD*.01/(slowTog.checked?3:1);
+  const dt=ts-last;if(dt<16)return;
+  last=ts;t+=SPD*.01*(Math.min(dt,50)/FRAME)/(slowTog.checked?3:1);
   frame();
 }
 function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
+document.addEventListener('visibilitychange',()=>{last=null;});
 // While paused a setting or a resize draws the picture again, so the change shows without anything moving.
 function redraw(){if(paused)frame();}
 
