@@ -260,15 +260,15 @@ function init(){
 // After a lost context nothing draws again until the page is reloaded (as the message says), even if the browser restores the context
 const live=()=>!!gl&&!lost&&!gl.isContextLost();
 
-// Ray marching is fill-rate bound, so the backing store never exceeds one CSS pixel per fragment, and holds about 90,000 pixels
+// Ray marching is fill-rate bound, so the backing store never exceeds one CSS pixel per fragment, and holds about 65,000 pixels
 // at most: the browser scales the canvas up to the stage, which suits smoke this soft. Phones render at most 0.75 of the stage
 // and take at most 48 steps, so High is 48 there: that is the reduced-quality path this effect needs on mobile.
 // The visitor's Detail stays as chosen; the limit is applied when drawing, so it follows the screen both ways.
 function steps(){return Math.min(STEPS,PHONE.matches?48:64);}
 function layout(force){
-  const phone=PHONE.matches,s=Math.min(window.devicePixelRatio||1,phone?.75:1,Math.sqrt(90000/Math.max(1,stage.clientWidth*stage.clientHeight)));
+  const phone=PHONE.matches,s=Math.min(window.devicePixelRatio||1,phone?.75:1,Math.sqrt(65000/Math.max(1,stage.clientWidth*stage.clientHeight)));
   const w=Math.max(1,Math.round(stage.clientWidth*s)),h=Math.max(1,Math.round(stage.clientHeight*s));
-  // Setting the size clears the canvas, so nothing is touched when the stage is the same size and the phone limits are the same
+  // Setting the size clears the canvas, so nothing is touched when the canvas would come out the same size and the phone limits are the same
   // (a phone's address bar showing or hiding also fires resize).
   if(!force&&w===W&&h===H&&phone===wasPhone)return false;
   W=cvs.width=w;H=cvs.height=h;wasPhone=phone;
