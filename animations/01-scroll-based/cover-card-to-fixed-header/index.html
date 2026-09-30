@@ -25,16 +25,14 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{
       position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d;
-      /* The cover shrinking above the viewport makes scroll anchoring claw scrollTop
-         back, which lowers progress, which re-grows the cover — a feedback loop that
-         stalls the collapse partway. Any scroll-driven size change needs this off. */
+      /* Scroll anchoring stays off: a cover that changed its real height would fight the scroll (see the README) */
       overflow-anchor:none;
     }
     .stage::-webkit-scrollbar{display:none}
     .scene{position:relative}
 
-    .cover{position:sticky;top:0;z-index:10;height:85cqh;overflow:hidden;background:#050e08}
-    .cover-bg{position:absolute;inset:0;background:linear-gradient(150deg,#050e08,#0c2820,#060a10);will-change:opacity,filter}
+    .cover{position:sticky;top:0;z-index:10;height:85cqh;overflow:hidden;background:#050e08;will-change:transform}
+    .cover-bg{position:absolute;inset:0;transform-origin:top;background:linear-gradient(150deg,#050e08,#0c2820,#060a10);will-change:opacity,filter}
     .cover-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:0 24px 20px}
     .cover-spacer{flex:1}
     .cover-meta{font-size:11px;color:#5fa577;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
@@ -51,7 +49,7 @@
     .avatar-sm{width:16px;height:16px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#3fb950,#56d364)}
     .chip-name{font-size:11px;color:#d1f7d6}
 
-    .article-body{padding:28px 24px;max-width:600px}
+    .article-body{padding:28px 24px;max-width:600px;will-change:transform}
     .article-body h3{font-size:12px;color:var(--ui-accent);letter-spacing:1px;text-transform:uppercase;margin:28px 0 10px}
     .article-body p{font-size:14px;color:var(--ui-muted);line-height:1.75;margin-bottom:14px}
     .article-body blockquote{border-left:2px solid var(--ui-accent);padding:8px 16px;margin:18px 0;font-size:15px;color:var(--ui-text)}
@@ -60,7 +58,7 @@
              font-size:13px;color:#8a8a92;letter-spacing:.1em;text-align:center;padding:0 24px}
 
     @media(max-width:600px){:root{--cover-min:64px}}
-    @media(prefers-reduced-motion:reduce){.cover,.cover-title,.cover-bg,.header-chip{will-change:auto}}
+    @media(prefers-reduced-motion:reduce){.cover,.cover-title,.cover-bg,.header-chip,.article-body{will-change:auto}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
   <script src="../../../assets/js/demo-page.js?v=4" defer></script>
@@ -98,7 +96,7 @@
             </div>
           </div>
           <div class="cover-rule" id="cover-rule" aria-hidden="true"></div>
-          <div class="header-chip" id="header-chip">
+          <div class="header-chip" id="header-chip" aria-hidden="true">
             <div class="avatar-sm"></div>
             <span class="chip-name">Matin M.</span>
           </div>
@@ -192,6 +190,7 @@
   const headerChip = $('header-chip'), coverRule = $('cover-rule'), stage = $('stage');
   const scene = $('scene'), snapTog = $('snap-tog');
   const article = document.querySelector('.article-body'), endCue = document.querySelector('.end-cue');
+  const coverInner = document.querySelector('.cover-inner'), spacer = document.querySelector('.cover-spacer'); let CONTENT = 0;
   const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // The full cover is 85% of the box and the slim one comes from a CSS variable that the phone rule
@@ -225,7 +224,8 @@
     FULL = Math.round(stage.clientHeight * 0.85);
     scene.style.minHeight = Math.max(FULL + article.offsetHeight, stage.clientHeight + 440) + 'px';
     endCue.style.height = (FULL - MIN) + 'px';
-    delete G.h; // the cover's height is written again with the new FULL
+    cover.style.height = FULL + 'px'; CONTENT = FULL - spacer.getBoundingClientRect().height;
+    delete G.h; // the cover's slide is written again with the new FULL and CONTENT
   }
 
   // Scroll progress -> collapse amount. Snapping at halfway and reduced motion snap by design.
@@ -236,7 +236,14 @@
   // travel in one frame — easing raw progress instead lets easeOutCubic (slope 3
   // near zero) re-amplify a wheel notch back into a jump.
   function render(e) {
-    set('h',     q(lerp(FULL, MIN, e), .5),      v => cover.style.height = v + 'px');
+    // The cover keeps its full height and slides up by what it has shrunk; the article slides with it, so no frame lays the page out
+    set('h', q(lerp(FULL, MIN, e), 1), v => {
+      const d = FULL - v;
+      cover.style.transform = article.style.transform = `translateY(${-d}px)`;
+      headerChip.style.transform = `translateY(${d}px)`;
+      coverBg.style.transform = `translateY(${d}px) scaleY(${v / FULL})`;
+      coverInner.style.transform = `translateY(${Math.max(0, CONTENT - v)}px)`;
+    });
     set('bgOp',  q(lerp(1, .12, e), .01),        v => coverBg.style.opacity = v);
     set('blur',  q(lerp(0, 6, e), BLUR_STEP),    v => coverBg.style.filter = v > 0 ? `blur(${v}px)` : 'none');
     set('scale', q(lerp(1, 13 / 26, e), .002),   v => coverTitle.style.transform = `scale(${v})`);
@@ -262,6 +269,8 @@
     target = curveOf(clamp(stage.scrollTop / RANGE, 0, 1));
     schedule();
   }, { passive: true });
+  // Back to top, and Play starting again from the top, jump the box (the shared script moves it before the click reaches the document): the cover jumps with it
+  document.addEventListener('click', e => { if (e.target.closest('#btn-top,#btn-scroll')) { target = current = curveOf(clamp(stage.scrollTop / RANGE, 0, 1)); render(current); } });
 
   function choices(id, pick) {
     const buttons = document.querySelectorAll('#' + id + ' button');

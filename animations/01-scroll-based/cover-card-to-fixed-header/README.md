@@ -28,11 +28,12 @@ const p = Math.min(1, Math.max(0, scrollTop / RANGE));
 const e = easeOutCubic(p);
 ```
 
-Eight properties are then interpolated against `e` in a single
-`requestAnimationFrame` callback:
+The cover's visible height and seven other values are then worked out from `e`
+in a single `requestAnimationFrame` callback:
 
 ```js
-cover.style.height         = lerp(FULL, 56, e) + 'px';   // FULL: 85% of the box's height
+const h = lerp(FULL, 56, e), d = FULL - h;   // FULL: 85% of the box's height
+cover.style.transform = `translateY(${-d}px)`;   // the cover keeps its full height and slides up
 coverTitle.style.transform = `scale(${lerp(1, 13 / 26, e)})`;
 coverBg.style.opacity      = lerp(1, 0.12, e);
 coverBg.style.filter       = `blur(${lerp(0, 6, e)}px)`;
@@ -43,10 +44,12 @@ coverRule.style.opacity    = e;
 ```
 
 The title shrinks by `transform: scale()` with `transform-origin: left top`
-rather than by writing `font-size` — see the production note below. A
-`flex: 1` spacer inside the cover pushes content to the bottom at full
-height and compresses as height shrinks, so the title rises into header
-position on its own.
+rather than by writing `font-size` — see the production note below. Nothing is
+resized: the cover keeps its full height in the layout and slides up by what it
+has shrunk, and the article slides with it; the badge and the backdrop are moved
+back into the visible part, and once the cover is shorter than its text the text
+starts at the top of the bar. Back to top and Play from the end set the eased
+value at once.
 
 ## Key parameters
 
@@ -62,12 +65,10 @@ position on its own.
   the header flickers. Scrubbing to a 0→1 value means every scroll position
   has a well-defined, intentional appearance. Medium, Substack, and the NYT
   app all use variants of this pattern.
-- **The height animation triggers layout.** Animating `height` forces the
-  browser to recalculate layout on every frame. The production alternative:
-  keep the outer container at a fixed height, set `overflow: hidden`, and
-  animate `clip-path` (layout-free) or `transform: scaleY()` on the inner
-  element with `transform-origin: top`. This demo prioritises readability
-  over raw performance.
+- **Move the cover; never animate its `height`.** Writing `height` lays the page
+  out every frame. Keep the cover at full height, slide it and the content below
+  with `translateY()`, and squeeze the backdrop with `scaleY()` from its top
+  edge — as the demo does.
 - **Turn off scroll anchoring.** This is the bug that bites everyone who builds a
   collapsing header. When the cover shrinks, content above the viewport loses
   height, so the browser "helpfully" adjusts `scrollTop` to keep what you are
@@ -75,6 +76,9 @@ position on its own.
   which moves the scroll again — the collapse stalls partway and the scroll feels
   like it is fighting you. `overflow-anchor: none` on the scroll container ends it.
   Any scroll-driven animation that changes the size of in-flow content needs this.
+  This demo moves the cover with transforms, so scrolling never changes its
+  height; the rule stays as a guard for when the box is measured again after a
+  resize.
 - **Ease the finished value, not the raw progress.** A mouse wheel arrives in
   ~100px jumps; with a 320px range that is a third of the animation per notch, and
   easeOutCubic — slope 3 near zero — turns the first notch into 68% of the collapse.
