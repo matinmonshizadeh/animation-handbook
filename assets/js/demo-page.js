@@ -361,8 +361,10 @@
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
-    // seconds), from the top when it is already at the end. The visitor's own wheel, touch, press, key or click input
-    // anywhere in the stage stops it, and so does Back to top, which jumps the box to the top.
+    // seconds), from the top when it is already at the end. The end is read again on every frame: a web font or other late
+    // layout can make the box taller while it scrolls, and the run then follows the new end, at the pace of the new size,
+    // instead of stopping where the end used to be. The visitor's own wheel, touch, press, key or click input anywhere in
+    // the stage stops it, and so does Back to top, which jumps the box to the top.
     var FULL_SCROLL_MS = 6000;
     var scrollFrame = 0;
     // While the scroll runs the box carries data-hb-autoscrolling, and the shared stylesheet turns CSS scroll snapping off
@@ -384,15 +386,16 @@
       mark(false);
     }
     function scrollBox(top) { scroller.scrollTo({ top: top, behavior: 'instant' }); }
+    function scrollEnd() { return Math.max(0, scroller.scrollHeight - scroller.clientHeight); }
     function autoscroll() {
       cancelFrame(); // not stopScroll(): the mark stays through a second press of Play, so nothing snaps in between
-      var end = scroller.scrollHeight - scroller.clientHeight;
-      if (end <= 0) { mark(false); return; }
+      if (scrollEnd() <= 0) { mark(false); return; }
       mark(true);
-      if (scroller.scrollTop >= end - 2) scrollBox(0);
-      var pos = scroller.scrollTop, last = 0, speed = end / FULL_SCROLL_MS;
+      if (scroller.scrollTop >= scrollEnd() - 2) scrollBox(0);
+      var pos = scroller.scrollTop, last = 0;
       function step(now) {
-        if (last) pos = Math.min(end, pos + (now - last) * speed);
+        var end = scrollEnd();
+        if (last) pos = Math.min(end, pos + (now - last) * end / FULL_SCROLL_MS);
         last = now;
         scrollBox(pos);
         scrollFrame = pos < end ? win.requestAnimationFrame(step) : 0;
