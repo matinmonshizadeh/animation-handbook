@@ -923,7 +923,7 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
 - **What scrolling shows:** a winding route with a faint dashed copy underneath; the solid line draws itself in step with the scroll, and five labelled stops (Depart, River crossing, Basecamp, Summit ridge, Arrive) pop in as the line reaches them. Scrolling back up erases the line and hides the stops again. The route ends at "— end of route —".
-- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3 to 10 box heights). At the defaults the line is complete at the end of the scroll, as Play ends (6 s). Early and Near the end finish at 70% and 85% of it. Fix round 1 (2026-09-30): the default was 85% ("Normal"), and with the route 5 to 13 boxes tall in the shared box the tip then left the box after about 40% of a laptop scroll (in the box for 51% of the scroll at 1280×800, 43% at 1366×657, 41% at 1280×590, 44% for a phone held sideways, 69% at 768×1024, 86% at 375×812). With the line finishing at the end the tip is in the box for the whole scroll at every size, and every stop pops in view.
+- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3.5 to 13.4 box heights). At the defaults the line is complete at the end of the scroll, as Play ends (6 s). Early and Near the end finish at 70% and 85% of it. Fix round 1 (2026-09-30): the default was 85% ("Normal"), and with the route 3.5 to 13.4 boxes tall in the shared box the tip then left the box after about 40% of a laptop scroll (in the box for 51% of the scroll at 1280×800, 43% at 1366×657, 41% at 1280×590, 44% for a phone held sideways, 69% at 768×1024, 86% at 375×812). With the line finishing at the end the tip is in the box for the whole scroll at every size with Even (with Smooth it draws ahead early in the scroll), and every stop pops in view.
 - **Reduced motion:** nothing scrolls by itself. The demo's rule stays: the stops appear without their pop (`.pop{transition:none}`); the line still draws with the scroll. With nothing drawn on arrival the first picture is the route's dashed guide, which is why the guide is drawn at .35 alpha (see Stage).
 - **Stage font:** site font. `.wp-label` and `.wp-sub` drop `var(--mono)`.
 - **Stage:**
@@ -990,6 +990,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.24 · Scroll-Based`
 - **Pager:** Previous: Scroll Velocity Skew (`../scroll-velocity-skew/`) · Next: Scrollspy Navigation (`../scrollspy-nav/`)
+- **Final fix wave:** wording and figures only. The route's length is one range, 3.5 to 13.4 box heights (the scrolling content divided by the box: 3.47 on a 320px phone up to 13.36 in the 258px box of 1280×590), in place of the two ranges above (3 to 10 and 5 to 13). The README's "its tip stays inside the box" holds for Even only. Measured at ten screen sizes from 320×640 to 1280×590: with Even the tip is in the box for the whole scroll at every size; with Smooth only for 8% to 29% of it (the tip is out of the box from 3% to 17% of the scroll on).
 
 ---
 
