@@ -99,13 +99,14 @@ test('motionNote says what reduced motion changes in the player bar', () => {
   assert.equal(DP.motionNote({ pause: true, slow: true }), 'It starts paused and Slow motion is off because your device is set to reduce motion.');
   assert.equal(DP.motionNote({ pause: true }), 'It starts paused because your device is set to reduce motion.');
   assert.equal(DP.motionNote({ scroll: true }), 'The effects follow the scroll without animating because your device is set to reduce motion.');
+  assert.equal(DP.motionNote({ scroll: 'The layers stay still while the box scrolls' }), 'The layers stay still while the box scrolls because your device is set to reduce motion.');
   assert.equal(DP.motionNote({}), '');
 });
 
 // boot() takes the document and window it works on, so a stand-in page with just enough DOM can stand for a real one. It holds
 // a stage and, by kind, the buttons boot() looks for. Events are sent to the stage by hand (with isTrusted set as a browser
 // would), timers wait in a list until the test runs them, and every hb:input the script sends is kept.
-function standInPage(kind, reduced) {
+function standInPage(kind, reduced, bodyAttributes) {
   const timers = [], sent = [];
   const node = () => ({
     attrs: {}, handlers: {}, children: [], clicks: 0, textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} },
@@ -125,6 +126,7 @@ function standInPage(kind, reduced) {
   const body = node();
   body.setAttribute('data-hb-kind', kind);
   body.setAttribute('data-hb-autoplay', '');
+  Object.keys(bodyAttributes || {}).forEach(name => body.setAttribute(name, bodyAttributes[name]));
   const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event) };
   const win = {
     matchMedia: () => ({ matches: !!reduced, addEventListener() {} }),
@@ -185,4 +187,17 @@ test('a scroll page says under reduced motion that the effects follow the scroll
 test('reduced motion adds no note to a scroll page that is not set to reduce motion, or to a do-it page with nothing to switch off', () => {
   assert.equal(standInPage('scroll', false).player.children.length, 0);
   assert.equal(standInPage('do', true).player.children.length, 0);
+});
+
+test('a scroll page can say in its own words what reduced motion does there', () => {
+  const page = standInPage('scroll', true, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' });
+  assert.deepEqual(page.player.children.map(c => [c.className, c.textContent]),
+    [['hb-player-note', 'The layers stay still while the box scrolls because your device is set to reduce motion.']]);
+});
+
+test('a scroll page with an empty sentence of its own gets the usual note, and only a scroll page reads the sentence', () => {
+  const usual = 'The effects follow the scroll without animating because your device is set to reduce motion.';
+  assert.deepEqual(standInPage('scroll', true, { 'data-hb-motion-note': '' }).player.children.map(c => c.textContent), [usual]);
+  assert.equal(standInPage('do', true, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
+  assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
 });

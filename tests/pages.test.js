@@ -120,9 +120,15 @@ for (const d of steps) {
     // The shared files carry a version so visitors do not get a cached older copy after publishing.
     assert.match(html, /<link rel="stylesheet" href="\.\.\/\.\.\/\.\.\/assets\/css\/demo-page\.css\?v=\d+">/, 'page stylesheet');
     assert.match(html, /<script src="\.\.\/\.\.\/\.\.\/assets\/js\/demo-page\.js\?v=\d+" defer><\/script>/, 'page script');
-    const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?>/);
+    const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?(?: data-hb-motion-note="([^"]*)")?>/);
     assert.ok(body, 'the body declares the page kind');
     const kind = body[1];
+    // A scroll page where reduced motion turns an effect off says so in its own words; the shared script ends the note with
+    // " because your device is set to reduce motion.", so the sentence starts with a capital letter and has no full stop.
+    if (body[3] !== undefined) {
+      assert.equal(kind, 'scroll', 'only a scroll page has data-hb-motion-note');
+      assert.match(body[3], /^[A-Z][^.]*[^.\s]$/, 'data-hb-motion-note is one sentence with no full stop');
+    }
     for (const old of ['handbook.css', 'handbook.js', 'hb-view', 'hb-side', 'hb-take', 'ah-bar', 'Copy source', 'Read more',
       'class="note"', 'class="kv"', 'class="lbl"', 'class="btn-row"', 'Bricolage', 'PlexMono']) {
       assert.ok(!html.includes(old), `old markup left: ${old}`);
