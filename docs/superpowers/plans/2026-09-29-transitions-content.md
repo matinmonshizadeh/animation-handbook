@@ -377,18 +377,21 @@ None: leave out the `details.hb-options` block.
   - [Slide Transition](../slide-transition/) — pages move sideways instead
   - [Blur Transition](../blur-transition/) — a blur joins the fade
 - **README How it works:**
-  - The sentence "A `requestAnimationFrame` loop samples both computed opacities live so you can watch them cross:" becomes "Both are ordinary CSS transitions on `opacity`:".
-  - In the snippet, `easeSel.value` becomes `ease`. In the sequential part, `requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.opacity='1'; }));` becomes these two lines:
+  - The sentence "A `requestAnimationFrame` loop samples both computed opacities live so you can watch them cross:" becomes "With Together, both pages get the same opacity transition and fade at once; with One after the other, each gets half the duration and the new page starts when the old one has gone. Both are ordinary CSS transitions on `opacity`:". The README names the two orders as the page does, not "simultaneous" and "sequential".
+  - In the snippet, `easeSel.value` becomes `ease`, and the two comments read "Together: …" and "One after the other: …". In the One after the other part, `requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.opacity='1'; }));` becomes these two lines:
 
     ```js
         void newEl.offsetWidth;                   // commit the transparent start
         newEl.style.opacity='1';
     ```
 
+  - The One after the other part also sets each page's transition, as the page does; read literally, the pages would snap without these lines. ``oldEl.style.transition=`opacity ${half}ms ${ease}`;`` goes before `oldEl.style.opacity='0';`, and ``newEl.style.transition=`opacity ${half}ms ${ease}`;`` is the first line inside the timer.
+  - The paragraph after the snippet uses the same two names: "With Together the outgoing page reaches ~0.5 … with One after the other the stage passes through a fully blank frame …".
   - The rest is unchanged.
 - **README Production notes:** unchanged
 - **Category line:** `03.04 · Page Transitions`
 - **Pager:** Previous: Morph Transition (`../morph-transition/`) · Next: Slide Transition (`../slide-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one; a page fading in becomes reachable when its fade ends, where `rest()` runs. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`). In the README's Production notes, the second bullet also uses the page's names for the two orders (it said "Simultaneous double-fade" and "Sequential"); it is the only change there.
 
 ---
 

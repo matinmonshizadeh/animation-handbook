@@ -10,19 +10,21 @@ A crossfade switches pages by fading the old page out while the new one fades in
 - Situations needing the calmest possible motion, since nothing moves, only opacity changes
 
 ## How it works
-In simultaneous mode both pages get the same-duration opacity transition and flip at once; in sequential mode each gets half the duration, staged one after the other. Both are ordinary CSS transitions on `opacity`:
+With Together, both pages get the same opacity transition and fade at once; with One after the other, each gets half the duration and the new page starts when the old one has gone. Both are ordinary CSS transitions on `opacity`:
 
 ```js
 if(mode==='true'){
-  // Simultaneous: both fade together over the full duration
+  // Together: both fade over the full duration
   oldEl.style.transition=`opacity ${dur}ms ${ease}`;
   newEl.style.transition=`opacity ${dur}ms ${ease}`;
   oldEl.style.opacity='0'; newEl.style.opacity='1';
 }else{
-  // Sequential: fade old out over half, then new in over half
+  // One after the other: fade old out over half, then new in over half
   const half=Math.round(dur/2);
+  oldEl.style.transition=`opacity ${half}ms ${ease}`;
   oldEl.style.opacity='0';
   setTimeout(()=>{
+    newEl.style.transition=`opacity ${half}ms ${ease}`;
     newEl.style.opacity='0'; newEl.classList.add('active');
     void newEl.offsetWidth;                   // commit the transparent start
     newEl.style.opacity='1';
@@ -30,7 +32,7 @@ if(mode==='true'){
 }
 ```
 
-Both pages are absolutely positioned in the same stacking context (`inset:0`), so they overlap perfectly and only their opacity changes. In simultaneous mode the outgoing page reaches ~0.5 exactly as the incoming page does, giving the momentary blend; in sequential mode the stage passes through a fully blank frame at the handoff.
+Both pages are absolutely positioned in the same stacking context (`inset:0`), so they overlap perfectly and only their opacity changes. With Together the outgoing page reaches ~0.5 exactly as the incoming page does, giving the momentary blend; with One after the other the stage passes through a fully blank frame at the handoff.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -41,7 +43,7 @@ Both pages are absolutely positioned in the same stacking context (`inset:0`), s
 
 ## Production notes
 - **Stack both pages absolutely** so they occupy the same box. If they reflow the document, opacity alone won't give a clean blend.
-- **Simultaneous double-fade can look washed out** on light backgrounds, because two 50%-opacity layers over a bright backdrop sum brighter than either page. Sequential avoids this at the cost of a blank beat.
+- **The Together order can look washed out** on light backgrounds, because two 50%-opacity layers over a bright backdrop sum brighter than either page. One after the other avoids this at the cost of a blank beat.
 - **A `+50ms` guard** after each `setTimeout` in the demo ensures the transition has finished before styles are reset; without slack the cleanup can clip the tail of the fade.
 - **Reduced motion** swaps the `.active` class with no opacity transition at all.
 - **Library equivalents**: this is the default `::view-transition-old/new(root)` behavior of the View Transitions API. Framer Motion's `AnimatePresence` with `initial/animate/exit` opacity, GSAP timelines, and React Transition Group all express the same overlap.
