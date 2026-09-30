@@ -1,9 +1,10 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
  * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
  * animations", plays the demo on arrival, replays it when a setting changes, runs
- * Pause and CSS slow motion on loop pages, presses Show me on do-it pages and tells
- * the page when the visitor takes over ("hb:input"), and follows reduced motion
- * (Loop and Slow motion greyed out, loops start paused).
+ * Pause and CSS slow motion on loop pages, presses Show me on do-it pages (not on arrival
+ * when the visitor has already acted in the stage) and tells the page when the visitor
+ * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
+ * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
@@ -31,8 +32,7 @@
   }
 
   // Only relative paths, "#" anchors and http(s) URLs are link targets. Anything else, including
-  // protocol-relative "//host" links, is rendered as plain text instead. handbook.js has an older,
-  // looser copy that lets "//host" through; this is the one to keep.
+  // protocol-relative "//host" links, is rendered as plain text instead.
   function isSafeHref(href) {
     href = String(href);
     return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) && !/^\/\//.test(href) &&
@@ -110,11 +110,13 @@
     return s ? '"' + s + '"' : '';
   }
 
-  // The reduced-motion note for the player bar, from what the bar holds ({ loop, slow, pause } as booleans);
-  // '' when reduced motion changes nothing there.
+  // The reduced-motion note for the player bar, from what the bar holds ({ loop, slow, pause } as booleans) and whether the
+  // page is a scroll page ({ scroll }: true, or the page's own sentence when reduced motion does something other than take the
+  // animation out of it); '' when reduced motion changes nothing there.
   function motionNote(has) {
     var off = [has.loop && 'Loop', has.slow && 'Slow motion'].filter(Boolean);
     var parts = [];
+    if (has.scroll) parts.push(typeof has.scroll === 'string' ? has.scroll : 'The effects follow the scroll without animating');
     if (has.pause) parts.push('It starts paused');
     if (off.length) parts.push(off.join(' and ') + (off.length > 1 ? ' are' : ' is') + ' off');
     return parts.length ? parts.join(' and ') + ' because your device is set to reduce motion.' : '';
@@ -353,17 +355,30 @@
     // Do-it pages: the visitor's own press, key, wheel, touch or click inside the stage is sent as "hb:input", so the page
     // can stop a Show me run that is under way and leave the visitor in control. Click is there for an activation that comes
     // with no pointer or key event (assistive technology); a press sends one for the press and then one for the click.
+    // The same input, or focus arriving in the stage (a Tab into a field), also means the visitor got there before the Show me
+    // press on arrival, and that press is then skipped, so it cannot wipe or replace what they are doing. Focus counts whoever
+    // asks for it: a page's own focus() call makes a trusted focusin in Chrome too, so a do-it page must not move focus into
+    // its stage before that press (none does). A press on Show me itself, which sits outside the stage, counts too: the press
+    // on arrival would start the run over. Input made before this script ran was not heard; focus it left in the stage is still
+    // there, so the press on arrival is skipped for that as well.
+    var visitorActed = false;
     function setUpVisitorInput() {
       ['pointerdown', 'keydown', 'wheel', 'touchstart', 'click'].forEach(function (type) {
         stage.addEventListener(type, function (e) {
-          if (e.isTrusted) doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
+          if (!e.isTrusted) return;
+          visitorActed = true;
+          doc.dispatchEvent(new win.CustomEvent('hb:input', { detail: { type: type } }));
         }, { capture: true, passive: true });
       });
+      stage.addEventListener('focusin', function (e) { if (e.isTrusted) visitorActed = true; }, { capture: true, passive: true });
+      demoCtl.addEventListener('click', function (e) { if (e.isTrusted) visitorActed = true; });
     }
 
     // Scroll pages: Play scrolls the box from where it is to its end at a steady speed (the whole box in about six
-    // seconds), from the top when it is already at the end. The visitor's own wheel, touch, press, key or click input
-    // anywhere in the stage stops it, and so does Back to top, which jumps the box to the top.
+    // seconds), from the top when it is already at the end. The end is read again on every frame: a web font or other late
+    // layout can make the box taller while it scrolls, and the run then follows the new end, at the pace of the new size,
+    // instead of stopping where the end used to be. The visitor's own wheel, touch, press, key or click input anywhere in
+    // the stage stops it, and so does Back to top, which jumps the box to the top.
     var FULL_SCROLL_MS = 6000;
     var scrollFrame = 0;
     // While the scroll runs the box carries data-hb-autoscrolling, and the shared stylesheet turns CSS scroll snapping off
@@ -385,15 +400,16 @@
       mark(false);
     }
     function scrollBox(top) { scroller.scrollTo({ top: top, behavior: 'instant' }); }
+    function scrollEnd() { return Math.max(0, scroller.scrollHeight - scroller.clientHeight); }
     function autoscroll() {
       cancelFrame(); // not stopScroll(): the mark stays through a second press of Play, so nothing snaps in between
-      var end = scroller.scrollHeight - scroller.clientHeight;
-      if (end <= 0) { mark(false); return; }
+      if (scrollEnd() <= 0) { mark(false); return; }
       mark(true);
-      if (scroller.scrollTop >= end - 2) scrollBox(0);
-      var pos = scroller.scrollTop, last = 0, speed = end / FULL_SCROLL_MS;
+      if (scroller.scrollTop >= scrollEnd() - 2) scrollBox(0);
+      var pos = scroller.scrollTop, last = 0;
       function step(now) {
-        if (last) pos = Math.min(end, pos + (now - last) * speed);
+        var end = scrollEnd();
+        if (last) pos = Math.min(end, pos + (now - last) * end / FULL_SCROLL_MS);
         last = now;
         scrollBox(pos);
         scrollFrame = pos < end ? win.requestAnimationFrame(step) : 0;
@@ -416,7 +432,10 @@
     }
 
     // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
-    // loop starts paused, and a note in the player bar says why. Replay and Play still work.
+    // loop starts paused, and a note in the player bar says why. Replay and Play still work. A scroll page has nothing to
+    // switch off, and its note says that the effects follow the scroll without animating. A page where reduced motion turns
+    // an effect off instead says so with data-hb-motion-note on the body: one sentence with no full stop, which the note
+    // then ends with "because your device is set to reduce motion." Only a scroll page reads it.
     var playerSwitches = [loopCtl, slowCtl].filter(Boolean);
     var noteEl = null;
     function followReducedMotion() {
@@ -428,7 +447,9 @@
         if (label) label.classList.toggle('is-disabled', reduced);
       });
       if (reduced && pauseCtl && !paused) setPaused(true);
-      var note = reduced ? motionNote({ loop: !!loopCtl, slow: !!slowCtl, pause: !!pauseCtl }) : '';
+      var kind = doc.body.getAttribute('data-hb-kind');
+      var note = reduced ? motionNote({ loop: !!loopCtl, slow: !!slowCtl, pause: !!pauseCtl,
+        scroll: kind === 'scroll' && (doc.body.getAttribute('data-hb-motion-note') || true) }) : '';
       if (note && !noteEl && player) {
         noteEl = doc.createElement('p');
         noteEl.className = 'hb-player-note';
@@ -456,7 +477,10 @@
     else if (reduce && reduce.addListener) reduce.addListener(followReducedMotion);
     if (doc.body.hasAttribute('data-hb-autoplay')) {
       win.setTimeout(function () {
-        if (demoCtl) { if (!(reduce && reduce.matches)) demoCtl.click(); return; }
+        if (demoCtl) {
+          if (!(reduce && reduce.matches) && !visitorActed && !(stage && stage.contains(doc.activeElement))) demoCtl.click();
+          return;
+        }
         if (scrollCtl) { if (!(reduce && reduce.matches)) scrollCtl.click(); return; }
         if (loopCtl && !(reduce && reduce.matches)) {
           // After Back or a reload a browser can bring Loop back already on; press Replay so the demo still starts.

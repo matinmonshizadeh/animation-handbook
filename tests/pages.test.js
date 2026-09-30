@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { sections, table } = require('../assets/js/handbook.js');
+const { sections, table } = require('./helpers/markdown.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -120,9 +120,15 @@ for (const d of steps) {
     // The shared files carry a version so visitors do not get a cached older copy after publishing.
     assert.match(html, /<link rel="stylesheet" href="\.\.\/\.\.\/\.\.\/assets\/css\/demo-page\.css\?v=\d+">/, 'page stylesheet');
     assert.match(html, /<script src="\.\.\/\.\.\/\.\.\/assets\/js\/demo-page\.js\?v=\d+" defer><\/script>/, 'page script');
-    const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?>/);
+    const body = html.match(/<body class="hb" data-hb-kind="(once|loop|scroll|do)"( data-hb-autoplay)?(?: data-hb-motion-note="([^"]*)")?>/);
     assert.ok(body, 'the body declares the page kind');
     const kind = body[1];
+    // A scroll page where reduced motion turns an effect off says so in its own words; the shared script ends the note with
+    // " because your device is set to reduce motion.", so the sentence starts with a capital letter and has no full stop.
+    if (body[3] !== undefined) {
+      assert.equal(kind, 'scroll', 'only a scroll page has data-hb-motion-note');
+      assert.match(body[3], /^[A-Z][^.]*[^.\s]$/, 'data-hb-motion-note is one sentence with no full stop');
+    }
     for (const old of ['handbook.css', 'handbook.js', 'hb-view', 'hb-side', 'hb-take', 'ah-bar', 'Copy source', 'Read more',
       'class="note"', 'class="kv"', 'class="lbl"', 'class="btn-row"', 'Bricolage', 'PlexMono']) {
       assert.ok(!html.includes(old), `old markup left: ${old}`);
@@ -388,6 +394,16 @@ test('the shared stylesheet turns CSS scroll snapping off on a box that Play is 
   // itself (inline, or in its own style) does not win, and nothing has to be remembered and written back afterwards.
   assert.ok(rulesFor('[data-hb-autoscrolling]').some(rule => /(^|;)\s*scroll-snap-type:\s*none\s*!important\s*(;|$)/.test(rule.body)),
     'a box marked data-hb-autoscrolling has scroll-snap-type: none !important');
+});
+
+test('the shared stylesheet gives a stage that grows with its text the same 260px short-window minimum as the other stages', () => {
+  // On a short laptop window a tighter header lets a stage be 260px tall. A stage that grows with its text needs the same
+  // minimum, or it stays at 300px and pushes the player bar off the first screen.
+  for (const unit of ['vh', 'svh']) {
+    const minimum = `clamp(260px,calc(100${unit} - 330px),440px)`;
+    assert.ok(rulesFor('.hb-page .stage').some(rule => rule.body.includes(`height:var(--hb-stage-h,${minimum})`)), `a stage is ${minimum} tall on a short window`);
+    assert.ok(rulesFor('.hb-page .stage.hb-grow').some(rule => rule.body.includes(`min-height:${minimum}`)), `a growing stage is at least ${minimum} tall on a short window`);
+  }
 });
 
 test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
