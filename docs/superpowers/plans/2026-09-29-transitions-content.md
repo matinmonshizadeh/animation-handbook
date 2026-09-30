@@ -851,7 +851,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - **The portal moves to the top-right corner.** In the shorter shared stage its old bottom-right spot covers the Gallery grid (the grid reaches 226px of the laptop's 260px page area, and the portal starts at 148px). Its position and size move from the inline style into the `.portal` rule, and only the page's portal colour stays inline:
     - computers and tablets: `top:24px;right:24px;width:80px;height:80px`;
     - phones and short windows (`@media (max-width:600px),(max-height:640px)`): `top:16px;right:16px;width:64px;height:64px`;
-    - short windows wider than a phone (`@media (max-height:640px) and (min-width:601px)`): `top:8px`, because the page area there is under 220px. A portrait phone up to 640px tall keeps its 16px; measured, the circle stays at least 24px from any text or tile at 320px wide, 48.8px at 360×640 and 51.5px at 568×320. Every short window (`@media (max-height:640px)`) also tightens the pages' spacing, `.pc{gap:8px}.gi{padding:12px}`.
+    - short windows wider than a phone (`@media (max-height:640px) and (min-width:601px)`): `top:8px`, because the page area there is about 190 to 245px (193px at 1280×590, 243px at 1280×640). A phone up to 640px tall, upright or sideways, keeps its 16px; measured, the circle stays at least 24px from any text or tile at 320px wide, 48.8px at 360×640 and 51.5px at 568×320. Every short window (`@media (max-height:640px)`) also tightens the pages' spacing, `.pc{gap:8px}.gi{padding:12px}`.
   - The portal's label moves from its inline style (9px at `opacity:.6`) into the existing, unused `.portal-label` rule, which becomes `font-size:11px;opacity:.8;text-align:center;padding:4px;line-height:1.3;pointer-events:none`: 4.1:1 on the Gallery portal becomes 5.9:1.
   - The Home page keeps its line "Click the portal to travel to the gallery."
   - `--hb-stage-h-phone:360px`: at 320px wide, the About heading reaches under a top-right portal on the 300px stage; 360px clears it.
@@ -908,7 +908,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README Production notes:** unchanged
 - **Category line:** `03.10 · Page Transitions`
 - **Pager:** Previous: Elastic Transition (`../elastic-transition/`) · Next: Dissolve Transition (`../dissolve/`)
-- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. The rule that lifts the portal to 8px from the top now applies only to short windows wider than 600px, so a portrait phone up to 640px tall keeps the portal at 16px (it had 8px).
+- **Final fix wave:** three changes to the page. The name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's). A trusted `focusin` on the stage stops a Show me run, with the `ownFocus` flag around the page's own `focus()`. The rule that lifts the portal to 8px from the top now applies only to short windows wider than 600px, so a phone up to 640px tall, upright or sideways, keeps the portal at 16px (it had 8px).
 
 ---
 
