@@ -1,7 +1,7 @@
 # Breathing / Pulsing Glow
 
 ## What it is
-A breathing glow is a radial gradient that slowly expands and contracts on a 4–6 second cycle, mimicking the rhythm of relaxed breathing. The expansion increases the gradient's scale; the contraction returns it. Optional opacity variation (1.0 → 0.7 → 1.0) reinforces the breathing sensation. The effect is used behind "resting" states — a paused music player, an idle AI assistant, a meditation timer — to communicate "alive but at rest."
+A breathing glow is a soft, round glow of color that slowly grows and brightens, then shrinks and dims, over and over, like someone breathing calmly. A cycle of four to six seconds matches a relaxed breath. It sits behind things that are alive but at rest, such as a paused music player, an idle voice assistant or a meditation timer.
 
 ## When to use it
 - Idle or "rest" states for voice assistants, AI chat interfaces, and ambient computing products
@@ -71,10 +71,12 @@ The 2% scale on the center element is intentionally subtle — the eye should no
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Cycle duration | 5s | 2s = anxious; 4–6s = relaxed breath; 8s+ = barely perceptible |
-| Min scale | 0.6 | Too low = the glow nearly disappears at minimum |
-| Max scale | 1.5 | Too high = the expansion looks alarming rather than calm |
-| Glow size | 260px | Base radius of the gradient — larger fills more of the background |
+| Speed | Normal | How long one breath takes: slow is 8s, normal 5s and fast 3s; 4 to 6 seconds feels relaxed, 2 seconds anxious |
+| How much it grows | Medium | How far the glow shrinks and grows: a little is 80% to 120% of its size, medium 60% to 150% and a lot 45% to 180% |
+| Glow color | Blue | The color of the glow: pink, blue, purple, green or orange (white would hide the white title at the breath's peak) |
+| Glow size | Medium | The glow's size before it grows: small is 180px, medium 260px and large 340px |
+| Second glow | off | A larger, fainter glow behind the first breathes the other way over a longer cycle, so the two never line up |
+| Icon and title breathe too | on | The icon and the title under it swell by 2% with each breath, too little to notice consciously |
 
 ## Production notes
 - **Why 4–6 seconds?** This range matches the respiratory rate of a relaxed adult (10–15 breaths per minute). Apple's Siri orb uses approximately this range. The match is not accidental — the timing creates a subconscious biofeedback of calm.
@@ -84,6 +86,6 @@ The 2% scale on the center element is intentionally subtle — the eye should no
 - **Framer Motion**: `<motion.div animate={{ scale: [0.6, 1.5, 0.6] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} />` — identical result with React.
 
 ## See also
-- [Ambient Ripple](../ambient-ripple/) — pulsing outward rings rather than scaling inward glow
-- [Mesh Gradient](../mesh-gradient/) — drifting color wash for a larger-scale ambient background
-- [Floating Elements](../floating-elements/) — shapes that drift with subtle opacity pulse
+- [Ambient Ripple Effect](../ambient-ripple/) — rings spread out instead of a glow swelling
+- [Mesh Gradient Animation](../mesh-gradient/) — soft color drifting across a whole background
+- [Floating Elements](../floating-elements/) — shapes that drift and slowly fade in and out
