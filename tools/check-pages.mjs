@@ -221,6 +221,8 @@ let nextId = 0;
 let aborting = false; // set by abort() below: the run stops where it is and only the cleanup goes on
 const pending = new Map();
 const listeners = new Set();
+// The console errors and warnings of the setup being checked, and the loads that failed: each one fails the setup.
+const errors = [];
 function send(method, params = {}) {
   if (aborting) return new Promise(() => {});
   return new Promise((resolve, reject) => {
@@ -501,7 +503,31 @@ async function homeCopyProblems() {
       problems.push(`Copy prompt with the clipboard refused: ${JSON.stringify(refused)} (expected "Open to copy" and a name that starts with it and names the animation)`);
     }
   }
-  const items = await evaluate(`Promise.all(ALL.map(e => promptFor(e.url).then(text => ({ url: e.url, text }), err => ({ url: e.url, text: 'ERROR ' + err.message }))))`);
+  // Every page's text as the home page gives it, read six at a time: Python's stock server refuses connections when many
+  // arrive together. A read that fails with a network error (fetch rejects with a TypeError when no answer comes back) is
+  // tried once more, a moment later; an HTTP error is not. When that second try works, the failed load Chrome logged for the
+  // first one is taken out of the console errors.
+  const items = await evaluate(`(async () => {
+    const items = [];
+    let next = 0;
+    const read = async url => {
+      try { return { url, text: await promptFor(url) }; }
+      catch (err) {
+        if (!(err instanceof TypeError)) return { url, text: 'ERROR ' + err.message };
+        await new Promise(r => setTimeout(r, 300));
+        const again = await promptFor(url).then(text => ({ text }), e => ({ text: 'ERROR ' + e.message }));
+        return { url, ...again, retried: new URL(url, location.href).href };
+      }
+    };
+    const reader = async () => { while (next < ALL.length) { const i = next++; items[i] = await read(ALL[i].url); } };
+    await Promise.all(Array.from({ length: 6 }, reader));
+    return items;
+  })()`);
+  for (const { text, retried } of items) {
+    if (!retried || text.startsWith('ERROR ')) continue;
+    const logged = errors.findIndex(e => e.startsWith('Failed to load resource: net::') && e.endsWith(' ' + retried));
+    if (logged >= 0) errors.splice(logged, 1);
+  }
   for (const { url, text } of items) {
     let onLoad;
     const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
@@ -782,7 +808,6 @@ try {
   });
   ws.addEventListener('close', () => failPending('Chrome closed the connection'));
 
-  const errors = [];
   listeners.add(msg => {
     if (msg.method === 'Runtime.exceptionThrown') errors.push(msg.params.exceptionDetails.exception?.description || msg.params.exceptionDetails.text);
     if (msg.method === 'Runtime.consoleAPICalled' && (msg.params.type === 'error' || msg.params.type === 'warning')) {
