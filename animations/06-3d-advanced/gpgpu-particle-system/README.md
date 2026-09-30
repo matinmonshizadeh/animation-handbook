@@ -20,7 +20,7 @@ precision highp float;
 uniform sampler2D uPos;   // read previous frame's positions
 uniform float uTime, uSpeed;
 uniform int uBehavior;
-uniform float uStep;     // 1, or 1/3 in slow motion
+uniform float uStep;     // steps of 1/60 s since the last frame: 1 at 60 Hz, a third of that in slow motion
 out vec4 outColor;        // write new positions
 
 float hash(float n) { return fract(sin(n) * 43758.5); }
@@ -50,7 +50,9 @@ void main() {
 }
 ```
 
-**Texture ping-pong** — alternate which texture is the read source each frame:
+**Time step** — the page passes `uStep`, the time since the last drawn frame counted in steps of 1/60 s (capped at 50 ms, and a third of it in slow motion), so the particles move at the same speed on a 30, 60 or 144 Hz screen. A long frame is run as several passes of about one step each, two on a 30 Hz screen: the attractor pulls hard near the middle, and one long step there lets particles overshoot and keep circling instead of settling. The damping `pow(0.985, uStep)` is the right amount for a step of any length, and the trail fade is scaled the same way.
+
+**Texture ping-pong** — alternate which texture is the read source each pass:
 
 ```js
 // Physics pass: read tex0, write to fbo1 (which wraps tex1)
@@ -86,12 +88,13 @@ void main() {
 |-----------|---------|--------|
 | Movement | Flow | Flow follows a shifting field of currents; Swirl circles the middle; Attract pulls everything toward the middle; Orbit sweeps the particles round in rings |
 | Number of particles | 65,000 | 16,000, 65,000 or 100,000 particles, one pixel each of a texture 128, 256 or 320 pixels square; phones start with 16,000 |
-| Speed | Normal | How hard the rule pushes each frame: slow is 0.35, normal 0.6 and fast 1 |
+| Speed | Normal | How hard the rule pushes for every sixtieth of a second: slow is 0.35, normal 0.6 and fast 1 |
 | Color | One color | One blue, a color from each particle's speed, or colors that slowly shift |
 | Trails | off | Fades the last picture instead of clearing it, so each particle leaves a streak |
 
 ## Production notes
 - **WebGL2 required**: `RGBA32F` float framebuffer targets require WebGL2 (or the `WEBGL_color_buffer_float` extension in WebGL1, which is less reliably available). WebGL2 is supported in all modern browsers (Chrome 56+, Firefox 51+, Safari 15+).
+- **Time, not frames**: a fixed step per frame would move the particles twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone, and fade the trails at the same wrong rate. Scale the step and the fade by the time since the last frame, cap that time (this demo uses 50 ms), and split a long frame into passes of about one step so a strong pull near a point stays stable.
 - **Three.js `GPUComputationRenderer`**: Three.js includes `GPUComputationRenderer` (in the `three/examples/jsm` path) which encapsulates the entire ping-pong texture pattern. It's the idiomatic production approach.
 - **WebGPU compute shaders**: WebGPU provides proper `@compute` shader stages for GPGPU, eliminating the "fragment shader as compute" workaround. As of 2024, WebGPU is available in Chrome 113+ but not yet in Firefox stable or Safari.
 - **Wrap only survives a divergence-free field**: this demo's flow field pushes particles away from the x-axis, so it has a net outward drift. An earlier version wrapped at ±1.2 while only ±1.0 is visible; particles drifted into that invisible ring faster than they came back and the canvas faded to black after about ten seconds. Tightening the wrap to ±1.0 only moved the symptom — a divergent field teleports the escapee straight back to the edge it just left, so the particles crust along the top and bottom instead. Respawning escapees at a random point near the middle is the fix, and it is what keeps the population steady here. Nothing throws in either failure, and the first second looks correct in all three versions, so this class of bug is only visible if you leave the demo running.
