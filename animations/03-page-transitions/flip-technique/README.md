@@ -22,9 +22,10 @@ renderCards();
 grid.offsetHeight; // force reflow
 
 // INVERT — transform each card back to its original spot
-newCards.forEach(c => {
-  const f = first[c.id], last = c.getBoundingClientRect();
-  const dx = f.left - last.left, dy = f.top - last.top;
+const last = newCards.map(c => c.getBoundingClientRect());
+newCards.forEach((c, i) => {
+  const f = first[c.id];
+  const dx = f.left - last[i].left, dy = f.top - last[i].top;
   c.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
   c.style.transition = 'none';
 });

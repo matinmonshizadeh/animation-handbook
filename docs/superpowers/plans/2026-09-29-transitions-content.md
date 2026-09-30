@@ -965,7 +965,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - `settle()` here clears every card's inline `transform` and `transition`, so the cards sit in their real places, and sets `animating=false`.
   - The run then sorts the cards by size, as the Sort by size button does: every card moves from the starting order. If the cards are already in that order, it sorts them by color instead.
   - 1200ms after the glide ends (the `dur+50` timer), the cards glide back to the order they had before the run, through the same `doFlip()`.
-  - The run keeps the current column layout. It takes about 2.3s.
+  - The run keeps the current column layout. It takes about 2.3s. The stage, and with it the player bar, keeps one height through the run in every layout (see the grid minimum below).
   - `hb:input` cancels the way back.
 - **Reset:** yes. The starting order (Atlas, Orbit, Prism, Lumen, Frame, Echo) in three columns, at once: `renderCards()` with no glide, and "3 columns" marked as the active layout.
 - **Slow motion:** multiplies `dur` by 3, along with that part of the timer.
@@ -977,7 +977,7 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   - Toolbar labels become plain words: "Shuffle", "Sort by color", "Sort by size", "3 columns", "2 columns", "List" (were "⟳ Shuffle", "3 cols", "2 cols"). The six fit on one line on computers and tablets and on two lines on 375px and 320px phones (measured).
   - `.card-meta` goes from `opacity:.5` to `.8`: 3.0:1 becomes 5.1:1 on the cards. `.card-num`, the large faint number, is decoration and stays.
   - **The cards get shorter** so the default layout fits the laptop's first screen: in `renderCards()`, 110px for tall cards and 86px for short ones (were 140px and 110px); list rows stay 56px.
-  - `#card-grid` gets `min-height:230px`, the height of the three-column grid, so a new order in three columns never changes the stage height. It also gets `align-content:start`. Without it the grid spreads any extra height over its rows. In a scratch grid in headless Chrome, a 440px min-height moved the second row from 120px down to 225px. Then Sort by size would space the rows apart, and the hold below would glide the cards to stretched rows and make them jump when it is released.
+  - `#card-grid` gets `min-height:var(--rows-h)`, with `--rows-h:230px`, the height of the three-column grid, and `--rows-h:350px` in two columns (`data-columns="2"`, which `renderCards()` sets on the grid), the height of that grid in the starting order, so a new order never changes the stage height. Sorted by size the two-column grid is only 326px: without its own minimum the player bar jumped up 24px when the first glide of a Show me run ended, and back down when the way back began. It also gets `align-content:start`. Without it the grid spreads any extra height over its rows. In a scratch grid in headless Chrome, a 440px min-height moved the second row from 120px down to 225px. Then Sort by size would space the rows apart, and the hold below would glide the cards to stretched rows and make them jump when it is released.
   - **`hb-grow` on the stage**, which replaces the old phone rule `.stage{height:auto;min-height:var(--stage-h)}`. 2 columns (350px of cards) and List (386px) are taller than any shared stage, so the stage grows while they are shown; the default three columns need 329px on a laptop. At 1366×657 that puts the player bar's bottom at about 651px, inside the 657px screen (measured with the shared stage).
   - **The grid keeps its height until a glide ends.** Otherwise a layout that gets shorter shrinks the stage at once (by 120px measured), and `.page-area{overflow:hidden}` clips the cards that start from the old lower rows:
     - 2 columns to 3: cards 5 and 6 start with 80 of their 86px and 104 of their 110px below the edge;
@@ -986,9 +986,9 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 
     The hold is set in two steps:
     - In `doFlip()`, before `renderCards()`, set `grid.style.minHeight` to the grid's current height (`grid.offsetHeight + 'px'`), so the page never gets shorter mid-change.
-    - After the Last measurements, raise it to the lowest point any card starts its glide from, if that is lower: the card's old top (from First, measured from the grid's top) plus its new height. List to 3 or 2 columns needs 440px, 54px more than the list; with the current height alone the last card would lose 38px for a few frames.
+    - After the Last measurements, raise it to the larger of two heights, if that is more than the grid now has: the lowest point any card starts its glide from (the card's old top, from First, measured from the grid's top, plus its new height), and the new layout's own minimum (`--rows-h`, read from the grid's computed style). List to 3 or 2 columns needs 440px, 54px more than the list; with the current height alone the last card would lose 38px for a few frames. The minimum matters when 2 columns is entered from a shorter layout with an order that is only 326px high: without it the stage would grow by 24px when the hold is released.
 
-    With `align-content:start`, neither step moves a card. Clear the hold (`grid.style.minHeight=''`, back to the stylesheet's 230px) in the `dur+50` timer, in `settle()`, in Reset, and straight after `renderCards()` in the reduced-motion branch, where the cards jump at once. A layout that gets taller grows the stage at once, as before. A shorter one keeps the stage's height, or grows it for the glide, until the cards have landed, then the stage shrinks. No card is cut off at the bottom by the stage shrinking.
+    With `align-content:start`, neither step moves a card. Clear the hold (`grid.style.minHeight=''`, back to the layout's own minimum, 230px or 350px) in the `dur+50` timer, in `settle()`, in Reset, and straight after `renderCards()` in the reduced-motion branch, where the cards jump at once. A layout that gets taller grows the stage at once, as before. A shorter one keeps the stage's height, or grows it for the glide, until the cards have landed, then the stage shrinks. No card is cut off at the bottom by the stage shrinking.
   - Unused variables: none.
 
 **Main settings**
@@ -1044,6 +1044,7 @@ None: leave out the `details.hb-options` block.
     ```
 
   - "The double `requestAnimationFrame` guarantees the inverted (start) state is committed before the transition to zero begins." becomes "Reading `offsetWidth` between Invert and Play makes the browser apply the inverted (start) positions before the transition to zero begins."
+  - In the snippet, the INVERT block reads every card's rect before it writes anything, as the page does and as the Production notes' "Read then write, once" says: `const last = newCards.map(c => c.getBoundingClientRect());` before the loop, then `newCards.forEach((c, i) => { const f = first[c.id]; const dx = f.left - last[i].left, dy = f.top - last[i].top; …` inside it.
 - **README Production notes:** unchanged
 - **Category line:** `03.12 · Page Transitions`
 - **Pager:** Previous: Dissolve Transition (`../dissolve/`) · Next: none

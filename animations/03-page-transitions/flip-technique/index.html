@@ -31,8 +31,10 @@
     /* On the narrowest phones a little less spacing lets the six buttons fill two lines */
     @media(max-width:359px){.stage-toolbar{gap:4px;padding:10px 8px}}
     .page-area{flex:1;position:relative;overflow:hidden;padding:16px}
-    /* 230px is the height of the three-column grid, so a new order in three columns never changes the stage's height; align-content keeps the rows from spreading over extra height */
-    #card-grid{display:grid;gap:10px;transition:none;min-height:230px;align-content:start}
+    /* --rows-h is the height of the grid in the starting order: 230px in three columns, 350px in two (sorted by size it would be 326px),
+       so a new order never changes the stage's height; align-content keeps the rows from spreading over extra height */
+    #card-grid{--rows-h:230px;display:grid;gap:10px;transition:none;min-height:var(--rows-h);align-content:start}
+    #card-grid[data-columns="2"]{--rows-h:350px}
     .flip-card{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;cursor:default;will-change:transform;position:relative}
     .card-num{font-size:32px;font-weight:bold;opacity:.15;line-height:1;position:absolute;top:10px;right:12px}
     .card-name{font-size:12px;font-weight:bold;margin-bottom:2px}
@@ -176,6 +178,7 @@
 
   function renderCards(){
     grid.innerHTML='';
+    grid.dataset.columns=cols;
     grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
     order.forEach(i=>{
       const c=CARDS[i],el=document.createElement('div');el.className='flip-card';el.id='fc'+i;
@@ -217,9 +220,9 @@
     if(!motionOk){grid.style.minHeight='';finish();return}
     const cards=[...grid.querySelectorAll('.flip-card')];
     const last=cards.map(c=>c.getBoundingClientRect());
-    // A card starts its glide from its old top at its new height: make room for the lowest one
-    const lowest=Math.max(...cards.map((c,i)=>first[c.id].top-gridTop+last[i].height));
-    if(lowest>grid.offsetHeight)grid.style.minHeight=lowest+'px';
+    // A card starts its glide from its old top at its new height: make room for the lowest one, and for the new layout's own minimum
+    const room=Math.max(parseFloat(getComputedStyle(grid).getPropertyValue('--rows-h')),...cards.map((c,i)=>first[c.id].top-gridTop+last[i].height));
+    if(room>grid.offsetHeight)grid.style.minHeight=room+'px';
     // INVERT: shift each card back to where it was
     cards.forEach((c,i)=>{
       const f=first[c.id];
