@@ -173,10 +173,17 @@ function render(){
   objWrap.style.transform=`rotateX(${currRx.toFixed(1)}deg) rotateY(${currRy.toFixed(1)}deg) scale(${currSc.toFixed(3)})`;
 }
 
-// Smooth follow: keep easing toward the target each frame until it settles, then stop the loop
-function tick(){
+// Smooth follow: keep easing toward the target until it settles, then stop the loop. The cube closes a tenth of the gap
+// in every 1/60 s (FRAME), so it catches up in the same time on every screen. A long gap between frames counts for at most
+// 50 ms, and the first frame after the loop starts again has no earlier frame to measure from, so it counts as one 1/60 s.
+const FRAME=1000/60;
+let lastT=null;
+function tick(now){
   raf=null;
-  currRx=lerp(currRx,tgtRx,.1);currRy=lerp(currRy,tgtRy,.1);currSc=lerp(currSc,tgtSc,.1);
+  const dt=lastT===null?FRAME:Math.min(now-lastT,50);
+  lastT=now;
+  const ease=1-Math.pow(.9,dt/FRAME);
+  currRx=lerp(currRx,tgtRx,ease);currRy=lerp(currRy,tgtRy,ease);currSc=lerp(currSc,tgtSc,ease);
   if(Math.abs(tgtRx-currRx)>.05||Math.abs(tgtRy-currRy)>.05||Math.abs(tgtSc-currSc)>.001){render();raf=requestAnimationFrame(tick);}
   else{currRx=tgtRx;currRy=tgtRy;currSc=tgtSc;render();}
 }
@@ -187,7 +194,7 @@ function applyRotation(p){
   const k=mult/10;
   tgtRx=lerp(c0.rx,c1.rx,t)*k;tgtRy=lerp(c0.ry,c1.ry,t)*k;tgtSc=lerp(c0.sc,c1.sc,t);
   const smooth=smoothTog.checked&&!reduceMotion.matches;
-  if(smooth){if(!raf)raf=requestAnimationFrame(tick);}
+  if(smooth){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
   else{if(raf){cancelAnimationFrame(raf);raf=null;}currRx=tgtRx;currRy=tgtRy;currSc=tgtSc;render();}
 }
 
