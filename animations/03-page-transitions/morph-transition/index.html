@@ -211,12 +211,13 @@
     morphRaf=requestAnimationFrame(tick);
   }
 
-  function updateNav(n){navBtns.forEach((b,i)=>b.classList.toggle('active',i===n))}
-  // The resting state for page n, at once: it shows, the others are hidden and the logo has its shape. A fade that is
-  // already running toward the same opacity keeps its own length however short --fade is, so it is cancelled too.
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
+  // The resting state for page n, at once: it shows, the others are hidden and inert (out of the Tab order and the
+  // accessibility tree) and the logo has its shape. A fade that is already running toward the same opacity keeps its
+  // own length however short --fade is, so it is cancelled too.
   function showPage(n){
     area.style.setProperty('--fade','0ms');
-    pages.forEach((el,i)=>{el.classList.toggle('active',i===n);el.getAnimations().forEach(a=>a.cancel())});
+    pages.forEach((el,i)=>{el.classList.toggle('active',i===n);el.inert=i!==n;el.getAnimations().forEach(a=>a.cancel())});
     updateNav(n);
     drawShape(SHAPES[PAGES[n].shape]);
   }
@@ -241,7 +242,7 @@
     afterMove=then||null;
     // The pages fade across in 300ms, three times as long in slow motion, while the logo changes shape
     area.style.setProperty('--fade',(slowTog.checked?900:300)+'ms');
-    pages[prev].classList.remove('active');pages[next].classList.add('active');
+    pages[prev].classList.remove('active');pages[prev].inert=true;pages[next].classList.add('active');pages[next].inert=false;
     const target=SHAPES[PAGES[next].shape];
     animating=true;
     startMorph(currentPts,target.pts,()=>{drawShape(target);finish()});

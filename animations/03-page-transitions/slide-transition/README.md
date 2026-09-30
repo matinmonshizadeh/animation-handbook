@@ -18,7 +18,8 @@ function getDir(prev,next){
   return next>prev ? -1 : 1;   // auto: forward = left(-1), back = right(+1)
 }
 
-function doTransition(prev,next){
+function doTransition(prev,next,dur,stagger,ease){
+  const oldEl=pages[prev], newEl=pages[next];
   const d=getDir(prev,next), dir=Math.abs(d)===2?'Y':'X', sign=d<0?-1:1;
   newEl.style.transition='none';
   newEl.style.transform=`translate${dir}(${sign*-100}%)`;   // park off-screen, opposite edge

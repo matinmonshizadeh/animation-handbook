@@ -321,6 +321,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `03.03 · Page Transitions`
 - **Pager:** Previous: Shared Element Transition (`../shared-element-transition/`) · Next: Crossfade Transition (`../crossfade/`)
+- **Final fix wave:** the pages that are not on show are `inert` (`showPage` sets it on all three pages and `navigate` on the two that swap), so a screen reader reads only the page on show and Tab cannot enter a hidden one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 
@@ -389,18 +390,21 @@ None: leave out the `details.hb-options` block.
   - [Slide Transition](../slide-transition/) — pages move sideways instead
   - [Blur Transition](../blur-transition/) — a blur joins the fade
 - **README How it works:**
-  - The sentence "A `requestAnimationFrame` loop samples both computed opacities live so you can watch them cross:" becomes "Both are ordinary CSS transitions on `opacity`:".
-  - In the snippet, `easeSel.value` becomes `ease`. In the sequential part, `requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.opacity='1'; }));` becomes these two lines:
+  - The sentence "A `requestAnimationFrame` loop samples both computed opacities live so you can watch them cross:" becomes "With Together, both pages get the same opacity transition and fade at once; with One after the other, each gets half the duration and the new page starts when the old one has gone. Both are ordinary CSS transitions on `opacity`:". The README names the two orders as the page does, not "simultaneous" and "sequential".
+  - In the snippet, `easeSel.value` becomes `ease`, and the two comments read "Together: …" and "One after the other: …". In the One after the other part, `requestAnimationFrame(()=>requestAnimationFrame(()=>{ newEl.style.opacity='1'; }));` becomes these two lines:
 
     ```js
         void newEl.offsetWidth;                   // commit the transparent start
         newEl.style.opacity='1';
     ```
 
+  - The One after the other part also sets each page's transition, as the page does; read literally, the pages would snap without these lines. ``oldEl.style.transition=`opacity ${half}ms ${ease}`;`` goes before `oldEl.style.opacity='0';`, and ``newEl.style.transition=`opacity ${half}ms ${ease}`;`` is the first line inside the timer.
+  - The paragraph after the snippet uses the same two names: "With Together the outgoing page reaches ~0.5 … with One after the other the stage passes through a fully blank frame …".
   - The rest is unchanged.
 - **README Production notes:** unchanged
 - **Category line:** `03.04 · Page Transitions`
 - **Pager:** Previous: Morph Transition (`../morph-transition/`) · Next: Slide Transition (`../slide-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one; a page fading in becomes reachable when its fade ends, where `rest()` runs. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`). In the README's Production notes, the second bullet also uses the page's names for the two orders (it said "Simultaneous double-fade" and "Sequential"); it is the only change there.
 
 ---
 
@@ -472,6 +476,7 @@ None: leave out the `details.hb-options` block.
   - [Elastic Transition](../elastic-transition/) — the slide with a springy finish
 - **README How it works:**
   - In the snippet, `getDir()` reads `dirMode` in place of `dirMode.value`, and its first line (`const m=dirMode.value;`) goes, so its checks read `dirMode==='ltr'` and so on. `easeSel.value` becomes `ease`.
+  - The snippet's `doTransition` takes the values it reads as the page's does, and defines the two pages it moves: its first line is `function doTransition(prev,next,dur,stagger,ease){`, followed by `  const oldEl=pages[prev], newEl=pages[next];`. Before, `oldEl`, `newEl`, `dur`, `stagger` and `ease` were not defined anywhere in it.
   - The `requestAnimationFrame(()=>requestAnimationFrame(()=>{ … }));` wrapper is replaced by a reflow, with the four lines it held following directly:
 
     ```js
@@ -486,6 +491,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`** is required…" becomes "**Commit the parked position.** Reading `offsetWidth` after parking the new page off-screen makes the browser apply that position before the transition is switched on; without it the two writes merge and the new page jumps straight in with no slide." In the bullet "**Match direction to platform expectation.**", "The auto mode encodes this." becomes "The Forward and back setting encodes this." The rest is unchanged.
 - **Category line:** `03.05 · Page Transitions`
 - **Pager:** Previous: Crossfade Transition (`../crossfade/`) · Next: Zoom Transition (`../zoom-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show (the pages parked to the right), so a screen reader reads only the page on show and Tab cannot enter a parked one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 
@@ -559,9 +565,10 @@ None: leave out the `details.hb-options` block.
     ```
 
   - The last paragraph's "and the double `requestAnimationFrame` ensures the start scale is painted before the transition kicks off" becomes "and reading `offsetWidth` makes the browser apply the start scale before the transition begins".
-- **README Production notes:** unchanged
+- **README Production notes:** unchanged, except the library line (the last bullet), which now reads: "the View Transitions API can zoom with `scale` keyframes on `::view-transition-old`/`-new` (the Zoom style of the View Transitions API demo). Framer Motion's `scale` variants in `AnimatePresence` and GSAP's `scale` tweens express the same scale-plus-fade." Before, it said the API "ships a zoom style" and listed "Next.js transitions"; neither is a zoom of its own.
 - **Category line:** `03.06 · Page Transitions`
 - **Pager:** Previous: Slide Transition (`../slide-transition/`) · Next: Flash / Light Leak Transition (`../flash-transition/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`). The README's library line is corrected, as recorded under Production notes above.
 
 ---
 
@@ -806,10 +813,12 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
 - **README How it works:**
   - The first paragraph names the two ways as on the page: "This demo offers two modes. The CSS mode writes" becomes "This demo offers two ways to bounce. The planned path writes"; "with the overshoot amount scaled by a control" becomes "with the overshoot amount set by Bounce size"; and "The JS mode integrates" becomes "The live spring integrates".
   - In the snippet, `let pos = -100, vel = 0, target = 0;           // start off-screen right` becomes `let pos = 100, vel = 0, target = 0;            // start off-screen right`, as in the demo.
+  - The snippet's first line reads `function doSpring(o, n) {`, the names the page gives the old and the new page. It read `function doSpring(prev, next) {`, so the `n` the loop moves was not defined.
   - In the last paragraph, the sentence "Recorded positions are plotted to a small canvas so the overshoot-and-settle curve is visible." is replaced by: "On the demo page, Speed and Bounce size set both ways of bouncing: the planned path's length (1400, 900 or 550ms) and overshoot (30, 60 or 100), or the live spring's stiffness (70, 180 or 500) and damping. The damping values were found by running this loop at 60 frames a second, so the spring goes about as far past its place as the planned path does (about 3.6%, 7.2% and 12% of the width). Moving the spring one step per frame calms it more than the usual spring formula expects, so the values were measured rather than worked out."
 - **README Production notes:** a bullet goes in after "**Clamp the time step.**": "**Frame rate.** The demo moves its spring one step per frame, so how far it bounces depends on the frame rate: at 30 frames a second the small bounce hardly shows, and at 120 it is a little larger. A spring that steps by time instead — fixed small steps, as many as the time that has passed needs — bounces the same at any frame rate." The rest is unchanged.
 - **Category line:** `03.09 · Page Transitions`
 - **Pager:** Previous: Blur Transition (`../blur-transition/`) · Next: Portal / Tunnel Zoom (`../portal-zoom/`)
+- **Final fix wave:** `rest()` sets `inert` on a page that is not on show, so a screen reader reads only the page on show and Tab cannot enter a hidden one; the planned path and the live spring both end in `rest()`. The name of the page on show carries `aria-current="page"` and the other two `"false"` (`updateNav`).
 
 ---
 

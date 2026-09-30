@@ -43,7 +43,7 @@ Because the incoming and outgoing scales differ per variant, the same code path 
 - **Fade alongside the scale.** Scaling without the opacity cross-fade leaves a hard edge where the two pages overlap; the paired fade hides the seam.
 - **Springy easing can overshoot past scale 1** and momentarily clip content at the stage edge — keep overshoot modest or add padding.
 - **Reduced motion** swaps pages by opacity only, skipping the scale.
-- **Library equivalents**: the View Transitions API ships a zoom style via `::view-transition` scale keyframes. Framer Motion's `scale` variants in `AnimatePresence`, GSAP's `scale` tweens, and Next.js transitions all express the same scale-plus-fade.
+- **Library equivalents**: the View Transitions API can zoom with `scale` keyframes on `::view-transition-old`/`-new` (the Zoom style of the View Transitions API demo). Framer Motion's `scale` variants in `AnimatePresence` and GSAP's `scale` tweens express the same scale-plus-fade.
 
 ## See also
 - [View Transitions API](../view-transitions-api/) — the browser can zoom pages too
