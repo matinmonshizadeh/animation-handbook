@@ -1787,7 +1787,6 @@ const state={q:'',place:'',view:'',all:false};
 const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
-const phone=matchMedia('(max-width:600px)');
 let moreAction='all';
 const pinbar=$('pinbar');
 // The phone bar is there while a view other than Start is open and while its own search box has focus, so emptying the box does not take the box away.
@@ -1848,17 +1847,24 @@ function readURL(){
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
 function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+// A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
+// of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
+// control that scrolled away. Returns whether it scrolled.
+function showResults(){
+  const top=titleEl.getBoundingClientRect().top;
+  if(top>=Math.max(0,pinbar.getBoundingClientRect().bottom)&&top<=innerHeight*.6)return false;
+  toResults();toTitle();return true;
+}
 document.addEventListener('click',e=>{
   const tile=e.target.closest('[data-place]');
   if(tile){
     const key=tile.dataset.place;
-    go(!state.q&&state.place===key?{}:{place:key},true);
-    if(phone.matches&&state.place)toResults();
-    if(gone(tile))toTitle();
+    go(!state.q&&state.place===key?{}:{place:key},true); // the picked one pressed again goes back to Start, where the page is
+    if(!(state.place&&showResults())&&gone(tile))toTitle();
     return;
   }
   const pick=e.target.closest('[data-q]');
-  if(pick){go({q:pick.dataset.q},true);if(phone.matches)toResults();if(gone(pick))toTitle();}
+  if(pick){go({q:pick.dataset.q},true);if(!showResults()&&gone(pick))toTitle();}
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
