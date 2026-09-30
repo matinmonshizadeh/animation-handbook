@@ -24,11 +24,15 @@ stage.addEventListener('scroll', updateTarget, {passive:true}); // fires for whe
 The render loop either snaps to the target frame or eases toward it (the Glides between frames setting):
 
 ```js
-if (smoothing) shownFrame += (targetFrame - shownFrame) * 0.18; // lerp
+const dt = last ? Math.min(now - last, 50) : FRAME;  // FRAME = 1000 / 60; time since the last frame
+last = now;
+if (smoothing) shownFrame += (targetFrame - shownFrame) * (1 - Math.pow(1 - EASE, dt / FRAME)); // lerp; EASE 0.18
 else           shownFrame  = targetFrame;                        // snap
 const index = Math.round(shownFrame);
 if (index !== drawn) { drawFrame(index); drawn = index; }         // skip a picture that is already on the canvas
 ```
+
+`EASE` is the share of the distance covered in 1/60 s, and a frame that lasted `dt` covers `1 - Math.pow(1 - EASE, dt / FRAME)` of what is left, so the picture catches up with the scroll in the same time on a 30, 60 or 120Hz screen (a fixed share per frame would take half as long at 120Hz and twice as long at 30Hz). The loop never stops, so `last` is kept from frame to frame; `dt` is capped at 50ms, so a hidden tab does not make the picture jump.
 
 `drawFrame(index)` is a pure function of the index — same index, same picture — which is exactly why reverse scrubbing rewinds cleanly. It is also why the loop can skip a picture that is already on the canvas, which keeps the page cheap on phones. Back to top, and Play starting again from the top, move the box in one jump; a click on either button sets the shown frame to the target at once, so the picture does not play backwards.
 

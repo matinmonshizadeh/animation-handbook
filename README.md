@@ -42,32 +42,32 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[Parallax Depth-of-Field](animations/01-scroll-based/parallax-depth-of-field/)** — Five mountain layers translate at different speeds; blur simulates camera depth-of-field.
-- **[Parallax Scrolling](animations/01-scroll-based/parallax-scrolling/)** — Elements move at different speeds — background slower, foreground faster — creating a 3D depth illusion.
-- **[Reverse-Scrolling Columns](animations/01-scroll-based/reverse-scrolling-columns/)** — A center column scrolls normally while two flanking columns scroll in reverse, looping infinitely.
-- **[Cover Card to Fixed Header](animations/01-scroll-based/cover-card-to-fixed-header/)** — A full-page hero morphs into a compact fixed header — every visual property scrubbed to a single progress value.
-- **[Fly-in Fly-out Contact List](animations/01-scroll-based/fly-in-fly-out-contact-list/)** — Rows translate and fade through entry, active, and exit zones as you scroll — bidirectional and continuous.
-- **[Stacking Cards](animations/01-scroll-based/stacking-cards/)** — CSS Scroll-Driven Animations fan cards into a deck — per-index sticky offset creates the visible peek tab.
-- **[ScrollTrigger Animation](animations/01-scroll-based/scroll-trigger/)** — The onEnter / onLeave lifecycle demonstrated with vanilla JS — four scroll trigger zones.
-- **[Scrub Animation](animations/01-scroll-based/scrub-animation/)** — Scroll position is the playhead — a flight path doubles as its own timeline, seekable in either direction.
-- **[Pin Animation](animations/01-scroll-based/pin-animation/)** — An element freezes in place while the page scrolls beneath it — CSS sticky, no JavaScript pinning.
-- **[Snap Scrolling](animations/01-scroll-based/snap-scrolling/)** — CSS scroll-snap-type creates a paginated, magnetic feel — mandatory, proximity, and none compared.
-- **[Scrollytelling](animations/01-scroll-based/scrollytelling/)** — Fractional chapter progress drives continuous depth crossfades across six ocean-layer chapters.
-- **[Reveal on Scroll](animations/01-scroll-based/reveal-on-scroll/)** — Seven reveal techniques fired by IntersectionObserver at a configurable trigger line.
-- **[Stagger Reveal](animations/01-scroll-based/stagger-reveal/)** — Groups reveal with cascading delays — forward, reverse, center-out, and random cascade directions.
-- **[Horizontal Scroll](animations/01-scroll-based/horizontal-scroll/)** — Vertical scroll translates a horizontal panel strip — a tall pinned section provides the scroll budget.
-- **[Sticky Section](animations/01-scroll-based/sticky-section/)** — The whole section pins while its interior morphs through four states scrubbed to scroll position.
-- **[Counter Animation](animations/01-scroll-based/counter-animation/)** — Numbers count 0 → target with easing on scroll entry — four formats and configurable curve.
-- **[Progress Bar](animations/01-scroll-based/progress-bar/)** — Reading progress in three styles — top bar, circular ring, and side rail — driven by scrollTop / scrollHeight.
-- **[Section Wipe](animations/01-scroll-based/section-wipe/)** — The next section slides over the current via sticky z-index stacking — scale-down adds depth.
-- **[Zoom Into Image](animations/01-scroll-based/zoom-into-image/)** — clip-path expands from a framed card to full-bleed as you scroll — the portal effect.
-- **[Scroll Image Sequence](animations/01-scroll-based/scroll-image-sequence/)** — A canvas pinned with sticky; scroll progress maps to a frame index — the Apple product-scroll technique, frames drawn procedurally.
-- **[Smooth (Inertia) Scroll](animations/01-scroll-based/smooth-scroll/)** — Wheel and touch input eased toward a target each frame — weighted, gliding momentum instead of native jumps.
-- **[Text Fill on Scroll](animations/01-scroll-based/text-fill-on-scroll/)** — A pinned paragraph fills word by word as you scroll — pause mid-read, scroll back and it un-reads.
-- **[Scroll Velocity Skew](animations/01-scroll-based/scroll-velocity-skew/)** — Content shears with scroll speed and springs straight when you stop — motion mapped to velocity, not position.
-- **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A winding route draws itself down the page via stroke-dashoffset, passing waypoints as you travel.
-- **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A nav rail tracks the section in view with a sliding indicator — the docs-site pattern.
-- **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background blends between section palettes as you scroll, flipping text contrast on light stops.
+- **[Parallax Depth-of-Field](animations/01-scroll-based/parallax-depth-of-field/)** — Layers move at their own speed as the focus shifts. Best for cinematic intros.
+- **[Parallax Scrolling](animations/01-scroll-based/parallax-scrolling/)** — Far layers move slower than near ones as you scroll. Best for hero scenes.
+- **[Reverse-Scrolling Columns](animations/01-scroll-based/reverse-scrolling-columns/)** — Side columns run the opposite way to the middle one. Best for portfolios.
+- **[Cover Card to Fixed Header](animations/01-scroll-based/cover-card-to-fixed-header/)** — A tall cover shrinks into a slim header as you scroll. Best for articles.
+- **[Fly-in Fly-out Contact List](animations/01-scroll-based/fly-in-fly-out-contact-list/)** — Rows fade and slide as they near the top or bottom edge. Best for long lists.
+- **[Stacking Cards](animations/01-scroll-based/stacking-cards/)** — Cards stick at the top and pile into a deck. Best for step-by-step stories.
+- **[ScrollTrigger Animation](animations/01-scroll-based/scroll-trigger/)** — Animations start, follow and pin at set scroll points. Best for landing pages.
+- **[Scrub Animation](animations/01-scroll-based/scrub-animation/)** — Scroll plays it forward and back, like dragging a video. Best for product tours.
+- **[Pin Animation](animations/01-scroll-based/pin-animation/)** — One part stays put while its text changes on scroll. Best for feature lists.
+- **[Snap Scrolling](animations/01-scroll-based/snap-scrolling/)** — The box settles on one whole section at a time. Best for slides and galleries.
+- **[Scrollytelling](animations/01-scroll-based/scrollytelling/)** — A picture beside the story changes as you read down. Best for data stories.
+- **[Reveal on Scroll](animations/01-scroll-based/reveal-on-scroll/)** — Cards appear as they cross a line in the box. Best for long landing pages.
+- **[Stagger Reveal](animations/01-scroll-based/stagger-reveal/)** — Items in a group appear one after another as it scrolls in. Best for card grids.
+- **[Horizontal Scroll](animations/01-scroll-based/horizontal-scroll/)** — Scroll down and a row of panels slides sideways. Best for portfolios.
+- **[Sticky Section](animations/01-scroll-based/sticky-section/)** — A section holds still while its content changes. Best for feature tours.
+- **[Counter Animation](animations/01-scroll-based/counter-animation/)** — Numbers count up when they scroll into view. Best for stats.
+- **[Progress Bar](animations/01-scroll-based/progress-bar/)** — A bar fills as you read down the page. Best for long articles.
+- **[Section Wipe](animations/01-scroll-based/section-wipe/)** — Each section slides up over the one before. Best for full-screen stories.
+- **[Zoom Into Image](animations/01-scroll-based/zoom-into-image/)** — A small window opens up to fill the box as you scroll. Best for hero images.
+- **[Scroll Image Sequence](animations/01-scroll-based/scroll-image-sequence/)** — Scrolling plays a series of pictures like a flip-book. Best for products.
+- **[Smooth (Inertia) Scroll](animations/01-scroll-based/smooth-scroll/)** — Scrolling glides to a stop instead of jumping. Best for portfolio sites.
+- **[Text Fill on Scroll](animations/01-scroll-based/text-fill-on-scroll/)** — Words light up one by one as you scroll. Best for key statements.
+- **[Scroll Velocity Skew](animations/01-scroll-based/scroll-velocity-skew/)** — Rows lean when you scroll fast and straighten when you stop. Best for galleries.
+- **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A line draws itself along a route as you scroll. Best for timelines.
+- **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A menu highlights the section you are reading. Best for long docs.
+- **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background color changes as you scroll through sections. Best for stories.
 
 </details>
 
@@ -79,19 +79,19 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[Fade In / Fade Out](animations/02-entrance-and-exit/fade-in-out/)** — Opacity 0 → 1 enter, 1 → 0 exit — the compositor handles this without re-painting.
-- **[Slide In](animations/02-entrance-and-exit/slide-in/)** — Translates from an off-screen edge into final position — with or without simultaneous fade.
-- **[Slide Up Reveal](animations/02-entrance-and-exit/slide-up-reveal/)** — Text rises from below its clip boundary — translateY method vs clip-path inset, identical visual result.
-- **[Scale In / Zoom In](animations/02-entrance-and-exit/scale-in/)** — Scales from a small start value to 1.0 — transform-origin controls where the pop expands from.
-- **[Clip-Path Reveal](animations/02-entrance-and-exit/clip-path-reveal/)** — A shape mask expands to uncover the element — content is always rendered, just progressively visible.
-- **[Curtain Reveal](animations/02-entrance-and-exit/curtain-reveal/)** — A colored bar slides over content then off the other side — the reveal is hidden then exposed.
-- **[Split Text Reveal](animations/02-entrance-and-exit/split-text-reveal/)** — Text split into chars, words, or lines — each piece staggers with --index CSS transition-delay.
-- **[Letter-by-Letter Stagger](animations/02-entrance-and-exit/letter-by-letter-stagger/)** — CSS transition-delay cascade per letter, or JS typewriter mode with a blinking cursor.
-- **[Word-by-Word Reveal](animations/02-entrance-and-exit/word-by-word-reveal/)** — Words animate sequentially at 80–120ms per word — the readable stagger speed for taglines.
-- **[Blur In](animations/02-entrance-and-exit/blur-in/)** — Fades in while reducing blur — mimics camera focus pulling. Best on single hero elements.
-- **[Flip In](animations/02-entrance-and-exit/flip-in/)** — Rotates from a flat plane into view using CSS 3D perspective — perspective on the parent is the key.
-- **[Bounce In](animations/02-entrance-and-exit/bounce-in/)** — Overshoots final position then springs back — explicit @keyframes waypoints, not easing alone.
-- **[Rotate In](animations/02-entrance-and-exit/rotate-in/)** — Spins while entering — best on radially-symmetric shapes like icons, stars, and gears.
+- **[Fade In / Fade Out](animations/02-entrance-and-exit/fade-in-out/)** — Fades in to appear and fades out to leave. Best for pop-ups and tooltips.
+- **[Slide In](animations/02-entrance-and-exit/slide-in/)** — Travels into place from one edge. Best for side panels and notifications.
+- **[Slide Up Reveal](animations/02-entrance-and-exit/slide-up-reveal/)** — Text rises into view from behind an invisible edge. Best for headlines.
+- **[Scale In / Zoom In](animations/02-entrance-and-exit/scale-in/)** — Grows from smaller to full size. Best for pop-ups and menus.
+- **[Clip-Path Reveal](animations/02-entrance-and-exit/clip-path-reveal/)** — A growing shape uncovers it while it stays still. Best for images and banners.
+- **[Curtain Reveal](animations/02-entrance-and-exit/curtain-reveal/)** — A colored panel covers it, then slides away. Best for intros and logos.
+- **[Split Text Reveal](animations/02-entrance-and-exit/split-text-reveal/)** — Text breaks into pieces that appear one after another. Best for headlines.
+- **[Letter-by-Letter Stagger](animations/02-entrance-and-exit/letter-by-letter-stagger/)** — A phrase appears letter by letter or typewriter-style. Best for short headlines.
+- **[Word-by-Word Reveal](animations/02-entrance-and-exit/word-by-word-reveal/)** — Words appear one after another at a reading pace. Best for quotes and intros.
+- **[Blur In](animations/02-entrance-and-exit/blur-in/)** — Comes into focus from a blur, like a camera. Best for featured cards and photos.
+- **[Flip In](animations/02-entrance-and-exit/flip-in/)** — Swings into view in 3D, like a card turning over. Best for cards and tiles.
+- **[Bounce In](animations/02-entrance-and-exit/bounce-in/)** — Lands with a springy bounce. Best for badges and success messages.
+- **[Rotate In](animations/02-entrance-and-exit/rotate-in/)** — Spins into place while it grows. Best for icons, stars and badges.
 
 </details>
 
@@ -103,18 +103,18 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[View Transitions API](animations/03-page-transitions/view-transitions-api/)** — document.startViewTransition() — the browser captures before/after and animates automatically.
-- **[Shared Element Transition](animations/03-page-transitions/shared-element-transition/)** — A thumbnail morphs continuously into a detail hero as pages change — the FLIP technique applied.
-- **[Morph Transition](animations/03-page-transitions/morph-transition/)** — An SVG path morphs between page-specific shapes — point-by-point interpolation across 12-vertex paths.
-- **[Crossfade](animations/03-page-transitions/crossfade/)** — Both pages visible simultaneously at ~50% opacity mid-transition — compare with sequential fade.
-- **[Slide Transition](animations/03-page-transitions/slide-transition/)** — Directional slides with forward/back awareness — matches native iOS and Android navigation patterns.
-- **[Zoom Transition](animations/03-page-transitions/zoom-transition/)** — Three scale variants — zoom-in, zoom-out, pull-through — each implying different spatial depth.
-- **[Flash / Light Leak](animations/03-page-transitions/flash-transition/)** — A colored flash peaks at full opacity, hides the page swap, then fades to reveal the new scene.
-- **[Blur Transition](animations/03-page-transitions/blur-transition/)** — Current page blurs and fades out, then new page sharpens in — a defocus wipe between scenes.
-- **[Elastic Transition](animations/03-page-transitions/elastic-transition/)** — Spring physics cause overshoot before settling — CSS keyframes or live JS spring simulation.
-- **[Portal / Tunnel Zoom](animations/03-page-transitions/portal-zoom/)** — clip-path expands from a portal element's center, zooming the viewport into the next page.
-- **[Dissolve](animations/03-page-transitions/dissolve/)** — Random tiles fade at staggered delays — a non-uniform wipe that reads as dissolving rather than fading.
-- **[FLIP Technique](animations/03-page-transitions/flip-technique/)** — First-Last-Invert-Play — CSS layout changes animated seamlessly by measuring position deltas.
+- **[View Transitions API](animations/03-page-transitions/view-transitions-api/)** — The browser animates the change between two pages for you. Best for web apps.
+- **[Shared Element Transition](animations/03-page-transitions/shared-element-transition/)** — A picture grows from the list into the next page's header. Best for galleries.
+- **[Morph Transition](animations/03-page-transitions/morph-transition/)** — The logo changes shape to match each page you visit. Best for brand marks.
+- **[Crossfade](animations/03-page-transitions/crossfade/)** — The old page fades out as the new one fades in. Best for calm page changes.
+- **[Slide Transition](animations/03-page-transitions/slide-transition/)** — Pages slide across, and going back slides the other way. Best for step flows.
+- **[Zoom Transition](animations/03-page-transitions/zoom-transition/)** — The pages zoom as they swap, as if moving in depth. Best for opening details.
+- **[Flash / Light Leak](animations/03-page-transitions/flash-transition/)** — A burst of light hides the moment the page changes. Best for bold, lively sites.
+- **[Blur Transition](animations/03-page-transitions/blur-transition/)** — The old page blurs away and the new one comes into focus. Best for photo sites.
+- **[Elastic Transition](animations/03-page-transitions/elastic-transition/)** — The new page slides in, goes too far and springs back. Best for playful apps.
+- **[Portal / Tunnel Zoom](animations/03-page-transitions/portal-zoom/)** — The next page opens out of a circle you click. Best for big reveals.
+- **[Dissolve](animations/03-page-transitions/dissolve/)** — The page breaks into tiles that give way to the next. Best for photo galleries.
+- **[FLIP Technique](animations/03-page-transitions/flip-technique/)** — Cards glide to their new places when the layout changes. Best for sorting lists.
 
 </details>
 
@@ -126,35 +126,35 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[Hover State Animation](animations/04-micro-interactions/hover-state/)** — Six hover techniques side by side — color shift, scale, lift, underline grow, icon nudge, and background sweep.
-- **[Click / Tap Ripple](animations/04-micro-interactions/click-ripple/)** — Ripple emanates from the exact click point — Material Design's tactile confirmation pattern.
-- **[Focus Ring Animation](animations/04-micro-interactions/focus-ring/)** — Animated outline on keyboard Tab — :focus-visible ensures mouse users see no ring.
-- **[Button Press Scale](animations/04-micro-interactions/button-press-scale/)** — Scales to 0.95 on press, springs back on release — asymmetric timing gives a tactile feel.
-- **[Magnetic Button](animations/04-micro-interactions/magnetic-button/)** — Button leans toward the cursor within a radius, its label drifting a little further for depth — springs home on exit.
-- **[Toggle / Switch Slide](animations/04-micro-interactions/toggle-switch/)** — Pill slides left/right for on/off — smooth cubic-bezier gives a weighted, physical feel.
-- **[Heart / Like Burst](animations/04-micro-interactions/heart-burst/)** — Tap pops and fills the heart while small hearts burst outward on canvas — Twitter-style like.
-- **[Success Confetti](animations/04-micro-interactions/success-confetti/)** — Completing an action fires a canvas confetti burst — rotating rectangles with gravity and spin.
-- **[Skeleton Loader](animations/04-micro-interactions/skeleton-loader/)** — Pulsing placeholder blocks match the shape of real content — reduces perceived wait time.
-- **[Shimmer Effect](animations/04-micro-interactions/shimmer-effect/)** — Gradient sweep over skeleton placeholders — gives the impression of data streaming in.
-- **[Loading Spinner](animations/04-micro-interactions/loading-spinner/)** — Six spinner variants from a single CSS color and speed — ring, orbit, arc, bounce, pulse, square.
-- **[Progress Animation](animations/04-micro-interactions/progress-animation/)** — Linear bar, circular ring, and stepped segments — all driven by a single percentage value.
-- **[Checkmark Draw](animations/04-micro-interactions/checkmark-draw/)** — SVG path draws progressively on success — stroke-dashoffset animates from full length to zero.
-- **[Form Field Morph](animations/04-micro-interactions/form-field-morph/)** — Floating label rises out of the input on focus — persists when the field is filled.
-- **[Notification Badge Pulse](animations/04-micro-interactions/badge-pulse/)** — Dot on icon pulses to draw peripheral attention — scale, halo, or both.
-- **[Tooltip Reveal](animations/04-micro-interactions/tooltip-reveal/)** — Info box fades in after a 300ms delay — long enough to avoid triggering on mouse pass-through.
-- **[Drawer / Panel Slide](animations/04-micro-interactions/drawer-slide/)** — Off-canvas panel slides from edge — ease-out open, ease-in close. Backdrop dismisses.
-- **[Modal Expand](animations/04-micro-interactions/modal-expand/)** — Modal scales from the trigger button's position — transform-origin set to where you clicked.
-- **[Accordion Open/Close](animations/04-micro-interactions/accordion/)** — Height animates between 0 and auto — JS measured height vs CSS grid-template-rows compared.
-- **[Cursor Follower](animations/04-micro-interactions/cursor-follower/)** — Custom element follows mouse with lerp lag — mix-blend-mode: difference inverts any background.
-- **[Error Shake](animations/04-micro-interactions/error-shake/)** — An invalid field shakes horizontally with a decaying wobble and flashes red — the universal "no".
-- **[Swipe to Dismiss](animations/04-micro-interactions/swipe-to-dismiss/)** — Drag a card past a threshold and it flies off as the row collapses — pointer-driven, touch-ready.
-- **[Hamburger Menu Toggle](animations/04-micro-interactions/hamburger-menu-toggle/)** — The bars icon morphs to an X — top and bottom bars rotate to cross while the middle fades out.
-- **[Theme Toggle Morph](animations/04-micro-interactions/theme-toggle-morph/)** — A sun morphs into a crescent moon as the interface flips between light and dark.
-- **[Copy to Clipboard](animations/04-micro-interactions/copy-to-clipboard/)** — The copy button swaps to a checkmark and a Copied confirmation, then reverts after a moment.
-- **[Star Rating](animations/04-micro-interactions/star-rating/)** — Stars fill toward the pointer and pop on commit — an accessible five-star control.
-- **[Toast Notification](animations/04-micro-interactions/toast-notification/)** — Notification cards slide in from a corner, stack, and auto-dismiss with a progress bar — swipe or click to dismiss.
-- **[Segmented Control](animations/04-micro-interactions/segmented-control/)** — A highlighted pill slides beneath the selected segment as the active label crossfades — the iOS control.
-- **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Dragging past the top reveals a spinner that fills with distance; release past the threshold to refresh.
+- **[Hover State Animation](animations/04-micro-interactions/hover-state/)** — Six ways a card can react when you point at it. Best for buttons and cards.
+- **[Click / Tap Ripple](animations/04-micro-interactions/click-ripple/)** — A ripple spreads out from the spot you press. Best for buttons and list items.
+- **[Focus Ring Animation](animations/04-micro-interactions/focus-ring/)** — A ring closes in around the item the Tab key reaches. Best for forms and menus.
+- **[Button Press Scale](animations/04-micro-interactions/button-press-scale/)** — Shrinks as you press it and springs back as you let go. Best for main buttons.
+- **[Magnetic Button](animations/04-micro-interactions/magnetic-button/)** — Leans toward the pointer, then springs home. Best for one main button.
+- **[Toggle / Switch Slide](animations/04-micro-interactions/toggle-switch/)** — The knob slides across as the switch turns on or off. Best for settings.
+- **[Heart / Like Burst](animations/04-micro-interactions/heart-burst/)** — The heart pops and fills as small hearts burst out. Best for like buttons.
+- **[Success Confetti](animations/04-micro-interactions/success-confetti/)** — Confetti bursts from the button when a task is done. Best for big moments.
+- **[Skeleton Loader](animations/04-micro-interactions/skeleton-loader/)** — Gray shapes hold the place of content while it loads. Best for feeds and cards.
+- **[Shimmer Effect](animations/04-micro-interactions/shimmer-effect/)** — A band of light sweeps over gray placeholders. Best for loading screens.
+- **[Loading Spinner](animations/04-micro-interactions/loading-spinner/)** — Six small shapes loop to show that something is loading. Best for short waits.
+- **[Progress Animation](animations/04-micro-interactions/progress-animation/)** — A bar, a ring and steps fill up to show progress. Best for uploads.
+- **[Checkmark Draw](animations/04-micro-interactions/checkmark-draw/)** — A tick draws itself in a circle once a task succeeds. Best for forms.
+- **[Form Field Morph](animations/04-micro-interactions/form-field-morph/)** — The label moves up out of the way as you type. Best for sign-up forms.
+- **[Notification Badge Pulse](animations/04-micro-interactions/badge-pulse/)** — A badge on an icon pulses to catch the eye. Best for unread messages.
+- **[Tooltip Reveal](animations/04-micro-interactions/tooltip-reveal/)** — A small label fades in after a short pause. Best for icon buttons.
+- **[Drawer / Panel Slide](animations/04-micro-interactions/drawer-slide/)** — A side panel slides in over a dimmed page. Best for mobile menus.
+- **[Modal Expand](animations/04-micro-interactions/modal-expand/)** — A window grows out of the button you pressed. Best for detail views.
+- **[Accordion Open/Close](animations/04-micro-interactions/accordion/)** — Each question opens smoothly to show its answer. Best for FAQ pages.
+- **[Cursor Follower](animations/04-micro-interactions/cursor-follower/)** — A dot trails your pointer and flips the colors under it. Best for portfolios.
+- **[Error Shake](animations/04-micro-interactions/error-shake/)** — A field shakes side to side when the input is wrong. Best for sign-in forms.
+- **[Swipe to Dismiss](animations/04-micro-interactions/swipe-to-dismiss/)** — A card dragged sideways flies off and the list closes up. Best for inboxes.
+- **[Hamburger Menu Toggle](animations/04-micro-interactions/hamburger-menu-toggle/)** — Three lines turn into an X as the menu opens. Best for mobile menus.
+- **[Theme Toggle Morph](animations/04-micro-interactions/theme-toggle-morph/)** — A sun turns into a moon as the colors switch to dark. Best for theme buttons.
+- **[Copy to Clipboard](animations/04-micro-interactions/copy-to-clipboard/)** — Copy turns into a tick and Copied, then changes back. Best for codes and links.
+- **[Star Rating](animations/04-micro-interactions/star-rating/)** — Stars fill up to your pointer and pop when you choose. Best for reviews.
+- **[Toast Notification](animations/04-micro-interactions/toast-notification/)** — Short messages slide into a corner, then leave on their own. Best for updates.
+- **[Segmented Control](animations/04-micro-interactions/segmented-control/)** — A highlight slides to the option you pick. Best for switching views.
+- **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 
 </details>
 
@@ -166,20 +166,20 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[Kinetic Typography](animations/05-text-typography/kinetic-typography/)** — Phrases enter, transform, and exit in a choreographed timeline — motion reinforces meaning.
-- **[Typewriter Effect](animations/05-text-typography/typewriter-effect/)** — Characters appear one at a time with a blinking cursor — natural timing variance makes it feel human.
-- **[Scramble / Glitch Text](animations/05-text-typography/scramble-text/)** — Characters cycle randomly before locking left-to-right — decryption and sci-fi aesthetic.
-- **[Variable Font Morph](animations/05-text-typography/variable-font-morph/)** — CSS font-variation-settings smoothly changes a word's weight in a variable font and, when set, leans it over by tilting it.
-- **[Text Clip-Path Reveal](animations/05-text-typography/text-clip-path-reveal/)** — Lines reveal via expanding clip-path mask — preserves kerning and typographic spacing exactly.
-- **[Marquee / Ticker](animations/05-text-typography/marquee-ticker/)** — Continuous horizontal scroll with seamless loop — duplicated content makes the reset invisible.
-- **[Text Morphing](animations/05-text-typography/text-morphing/)** — One word transitions into another character by character — each letter slides out as the next slides in.
-- **[Text Gradient Animation](animations/05-text-typography/text-gradient-animation/)** — background-clip: text with animated background-position flows color through the characters.
-- **[Outline to Fill](animations/05-text-typography/outline-to-fill/)** — Hollow stroke letterforms fill with color — clip-path reveal or opacity crossfade.
-- **[Enter/Exit Typography](animations/05-text-typography/enter-exit-typography/)** — Three-act phrase lifecycle: enter → hold → exit, sequenced for storytelling.
-- **[Rotate Word Carousel](animations/05-text-typography/rotate-word-carousel/)** — One keyword cycles through a list while the surrounding sentence stays static.
-- **[Glitch Text](animations/05-text-typography/glitch-text/)** — RGB-split copies jitter behind animated clip-path slices — the datamosh / signal-loss aesthetic.
-- **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text flows along an SVG curve via textPath with an animated startOffset — wave, arc, or circle.
-- **[Wavy Text](animations/05-text-typography/wavy-text/)** — Per-letter sine-wave bob with a staggered delay sends a wave travelling across the word.
+- **[Kinetic Typography](animations/05-text-typography/kinetic-typography/)** — Words arrive and leave one by one, each moving its own way. Best for intros.
+- **[Typewriter Effect](animations/05-text-typography/typewriter-effect/)** — Text types itself out behind a blinking cursor. Best for short taglines.
+- **[Scramble / Glitch Text](animations/05-text-typography/scramble-text/)** — Random symbols lock into the real text, left to right. Best for tech headlines.
+- **[Variable Font Morph](animations/05-text-typography/variable-font-morph/)** — A word smoothly turns bold, then light, and leans over. Best for headlines.
+- **[Text Clip-Path Reveal](animations/05-text-typography/text-clip-path-reveal/)** — Each line of a headline is uncovered in turn. Best for big headlines.
+- **[Marquee / Ticker](animations/05-text-typography/marquee-ticker/)** — Text scrolls sideways in an endless loop, with no seam. Best for news tickers.
+- **[Text Morphing](animations/05-text-typography/text-morphing/)** — One word changes into the next, letter by letter. Best for short labels.
+- **[Text Gradient Animation](animations/05-text-typography/text-gradient-animation/)** — Colors flow through the letters while the text stays still. Best for headlines.
+- **[Outline to Fill](animations/05-text-typography/outline-to-fill/)** — Hollow letters fill with color, as a wipe or a fade. Best for big headlines.
+- **[Enter/Exit Typography](animations/05-text-typography/enter-exit-typography/)** — Each phrase comes in, stays long enough to read, then leaves. Best for slogans.
+- **[Rotate Word Carousel](animations/05-text-typography/rotate-word-carousel/)** — One word in a sentence keeps swapping for the next. Best for hero headlines.
+- **[Glitch Text](animations/05-text-typography/glitch-text/)** — Text tears into red and cyan strips like a broken signal. Best for bold titles.
+- **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text travels along a wave, an arc or a circle. Best for badges and seals.
+- **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
 
 </details>
 
@@ -191,24 +191,24 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[3D Model Orbit](animations/06-3d-advanced/3d-model-orbit/)** — Phong-shaded WebGL geometry — vertex buffers, MVP matrix, and lighting in raw WebGL.
-- **[Scroll-Driven 3D Rotation](animations/06-3d-advanced/scroll-driven-3d-rotation/)** — CSS cube rotates through four choreographed stages as you scroll — the Apple product-page pattern.
-- **[Parallax 3D Tilt](animations/06-3d-advanced/parallax-3d-tilt/)** — CSS perspective + rotateX/Y follows mouse — a shine highlight tracks the virtual light source.
-- **[Canvas Particle Effect](animations/06-3d-advanced/canvas-particle-effect/)** — 500 drifting particles with O(n²) proximity connections and mouse repel/attract on 2D canvas.
-- **[Fluid Simulation](animations/06-3d-advanced/fluid-simulation/)** — WebGL metaballs — SDF spheres merged via smooth-minimum in a GLSL fragment shader.
-- **[Glassmorphism Animated](animations/06-3d-advanced/glassmorphism-animated/)** — backdrop-filter: blur() over animated gradient blobs — three frost variants.
-- **[WebGL Shader Animation](animations/06-3d-advanced/webgl-shader-animation/)** — Four GLSL fragment shader presets: plasma, wave distortion, Voronoi, kaleidoscope.
-- **[Noise-Based Motion](animations/06-3d-advanced/noise-based-motion/)** — Simplex noise drives a wind field and a morphing blob — smooth random, not chaotic random.
-- **[SVG Path Animation](animations/06-3d-advanced/svg-path-animation/)** — stroke-dashoffset reveals three SVG drawings — icon, signature, and logo mark.
-- **[Chromatic Aberration](animations/06-3d-advanced/chromatic-aberration/)** — RGB channels offset via mix-blend-mode: screen — static, pulse, and glitch modes.
-- **[2.5D / Pseudo-3D](animations/06-3d-advanced/2-5d-pseudo-3d/)** — Seven depth layers parallax at different rates — mouse-driven or auto-panning camera.
-- **[Ray Marching / SDF](animations/06-3d-advanced/ray-marching-sdf/)** — 3D scene entirely in a fragment shader — sphere blend, boolean ops, infinite repetition.
-- **[GPGPU Particle System](animations/06-3d-advanced/gpgpu-particle-system/)** — 65k+ particles computed in WebGL2 textures — physics in a shader, texture ping-pong.
-- **[Image Distortion on Hover](animations/06-3d-advanced/image-distortion-hover/)** — Fragment shader displaces UV coordinates around the cursor — ripple, push, liquid, pixelate.
-- **[Cloth Simulation](animations/06-3d-advanced/cloth-simulation/)** — Verlet integration + distance constraints — draggable flag responds to gravity and wind.
-- **[Volumetric Smoke](animations/06-3d-advanced/volumetric-smoke/)** — Ray marching accumulates 3D noise density — light scattering, shadow rays, fBm clouds.
-- **[Morphing Blob](animations/06-3d-advanced/morphing-blob/)** — Metaball circles fused by an SVG blur-plus-contrast filter melt like liquid — the blob drifts and a droplet chases the pointer.
-- **[3D Flip Card](animations/06-3d-advanced/flip-card-3d/)** — A card rotates in 3D to reveal its back face using preserve-3d, perspective, and backface-visibility.
+- **[3D Model Orbit](animations/06-3d-advanced/3d-model-orbit/)** — A lit 3D shape spins, or turns to face your pointer. Best for product views.
+- **[Scroll-Driven 3D Rotation](animations/06-3d-advanced/scroll-driven-3d-rotation/)** — Scrolling turns a 3D cube from pose to pose. Best for product tours.
+- **[Parallax 3D Tilt](animations/06-3d-advanced/parallax-3d-tilt/)** — A card tilts toward your pointer, and a light slides over it. Best for cards.
+- **[Canvas Particle Effect](animations/06-3d-advanced/canvas-particle-effect/)** — Dots drift, link up when close, and dodge your pointer. Best for tech sites.
+- **[Fluid Simulation](animations/06-3d-advanced/fluid-simulation/)** — Blobs drift and melt into each other like liquid. Best for hero backgrounds.
+- **[Glassmorphism Animated](animations/06-3d-advanced/glassmorphism-animated/)** — Frosted glass cards blur the colors behind them. Best for cards and panels.
+- **[WebGL Shader Animation](animations/06-3d-advanced/webgl-shader-animation/)** — Moving color patterns computed for every pixel. Best for bold backgrounds.
+- **[Noise-Based Motion](animations/06-3d-advanced/noise-based-motion/)** — Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.
+- **[SVG Path Animation](animations/06-3d-advanced/svg-path-animation/)** — A line drawing draws itself, stroke by stroke. Best for icons and logos.
+- **[Chromatic Aberration](animations/06-3d-advanced/chromatic-aberration/)** — A word splits into red, green and blue fringes. Best for bold titles.
+- **[2.5D / Pseudo-3D](animations/06-3d-advanced/2-5d-pseudo-3d/)** — Flat layers slide by different amounts, faking depth. Best for hero scenes.
+- **[Ray Marching / SDF](animations/06-3d-advanced/ray-marching-sdf/)** — A 3D scene drawn only from formulas, circled by a camera. Best for art pages.
+- **[GPGPU Particle System](animations/06-3d-advanced/gpgpu-particle-system/)** — Tens of thousands of particles flow on the graphics chip. Best for hero effects.
+- **[Image Distortion on Hover](animations/06-3d-advanced/image-distortion-hover/)** — The picture ripples and bends around your pointer. Best for portfolio images.
+- **[Cloth Simulation](animations/06-3d-advanced/cloth-simulation/)** — A cloth sways in the wind, and you can drag it around. Best for playful pages.
+- **[Volumetric Smoke](animations/06-3d-advanced/volumetric-smoke/)** — Soft smoke curls upward, drawn as a real 3D cloud. Best for moody backgrounds.
+- **[Morphing Blob](animations/06-3d-advanced/morphing-blob/)** — Blobs melt together, and one drop chases your pointer. Best for hero sections.
+- **[3D Flip Card](animations/06-3d-advanced/flip-card-3d/)** — A card turns over in 3D to show its back. Best for profile and product cards.
 
 </details>
 
@@ -220,23 +220,23 @@ All 129 techniques, each linked to its live demo.
 
 <details><summary>Browse techniques</summary>
 
-- **[Animated Gradient Background](animations/07-ambient-background/animated-gradient-background/)** — CSS gradient shifts hue and position continuously — pure CSS, no JavaScript, seamless loop.
-- **[Mesh Gradient Animation](animations/07-ambient-background/mesh-gradient/)** — Blurred radial gradient blobs drift slowly — organic color washes popularized by Stripe.
-- **[Aurora / Northern Lights](animations/07-ambient-background/aurora/)** — Tall color bands drift and skew horizontally — heavy blur fakes the curtain of light.
-- **[Grain / Film Noise Overlay](animations/07-ambient-background/grain-overlay/)** — Animated noise at 5–10% opacity adds cinematic warmth — subtlety is everything.
-- **[Scanline Effect](animations/07-ambient-background/scanline/)** — CRT horizontal lines with optional sweep beam, curvature, and phosphor glow.
-- **[Light Leak](animations/07-ambient-background/light-leak/)** — Warm gradient fires at random irregular intervals — analog film camera aesthetic.
-- **[Starfield / Space Particles](animations/07-ambient-background/starfield/)** — Stars drift outward from center with parallax depth — slow ambient speed, never hyperspace.
-- **[Breathing / Pulsing Glow](animations/07-ambient-background/breathing-glow/)** — Radial glow expands and contracts on a 5-second breath cycle — calm resting state.
-- **[Ambient Ripple Effect](animations/07-ambient-background/ambient-ripple/)** — Concentric rings emit periodically from idle sources — passive atmosphere, not click-driven.
-- **[Floating Elements](animations/07-ambient-background/floating-elements/)** — Geometric shapes drift on independent sine-wave paths — no two elements synchronized.
-- **[Grid / Dot Pattern Parallax](animations/07-ambient-background/grid-dot-pattern-parallax/)** — Pattern shifts subtly opposite to mouse movement — depth felt, barely seen.
-- **[Abstract Geometric Motion](animations/07-ambient-background/abstract-geometric-motion/)** — Four hypnotic loops: rotating polygons, expanding rings, sliding bars, flowing color lines.
-- **[Particle Constellation](animations/07-ambient-background/particle-constellation/)** — Drifting nodes link with lines when they come close — the network-mesh hero background.
-- **[Flow Field](animations/07-ambient-background/flow-field/)** — Particles follow a noise-driven vector field, leaving flowing trails.
-- **[Synthwave Grid](animations/07-ambient-background/synthwave-grid/)** — A perspective grid scrolls toward a glowing sun — the retro synthwave horizon.
-- **[Matrix Rain](animations/07-ambient-background/matrix-rain/)** — Columns of glowing characters fall down a dark canvas, leaders bright and trails fading.
-- **[Plasma Field](animations/07-ambient-background/plasma/)** — Summed sine functions of x, y, and time make a flowing, organic color field — the demoscene classic.
+- **[Animated Gradient Background](animations/07-ambient-background/animated-gradient-background/)** — Colors slowly drift across a soft gradient background. Best for hero sections.
+- **[Mesh Gradient Animation](animations/07-ambient-background/mesh-gradient/)** — Blurred blobs of color drift and melt together. Best for landing pages.
+- **[Aurora / Northern Lights](animations/07-ambient-background/aurora/)** — Blurred bands of light sway like the northern lights. Best for dark backgrounds.
+- **[Grain / Film Noise Overlay](animations/07-ambient-background/grain-overlay/)** — Fine grain flickers over the page, like old film. Best for editorial sites.
+- **[Scanline Effect](animations/07-ambient-background/scanline/)** — Dark lines and a sweeping beam imitate an old TV screen. Best for retro sites.
+- **[Light Leak](animations/07-ambient-background/light-leak/)** — Warm light washes in from a corner at random times. Best for photo sites.
+- **[Starfield / Space Particles](animations/07-ambient-background/starfield/)** — Stars stream toward you out of the dark. Best for space themes.
+- **[Breathing / Pulsing Glow](animations/07-ambient-background/breathing-glow/)** — A soft glow slowly grows and shrinks, like calm breathing. Best for idle states.
+- **[Ambient Ripple Effect](animations/07-ambient-background/ambient-ripple/)** — Rings spread from a few spots, like drops on a still pond. Best for hero areas.
+- **[Floating Elements](animations/07-ambient-background/floating-elements/)** — Small shapes drift slowly, each on its own path. Best for hero backgrounds.
+- **[Grid / Dot Pattern Parallax](animations/07-ambient-background/grid-dot-pattern-parallax/)** — A dot grid shifts gently against your pointer for depth. Best for tech sites.
+- **[Abstract Geometric Motion](animations/07-ambient-background/abstract-geometric-motion/)** — Shapes turn, spread and flow in a calm, endless pattern. Best for music players.
+- **[Particle Constellation](animations/07-ambient-background/particle-constellation/)** — Drifting dots link up with lines whenever they come close. Best for tech sites.
+- **[Flow Field](animations/07-ambient-background/flow-field/)** — Particles ride invisible currents, leaving fading trails. Best for art pages.
+- **[Synthwave Grid](animations/07-ambient-background/synthwave-grid/)** — A glowing grid rolls toward you under a striped sun. Best for music and games.
+- **[Matrix Rain](animations/07-ambient-background/matrix-rain/)** — Columns of glowing characters rain down a dark screen. Best for tech themes.
+- **[Plasma Field](animations/07-ambient-background/plasma/)** — Smooth waves of color flow endlessly, made from math. Best for creative sites.
 
 </details>
 

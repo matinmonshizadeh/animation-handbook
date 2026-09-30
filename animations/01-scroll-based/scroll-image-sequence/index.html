@@ -189,10 +189,12 @@ function updateTarget(){
   targetFrame=p*(TOTAL-1);
 }
 
-let raf=null;
-function loop(){
+const EASE=0.18,FRAME=1000/60;     // EASE: the share of the distance covered in 1/60 s, so the glide lasts as long on any screen
+let raf=null,last=0;               // last: time of the previous frame; the loop never stops, so it is kept from frame to frame
+function loop(now=0){
+  const dt=last?Math.min(now-last,50):FRAME;last=now;   // a long gap, such as a hidden tab, counts as 50 ms
   const smoothing=smoothEl.checked&&!reduce;
-  if(smoothing) shownFrame+=(targetFrame-shownFrame)*0.18;
+  if(smoothing) shownFrame+=(targetFrame-shownFrame)*(1-Math.pow(1-EASE,dt/FRAME));
   else shownFrame=targetFrame;
   const idx=Math.round(shownFrame);
   if(idx!==drawn){drawFrame(idx);drawn=idx}  // a picture already on the canvas is not drawn again

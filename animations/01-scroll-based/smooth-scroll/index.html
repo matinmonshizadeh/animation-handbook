@@ -113,7 +113,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add smooth scrolling to [the scrolling area or page you want to glide]. Catch the visitor's wheel, swipe and drag and turn each one into a target position, then on every frame move the content part of the remaining distance toward that target, so it glides and slows to a stop instead of jumping. Move the content with a transform and keep a custom scrollbar in step with it. Keep keyboard scrolling, links to headings and find-in-page working. If the visitor has reduced motion turned on, use the browser's normal scrolling with no glide. Match the settings listed below.</p>
+      <p class="hb-prompt">Add smooth scrolling to [the scrolling area or page you want to glide]. Catch the visitor's wheel, swipe and drag and turn each one into a target position, then on every frame move the content part of the remaining distance toward that target, so it glides and slows to a stop instead of jumping. Make that part exponential in the time since the last frame (one minus a fixed fraction to the power of that time), so the pace is the same on every screen. Move the content with a transform and keep a custom scrollbar in step with it. Keep keyboard scrolling, links to headings and find-in-page working. If the visitor has reduced motion turned on, use the browser's normal scrolling with no glide. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -149,7 +149,8 @@
   const fill=document.getElementById('fill'),hint=document.getElementById('hint'),nativeChk=document.getElementById('native-tog');
   const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
-  let target=0,current=0,ease=0.09,maxScroll=0,viewH=0,mode='',raf=0,dragging=false,startY=0,startTarget=0;
+  const FRAME=1000/60; // ease is the share of the distance covered in 1/60 s: a 120Hz or a 30Hz screen glides for as long as a 60Hz one
+  let target=0,current=0,ease=0.09,maxScroll=0,viewH=0,mode='',raf=0,last=0,dragging=false,startY=0,startTarget=0; // last: time of the previous frame, 0 when the loop has just started
   let showTimer=0,returning=false,runFrom=0,wasNative=false; // a Show me run: its timer, its glide back, where it began
 
   // The visitor pressed, typed, scrolled or touched inside the stage: a Show me run under way (waiting to return, or gliding
@@ -170,16 +171,19 @@
   function draw(pos){content.style.transform=`translate3d(0,${(-pos).toFixed(2)}px,0)`;paint(pos)}
 
   // Smooth mode: ease current toward target each frame and apply it as a transform. The loop runs only while the two differ.
-  function loop(){
+  // A frame that lasted dt covers 1 - (1 - ease)^(dt / FRAME) of the distance left; the first frame after a start counts as
+  // 1/60 s (kick() clears last), and a long gap, such as a hidden tab, as 50 ms.
+  function loop(now){
     raf=0;
     if(mode!=='smooth')return;
-    current+=(target-current)*ease;
+    const dt=last?Math.min(now-last,50):FRAME;last=now;
+    current+=(target-current)*(1-Math.pow(1-ease,dt/FRAME));
     if(Math.abs(target-current)<0.1)current=target;
     draw(current);
     if(current!==target)raf=requestAnimationFrame(loop);
     else returning=false;
   }
-  function kick(){if(!raf&&mode==='smooth')raf=requestAnimationFrame(loop)}
+  function kick(){if(!raf&&mode==='smooth'){last=0;raf=requestAnimationFrame(loop)}}
 
   function onWheel(e){
     e.preventDefault();

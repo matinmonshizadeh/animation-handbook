@@ -127,7 +127,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add a parallax depth-of-field effect to [your layered scene or illustration]. Split the scene into layers from far to near and hold it in place while the visitor scrolls through a taller section. As they scroll, move each layer by an amount that grows with its nearness, and move a point of sharp focus from the farthest layer to the nearest: blur each layer by how far it sits from that focus. Ease the layers toward the scroll position on every frame, so a mouse wheel's jumps turn into smooth movement. If the visitor has reduced motion turned on, keep the layers still and only shift the focus.</p>
+      <p class="hb-prompt">Add a parallax depth-of-field effect to [your layered scene or illustration]. Split the scene into layers from far to near and hold it in place while the visitor scrolls through a taller section. As they scroll, move each layer by an amount that grows with its nearness, and move a point of sharp focus from the farthest layer to the nearest: blur each layer by how far it sits from that focus. Ease the layers toward the scroll position on every frame by a share of the distance left, exponential in the time since the last frame, so a wheel's jumps turn into smooth movement at the same pace on every screen. If the visitor has reduced motion turned on, keep the layers still and only shift the focus.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -172,7 +172,8 @@
 
   // A wheel notch arrives as one ~100px jump, so mapping scrollY straight onto the
   // layers makes them step. Easing toward the target each frame turns steps into glide.
-  const EASE = 0.14;
+  // EASE is the share of the distance covered in 1/60 s, so the glide lasts as long on a 30, 60 or 120Hz screen.
+  const EASE = 0.14, FRAME = 1000 / 60;
   const BLUR_STEP = 0.5;
 
   let MAX_BLUR, MAX_OFFSET, maxScroll;
@@ -186,7 +187,7 @@
     maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight);
   }
 
-  let target = 0, current = 0, raf = null;
+  let target = 0, current = 0, raf = null, last = 0; // last: time of the previous frame, 0 after a restart
   const lastBlur = LAYERS.map(() => -1), lastOffset = LAYERS.map(() => NaN);
 
   function render(f) {
@@ -207,17 +208,18 @@
     }
   }
 
-  function tick() {
+  function tick(now) {
     const diff = target - current;
     if (Math.abs(diff) < 0.0002) { current = target; render(current); raf = null; return; }
-    current += diff * EASE;
+    const dt = last ? Math.min(now - last, 50) : FRAME; last = now; // the first frame after a restart counts as 1/60 s
+    current += diff * (1 - Math.pow(1 - EASE, dt / FRAME));
     render(current);
     raf = requestAnimationFrame(tick);
   }
   // Every input collapses into one frame, and the loop idles once nothing moves.
   function schedule() {
     if (reduced) { current = target; render(current); return; }
-    if (raf === null) raf = requestAnimationFrame(tick);
+    if (raf === null) { last = 0; raf = requestAnimationFrame(tick); }
   }
 
   function onScroll() {

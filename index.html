@@ -1250,23 +1250,30 @@ CATS.forEach(cat=>{
 });
 
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+// Previews move by elapsed time in 60 Hz frames (steps), so they run at the same speed on any screen. The first frame after a start adds none; a gap over 50 ms counts as 50.
+// Trails wash once per 60 Hz frame of elapsed time at the fixed 60 Hz opacity: a smaller opacity on faster screens would round differently in an 8-bit canvas. fa counts the washes owed; a step within 5% of a whole number counts as that number, so screens just off 60 Hz wash every frame, and fa is rounded with a lean of .05 so a tie (fa = .5 on an exact 120 or 240 Hz screen) washes on the same frame whatever the timestamp noise. Starfield and flow draw nothing on a frame with no step or no wash due, and cs carries its steps to the next drawn frame.
+const FRAME=1000/60;
 
 function starfield(pv){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
-  let w,h,stars,raf=null;
+  let w,h,stars,raf=null,last=null,fa=0,cs=0;
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*devicePixelRatio;h=c.height=r.height*devicePixelRatio;
     stars=Array.from({length:90},()=>({x:(Math.random()-.5)*w,y:(Math.random()-.5)*h,z:Math.random()*w}));draw(false);}
-  function draw(advance){
-    ctx.fillStyle=advance?'rgba(4,5,12,.35)':'#04050c';ctx.fillRect(0,0,w,h);
+  function draw(advance,steps){
+    if(advance){if(!steps)return;
+      const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa+.05);
+      if(!nf){cs+=steps;return;}
+      fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(4,5,12,.35)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);}
+    else{ctx.fillStyle='#04050c';ctx.fillRect(0,0,w,h);}
     ctx.save();ctx.translate(w/2,h/2);
-    for(const s of stars){if(advance){s.z-=w*.004;if(s.z<1){s.z=w;s.x=(Math.random()-.5)*w;s.y=(Math.random()-.5)*h;}}
+    for(const s of stars){if(advance){s.z-=w*.004*steps;if(s.z<1){s.z=w;s.x=(Math.random()-.5)*w;s.y=(Math.random()-.5)*h;}}
       const k=128/s.z,x=s.x*k,y=s.y*k,size=(1-s.z/w)*2.4*devicePixelRatio;
       ctx.fillStyle='rgba(200,210,230,'+(1-s.z/w)+')';ctx.beginPath();ctx.arc(x,y,Math.max(size,.4),0,7);ctx.fill();}
     ctx.restore();
   }
-  function frame(){draw(true);raf=requestAnimationFrame(frame);}
+  function frame(ts){const steps=last==null?0:Math.min(ts-last,50)/FRAME;last=ts;draw(true,steps);raf=requestAnimationFrame(frame);}
   size();addEventListener('resize',size);
-  return {play(){if(!raf&&!reduce)frame();},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+  return {play(){if(!raf&&!reduce){last=null;fa=cs=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
 }
 function scramble(pv){
   const el=pv.querySelector('.txt'),final='SCRAMBLE',chars='ABCDEFGHJKLMNPQRSTUVWXYZ#%$&/<>*';let t=null,locked=0;
@@ -1285,33 +1292,39 @@ function counter(pv){
 }
 function particlesFactory(pv,count,connect){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
-  let w,h,ps,raf=null;const D=devicePixelRatio,R=60*D;
+  let w,h,ps,raf=null,last=null;const D=devicePixelRatio,R=60*D;
+  // with reduced motion the card never plays, so size() also draws one still frame
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*D;h=c.height=r.height*D;
-    ps=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5*D,vy:(Math.random()-.5)*.5*D}));}
-  function draw(){ctx.clearRect(0,0,w,h);
-    for(const p of ps){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;}
+    ps=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5*D,vy:(Math.random()-.5)*.5*D}));if(reduce)draw(0);}
+  function draw(steps){ctx.clearRect(0,0,w,h);
+    for(const p of ps){p.x+=p.vx*steps;p.y+=p.vy*steps;if(p.x<0&&p.vx<0||p.x>w&&p.vx>0)p.vx*=-1;if(p.y<0&&p.vy<0||p.y>h&&p.vy>0)p.vy*=-1;}
     if(connect){ctx.strokeStyle='rgba(63,214,196,.5)';ctx.lineWidth=D;
       for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const dx=ps[i].x-ps[j].x,dy=ps[i].y-ps[j].y,d=Math.hypot(dx,dy);
         if(d<R){ctx.globalAlpha=(1-d/R)*.5;ctx.beginPath();ctx.moveTo(ps[i].x,ps[i].y);ctx.lineTo(ps[j].x,ps[j].y);ctx.stroke();}}
       ctx.globalAlpha=1;}
     ctx.fillStyle='rgba(63,214,196,.9)';for(const p of ps){ctx.beginPath();ctx.arc(p.x,p.y,1.3*D,0,7);ctx.fill();}}
-  function frame(){draw();raf=requestAnimationFrame(frame);}
+  function frame(ts){const steps=last==null?0:Math.min(ts-last,50)/FRAME;last=ts;draw(steps);raf=requestAnimationFrame(frame);}
   size();addEventListener('resize',size);
-  return {play(){if(!raf&&!reduce)frame();},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+  return {play(){if(!raf&&!reduce){last=null;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
 }
 function flowEngine(pv){
   const c=document.createElement('canvas');pv.appendChild(c);const ctx=c.getContext('2d');
-  let w,h,ps,raf=null;const D=devicePixelRatio;
+  let w,h,ps,raf=null,last=null,fa=0,cs=0;const D=devicePixelRatio;
   function ang(x,y){return (Math.sin(x*0.9+y*0.6)+Math.cos(y*1.1-x*0.5))*Math.PI;}
   function size(){const r=pv.getBoundingClientRect();w=c.width=r.width*D;h=c.height=r.height*D;
     ps=Array.from({length:55},()=>({x:Math.random()*w,y:Math.random()*h}));ctx.fillStyle='#05060a';ctx.fillRect(0,0,w,h);}
-  function draw(){ctx.fillStyle='rgba(5,6,10,.09)';ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(95,216,138,.85)';
-    for(const p of ps){const a=ang(p.x/(70*D),p.y/(70*D));p.x+=Math.cos(a)*1.2*D;p.y+=Math.sin(a)*1.2*D;
+  function draw(steps){if(!steps)return;
+    const whole=Math.max(1,Math.round(steps));fa+=Math.abs(steps-whole)<.05?whole:steps;const nf=Math.round(fa+.05);
+    if(!nf){cs+=steps;return;}
+    fa-=nf;steps+=cs;cs=0;ctx.fillStyle='rgba(5,6,10,.09)';for(let i=0;i<nf;i++)ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(95,216,138,.85)';
+    // a step longer than one frame is drawn in pieces of about one frame, so the trails have no gaps at 30 Hz
+    const n=Math.max(1,Math.round(steps)),s=steps/n;
+    for(const p of ps)for(let i=0;i<n;i++){const a=ang(p.x/(70*D),p.y/(70*D));p.x+=Math.cos(a)*1.2*D*s;p.y+=Math.sin(a)*1.2*D*s;
       if(p.x<0||p.x>w||p.y<0||p.y>h){p.x=Math.random()*w;p.y=Math.random()*h;}
       ctx.fillRect(p.x,p.y,1.5*D,1.5*D);}}
-  function frame(){draw();raf=requestAnimationFrame(frame);}
+  function frame(ts){const steps=last==null?0:Math.min(ts-last,50)/FRAME;last=ts;draw(steps);raf=requestAnimationFrame(frame);}
   size();addEventListener('resize',size);
-  return {play(){if(!raf&&!reduce)frame();},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
+  return {play(){if(!raf&&!reduce){last=null;fa=cs=0;raf=requestAnimationFrame(frame);}},pause(){if(raf){cancelAnimationFrame(raf);raf=null;}}};
 }
 const engines={starfield,scramble,counter,particles:pv=>particlesFactory(pv,46,true),gpgpu:pv=>particlesFactory(pv,150,false),flow:flowEngine};
 
