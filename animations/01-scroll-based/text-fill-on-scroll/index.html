@@ -170,15 +170,15 @@
     const p=clamp(stage.scrollTop/maxScroll,0,1);
     const e=clamp(p/completeAt,0,1);
     const filled=Math.floor(e*N+1e-6);
+    let jump=false;
 
     // Only touch words whose state actually changed, never rewrite all spans.
     if(filled!==lastFilled){
       const prev=lastFilled<0?0:lastFilled;
       const lo=Math.min(filled,prev),hi=Math.max(filled,prev);
-      const jump=hi-lo>N/4;
+      jump=hi-lo>N/4; // a jump changes at once: no fade for the lit words or for the cursor word
       if(jump)textEl.classList.add('jump');
       for(let i=lo;i<hi;i++)words[i].classList.toggle('on',i<filled);
-      if(jump){void textEl.offsetWidth;textEl.classList.remove('jump')}
       lastFilled=filled;
     }
     const cursor=(cursorTog.checked&&filled<N&&e>0)?filled:-1;
@@ -187,6 +187,7 @@
       if(cursor>=0)words[cursor].classList.add('cursor');
       lastCursor=cursor;
     }
+    if(jump){void textEl.offsetWidth;textEl.classList.remove('jump')}
   }
 
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(render);ticking=true}},{passive:true});
