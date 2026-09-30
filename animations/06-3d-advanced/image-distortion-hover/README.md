@@ -58,12 +58,12 @@ In the demo the pattern stands still, as a real image would: its time value stay
 | Effect | Ripple | Ripple sends rings out from the pointer; Push bulges the picture outward; Liquid swirls it; Pixels breaks it into squares |
 | Strength | Medium | How far the picture bends: gentle is 4, medium 8 and strong 14; stronger looks more dramatic but harder to read |
 | Size | Medium | How wide an area bends: small is 15%, medium 25% and large 40% of the picture's height |
-| Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about three fifths of its strength at slow, three quarters at normal and nine tenths at fast |
+| Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about three fifths of its strength at slow, about four fifths at normal and nine tenths at fast |
 | Moving ripples | on | With Ripple, the rings keep moving outward while the pointer rests; off, they stand still |
 
 ## Production notes
 - **Real images**: replace the procedural `pattern()` function with `texture2D(uTexture, distortedUV)`. Load images into WebGL via `gl.texImage2D()` from an `<img>` or `ImageBitmap`. Same-origin policy applies — external image URLs need CORS headers.
-- **`gl.clampToEdge`**: ensure texture wrap mode is `CLAMP_TO_EDGE` so UV values outside [0,1] don't tile or mirror at the image border when distortion pushes UVs out of range.
+- **`CLAMP_TO_EDGE`**: set the texture's wrap mode to `gl.CLAMP_TO_EDGE` (both `TEXTURE_WRAP_S` and `TEXTURE_WRAP_T`) so UV values outside [0,1] don't tile or mirror at the image border when distortion pushes UVs out of range.
 - **Pointer, not mouse**: bind `pointermove`/`pointerdown` rather than `mousemove`, or the effect never fires on a phone. The cursor position must be converted to backing-store pixels (multiply by the device pixel ratio used for the canvas) before it reaches the shader, or the distortion centre drifts away from the finger on high-DPI screens.
 - **Backing store and DPR**: size the canvas to `clientWidth * dpr` and call `gl.viewport()` after every resize. Uncapped DPR is expensive for a fullscreen fragment shader — this demo caps it at 2, and at 1.5 on phones. Resizing clears the drawing buffer, so a demo that is not drawing every frame (this one stops at rest) has to repaint after a resize or it goes black.
 - **Context loss**: a GPU reset or a restored tab fires `webglcontextlost`. Without a listener (and a `preventDefault()` so `webglcontextrestored` follows) the canvas dies permanently. Shaders, buffers and uniform locations all have to be rebuilt on restore.
