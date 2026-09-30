@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canvas Particle Effect — Animation Handbook</title>
-  <meta name="description" content="500 particles drifting with O(n²) proximity connections — mouse repels or attracts with configurable force.">
+  <meta name="description" content="Dots drift, link up when close, and dodge your pointer. Best for tech sites.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/canvas-particle-effect/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,97 +12,163 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Canvas Particle Effect — Animation Handbook">
-  <meta property="og:description" content="500 particles drifting with O(n²) proximity connections — mouse repels or attracts with configurable force.">
+  <meta property="og:description" content="Dots drift, link up when close, and dodge your pointer. Best for tech sites.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/canvas-particle-effect/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Canvas Particle Effect — Animation Handbook">
-  <meta name="twitter:description" content="500 particles drifting with O(n²) proximity connections — mouse repels or attracts with configurable force.">
+  <meta name="twitter:description" content="Dots drift, link up when close, and dodge your pointer. Best for tech sites.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Canvas Particle Effect", "name": "Canvas Particle Effect", "description": "500 particles drifting with O(n²) proximity connections — mouse repels or attracts with configurable force.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/canvas-particle-effect/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Canvas Particle Effect"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Canvas Particle Effect", "name": "Canvas Particle Effect", "description": "Dots drift, link up when close, and dodge your pointer. Best for tech sites.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/canvas-particle-effect/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Canvas Particle Effect"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--stage-h:620px;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;font-size:clamp(11px,1.8vw,15px);letter-spacing:-.01em}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    .stage{background:#060a10}
     canvas{display:block;width:100%;height:100%}
-    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:var(--ui-muted);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .kv{display:flex;justify-content:space-between;font-size:10px;color:var(--ui-muted)}
-    .kv .v{color:var(--ui-text)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    .tog{display:flex;align-items:center;gap:8px;font-size:10px;cursor:pointer;min-height:44px}
-    .tog input{accent-color:var(--ui-accent);width:16px;height:16px;flex-shrink:0}
-    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../parallax-3d-tilt/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../fluid-simulation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/canvas-particle-effect/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Canvas Particle Effect</h1>
-  <p>500 particles drifting with O(n²) proximity connections — mouse repels or attracts with configurable force.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="fps-badge" id="fps">— fps</div>
-  </div>
-  <aside>
-    <p class="note">Canvas is right for 50+ particles — DOM bogs down at that scale. O(n²) distance checks are fine below 500 particles; above that, use spatial partitioning (quadtree).</p>
-    <div class="lbl">Particle Count</div>
-    <div class="sr"><input type="range" id="count-sl" min="50" max="1500" value="500" step="50"><span class="sv" id="count-v">500</span></div>
-    <div class="lbl">Connect Distance</div>
-    <div class="sr"><input type="range" id="dist-sl" min="40" max="200" value="100" step="10"><span class="sv" id="dist-v">100px</span></div>
-    <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="1" max="30" value="8" step="1"><span class="sv" id="spd-v">0.8</span></div>
-    <div class="lbl">Mouse Force (repel ← 0 → attract)</div>
-    <div class="sr"><input type="range" id="force-sl" min="-10" max="10" value="-5" step="1"><span class="sv" id="force-v">-0.5</span></div>
-    <div class="lbl">Color</div>
-    <input type="color" id="color-pick" value="#58a6ff" aria-label="Particle color">
-    <label class="tog"><input type="checkbox" id="conn-tog" checked><span>Show connections</span></label>
-    <label class="tog"><input type="checkbox" id="trail-tog"><span>Particle trails</span></label>
-    <div class="div"></div>
-    <div class="kv"><span>Particles</span><span class="v" id="p-count">500</span></div>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../parallax-3d-tilt/" rel="prev" aria-label="Previous: Parallax 3D Tilt"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Parallax 3D Tilt</span></a><a href="../fluid-simulation/" rel="next" aria-label="Next: Fluid / Liquid Simulation"><span><span class="hb-dir">Next: </span>Fluid / Liquid Simulation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.04 · 3D &amp; Advanced</p>
+    <h1>Canvas Particle Effect</h1>
+    <p class="hb-lede">Dots drift, link up when close, and dodge your pointer. Best for tech sites.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and the dots move away from your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="Small dots drifting on a dark background, joined by thin lines when they come close"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="force-lbl">Pointer effect</p>
+        <div class="seg" id="force-seg" role="group" aria-labelledby="force-lbl">
+          <button type="button" data-force="-0.5" class="on" aria-pressed="true">Push</button>
+          <button type="button" data-force="0.5" aria-pressed="false">Pull</button>
+          <button type="button" data-force="0" aria-pressed="false">None</button>
+        </div>
+        <p class="hb-hint">What your pointer or finger does to nearby dots.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="count-lbl">Number of particles</p>
+        <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+          <button type="button" data-level="0" aria-pressed="false">Few</button>
+          <button type="button" data-level="1" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-level="2" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">More dots make more links; phones and tablets draw fewer.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="link-lbl">Link distance</p>
+        <div class="seg" id="link-seg" role="group" aria-labelledby="link-lbl">
+          <button type="button" data-dist="0" aria-pressed="false">None</button>
+          <button type="button" data-dist="70" aria-pressed="false">Short</button>
+          <button type="button" data-dist="100" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-dist="150" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How close two dots must be to join with a line.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="speed-lbl">Speed</p>
+          <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+            <button type="button" data-spd="0.5" aria-pressed="false">Slow</button>
+            <button type="button" data-spd="0.8" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-spd="1.3" aria-pressed="false">Fast</button>
+          </div>
+          <p class="hb-hint">Slow drifting feels calm; fast looks busy.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" aria-pressed="false" aria-label="Pink" data-color="#ff6f8b" style="background:#ff6f8b"></button>
+            <button type="button" aria-pressed="false" aria-label="White" data-color="#f4f4f2" style="background:#f4f4f2"></button>
+            <button type="button" class="on" aria-pressed="true" aria-label="Blue" data-color="#58a6ff" style="background:#58a6ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Purple" data-color="#d2a8ff" style="background:#d2a8ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Green" data-color="#56d364" style="background:#56d364"></button>
+            <button type="button" aria-pressed="false" aria-label="Orange" data-color="#ffa657" style="background:#ffa657"></button>
+          </div>
+          <p class="hb-hint">The color of the dots and lines.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Trails</span><input class="hb-switch" type="checkbox" role="switch" id="trail-tog" autocomplete="off"></label>
+          <p class="hb-hint">Each dot leaves a fading streak behind it.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a particle background to [the section you want it behind]. Draw small dots on a canvas, give each its own direction, and bounce them off the edges. When the settings include lines, join any two dots that come close with a thin line that fades as they move apart, so a network keeps forming and breaking. Dots near the pointer, or a finger on touch screens, can be pushed away or pulled in. Checking every pair of dots gets slow quickly, so draw far fewer dots on phones and tablets, and stroke the lines in a few batches rather than one at a time. If the visitor has reduced motion turned on, show the dots still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero sections</li><li>Tech sites</li><li>Loading screens</li><li>Dark backgrounds</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long reading pages</li><li>Busy layouts</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage');
-const fpsEl=document.getElementById('fps');
+const slowTog=document.getElementById('slow-tog');
 let W,H,particles=[],mouse={x:-999,y:-999};
-let paused=false,raf=null,lastT=0,fps=0;
-let COUNT=500,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
+let paused=false,raf=null,last=null;
+let COUNT=500,level=1,DIST=100,SPD=0.8,FORCE=-0.5,COLOR='#58a6ff';
 let CONNECTIONS=true,TRAILS=false;
+// Dots for Few, Medium and Many on wide screens, on screens up to 1024px, and on phones (up to 600px wide, or up to 500px tall)
+const COUNTS=[[250,500,800],[60,90,120],[30,45,60]];
 
 // Backing store is scaled by DPR (capped at 2) so 0.5px lines and 1px dots stay crisp
 // on retina screens; the context transform keeps all drawing in CSS pixels.
@@ -121,32 +187,27 @@ class P{
     this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;
     this.r=Math.random()*1.5+.5;this.op=.3+Math.random()*.7;
   }
-  update(){
+  // k is 1, or a third while Slow motion is on
+  update(k){
     const dx=this.x-mouse.x,dy=this.y-mouse.y;
     const d2=dx*dx+dy*dy;
-    // (dx,dy)/d points away from the cursor, so subtracting FORCE makes
-    // negative = repel and positive = attract, matching the slider label.
-    if(d2<14400&&d2>1){const d=Math.sqrt(d2);this.vx-=FORCE*(dx/d)/d*.8;this.vy-=FORCE*(dy/d)/d*.8;}
+    // (dx,dy)/d points away from the pointer, so subtracting FORCE makes
+    // negative = push away and positive = pull in, matching the Pointer effect setting.
+    if(d2<14400&&d2>1){const d=Math.sqrt(d2);this.vx-=FORCE*(dx/d)/d*.8*k;this.vy-=FORCE*(dy/d)/d*.8*k;}
     const maxV=SPD*2;const sp=Math.sqrt(this.vx*this.vx+this.vy*this.vy);
     if(sp>maxV){this.vx=this.vx/sp*maxV;this.vy=this.vy/sp*maxV;}
-    this.x+=this.vx;this.y+=this.vy;
+    this.x+=this.vx*k;this.y+=this.vy*k;
     if(this.x<0){this.x=0;this.vx*=-1;}if(this.x>W){this.x=W;this.vx*=-1;}
     if(this.y<0){this.y=0;this.vy*=-1;}if(this.y>H){this.y=H;this.vy*=-1;}
   }
 }
 
+// The number of dots depends on the size of the screen, checked at each spawn(): far fewer on tablets and on phones,
+// which are up to 600px wide, or up to 500px tall when held sideways.
 function spawn(){
+  COUNT=COUNTS[innerWidth<=600||innerHeight<=500?2:innerWidth<=1024?1:0][level];
   particles=[];
   for(let i=0;i<COUNT;i++)particles.push(new P());
-}
-
-function loop(t){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(loop);
-  const dt=t-lastT;if(dt<16){return;}lastT=t;
-  fps=Math.round(1000/(dt||16));fpsEl.textContent=fps+' fps';
-  particles.forEach(p=>p.update());
-  draw();
 }
 
 function draw(){
@@ -154,22 +215,26 @@ function draw(){
   else{ctx.clearRect(0,0,W,H);}
 
   const hex=COLOR,r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  const d2max=DIST*DIST;
 
-  // Connections
+  // Connections: every link goes into one of six paths by its opacity step, and each path is stroked once
   if(CONNECTIONS){
+    const d2max=DIST*DIST;
+    const paths=Array.from({length:6},()=>new Path2D());
     for(let i=0;i<particles.length;i++){
       for(let j=i+1;j<particles.length;j++){
         const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
         const d2=dx*dx+dy*dy;
         if(d2<d2max){
-          const op=(1-d2/d2max)*0.4;
-          ctx.strokeStyle=`rgba(${r},${g},${b},${op})`;
-          ctx.lineWidth=.5;
-          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();
+          const k=Math.min(5,Math.floor((1-d2/d2max)*6));
+          paths[k].moveTo(particles[i].x,particles[i].y);paths[k].lineTo(particles[j].x,particles[j].y);
         }
       }
     }
+    ctx.lineWidth=.5;
+    paths.forEach((path,k)=>{
+      ctx.strokeStyle=`rgba(${r},${g},${b},${(k+.5)/6*.4})`;
+      ctx.stroke(path);
+    });
   }
 
   // Dots
@@ -179,33 +244,62 @@ function draw(){
   });
 }
 
-function start(){if(!paused&&!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}}
+// The loop keeps exactly one pending frame in raf.
+function loop(t){
+  raf=requestAnimationFrame(loop);
+  if(last===null){last=t;return;} // the first frame after a start only takes the time
+  if(t-last<16)return;
+  last=t;
+  const k=slowTog.checked?1/3:1;
+  particles.forEach(p=>p.update(k));
+  draw();
+}
+function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
+// While paused a setting or a resize draws the picture again, so the change shows without anything moving. The canvas is
+// cleared first: with Trails on, draw() only lays a thin wash over the old picture, which would stay showing under the new one.
+function redraw(){if(paused){ctx.clearRect(0,0,W,H);draw();}}
 
-// Lighter default on phones: O(n²) checks on a small, dense stage get expensive fast.
-if(innerWidth<=600){COUNT=250;document.getElementById('count-sl').value=COUNT;document.getElementById('count-v').textContent=COUNT;document.getElementById('p-count').textContent=COUNT;}
-resize();spawn();
-// Reduced motion: show one static frame; the user can still opt in with Resume.
-if(matchMedia('(prefers-reduced-motion:reduce)').matches){paused=true;document.getElementById('pause-btn').textContent='▶ Resume';draw();}
-else start();
-
-stage.addEventListener('mousemove',e=>{const r=cvs.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
-stage.addEventListener('mouseleave',()=>{mouse.x=-999;mouse.y=-999;});
-stage.addEventListener('touchmove',e=>{const r=cvs.getBoundingClientRect();mouse.x=e.touches[0].clientX-r.left;mouse.y=e.touches[0].clientY-r.top;},{passive:true});
-['touchend','touchcancel'].forEach(ev=>stage.addEventListener(ev,()=>{mouse.x=-999;mouse.y=-999;}));
-window.addEventListener('resize',()=>{resize();spawn();if(paused)draw();});
-
-document.getElementById('count-sl').addEventListener('input',e=>{COUNT=+e.target.value;document.getElementById('count-v').textContent=COUNT;document.getElementById('p-count').textContent=COUNT;spawn();if(paused)draw();});
-document.getElementById('dist-sl').addEventListener('input',e=>{DIST=+e.target.value;document.getElementById('dist-v').textContent=DIST+'px';if(paused)draw();});
-document.getElementById('spd-sl').addEventListener('input',e=>{const n=e.target.value/10,k=n/SPD;SPD=n;particles.forEach(p=>{p.vx*=k;p.vy*=k;});document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('force-sl').addEventListener('input',e=>{FORCE=e.target.value/10;document.getElementById('force-v').textContent=FORCE.toFixed(1);});
-document.getElementById('color-pick').addEventListener('input',e=>{COLOR=e.target.value;if(paused)draw();});
-document.getElementById('conn-tog').addEventListener('change',e=>{CONNECTIONS=e.target.checked;if(paused)draw();});
-document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;if(paused)draw();});
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
-  if(!paused)start();
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
+// Play calls start(), which carries on from the current positions.
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
+  if(paused){cancelAnimationFrame(raf);raf=null;}
+  else start();
 });
+
+resize();spawn();draw();start();
+
+// The pointer is recorded even while paused; the dots react to it only when a frame is drawn.
+// A mouse or pen uses pointer events. A finger uses touch events, so it keeps working while the page scrolls;
+// its pointer events are skipped because a tap is followed by mouse events that would put the pointer back.
+function aim(x,y){const r=cvs.getBoundingClientRect();mouse.x=x-r.left;mouse.y=y-r.top;}
+function away(){mouse.x=-999;mouse.y=-999;}
+stage.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')aim(e.clientX,e.clientY);});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')away();});
+const finger=e=>aim(e.touches[0].clientX,e.touches[0].clientY);
+stage.addEventListener('touchstart',finger,{passive:true});
+stage.addEventListener('touchmove',finger,{passive:true});
+['touchend','touchcancel'].forEach(ev=>stage.addEventListener(ev,away));
+// A phone's address bar showing or hiding changes only the window's height, not the stage's, so nothing is scattered again
+window.addEventListener('resize',()=>{
+  if(stage.clientWidth===W&&stage.clientHeight===H)return;
+  resize();spawn();redraw();
+});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('force-seg',d=>{FORCE=+d.force;});
+choices('count-seg',d=>{if(+d.level===level)return;level=+d.level;spawn();redraw();});
+choices('link-seg',d=>{CONNECTIONS=d.dist!=='0';if(CONNECTIONS)DIST=+d.dist;redraw();});
+choices('speed-seg',d=>{const n=+d.spd,k=n/SPD;SPD=n;particles.forEach(p=>{p.vx*=k;p.vy*=k;});});
+choices('color-sw',d=>{COLOR=d.color;redraw();});
+document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;redraw();});
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>

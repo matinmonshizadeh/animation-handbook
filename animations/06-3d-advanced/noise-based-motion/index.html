@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Noise-Based Motion — Animation Handbook</title>
-  <meta name="description" content="Simplex noise drives organic non-repeating movement — a field of dots and a morphing blob.">
+  <meta name="description" content="Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.">
   <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/noise-based-motion/">
   <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
   <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
@@ -12,90 +12,156 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Animation Handbook">
   <meta property="og:title" content="Noise-Based Motion — Animation Handbook">
-  <meta property="og:description" content="Simplex noise drives organic non-repeating movement — a field of dots and a morphing blob.">
+  <meta property="og:description" content="Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.">
   <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/noise-based-motion/">
   <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Noise-Based Motion — Animation Handbook">
-  <meta name="twitter:description" content="Simplex noise drives organic non-repeating movement — a field of dots and a morphing blob.">
+  <meta name="twitter:description" content="Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Noise-Based Motion", "name": "Noise-Based Motion", "description": "Simplex noise drives organic non-repeating movement — a field of dots and a morphing blob.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/noise-based-motion/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Noise-Based Motion"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Noise-Based Motion", "name": "Noise-Based Motion", "description": "Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/noise-based-motion/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Noise-Based Motion"}</script>
   <style>
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-700.woff2') format('woff2');font-weight:700;font-display:swap}
-    @font-face{font-family:'Bricolage';src:url('../../../assets/fonts/brico-800.woff2') format('woff2');font-weight:800;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-400.woff2') format('woff2');font-weight:400;font-display:swap}
-    @font-face{font-family:'PlexMono';src:url('../../../assets/fonts/plex-500.woff2') format('woff2');font-weight:500;font-display:swap}
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#3fd6c4;--ui-text:#f4f4f2;--ui-muted:#77777e;--disp:'Bricolage','Arial Narrow',sans-serif;--mono:'PlexMono',ui-monospace,Menlo,Consolas,monospace;--stage-h:620px}
+    :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--ui-text);font-family:var(--mono);-webkit-font-smoothing:antialiased;padding:clamp(12px,3vw,24px)}
-    header{margin-bottom:20px}
-    header h1{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;font-size:clamp(11px,1.8vw,15px)}
-    header p{font-size:clamp(10px,1.2vw,12px);color:var(--ui-muted);margin-top:4px}
-    .layout{display:flex;gap:clamp(12px,2vw,24px);align-items:flex-start}
-    .stage{flex:1;min-width:0;height:var(--stage-h);border:1px solid var(--ui-border);border-radius:8px;overflow:hidden;position:relative}
+    .stage{background:#0b0b0d}
     canvas{display:block;width:100%;height:100%}
-    .fps-badge{position:absolute;top:8px;right:8px;font-size:9px;color:var(--ui-muted);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px}
-    aside{width:clamp(200px,22vw,240px);flex-shrink:0;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
-    .note{font-size:10px;color:var(--ui-muted);line-height:1.6;border-left:2px solid var(--ui-accent);padding-left:8px}
-    .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-accent)}
-    .div{height:1px;background:var(--ui-border)}
-    .sr{display:flex;align-items:center;gap:6px;font-size:10px}
-    .sr input[type=range]{flex:1;accent-color:var(--ui-accent);min-height:44px}
-    .sv{width:40px;text-align:right;color:var(--ui-text)}
-    select{background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:8px 6px;border-radius:4px;width:100%;min-height:44px}
-    input[type=color]{border:none;background:none;width:44px;height:44px;cursor:pointer;border-radius:4px;padding:0}
-    button.rst{background:transparent;border:1px solid var(--ui-border);color:var(--ui-text);font-family:var(--mono);font-size:10px;padding:14px 8px;border-radius:4px;cursor:pointer;width:100%}
-    @media(hover:hover){button.rst:hover{border-color:var(--ui-accent);color:var(--ui-accent)}}
-    @media(max-width:600px){.layout{flex-direction:column}.stage{flex:none;width:100%}aside{width:100%}:root{--stage-h:380px}}
   </style>
-<style id="ah-inject">
-:root{--ah-bg:rgba(17,17,20,.82);--ah-line:rgba(255,255,255,.1);--ah-ink:#f4f4f2;--ah-muted:#9a9aa2;--ah-accent:#6ea8ff}
-body{padding-top:46px}
-.ah-bar{position:fixed;top:0;left:0;right:0;height:46px;z-index:2147483000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 clamp(10px,3vw,18px);background:var(--ah-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ah-line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;box-sizing:border-box}
-.ah-bar a,.ah-bar button{color:var(--ah-muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 7px;border-radius:6px;transition:color .18s,background .18s;white-space:nowrap}
-.ah-bar a:hover,.ah-bar button:hover{color:var(--ah-ink)}
-.ah-home{color:var(--ah-ink);font-weight:600}
-.ah-actions{display:flex;align-items:center;gap:2px}
-.ah-sep{width:1px;height:16px;background:var(--ah-line);margin:0 4px}
-.ah-copied{color:var(--ah-accent)!important}
-@media(max-width:600px){.ah-bar .ah-hideSm{display:none}}
-@media print{.ah-bar{display:none}body{padding-top:0}}
-</style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=4">
+  <script src="../../../assets/js/demo-page.js?v=4" defer></script>
 </head>
-<body>
-<div class="ah-bar" role="navigation" aria-label="Animation Handbook"><a class="ah-home" href="../../../">← Animation Handbook</a><span class="ah-actions"><a class="ah-hideSm" href="../webgl-shader-animation/" rel="prev" title="Previous">‹ Prev</a><a class="ah-hideSm" href="../svg-path-animation/" rel="next" title="Next">Next ›</a><span class="ah-sep ah-hideSm"></span><button type="button" id="ah-copy" class="ah-hideSm">Copy source</button><a class="ah-hideSm" href="https://github.com/matinmonshizadeh/animation-handbook/blob/main/animations/06-3d-advanced/noise-based-motion/index.html" target="_blank" rel="noopener noreferrer">Source ↗</a></span></div>
-<header>
-  <h1>Noise-Based Motion</h1>
-  <p>Simplex noise drives organic non-repeating movement — a field of dots and a morphing blob.</p>
-</header>
-<div class="layout">
-  <div class="stage" id="stage">
-    <canvas id="cvs"></canvas>
-    <div class="fps-badge" id="fps">— fps</div>
-  </div>
-  <aside>
-    <p class="note">Random() jumps everywhere. Noise is "smooth random" — nearby samples return similar values, making motion feel organic. Perlin/Simplex: the standard for wind, fire, terrain.</p>
-    <div class="lbl">Mode</div>
-    <select id="mode-sel">
-      <option value="grid">Wind Field (grid dots)</option>
-      <option value="blob">Morphing Blob</option>
-    </select>
-    <div class="lbl">Noise Scale</div>
-    <div class="sr"><input type="range" id="scale-sl" min="1" max="30" value="8" step="1"><span class="sv" id="scale-v">0.008</span></div>
-    <div class="lbl">Speed</div>
-    <div class="sr"><input type="range" id="spd-sl" min="1" max="20" value="5" step="1"><span class="sv" id="spd-v">0.5</span></div>
-    <div class="lbl">Amplitude</div>
-    <div class="sr"><input type="range" id="amp-sl" min="2" max="30" value="12" step="1"><span class="sv" id="amp-v">12px</span></div>
-    <div class="lbl">Grid Density</div>
-    <div class="sr"><input type="range" id="grid-sl" min="8" max="40" value="20" step="2"><span class="sv" id="grid-v">20</span></div>
-    <div class="lbl">Blob Vertices</div>
-    <div class="sr"><input type="range" id="verts-sl" min="16" max="128" value="48" step="8"><span class="sv" id="verts-v">48</span></div>
-    <div class="lbl">Color</div>
-    <input type="color" id="color-pick" value="#58a6ff" aria-label="Color">
-    <div class="div"></div>
-    <button class="rst" id="pause-btn">⏸ Pause</button>
-  </aside>
-</div>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../webgl-shader-animation/" rel="prev" aria-label="Previous: WebGL Shader Animation"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>WebGL Shader Animation</span></a><a href="../svg-path-animation/" rel="next" aria-label="Next: SVG Path Animation"><span><span class="hb-dir">Next: </span>SVG Path Animation</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.08 · 3D &amp; Advanced</p>
+    <h1>Noise-Based Motion</h1>
+    <p class="hb-lede">Smooth noise makes dots sway and a blob ripple. Best for calm backgrounds.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="Small dots swaying on a dark background, or a single blob with a rippling edge"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-mode="grid" class="on" aria-pressed="true">Field of dots</button>
+          <button type="button" data-mode="blob" aria-pressed="false">Blob</button>
+        </div>
+        <p class="hb-hint">A field of swaying dots, or one rippling blob.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Pattern size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-scale="0.004" aria-pressed="false">Large</button>
+          <button type="button" data-scale="0.008" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-scale="0.016" aria-pressed="false">Small</button>
+        </div>
+        <p class="hb-hint">Large patterns sway together; small ones look busy.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-spd="0.3" aria-pressed="false">Slow</button>
+          <button type="button" data-spd="0.5" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-spd="0.8" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the noise moves along.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="wobble-lbl">Wobble</p>
+          <div class="seg" id="wobble-seg" role="group" aria-labelledby="wobble-lbl">
+            <button type="button" data-amp="6" aria-pressed="false">Small</button>
+            <button type="button" data-amp="12" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-amp="20" aria-pressed="false">Large</button>
+          </div>
+          <p class="hb-hint">How far each dot, or the blob's edge, moves.</p>
+        </div>
+        <div class="hb-setting" id="space-setting">
+          <p class="hb-setting-name" id="space-lbl">Space between dots</p>
+          <div class="seg" id="space-seg" role="group" aria-labelledby="space-lbl">
+            <button type="button" data-space="64" aria-pressed="false">Wide</button>
+            <button type="button" data-space="48" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-space="32" aria-pressed="false">Tight</button>
+          </div>
+          <p class="hb-hint">Wider spacing draws fewer dots.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" aria-pressed="false" aria-label="Pink" data-color="#ff6f8b" style="background:#ff6f8b"></button>
+            <button type="button" aria-pressed="false" aria-label="White" data-color="#f4f4f2" style="background:#f4f4f2"></button>
+            <button type="button" class="on" aria-pressed="true" aria-label="Blue" data-color="#58a6ff" style="background:#58a6ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Purple" data-color="#d2a8ff" style="background:#d2a8ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Green" data-color="#56d364" style="background:#56d364"></button>
+            <button type="button" aria-pressed="false" aria-label="Orange" data-color="#ffa657" style="background:#ffa657"></button>
+          </div>
+          <p class="hb-hint">The color of the dots or the blob.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add noise-based motion to [the background or shape you want to bring to life]. Use smooth noise, a random value that changes gradually from place to place, instead of plain random numbers, which jump. For a field of dots, turn the noise at each dot into a direction and nudge the dot that way, then move through the noise over time so the whole field sways like grass in the wind. For a blob, push each point of its outline in or out by the noise so the edge ripples. Space the dots by distance, not by count, so phones draw fewer. If the visitor has reduced motion turned on, keep everything still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Backgrounds</li><li>Generative art</li><li>Idle and loading states</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Behind text</li><li>Fast-paced screens</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 // === Simplex Noise (simplified, public domain) ===
 (function(){
@@ -122,9 +188,13 @@ window.simplex2=function(x,y){
 })();
 
 const cvs=document.getElementById('cvs');const ctx=cvs.getContext('2d');
-const stage=document.getElementById('stage');const fpsEl=document.getElementById('fps');
-let W,H,paused=false,raf=null,lastT=0,t=0;
-let MODE='grid',SCALE=.008,SPD=.5,AMP=12,GRID=20,VERTS=48,COLOR='#58a6ff';
+const stage=document.getElementById('stage');const slowTog=document.getElementById('slow-tog');
+let W,H,paused=false,raf=null,last=null,t=0;
+let MODE='grid',SCALE=.008,SPD=.5,AMP=12,SPACE=48,COLOR='#58a6ff';
+const VERTS=96; // 96 points keep the edge smooth even where the ripple is sharpest
+// The blob reads the noise along a circle of radius RING x SCALE (the inner ring RING_IN x SCALE). A tiny circle sees almost
+// one value, so the whole edge only swells and shrinks; this one is wide enough for about two lobes at the default size.
+const RING=48,RING_IN=32;
 
 function resize(){
   const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -133,8 +203,9 @@ function resize(){
   ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels, render at device resolution
 }
 
+// The dots sit SPACE pixels apart, so a narrow phone stage draws fewer of them than a wide one.
 function drawGrid(){
-  const step=Math.max(4,Math.floor(W/GRID)); // never 0 — a 0 step would loop forever
+  const step=SPACE;
   const r=parseInt(COLOR.slice(1,3),16),g=parseInt(COLOR.slice(3,5),16),b=parseInt(COLOR.slice(5,7),16);
   for(let x=step/2;x<W;x+=step){
     for(let y=step/2;y<H;y+=step){
@@ -156,7 +227,7 @@ function drawBlob(){
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=simplex2(Math.cos(a)*SCALE*12+t,Math.sin(a)*SCALE*12)*AMP;
+    const n=simplex2(Math.cos(a)*SCALE*RING+t,Math.sin(a)*SCALE*RING)*AMP;
     const r2=R+n*2;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
@@ -168,7 +239,7 @@ function drawBlob(){
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=simplex2(Math.cos(a)*SCALE*8+t*.7,Math.sin(a)*SCALE*8)*AMP*.5;
+    const n=simplex2(Math.cos(a)*SCALE*RING_IN+t*.7,Math.sin(a)*SCALE*RING_IN)*AMP*.5;
     const r2=R*.5+n*1.5;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
@@ -177,38 +248,50 @@ function drawBlob(){
   ctx.strokeStyle=`rgba(${r},${g},${b},.3)`;ctx.lineWidth=1;ctx.stroke();
 }
 
-function loop(ts){
-  if(paused){raf=null;return;}
-  raf=requestAnimationFrame(loop);
-  const dt=ts-lastT;if(dt<16){return;}
-  const realFps=Math.round(1000/(dt||16));fpsEl.textContent=realFps+' fps';
-  lastT=ts;t+=SPD*.01;
-  frame();
-}
 function frame(){ctx.clearRect(0,0,W,H);if(MODE==='grid')drawGrid();else drawBlob();}
 
-resize();
-if(matchMedia('(prefers-reduced-motion: reduce)').matches){
-  // Reduced motion: show a single static frame, user can opt in via Resume
-  paused=true;document.getElementById('pause-btn').textContent='▶ Resume';frame();
-}else{raf=requestAnimationFrame(loop);}
+// The loop keeps exactly one pending frame in raf. Each drawn frame moves on through the noise by one step,
+// a third of a step while Slow motion is on.
+function loop(ts){
+  raf=requestAnimationFrame(loop);
+  if(last===null){last=ts;return;} // the first frame after a start only takes the time
+  if(ts-last<16)return;
+  last=ts;t+=SPD*.01/(slowTog.checked?3:1);
+  frame();
+}
+function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
+// While paused a setting or a resize draws the picture again, so the change shows without anything moving.
+function redraw(){if(paused)frame();}
 
-document.getElementById('mode-sel').addEventListener('change',e=>{MODE=e.target.value;if(paused)frame();});
-document.getElementById('scale-sl').addEventListener('input',e=>{SCALE=e.target.value/1000;document.getElementById('scale-v').textContent=(SCALE).toFixed(3);});
-document.getElementById('spd-sl').addEventListener('input',e=>{SPD=e.target.value/10;document.getElementById('spd-v').textContent=SPD.toFixed(1);});
-document.getElementById('amp-sl').addEventListener('input',e=>{AMP=+e.target.value;document.getElementById('amp-v').textContent=AMP+'px';});
-document.getElementById('grid-sl').addEventListener('input',e=>{GRID=+e.target.value;document.getElementById('grid-v').textContent=GRID;});
-document.getElementById('verts-sl').addEventListener('input',e=>{VERTS=+e.target.value;document.getElementById('verts-v').textContent=VERTS;});
-document.getElementById('color-pick').addEventListener('input',e=>COLOR=e.target.value);
-document.getElementById('pause-btn').addEventListener('click',()=>{
-  paused=!paused;document.getElementById('pause-btn').textContent=paused?'▶ Resume':'⏸ Pause';
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
+// Play calls start(), which carries on through the noise from where it stopped.
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
   if(paused){cancelAnimationFrame(raf);raf=null;}
-  else if(!raf){lastT=performance.now();raf=requestAnimationFrame(loop);}
+  else start();
 });
-// While paused, keep the static frame in sync with the controls
-document.querySelector('aside').addEventListener('input',()=>{if(paused)frame();});
-window.addEventListener('resize',()=>{resize();if(paused)frame();});
+
+resize();frame();start();
+window.addEventListener('resize',()=>{if(stage.clientWidth===W&&stage.clientHeight===H)return;resize();redraw();});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+const spaceSetting=document.getElementById('space-setting');
+// The spacing only matters for the field of dots
+choices('shape-seg',d=>{MODE=d.mode;spaceSetting.hidden=MODE!=='grid';});
+choices('size-seg',d=>{SCALE=+d.scale;});
+choices('speed-seg',d=>{SPD=+d.spd;});
+choices('wobble-seg',d=>{AMP=+d.amp;});
+choices('space-seg',d=>{SPACE=+d.space;});
+choices('color-sw',d=>{COLOR=d.color;});
+// While paused, any click or change in Try it draws the picture again so the result is visible.
+['click','change'].forEach(type=>document.querySelector('.hb-try').addEventListener(type,redraw));
 </script>
-<script>(function(){var b=document.getElementById("ah-copy");if(!b)return;b.addEventListener("click",function(){fetch(location.href).then(function(r){return r.text();}).catch(function(){return document.documentElement.outerHTML;}).then(function(t){return navigator.clipboard.writeText(t);}).then(function(){b.textContent="Copied!";b.classList.add("ah-copied");setTimeout(function(){b.textContent="Copy source";b.classList.remove("ah-copied");},1500);}).catch(function(){b.textContent="Copy failed";setTimeout(function(){b.textContent="Copy source";},1500);});});})();</script>
 </body>
 </html>
