@@ -30,19 +30,22 @@ path.style.strokeDashoffset = LEN - drawn;            // reveal the travelled po
 Waypoints are placed at known fractions of the path, so their positions and trigger points are computed once from those fractions — never per scroll event:
 
 ```js
-// at init: position each waypoint and store its length threshold
+// at init: position each waypoint and store its length threshold and where its dot sits in the scrolling content
 wp.len = LEN * wp.fraction;
 const pt = path.getPointAtLength(wp.len);
 wp.group.setAttribute('transform', `translate(${pt.x} ${pt.y}) scale(${k})`);
+wp.y = svgTop + pt.y / k;
 
-// per frame: a cheap comparison, class toggled only when the state changes
-const on = drawn >= wp.len;
+// per frame: two cheap comparisons, class toggled only when the state changes
+const on = drawn >= wp.len && wp.y - 16 < scrollTop + boxHeight;
 if (on !== wp.on) { wp.on = on; wp.group.classList.toggle('on', on); }
 ```
 
 Each stop is also scaled by `k`, which is 600 divided by the drawing's width on screen, so its dot and labels keep the same size on every screen while the route itself scales.
 
-The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `opacity: 0` to full size, and scrolling back past a waypoint removes the class so it un-pops. Progress is clamped, never gated: jumping straight to the bottom draws the full route, returning to the top erases it, and there is no state to get stuck in between. A faint dashed copy of the path sits underneath the drawing stroke, so the reader always sees where the route is going before the line gets there.
+A stop also waits until it has come into view, meaning its top edge is above the bottom edge of the box. The route is many boxes tall, so the line can be drawn well ahead of the box, and a stop that popped below the bottom edge would pop where nobody can see it; this way its pop plays as it scrolls in. A still picture is the same either way, because a stop that is below the box cannot be seen.
+
+The pop itself is CSS — `.on` transitions the waypoint from `scale(.6)` and `opacity: 0` to full size, and scrolling back past a waypoint removes the class so it un-pops. After a jump — Back to top, or Play starting again from the top — the transition is switched off for that one update, so no stop fades out after the line that led to it has gone. Progress is clamped, never gated: jumping straight to the bottom draws the full route, returning to the top erases it, and there is no state to get stuck in between. A faint dashed copy of the path sits underneath the drawing stroke, so the reader always sees where the route is going before the line gets there.
 
 ## Key parameters
 
