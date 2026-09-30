@@ -441,7 +441,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Lag | Choice buttons | Short · Medium · Long | Medium | A longer lag feels heavier and smoother. | `ease`: 0.35 / 0.15 / 0.06 (the share of the gap the dot closes each frame) |
+| Lag | Choice buttons | Short · Medium · Long | Medium | A longer lag feels heavier and smoother. | `ease`: 0.35 / 0.15 / 0.06 (the share of the gap the dot closes in one 60 Hz frame; a frame that lasted longer or shorter closes the share that fits its time) |
 | Size | Choice buttons | Small · Medium · Large | Medium | How big the dot is before it grows. | `--follower-size`: 20px / 32px / 48px |
 | Flips the colors under it | Switch | on / off | on | Keeps the dot visible on light and dark areas. | the follower's `no-blend` class off / on |
 
@@ -463,7 +463,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **Good for:** Portfolios · Agency sites · Interactive stories · **Avoid on:** Forms and tools · Reading pages
 - **Prompt:**
 
-  > Add a cursor follower to [the page or section where it should appear]. Draw a small shape that follows the pointer with a slight delay: on every frame, move it a set share of the way toward the pointer, so it glides after it and eases in. Hide it when the pointer leaves. When the settings include them, let it flip the colors beneath it so it stays visible on light and dark areas alike, and let it grow over buttons and links. Move it with transforms only. Touch screens have no pointer, so hide it there or let it glide to where the visitor taps. If the visitor has reduced motion turned on, keep the normal cursor instead. Match the settings listed below.
+  > Add a cursor follower to [the page or section where it should appear]. Draw a small shape that follows the pointer with a slight delay: each frame, close a share of the gap that is exponential in the time since the last frame, so it follows at the same pace on every screen. Hide it when the pointer leaves. When the settings include them, let it flip the colors beneath it so it stays visible on light and dark areas alike, and let it grow over buttons and links. Move it with transforms only. Touch screens have no pointer, so hide it there or let it glide to where the visitor taps. If the visitor has reduced motion turned on, keep the normal cursor instead. Match the settings listed below.
 
 - **README What it is:** rewritten:
 
@@ -473,7 +473,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 
   | Parameter | Default | Effect |
   |-----------|---------|--------|
-  | Lag | Medium | How closely the dot follows: each frame it closes 35% (short), 15% (medium) or 6% (long) of the gap to the pointer; a longer lag feels heavier |
+  | Lag | Medium | How closely the dot follows: on a 60 Hz screen each frame closes 35% (short), 15% (medium) or 6% (long) of the gap to the pointer, and other screens close the share that fits their frame time, so the dot gets 95% of the way in about 0.1, 0.3 or 0.8 seconds everywhere; a longer lag feels heavier |
   | Size | Medium | The dot is 20px, 32px or 48px across |
   | Flips the colors under it | on | The dot inverts the colors beneath it, so it stays visible on light and dark areas; off, it is a see-through orange dot |
   | Shape | Circle | A filled circle, a ring or a small square |
@@ -483,7 +483,7 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
   - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
   - [Tooltip Reveal](../tooltip-reveal/) — a label that appears where the pointer rests
   - [Click / Tap Ripple](../click-ripple/) — a ripple from the exact point you click
-- **README How it works:** the snippets follow the transform-only demo; the prose between them stays.
+- **README How it works:** the snippets follow the transform-only demo; the prose between them stays, except for the frame-rate fix (below).
   - In the first snippet, the loop's two `follower.style.left`/`top` lines become one:
 
     ```js
@@ -514,9 +514,10 @@ Every fit number in this sheet was measured in Chrome on the lane server, with e
 - **README Production notes:**
   - The "Touch devices" bullet gets a last sentence: "The demo sends the dot to each tap only so the effect can be seen on a phone."
   - In the "Performance" bullet, "Updating `left`/`top` (rather than `transform`) on every frame is less optimal — in production, update `transform: translate(x, y)` instead." becomes "The demo moves it with `transform: translate(x, y)` and grows it with `scale()`, so nothing is laid out again while it moves."
-  - The rest is unchanged.
+  - The rest is unchanged, except that the frame-rate fix (below) rewrites the "Lag calibration" and "GSAP QuickTo" bullets.
 - **Category line:** `04.20 · Micro-Interactions`
 - **Pager:** Previous: Accordion Open/Close (`../accordion/`) · Next: Error Shake (`../error-shake/`)
+- **Frame-rate fix (wrap-up):** `loop(ts)` closes `a = 1 - Math.pow(1 - ease, dt / FRAME)` of the gap each frame instead of `ease`, with `FRAME = 1000/60` and `dt = last === null ? FRAME : Math.min(ts - last, 50)`, so the dot lags the same on every screen: it gets 95% of the way in about 0.1, 0.3 or 0.8 seconds at Short, Medium and Long, at 30, 60, 120 and 144 Hz alike. `a` equals `ease` at 60 Hz. `last` is updated on every frame, also while the dot is hidden, and the loop now starts with `requestAnimationFrame(loop)` instead of a direct call, so its first frame has a timestamp and counts as one 60 Hz frame. The prompt says the share is "exponential in the time since the last frame" (130 words, the test's cap). README: the first snippet is the `loop(ts)` above, with the sentence before it and the paragraph after it rewritten (each 60 Hz frame closes 15%, a frame twice as long 28% and one half as long about 8%, so the follower reaches ~95% of the way in about 300ms on any screen), the Lag row of Key parameters, and the "Lag calibration" and "GSAP QuickTo" Production notes.
 
 ---
 
