@@ -1706,7 +1706,7 @@ function buildCard(e){
   card.innerHTML=`<div class="stage"><div class="pv pv-${pv}" aria-hidden="true">${pvMarkup(pv)}</div>`+
     `<span class="tag">${esc(e.places.length?PLACE[e.places[0]].name:e.cat.name)}</span></div>`+
     `<div class="meta"><h3 class="title"><a href="${esc(e.url)}">${esc(e.name)}</a></h3><p class="desc">${esc(e.desc)}</p>`+
-    `<div class="acts"><button type="button" class="copy" aria-label="${esc('Copy prompt for '+e.name)}">${ICON_COPY}<span class="copy-l">Copy prompt</span></button>`+
+    `<div class="acts"><button type="button" class="copy" aria-label="${esc('Copy prompt for '+e.name)}">${ICON_COPY}<span class="copy-l" aria-live="polite">Copy prompt</span></button>`+
     `<span class="try" aria-hidden="true">Try it${ICON_ARROW}</span></div></div>`;
   if(reduce)card.querySelectorAll('animate').forEach(a=>a.remove());
   const eng=engines[pv]?engines[pv](card.querySelector('.pv')):null;
@@ -1741,7 +1741,7 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 showCards(PICKS.map(s=>BY_SLUG[s]));
 
 (function(){const btn=$('theme-toggle');if(!btn)return;
-  btn.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='light'?'dark':'light';
+  btn.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
     document.documentElement.dataset.theme=next;try{localStorage.setItem('ah-theme',next);}catch(e){}});})();
 addEventListener('keydown',e=>{const t=document.activeElement&&document.activeElement.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();$('q').focus();}});
@@ -1749,17 +1749,21 @@ addEventListener('keydown',e=>{const t=document.activeElement&&document.activeEl
 // ---------- Copy prompt on the cards ----------
 // The text is the page's own: the home page reads the page's HTML and builds the text with the shared page script
 // (DemoPage), every setting at its default. Nothing on a fetched page is laid out, so no control counts as hidden by style.
-const pageTexts=new Map(),NO_STYLE={getComputedStyle:()=>({display:''})};
+// Opened from disk every read fails and Chrome logs a CORS error for each one, so there nothing is fetched and the read fails at once.
+const FROM_DISK=location.protocol==='file:';
+const pageTexts=new Map(),failedPages=new Set(),NO_STYLE={getComputedStyle:()=>({display:''})};
 function promptFor(url){
   let text=pageTexts.get(url);
   if(!text){
-    text=fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(html=>{
+    const read=FROM_DISK?Promise.reject(new Error('opened from disk')):fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();});
+    text=read.then(html=>{
       if(!window.DemoPage)throw new Error('the page script has not loaded');
       const t=DemoPage.pageCopyText(new DOMParser().parseFromString(html,'text/html'),NO_STYLE);
       if(!t)throw new Error('no prompt on the page');
       return t;
     });
-    text.catch(()=>pageTexts.delete(url));
+    // A failed page is forgotten, so the next press reads it again; failedPages only keeps the early read (below) from trying it over and over.
+    text.then(()=>failedPages.delete(url),()=>{pageTexts.delete(url);failedPages.add(url);});
     pageTexts.set(url,text);
   }
   return text;
@@ -1769,40 +1773,47 @@ async function writeClipboard(text){
   const clip=navigator.clipboard;
   if(!clip)throw new Error('no clipboard');
   if(window.ClipboardItem&&clip.write){
-    try{await clip.write([new ClipboardItem({'text/plain':text.then(t=>new Blob([t],{type:'text/plain'}))})]);return;}
+    // If the read fails while write or the constructor has already given up, nobody is left waiting for this promise: mark it handled.
+    // The failure still reaches the code below, through write or through text.
+    const blob=text.then(t=>new Blob([t],{type:'text/plain'}));
+    blob.catch(()=>{});
+    try{await clip.write([new ClipboardItem({'text/plain':blob})]);return;}
     catch(err){if(err&&err.name==='NotAllowedError')throw err;}
   }
   await clip.writeText(await text);
 }
-const toastEl=$('toast');let toastTimer=0;
+const toastEl=$('toast'),toastText=toastEl.querySelector('.toast-t');let toastTimer=0,toastClear=0;
 function toast(message){
-  toastEl.querySelector('.toast-t').textContent=message;
+  clearTimeout(toastTimer);clearTimeout(toastClear);
+  toastText.textContent=message;
   toastEl.classList.add('show');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2400);
+  toastTimer=setTimeout(()=>{
+    toastEl.classList.remove('show');
+    // The text goes once the fade is over (the box would shrink while it fades), so the status region keeps no old message.
+    toastClear=setTimeout(()=>{toastText.textContent='';},300);
+  },2400);
 }
+// Only the icon is swapped and the text of the label changes: the label is a live region, and a screen reader announces a change
+// inside one but not a new one. The name of the button always starts with what it shows.
 function copyState(btn,kind){
   const name=btn.closest('.card').querySelector('.title a').textContent;
   clearTimeout(btn._timer);
   btn.classList.toggle('done',kind==='done');btn.classList.toggle('fail',kind==='fail');
-  if(kind==='done'){
-    btn.innerHTML=ICON_DONE+'<span class="copy-l">Copied</span>';btn.setAttribute('aria-label','Prompt copied for '+name);
-    btn._timer=setTimeout(()=>copyState(btn,''),1800);
-  }else if(kind==='fail'){
-    btn.innerHTML=ICON_OPEN+'<span class="copy-l">Open to copy</span>';btn.setAttribute('aria-label','Open the page to copy the prompt for '+name);
-  }else{
-    btn.innerHTML=ICON_COPY+'<span class="copy-l">Copy prompt</span>';btn.setAttribute('aria-label','Copy prompt for '+name);
-  }
+  btn.querySelector('.i').outerHTML=kind==='done'?ICON_DONE:kind==='fail'?ICON_OPEN:ICON_COPY;
+  btn.querySelector('.copy-l').textContent=kind==='done'?'Copied':kind==='fail'?'Open to copy':'Copy prompt';
+  btn.setAttribute('aria-label',kind==='done'?'Prompt copied for '+name:kind==='fail'?'Open to copy the prompt for '+name:'Copy prompt for '+name);
+  if(kind==='done')btn._timer=setTimeout(()=>copyState(btn,''),1800);
 }
 const urlOf=card=>card.querySelector('.title a').getAttribute('href');
 cardsBox.addEventListener('click',e=>{
   const btn=e.target.closest('.copy');
   if(!btn)return;
   const url=urlOf(btn.closest('.card'));
-  if(btn.classList.contains('fail')){location.href=url+'#hb-prompt-title';return;}
+  if(btn.classList.contains('fail')){location.href=(FROM_DISK?url+'index.html':url)+'#hb-prompt-title';return;}
   writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
 });
 // Reading the page starts when the pointer rests on a card or a card gets focus, so the copy is quick.
-const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(card)promptFor(urlOf(card)).catch(()=>{});};
+const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(!card)return;const url=urlOf(card);if(!failedPages.has(url))promptFor(url).catch(()=>{});};
 cardsBox.addEventListener('pointerover',warm);
 cardsBox.addEventListener('focusin',warm);
 </script>
