@@ -1,7 +1,7 @@
 # Portal / Tunnel Zoom
 
 ## What it is
-A portal zoom treats a small on-screen element as a window into the next page: clicking it expands a circular (or rectangular) clip-path outward from the portal's center until the incoming page fills the whole stage. The effect reads as diving through the portal rather than swapping to a new URL. The destination is already rendered behind the mask before the animation begins, so the growth reveals it rather than loading it.
+A portal zoom treats a small element on the page as a window into the next page. Clicking it opens a circle, or a square, from the element's center that grows until the new page fills the whole view, so it feels like diving through the portal rather than jumping to a new page. The new page is already there underneath; the growing opening only reveals it.
 
 ## When to use it
 - Gallery or case-study entries where a thumbnail should "open into" its detail view
@@ -24,7 +24,7 @@ nextEl.style.clipPath = `circle(0% at ${px} ${py})`;   // pinhole at the portal
 nextEl.style.transition = 'none';
 nextEl.classList.add('active');
 nextEl.offsetHeight;                                    // force reflow to commit start
-nextEl.style.transition = `clip-path ${dur}ms ${easeSel.value}`;
+nextEl.style.transition = `clip-path ${dur}ms ${ease}`;
 nextEl.style.clipPath = `circle(150% at ${px} ${py})`;  // expand to cover the stage
 ```
 
@@ -33,11 +33,9 @@ The end radius is `150%` rather than `100%` because the circle must reach the co
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Portal shape | circle | `circle()` tunnels; `inset()` square reveals a rectangular aperture |
-| Duration | 1.2s | Long enough to read as travel; too short becomes a plain wipe |
-| Easing | ease-in | `ease-in` = diving in, `ease-out` = pulling back, `ease-in-out` = smooth throughout |
-| End radius | 150% | Must exceed 100% so the circle reaches the stage corners |
-| Origin (px, py) | portal center | Where the clip expands from; measured live from the clicked element |
+| Portal shape | Circle | A circle feels like a tunnel; a square opens like a window |
+| Speed | Normal | How long the opening takes to fill the view: slow is 1900ms, normal 1200ms and fast 700ms; too fast and it becomes a plain wipe |
+| Feel | Speeds up | Speeds up feels like diving in; Smooth slows at the end, like pulling back; Gentle eases in and out; Even keeps one steady pace |
 
 ## Production notes
 - **Force the reflow.** Without reading `offsetHeight` (or another layout property) between the zero-radius clip and the transition, the browser coalesces both writes and the page appears instantly at full size. The reflow read is what makes the growth animate.
@@ -46,7 +44,7 @@ The end radius is `150%` rather than `100%` because the circle must reach the co
 - **Library equivalents.** The View Transitions API is the natural fit — animate `clip-path` on `::view-transition-new(root)` from a pinhole at the click point for the same effect natively. GSAP animates `clipPath` strings directly; Framer Motion animates the `clipPath` style prop. This is also a common shader/WebGL reveal, but clip-path covers the DOM case without a canvas.
 
 ## See also
-- [Zoom Transition](../zoom-transition/) — scales the whole page rather than clipping a window
-- [Shared Element Transition](../shared-element-transition/) — an element grows into the next page's layout
-- [Flash / Light Leak](../flash-transition/) — another reveal that hides the swap behind an overlay
-- [Morph Transition](../morph-transition/) — reshapes an element between states instead of clipping
+- [Zoom Transition](../zoom-transition/) — the whole page scales instead
+- [Shared Element Transition](../shared-element-transition/) — a picture grows into the next page
+- [Flash / Light Leak Transition](../flash-transition/) — a burst of light hides the change
+- [Morph Transition](../morph-transition/) — a shape changes between pages
