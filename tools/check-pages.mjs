@@ -21,9 +21,10 @@
 // and takes screenshots, and nothing more.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
-// other's screenshots.
+// other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
+// again for up to 10 s while Chrome lets go of its files; one that stays is named in the output.
 // Exit code 1 on any problem.
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -119,9 +120,26 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const withTimeout = (promise, ms) => Promise.race([promise, sleep(ms).then(() => { throw new Error('timeout'); })]);
 
 const profile = mkdtempSync(join(tmpdir(), 'hb-chrome-'));
-function removeProfile() {
-  try { rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); }
-  catch { console.error(`Could not remove the temporary Chrome profile: ${profile}`); }
+// Chrome's helper processes can outlive the browser process with files of the profile open (on a busy machine even a killed
+// Chrome can need several seconds to let go), and on Windows a folder with an open file in it cannot be removed. rmSync fails
+// at once there (its maxRetries and retryDelay do not apply), so the removal is tried again every 200 ms for up to 10 s, and
+// a folder that stays is named.
+async function removeProfile() {
+  const end = Date.now() + 10000;
+  for (;;) {
+    try { rmSync(profile, { recursive: true, force: true }); return; }
+    catch { if (Date.now() >= end) break; }
+    await sleep(200);
+  }
+  console.error(`Could not remove the temporary Chrome profile: ${profile}`);
+}
+// chrome.kill() ends the browser process only. On Windows its helper processes (renderers, the crash handler) then live on
+// for a long while on a busy machine, so the whole tree is ended (while the browser process is still there to name it).
+function stopChrome() {
+  if (process.platform === 'win32' && chrome.pid && chrome.exitCode === null) {
+    try { execFileSync('taskkill', ['/PID', String(chrome.pid), '/T', '/F'], { stdio: 'ignore', timeout: 10000 }); return; } catch {}
+  }
+  chrome.kill();
 }
 // Port 0: Chrome picks a free port and writes it into DevToolsActivePort in its profile folder,
 // so a Chrome left over from an earlier run can never be picked up by mistake.
@@ -130,9 +148,9 @@ function removeProfile() {
 const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
   '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 const chromeExited = new Promise(resolve => chrome.once('exit', resolve));
-chrome.once('error', err => {
+chrome.once('error', async err => {
   console.error(`Could not start Chrome at ${CHROME} (${err.message}). Set CHROME to its path.`);
-  removeProfile();
+  await removeProfile();
   process.exit(2);
 });
 
@@ -459,8 +477,8 @@ try {
   failures++;
 } finally {
   if (ws) ws.close();
-  chrome.kill();
+  stopChrome();
   await Promise.race([chromeExited, sleep(5000)]);
-  removeProfile();
+  await removeProfile();
 }
 process.exit(failures ? 1 : 0);
