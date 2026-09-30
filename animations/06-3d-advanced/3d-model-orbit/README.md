@@ -51,12 +51,21 @@ const M   = multiply(multiply(T, rotateY(ry)), rotateX(rx));
 const MVP = multiply(P, M);
 ```
 
+**Turning** — the angles grow by the time that has passed, not by a fixed amount per frame, so the shape turns at the same speed on a 30, 60 or 144 Hz screen:
+
+```js
+const FRAME = 1000 / 60;                     // one frame on a 60 Hz screen, in milliseconds
+const step = Math.min(elapsed, 50) / FRAME;  // 1 at 60 Hz; a long gap counts for at most 50 ms
+ry += SPEED_Y * 0.01 * step;                 // the spin
+rx += SPEED_X * 0.01 * step * (Math.sin(clock * 0.0003) * 0.5 + 0.5);  // the forward roll, at a speed that rises and falls
+```
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Shape | Cube | The object that is drawn: a cube, a sphere, a ring or a four-sided pyramid |
 | Movement | Spins | Spins turns it by itself; Follows the pointer turns it to face your pointer or finger |
-| Speed | Normal | How fast it spins: slow is about 17°, normal 27° and fast 45° a second |
+| Speed | Normal | How fast it spins: slow is about 17°, normal 27° and fast 45° a second, on any screen |
 | Tumbles as it spins | on | Also rolls it forward, at a speed that rises and falls, so the top and bottom come into view |
 | Distance | Medium | How far away the camera is: close looks bigger, far looks smaller; the lens stays the same |
 | Color | Blue | The object's color; the lighting adds the shading and the highlight |
@@ -64,6 +73,7 @@ const MVP = multiply(P, M);
 
 ## Production notes
 - **Three.js in production**: Three.js's `PerspectiveCamera`, `MeshPhongMaterial`, and `OrbitControls` replace everything in this demo in ~20 lines. Use Three.js for anything more complex than a single object — raw WebGL becomes unmanageable fast.
+- **Time, not frames**: a fixed turn per frame would spin the shape twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone. Scale each turn by the time since the last frame, cap that time (this demo uses 50 ms) so a tab that comes back does not lurch, and let a returning tab start from its next frame.
 - **Normal matrix**: strictly, normals should be transformed by the inverse-transpose of the model matrix, not the model matrix itself. For uniform scaling (no non-uniform squash/stretch), the model matrix works fine. For non-uniform scale, use `mat3(transpose(inverse(uM)))`.
 - **`prefers-reduced-motion`**: stop the animation loop and show the object in its default orientation. The object should remain visible and interactive for camera control.
 - **Touch/pointer interaction**: use `pointerdown` / `pointermove` / `pointerup` for drag-to-rotate, not `mousedown` — this covers touch without separate event listeners.
