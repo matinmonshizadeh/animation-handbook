@@ -905,8 +905,8 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
 - **What scrolling shows:** a winding route with a faint dashed copy underneath; the solid line draws itself in step with the scroll, and five labelled stops (Depart, River crossing, Basecamp, Summit ridge, Arrive) pop in as the line reaches them. Scrolling back up erases the line and hides the stops again. The route ends at "— end of route —".
-- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3 to 10 box heights). At the defaults the line is complete at 85% of the scroll, about 5.1 s into Play.
-- **Reduced motion:** nothing scrolls by itself. The demo's rule stays: the stops appear without their pop (`.pop{transition:none}`); the line still draws with the scroll.
+- **Scroll distance and Play:** the drawing is 3.67 times as tall as it is wide, so the content does not depend on the stage height: about 1,240px on a 375px phone and 3,450px on a laptop (3 to 10 box heights). At the defaults the line is complete at the end of the scroll, as Play ends (6 s). Early and Near the end finish at 70% and 85% of it. Fix round 1 (2026-09-30): the default was 85% ("Normal"), and with the route 5 to 13 boxes tall in the shared box the tip then left the box after about 40% of a laptop scroll (in the box for 51% of the scroll at 1280×800, 43% at 1366×657, 41% at 1280×590, 44% for a phone held sideways, 69% at 768×1024, 86% at 375×812). With the line finishing at the end the tip is in the box for the whole scroll at every size, and every stop pops in view.
+- **Reduced motion:** nothing scrolls by itself. The demo's rule stays: the stops appear without their pop (`.pop{transition:none}`); the line still draws with the scroll. With nothing drawn on arrival the first picture is the route's dashed guide, which is why the guide is drawn at .35 alpha (see Stage).
 - **Stage font:** site font. `.wp-label` and `.wp-sub` drop `var(--mono)`.
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;background:#0b0b0d`, with `aria-label="A route that draws itself as you scroll"`. The `svg` keeps `aria-hidden="true"`.
@@ -916,7 +916,11 @@ None: leave out the `details.hb-options` block.
     - So that the labels fit at narrow widths, Depart's two texts move to the left of their dot (`x="-20" text-anchor="end"`) and River crossing's to the right (`x="20"`, without `text-anchor`).
     - At 320px wide, Basecamp's small line still runs 5px past the drawing's right edge. So the drawing gets `overflow:visible` (`.scene svg{display:block;width:100%;height:auto;overflow:visible}`), and that line draws into the scene's 10px padding instead of being cut off. At 375px it has 20px to spare.
   - `.scene-cap` becomes 13px `#8a8a92` (was 10px `#77777e`).
-  - Script: `update()` keeps the dash maths and the stop toggles; its three readout lines go. The Easing menu's value becomes the `easeMode` variable that Feel sets, and the slider's `caSl.value/100` becomes `completeAt`.
+  - `.guide` stroke becomes `rgba(255,255,255,.35)` (was `.13`, 1.4:1 on the stage): about 3:1, so the route reads on arrival, above all under reduced motion, where nothing is drawn until Play or a scroll.
+  - Script: `update()` keeps the dash maths; its three readout lines go. The Easing menu's value becomes the `easeMode` variable that Feel sets, and the slider's `caSl.value/100` becomes `completeAt` (default 1). Beyond the original, accepted at the review of Task 13:
+    - `measure()` also works out `MAXS = scrollHeight - clientHeight - 1` (one pixel less, so the line finishes at the true end at fractional box heights), the box height and each stop's place in the scrolling content (`y`, measured from the inside of the stage's border). It runs at load, after `document.fonts.ready` and on resize, and the resize handler measures and draws at once, without a debounce.
+    - A stop is on when the line has reached it and it has come into view: `drawn >= w.len && w.y - 16 < scrollTop + boxHeight` (16px is how far its label reaches above its dot). The route is many boxes tall, so the line can be drawn well ahead of the box; a stop that popped below the box's bottom edge would pop unseen. No still picture changes, because a stop below the box cannot be seen.
+    - After a jump the stops change at once (`.jump .pop{transition:none}` for that one update), so no stop fades out after the line that led to it has gone. A jump is a click on Back to top or Play (a click listener on the document redraws in the same task as the click) or a move of more than half a box in one frame.
   - Phone rules: none. Today's mobile block held only the stage size and the aside.
   - `hb-dots`: no. Default height.
 
@@ -931,7 +935,7 @@ None: leave out the `details.hb-options` block.
 
 | Setting | Control | Choices or range (value shown) | Default | Hint | Sets in the demo |
 |---|---|---|---|---|---|
-| Line finishes | Choice buttons | Early · Normal · At the end | Normal | Early leaves the whole route on show for a while. | `completeAt`: 0.7 / 0.85 / 1, then `update()` |
+| Line finishes | Choice buttons | Early · Near the end · At the end | At the end | Early leaves the whole route on show for a while. | `completeAt`: 0.7 / 0.85 / 1, then `update()` |
 
 - **Removed:**
   - The note (it showed code), and the Scroll, Path drawn and Waypoints passed readouts.
@@ -953,7 +957,7 @@ None: leave out the `details.hb-options` block.
   |-----------|---------|--------|
   | Feel | Even | Even keeps the tip of the line level with your scroll; Smooth draws quickly at first and slows toward the end |
   | Shows the stops | on | Five labelled stops pop in as the line reaches them and hide again when you scroll back |
-  | Line finishes | Normal | How far through the scrolling the line is complete: early at 70%, normal at 85% and at the end at 100%; finishing early shows the whole route before you reach the bottom |
+  | Line finishes | At the end | How far through the scrolling the line is complete: early at 70%, near the end at 85% and at the end at 100%; finishing early shows the whole route before you reach the bottom |
 
 - **README See also:**
   - [Scrub Animation](../scrub-animation/) — a short pinned path moves as you scroll; here a long path lives in the content
@@ -961,7 +965,9 @@ None: leave out the `details.hb-options` block.
   - [Scrollytelling](../scrollytelling/) — a picture beside the text changes as a story scrolls by
 - **README How it works:**
   - In the waypoint snippet, ``wp.group.setAttribute('transform', `translate(${pt.x} ${pt.y})`);`` becomes ``wp.group.setAttribute('transform', `translate(${pt.x} ${pt.y}) scale(${k})`);``.
-  - After that snippet, add: "Each stop is also scaled by `k`, which is 600 divided by the drawing's width on screen, so its dot and labels keep the same size on every screen while the route itself scales."
+  - After that snippet, add: "Each stop is also scaled by `k`, which is 600 divided by the drawing's width on screen, so its dot and labels keep the same size on every screen while the route itself scales." Then a paragraph on the stop rule: "A stop also waits until it has come into view, meaning its top edge is above the bottom edge of the box. The route is many boxes tall, so the line can be drawn well ahead of the box, and a stop that popped below the bottom edge would pop where nobody can see it; this way its pop plays as it scrolls in. A still picture is the same either way, because a stop that is below the box cannot be seen." The snippet gets `wp.y = svgTop + pt.y / k;` at init and `const on = drawn >= wp.len && wp.y - 16 < scrollTop + boxHeight;` per frame.
+  - In the first snippet, `const p = clamp(stage.scrollTop / maxScroll, 0, 1);` becomes `const p = ease(clamp(stage.scrollTop / maxScroll, 0, 1));` (comment: Feel: p for Even, 1 - (1 - p)^3 for Smooth) and the comment on `drawn` says `COMPLETE_AT` below 1 finishes before the scroll does. After the snippet add: "`COMPLETE_AT` is 1 by default, so the line finishes as the scroll does and its tip stays inside the box while it is drawn. A smaller value finishes the line earlier: the rest of the scroll then shows the finished route, but the tip runs ahead of the box, because the route is many boxes tall."
+  - In the paragraph on the pop, after "so it un-pops." add: "After a jump — Back to top, Play starting again from the top, or any move of more than half a box in one frame — the transition is switched off for that one update, so no stop fades out after the line that led to it has gone."
   - The rest is unchanged.
 - **README Production notes:** unchanged
 - **Category line:** `01.24 · Scroll-Based`

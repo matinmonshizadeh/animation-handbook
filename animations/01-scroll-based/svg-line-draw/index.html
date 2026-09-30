@@ -29,7 +29,7 @@
     .scene{padding:clamp(10px,2vw,20px)}
     .scene svg{display:block;width:100%;height:auto;overflow:visible}
     .scene-cap{text-align:center;font-size:13px;color:var(--ui-muted);padding:8px 0 16px}
-    .guide{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2;stroke-dasharray:5 7;stroke-linecap:round}
+    .guide{fill:none;stroke:rgba(255,255,255,.35);stroke-width:2;stroke-dasharray:5 7;stroke-linecap:round}
     .trail{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
     .dot{fill:var(--bg);stroke:var(--ui-accent);stroke-width:2.5}
     /* paint-order draws a stage-coloured outline under each label, so text stays
@@ -115,8 +115,8 @@
           <p class="hb-setting-name" id="finish-lbl">Line finishes</p>
           <div class="seg" id="finish-seg" role="group" aria-labelledby="finish-lbl">
             <button type="button" data-at="0.7" aria-pressed="false">Early</button>
-            <button type="button" data-at="0.85" class="on" aria-pressed="true">Normal</button>
-            <button type="button" data-at="1" aria-pressed="false">At the end</button>
+            <button type="button" data-at="0.85" aria-pressed="false">Near the end</button>
+            <button type="button" data-at="1" class="on" aria-pressed="true">At the end</button>
           </div>
           <p class="hb-hint">Early leaves the whole route on show for a while.</p>
         </div>
@@ -171,7 +171,7 @@
   // just LEN * fraction — no per-scroll geometry lookups ever.
   const wps=[...document.querySelectorAll('.wp')].map(g=>({g,f:parseFloat(g.dataset.f),len:0,y:0,on:false}));
 
-  let easeMode='linear',completeAt=0.85;
+  let easeMode='linear',completeAt=1;
 
   // Layout reads live here only — at init, after the fonts load and on resize, never per scroll.
   // k is how many drawing units make one pixel on screen: every stop is scaled by it, so its dot and labels keep the same
@@ -202,8 +202,8 @@
     const jump=jumped||Math.abs(top-lastTop)>BOX/2;
     jumped=false;lastTop=top;
     const p=EASES[easeMode](clamp(top/MAXS,0,1));
-    // The line finishes before the scroll does (completeAt < 1), so the reader sees
-    // the route completed rather than leaving it clipped at the viewport edge.
+    // By default the line finishes as the scroll does, so its tip stays in the box while it is drawn. A smaller completeAt
+    // finishes it earlier and puts the tip ahead of the box: the rest of the scroll shows the finished route.
     // Clamp, don't gate: jumping to the end draws everything, back to top erases it.
     const drawn=clamp(LEN*p/completeAt,0,LEN);
     trail.style.strokeDashoffset=LEN-drawn;
