@@ -54,18 +54,22 @@ fix a bug, or improve an explanation are all welcome.
    other two are required by convention. The page loads *What it is* and *See also* from this
    file, so write *What it is* and *Key parameters* in plain words with no code. Each *See also*
    line is `- [Title](../slug/) — one plain phrase`, where Title is the linked page's `<h1>`.
-   *Key parameters* has one row per setting in Try it, named exactly as on the page.
-4. Link it in: the page before it gets a Next link to it (replacing its old one), the page
-   after it gets a Previous link to it, and the new page links back to both. Use the linked
-   page's `<h1>` in the link text and in the `aria-label`, and copy the markup from a
-   neighbor. Adding a page in the middle of a category renumbers the `NN.MM` category line of
-   every later page.
+   *Key parameters* has one row per setting in Try it, named exactly as on the page. Opened
+   from disk (`file://`), a page shows a README link in place of *What it is* and hides
+   *Similar animations*; that is expected.
+4. Link it in: the page before it gets a Next link to it and the page after it a Previous link
+   to it, each replacing its old one, if any (a page never has two `rel="next"` or two
+   `rel="prev"` links); the new page links back to both. A new first or last page has one
+   neighbor, so one link. Use the linked page's `<h1>` in the link text and in the
+   `aria-label`, and copy the markup from a neighbor. Adding a page in the middle of a category
+   renumbers the `NN.MM` category line of every later page.
 5. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description)
    and add the page to `sitemap.xml`. The description is the page's one-line description,
    word for word.
 6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
    the same name and description, and update the technique count where it is written: the
-   root `README.md`, the home page, `tests/pages.test.js` and `.github/ISSUE_TEMPLATE/config.yml`.
+   root `README.md`, the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`
+   and `docs/launch-kit.md`.
 7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
    on the new page and on every page you edited.
 
@@ -83,7 +87,9 @@ Then **What it is** (from the README), **Good for** (3–5 short tags) and **Avo
 top bar with Previous and Next links and a header: the category line, the title and a
 one-line description in plain words that ends "Best for …". That one sentence is also the
 page's meta, Open Graph, Twitter and JSON-LD description, its card on the home page and its
-line in both READMEs.
+line in both READMEs. The `<head>` holds the title `Name — Animation Handbook`, the canonical
+URL, the favicons, and the Open Graph, Twitter and JSON-LD tags that repeat the name and
+description; copy them from a neighbor page and change them together.
 
 ### Shared files
 
@@ -140,11 +146,12 @@ top or any jump, a scroll page shows the state for the new position at once.
 Give each setting a plain label that says what changes ("How much it spins", not "Rotation
 (deg)"), the control, and one hint line. Prefer named choices ("Slow · Normal · Fast") to
 numbers, switches for on/off ("Grows from small"), and a slider only when sliding is the
-point. Playback is not a setting; the player bar has it. Every control has a label and
-`autocomplete="off"`, and each group of choice buttons has exactly one pressed. The "Your
-settings" chips and the copied prompt list each setting as `label: value`. Copy the markup
-from a page that uses the control you need. No page has a slider or a menu yet; for those,
-follow the controls table in `docs/superpowers/specs/2026-09-27-demo-page-rollout-design.md`.
+point (it shows its value in plain words). Playback is not a setting; the player bar has
+it. Every control has a label and `autocomplete="off"`, and each group of choice buttons
+has exactly one pressed. The "Your settings" chips and the copied prompt list each setting
+as `label: value`. Copy the markup from a page that uses the control you need. No page has
+a slider or a menu yet; for those, follow the controls table in
+`docs/superpowers/specs/2026-09-27-demo-page-rollout-design.md`.
 
 ### The copyable prompt
 
@@ -223,8 +230,9 @@ node tools/check-pages.mjs --base http://127.0.0.1:<port> animations/02-entrance
 
 It opens each page at six screen setups (1280×800, 1366×657, 768×1024, 375×812, 375×812 with
 reduced motion, 320×640) and prints one line for each, so a passing page gives **six `ok`
-lines**. A problem prints `FAIL` with the reason. It skips controls inside `.stage` when it
-measures touch targets, so check buttons and handles a demo draws there by hand.
+lines**. A problem prints `FAIL` with the reason; console errors and warnings both count (a
+control with no label or value is left out and the console warns). It skips controls inside
+`.stage` when it measures touch targets, so check buttons and handles a demo draws there by hand.
 
 ## Writing style
 
