@@ -73,23 +73,26 @@ list, never typed in.
 - **Nothing found**: a white panel: "Nothing matches “zebra” yet", "Try a simpler word, or pick one of these:", the
   five popular suggestions, and **Browse all 129 animations**.
 
+After a tile, a phone-bar chip or a Popular suggestion is pressed, the results scroll into view at every width, not
+only on phones (owner ruling, 2026-10-01).
+
 The view lives in the address, so a view can be shared and **Back** from a demo page returns to it:
 `?place=buttons`, `?q=fade%20in`, `?view=all`, with `&all=1` once Show all is pressed. Pressing a tile, Browse all,
-Clear or a suggestion adds a history step;
-typing only replaces the address. Old links keep working: `?q=` as today, and `?cat=micro-interactions` (the
-category's name in the form today's chips write it) opens All animations at that category's heading.
+Clear or a suggestion adds a history step when it changes the address; typing only replaces the address. Old links
+keep working: `?q=` as today, and `?cat=micro-interactions` (the category's name in the form today's chips write it)
+opens All animations at that category's heading.
 
 ## Search
 
 Search looks at each animation's name, its one-line description, the names of its places and its category name. The
 query is split into words; common small words are dropped (a, an, and, the, that, this, to, for, with, when, on, in,
 of, my, it, i, want, make, some); each word is matched by its start, so "bounces", "bounce" and "bouncing" all match
-"bounce" (a typed word drops the first of the endings "ies", "ing", "ed", "es" and "s" that leaves three letters with a
-vowel, but not the last "s" of "ss"; after "ing" or "ed", a doubled last letter other than l, s, f or z loses one letter
-while three remain: "snapping" finds "snap", "ring" stays whole). An animation matches when at least one word matches;
-results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the description 1),
-ties in home order. "a button that bounces when clicked" therefore puts Click / Tap Ripple, Bounce In and the other
-button animations at the top.
+"bounce" (a typed word drops the first of the endings "ies", "ing", "ed", "es" and "s" that leaves at least three
+letters with a vowel, but not the last "s" of "ss"; after "ing" or "ed", a doubled last letter other than l, s, f or z
+loses one letter while three remain: "snapping" finds "snap", "ring" stays whole). An animation matches when at least
+one word matches; results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the
+description 1), ties in home order. "a button that bounces when clicked" therefore puts Click / Tap Ripple, Bounce In
+and the other button animations at the top.
 The "/" key focuses the search and Escape clears it, as today.
 
 ## Cards
@@ -135,7 +138,8 @@ copy" and pressing it opens the demo page at its Copy the prompt step.
 - Previews play only while on screen, as today. The tile pictures and floating shapes use transforms and opacity
   only.
 - With reduced motion: the tile pictures, previews and the pill's dot hold still on a clear frame, the floating
-  shapes are hidden, and cards do not lift.
+  shapes are hidden, and cards do not lift. Every preview holds still on a clear, recognizable frame of its animation,
+  never an empty stage; the preview code may change for that, but only under reduced motion (owner ruling, 2026-10-01).
 - The All animations view renders all 129 cards but only the visible previews run.
 
 ## Accessibility

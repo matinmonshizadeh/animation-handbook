@@ -4,7 +4,9 @@
 // Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, or home>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 //   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
-//   the search box and the place tiles on the first screen, the tile counts and the eight Start cards.
+//   the search box and the place tiles on the first screen, the tile counts and the eight Start cards. The desktop run
+//   also tries the tiles, the search and Show all and compares Copy prompt with every page's own; the phone run tries a
+//   tile, the slim bar and long words; the reduced-motion run checks that nothing moves.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page

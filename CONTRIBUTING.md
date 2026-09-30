@@ -64,16 +64,16 @@ fix a bug, or improve an explanation are all welcome.
    `aria-label`, and copy the markup from a neighbor. Adding a page in the middle of a category
    renumbers the `NN.MM` category line of every later page.
 5. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description),
-   give it one or more places in `PLACES` (the home page's tiles: `btn` Buttons, `text` Text,
-   `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading &
-   messages, `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first labels
-   its card) and add the page to `sitemap.xml`. The description is the page's one-line
-   description, word for word. The entry goes at the same position in `PLACES` as in
-   `CATS` (both lists follow home page order; a test checks it).
+   give it one or more places in `PLACES`, which sits right after `PV` in the same script (the
+   home page's tiles: `btn` Buttons, `text` Text, `imgcard` Images & cards, `bg` Backgrounds,
+   `menu` Menus & forms, `load` Loading & messages, `intro` Page intros, `scroll` Scrolling,
+   `page` Page changes; the first labels its card) and add the page to `sitemap.xml`. The
+   description is the page's one-line description, word for word. The entry goes at the same
+   position in `PLACES` as in `CATS` (both lists follow home page order; a test checks it).
 6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
    the same name and description, and update the technique count where it is written: the
-   root `README.md`, the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`
-   and `docs/launch-kit.md`.
+   root `README.md`, the home page, the home check in `tools/check-pages.mjs`,
+   `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md`.
 7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
    on the new page and on every page you edited. Run the home page check (`home`) too: the
    new card's Copy prompt is compared there.
@@ -255,7 +255,8 @@ control with no label or value is left out and the console warns). It skips cont
 The home page has a check of its own:
 `node tools/check-pages.mjs --base http://127.0.0.1:<port> home`. It checks the layout at the
 six setups. Its desktop run also tries the tiles, the search and Show all, and compares Copy
-prompt on the home page with every page's own prompt and default settings. Run it after
+prompt on the home page with every page's own prompt and default settings; its phone run tries
+a tile and the slim bar, and its reduced-motion run checks that nothing moves. Run it after
 changing any page's settings or prompt.
 
 ## Writing style

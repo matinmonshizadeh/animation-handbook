@@ -201,7 +201,8 @@ inside an entry's "Production notes" section, never as their own entry.
    `PLACES` in the same order as `CATS` (a test checks it).
 7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line
    description, in home page order), and the technique count wherever it is written: the root `README.md`,
-   the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md`.
+   the home page, the home check in `tools/check-pages.mjs`, `.github/ISSUE_TEMPLATE/config.yml` and
+   `docs/launch-kit.md`.
 8. Run the tests and the page check on the new folder and on every page you edited. Run the home page check
    (`home`) too: the new card's Copy prompt is compared there.
 
@@ -226,8 +227,8 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   handles a demo draws there by hand.
 - **Home page:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> home` checks the home page at the same
   six setups (six `ok` lines). Its desktop run also tries the tiles, the search and Show all, and compares
-  Copy prompt on the home page with every page's own; its phone run tries a tile and the slim bar. Run it after
-  changing any page's settings or prompt.
+  Copy prompt on the home page with every page's own; its phone run tries a tile and the slim bar, and its
+  reduced-motion run checks that nothing moves. Run it after changing any page's settings or prompt.
 
 ## Out of scope
 - Backend code, databases, APIs.
