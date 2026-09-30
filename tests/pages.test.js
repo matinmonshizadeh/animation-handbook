@@ -371,9 +371,10 @@ test('Play, Back to top and the scroller belong to scroll pages, and a scroll pa
   }
 });
 
-test('every guided-steps page links the same version of the shared files', () => {
-  const versions = new Set(steps.flatMap(d => [...pageOf(d).matchAll(/demo-page\.(?:css|js)\?v=(\d+)/g)].map(m => m[1])));
+test('every guided-steps page and the home page link the same version of the shared files', () => {
+  const versions = new Set([...steps.map(pageOf), HOME].flatMap(html => [...html.matchAll(/demo-page\.(?:css|js)\?v=(\d+)/g)].map(m => m[1])));
   assert.equal(versions.size, 1, `versions in use: ${[...versions].join(', ')}`);
+  assert.match(HOME, /<script src="assets\/js\/demo-page\.js\?v=\d+" defer><\/script>/, 'the home page links the page script, for Copy prompt');
 });
 
 const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));

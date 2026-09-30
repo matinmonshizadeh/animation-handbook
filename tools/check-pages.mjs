@@ -434,6 +434,36 @@ async function scrollProblems(reduced) {
   return problems;
 }
 
+// Home page, desktop run: the Copy prompt button puts a page's text on the clipboard and says so (the clipboard is stubbed:
+// a headless run cannot grant it), then, for every page, the home page's text equals what the page's own Copy prompt gives
+// before any change. Leaves the home page.
+async function homeCopyProblems() {
+  const problems = [];
+  const wiring = await evaluate(`(async () => {
+    let got = null;
+    navigator.clipboard.write = async items => { got = await (await items[0].getType('text/plain')).text(); };
+    navigator.clipboard.writeText = async text => { got = text; };
+    const btn = document.querySelector('#cards .card .copy');
+    btn.click();
+    for (let i = 0; i < 60 && got === null; i++) await new Promise(r => setTimeout(r, 50));
+    await new Promise(r => setTimeout(r, 50));
+    const url = btn.closest('.card').querySelector('.title a').getAttribute('href');
+    return { same: got === await promptFor(url), label: btn.textContent.trim(), toast: document.getElementById('toast').classList.contains('show') };
+  })()`);
+  if (!wiring.same || wiring.label !== 'Copied' || !wiring.toast) problems.push(`Copy prompt button: ${JSON.stringify(wiring)}`);
+  const items = await evaluate(`Promise.all(ALL.map(e => promptFor(e.url).then(text => ({ url: e.url, text }), err => ({ url: e.url, text: 'ERROR ' + err.message }))))`);
+  for (const { url, text } of items) {
+    let onLoad;
+    const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+    await send('Page.navigate', { url: `${BASE}/${url}` });
+    try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`${url} did not load`); }
+    listeners.delete(onLoad);
+    const own = await evaluate(`DemoPage.pageCopyText(document, window)`);
+    if (own !== text) problems.push(`Copy prompt text differs for ${url}`);
+  }
+  return problems;
+}
+
 // The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
 let cleaning = null;
 function cleanUp() {
@@ -532,6 +562,7 @@ try {
         }
         if (home) {
           // Task 5 and Task 6 add the home page's interaction checks here.
+          if (setup.moves) problems.push(...await homeCopyProblems());
         }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
