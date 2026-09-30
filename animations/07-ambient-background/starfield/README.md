@@ -71,7 +71,17 @@ last = now;
 const k = dt / (1000 / 60);                                 // 1 at 60 Hz, 2 at 30 Hz
 ```
 
-The short trails come from covering the canvas with a see-through black layer on every frame instead of clearing it. The layer is made stronger for a longer frame, `1 - 0.15 ** k`, which is the usual 0.85 when `k` is 1, so the trails last as long in seconds on every screen. Slow motion does not slow them.
+The short trails come from covering the canvas with a see-through black layer instead of clearing it. The layer is always the 0.85 one of a 60 Hz frame, and it goes on once for every 60th of a second that has passed (twice on a 30 Hz frame), so the trails last as long in seconds on every screen. Slow motion does not slow them. A running fraction carries the rest to the next frame, and rounding rather than "at least one" keeps a 60 Hz screen at exactly one cover per frame even when its frame times are uneven:
+
+```js
+owed += k; const covers = Math.round(owed); owed -= covers;
+for (let i = 0; i < covers; i++) {
+  ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, W, H);
+  if (haze) drawHaze();   // the nebula haze goes on after each cover, as it does at 60 Hz
+}
+```
+
+One stronger cover, `1 - 0.15 ** k`, would fade the same amount in theory, but an 8-bit canvas rounds every cover, so the faint leftovers, such as the haze, would settle to different colors on different screens. Repeating the same cover makes them settle to the same colors everywhere.
 
 ## Key parameters
 | Parameter | Default | Effect |
