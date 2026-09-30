@@ -528,7 +528,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
     - the water rect starts at y 345 (`height` 255); the shimmer lines are at y 365, 385 and 410 (were 440, 460 and 485); the reflection ellipses at `cy` 372 and 395 (were 470 and 500);
     - the stars at (760,130) and (50,180) go, and five stars at (90,205), (250,226), (380,199), (470,232) and (740,236) fill the band; the other six stay.
     - The moon (y 194–242) and the mountains (y 245–345) lie wholly inside y 192–408, and so does the top of the lake (y 345–408), so the widest box (3.7:1) keeps all three. The starting window still shows mountains at every setting.
-    - Measured in headless Chrome, fully open, box sizes inside the border, distances from the top edge of the box: 958×258 (1280×590): moon 57px across and round, 2px down; distant peaks 63px, near peaks 99px; lake 75px tall. 958×325 (1366×657): moon 35px down, lake 109px. 958×378 (1280×800): moon 62px down, lake 135px. 705×438 (768×1024): moon 42px across, lake 180px. 745×258 (a phone held sideways, 812×375): moon 45px across, lake 87px. 341×298 and 286×298 (phones): moon 24px across, lake 127px. The moon is a 1:1 circle at every size, both reflection ellipses are inside the box, and the caption never covers the moon. Under the starting window (Small / Medium / Large) the mountains fill 82–100% / 31–81% / 15–56% of what shows, at every size.
+    - Measured in headless Chrome, fully open, box sizes inside the border, distances from the top edge of the box: 958×258 (1280×590): moon 57px across and round, 2px down; distant peaks 63px, near peaks 99px; lake 75px tall. 958×325 (1366×657): moon 35px down, lake 109px. 958×378 (1280×800): moon 62px down, lake 135px. 705×438 (768×1024): moon 42px across, lake 180px. 745×258 (a phone held sideways, 812×375): moon 45px across, lake 87px. 341×298 and 286×298 (phones): moon 24px across, lake 127px. The moon is a 1:1 circle at every size, both reflection ellipses are inside the box, and the caption never covers the moon. Under the starting window (Small / Medium / Large) the mountains fill 67–100% / 31–81% / 15–56% of what shows, at every size.
   - Script: `update()` keeps the inset, radius and caption maths; the readout line goes, and the clip no longer checks the removed portal switch. It also sets the outline's fade, as above.
   - Phone rules: none. Today's mobile block held only the stage height and the aside.
   - `hb-dots`: no. Default height.
@@ -578,6 +578,7 @@ The two lists below, A and B, were settled after both halves were reviewed. They
 - **README Production notes:** unchanged, except that the Reduced motion bullet now reads "shows the caption immediately and hides the starting-frame outline" (fix round 1).
 - **Category line:** `01.19 · Scroll-Based`
 - **Pager:** Previous: Section Wipe (`../section-wipe/`) · Next: Scroll Image Sequence (`../scroll-image-sequence/`)
+- **Final fix wave:** the Small window's range in the measured line under Stage is 67–100%, not 82–100% (Task 11 re-review). Like the other two ranges it comes from a coarse 12×12 hit-test of the starting window at the seven box sizes; a denser 48×48 grid reads 72–98%, 32–82% and 20–56%, so the three ranges are good to a few points.
 
 ---
 
