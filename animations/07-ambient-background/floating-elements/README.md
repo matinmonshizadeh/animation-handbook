@@ -1,7 +1,7 @@
 # Floating Elements
 
 ## What it is
-Floating elements are small geometric shapes — circles, squares, rings, triangles — that drift across a background on independent sine-wave paths. Each shape has a unique amplitude, frequency, and phase, so no two shapes ever move in synchrony. The effect is the canonical "SaaS landing page background particles" — tasteful, geometric, and ambient without being distracting. The critical design principle is independence: synchronized shapes look like a screensaver; independent shapes look like a living atmosphere.
+Floating elements are small, see-through shapes, such as circles, squares or rings, that drift slowly around a background. Each shape follows its own smooth, looping path, with its own speed, distance and starting point, so no two ever move in step. That independence is what makes it look like a living background rather than a screensaver.
 
 ## When to use it
 - Hero backgrounds on SaaS, fintech, and tech product landing pages
@@ -18,7 +18,8 @@ function animate(t) {
     const x = el.bx + Math.sin(el.freq * t + el.phase)    * el.amplitude;
     const y = el.by + Math.cos(el.freq * t * 0.7 + el.phaseY) * el.amplitude * 0.6;
 
-    const rot = el.rotation ? el.rotSpeed * t : 0;
+    if (el.rotation) el.rot += el.rotSpeed; // its own small turn each frame
+    const rot = el.rotation ? el.rot : 0;
     const opacity = el.pulse
       ? 0.4 + 0.3 * Math.sin(el.pulsePhase + t * 0.5)   // stays inside 0.1–0.7
       : 0.5;
@@ -33,20 +34,27 @@ function animate(t) {
 
 ```js
 function createShape(count) {
-  const amp  = 30 + Math.random() * 50;          // 30–80px drift range
-  const freq = 0.3 + Math.random() * 0.5;        // 0.3–0.8 Hz
-  const phase  = Math.random() * Math.PI * 2;    // random start phase
-  const phaseY = Math.random() * Math.PI * 2;    // Y axis out-of-phase
+  const amp = RANGE * 0.5 + Math.random() * RANGE * 0.5; // half to all of How far they drift (30, 50 or 90px)
+  const freq = 0.3 + Math.random() * 0.5;                // its own pace, 0.3 to 0.8 times as fast as t
+  const phase  = Math.random() * Math.PI * 2;            // random start phase
+  const phaseY = Math.random() * Math.PI * 2;            // Y axis out-of-phase
   // Y multiplier (0.6) makes motion elliptical rather than circular
 }
 ```
 
-**CSS shape generation** — shapes without image assets:
+**Shape generation** — shapes without image assets, styled in code:
 
-```css
-.shape-circle { border-radius: 50%; }
-.shape-square { /* default rect */ }
-.shape-ring   { background: none; border: 2px solid currentColor; border-radius: 50%; }
+```js
+if (shape === 'ring') {
+  el.style.borderRadius = '50%';
+  el.style.border = '2px solid ' + color;   // outline only
+  el.style.background = 'none';
+} else if (shape === 'square') {
+  el.style.background = color;
+} else {
+  el.style.borderRadius = '50%';            // circle
+  el.style.background = color;
+}
 ```
 
 **Mouse repulsion** — optional; shapes gently push away from the cursor:
@@ -55,20 +63,26 @@ function createShape(count) {
 if (mouse.x > 0) {
   const dx = x - mouse.x, dy = y - mouse.y;
   const d = Math.sqrt(dx*dx + dy*dy);
-  if (d < 120) {
+  if (d > 0 && d < 120) {
     x += (dx / d) * (120 - d) * 0.08;
     y += (dy / d) * (120 - d) * 0.08;
   }
 }
 ```
 
+The pointer's position is taken from `pointerdown` as well as `pointermove`, so on a touch screen a finger resting on the stage pushes the shapes too.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Count | 8 | 4–12 is the ambient range; above 20 becomes visually busy |
-| Drift range | 50px | How far each shape wanders from its base position |
-| Drift speed | 0.5 | Higher = busier, more active; lower = barely noticeable |
-| Opacity pulse | On | Shapes fade slightly during their loop — adds organic depth |
+| Number of shapes | Medium | Few is 5, medium 8 and many 14; 5 to 12 feels calm, more gets busy |
+| Speed | Normal | How fast the shapes drift: slow is 0.3, normal 0.5 and fast 0.8 |
+| How far they drift | Medium | How far each shape wanders from its place: short is up to 30px, medium 50px and long 90px |
+| Shapes | Mixed | Circles, squares, rings or a mix |
+| Colors | Cool | Cool blues and purples, warm oranges and reds, grays, or bright neon |
+| Shapes turn | on | Each shape slowly spins at its own rate as it drifts |
+| Fades in and out | on | Each shape slowly brightens and dims, adding depth |
+| Shapes avoid the pointer | off | Shapes within 120px of the pointer, or of a finger, slide aside |
 
 ## Production notes
 - **`requestAnimationFrame` not CSS `animation`**: individual `@keyframes` per element would require generating unique keyframe names. The JS loop is cleaner for this parameterized approach.
@@ -78,6 +92,6 @@ if (mouse.x > 0) {
 - **Particle.js / tsParticles**: handles this effect with configuration options, collision detection, and network links. Use in production when you need more than basic floating.
 
 ## See also
-- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — physics-based particles with O(n²) connections
-- [Ambient Ripple](../ambient-ripple/) — radial expansion rather than freeform drift
-- [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — Perlin noise driving organic field motion
+- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — many particles that link up and react to the pointer
+- [Ambient Ripple Effect](../ambient-ripple/) — rings spreading out instead of shapes drifting
+- [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion

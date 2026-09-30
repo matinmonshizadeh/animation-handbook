@@ -1,7 +1,7 @@
 # Starfield / Space Particles
 
 ## What it is
-A starfield renders many small white points on a dark canvas that drift outward from a central focal point — the "flying through space" illusion. The depth effect comes from coupling a star's apparent size and speed to its distance from center: stars close to the center are small and slow; stars near the edge are larger and fast, simulating perspective acceleration. The side-scrolling variant produces the slower "looking out a spacecraft window" effect where stars at different depths move at different speeds.
+A starfield fills a dark background with small stars that stream out from the center, like the view from a spaceship flying through space. Each star's size, brightness and speed depend on how far it is from the middle: near the center stars are small, dim and slow, and they grow, brighten and speed up toward the edge, which is what makes it feel deep. A sideways version drifts stars past, the nearer ones faster, like the view from a window.
 
 ## When to use it
 - Space, astronomy, or sci-fi themed applications
@@ -22,12 +22,14 @@ class Star {
   }
 
   update() {
+    this.dist += this.speed;
     const ratio = this.dist / MAX_DIST;
     // Accelerate as the star "approaches" — perspective foreshortening
-    this.dist += this.speed * (1 + ratio * 2);
+    this.speed = (ratio * 0.5 + 0.2) * BASE_SPEED * 1.5; // faster toward the edge
     // Reset to center when off-screen
     if (this.dist > MAX_DIST) {
       this.dist = 0;
+      this.speed = (Math.random() * 0.6 + 0.2) * BASE_SPEED;
       this.angle = Math.random() * Math.PI * 2;
     }
   }
@@ -36,7 +38,7 @@ class Star {
     const ratio = this.dist / MAX_DIST;
     const x = cx + Math.cos(this.angle) * this.dist;
     const y = cy + Math.sin(this.angle) * this.dist;
-    const size = this.size * (1 + ratio * 2);     // grow with distance
+    const size = this.size * (1 + ratio * 1.5);   // grow with distance
     const opacity = 0.3 + ratio * 0.7;            // brighten with distance
 
     ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
@@ -64,13 +66,16 @@ class DriftStar {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Star count | 300 | 100 = sparse; 300 = balanced; 800 = dense (approaching FPS limit) |
-| Base speed | 0.4 | Keep it slow for ambient — fast starfields feel like hyperspace, not ambiance |
-| Twinkling | On | Sinusoidal opacity variation per star; adds life without changing position |
-| Acceleration factor | 2× | How much faster stars travel at the edge vs center; higher = more dramatic zoom |
+| Direction | Outward | Outward streams the stars from the center; sideways drifts them past, the nearer ones faster |
+| Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65 pixels a frame near the center, faster toward the edge; keep it slow for a calm background |
+| Number of stars | Medium | Few is 150, medium 300 and many 600; phones show at most 300 |
+| Star color | White | White, a warm white, or a different pale color for each star |
+| Twinkling | on | Each star gently brightens and dims on its own rhythm |
+| Nebula haze | off | A faint purple and blue haze behind the stars adds depth |
 
 ## Production notes
 - **Canvas vs DOM**: DOM elements at star counts above 50 cause heavy layout recalculation. Canvas is the right tool for this effect.
+- **Phones**: the demo draws at most 300 stars on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways); each star is a separate fill, so the count is the main cost.
 - **`ctx.fillStyle` caching**: setting `fillStyle` per star is expensive. Group stars by opacity bucket and set fillStyle once per bucket (color batching) to reduce canvas state changes.
 - **`requestAnimationFrame` throttling**: on 120Hz displays, the loop runs twice as fast. Cap time delta to avoid stars moving at different speeds across devices.
 - **Nebula background pairing**: adding a subtle radial gradient (deep purple in one quadrant, deep blue in another) behind the stars dramatically increases realism with minimal performance cost.
@@ -78,6 +83,6 @@ class DriftStar {
 - **`prefers-reduced-motion`**: keep stars static (no animation loop) or limit to a very slow drift at 10% of normal speed.
 
 ## See also
-- [Aurora](../aurora/) — the atmospheric companion to a starfield sky
-- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — physics-based particles with connections
-- [Floating Elements](../floating-elements/) — geometric shapes drifting with sine-wave motion
+- [Aurora / Northern Lights](../aurora/) — bands of light that pair with a night sky
+- [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — particles that link up and react to the pointer
+- [Floating Elements](../floating-elements/) — shapes that drift slowly on their own paths

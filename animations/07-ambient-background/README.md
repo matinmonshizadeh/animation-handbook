@@ -41,8 +41,9 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | Approach | Used by |
 |----------|---------|
 | Pure CSS keyframes | Animated gradient, mesh gradient, aurora, breathing glow, scanline |
-| CSS + JS (controls) | Light leak (random timing), grid parallax (mousemove) |
-| Canvas 2D | Grain, starfield, ambient ripple, floating elements, abstract geometric |
+| CSS transition + JS timers | Light leak (random timing) |
+| JS moving elements with `transform` | Floating elements, grid parallax (pointer events and a slow drift) |
+| Canvas 2D | Grain (or an SVG noise filter), starfield, ambient ripple, abstract geometric, particle constellation, flow field, synthwave grid, matrix rain, plasma |
 
 ## See also
 - [06 — 3D & Advanced](../06-3d-advanced/) — GPU-intensive effects; WebGL shaders and particles
