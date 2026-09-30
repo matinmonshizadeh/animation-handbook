@@ -18,8 +18,8 @@ float rayMarch(vec3 ro, vec3 rd) {  // ray origin, ray direction
   for (int i = 0; i < MAX_STEPS; i++) {
     float d = scene(ro + rd * t);   // distance to nearest surface
     if (d < 0.001) return t;        // hit
-    t += d;                          // safe to advance by d
-    if (t > 20.0) break;            // escaped scene
+    t += d * 0.9;                   // step a little short: blended and carved shapes are not exact distances
+    if (t > 22.0) break;            // escaped scene
   }
   return -1.0;                       // no hit
 }
@@ -75,7 +75,7 @@ vec3 getNormal(vec3 p) {
 
 ## Production notes
 - **Shadertoy convention**: uniforms are `iTime`, `iResolution`, `iMouse`. Porting Shadertoy code to WebGL requires renaming these to your own uniform names and adding the WebGL boilerplate (vertex shader + quad).
-- **Performance scales with pixel count, not scene complexity**: adding 10 more SDF operations costs very little — adding a 4K display multiplies cost by 4×. Run at half resolution and upscale for complex shaders on mobile.
+- **Performance scales with pixels and with the work per step**: every step of every ray evaluates the whole scene formula, so each extra shape or operation adds to every step, and a 4K display costs 4× what 1080p does. The demo caps its canvas at about 300,000 pixels and lets the browser scale it up; on phones it also draws at 0.7 of the stage and takes two thirds of the steps.
 - **Soft shadows and AO**: both require additional rays per fragment (shadow ray, AO samples). Soft shadows are expensive — 20 shadow-march steps per lit pixel doubles the total march work. Toggle off on low-end devices.
 - **`mediump` precision**: complex distance functions with large-scale repetition can lose precision at `mediump`. Use `highp float` for SDF scenes with repetition patterns or fine geometry.
 - **Three.js alternative**: Three.js with `ShaderMaterial` passes the same uniforms to the same fragment shader — the GLSL is identical, only the WebGL boilerplate changes.
