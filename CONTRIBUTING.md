@@ -64,15 +64,19 @@ fix a bug, or improve an explanation are all welcome.
    `aria-label`, and copy the markup from a neighbor. Adding a page in the middle of a category
    renumbers the `NN.MM` category line of every later page.
 5. Register the entry in the root `index.html` `CATS` array (slug, name, one-line description),
-   give it one or more places in `PLACES` (the home page's tiles: `btn`, `text`, `imgcard`,
-   `bg`, `menu`, `load`, `intro`, `scroll`, `page`; the first labels its card) and add the page
-   to `sitemap.xml`. The description is the page's one-line description, word for word.
+   give it one or more places in `PLACES` (the home page's tiles: `btn` Buttons, `text` Text,
+   `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading &
+   messages, `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first labels
+   its card) and add the page to `sitemap.xml`. The description is the page's one-line
+   description, word for word. The entry goes at the same position in `PLACES` as in
+   `CATS` (both lists follow home page order; a test checks it).
 6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
    the same name and description, and update the technique count where it is written: the
    root `README.md`, the home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`
    and `docs/launch-kit.md`.
 7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
-   on the new page and on every page you edited.
+   on the new page and on every page you edited. Run the home page check (`home`) too: the
+   new card's Copy prompt is compared there.
 
 ## The demo page
 
@@ -106,7 +110,8 @@ Two files draw and run the page around the demo. Every page links them after its
 in the "Your settings" chips, Copy prompt, What it is and Similar animations, and runs the
 arrival, Pause, Slow motion, Show me, Play and reduced motion. **When either file changes,
 bump `N` on every page in the same change**, so visitors do not keep a cached older copy. A
-test fails when the pages do not all use the same `N`.
+test fails when the pages do not all use the same `N`. The home page links
+`assets/js/demo-page.js` too (for its cards' Copy prompt), with the same `N`.
 
 The page owns the stage's width, border, corners and height. The demo owns everything
 drawn inside it (overflow, background, alignment, perspective).
@@ -249,8 +254,9 @@ control with no label or value is left out and the console warns). It skips cont
 
 The home page has a check of its own:
 `node tools/check-pages.mjs --base http://127.0.0.1:<port> home`. It checks the layout at the
-six setups, tries the tiles, the search and Show all, and compares Copy prompt on the home page
-with every page's own prompt and default settings.
+six setups. Its desktop run also tries the tiles, the search and Show all, and compares Copy
+prompt on the home page with every page's own prompt and default settings. Run it after
+changing any page's settings or prompt.
 
 ## Writing style
 
