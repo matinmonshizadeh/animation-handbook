@@ -969,9 +969,10 @@ Live-spring damping, measured with the demo's own spring loop. The loop takes on
   ```
 
   The rest is unchanged.
-- **README Production notes:** unchanged
+- **README Production notes:** the bullet "**Tile count is a cost knob.**" is rewritten, because "still cheap" contradicted the phone cap (see Phones). It becomes "**Tile count is a cost knob.** A 16×16 grid is 256 animated elements. The fades themselves are cheap, because each tile only transitions `opacity`, but creating and styling that many elements makes the frame that starts the dissolve slow on phones, so the demo draws Small as 10×10 there. Much finer grids also cost layout and memory; beyond ~24×24 a canvas or a noise-texture mask is a better tool." The rest is unchanged.
 - **Category line:** `03.11 · Page Transitions`
 - **Pager:** Previous: Portal / Tunnel Zoom (`../portal-zoom/`) · Next: FLIP Technique (`../flip-technique/`)
+- **Final fix wave:** the page is unchanged; only the README's Production notes bullet on tile count was corrected, as recorded above.
 
 ---
 
