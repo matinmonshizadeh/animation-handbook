@@ -355,15 +355,16 @@ None: leave out the `details.hb-options` block.
 - **Player bar:** Play · Back to top
 - **Scroller:** the stage.
 - **What scrolling shows:** a list of fifteen contacts. A row rising through the bottom band of the box fades in, slides up into place and grows to full size; a row rising through the top band does the reverse and leaves; rows in the middle band stay still and whole. The deeper a row is in its band, the further along it is, so scrolling back brings rows back the same way. At the very top the first row sits in the top band, so it starts mostly faded, as today.
-- **Scroll distance and Play:** the list's own height: about 1.7 box heights at 1280×800 (626px) and 2.2 on a phone (650px). Play carries the rows through the bands at about 105px a second.
+- **Scroll distance and Play:** the list's own height: about 1.74 box heights at 1280×800 (658px) and 2.4 on a phone (723px). Play carries the rows through the bands at about 110px a second (120 on a phone).
 - **Reduced motion:** nothing scrolls by itself. As today, rows never move or shrink; they only fade between 30% and full strength in the bands (the `reduced` branch of `applyRow()`). The CSS rule `.row{will-change:auto}` stays.
 - **Stage font:** site font. `.row-name` becomes 14px (was 12px), `.row-sub` 12px (was 10px), `.badge` and `.meta-time` 11px (were 9px and 8px), `.zone-label` 11px (was 8px).
 - **Stage:**
   - `.stage`: `position:relative;overflow-y:auto;scrollbar-width:none;background:#0b0b0d`, with `aria-label="A list of contacts"`.
-  - The rows and the zone overlay stay; the overlay's labels keep "↑ exit zone" and "↓ entry zone", and the second label's inline style moves into a `.zone-label-end` rule (`position:absolute;bottom:2px`).
+  - The rows and the zone overlay stay; the overlay's labels keep "↑ exit zone" and "↓ entry zone", and the second label's inline style moves into a `.zone-label-end` rule (`position:absolute;bottom:2px`). The overlay is the stage's first child, before the list (`.contact-list` holds only the rows): `position:sticky;top:0;height:0`, so it sticks to the top of the box, is zero tall and first in the box, and showing it moves nothing. Its two bands run from edge to edge of the box, the first on the top edge and the second ending on the bottom edge, at every scroll position (measured at five sizes; inside the padded list they sat 12px low, and 12px in from each side, near the top).
   - Each row's avatar (its initials) gets `aria-hidden="true"` in the row template, because it repeats the name (shared rule 12).
   - Phone rule kept (under 600px): `.avatar{width:32px;height:32px;font-size:11px}` (its font was 10px).
-  - In the 258px box of a 1280×590 window each band is 64px and two whole rows fit between them (measured).
+  - In the 258px box of a 1280×590 window each band is 65px and two whole rows fit between them (measured).
+  - The list ends with 70px of padding (`.contact-list{padding:12px 12px 70px}`), as much as the farthest a row can slide (the Far choice), so a row still arriving at the bottom never adds to the scroll length, which Play reads once when it starts. When the box jumps by more than half its height (Back to top, Play starting again, a dragged scrollbar), `update()` styles every row once instead of only the rows the observer has added, because a jump can bring in rows it has not added yet, still in the style they were left with; the first call counts as a jump, which gives the first picture its effect.
   - `update()` keeps the row styling; its Scroll and Visible rows readout lines go (`applyRow()` still returns whether the row is in view, unused).
   - `hb-dots`: no. Default height.
 
@@ -415,6 +416,7 @@ None: leave out the `details.hb-options` block.
 - **README Production notes:** unchanged
 - **Category line:** `01.05 · Scroll-Based`
 - **Pager:** Previous: Cover Card to Fixed Header (`../cover-card-to-fixed-header/`) · Next: Stacking Cards (`../stacking-cards/`)
+- **Final fix wave (2026-09-30):** the final category review found the zone bands 12px low near the top, because the overlay sat inside the padded list (its sticky `top:0` only took effect after 12px of scrolling, and its bands were 12px in from each side). It is now the stage's first child, `.contact-list` holds only the rows, and its `margin-bottom:-6px` (which cancelled the list's gap) is gone. Measured at five sizes: the bands sit on the box edges at every scroll position, and with the zones off every picture is identical to the page as it was. The scroll, Play and band figures above are corrected to what the page measures.
 
 ---
 
