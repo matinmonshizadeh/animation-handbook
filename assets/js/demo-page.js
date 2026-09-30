@@ -1,6 +1,6 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
- * Fills in "Your settings", Copy prompt, the README's "What it is" and "Similar
- * animations", plays the demo on arrival, replays it when a setting changes, runs
+ * Fills in "Your settings", Copy prompt (its text built by pageCopyText, which the home page uses too), the README's
+ * "What it is" and "Similar animations", plays the demo on arrival, replays it when a setting changes, runs
  * Pause and CSS slow motion on loop pages, presses Show me on do-it pages (not on arrival
  * when the visitor has already acted in the stage) and tells the page when the visitor
  * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
@@ -91,6 +91,12 @@
       .join(', ');
   }
 
+  // What Copy prompt copies: the prompt, then a blank line and "Settings from the demo: …" when the page has settings.
+  function promptWithSettings(prompt, items) {
+    var line = settingsLine(items);
+    return prompt + (line ? '\n\nSettings from the demo: ' + line + '.' : '');
+  }
+
   // The prompt as HTML with each [part to fill in] highlighted.
   function markFill(text) {
     return escapeHtml(text).replace(/\[[^\]\n]+\]/g, function (part) {
@@ -173,6 +179,17 @@
     });
   }
 
+  // What Copy prompt copies on a page, with its settings as they are now. The home page runs it on a page it has
+  // fetched and parsed, where every setting is at its default.
+  function pageCopyText(doc, win) {
+    var page = doc.querySelector('.hb-page');
+    var promptEl = page && page.querySelector('.hb-prompt');
+    if (!promptEl) return '';
+    var tryStep = page.querySelector('.hb-try');
+    var items = tryStep ? readSettings(doc, tryStep, win).filter(function (s) { return s.label && s.value; }) : [];
+    return promptWithSettings(text(promptEl), items);
+  }
+
   function boot(doc, win) {
     var page = doc.querySelector('.hb-page');
     var promptEl = page && page.querySelector('.hb-prompt');
@@ -199,10 +216,7 @@
       if (!tryStep) return [];
       return readSettings(doc, tryStep, win).filter(function (s) { return s.label && s.value; });
     }
-    function copyText() {
-      var line = settingsLine(settings());
-      return promptText + (line ? '\n\nSettings from the demo: ' + line + '.' : '');
-    }
+    function copyText() { return pageCopyText(doc, win); }
     function replay() { if (replayCtl) replayCtl.click(); }
 
     // The prompt: highlight the part to fill in; on phones show five lines until "Show the full prompt".
@@ -498,7 +512,8 @@
 
   return {
     escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
-    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, markFill: markFill, shorten: shorten,
+    paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, promptWithSettings: promptWithSettings,
+    pageCopyText: pageCopyText, markFill: markFill, shorten: shorten,
     quoteText: quoteText, motionNote: motionNote, readSettings: readSettings, boot: boot
   };
 });
