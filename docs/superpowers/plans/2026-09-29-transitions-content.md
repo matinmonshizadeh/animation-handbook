@@ -713,9 +713,14 @@ None: leave out the `details.hb-options` block.
     ```
 
   - The sentence "An "overlap" option starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time roughly in half while the two stages cross." becomes "The Overlaps the two halves setting starts the incoming sharpen at 50% of the outgoing blur instead of waiting for it to finish, cutting the total time by about a quarter while the two halves cross."
+  - The snippet also follows the page's signature and settings:
+    - The function is `doTransition(prev, next, dur, ease, maxBlur)`: the page passes the three values it read when the change started (`dur` three times as long in slow motion).
+    - It reads the two switches with `const withFade = fadeTog.checked, overlap = overlapTog.checked;` (the snippet used both names without defining them), and builds one string for both pages' `transition`: ``const t = `filter ${dur}ms ${ease}` + (withFade ? `, opacity ${dur}ms ${ease}` : '');``. Opacity is in it only when the pages fade. `o.style.transition = t;` and `n.style.transition = t;` replace the two fixed strings, which always named opacity.
+    - At the swap the old page also gets `o.style.opacity = '0'`, on the line with `o.classList.remove('active');`, as the page does.
 - **README Production notes:** the bullet "**The double `requestAnimationFrame`.** …" becomes "**Commit the start state.** Setting the pre-blur with `transition: none` and then turning the transition on needs a forced reflow in between (reading `offsetWidth`); without it the browser merges the two writes and the page pops in sharp." The rest is unchanged.
 - **Category line:** `03.08 · Page Transitions`
 - **Pager:** Previous: Flash / Light Leak Transition (`../flash-transition/`) · Next: Elastic Transition (`../elastic-transition/`)
+- **Final fix wave:** the name of the page on show carries `aria-current="page"` and the other two `"false"`, set by `updateNav()` (the same function as Dissolve's), so a screen reader hears which page is shown. The README bullet above now records the snippet as the page has it.
 
 ---
 
