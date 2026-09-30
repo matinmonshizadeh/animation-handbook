@@ -57,6 +57,7 @@ the header settles in the same time on a 30, 60 or 120Hz screen:
 
 ```js
 const dt = last ? Math.min(now - last, 50) : FRAME;  // FRAME = 1000 / 60; the first frame after a restart counts as 1/60 s
+last = now;
 current += (target - current) * (1 - Math.pow(1 - EASE, dt / FRAME));  // EASE 0.16 is the share covered in 1/60 s
 ```
 
