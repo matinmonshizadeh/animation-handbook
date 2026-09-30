@@ -1723,7 +1723,7 @@ function place(cards){
 function showCards(list){
   const grid=document.createElement('div');grid.className='grid';
   const cards=list.map(e=>CARD[e.slug]);
-  cards.forEach(c=>grid.appendChild(c));
+  cards.forEach(c=>{c.querySelector('.title').removeAttribute('aria-level');grid.appendChild(c);}); // the level All animations gives
   cardsBox.replaceChildren(grid);
   place(cards);
 }
@@ -1761,14 +1761,16 @@ function search(text){
   if(!words.length)return [];
   return ALL.map(e=>({e,s:score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||a.e.order-b.e.order).map(x=>x.e);
 }
+// All animations: a plain section per group, headed by an h3 (a section with no name adds no landmark). The card titles are
+// h3 too, so here they are set a level below the group headings; showCards() takes that away again.
 function showGroups(){
   const boxes=[],cards=[];
   CATS.forEach(cat=>{
     const list=ALL.filter(e=>e.cat===cat),box=document.createElement('section');
-    box.className='group';box.id='cat-'+slugify(cat.name);box.setAttribute('aria-labelledby',box.id+'-h');
-    box.innerHTML=`<h3 class="ghead" id="${box.id}-h"><span class="gnum">${cat.n}</span><span class="gname">${esc(cat.name)}</span><span class="gcount">${list.length} animations</span></h3>`;
+    box.className='group';box.id='cat-'+slugify(cat.name);
+    box.innerHTML=`<h3 class="ghead"><span class="gnum">${cat.n}</span><span class="gname">${esc(cat.name)}</span><span class="gcount">${list.length} animations</span></h3>`;
     const grid=document.createElement('div');grid.className='grid';
-    list.forEach(e=>{grid.appendChild(CARD[e.slug]);cards.push(CARD[e.slug]);});
+    list.forEach(e=>{const c=CARD[e.slug];c.querySelector('.title').setAttribute('aria-level','4');grid.appendChild(c);cards.push(c);});
     box.appendChild(grid);boxes.push(box);
   });
   cardsBox.replaceChildren(...boxes);
