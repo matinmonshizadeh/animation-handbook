@@ -115,7 +115,7 @@ These decisions and the category rules below read the same in part 1 and part 2.
 - **Good for:** Hero scenes · Story intros · Illustrated landscapes · **Avoid on:** Large photos · Text-heavy pages
 - **Prompt:**
 
-  > Add a parallax depth-of-field effect to [your layered scene or illustration]. Split the scene into layers from far to near and hold it in place while the visitor scrolls through a taller section. As they scroll, move each layer by an amount that grows with its nearness, and move a point of sharp focus from the farthest layer to the nearest: blur each layer by how far it sits from that focus. Ease the layers toward the scroll position on every frame, so a mouse wheel's jumps turn into smooth movement. If the visitor has reduced motion turned on, keep the layers still and only shift the focus.
+  > Add a parallax depth-of-field effect to [your layered scene or illustration]. Split the scene into layers from far to near and hold it in place while the visitor scrolls through a taller section. As they scroll, move each layer by an amount that grows with its nearness, and move a point of sharp focus from the farthest layer to the nearest: blur each layer by how far it sits from that focus. Ease the layers toward the scroll position on every frame by a share of the distance left, exponential in the time since the last frame, so a wheel's jumps turn into smooth movement at the same pace on every screen. If the visitor has reduced motion turned on, keep the layers still and only shift the focus.
 
 - **Copy prompt hint:** "Replace the words in brackets with your own scene."
 - **README What it is:** rewritten:
@@ -129,17 +129,18 @@ These decisions and the category rules below read the same in part 1 and part 2.
   | Focus | Follows the scroll | Sharp on the sky at the top of the scroll and on the front ridge at the end; each layer blurs by its distance from it |
   | Strongest blur | 14px (8px on phones) | The blur of a layer as far from the focus as a layer can be |
   | Layer travel | 19% of the box's height (12.5% on phones) | What the layers' sinking is measured against: over the whole scroll the front ridge sinks 70% of it, the hills 45%, the mountains 25%, the far peaks 10% and the sky not at all |
-  | Easing | 14% a frame | How much of the remaining distance the layers cover each frame; lower is smoother but lags more |
+  | Easing | 14% per sixtieth of a second | How much of the remaining distance the layers cover in a sixtieth of a second; a longer frame covers more, so the layers settle in the same time on every screen; lower is smoother but lags more |
   | Pinned scene | Three box heights of scrolling | How much scrolling the whole focus pull takes |
 
 - **README See also:**
   - [Parallax Scrolling](../parallax-scrolling/) — the same layered depth, without the blur
   - [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — columns move against each other as you scroll
-- **README How it works:** unchanged
+- **README How it works:** unchanged, except that the frame-rate fix (below) changes the easing snippet (`dt` and `last`, and `1 - Math.pow(1 - EASE, dt / FRAME)` in place of `current += (target - current) * EASE`) and adds a paragraph after it on `EASE`, `dt` and the 50ms cap.
 - **README Production notes:** unchanged
 - **Category line:** `01.01 · Scroll-Based`
 - **Pager:** Previous: none · Next: Parallax Scrolling (`../parallax-scrolling/`)
 - **Final fix wave (Scroll-Based final review, 2026-09-30).** A `click` listener on the document, for `#btn-top` and `#btn-scroll` (by id, as Velocity Skew and SVG Line Draw do), runs `onScroll(); current = target; render(current);`, so the layers stand at the box's new position in the same click instead of easing back over the whole focus pull. The shared script has already moved the box when the click reaches the document. README How it works gains a paragraph saying so.
+- **Frame-rate fix (wrap-up):** `tick(now)` eases by `current += diff * (1 - Math.pow(1 - EASE, dt / FRAME))`, with `EASE = 0.14` (the share covered in 1/60 s), `FRAME = 1000/60` and `dt = last ? Math.min(now - last, 50) : FRAME`. `schedule()` sets `last = 0` when it re-arms the parked loop, so the first frame after a restart counts as 1/60 s. The layers settle in the same time on a 30, 60 or 120 Hz screen (95% of the way in about a third of a second), where a fixed 14% a frame settled twice as fast at 120 Hz and half as fast at 30 Hz. At 60 Hz nothing changes. The prompt and the Easing row of Key parameters (above) say so in plain words.
 
 ---
 
@@ -346,12 +347,13 @@ None: leave out the `details.hb-options` block.
 - **README How it works:**
   - The sentence above the second snippet, "Eight properties are then interpolated against `e`", becomes "The cover's visible height and seven other values are then worked out from `e`", and in the snippet `cover.style.height         = lerp(530, 56, e) + 'px';` becomes two lines (the cover moves with transforms, final review): `const h = lerp(FULL, 56, e), d = FULL - h;   // FULL: 85% of the box's height` and ``cover.style.transform = `translateY(${-d}px)`;   // the cover keeps its full height and slides up``.
   - In the same snippet, the comment `// also coverSub, coverCode` becomes `// also coverSub`.
-  - The spacer sentence ("A `flex: 1` spacer inside the cover pushes content to the bottom …") becomes: "Nothing is resized: the cover keeps its full height in the layout and slides up by what it has shrunk, and the article slides with it; the badge and the backdrop are moved back into the visible part, and once the cover is shorter than its text the text starts at the top of the bar. Back to top and Play from the end set the eased value at once." (final review)
+  - The spacer sentence ("A `flex: 1` spacer inside the cover pushes content to the bottom …") becomes: "Nothing is resized: the cover keeps its full height in the layout and slides up by what it has shrunk, and the article slides with it; the badge and the backdrop are moved back into the visible part, and once the cover is shorter than its text the text starts at the top of the bar." (final review). The frame-rate fix (below) then adds a paragraph, "The scroll does not set `e` itself: it sets a target, and a loop moves the value that is drawn toward it, so a wheel notch glides instead of jumping. Each frame covers a share of the distance left that depends on how long the frame took, so the header settles in the same time on a 30, 60 or 120Hz screen:", and a three-line snippet after it (`dt`, `last` and `current += (target - current) * (1 - Math.pow(1 - EASE, dt / FRAME))`), and the sentence "Back to top and Play from the end set the eased value at once." comes last.
   - The rest is unchanged.
 - **README Production notes:** the bullet "The height animation triggers layout" becomes "**Move the cover; never animate its `height`.** Writing `height` lays the page out every frame. Keep the cover at full height, slide it and the content below with `translateY()`, and squeeze the backdrop with `scaleY()` from its top edge — as the demo does." (final review). The scroll-anchoring bullet gains "This demo moves the cover with transforms, so scrolling never changes its height; the rule stays as a guard for when the box is measured again after a resize." The rest is unchanged.
 - **Category line:** `01.04 · Scroll-Based`
 - **Pager:** Previous: Reverse-Scrolling Columns (`../reverse-scrolling-columns/`) · Next: Fly-in Fly-out Contact List (`../fly-in-fly-out-contact-list/`)
 - **Final fix wave (Scroll-Based final review, 2026-09-30).** The cover no longer animates `height`: it keeps its full height in the layout and moves with transforms (the cover-height bullet under Stage, above), so a scroll lays the page out about twice in 150 frames at 4× CPU throttling in a phone-sized box, down from 75. `overflow-anchor:none` stays as a guard: the first Stage bullet's reason now applies when `measure()` writes the cover's height after a resize. A click on Back to top or Play sets the eased value at once, so the cover does not open again after a jump (`render(current)` runs in the same click). `#header-chip` is `aria-hidden`. `index.html` grows from 299 to 308 lines.
+- **Frame-rate fix (wrap-up):** `tick(now)` eases by `current += d * (1 - Math.pow(1 - EASE, dt / FRAME))`, with `EASE = 0.16` (the share covered in 1/60 s), `FRAME = 1000/60` and `dt = last ? Math.min(now - last, 50) : FRAME`. `schedule()` sets `last = 0` when it re-arms the parked loop, so the first frame after a restart counts as 1/60 s. The header settles in the same time on a 30, 60 or 120 Hz screen (95% of the way in about 0.3 s), where a fixed 16% a frame settled twice as fast at 120 Hz and half as fast at 30 Hz. At 60 Hz nothing changes. Back to top and Play from the end still set the eased value at once. The prompt and Key parameters say nothing per frame and are unchanged.
 
 ---
 
