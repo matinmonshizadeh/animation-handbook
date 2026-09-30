@@ -935,7 +935,11 @@ None: leave out the `details.hb-options` block.
   - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
   - [Toggle / Switch Slide](../toggle-switch/) — another small control that animates its state
 - **README How it works:** unchanged
-- **README Production notes:** unchanged
+- **README Production notes:** unchanged, except the last sentence of the Touch targets bullet (final fix wave, below)
+- **Final fix wave (after the category review):**
+  - The row's focus rule keeps a transparent outline: `.stage .rate:focus-visible{outline:2px solid transparent;…}` in place of `outline:none`, as on Segmented Control. Forced-colors mode removes `box-shadow`, so the row had no focus ring there; now the outline shows as a ring in the system colour. Other browsers show the same box-shadow ring as before.
+  - The rule that wraps more than five stars into two equal rows now covers windows up to 870px wide (was 845px). With classic scrollbars, ten stars wrapped nine and one between 846px and 863px: they fit one row from 864px (846px without scrollbars), and 870px leaves room for wider scrollbars. Up to 870px ten stars now sit in two rows of five.
+  - README Touch targets: the last sentence no longer says hover styling is gated behind `(hover: hover)`, because the page has had no `:hover` rule since 89c0379. It says there is no CSS `:hover` style, so nothing stays painted after a tap, that the preview comes from `pointermove`, and that a finger's drag asks `document.elementFromPoint` which star is under it.
 - **Category line:** `04.26 · Micro-Interactions`
 - **Pager:** Previous: Copy to Clipboard (`../copy-to-clipboard/`) · Next: Toast Notification (`../toast-notification/`)
 
