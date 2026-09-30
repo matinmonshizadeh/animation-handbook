@@ -133,13 +133,19 @@ async function removeProfile() {
   }
   console.error(`Could not remove the temporary Chrome profile: ${profile}`);
 }
-// chrome.kill() ends the browser process only. On Windows its helper processes (renderers, the crash handler) then live on
-// for a long while on a busy machine, so the whole tree is ended (while the browser process is still there to name it).
+// chrome.kill() ends the browser process only. Its helper processes (renderers, the GPU and utility processes, the crash
+// handler) then live on for a long while on a busy machine, so on Windows they are ended too, picked by this run's own profile
+// folder in their command line (its name has a random part). Not by walking the process tree from Chrome's PID, as taskkill /T
+// does: a process keeps the PID of a parent that died long ago and PIDs are reused, so that walk can reach unrelated processes.
+// The folder goes to the script through the environment, so no quoting can go wrong.
 function stopChrome() {
-  if (process.platform === 'win32' && chrome.pid && chrome.exitCode === null) {
-    try { execFileSync('taskkill', ['/PID', String(chrome.pid), '/T', '/F'], { stdio: 'ignore', timeout: 10000 }); return; } catch {}
-  }
   chrome.kill();
+  if (process.platform !== 'win32') return;
+  try {
+    execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+      `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -and $env:HB_PROFILE -and $_.CommandLine.Contains($env:HB_PROFILE) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`],
+      { stdio: 'ignore', timeout: 20000, windowsHide: true, env: { ...process.env, HB_PROFILE: profile } });
+  } catch {}
 }
 // Port 0: Chrome picks a free port and writes it into DevToolsActivePort in its profile folder,
 // so a Chrome left over from an earlier run can never be picked up by mistake.
