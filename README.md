@@ -6,6 +6,8 @@
 
 **A visual reference of 158 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
 
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="docs/demo.gif" alt="Screen recording: pressing Buttons on the home page brings up cards with live animations, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820"></a>
+
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-158-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
