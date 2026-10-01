@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expanding Search — Animation Handbook</title>
+  <meta name="description" content="A search icon opens into a field you can type in, and closes when done. Best for toolbars.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/expanding-search/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Expanding Search — Animation Handbook">
+  <meta property="og:description" content="A search icon opens into a field you can type in, and closes when done. Best for toolbars.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/expanding-search/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Expanding Search — Animation Handbook">
+  <meta name="twitter:description" content="A search icon opens into a field you can type in, and closes when done. Best for toolbars.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Expanding Search", "name": "Expanding Search", "description": "A search icon opens into a field you can type in, and closes when done. Best for toolbars.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/expanding-search/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Expanding Search"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-dim:#adadb2;--ui-muted:#9a9aa2;--bar-bg:#16161b;--field:#232329;--dur:280ms;--ease:cubic-bezier(.22,1,.36,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:clamp(12px,3vw,24px);background:#0b0b0d}
+    /* A small app window: a toolbar with the search, and the page under it */
+    .app{width:100%;max-width:520px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-bg);overflow:hidden}
+    .bar{display:flex;align-items:center;gap:12px;height:60px;padding:0 8px 0 16px;border-bottom:1px solid var(--ui-border);background:var(--bar-bg)}
+    .brand{flex:none;display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800}
+    .brand i{width:18px;height:18px;border-radius:5px;background:var(--ui-accent)}
+    .tools{position:relative;flex:1;min-width:0;height:44px;display:flex;align-items:center}
+    .links{display:flex;min-width:0;overflow:hidden;transition:opacity var(--dur) var(--ease)}
+    .links span{padding:0 10px;font-size:14px;line-height:44px;color:var(--ui-dim);white-space:nowrap}
+    .bar.open .links{opacity:0}
+    /* The icon sits at the end the field grows from: the right end (Left), or first, beside the logo (Right) */
+    .sbtn{position:relative;z-index:1;order:2;margin-left:auto;flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background-color:var(--field);color:var(--ui-text);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--dur) var(--ease)}
+    .to-right .sbtn{order:-1;margin:0 4px 0 0}
+    /* Open, the icon stays on top but turns see-through and lets presses through, while its glass turns away as the field's cross turns in */
+    .bar.open .sbtn{background-color:transparent;pointer-events:none}
+    .sbtn svg{transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+    .bar.open .sbtn svg{opacity:0;transform:rotate(90deg) scale(.6)}
+    .bar svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    /* The field is always full size. Closed, a clip shows only the 44px circle over the icon; open, the clip lets all of it
+       show. visibility waits for the closing clip to end, then takes the field out of reach of the mouse and the Tab key. */
+    .sfield{position:absolute;inset:0;display:flex;align-items:center;border-radius:22px;background:var(--field);visibility:hidden;
+      clip-path:inset(0 0 0 calc(100% - 44px) round 22px);transition:clip-path var(--dur) var(--ease),visibility 0s linear var(--dur)}
+    .to-right .sfield{clip-path:inset(0 calc(100% - 44px) 0 0 round 22px)}
+    .bar.open .sfield{visibility:visible;clip-path:inset(0 round 22px);transition:clip-path var(--dur) var(--ease),visibility 0s}
+    /* The field draws the focus ring for its text box, so the site ring (0,3,0 inside the stage) is switched off on the box */
+    .sfield:focus-within,.bar.is-demo .sfield{box-shadow:inset 0 0 0 2px var(--ui-accent)}
+    .hb-page .stage .sfield input:focus-visible{outline:none}
+    .glass{flex:none;display:grid;place-items:center;width:44px;color:var(--ui-muted)}
+    .sfield input{flex:1;min-width:0;height:100%;border:0;background:none;color:var(--ui-text);font:inherit;font-size:15px;outline:none;-webkit-appearance:none;appearance:none}
+    .sfield input::placeholder{color:var(--ui-muted);opacity:1}
+    .sfield input::-webkit-search-cancel-button{display:none}
+    .sclose{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--ui-text);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s}
+    .sclose svg{transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+    .bar:not(.open) .sclose svg{opacity:0;transform:rotate(-90deg) scale(.6)}
+    .sclose.hit{background:rgba(255,255,255,.12)}
+    @media(hover:hover){.sbtn:hover{background-color:#2c2c33}.sclose:hover{background:rgba(255,255,255,.08)}}
+    .page{display:flex;flex-direction:column;gap:10px;padding:22px 16px 26px}
+    .page b{width:45%;height:14px;border-radius:4px;background:#2a2a31}
+    .page i{height:9px;border-radius:3px;background:#1f1f25}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    /* Phones: two links, and on the narrowest the logo without its name, so the open field has room for its text */
+    @media(max-width:420px){.links span:nth-child(3){display:none}}
+    @media(max-width:360px){.brand span{display:none}}
+    /* Phones zoom the page in on a field with type smaller than 16px */
+    @media(pointer:coarse){.sfield input{font-size:16px}}
+    @media(prefers-reduced-motion:reduce){.links,.sbtn,.sbtn svg,.sfield,.bar.open .sfield,.sclose,.sclose svg{transition:none!important}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../hold-to-confirm/" rel="prev" aria-label="Previous: Hold to Confirm"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Hold to Confirm</span></a><a href="../button-loading-states/" rel="next" aria-label="Next: Button Loading States"><span><span class="hb-dir">Next: </span>Button Loading States</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.37 · Micro-Interactions</p>
+    <h1>Expanding Search</h1>
+    <p class="hb-lede">A search icon opens into a field you can type in, and closes when done. Best for toolbars.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the search icon and type; press Escape, the close button or click away to close it. Or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="app">
+        <div class="bar" id="bar">
+          <span class="brand"><i aria-hidden="true"></i><span>Acme</span></span>
+          <div class="tools">
+            <div class="links" aria-hidden="true"><span>Docs</span><span>Blog</span><span>Pricing</span></div>
+            <button class="sbtn" id="sbtn" type="button" aria-label="Search" aria-expanded="false" aria-controls="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+            <div class="sfield" id="sfield" role="search">
+              <span class="glass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
+              <label class="sr-only" for="q">Search the docs</label>
+              <input id="q" type="search" placeholder="Search docs…" autocomplete="off" spellcheck="false">
+              <button class="sclose" id="sclose" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="page" aria-hidden="true"><b></b><i></i><i></i><i style="width:62%"></i></div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="side-lbl">Opens toward</p>
+        <div class="seg" id="side-seg" role="group" aria-labelledby="side-lbl">
+          <button type="button" data-side="left" class="on" aria-pressed="true">Left</button>
+          <button type="button" data-side="right" aria-pressed="false">Right</button>
+        </div>
+        <p class="hb-hint">Which way the field grows out of the icon.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="450" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="280" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="160" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly the field opens and closes.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Closes when you leave it</span><input class="hb-switch" type="checkbox" role="switch" id="leave-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Off keeps it open until Escape or the close button.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an expanding search to [the toolbar or header where search should sit]. Show only a search icon until it is pressed; then open a search field out of the icon, over the items beside it, and put the text cursor in it. Reveal the field with a clip or a scale from the icon's side, never by animating its width, so nothing around it moves. Escape or a close button closes it and gives the focus back to the icon, and a closed field stays out of the Tab order. Make the icon a real button with a label. If the visitor has reduced motion turned on, open and close it at once. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Toolbars</li><li>Mobile headers</li><li>Docs sites</li><li>Dashboards</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Sites where search comes first</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const stage=document.querySelector('.stage'),bar=$('bar'),sbtn=$('sbtn'),field=$('sfield'),input=$('q'),sclose=$('sclose'),leaveTog=$('leave-tog'),slowTog=$('slow-tog');
+  const vars=document.documentElement.style;
+  // Everything that eases between closed and open; toRest() switches these transitions off for a moment
+  const moving=[field,sbtn,...bar.querySelectorAll('.sbtn svg,.sclose,.sclose svg,.links')];
+  const word='pricing';
+  let dur=280,runTimers=[],downInField=false;
+
+  // Open: the field shows and, when the visitor opened it, takes the focus. The icon under it is out of reach (inert) while it is open.
+  function open(focus){
+    bar.classList.add('open');sbtn.setAttribute('aria-expanded','true');sbtn.inert=true;
+    if(focus)input.focus({preventScroll:true});
+  }
+  // Close: the clip closes the field over the icon again; with Escape or the close button the focus goes back to the icon.
+  function close(focusIcon){
+    bar.classList.remove('open','is-demo');sbtn.setAttribute('aria-expanded','false');sbtn.inert=false;
+    if(focusIcon)sbtn.focus({preventScroll:true});
+  }
+  sbtn.addEventListener('click',()=>open(true));
+  sclose.addEventListener('click',()=>close(true));
+  field.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close(true)}});
+  // Leaving it: the focus moves to anything outside the field (a click elsewhere or Tab). Escape and the close button have
+  // already closed it by then.
+  field.addEventListener('focusout',e=>{
+    if(leaveTog.checked&&bar.classList.contains('open')&&!field.contains(e.relatedTarget))close(false);
+  });
+  // A press on the field around the text box (its glass or its edge) puts the cursor in the box instead of taking the focus away
+  field.addEventListener('mousedown',e=>{if(e.target!==input&&!sclose.contains(e.target)){e.preventDefault();input.focus({preventScroll:true})}});
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];sclose.classList.remove('hit')}
+  // A run starts closed and empty, put there without animating: the transitions are turned off, the state is set, a reflow
+  // makes it stick, and the transitions come back.
+  function toRest(){
+    moving.forEach(el=>{el.style.transition='none'});
+    close(false);sclose.classList.remove('hit');input.value='';
+    void bar.offsetWidth;
+    moving.forEach(el=>{el.style.transition=''});
+  }
+  // The field opens and looks focused (is-demo) without taking the real focus, "pricing" is typed a letter every 80ms, and after a
+  // pause it closes the way the settings say: the focus look leaves (Closes when you leave it) or the close button is pressed. At
+  // Normal speed it is closed again at 2.4 s. A real press on Show me lets go of a field that still has the focus (this also closes
+  // the phone keyboard); the press on arrival leaves a visitor who is already in the field alone.
+  $('btn-demo').addEventListener('click',e=>{
+    const inStage=stage.contains(document.activeElement);
+    if(!e.isTrusted&&(inStage||bar.classList.contains('open')))return;
+    stopRun();
+    if(inStage)document.activeElement.blur();
+    toRest();
+    later(()=>{bar.classList.add('is-demo');open(false)},0,150);
+    [...word].forEach((_,k)=>later(()=>{input.value=word.slice(0,k+1)},dur,350+80*k));
+    const t=350+80*word.length+700;
+    if(leaveTog.checked)later(()=>bar.classList.remove('is-demo'),dur,t);
+    else later(()=>sclose.classList.add('hit'),dur,t);
+    later(()=>{sclose.classList.remove('hit');close(false)},dur,t+200);
+    later(()=>{input.value=''},2*dur,t+250);
+  });
+  $('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A press on the field, open or still closing, or
+  // input while the focus is in it takes it over (it stays open with the run's text and the focus); any other input closes and empties it.
+  stage.addEventListener('pointerdown',e=>{downInField=field.contains(e.target)},true);
+  document.addEventListener('hb:input',e=>{
+    if(!running())return;
+    stopRun();
+    if((e.detail.type==='pointerdown'&&downInField)||field.contains(document.activeElement)){bar.classList.remove('is-demo');open(false);return}
+    close(false);input.value='';
+  });
+  // Focus that comes into the field while the run goes on (Shift+Tab from Show me lands on its close button) takes it over the same way
+  field.addEventListener('focusin',()=>{if(running()){stopRun();bar.classList.remove('is-demo');open(false)}});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('side-seg',d=>{bar.classList.toggle('to-right',d.side==='right')});
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
+</script>
+</body>
+</html>

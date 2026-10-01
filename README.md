@@ -166,6 +166,9 @@ All 129 techniques, each linked to its live demo.
 - **[Drag to Reorder](animations/04-micro-interactions/drag-to-reorder/)** — Drag an item and the others slide aside to make room. Best for to-do lists.
 - **[Rolling Numbers](animations/04-micro-interactions/rolling-numbers/)** — Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.
 - **[Typing Indicator](animations/04-micro-interactions/typing-indicator/)** — Three dots in a chat bubble move in turn while someone types. Best for chat apps.
+- **[Hold to Confirm](animations/04-micro-interactions/hold-to-confirm/)** — A button fills up while you hold it and acts only once it is full. Best for delete buttons.
+- **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field you can type in, and closes when done. Best for toolbars.
+- **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.
 
 </details>
 

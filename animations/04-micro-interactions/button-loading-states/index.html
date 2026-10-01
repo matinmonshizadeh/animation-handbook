@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Loading States — Animation Handbook</title>
+  <meta name="description" content="The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/button-loading-states/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Button Loading States — Animation Handbook">
+  <meta property="og:description" content="The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/button-loading-states/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Button Loading States — Animation Handbook">
+  <meta name="twitter:description" content="The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Button Loading States", "name": "Button Loading States", "description": "The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/button-loading-states/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Button Loading States"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-muted:#9a9aa2;--ink:#0b0b0d;--ok:#3fb950;--err:#f85149;--dur:300ms;--ease:cubic-bezier(.22,1,.36,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .card{width:100%;max-width:320px;display:flex;flex-direction:column;gap:14px;padding:20px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-bg)}
+    .title{font-size:15px;font-weight:700}
+    .msg{padding:12px 14px;border-radius:8px;background:#1b1b20;font-size:14px;line-height:1.45;color:#d6d6da}
+    .shaker.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97)}
+    @keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+    /* The button keeps its full size in the layout. What it looks like is the .bg layer: a clip shrinks it to a circle (round),
+       so nothing around the button moves, and its color crossfades to green or red with the result. */
+    .sbtn{position:relative;display:grid;place-items:center;width:100%;height:52px;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+    .sbtn:active:not([aria-disabled="true"]),.sbtn.down{transform:scale(.97)}
+    .sbtn[aria-disabled="true"]{cursor:default}
+    .bg{position:absolute;inset:0;border-radius:26px;background-color:var(--ui-accent);clip-path:inset(0 0 round 26px);transition:clip-path var(--dur) var(--ease),background-color var(--dur) var(--ease)}
+    .sbtn.round .bg{clip-path:inset(0 calc(50% - 26px) round 26px)}
+    .sbtn.ok .bg{background-color:var(--ok)}
+    .sbtn.err .bg{background-color:var(--err)}
+    /* The words: Submit at rest. The other three show only under reduced motion, where they take the icons' place. */
+    .words{position:relative;display:grid}
+    .words span{grid-area:1/1;text-align:center;white-space:nowrap;transition:opacity var(--dur) var(--ease)}
+    .l-busy,.l-ok,.l-err,.sbtn:is(.busy,.ok,.err) .l-rest{opacity:0}
+    .ico{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+    .ico>*{grid-area:1/1}
+    .spin{width:22px;height:22px;border-radius:50%;border:3px solid rgba(11,11,13,.25);border-top-color:var(--ink);opacity:0;transition:opacity var(--dur) var(--ease)}
+    /* The spinner turns only while the button is busy, so nothing on the stage moves at rest */
+    .sbtn.busy .spin{opacity:1;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .ico svg{width:26px;height:26px;fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .ico path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset var(--dur) var(--ease)}
+    .sbtn.ok .tick path,.sbtn.err .cross path{stroke-dashoffset:0}
+    .sbtn.err .cross path+path{transition-delay:calc(var(--dur)*.4)}
+    /* Focus: a ring outside the button (its color layer would cover the site's inward ring), and around the circle once it is round */
+    .hb-page .stage .sbtn:focus-visible{outline-color:#f4f4f2;outline-offset:3px}
+    .hb-page .stage .sbtn.round:focus-visible{outline-color:transparent}
+    .ring{position:absolute;top:-5px;bottom:-5px;left:calc(50% - 31px);width:62px;border:2px solid #f4f4f2;border-radius:50%;opacity:0;pointer-events:none}
+    .sbtn.round:focus-visible .ring{opacity:1}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    /* Reduced motion: the button keeps its shape, nothing turns or shakes, and the words say what the icons would show */
+    @media(prefers-reduced-motion:reduce){
+      .sbtn,.bg,.words span,.spin,.ico path{transition:none!important}
+      .sbtn .bg,.sbtn.round .bg{clip-path:none}
+      .ico{display:none}
+      .shaker.shake{animation:none}
+      .sbtn.busy .l-busy,.sbtn.ok .l-ok,.sbtn.err .l-err{opacity:1}
+    }
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../expanding-search/" rel="prev" aria-label="Previous: Expanding Search"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Expanding Search</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.38 · Micro-Interactions</p>
+    <h1>Button Loading States</h1>
+    <p class="hb-lede">The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Submit and wait for the answer, or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="card">
+        <p class="title">Send feedback</p>
+        <p class="msg">The new dashboard is much faster. Thank you!</p>
+        <div class="shaker" id="shaker">
+          <button class="sbtn" id="sbtn" type="button">
+            <span class="bg" aria-hidden="true"></span>
+            <span class="words"><span class="l-rest">Submit</span><span class="l-busy" aria-hidden="true">Sending…</span><span class="l-ok" aria-hidden="true">✓ Sent</span><span class="l-err" aria-hidden="true">✕ Not sent</span></span>
+            <span class="ico" aria-hidden="true">
+              <span class="spin"></span>
+              <svg class="tick" viewBox="0 0 24 24"><path pathLength="1" d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+              <svg class="cross" viewBox="0 0 24 24"><path pathLength="1" d="M7 7l10 10"/><path pathLength="1" d="M17 7 7 17"/></svg>
+            </span>
+            <span class="ring" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+      <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="result-lbl">Result</p>
+        <div class="seg" id="result-seg" role="group" aria-labelledby="result-lbl">
+          <button type="button" data-r="ok" class="on" aria-pressed="true">Success</button>
+          <button type="button" data-r="err" aria-pressed="false">Error</button>
+        </div>
+        <p class="hb-hint">Error shows a cross on red and a small shake.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="500" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="300" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="180" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly the shape, the color and the icon change.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shrinks to a circle</span><input class="hb-switch" type="checkbox" role="switch" id="round-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Off keeps the button's shape and changes only what is inside.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="wait-lbl">How long it loads</p>
+          <div class="seg" id="wait-seg" role="group" aria-labelledby="wait-lbl">
+            <button type="button" data-ms="700" aria-pressed="false">Short</button>
+            <button type="button" data-ms="1200" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-ms="2200" aria-pressed="false">Long</button>
+          </div>
+          <p class="hb-hint">How long the spinner turns before the answer comes.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add loading states to [the button that sends a form or saves something]. When it is pressed, fade its label out, show a spinner in its place and ignore further presses until it is done. When the answer comes, swap the spinner for a tick, or for a cross with a short shake if it failed, then bring the label back after a moment. When the settings ask for it, shrink the button's colored shape into a circle around the spinner with a clip, never by animating its width, so nothing around it moves. Announce each change to screen readers. If the visitor has reduced motion turned on, keep the shape and change the label's words instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Save buttons</li><li>Contact forms</li><li>Checkout</li><li>Sign-up forms</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Instant actions</li><li>Long uploads</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const btn=$('sbtn'),shaker=$('shaker'),statusEl=$('status'),roundTog=$('round-tog'),slowTog=$('slow-tog');
+  const reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
+  const vars=document.documentElement.style;
+  // Everything that eases between two looks; toRest() switches these transitions off for a moment
+  const easing=[btn,...btn.querySelectorAll('.bg,.words span,.spin,.ico path')];
+  let result='ok',dur=300,waitMs=1200,state='rest',seqTimers=[],runTimers=[],quiet=false;
+
+  // wait(list, fn, move, hold) runs fn after move*(slow?3:1) + hold ms and keeps its timer in list (seqTimers for the submit itself,
+  // runTimers for Show me's press): Slow motion triples the movement, never the hold.
+  function wait(list,fn,move,hold){
+    const id=setTimeout(()=>{list.splice(list.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);
+    list.push(id);
+  }
+  function say(text){if(!quiet)statusEl.textContent=text}
+  // Pressed: the label goes, the spinner turns (in a circle when Shrinks to a circle is on) and further presses are ignored. After
+  // the shape change and How long it loads, the answer comes. Show me's press comes through here too, but says nothing aloud.
+  function submit(fromRun){
+    if(state!=='rest')return;
+    state='busy';quiet=fromRun;
+    btn.setAttribute('aria-disabled','true');
+    btn.classList.add('busy');
+    btn.classList.toggle('round',roundTog.checked&&!reduceMq.matches);
+    say('Sending…');
+    wait(seqTimers,answer,dur,waitMs);
+  }
+  // The answer: a tick on green, or a cross on red with a shake (Result). It shows for a second, then the label comes back.
+  function answer(){
+    state=result;
+    btn.classList.remove('busy');btn.classList.add(result);
+    if(result==='err'&&!reduceMq.matches){shaker.classList.remove('shake');void shaker.offsetWidth;shaker.classList.add('shake')}
+    say(result==='ok'?'Feedback sent.':'Not sent. Please try again.');
+    wait(seqTimers,back,dur,1000);
+  }
+  function back(){
+    btn.classList.remove('ok','err','round');
+    wait(seqTimers,()=>{state='rest';btn.removeAttribute('aria-disabled')},dur,0);
+  }
+  shaker.addEventListener('animationend',()=>shaker.classList.remove('shake'));
+  btn.addEventListener('click',()=>submit(false));
+
+  // Show me: one run at a time. Its own timers (the press) go in runTimers; the answer and the way back then follow by themselves.
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];btn.classList.remove('down')}
+  // A run starts from Submit at rest, put there without animating: the transitions are turned off, the state is cleared, a
+  // reflow makes it stick, and the transitions come back.
+  function toRest(){
+    seqTimers.forEach(clearTimeout);seqTimers=[];
+    easing.forEach(el=>{el.style.transition='none'});
+    btn.classList.remove('busy','ok','err','round','down');shaker.classList.remove('shake');
+    btn.removeAttribute('aria-disabled');statusEl.textContent='';state='rest';
+    void btn.offsetWidth;
+    easing.forEach(el=>{el.style.transition=''});
+  }
+  // The button is pressed down at 150ms and let go at 270ms. At the defaults the answer shows at 1.8 s and Submit is back at 3.4 s.
+  // The arrival press leaves alone a Submit the visitor has already pressed.
+  $('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&state!=='rest')return;
+    stopRun();toRest();
+    wait(runTimers,()=>btn.classList.add('down'),0,150);
+    wait(runTimers,()=>{btn.classList.remove('down');submit(true)},0,270);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the press of the run is called off. A submit that has
+  // started finishes as usual.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('result-seg',d=>{result=d.r});
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
+  choices('wait-seg',d=>{waitMs=+d.ms});
+</script>
+</body>
+</html>
