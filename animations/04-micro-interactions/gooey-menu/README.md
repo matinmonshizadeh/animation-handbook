@@ -43,6 +43,7 @@ The upper layer holds the real buttons: a see-through round button whose plus tu
 ```js
 function setOpen(on) {
   gm.classList.toggle('open', on);
+  group.inert = !on;                      // closed: out of reach of Tab and clicks at once, while the buttons still fade
   main.setAttribute('aria-expanded', String(on));
   main.setAttribute('aria-label', on ? 'Close menu' : 'Open menu');
 }
