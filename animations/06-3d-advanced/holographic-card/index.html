@@ -24,28 +24,28 @@
     :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;display:grid;place-items:center;background:radial-gradient(70% 70% at 50% 45%,#221a40,#08070d);perspective:1000px}
-    /* The card is four layers in one 5:7 box: the picture, the foil, the glare and the text panels. The script turns it toward the
-       pointer and moves the foil and the glare inside it; only transform and opacity change. It stays flat (its layers drawn into
-       its own plane, where the foil's blend mode mixes it with the picture) except while Shows the layers spreads them apart in 3D. */
+    /* The card is four layers in one 5:7 box: picture, foil, glare, text panels. The script turns it toward the pointer and moves the
+       foil and glare in it (only transform and opacity); it stays flat, its blend modes mixing its layers, except in Shows the layers. */
     .card{position:relative;height:min(84%,380px);aspect-ratio:5/7;border-radius:12px;touch-action:none;will-change:transform;
       box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 50px -14px rgba(0,0,0,.8)}
     .ly{position:absolute;inset:0;border-radius:inherit;overflow:hidden;overflow:clip}
     .art svg{display:block;width:100%;height:100%}
     /* The foil: a sheet of rainbow streaks twice the card's size, slid by the script. Color dodge brightens the picture under each
-       streak and leaves it alone under the clear gaps. Glitter and Lines let it through tiny dots or fine lines only. */
-    .foil{mix-blend-mode:color-dodge}
-    .sheen{position:absolute;inset:-50%;will-change:transform;background:repeating-linear-gradient(118deg,transparent 0%,#f0648c 3%,#f4c35e 6%,#71e2a2 9%,#5ac2f4 12%,#a888f6 15%,transparent 18%,transparent 21%)}
-    .card[data-foil=glitter] .foil{-webkit-mask:var(--dots);mask:var(--dots)}
-    .card[data-foil=lines] .foil{-webkit-mask:var(--lines);mask:var(--lines)}
-    /* Dots in six tile sizes that share no pattern for hundreds of pixels, so they look scattered, not set in a grid. They are kept on
-       the foil, the one layer that uses them, so turning the card (a new style for it every frame) does not resolve them again. */
-    .foil{--d:#000 0 1px,transparent 1.7px;--dots:radial-gradient(circle at 30% 40%,var(--d)) 0 0/17px 23px,radial-gradient(circle at 75% 15%,var(--d)) 0 0/23px 19px,
+       streak and leaves it alone under the clear gaps. Glitter and Lines let it through dots or fine lines only; the dots come in six
+       tile sizes that share no pattern for hundreds of pixels, so they look scattered, not set in a grid (they are kept on the foil,
+       the one layer that uses them, so the card's new style every frame does not resolve them again). */
+    .foil{mix-blend-mode:color-dodge;--d:#000 0 1px,transparent 1.7px;--dots:radial-gradient(circle at 30% 40%,var(--d)) 0 0/17px 23px,radial-gradient(circle at 75% 15%,var(--d)) 0 0/23px 19px,
         radial-gradient(circle at 50% 80%,#000 0 1.4px,transparent 2.2px) 0 0/31px 37px,radial-gradient(circle at 85% 60%,var(--d)) 0 0/29px 27px,
         radial-gradient(circle at 15% 70%,#000 0 .7px,transparent 1.4px) 0 0/13px 29px,radial-gradient(circle at 60% 35%,#000 0 1.2px,transparent 2px) 0 0/41px 43px;
       --lines:repeating-linear-gradient(60deg,#000 0 1.4px,transparent 1.4px 4.2px)}
-    /* The glare: a white spot with a bright middle, the size of the card, moved to the pointer */
-    .spot{position:absolute;inset:0;will-change:transform;opacity:0;background:radial-gradient(circle closest-side,rgba(255,255,255,.85),rgba(255,255,255,.4) 22%,rgba(255,255,255,.1) 60%,transparent)}
-    /* Text panels: solid and on top, so neither the foil nor the glare ever sits under the text */
+    .sheen{position:absolute;inset:-50%;will-change:transform;background:repeating-linear-gradient(118deg,transparent 0%,#f0648c 3%,#f4c35e 6%,#71e2a2 9%,#5ac2f4 12%,#a888f6 15%,transparent 18%,transparent 21%)}
+    .card[data-foil=glitter] .foil{-webkit-mask:var(--dots);mask:var(--dots)}
+    .card[data-foil=lines] .foil{-webkit-mask:var(--lines);mask:var(--lines)}
+    /* The glare: a white spot the size of the card, moved to the pointer; plus-lighter adds its light, so it reads as a highlight. The
+       gloss, a copy over the text panels at a quarter strength at most, lights them too and keeps their dimmest text above 5:1. */
+    .gl{mix-blend-mode:plus-lighter}
+    .spot{position:absolute;inset:0;will-change:transform;opacity:0;background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,.55) 22%,rgba(255,255,255,.18) 58%,transparent)}
+    /* Text panels: solid and above the foil and the glare, so only the faint gloss ever sits over the text */
     .txt{container-type:inline-size;color:#f4f4f2}
     .np,.ip{position:absolute;left:6%;right:6%;border-radius:5px;background:#110e27;border:1px solid rgba(255,255,255,.16)}
     .np{top:4.3%;height:7.1%;display:flex;align-items:center;justify-content:space-between;padding:0 5%;font-weight:800;font-size:max(12px,6.4cqw);letter-spacing:-.01em}
@@ -54,10 +54,11 @@
     .ab{font-weight:700;font-size:max(12px,6cqw)}
     .ds{font-size:max(11px,4.9cqw);line-height:1.3;color:#d6d6da}
     .ft{display:flex;justify-content:space-between;margin-top:3%;font-size:max(11px,4.2cqw);color:#bdb7e6}
-    /* Shows the layers: the card turns to one side and its layers spread apart, each drawn as it is (no blending), with an edge */
+    /* Shows the layers: the card turns to one side and its layers spread apart, each drawn as it is (no blending), with an edge;
+       the glare has its own sheet there, so the gloss over the text is left out */
     .card.split{transform-style:preserve-3d}
     .card.split .ly{will-change:transform;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-    .card.split .foil{mix-blend-mode:normal}
+    .card.split .foil,.card.split .gl{mix-blend-mode:normal}.card.split .gloss{display:none}
     /* Reduced motion: nothing moves; the foil and the glare only fade brighter and back */
     @media(prefers-reduced-motion:reduce){.card{touch-action:auto}.foil,.spot{transition:opacity .3s}}
   </style>
@@ -109,6 +110,7 @@
         <div class="ly txt">
           <p class="np"><span>Aurora Prism</span><svg viewBox="0 0 34 10" aria-hidden="true"><path d="M5 1l4 4-4 4-4-4zm12 0 4 4-4 4-4-4zm12 0 4 4-4 4-4-4z"/></svg></p>
           <div class="ip"><p class="ab">Prism Burst</p><p class="ds">Splits starlight into every color.</p><p class="ft"><span>Holo rare</span><span>025/160</span></p></div>
+          <div class="spot gloss" id="gloss"></div>
         </div>
       </div>
     </div>
@@ -201,7 +203,7 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const stage=document.getElementById('stage'),card=document.getElementById('card'),foil=document.getElementById('foil');
-const sheen=document.getElementById('sheen'),spot=document.getElementById('spot'),layers=[...card.querySelectorAll('.ly')];
+const sheen=document.getElementById('sheen'),spot=document.getElementById('spot'),gloss=document.getElementById('gloss'),layers=[...card.querySelectorAll('.ly')];
 const reduce=matchMedia('(prefers-reduced-motion:reduce)');
 const FRAME=1000/60,K=.14,RUN_MS=3200;
 // The foil's strength at rest and what lighting it adds, per pattern: the dots and lines let less of it through
@@ -216,10 +218,14 @@ function draw(){
   card.style.transform=`rotateX(${(-2*T*y-14*sp).toFixed(2)}deg) rotateY(${(2*T*x+26*sp).toFixed(2)}deg) scale(${(1+(still?0:.04*sh)-.2*sp).toFixed(3)})`;
   sheen.style.transform=`translate(${(-40*x).toFixed(2)}%,${(-40*y).toFixed(2)}%)`;
   foil.style.opacity=(f0+f1*sh).toFixed(3);
-  spot.style.transform=still?'translate(-15%,-20%)':`translate(${(100*x).toFixed(2)}%,${(100*y).toFixed(2)}%)`;
-  spot.style.opacity=(G*sh).toFixed(3);
-  // Shows the layers: each layer comes forward by its place in the stack, written only while the layers move apart or together
-  // (a custom property on the card would do it too, but the card gets a new style every frame and would pass it to every layer)
+  // The glare and the gloss follow the pointer. In the layers view the glare stays lit at rest, up and to the right where its sheet
+  // reaches past the picture, so it reads as a layer of its own; under reduced motion it keeps a fixed spot (on the card, up left)
+  const rest=sp*(1-sh),gx=still?35*sp-15:100*x+20*rest,gy=still?4*sp-20:100*y-16*rest;
+  spot.style.transform=gloss.style.transform=`translate(${gx.toFixed(2)}%,${gy.toFixed(2)}%)`;
+  spot.style.opacity=(G*Math.max(sh,sp)).toFixed(3);
+  gloss.style.opacity=(.25*G*sh).toFixed(3);
+  // Shows the layers: each layer comes forward by its place in the stack, written only while they move (not as a custom property
+  // on the card: the card gets a new style every frame and would pass it down to every layer each time)
   const v=sp.toFixed(3);
   if(v!==spDrawn){spDrawn=v;card.classList.toggle('split',sp>0);layers.forEach((l,i)=>{l.style.transform=sp>0?`translateZ(${(30*i*sp).toFixed(1)}px)`:'';});}
 }
@@ -242,8 +248,7 @@ function tick(ts){
     sx+=(ax-sx)*k;sy+=(ay-sy)*k;sh+=(ah-sh)*k;
     if(Math.abs(ax-sx)+Math.abs(ay-sy)+Math.abs(ah-sh)<.002){sx=ax;sy=ay;sh=ah;}else more=true;
   }
-  sp+=(split-sp)*k;
-  if(Math.abs(split-sp)<.002)sp=split;else more=true;
+  sp+=(split-sp)*k;if(Math.abs(split-sp)<.002)sp=split;else more=true;
   draw();
   if(more)raf=requestAnimationFrame(tick);
 }
@@ -252,16 +257,13 @@ document.addEventListener('visibilitychange',()=>{lastT=null;});
 // Show me: a pretend pointer draws a figure of eight over the card in 3.2 s, lit as it goes, and leaves it flat. Under reduced
 // motion the card stays flat and the foil and glare fade in for 1.2 s, then out.
 function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
-document.getElementById('btn-demo').addEventListener('click',()=>{
-  stopHold();
+document.getElementById('btn-demo').addEventListener('click',()=>{stopHold();
   if(reduce.matches){ah=1;wake();holdTimer=setTimeout(()=>{holdTimer=0;ah=0;wake();},1200);return;}
   run={t0:null,x:sx,y:sy};wake();
 });
 // The visitor pressed, typed, scrolled or touched inside the stage: a run or hold stops and the card settles, unless that same
 // press aims it (the pointer handlers below come next)
-document.addEventListener('hb:input',()=>{
-  if(holdTimer||run){stopHold();run=null;ax=ay=ah=0;wake();}
-});
+document.addEventListener('hb:input',()=>{if(holdTimer||run){stopHold();run=null;ax=ay=ah=0;wake();}});
 
 // The pointer aims the card where it is over the card's own place (not its tilted outline, which moves under a resting pointer).
 // A finger or pen pressed down keeps aiming at the nearest edge when it slides off; a mouse that leaves the card lets it settle.
