@@ -36,14 +36,14 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Segmented Control](segmented-control/) | A highlight slides to the option you pick. Best for switching views. |
 | [Pull to Refresh](pull-to-refresh/) | Pulling a list down shows a spinner, then new items. Best for feeds. |
 | [Animated Gradient Border](gradient-border/) | A band of colors runs around the edge of a card or button. Best for featured offers. |
-| [Spotlight Hover Glow](spotlight-hover/) | A soft light follows the pointer and lights up the card edges near it. Best for feature grids. |
-| [Add-to-Cart Fly](add-to-cart-fly/) | A copy of the product flies into the cart, which bumps and counts up. Best for shops. |
+| [Spotlight Hover Glow](spotlight-hover/) | A soft glow follows the pointer and lights card edges. Best for feature grids. |
+| [Add-to-Cart Fly](add-to-cart-fly/) | The product flies into the cart, which bumps and counts up. Best for shops. |
 | [Drag to Reorder](drag-to-reorder/) | Drag an item and the others slide aside to make room. Best for to-do lists. |
-| [Rolling Numbers](rolling-numbers/) | Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices. |
+| [Rolling Numbers](rolling-numbers/) | Each digit rolls to its new value, like a mileage counter. Best for prices. |
 | [Typing Indicator](typing-indicator/) | Three dots in a chat bubble move in turn while someone types. Best for chat apps. |
 | [Hold to Confirm](hold-to-confirm/) | A button fills up while you hold it and acts only once it is full. Best for delete buttons. |
-| [Expanding Search](expanding-search/) | A search icon opens into a field you can type in, and closes when done. Best for toolbars. |
-| [Button Loading States](button-loading-states/) | The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons. |
+| [Expanding Search](expanding-search/) | A search icon opens into a field, then closes when done. Best for toolbars. |
+| [Button Loading States](button-loading-states/) | The button becomes a spinner, then a tick or a cross. Best for Save buttons. |
 
 ## Key concepts
 

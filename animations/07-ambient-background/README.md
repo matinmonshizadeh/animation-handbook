@@ -23,12 +23,12 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Synthwave Grid](synthwave-grid/) | A glowing grid rolls toward you under a striped sun. Best for music and games. |
 | [Matrix Rain](matrix-rain/) | Columns of glowing characters rain down a dark screen. Best for tech themes. |
 | [Plasma Field](plasma/) | Smooth waves of color flow endlessly, made from math. Best for creative sites. |
-| [Wave Layers](wave-layers/) | Layers of waves drift sideways, each at its own speed. Best for hero sections and footers. |
+| [Wave Layers](wave-layers/) | Layers of waves drift sideways, each at its own speed. Best for hero sections. |
 | [Snow / Rain](snow-rain/) | Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal pages. |
 | [Fireworks](fireworks/) | Rockets rise and burst into glowing sparks that fall and fade. Best for celebrations. |
-| [Topographic Lines](topographic-lines/) | Contour lines like those on a hiking map slowly bend and drift. Best for outdoor brands. |
+| [Topographic Lines](topographic-lines/) | Lines like those on a hiking map slowly bend and drift. Best for outdoor brands. |
 | [Light Rays](light-rays/) | Soft beams of light fall from above and slowly sweep across. Best for hero intros. |
-| [Game of Life](game-of-life/) | Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites. |
+| [Game of Life](game-of-life/) | Cells live and die by their neighbors, and patterns grow. Best for tech sites. |
 
 ## The ambient mindset
 
