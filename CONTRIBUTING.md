@@ -80,10 +80,10 @@ fix a bug, or improve an explanation are all welcome.
    name and description, and update the technique count where it is written: the root
    `README.md` (the total and the category's count), the home page (its title and meta tags
    too), `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md` (its sitemap line counts
-   the home page as well: the total plus one); the tests compare each with `CATS`. Leave the
-   picture `og-image.png`, which shows the count too, to the maintainer, who redraws it (a new
-   social image is planned). The home check needs no edit: it reads its totals from `CATS` and
-   `PLACES`.
+   the home page as well: the total plus one); the tests compare each with `CATS`. The picture
+   `og-image.png` shows the count too, in the home page's pill: with the repo served, run
+   `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it again from
+   the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
    on the new page and on every page you edited. Run the home page check (`home`) too: the
    new card's Copy prompt is compared there.

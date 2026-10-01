@@ -208,10 +208,9 @@ inside an entry's "Production notes" section, never as their own entry.
    home page order), and the technique count wherever it is written: the root `README.md` (the total and the
    category's count), the home page (its title and meta tags too), `.github/ISSUE_TEMPLATE/config.yml` and
    `docs/launch-kit.md` (its sitemap line counts the home page as well: the total plus one); the tests compare
-   each with `CATS`. The picture `og-image.png` shows the count twice: redraw its digits with Pillow over its
-   background and 28px dot grid, in Consolas 28px at (90,512) in #adadb2 and Consolas Bold 30px at (882,212) in
-   #6ea8ff (the old number drawn that way first gives back the same pixels). A new social image is planned; the
-   maintainer draws it. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
+   each with `CATS`. The picture `og-image.png` shows the count in the home page's pill: with the repo served, run
+   `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it again from the home page. The
+   home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run the tests and the page check on the new folder and on every page you edited. Run the home page check
    (`home`) too: the new card's Copy prompt is compared there.
 
