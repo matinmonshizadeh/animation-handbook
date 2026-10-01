@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Depth-Map Photo — Animation Handbook</title>
+  <meta name="description" content="A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/depth-map-photo/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Depth-Map Photo — Animation Handbook">
+  <meta property="og:description" content="A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/depth-map-photo/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Depth-Map Photo — Animation Handbook">
+  <meta name="twitter:description" content="A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Depth-Map Photo", "name": "Depth-Map Photo", "description": "A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/depth-map-photo/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Depth-Map Photo"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;background:#0b0b0d}
+    /* A finger on the picture aims the view both ways, so the picture keeps it; under reduced motion it scrolls the page */
+    canvas{display:block;width:100%;height:100%;touch-action:none}
+    @media(prefers-reduced-motion:reduce){canvas{touch-action:auto}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../carousel-3d/" rel="prev" aria-label="Previous: 3D Carousel"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>3D Carousel</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.20 · 3D &amp; Advanced</p>
+    <h1>Depth-Map Photo</h1>
+    <p class="hb-lede">A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the picture, drag a finger across it, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones."></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="str-lbl">Depth strength</p>
+        <div class="seg" id="str-seg" role="group" aria-labelledby="str-lbl">
+          <button type="button" data-str=".02" aria-pressed="false">Subtle</button>
+          <button type="button" data-str=".035" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-str=".05" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How far the near parts slide against the far ones.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Show the depth map</span><input class="hb-switch" type="checkbox" role="switch" id="map-tog" autocomplete="off"></label>
+        <p class="hb-hint">The gray picture behind the effect: white is near, black is far.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a depth effect to [the photo you want to bring to life]. Make a grayscale depth map the same size as the photo, white for near parts and black for far ones, and blur it slightly. Draw the photo with a WebGL shader that reads each pixel from a spot shifted by the pointer's position times that pixel's depth, so near parts move more than far ones and the flat photo looks three-dimensional. Zoom in a little so the edges never show, and let the view glide toward the pointer and back to the middle when it leaves. On touch screens, dragging a finger should do the same. If the visitor has reduced motion turned on, keep the photo still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero images</li><li>Portfolio photos</li><li>Travel stories</li><li>Album art</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Photos with text</li><li>Small thumbnails</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+const VS='attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
+// A spot at depth t moves by uOff*(t-uFocus). Each pixel tries depths from near (1) to far (0) for the spot that lands on it,
+// stops at the first that is at least as near as the try (the nearest surface wins), then halves the last step five times.
+const FS=`precision mediump float;varying vec2 v;uniform sampler2D uImg,uDep;uniform vec2 uOff,uZoom;uniform float uFocus,uMap;
+void main(){
+  vec2 uv=.5+(v-.5)*uZoom;
+  float t=1.,tp=1.,h=texture2D(uDep,uv+uOff*(1.-uFocus)).r-1.;
+  for(int i=0;i<24;i++){if(h>=0.)break;tp=t;t-=1./24.;h=texture2D(uDep,uv+uOff*(t-uFocus)).r-t;}
+  for(int i=0;i<5;i++){float m=(t+tp)*.5;if(texture2D(uDep,uv+uOff*(m-uFocus)).r>=m)t=m;else tp=m;}
+  vec2 p=uv+uOff*(t-uFocus);
+  gl_FragColor=vec4(mix(texture2D(uImg,p).rgb,vec3(texture2D(uDep,p).r),uMap),1.);
+}`;
+const stage=document.getElementById('stage');
+let cvs=document.getElementById('cvs');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+const PHONE=matchMedia('(max-width:600px),(max-height:500px)'); // phones: up to 600px wide, or 500px tall when held sideways
+const FRAME=1000/60,K=.1,RUN_MS=3000,FOCUS=.4,MAXSTR=.05,VY=.3; // FOCUS: the depth that holds still; VY: share of up and down
+let gl=null,g2=null,U={},W=0,H=0,SW=0,SH=0,sizeTimer=0;
+let STR=.035,MAP=0,ax=0,ay=0,sx=0,sy=0,run=null,raf=0,lastT=null,holdTimer=0; // a: where the pointer aims, s: where the view is (-1 to 1)
+
+// The picture, far to near, as [depth, draw(g,w,h,c,m,dm)]: c(color) is the color, or in the depth map (dm) the layer's gray
+const gray=d=>{const n=Math.round(d*255);return `rgb(${n},${n},${n})`;};
+const dot=(g,x,y,r)=>{g.beginPath();g.arc(x,y,r,0,7);g.fill();};
+function hill(g,w,h,y0,amp,f,ph){g.beginPath();g.moveTo(0,h);for(let i=0;i<=48;i++)g.lineTo(i/48*w,(y0+amp*Math.sin(i/48*f+ph))*h);g.lineTo(w,h);g.fill();}
+const LAYERS=[
+  [0,(g,w,h,c,m,dm)=>{   // sky and sun (m, the shorter side, keeps round things round)
+    const s=g.createLinearGradient(0,0,0,h*.68);
+    [[0,'#1b2452'],[.45,'#4c3a7a'],[.78,'#c96a78'],[1,'#f4b16c']].forEach(([t,col])=>s.addColorStop(t,c(col)));
+    g.fillStyle=s;g.fillRect(0,0,w,h);
+    if(!dm){const r=g.createRadialGradient(w*.7,h*.32,0,w*.7,h*.32,m*.32);r.addColorStop(0,'rgba(255,224,170,.5)');r.addColorStop(1,'rgba(255,224,170,0)');g.fillStyle=r;g.fillRect(0,0,w,h);}
+    g.fillStyle=c('#fff1cf');dot(g,w*.7,h*.32,m*.065);
+  }],
+  [.2,(g,w,h,c)=>{       // far mountains
+    g.fillStyle=c('#6d5a96');g.beginPath();g.moveTo(0,h);
+    [[0,.55],[.07,.47],[.14,.52],[.24,.38],[.33,.49],[.42,.43],[.5,.5],[.6,.4],[.7,.49],[.79,.42],[.88,.5],[.95,.46],[1,.52]].forEach(([x,y])=>g.lineTo(x*w,y*h));
+    g.lineTo(w,h);g.fill();
+  }],
+  [.45,(g,w,h,c)=>{g.fillStyle=c('#3f5f86');hill(g,w,h,.62,.035,7,.6);}],   // hills
+  [.65,(g,w,h,c)=>{g.fillStyle=c('#2f6150');hill(g,w,h,.72,.03,5,2.2);}],   // meadow
+  [.9,(g,w,h,c,m)=>{     // tree, as near as the ground it stands on
+    const x=w*.25;g.fillStyle=c('#3b2a22');g.fillRect(x-m*.016,h*.55,m*.032,h*.33);
+    g.fillStyle=c('#23503f');dot(g,x,h*.47,m*.13);dot(g,x-m*.1,h*.54,m*.1);dot(g,x+m*.1,h*.54,m*.1);
+    g.fillStyle=c('#2f6a52');dot(g,x-m*.035,h*.43,m*.07);
+  }],
+  [.92,(g,w,h,c,m,dm)=>{ // ground, nearer toward the bottom, and a rock
+    const s=g.createLinearGradient(0,h*.82,0,h);s.addColorStop(0,dm?gray(.9):'#1f3e2c');s.addColorStop(1,dm?gray(1):'#0d1f15');
+    g.fillStyle=s;hill(g,w,h,.84,.012,9,1);
+    g.fillStyle=c('#4a4658',1);g.beginPath();g.ellipse(w*.76,h*.91,m*.11,m*.06,0,0,7);g.fill();
+    g.fillStyle=c('#615b70',1);g.beginPath();g.ellipse(w*.75,h*.89,m*.07,m*.03,0,0,7);g.fill();
+  }]
+];
+const colorOf=(d,dm)=>(col,dd)=>dm?gray(dd??d):col;
+
+function initGL(){
+  gl=cvs.getContext('webgl',{alpha:false});if(!gl)return false;
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
+  try{
+    const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+    gl.useProgram(p);U={};['uImg','uDep','uOff','uZoom','uFocus','uMap'].forEach(n=>{U[n]=gl.getUniformLocation(p,n);});
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const a=gl.getAttribLocation(p,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+    [0,1].forEach(i=>{ // unit 0: the picture, unit 1: the depth map
+      gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());
+      [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER].forEach(f=>gl.texParameteri(gl.TEXTURE_2D,f,gl.LINEAR));
+      [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T].forEach(f=>gl.texParameteri(gl.TEXTURE_2D,f,gl.CLAMP_TO_EDGE));
+    });
+    gl.uniform1i(U.uImg,0);gl.uniform1i(U.uDep,1);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    return true;
+  }catch(e){gl=null;return false;}
+}
+// Without WebGL (or if its shader fails) a fresh canvas draws the six layers in 2D, each moved by its own depth
+function init2d(){const c=cvs.cloneNode(false);cvs.replaceWith(c);cvs=c;g2=cvs.getContext('2d');}
+
+// Both pictures are painted larger than the canvas (SW x SH), so no shift shows an edge. Near shapes in the depth map grow a little
+// (the lighter of shifted copies), so a strip of background moves with each and fills what it uncovers; a slight blur smooths steps.
+function upload(){
+  const make=dm=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;const g=c.getContext('2d'),m=Math.min(SW,SH);
+    LAYERS.forEach(([d,draw])=>draw(g,SW,SH,colorOf(d,dm),m,dm));return c;};
+  const dep=make(true),map=document.createElement('canvas');map.width=SW;map.height=SH;
+  const b=map.getContext('2d'),r=SW/250;
+  b.drawImage(dep,0,0);b.globalCompositeOperation='lighten';
+  for(let i=0;i<16;i++)b.drawImage(dep,Math.cos(i*Math.PI/8)*r*(i%2?.5:1),Math.sin(i*Math.PI/8)*r*(i%2?.5:1));
+  b.globalCompositeOperation='source-over';b.filter=`blur(${Math.max(1,Math.round(SW/500))}px)`;b.drawImage(map,0,0);
+  gl.activeTexture(gl.TEXTURE0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,make(false));
+  gl.activeTexture(gl.TEXTURE1);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,map);
+}
+// Only a real change of size repaints (it clears the canvas). Pixel density is capped at 2, and at 1.5 on phones.
+function layout(){
+  const dpr=Math.min(devicePixelRatio||1,PHONE.matches?1.5:2);
+  const w=Math.max(1,Math.round(stage.clientWidth*dpr)),h=Math.max(1,Math.round(stage.clientHeight*dpr));
+  if(w===W&&h===H)return false;
+  W=cvs.width=w;H=cvs.height=h;
+  const z=Math.min(1/(1+2*MAXSTR*(1-FOCUS)),H/(H+2*VY*MAXSTR*(1-FOCUS)*W)); // room for the strongest shift on every side
+  SW=Math.ceil(W/z);SH=Math.ceil(H/z);
+  if(gl){gl.viewport(0,0,W,H);upload();}
+  return true;
+}
+// The nearest part moves STR of the picture's width against the farthest one at the edge; up and down move VY as far.
+function draw(){
+  const O=STR*W;
+  if(gl){
+    gl.uniform2f(U.uOff,O*sx/SW,-VY*O*sy/SH);gl.uniform2f(U.uZoom,W/SW,H/SH);gl.uniform1f(U.uFocus,FOCUS);gl.uniform1f(U.uMap,MAP);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }else{
+    const m=Math.min(SW,SH);
+    LAYERS.forEach(([d,paint])=>{const k=d-FOCUS;g2.setTransform(1,0,0,1,(W-SW)/2-O*sx*k,(H-SH)/2-VY*O*sy*k);paint(g2,SW,SH,colorOf(d,MAP),m,MAP);});
+  }
+}
+
+// Runs only while the view moves: Show me by its own clock, else the view closes 10% of the gap every 60th of a second.
+function wake(){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
+function tick(ts){
+  raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;let more=false;
+  if(run){
+    if(run.t0===null)run.t0=ts;
+    const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p);
+    sx=.9*Math.sin(2*Math.PI*e);sy=.5*Math.sin(4*Math.PI*e);
+    if(p<1)more=true;else{run=null;sx=sy=ax=ay=0;}
+  }else{
+    const k=1-Math.pow(1-K,dt/FRAME);
+    sx+=(ax-sx)*k;sy+=(ay-sy)*k;
+    if(Math.abs(ax-sx)+Math.abs(ay-sy)<.002){sx=ax;sy=ay;}else more=true;
+  }
+  draw();
+  if(more)raf=requestAnimationFrame(tick);
+}
+document.addEventListener('visibilitychange',()=>{lastT=null;});
+
+// Show me: a figure of eight in 3 s. Under reduced motion nothing moves: the view from one side for 1.2 s, then the front again.
+function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
+function still(x,y){run=null;sx=ax=x;sy=ay=y;cancelAnimationFrame(raf);raf=0;draw();}
+document.getElementById('btn-demo').addEventListener('click',()=>{
+  stopHold();
+  if(reduce.matches){still(.9,-.4);holdTimer=setTimeout(()=>{holdTimer=0;still(0,0);},1200);return;}
+  run={t0:null};wake();
+});
+// A press in the stage stops a run and the view glides back to the middle, unless the same press aims it (that comes next)
+document.addEventListener('hb:input',()=>{
+  if(holdTimer){stopHold();still(0,0);}
+  if(run){run=null;ax=ay=0;wake();}
+});
+
+// A mouse, pen or finger aims the view; a real hover ends a run. A mouse that leaves or a finger that lifts sends it back.
+const clamp=v=>Math.max(-1,Math.min(1,v));
+function aim(e){if(reduce.matches)return;const r=stage.getBoundingClientRect();
+  ax=clamp((e.clientX-r.left)/r.width*2-1);ay=clamp((e.clientY-r.top)/r.height*2-1);wake();}
+const toMiddle=()=>{if(!run&&!reduce.matches){ax=ay=0;wake();}};
+stage.addEventListener('pointerdown',aim);
+stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches)run=null;aim(e);});
+['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,toMiddle));
+stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')toMiddle();});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('str-seg',d=>{STR=+d.str;if(!raf)draw();});
+document.getElementById('map-tog').addEventListener('change',e=>{
+  MAP=e.target.checked?1:0;if(!raf)draw();
+  cvs.setAttribute('aria-label',MAP?'The depth map of the landscape in gray: the sky is black, and the mountains, hills, meadow, tree and ground get lighter the nearer they are.':
+    'A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones.');
+});
+
+if(!initGL())init2d();
+layout();draw();
+// Dragging a window edge sends many resizes: the repaint waits until the size has held for 150 ms
+addEventListener('resize',()=>{clearTimeout(sizeTimer);sizeTimer=setTimeout(()=>{if(layout())draw();},150);});
+if(gl){ // a GPU reset or a restored tab loses the context: paint and upload again when it comes back
+  cvs.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;});
+  cvs.addEventListener('webglcontextrestored',()=>{if(initGL()){W=H=0;layout();draw();}});
+}
+</script>
+</body>
+</html>

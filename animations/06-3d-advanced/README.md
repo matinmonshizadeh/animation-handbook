@@ -24,6 +24,8 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Volumetric Smoke](volumetric-smoke/) | Soft smoke curls upward, drawn as a real 3D cloud. Best for moody backgrounds. |
 | [Morphing Blob](morphing-blob/) | Blobs melt together, and one drop chases your pointer. Best for hero sections. |
 | [3D Flip Card](flip-card-3d/) | A card turns over in 3D to show its back. Best for profile and product cards. |
+| [3D Carousel](carousel-3d/) | Cards stand in a ring that spins in 3D as you drag it. Best for image galleries. |
+| [Depth-Map Photo](depth-map-photo/) | A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images. |
 
 ## Key concepts
 

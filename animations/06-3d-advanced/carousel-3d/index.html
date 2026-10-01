@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Carousel — Animation Handbook</title>
+  <meta name="description" content="Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/carousel-3d/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="3D Carousel — Animation Handbook">
+  <meta property="og:description" content="Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/carousel-3d/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="3D Carousel — Animation Handbook">
+  <meta name="twitter:description" content="Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "3D Carousel", "name": "3D Carousel", "description": "Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/carousel-3d/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 3D Carousel"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;flex-direction:column;background:radial-gradient(120% 90% at 50% 8%,#17131f,#08070a)}
+    /* The camera's box: dragging on it turns the ring, a vertical swipe still scrolls the page. The script sets --r and --cw. */
+    .view{position:relative;flex:1;min-height:0;display:grid;place-items:center;perspective:900px;touch-action:pan-y;cursor:grab;
+      -webkit-user-select:none;user-select:none;--tilt:-14deg;--lift:-.11}
+    .view.grabbing{cursor:grabbing}
+    /* push: one radius back, so the front card keeps its size; tilt: the view from above, eased once the first size is set */
+    .push,.tilt,.ring,.card{transform-style:preserve-3d}
+    .push{transform:translateZ(calc(var(--r,200px) * -1))}
+    .tilt{transform:translateY(calc(var(--r,200px) * var(--lift))) rotateX(var(--tilt))}
+    .view.ready .tilt{transition:transform .6s cubic-bezier(.22,1,.36,1)}
+    .ring{position:relative;width:var(--cw,160px);aspect-ratio:3/4;will-change:transform}
+    .card{position:absolute;inset:0}
+    .face{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+    /* Each front is a small landscape in its own hue (--h): a sun, two hills and the sky, with its name on a dark strip */
+    .front{display:flex;align-items:flex-end;border:1px solid rgba(255,255,255,.16);
+      background:radial-gradient(circle at 70% 28%,hsl(var(--h) 90% 88%) 0 9%,transparent 10%),
+        radial-gradient(130% 62% at 22% 108%,hsl(var(--h) 42% 19%) 0 60%,transparent 61%),
+        radial-gradient(110% 55% at 88% 104%,hsl(var(--h) 38% 31%) 0 60%,transparent 61%),
+        linear-gradient(hsl(var(--h) 62% 62%),hsl(calc(var(--h) + 30) 55% 40%))}
+    .front span{flex:1;min-width:0;padding:7% 9%;background:rgba(8,8,12,.76);color:#f4f4f2;font-weight:700;font-size:max(11px,calc(var(--cw) * .085));
+      line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .back{transform:rotateY(180deg);border:1px solid hsl(var(--h) 28% 30%);background:linear-gradient(hsl(var(--h) 30% 18%),hsl(var(--h) 34% 9%))}
+    .nav{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 0 clamp(10px,2vw,16px)}
+    .arrow{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.06);color:#f4f4f2;cursor:pointer}
+    .arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .count{min-width:64px;text-align:center;font-size:14px;font-weight:600;color:#d6d6da;font-variant-numeric:tabular-nums}
+    .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    @media(hover:hover){.arrow:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}}
+    @media(prefers-reduced-motion:reduce){.view.ready .tilt{transition:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../flip-card-3d/" rel="prev" aria-label="Previous: 3D Flip Card"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>3D Flip Card</span></a><a href="../depth-map-photo/" rel="next" aria-label="Next: Depth-Map Photo"><span><span class="hb-dir">Next: </span>Depth-Map Photo</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.19 · 3D &amp; Advanced</p>
+    <h1>3D Carousel</h1>
+    <p class="hb-lede">Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the cards sideways and let go, use the arrows, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="view" id="view" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Picture cards. Drag sideways or press the arrow keys to turn the ring.">
+        <div class="push"><div class="tilt"><div class="ring" id="ring"></div></div></div>
+      </div>
+      <div class="nav">
+        <button class="arrow" type="button" id="prev" aria-label="Previous card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <span class="count" id="count" aria-hidden="true">1 of 8</span>
+        <button class="arrow" type="button" id="next" aria-label="Next card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        <span class="sr" id="status" role="status"></span>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="count-lbl">Number of cards</p>
+        <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+          <button type="button" data-n="6" aria-pressed="false">6</button>
+          <button type="button" data-n="8" class="on" aria-pressed="true">8</button>
+          <button type="button" data-n="12" aria-pressed="false">12</button>
+        </div>
+        <p class="hb-hint">More cards make a wider ring of smaller cards.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Seen from above</span><input class="hb-switch" type="checkbox" role="switch" id="tilt-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">The ring leans back, so you look down on it a little.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Spins by itself</span><input class="hb-switch" type="checkbox" role="switch" id="spin-tog" autocomplete="off"></label>
+        <p class="hb-hint">It turns slowly on its own and waits while you drag.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a 3D carousel to [the cards or pictures you want to show]. Stand the cards in a ring: turn each one by an equal share of a full circle, push it out from the middle by the same distance, and give the container a 3D perspective. Dragging sideways turns the whole ring with the pointer or finger; on release it keeps a little speed, then settles with the nearest card facing front. Previous and next buttons and the arrow keys turn it one card at a time. Change only the ring's rotation so it stays smooth. When the settings include it, the ring turns slowly by itself. If the visitor has reduced motion turned on, jump from card to card without turning. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Image galleries</li><li>Product picks</li><li>Portfolios</li><li>Album covers</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long lists</li><li>Text-heavy cards</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const view=document.getElementById('view'),ring=document.getElementById('ring');
+  const countEl=document.getElementById('count'),statusEl=document.getElementById('status');
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+  // Twelve pictures around the color wheel, 30° of hue apart; a ring of N cards takes N of them, spread evenly
+  const NAMES=['Canyon','Dunes','Savanna','Meadow','Forest','Jungle','Lagoon','Glacier','Fjord','Dusk','Orchids','Coral'];
+  const FRAME=1000/60,K=.09,GLIDE=FRAME/-Math.log(1-K); // the settle closes 9% of the gap every 60th of a second; GLIDE is its time constant (ms)
+  const P=900,RUN_MS=3000,SPIN=12;                       // the camera's distance (px), a Show me run (ms), Spins by itself (degrees a second)
+  let N=8,step=45,R=200,angle=0,target=null,drag=null,run=null,spinOn=false,spinV=0,idle=0,raf=0,lastT=null,front=-1,holdTimer=0,names=[];
+
+  // The cards: card i is turned by i steps and pushed out by the radius, so the ring's angle -i*step brings it to the front.
+  function build(){
+    step=360/N;names=[];ring.textContent='';
+    for(let i=0;i<N;i++){
+      const k=Math.round(i*12/N)%12,card=document.createElement('div');
+      card.className='card';card.dataset.i=i;card.style.setProperty('--h',k*30);
+      card.style.transform=`rotateY(${i*step}deg) translateZ(var(--r))`;
+      card.innerHTML=`<div class="face front"><span>${NAMES[k]}</span></div><div class="face back"></div>`;
+      ring.appendChild(card);names.push(NAMES[k]);
+    }
+    angle=0;target=null;front=-1;layout();render();
+  }
+  // A 3:4 card as wide as half the box's height (two thirds of it tall), made narrower until the ring's outer corners, seen at
+  // their depth, fit 94% of the box's width. The radius puts N cards with a gap of 12% of a card around a polygon.
+  function layout(){
+    const W=view.clientWidth,H=view.clientHeight,t=Math.tan(Math.PI/N);
+    let cw=Math.min(H*.5,220);
+    for(;cw>44;cw-=2){const r=cw*1.12/(2*t);if(2*Math.hypot(r,cw/2)*P/(P+.8*r)<=W*.94)break;}
+    R=cw*1.12/(2*t);
+    view.style.setProperty('--cw',cw.toFixed(1)+'px');view.style.setProperty('--r',R.toFixed(1)+'px');
+  }
+  const wrap=a=>((a%360)+360)%360;
+  const snap=a=>Math.round(a/step)*step;
+  const nearest=a=>a+360*Math.round((angle-a)/360); // the same place as a, the shortest way round from where the ring is
+  function render(){
+    ring.style.transform=`rotateY(${angle.toFixed(2)}deg)`;
+    const i=((Math.round(-angle/step)%N)+N)%N;
+    if(i!==front){front=i;countEl.textContent=`${i+1} of ${N}`;}
+  }
+  // The card in front is announced when the ring comes to rest after the visitor moved it (or pressed Show me), never by itself
+  function rested(){statusEl.textContent=`Card ${front+1} of ${N}: ${names[front]}`;}
+  function jump(a,say=true){run=null;target=null;angle=wrap(a);render();if(say)rested();}
+
+  // One loop, only while something moves: Show me by its own clock, a settle by a share per 60th of a second, the spin by dt
+  function wake(){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
+  function tick(ts){
+    raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;let more=!!drag;
+    if(run){
+      if(run.t0===null)run.t0=ts;
+      const p=Math.min(1,(ts-run.t0)/RUN_MS),e=1-Math.pow(1-p,4)*(1+4*p); // speeds up for a quarter, then coasts to a stop
+      angle=run.a0+(run.a1-run.a0)*e;
+      if(p<1)more=true;else{const say=run.say;angle=wrap(run.a1);run=null;idle=0;if(say)rested();}
+    }else if(target!==null&&!drag){
+      angle+=(target-angle)*(1-Math.pow(1-K,dt/FRAME));
+      if(Math.abs(target-angle)<.01){angle=wrap(target);target=null;idle=0;rested();}else more=true;
+    }
+    if(spinOn&&!run&&!drag&&target===null){
+      idle+=dt;more=true;
+      if(reduce.matches){if(idle>=3000){idle=0;angle=wrap(snap(angle)-step);}} // no spin: one card every three seconds
+      else{spinV+=((idle>1200?SPIN:0)-spinV)*(1-Math.pow(1-.04,dt/FRAME));angle=wrap(angle-spinV*dt/1000);}
+    }
+    render();
+    if(more)raf=requestAnimationFrame(tick);
+  }
+  document.addEventListener('visibilitychange',()=>{lastT=null;});
+
+  // The front card follows the pointer; on release the ring coasts as far as GLIDE ms at the pointer's speed, rounded to a card.
+  // A press that hardly moves brings the pressed card to the front. Under reduced motion a drag past 30px steps one card.
+  view.addEventListener('pointerdown',e=>{
+    if(e.button>0)return;
+    run=null;target=null;spinV=0;idle=0;
+    drag={id:e.pointerId,x:e.clientX,a:angle,moved:false,card:e.target.closest('.card'),pts:[[e.timeStamp,e.clientX]]};
+    view.setPointerCapture(e.pointerId);view.classList.add('grabbing');wake();
+  });
+  view.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    const dx=e.clientX-drag.x;
+    if(Math.abs(dx)>5)drag.moved=true;
+    drag.pts.push([e.timeStamp,e.clientX]);if(drag.pts.length>8)drag.pts.shift();
+    if(!reduce.matches)angle=drag.a+dx*180/(Math.PI*R);
+  });
+  function release(e,cancelled){
+    if(!drag||e.pointerId!==drag.id)return;
+    const d=drag,dx=e.clientX-d.x;drag=null;view.classList.remove('grabbing');idle=0;
+    if(!d.moved&&d.card&&!cancelled){const a=-d.card.dataset.i*step;if(reduce.matches)jump(a);else{target=nearest(a);wake();}return;}
+    if(reduce.matches){if(!cancelled&&Math.abs(dx)>30)jump(snap(angle)+(dx>0?step:-step));return;}
+    // The speed over the last 100 ms of moves; a pointer that rested for 80 ms before letting go has none
+    const last=d.pts[d.pts.length-1],first=d.pts.find(p=>last[0]-p[0]<100);
+    const v=!cancelled&&e.timeStamp-last[0]<80&&last[0]>first[0]?(last[1]-first[1])/(last[0]-first[0]):0;
+    target=snap(angle+Math.max(-360,Math.min(360,v*GLIDE*180/(Math.PI*R))));wake();
+  }
+  view.addEventListener('pointerup',e=>release(e,false));
+  view.addEventListener('pointercancel',e=>release(e,true));
+
+  // The arrows and the arrow keys move the target one card; quick presses add up. Next brings the card on the right to the front.
+  function go(dir){
+    run=null;spinV=0;idle=0;
+    if(reduce.matches){jump(snap(angle)-dir*step);return;}
+    target=(target===null?snap(angle):target)-dir*step;wake();
+  }
+  document.getElementById('prev').addEventListener('click',()=>go(-1));
+  document.getElementById('next').addEventListener('click',()=>go(1));
+  view.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();go(e.key==='ArrowRight'?1:-1);}});
+
+  // Show me: one flick, a full turn in 3 s back to the same card; under reduced motion one step, held 1.2 s, and back.
+  // Only a press by the visitor is announced at the end (the shared script presses it once on arrival).
+  function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    const say=e.isTrusted;stopHold();drag=null;target=null;spinV=0;idle=0;
+    if(reduce.matches){const a=snap(angle);jump(a-step,say);holdTimer=setTimeout(()=>{holdTimer=0;jump(a,say);},1200);return;}
+    run={a0:angle,a1:snap(angle)-360,t0:null,say};wake();
+  });
+  document.getElementById('btn-reset').addEventListener('click',()=>{
+    stopHold();run=null;drag=null;spinV=0;idle=0;
+    if(reduce.matches)jump(0);else{target=nearest(0);wake();}
+  });
+  // A press in the stage stops a run and the ring settles on the nearest card, unless the same press starts a drag
+  document.addEventListener('hb:input',()=>{
+    if(holdTimer)stopHold();
+    if(run){run=null;target=snap(angle);wake();}
+  });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('count-seg',d=>{stopHold();run=null;N=+d.n;build();rested();if(spinOn)wake();});
+  document.getElementById('tilt-tog').addEventListener('change',e=>{
+    view.style.setProperty('--tilt',e.target.checked?'-14deg':'0deg');view.style.setProperty('--lift',e.target.checked?'-.11':'0');
+  });
+  document.getElementById('spin-tog').addEventListener('change',e=>{ // on: starts at once; off: settles on the next card it was turning to
+    spinOn=e.target.checked;if(spinOn){idle=1200;spinV=0;}else if(!run&&!drag&&target===null&&spinV){target=Math.floor(angle/step)*step;spinV=0;}
+    wake();});
+  addEventListener('resize',layout);
+  build();
+  void view.offsetWidth;view.classList.add('ready'); // the first size is in place before the tilt starts easing
+</script>
+</body>
+</html>
