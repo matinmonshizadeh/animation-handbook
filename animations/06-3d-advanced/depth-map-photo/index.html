@@ -24,8 +24,9 @@
     :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#0b0b0d}
-    /* A finger dragged on the picture moves the view in both directions, so the picture keeps the touch to itself */
+    /* A finger on the picture aims the view both ways, so the picture keeps it; under reduced motion it scrolls the page */
     canvas{display:block;width:100%;height:100%;touch-action:none}
+    @media(prefers-reduced-motion:reduce){canvas{touch-action:auto}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -65,8 +66,8 @@
         <p class="hb-setting-name" id="str-lbl">Depth strength</p>
         <div class="seg" id="str-seg" role="group" aria-labelledby="str-lbl">
           <button type="button" data-str=".02" aria-pressed="false">Subtle</button>
-          <button type="button" data-str=".04" class="on" aria-pressed="true">Medium</button>
-          <button type="button" data-str=".06" aria-pressed="false">Strong</button>
+          <button type="button" data-str=".035" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-str=".05" aria-pressed="false">Strong</button>
         </div>
         <p class="hb-hint">How far the near parts slide against the far ones.</p>
       </div>
@@ -116,20 +117,14 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
 const VS='attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
-// Each screen pixel shows the spot of the picture that the shift sends to it. A spot at depth t would come from uv+uOff*(t-uFocus),
-// so the loop tries depths from the nearest (1) to the farthest (0) and stops at the first spot whose own depth is at least the
-// one tried: the nearest surface wins, as it covers what is behind it. The last step is then refined between the two tries.
-// uOff is the shift for a whole step of depth (texture units), uFocus the depth that holds still.
+// A spot at depth t moves by uOff*(t-uFocus). Each pixel tries depths from near (1) to far (0) for the spot that lands on it,
+// stops at the first that is at least as near as the try (the nearest surface wins), then halves the last step five times.
 const FS=`precision mediump float;varying vec2 v;uniform sampler2D uImg,uDep;uniform vec2 uOff,uZoom;uniform float uFocus,uMap;
 void main(){
   vec2 uv=.5+(v-.5)*uZoom;
-  float t=1.,h=texture2D(uDep,uv+uOff*(1.-uFocus)).r-1.,tp=t,hp=h;
-  for(int i=0;i<20;i++){
-    if(h>=0.)break;
-    tp=t;hp=h;t-=.05;
-    h=texture2D(uDep,uv+uOff*(t-uFocus)).r-t;
-  }
-  if(hp<0.&&h>=0.)t=mix(tp,t,hp/(hp-h));
+  float t=1.,tp=1.,h=texture2D(uDep,uv+uOff*(1.-uFocus)).r-1.;
+  for(int i=0;i<24;i++){if(h>=0.)break;tp=t;t-=1./24.;h=texture2D(uDep,uv+uOff*(t-uFocus)).r-t;}
+  for(int i=0;i<5;i++){float m=(t+tp)*.5;if(texture2D(uDep,uv+uOff*(m-uFocus)).r>=m)t=m;else tp=m;}
   vec2 p=uv+uOff*(t-uFocus);
   gl_FragColor=vec4(mix(texture2D(uImg,p).rgb,vec3(texture2D(uDep,p).r),uMap),1.);
 }`;
@@ -137,17 +132,16 @@ const stage=document.getElementById('stage');
 let cvs=document.getElementById('cvs');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)');
 const PHONE=matchMedia('(max-width:600px),(max-height:500px)'); // phones: up to 600px wide, or 500px tall when held sideways
-const FRAME=1000/60,K=.1,RUN_MS=3000,FOCUS=.4,MAXSTR=.06;     // the hills (depth .45) hold almost still
-let gl=null,g2=null,U={},W=0,H=0,SW=0,SH=0;
-let STR=.04,MAP=0,ax=0,ay=0,sx=0,sy=0,run=null,raf=0,lastT=null,holdTimer=0; // a: where the pointer aims, s: where the view is (-1 to 1)
+const FRAME=1000/60,K=.1,RUN_MS=3000,FOCUS=.4,MAXSTR=.05,VY=.3; // FOCUS: the depth that holds still; VY: share of up and down
+let gl=null,g2=null,U={},W=0,H=0,SW=0,SH=0,sizeTimer=0;
+let STR=.035,MAP=0,ax=0,ay=0,sx=0,sy=0,run=null,raf=0,lastT=null,holdTimer=0; // a: where the pointer aims, s: where the view is (-1 to 1)
 
-// The picture, far to near, as [depth, draw]. draw(g, w, h, c, m, dm) paints one layer; c(color) gives the color, or in the depth
-// map (dm) the layer's gray; m is the shorter side, so round things stay round on a stage of any shape.
+// The picture, far to near, as [depth, draw(g,w,h,c,m,dm)]: c(color) is the color, or in the depth map (dm) the layer's gray
 const gray=d=>{const n=Math.round(d*255);return `rgb(${n},${n},${n})`;};
 const dot=(g,x,y,r)=>{g.beginPath();g.arc(x,y,r,0,7);g.fill();};
 function hill(g,w,h,y0,amp,f,ph){g.beginPath();g.moveTo(0,h);for(let i=0;i<=48;i++)g.lineTo(i/48*w,(y0+amp*Math.sin(i/48*f+ph))*h);g.lineTo(w,h);g.fill();}
 const LAYERS=[
-  [0,(g,w,h,c,m,dm)=>{   // sky and sun
+  [0,(g,w,h,c,m,dm)=>{   // sky and sun (m, the shorter side, keeps round things round)
     const s=g.createLinearGradient(0,0,0,h*.68);
     [[0,'#1b2452'],[.45,'#4c3a7a'],[.78,'#c96a78'],[1,'#f4b16c']].forEach(([t,col])=>s.addColorStop(t,c(col)));
     g.fillStyle=s;g.fillRect(0,0,w,h);
@@ -161,13 +155,13 @@ const LAYERS=[
   }],
   [.45,(g,w,h,c)=>{g.fillStyle=c('#3f5f86');hill(g,w,h,.62,.035,7,.6);}],   // hills
   [.65,(g,w,h,c)=>{g.fillStyle=c('#2f6150');hill(g,w,h,.72,.03,5,2.2);}],   // meadow
-  [.85,(g,w,h,c,m)=>{    // tree
+  [.9,(g,w,h,c,m)=>{     // tree, as near as the ground it stands on
     const x=w*.25;g.fillStyle=c('#3b2a22');g.fillRect(x-m*.016,h*.55,m*.032,h*.33);
     g.fillStyle=c('#23503f');dot(g,x,h*.47,m*.13);dot(g,x-m*.1,h*.54,m*.1);dot(g,x+m*.1,h*.54,m*.1);
     g.fillStyle=c('#2f6a52');dot(g,x-m*.035,h*.43,m*.07);
   }],
   [.92,(g,w,h,c,m,dm)=>{ // ground, nearer toward the bottom, and a rock
-    const s=g.createLinearGradient(0,h*.8,0,h);s.addColorStop(0,dm?gray(.88):'#1f3e2c');s.addColorStop(1,dm?gray(1):'#0d1f15');
+    const s=g.createLinearGradient(0,h*.82,0,h);s.addColorStop(0,dm?gray(.9):'#1f3e2c');s.addColorStop(1,dm?gray(1):'#0d1f15');
     g.fillStyle=s;hill(g,w,h,.84,.012,9,1);
     g.fillStyle=c('#4a4658',1);g.beginPath();g.ellipse(w*.76,h*.91,m*.11,m*.06,0,0,7);g.fill();
     g.fillStyle=c('#615b70',1);g.beginPath();g.ellipse(w*.75,h*.89,m*.07,m*.03,0,0,7);g.fill();
@@ -176,8 +170,7 @@ const LAYERS=[
 const colorOf=(d,dm)=>(col,dd)=>dm?gray(dd??d):col;
 
 function initGL(){
-  gl=cvs.getContext('webgl',{alpha:false});
-  if(!gl)return false;
+  gl=cvs.getContext('webgl',{alpha:false});if(!gl)return false;
   const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
   try{
     const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(p);
@@ -197,51 +190,46 @@ function initGL(){
 // Without WebGL (or if its shader fails) a fresh canvas draws the six layers in 2D, each moved by its own depth
 function init2d(){const c=cvs.cloneNode(false);cvs.replaceWith(c);cvs=c;g2=cvs.getContext('2d');}
 
-// The picture and its depth map are painted a little larger than the canvas (SW x SH), so the largest shift never shows an edge.
-// Near shapes in the depth map are grown a little (the lighter of shifted copies), so a strip of background travels with each
-// one and fills what it uncovers; then the map is blurred a touch, so its steps do not show as jagged edges.
+// Both pictures are painted larger than the canvas (SW x SH), so no shift shows an edge. Near shapes in the depth map grow a little
+// (the lighter of shifted copies), so a strip of background moves with each and fills what it uncovers; a slight blur smooths steps.
 function upload(){
   const make=dm=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;const g=c.getContext('2d'),m=Math.min(SW,SH);
     LAYERS.forEach(([d,draw])=>draw(g,SW,SH,colorOf(d,dm),m,dm));return c;};
   const dep=make(true),map=document.createElement('canvas');map.width=SW;map.height=SH;
-  const b=map.getContext('2d'),r=SW/150;
+  const b=map.getContext('2d'),r=SW/250;
   b.drawImage(dep,0,0);b.globalCompositeOperation='lighten';
   for(let i=0;i<16;i++)b.drawImage(dep,Math.cos(i*Math.PI/8)*r*(i%2?.5:1),Math.sin(i*Math.PI/8)*r*(i%2?.5:1));
   b.globalCompositeOperation='source-over';b.filter=`blur(${Math.max(1,Math.round(SW/500))}px)`;b.drawImage(map,0,0);
   gl.activeTexture(gl.TEXTURE0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,make(false));
   gl.activeTexture(gl.TEXTURE1);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,map);
 }
-// Setting the canvas size clears it, so nothing happens unless the size really changed. Pixel density is capped at 2, and at
-// 1.5 on phones, where every extra pixel costs.
+// Only a real change of size repaints (it clears the canvas). Pixel density is capped at 2, and at 1.5 on phones.
 function layout(){
   const dpr=Math.min(devicePixelRatio||1,PHONE.matches?1.5:2);
   const w=Math.max(1,Math.round(stage.clientWidth*dpr)),h=Math.max(1,Math.round(stage.clientHeight*dpr));
   if(w===W&&h===H)return false;
   W=cvs.width=w;H=cvs.height=h;
-  const z=Math.min(1/(1+2*MAXSTR*(1-FOCUS)),H/(H+MAXSTR*(1-FOCUS)*W)); // room for the strongest shift on every side
+  const z=Math.min(1/(1+2*MAXSTR*(1-FOCUS)),H/(H+2*VY*MAXSTR*(1-FOCUS)*W)); // room for the strongest shift on every side
   SW=Math.ceil(W/z);SH=Math.ceil(H/z);
   if(gl){gl.viewport(0,0,W,H);upload();}
   return true;
 }
-// The nearest part moves STR of the picture's width against the farthest one at the edge; up and down move half as far.
+// The nearest part moves STR of the picture's width against the farthest one at the edge; up and down move VY as far.
 function draw(){
   const O=STR*W;
   if(gl){
-    gl.uniform2f(U.uOff,O*sx/SW,-.5*O*sy/SH);gl.uniform2f(U.uZoom,W/SW,H/SH);gl.uniform1f(U.uFocus,FOCUS);gl.uniform1f(U.uMap,MAP);
+    gl.uniform2f(U.uOff,O*sx/SW,-VY*O*sy/SH);gl.uniform2f(U.uZoom,W/SW,H/SH);gl.uniform1f(U.uFocus,FOCUS);gl.uniform1f(U.uMap,MAP);
     gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   }else{
     const m=Math.min(SW,SH);
-    LAYERS.forEach(([d,paint])=>{const k=d-FOCUS;g2.setTransform(1,0,0,1,(W-SW)/2-O*sx*k,(H-SH)/2-.5*O*sy*k);paint(g2,SW,SH,colorOf(d,MAP),m,MAP);});
+    LAYERS.forEach(([d,paint])=>{const k=d-FOCUS;g2.setTransform(1,0,0,1,(W-SW)/2-O*sx*k,(H-SH)/2-VY*O*sy*k);paint(g2,SW,SH,colorOf(d,MAP),m,MAP);});
   }
 }
 
-// The loop runs only while the view moves. Show me drives it along a figure of eight by its own clock; otherwise the view
-// closes 10% of the gap to the pointer every 60th of a second.
+// Runs only while the view moves: Show me by its own clock, else the view closes 10% of the gap every 60th of a second.
 function wake(){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
 function tick(ts){
-  raf=0;
-  const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
-  let more=false;
+  raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;let more=false;
   if(run){
     if(run.t0===null)run.t0=ts;
     const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p);
@@ -257,8 +245,7 @@ function tick(ts){
 }
 document.addEventListener('visibilitychange',()=>{lastT=null;});
 
-// Show me: three seconds around a figure of eight, back to the middle. Under reduced motion the picture never moves: it shows
-// the view from one side for 1.2 s, then the view from the front again.
+// Show me: a figure of eight in 3 s. Under reduced motion nothing moves: the view from one side for 1.2 s, then the front again.
 function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
 function still(x,y){run=null;sx=ax=x;sy=ay=y;cancelAnimationFrame(raf);raf=0;draw();}
 document.getElementById('btn-demo').addEventListener('click',()=>{
@@ -266,27 +253,21 @@ document.getElementById('btn-demo').addEventListener('click',()=>{
   if(reduce.matches){still(.9,-.4);holdTimer=setTimeout(()=>{holdTimer=0;still(0,0);},1200);return;}
   run={t0:null};wake();
 });
-// The visitor pressed, typed, scrolled or touched inside the stage: a run under way stops and the view glides back to the
-// middle, unless the same press aims it somewhere (that comes next).
+// A press in the stage stops a run and the view glides back to the middle, unless the same press aims it (that comes next)
 document.addEventListener('hb:input',()=>{
   if(holdTimer){stopHold();still(0,0);}
   if(run){run=null;ax=ay=0;wake();}
 });
 
-// Pointer Events, so a mouse, a pen and a finger all aim the view. Hovering sends no hb:input, so the visitor's own pointer
-// ends a run here and takes over. A mouse that leaves, or a finger that lifts, sends the view back to the middle.
+// A mouse, pen or finger aims the view; a real hover ends a run. A mouse that leaves or a finger that lifts sends it back.
 const clamp=v=>Math.max(-1,Math.min(1,v));
-function aim(e){
-  if(reduce.matches)return;
-  const r=stage.getBoundingClientRect();
-  ax=clamp((e.clientX-r.left)/r.width*2-1);ay=clamp((e.clientY-r.top)/r.height*2-1);wake();
-}
+function aim(e){if(reduce.matches)return;const r=stage.getBoundingClientRect();
+  ax=clamp((e.clientX-r.left)/r.width*2-1);ay=clamp((e.clientY-r.top)/r.height*2-1);wake();}
 const toMiddle=()=>{if(!run&&!reduce.matches){ax=ay=0;wake();}};
 stage.addEventListener('pointerdown',aim);
 stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches)run=null;aim(e);});
-stage.addEventListener('pointerleave',toMiddle);
+['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,toMiddle));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')toMiddle();});
-stage.addEventListener('pointercancel',toMiddle);
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
@@ -304,9 +285,9 @@ document.getElementById('map-tog').addEventListener('change',e=>{
 
 if(!initGL())init2d();
 layout();draw();
-addEventListener('resize',()=>{if(layout())draw();});
-if(gl){
-  // A GPU reset or a restored tab loses the context; the textures are painted and uploaded again when it comes back
+// Dragging a window edge sends many resizes: the repaint waits until the size has held for 150 ms
+addEventListener('resize',()=>{clearTimeout(sizeTimer);sizeTimer=setTimeout(()=>{if(layout())draw();},150);});
+if(gl){ // a GPU reset or a restored tab loses the context: paint and upload again when it comes back
   cvs.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;});
   cvs.addEventListener('webglcontextrestored',()=>{if(initGL()){W=H=0;layout();draw();}});
 }
