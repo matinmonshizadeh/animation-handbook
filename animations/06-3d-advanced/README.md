@@ -26,6 +26,9 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [3D Flip Card](flip-card-3d/) | A card turns over in 3D to show its back. Best for profile and product cards. |
 | [3D Carousel](carousel-3d/) | Cards stand in a ring that spins in 3D as you drag it. Best for image galleries. |
 | [Depth-Map Photo](depth-map-photo/) | A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images. |
+| [Flocking](flocking/) | Birds swirl and turn together as one flock. Best for calm backgrounds. |
+| [ASCII / Halftone](ascii-halftone/) | A moving picture is redrawn with letters or dots. Best for retro and tech looks. |
+| [2D Physics](physics-2d/) | Balls drop where you click, bounce and pile up. Best for playful intros. |
 
 ## Key concepts
 

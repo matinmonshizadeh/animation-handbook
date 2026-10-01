@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Physics — Animation Handbook</title>
+  <meta name="description" content="Balls drop where you click, bounce and pile up. Best for playful intros.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/physics-2d/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="2D Physics — Animation Handbook">
+  <meta property="og:description" content="Balls drop where you click, bounce and pile up. Best for playful intros.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/physics-2d/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="2D Physics — Animation Handbook">
+  <meta name="twitter:description" content="Balls drop where you click, bounce and pile up. Best for playful intros.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "2D Physics", "name": "2D Physics", "description": "Balls drop where you click, bounce and pile up. Best for playful intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/physics-2d/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 2D Physics"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4;--b1:#ff6f8b;--b2:#ffce5a;--b3:#6ea8ff;--b4:#5fd88a;--b5:#b98cff;--b6:#3fd6c4;--mark:#fff;--hint:rgba(255,255,255,.72)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:#0b0b0d}
+    canvas{display:block;width:100%;height:100%;touch-action:none;cursor:pointer}
+    .hint{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;pointer-events:none;
+      font-size:clamp(15px,2vw,18px);font-weight:600;color:var(--hint);transition:opacity .3s}
+    .hint.gone{opacity:0}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../ascii-halftone/" rel="prev" aria-label="Previous: ASCII / Halftone"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>ASCII / Halftone</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.23 · 3D &amp; Advanced</p>
+    <h1>2D Physics</h1>
+    <p class="hb-lede">Balls drop where you click, bounce and pile up. Best for playful intros.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap anywhere in the box to drop a ball, drag a ball to throw it, or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots" id="stage">
+      <canvas id="cvs" tabindex="0" role="button" aria-label="A box of balls: click, tap or press Enter to drop a ball, or drag a ball to throw it"></canvas>
+      <p class="hint" id="hint" aria-hidden="true">Click or tap to drop a ball</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then drop a few balls or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="grav-lbl">Gravity</p>
+        <div class="seg" id="grav-seg" role="group" aria-labelledby="grav-lbl">
+          <button type="button" data-g="0.2" aria-pressed="false">Moon</button>
+          <button type="button" data-g="1" class="on" aria-pressed="true">Earth</button>
+          <button type="button" data-g="2" aria-pressed="false">Heavy</button>
+        </div>
+        <p class="hb-hint">How hard the balls are pulled down; on the Moon they float.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="bounce-lbl">Bounciness</p>
+        <div class="seg" id="bounce-seg" role="group" aria-labelledby="bounce-lbl">
+          <button type="button" data-e="0.2" aria-pressed="false">Low</button>
+          <button type="button" data-e="0.5" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-e="0.8" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">How much of its speed a ball keeps after each bounce.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Ball sizes</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-mix="0" class="on" aria-pressed="true">All the same</button>
+          <button type="button" data-mix="1" aria-pressed="false">Mixed</button>
+        </div>
+        <p class="hb-hint">Mixed sizes pack into a looser, bumpier pile.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the speed</span><input class="hb-switch" type="checkbox" role="switch" id="speed-tog" autocomplete="off"></label>
+          <p class="hb-hint">An arrow on each moving ball shows how fast it goes, and where.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a box of bouncing balls to [the hero or empty area you want to liven up]. A click or tap drops a ball there; it falls, bounces off the walls and each other, and comes to rest in a pile. Dragging a ball with the pointer or a finger picks it up, and letting go throws it at the speed of the drag. Run the physics in fixed steps, as many as the time since the last frame needs, so it behaves the same on every screen, and stop drawing once everything is still. Fade out the oldest ball when there are too many. If the visitor has reduced motion turned on, show each new ball already resting where it would land. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Playful intros</li><li>Empty states</li><li>Games and toys</li><li>Kids' and learning sites</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Forms and checkout</li><li>Serious content</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage'),hint=document.getElementById('hint'),slowTog=document.getElementById('slow-tog');
+// Phones are screens up to 600px wide, or up to 500px tall when held sideways: they keep fewer balls
+const reduce=matchMedia('(prefers-reduced-motion:reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+const css=getComputedStyle(document.documentElement),COLORS=[1,2,3,4,5,6].map(n=>css.getPropertyValue('--b'+n)),MARK=css.getPropertyValue('--mark');
+const FRAME=1000/60,FADE=300,RING=450; // one physics step is 1/60 s; a fade and a tap ring last 300 and 450 ms
+const WALL={vx:0,vy:0,im:0}; // the walls and floor never move
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let W=0,H=0,R0=20,balls=[],rings=[],made=0,held=null,raf=null,lastT=null,behind=0,clock=0,awake=false,calm=0,runTimers=[];
+let GRAV=1,E=.5,MIX=false,SHOW=false;const target={x:0,y:0},grab={x:0,y:0},pv={x:0,y:0},last={x:0,y:0,t:0};
+
+// One physics step of 1/60 s. Gravity, then the contacts: touching pairs and the four walls. Each contact pushes only apart,
+// and one that closes faster than 1 px a step bounces back with E of its speed (slower ones just rest). Eight passes over all
+// contacts share the pushes (and the friction, at most half the push) through a pile; then the balls move, overlaps left
+// over are eased apart and everything is kept inside the box. A held ball follows the pointer and nothing pushes it.
+function step(){
+  const g=GRAV*H/1000,cs=[],im=b=>b===held?0:b.im;
+  for(const b of balls)if(b!==held)b.vy+=g;
+  if(held){held.vx=clamp(target.x,held.r,W-held.r)-held.x;held.vy=clamp(target.y,held.r,H-held.r)-held.y;}
+  const touch=(a,b,nx,ny)=>{const vn=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;cs.push({a,b,nx,ny,t:vn<-1?-E*vn:0,j:0,jt:0});};
+  for(let i=0,a;a=balls[i];i++){
+    for(let k=i+1;k<balls.length;k++){const b=balls[k],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d>0&&d<a.r+b.r+.5)touch(a,b,dx/d,dy/d);}
+    if(a.x-a.r<.5)touch(a,WALL,-1,0);if(a.x+a.r>W-.5)touch(a,WALL,1,0);
+    if(a.y-a.r<.5)touch(a,WALL,0,-1);if(a.y+a.r>H-.5)touch(a,WALL,0,1);
+  }
+  for(let it=0;it<8;it++)for(const c of cs){
+    const {a,b,nx,ny}=c,ia=im(a),ib=im(b),s=ia+ib;if(!s)continue;
+    const j=Math.max(0,c.j+(c.t-((b.vx-a.vx)*nx+(b.vy-a.vy)*ny))/s),dj=j-c.j;c.j=j;
+    const f=.5*c.j,jt=clamp(c.jt-((b.vx-a.vx)*-ny+(b.vy-a.vy)*nx)/s,-f,f),dt=jt-c.jt;c.jt=jt;
+    const px=dj*nx-dt*ny,py=dj*ny+dt*nx;
+    a.vx-=px*ia;a.vy-=py*ia;b.vx+=px*ib;b.vy+=py*ib;
+  }
+  const vmax=R0*.9; // a ball never moves more than about one radius a step, so it cannot pass through another
+  for(const b of balls){
+    const s=Math.hypot(b.vx,b.vy);if(s>vmax&&b!==held){b.vx*=vmax/s;b.vy*=vmax/s;}
+    b.x+=b.vx;b.y+=b.vy;b.a+=b.vx/b.r;
+  }
+  for(let it=0;it<3;it++){
+    for(let i=0;i<balls.length;i++)for(let k=i+1;k<balls.length;k++){
+      const a=balls[i],b=balls[k],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,o=a.r+b.r-d,ia=im(a),ib=im(b);
+      if(o<=.3||!(ia+ib))continue;
+      const m=(o-.3)*.6/(ia+ib)/d;a.x-=dx*m*ia;a.y-=dy*m*ia;b.x+=dx*m*ib;b.y+=dy*m*ib;
+    }
+    for(const b of balls){b.x=clamp(b.x,b.r,W-b.r);b.y=clamp(b.y,b.r,H-b.r);}
+  }
+  // Everything still for 45 steps (3/4 s): the balls sleep and the loop stops drawing
+  let top=0;for(const b of balls)if(b!==held)top=Math.max(top,b.vx*b.vx+b.vy*b.vy);
+  calm=held||top>.02?0:calm+1;
+  if(calm>45){awake=false;for(const b of balls)b.vx=b.vy=0;}
+}
+// Under reduced motion nothing falls on screen: the steps run at once, out of sight, and the result is shown
+function settle(){awake=true;calm=0;for(let i=0;i<900&&awake;i++)step();awake=false;for(const b of balls)b.vx=b.vy=0;}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle=ctx.fillStyle=MARK;ctx.lineWidth=2;
+  for(const r of rings){const p=(clock-r.t)/RING;ctx.globalAlpha=(1-p)*.7;ctx.beginPath();ctx.arc(r.x,r.y,6+R0*1.2*p,0,Math.PI*2);ctx.stroke();}
+  for(const b of balls){
+    ctx.globalAlpha=b.al;ctx.fillStyle=b.c;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=b.al*.55;ctx.fillStyle=MARK;ctx.beginPath(); // a spot on the ball turns as it rolls
+    ctx.arc(b.x+Math.cos(b.a)*b.r*.55,b.y+Math.sin(b.a)*b.r*.55,b.r*.16,0,Math.PI*2);ctx.fill();
+    const s=Math.hypot(b.vx,b.vy);if(!SHOW||s<.3)continue;
+    const L=Math.min(s*6,b.r*3),ux=b.vx/s,uy=b.vy/s,ex=b.x+ux*L,ey=b.y+uy*L;
+    ctx.globalAlpha=b.al;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(ex,ey);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ex+ux*6,ey+uy*6);ctx.lineTo(ex-uy*4,ey+ux*4);ctx.lineTo(ex+uy*4,ey-ux*4);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+// Balls fade in (under reduced motion) and out (Reset, the end of Show me, the oldest of too many); a faded-out ball goes
+function fade(ms){
+  let gone=false;
+  for(const b of balls)if(b.al!==b.to){b.al=b.to>b.al?Math.min(b.to,b.al+ms/FADE):Math.max(b.to,b.al-ms/FADE);if(!b.al&&!b.to)gone=true;}
+  rings=rings.filter(r=>clock-r.t<RING);
+  if(!gone)return;balls=balls.filter(b=>b.al||b.to);
+  if(held&&!balls.includes(held))held=null;
+  if(reduce.matches)settle();else wake(); // the balls that rested on it fall into the gap
+}
+const showHint=()=>hint.classList.toggle('gone',balls.some(b=>b.to>0));
+
+// The loop draws at most once per 16 ms and runs as many 1/60 s steps as the time since the last drawn frame calls for (a third
+// of it in slow motion; at most 50 ms and 3 steps a frame). It stops once the balls sleep and nothing fades, and wake() starts it.
+function loop(ts){
+  raf=requestAnimationFrame(loop);
+  if(lastT===null){lastT=ts;return;}
+  const dt=ts-lastT;if(dt<16)return;
+  lastT=ts;
+  const ms=Math.min(dt,50)*(slowTog.checked?1/3:1);
+  clock+=ms;
+  if(awake){behind+=ms;for(let n=0;behind>=FRAME-1&&n<3;n++){step();behind-=FRAME;}}
+  fade(ms);draw();
+  if(!awake&&!held&&!rings.length&&balls.every(b=>b.al===b.to)){cancelAnimationFrame(raf);raf=null;}
+}
+function kick(){if(raf===null){lastT=null;behind=0;raf=requestAnimationFrame(loop);}}
+function wake(){if(!reduce.matches){awake=true;calm=0;}kick();}
+document.addEventListener('visibilitychange',()=>{lastT=null;behind=0;});
+
+// A new ball at (x, y), in one size or a mix of sizes. Past the limit the oldest ball fades out.
+function drop(x,y){
+  const r=R0*(MIX?.6+Math.random()*.8:1);
+  balls.push({x:clamp(x,r,W-r),y:clamp(y,r,H-r),vx:0,vy:0,r,im:(R0/r)**2,a:0,al:reduce.matches?0:1,to:1,c:COLORS[made++%COLORS.length]});
+  const live=balls.filter(b=>b.to>0);
+  if(live.length>(phone.matches?24:40))live[0].to=0;
+  if(reduce.matches)settle();else rings.push({x,y,t:clock});
+  showHint();wake();
+}
+
+// Pointer Events cover mouse, touch and pen. Pressing a ball picks up the nearest one in reach (its radius plus 8px, and at least
+// a 44px circle); pressing anywhere else drops a new one. While a ball is held, the pointer's speed is followed (in px per
+// 1/60 s), and letting go throws the ball with it if the pointer was still moving.
+const local=e=>{const r=cvs.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+cvs.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary||e.button!==0)return;
+  const p=local(e);let b=null,best=Infinity;
+  for(const o of balls){const d=Math.hypot(o.x-p.x,o.y-p.y);if(o.to>0&&d<=Math.max(o.r+8,22)&&d-o.r<best){best=d-o.r;b=o;}}
+  if(!b){drop(p.x,p.y);return;}
+  held=b;grab.x=b.x-p.x;grab.y=b.y-p.y;target.x=b.x;target.y=b.y;pv.x=pv.y=0;Object.assign(last,p,{t:e.timeStamp});
+  try{cvs.setPointerCapture(e.pointerId);}catch(_){}
+  wake();
+});
+cvs.addEventListener('pointermove',e=>{
+  if(!held||!e.isPrimary)return;
+  const p=local(e),dt=Math.max(1,e.timeStamp-last.t);
+  pv.x=pv.x*.4+(p.x-last.x)/dt*FRAME*.6;pv.y=pv.y*.4+(p.y-last.y)/dt*FRAME*.6;Object.assign(last,p,{t:e.timeStamp});
+  target.x=p.x+grab.x;target.y=p.y+grab.y;
+  if(reduce.matches){held.x=clamp(target.x,held.r,W-held.r);held.y=clamp(target.y,held.r,H-held.r);draw();}
+});
+const release=e=>{
+  if(!held||!e.isPrimary)return;
+  const s=Math.hypot(pv.x,pv.y),k=e.timeStamp-last.t<80&&s?Math.min(1,R0*.9/s):0;
+  held.vx=pv.x*k;held.vy=pv.y*k;held=null;
+  if(reduce.matches){settle();kick();}else wake();
+};
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,release));
+// The keyboard drops a ball at a random spot near the top
+cvs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();drop(W*(.2+Math.random()*.6),H*.15);}});
+
+// Show me: five clicks' worth, 0.3 s apart and a ball's width or less from the middle, so each new ball lands on the ones before
+// and they pile up; they fade out 1.7 s after the last one, so the box is empty again.
+// Slow motion stretches the waits three times. Every timer of the run goes through later(); stopRun() cancels the rest of it.
+function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn();},ms*(slowTog.checked?3:1));runTimers.push(id);}
+function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];}
+document.getElementById('btn-demo').addEventListener('click',e=>{
+  if(!e.isTrusted&&balls.some(b=>b.to>0))return; // the press on arrival leaves alone a box the visitor has already filled
+  stopRun();balls=[];rings=[];held=null;awake=false;showHint();draw();
+  [[0,.18],[1.1,.12],[-1.2,.22],[.5,.16],[-.4,.1]].forEach(([x,y],i)=>later(()=>drop(W/2+R0*x,H*y),300*i));
+  later(()=>{balls.forEach(b=>{b.to=0;});showHint();kick();},2900);
+});
+document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();held=null;balls.forEach(b=>{b.to=0;});showHint();kick();});
+// The visitor pressed, typed or touched inside the stage: the run stops and its balls stay for the visitor to play with
+document.addEventListener('hb:input',()=>{if(runTimers.length)stopRun();});
+
+// Setting the canvas size wipes it, so a real change of the stage's size draws the balls again at once. Their places stretch with
+// the box (the next step keeps them inside it), so a size that comes back finds them where they were. A resize that leaves the
+// stage as it was (a phone's address bar sliding in or out) does nothing.
+function resize(){
+  const w=stage.clientWidth,h=stage.clientHeight;
+  if(w===W&&h===H)return;
+  if(W&&H)for(const b of balls){b.x*=w/W;b.y*=h/H;}
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  W=w;H=h;R0=clamp(Math.min(W,H)*.055,12,22);
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(balls.length)wake();
+  draw();
+}
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+// The next drop, throw or Show me shows a change; a new gravity also wakes the balls already in the box
+choices('grav-seg',d=>{GRAV=+d.g;if(balls.length)wake();});
+choices('bounce-seg',d=>{E=+d.e;});
+choices('size-seg',d=>{MIX=d.mix==='1';});
+document.getElementById('speed-tog').addEventListener('change',e=>{SHOW=e.target.checked;draw();});
+
+resize();
+window.addEventListener('resize',resize);
+</script>
+</body>
+</html>
