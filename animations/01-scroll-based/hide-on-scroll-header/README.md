@@ -35,7 +35,7 @@ scroller.addEventListener('scroll', () => {
 
 ```css
 .topbar { position: absolute; top: 0; left: 0; right: 0; transition: transform var(--dur) var(--ease); }
-.topbar.away { transform: translateY(calc(-100% - 2px)); }                 /* its height and its border */
+.topbar.away { transform: translateY(calc(-100% - 2px)); }                 /* its full height, border included, and 2px to spare */
 .shrink .topbar.away { transform: translateY(-18px); }                     /* a slim strip stays */
 .shrink .topbar.away .brand { transform: translateY(9px) scale(.82); }    /* centered in the strip */
 
@@ -64,7 +64,7 @@ Show me scrolls the box itself, one and a half boxes down and back, with each fr
 - **Transform only**: never animate `top`, `margin` or `height`. Moving the bar with a transform keeps it on the compositor, and the shrinking version scales the contents instead of changing font sizes.
 - **Reduced motion**: fade the bar out and in, or leave it in place, instead of sliding it.
 - **Do not hide key actions**: a bar that holds the main button of the page (checkout, compose, save) should stay.
-- **Libraries**: Headroom.js does exactly this, with options for the threshold and the offset from the top; in React or Vue a small scroll-direction hook does the same. CSS scroll-driven animations cannot read the scroll direction yet, so the direction check stays in JavaScript.
+- **Libraries**: Headroom.js does exactly this, with options for the threshold and the offset from the top; in React or Vue a small scroll-direction hook does the same. Newer versions of Chromium add scroll-state container queries that can tell which way a box last scrolled, aimed at exactly this, but CSS alone cannot do it in every browser yet, so the direction check stays in JavaScript here.
 
 ## See also
 
