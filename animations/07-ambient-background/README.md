@@ -25,6 +25,7 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Plasma Field](plasma/) | Smooth waves of color flow endlessly, made from math. Best for creative sites. |
 | [Topographic Lines](topographic-lines/) | Contour lines like those on a hiking map slowly bend and drift. Best for outdoor brands. |
 | [Light Rays](light-rays/) | Soft beams of light fall from above and slowly sweep across. Best for hero intros. |
+| [Game of Life](game-of-life/) | Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites. |
 
 ## The ambient mindset
 
