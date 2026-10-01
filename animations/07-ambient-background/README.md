@@ -25,6 +25,7 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Plasma Field](plasma/) | Smooth waves of color flow endlessly, made from math. Best for creative sites. |
 | [Wave Layers](wave-layers/) | Layers of waves drift sideways, each at its own speed. Best for hero sections and footers. |
 | [Snow / Rain](snow-rain/) | Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal pages. |
+| [Fireworks](fireworks/) | Rockets rise and burst into glowing sparks that fall and fade. Best for celebrations. |
 
 ## The ambient mindset
 

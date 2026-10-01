@@ -239,6 +239,7 @@ All 129 techniques, each linked to its live demo.
 - **[Plasma Field](animations/07-ambient-background/plasma/)** — Smooth waves of color flow endlessly, made from math. Best for creative sites.
 - **[Wave Layers](animations/07-ambient-background/wave-layers/)** — Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.
 - **[Snow / Rain](animations/07-ambient-background/snow-rain/)** — Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal pages.
+- **[Fireworks](animations/07-ambient-background/fireworks/)** — Rockets rise and burst into glowing sparks that fall and fade. Best for celebrations.
 
 </details>
 
