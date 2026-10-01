@@ -786,22 +786,19 @@ button,input{font:inherit;color:inherit}
 @keyframes d-fkj{from{transform:translate(-2px,-1px)}to{transform:translate(2px,2px)}}
 @media(max-width:600px){.pv-flock i{width:5px;height:6.5px;margin:-3px 0 0 -2.5px}}
 .pv-ascii{background:linear-gradient(#0a0f2c,#33276a 66%);overflow:hidden;font:700 12px/1.05 var(--disp);letter-spacing:.12em}
-.pv-ascii .sun{position:absolute;left:58%;top:18%;height:58%;aspect-ratio:1;animation:d-asun 6s ease-in-out infinite alternate}
+.pv-ascii .sun{position:absolute;left:64%;top:12%;height:40%;aspect-ratio:1;animation:d-asun 6s ease-in-out infinite alternate}
 .pv-ascii .lt{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;white-space:nowrap;animation:d-alt 7s ease-in-out infinite}
 .pv-ascii .sun .lt,.pv-ascii .sun .dt{inset:0}
+.pv-ascii .sun .dt{width:100%;height:100%;fill:#ffcf7a}
 .pv-ascii .sun .lt{color:#ffcf7a}
 .pv-ascii .dt{position:absolute;opacity:0;animation:d-adt 7s ease-in-out infinite}
-.pv-ascii .dt i{position:absolute;inset:0;background:radial-gradient(circle closest-side,#ffcf7a var(--s),transparent calc(var(--s) + 12%)) 50% 50%/9px 9px}
-.pv-ascii .d1{--s:78%;-webkit-mask:radial-gradient(circle closest-side,#000 40%,transparent 41%);mask:radial-gradient(circle closest-side,#000 40%,transparent 41%)}
-.pv-ascii .d2{--s:52%;-webkit-mask:radial-gradient(circle closest-side,transparent 40%,#000 41% 66%,transparent 67%);mask:radial-gradient(circle closest-side,transparent 40%,#000 41% 66%,transparent 67%)}
-.pv-ascii .d3{--s:28%;-webkit-mask:radial-gradient(circle closest-side,transparent 66%,#000 67% 92%,transparent 93%);mask:radial-gradient(circle closest-side,transparent 66%,#000 67% 92%,transparent 93%)}
 .pv-ascii .gr{position:absolute;left:0;right:0;top:66%;bottom:0;background:radial-gradient(circle closest-side,#262d44 32%,transparent 46%) 0 0/9px 9px,#090b12}
 .pv-ascii .hz{left:0;right:0;top:calc(66% - 7px);height:9px;color:#e7798c;overflow:hidden}
 .pv-ascii .hz.dt{background:radial-gradient(circle closest-side,#e7798c 55%,transparent 67%) 0 0/9px 9px}
 @keyframes d-asun{from{transform:translateY(-4%)}to{transform:translateY(10%)}}
 @keyframes d-alt{0%,42%{opacity:1}50%,92%{opacity:0}100%{opacity:1}}
 @keyframes d-adt{0%,42%{opacity:0}50%,92%{opacity:1}100%{opacity:0}}
-@media(max-width:600px){.pv-ascii{font-size:7px}.pv-ascii .dt i,.pv-ascii .hz.dt,.pv-ascii .gr{background-size:6px 6px}.pv-ascii .hz{top:calc(66% - 4px);height:6px}}
+@media(max-width:600px){.pv-ascii{font-size:7px}.pv-ascii .hz.dt,.pv-ascii .gr{background-size:6px 6px}.pv-ascii .hz{top:calc(66% - 4px);height:6px}}
 .pv-phys2d{background:#0b0b0d;overflow:hidden}
 .pv-phys2d::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3%;background:#1c2029}
 .pv-phys2d i{position:absolute;left:calc(var(--x) - 5.5%);bottom:calc(3% + var(--b));width:11%;aspect-ratio:1;border-radius:50%;background:var(--c);animation:var(--k) 5s infinite,d-phfade 5s infinite}
@@ -1509,8 +1506,10 @@ function pvMarkup(k){
     case 'sig5': return '<span class="s5 anim"></span><span class="s5 anim"></span><span class="s5 anim"></span>';
     case 'sig6': return '<div class="cube anim"><span class="face f1"></span><span class="face f2"></span><span class="face f3"></span><span class="face f4"></span><span class="face f5"></span><span class="face f6"></span></div>';
     case 'flock': return '<span class="fk anim">'+[[0,18,0],[-10,6,-.3],[9,5,-.7],[-20,-5,-1.1],[1,-4,-.5],[17,-8,-.9],[-8,-17,-.2],[10,-20,-1.2],[-1,-29,-.6]].map(function(b){return '<i class="anim" style="--x:'+b[0]+'%;--y:'+b[1]+'%;--d:'+b[2]+'s"></i>';}).join('')+'</span>';
-    case 'ascii': return '<span class="sun anim"><span class="lt anim">'+['.-:-.',':+xox+:','-+o###o+-',':x#####x:','-+o###o+-',':+xox+:','.-:-.'].map(function(r){return '<b>'+r+'</b>';}).join('')+'</span><span class="dt anim"><i class="d1"></i><i class="d2"></i><i class="d3"></i></span></span>'+
-      '<span class="gr"></span><span class="hz lt anim">'+'+='.repeat(24)+'</span><span class="hz dt anim"></span>';
+    case 'ascii': {let dots=''; // a halftone sun of whole dots, bigger toward the bright middle
+      for(let y=5;y<100;y+=10)for(let x=5;x<100;x+=10){const d=Math.hypot(x-50,y-50)/48;if(d<.97)dots+='<circle cx="'+x+'" cy="'+y+'" r="'+(4.9*Math.sqrt(1-d*d)).toFixed(1)+'"/>';}
+      return '<span class="sun anim"><span class="lt anim">'+['.:+:.',':+xox+:','+o###o+',':+xox+:','.:+:.'].map(function(r){return '<b>'+r+'</b>';}).join('')+'</span><svg class="dt anim" viewBox="0 0 100 100">'+dots+'</svg></span>'+
+        '<span class="gr"></span><span class="hz lt anim">'+'+='.repeat(24)+'</span><span class="hz dt anim"></span>';}
     case 'phys2d': return [[50,0,'c5',0],[38.5,0,'c1',1],[61.5,0,'c3',1],[44.25,15,'c7',2],[55.75,15,'c2',2],[50,30,'c6',3]].map(function(b){return '<i class="anim" style="--x:'+b[0]+'%;--b:'+b[1]+'%;--c:var(--'+b[2]+');--k:d-ph'+b[3]+'"></i>';}).join('');
     case 'sig7': return '<span class="s7 anim"></span>';
     case 'aurora': return '<span class="band b1 anim"></span><span class="band b2 anim"></span><span class="band b3 anim"></span>';
