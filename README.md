@@ -237,6 +237,7 @@ All 129 techniques, each linked to its live demo.
 - **[Synthwave Grid](animations/07-ambient-background/synthwave-grid/)** — A glowing grid rolls toward you under a striped sun. Best for music and games.
 - **[Matrix Rain](animations/07-ambient-background/matrix-rain/)** — Columns of glowing characters rain down a dark screen. Best for tech themes.
 - **[Plasma Field](animations/07-ambient-background/plasma/)** — Smooth waves of color flow endlessly, made from math. Best for creative sites.
+- **[Topographic Lines](animations/07-ambient-background/topographic-lines/)** — Contour lines like those on a hiking map slowly bend and drift. Best for outdoor brands.
 
 </details>
 
