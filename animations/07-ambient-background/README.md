@@ -23,6 +23,7 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Synthwave Grid](synthwave-grid/) | A glowing grid rolls toward you under a striped sun. Best for music and games. |
 | [Matrix Rain](matrix-rain/) | Columns of glowing characters rain down a dark screen. Best for tech themes. |
 | [Plasma Field](plasma/) | Smooth waves of color flow endlessly, made from math. Best for creative sites. |
+| [Wave Layers](wave-layers/) | Layers of waves drift sideways, each at its own speed. Best for hero sections and footers. |
 
 ## The ambient mindset
 
