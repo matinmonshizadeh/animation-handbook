@@ -5,7 +5,7 @@ Hold to confirm is a button that acts only after it has been held down for a mom
 
 ## When to use it
 - Deleting files, projects or messages that cannot be restored
-- Closing an account or cancelling a plan
+- Closing an account or canceling a plan
 - Sending money or confirming a payment on a phone
 - Emergency and alert buttons that must not go off by accident
 - Places where a confirm dialog would interrupt too much, but a single tap is too easy
@@ -32,7 +32,7 @@ function frame(ts) {
 .ring .rf { stroke-dasharray: 1; stroke-dashoffset: 1; }
 ```
 
-Pressing and letting go come from the pointer and from the keyboard. The pointer is captured on `pointerdown`, so the press continues if the finger slides off the button, and `pointerup`, `pointercancel` and `lostpointercapture` all count as letting go. Space and Enter start a hold on `keydown` (ignoring the repeats a held key sends) and end it on `keyup` or `blur`. Letting go before the fill is full restarts a short shake animation on the button's wrapper (so it never fights the press scale on the button itself) and fades in a hint to keep holding. When the fill is full the trash icon and label crossfade to a tick and Drafts deleted, and a `role="status"` region says so; in the demo everything drains back 1.2 seconds later so it can be tried again. Under reduced motion the fill is drawn in quarters (`Math.floor(p * 4) / 4`), so it steps instead of sliding, and the shake is skipped.
+Pressing and letting go come from the pointer and from the keyboard. The pointer is captured on `pointerdown`, so the press continues if the finger slides off the button, and `pointerup`, `pointercancel` and `lostpointercapture` all count as letting go. Space and Enter start a hold on `keydown` (ignoring the repeats a held key sends) and end it on `keyup` or `blur`. Letting go before the fill is full restarts a short shake animation on the button's wrapper (so it never fights the press scale on the button itself) and fades in a hint to keep holding. When the fill is full the trash icon and label crossfade to a tick and Drafts deleted, and a `role="status"` region says so; in the demo everything drains back a second later so it can be tried again. Under reduced motion the fill is drawn in quarters (`Math.floor(p * 4) / 4`), so it steps instead of sliding, and the shake is skipped.
 
 ## Key parameters
 | Parameter | Default | Effect |
