@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag to Reorder — Animation Handbook</title>
+  <meta name="description" content="Drag an item and the others slide aside to make room. Best for to-do lists.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/drag-to-reorder/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Drag to Reorder — Animation Handbook">
+  <meta property="og:description" content="Drag an item and the others slide aside to make room. Best for to-do lists.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/drag-to-reorder/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Drag to Reorder — Animation Handbook">
+  <meta name="twitter:description" content="Drag an item and the others slide aside to make room. Best for to-do lists.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Drag to Reorder", "name": "Drag to Reorder", "description": "Drag an item and the others slide aside to make room. Best for to-do lists.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/drag-to-reorder/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Drag to Reorder"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--card:#16161a;--slide:220ms;--row:52px;--gap:8px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:12px clamp(16px,4vw,32px);background:#0b0b0d;overflow:hidden}
+    /* Every row sits at the top of the list and is moved to its place, slot --i, with a transform, so a new order never changes the layout */
+    .list{position:relative;width:100%;max-width:360px;height:calc(4*var(--row) + 3*var(--gap));gap:var(--gap);list-style:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    .row{position:absolute;left:0;right:0;top:0;height:var(--row);transform:translateY(calc(var(--i)*(var(--row) + var(--gap))));transition:transform var(--slide) cubic-bezier(.2,.8,.2,1);cursor:grab;touch-action:pan-y}
+    .row.lifted{z-index:2;cursor:grabbing}.row.settling{z-index:1}
+    .card{position:relative;height:100%;display:flex;align-items:center;gap:10px;padding-right:14px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:var(--card);transition:transform .16s ease-out}
+    /* The lift: the card grows a little and a shadow fades in under it (only its opacity changes) */
+    .card::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 8px 18px rgba(0,0,0,.5);opacity:0;transition:opacity .16s;pointer-events:none}
+    .lifted .card{transform:scale(1.02);border-color:var(--ui-accent)}.lifted .card::after{opacity:1}
+    .strong .lifted .card{transform:scale(1.06) rotate(-1.5deg)}.strong .card::after{box-shadow:0 18px 34px rgba(0,0,0,.65)}
+    .grip{flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:3px;border:1px solid transparent;border-radius:8px;background:none;color:var(--ui-muted);cursor:inherit;touch-action:none}
+    .grip svg{width:20px;height:20px;fill:currentColor}
+    /* Drag by the handle only: the grip looks like the thing to hold, and only it starts a drag */
+    .by-grip .row{cursor:default}
+    .by-grip .grip{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--ui-text);cursor:grab}
+    .tag{flex:none;width:10px;height:10px;border-radius:50%}
+    .label{min-width:0;font-size:14px;color:var(--ui-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    /* Show me's fingertip: it rides in the row it holds */
+    .tip{position:absolute;left:62%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:rgba(255,255,255,.28);border:2px solid rgba(255,255,255,.75);opacity:0;transition:opacity .2s;pointer-events:none}
+    .by-grip .tip{left:25px}.tip.on{opacity:1}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    @media(prefers-reduced-motion:reduce){.row,.card,.card::after,.tip{transition:none!important}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../pull-to-refresh/" rel="prev" aria-label="Previous: Pull to Refresh"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Pull to Refresh</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.33 · Micro-Interactions</p>
+    <h1>Drag to Reorder</h1>
+    <p class="hb-lede">Drag an item and the others slide aside to make room. Best for to-do lists.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag a task up or down and let go, or press Show me. Keyboard: Tab to a grip, Space, arrows, Space.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <ul class="list" id="list" aria-label="Today's tasks">
+        <li class="row" style="--i:0"><div class="card"><button class="grip" type="button" aria-label="Move Reply to Sam" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#ff9d5c"></span><span class="label">Reply to Sam</span></div><span class="tip" id="tip" aria-hidden="true"></span></li>
+        <li class="row" style="--i:1"><div class="card"><button class="grip" type="button" aria-label="Move Book the flights" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#58a6ff"></span><span class="label">Book the flights</span></div></li>
+        <li class="row" style="--i:2"><div class="card"><button class="grip" type="button" aria-label="Move Review the draft" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#56d364"></span><span class="label">Review the draft</span></div></li>
+        <li class="row" style="--i:3"><div class="card"><button class="grip" type="button" aria-label="Move Water the plants" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#d2a8ff"></span><span class="label">Water the plants</span></div></li>
+      </ul>
+      <p class="sr-only" id="moves-help">Press Space to pick up the task, the up and down arrow keys to move it, and Space again to drop it. Escape puts it back.</p>
+      <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Slide speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="420" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="220" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="120" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the other tasks slide out of the way.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="lift-lbl">How much it lifts</p>
+        <div class="seg" id="lift-seg" role="group" aria-labelledby="lift-lbl">
+          <button type="button" data-lift="subtle" class="on" aria-pressed="true">Subtle</button>
+          <button type="button" data-lift="strong" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Strong makes the task you hold grow, tilt and cast a deeper shadow.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Drag by the handle only</span><input class="hb-switch" type="checkbox" role="switch" id="grip-tog" autocomplete="off"></label>
+        <p class="hb-hint">Only the grip starts a drag, so a finger on the rest of a row still scrolls the page.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add drag to reorder to [the list whose order people can change]. Lift the picked-up item above the list and let it follow the pointer exactly; as it passes the middle of a neighbor, slide that neighbor into the gap, and on release settle it into its new place and save the order. Shift the items rather than changing the layout, so it stays smooth. Support the keyboard: Space picks up, the arrow keys move, Space drops and Escape cancels, each step read out to screen readers. On touch screens, start a drag at once from a grip but only after a short press elsewhere, so the page still scrolls. If the visitor has reduced motion turned on, move items straight to their places. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>To-do lists</li><li>Playlists</li><li>Priority rankings</li><li>Menu editors</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Lists sorted by date</li><li>Very long lists</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const list=$('list'),tip=$('tip'),statusEl=$('status'),reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
+  const START=[...list.children];
+  let order=[...START],byGrip=false,drag=null,press=null;   // drag: the row held now; press: a finger waiting on a row
+  const nameOf=row=>row.querySelector('.label').textContent;
+  const say=text=>{statusEl.textContent=text};
+  const slotPx=()=>START[0].offsetHeight+parseFloat(getComputedStyle(list).rowGap);
+  const place=(row,i)=>row.style.setProperty('--i',i);
+  const drawnY=row=>new DOMMatrix(getComputedStyle(row).transform).m42;   // where the row is drawn now, mid-slide too
+
+  // The visitor's drag, the keyboard and Show me all pick a row up with lift(), move it and put it down with drop().
+  function lift(row,by){
+    const from=order.indexOf(row);
+    drag={row,by,from,to:from,y:drawnY(row)};
+    row.classList.remove('settling');row.classList.add('lifted');
+  }
+  // The rows between where the held one started and slot `to` slide one slot toward the gap it left.
+  function makeRoom(to){
+    const {row,from}=drag;drag.to=to;
+    order.forEach((r,j)=>{if(r!==row)place(r,from<to&&j>from&&j<=to?j-1:to<from&&j>=to&&j<from?j+1:j)});
+  }
+  // Pointer and Show me: the held row is drawn at y, exactly under the pointer, and the others make room around the slot it is over.
+  function follow(y){
+    const s=slotPx(),n=order.length,r=drag.row;
+    drag.y=Math.max(-.4*s,Math.min((n-.6)*s,y));
+    r.style.transition='none';r.style.transform=`translateY(${drag.y}px)`;
+    const to=Math.max(0,Math.min(n-1,Math.round(drag.y/s)));
+    if(to!==drag.to)makeRoom(to);
+  }
+  // Keyboard and reduced motion: the held row itself slides (or jumps) one slot.
+  function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to)}
+  // Letting go: the row settles into its slot (or back where it was picked up), and the list's real order follows. The rows it
+  // passed move to its other side in the document, so the held row never leaves it and keeps its keyboard focus.
+  function drop(keep){
+    const {row,from}=drag,to=keep?drag.to:from;
+    if(!keep)makeRoom(from);
+    row.style.transition=row.style.transform='';row.classList.remove('lifted');row.classList.add('settling');place(row,to);
+    if(to>from)for(let j=from+1;j<=to;j++)list.insertBefore(order[j],row);
+    else for(let j=from-1;j>=to;j--)list.insertBefore(order[j],row.nextSibling);
+    order.splice(from,1);order.splice(to,0,row);drag=null;
+    return to;
+  }
+  list.addEventListener('transitionend',e=>{if(e.target.classList.contains('settling')&&e.propertyName==='transform')e.target.classList.remove('settling')});
+  // The pointer: a mouse or pen lifts the row at once; a finger lifts it from the grip at once, elsewhere after a 300ms press, so a
+  // quick swipe over the list still scrolls the page. Once a row is held, the browser is kept from scrolling under it.
+  function grab(row,pid,clientY){lift(row,'pointer');drag.pid=pid;drag.start=clientY-drag.y;try{row.setPointerCapture(pid)}catch(_){}}
+  list.addEventListener('pointerdown',e=>{
+    const row=e.target.closest('.row'),onGrip=!!e.target.closest('.grip');
+    if(!row||press||(drag&&drag.by==='pointer')||(e.pointerType==='mouse'&&e.button!==0)||(byGrip&&!onGrip))return;
+    if(drag)drop(true);   // a row picked up with the keyboard is put down where it is
+    if(e.pointerType==='touch'&&!onGrip)press={pid:e.pointerId,row,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{const p=press;press=null;grab(p.row,p.pid,p.y)},300)};
+    else grab(row,e.pointerId,e.clientY);
+  });
+  list.addEventListener('pointermove',e=>{
+    if(press&&e.pointerId===press.pid){
+      if(Math.hypot(e.clientX-press.x,e.clientY-press.y)>8){clearTimeout(press.timer);press=null}else press.y=e.clientY;
+    }else if(drag&&drag.by==='pointer'&&e.pointerId===drag.pid)follow(e.clientY-drag.start);
+  });
+  function letGo(e){
+    if(press&&e.pointerId===press.pid){clearTimeout(press.timer);press=null}
+    if(!drag||drag.by!=='pointer'||e.pointerId!==drag.pid)return;
+    const {row,from}=drag,to=drop(e.type==='pointerup');
+    if(to!==from)say(`${nameOf(row)} moved to position ${to+1} of ${order.length}.`);
+  }
+  list.addEventListener('pointerup',letGo);
+  list.addEventListener('pointercancel',letGo);
+  list.addEventListener('touchmove',e=>{if(drag&&drag.by==='pointer'&&e.cancelable)e.preventDefault()},{passive:false});
+  list.addEventListener('contextmenu',e=>{if(press||drag)e.preventDefault()});
+  // The keyboard, on a grip: Space or Enter picks the task up and puts it down, the arrows move it, Escape puts it back.
+  list.addEventListener('keydown',e=>{
+    const grip=e.target.closest('.grip'),row=grip&&grip.closest('.row');
+    if(!row)return;
+    const held=drag&&drag.row===row&&drag.by==='key',n=order.length;
+    if(e.key===' '||e.key==='Enter'){
+      e.preventDefault();
+      if(held){say(`${nameOf(row)} dropped in position ${drop(true)+1} of ${n}.`);return}
+      if(drag)drop(true);
+      lift(row,'key');say(`${nameOf(row)} picked up, position ${drag.from+1} of ${n}.`);
+    }else if(held&&(e.key==='ArrowUp'||e.key==='ArrowDown')){
+      e.preventDefault();
+      step(Math.max(0,Math.min(n-1,drag.to+(e.key==='ArrowUp'?-1:1))));
+      say(`${nameOf(row)}, position ${drag.to+1} of ${n}.`);
+    }else if(held&&e.key==='Escape'){
+      e.preventDefault();
+      say(`${nameOf(row)} is back in position ${drop(false)+1} of ${n}.`);
+    }
+  });
+  list.addEventListener('focusout',e=>{if(drag&&drag.by==='key'&&drag.row.contains(e.target))drop(true)});
+  // Puts the rows in this order: sliding there (Reset) or at once, with the slides switched off for a moment (before a run).
+  function setOrder(next,slide){
+    if(!slide)order.forEach(r=>{r.style.transition='none'});
+    order=[...next];list.append(...order);
+    order.forEach((r,i)=>{place(r,i);r.classList.remove('settling')});
+    if(!slide){void list.offsetWidth;order.forEach(r=>{r.style.transition=''})}
+  }
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  let runTimers=[],runFrame=0;
+  function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);runTimers.push(id)}
+  function running(){return runTimers.length>0||runFrame!==0}
+  function stopRun(){
+    runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;tip.classList.remove('on');
+    if(drag&&drag.by==='run')drop(false);   // a task still held by the run goes back where the run picked it up
+  }
+  // The fingertip rides in the row the run holds; glide() moves the row as a hand would, frame by frame by the time passed.
+  function hold(row){lift(row,'run');row.append(tip);tip.classList.add('on')}
+  function release(){cancelAnimationFrame(runFrame);runFrame=0;tip.classList.remove('on');if(drag&&drag.by==='run')drop(true)}
+  function glide(to,ms){
+    const y0=drag.y,y1=to*slotPx(),t0=performance.now();
+    (function frame(now){
+      if(!drag){runFrame=0;return}
+      const k=Math.min(1,Math.max(0,(now-t0)/ms));
+      follow(y0+(y1-y0)*k*k*(3-2*k));
+      runFrame=k<1?requestAnimationFrame(frame):0;
+    })(t0);
+  }
+  // The first task is picked up, dragged two places down and let go; after a pause it is dragged back up to the top. Under reduced
+  // motion it jumps one place at a time, as with the arrow keys. A run starts from the first order, put back at once.
+  $('btn-demo').addEventListener('click',()=>{
+    stopRun();if(drag)drop(false);
+    setOrder(START,false);
+    const row=order[0];hold(row);
+    if(reduceMq.matches){
+      [[1,350],[2,700]].forEach(([to,ms])=>later(()=>step(to),ms));later(release,1050);
+      later(()=>hold(row),1850);[[1,2200],[0,2550]].forEach(([to,ms])=>later(()=>step(to),ms));later(release,2900);
+      return;
+    }
+    later(()=>glide(2,900),150);later(release,1200);
+    later(()=>hold(row),2000);later(()=>glide(0,800),2150);later(release,3050);
+  });
+  $('btn-reset').addEventListener('click',()=>{stopRun();if(drag)drop(false);setOrder(START,true);say('')});
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{document.documentElement.style.setProperty('--slide',d.ms+'ms')});
+  choices('lift-seg',d=>{list.classList.toggle('strong',d.lift==='strong')});
+  $('grip-tog').addEventListener('change',e=>{byGrip=e.target.checked;list.classList.toggle('by-grip',byGrip)});
+</script>
+</body>
+</html>
