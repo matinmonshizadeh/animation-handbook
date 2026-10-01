@@ -98,9 +98,9 @@
       <div class="hb-setting">
         <p class="hb-setting-name" id="dir-lbl">Direction</p>
         <div class="seg" id="dir-seg" role="group" aria-labelledby="dir-lbl">
-          <button type="button" data-dir="up" class="on" aria-pressed="true">Up</button>
+          <button type="button" data-dir="up" aria-pressed="false">Up</button>
           <button type="button" data-dir="down" aria-pressed="false">Down</button>
-          <button type="button" data-dir="short" aria-pressed="false">Shortest</button>
+          <button type="button" data-dir="short" class="on" aria-pressed="true">Shortest</button>
         </div>
         <p class="hb-hint">Up turns every digit forward like a mileage counter; shortest takes the nearer way round.</p>
       </div>
@@ -152,7 +152,7 @@
   const $=id=>document.getElementById(id);
   const slowTog=$('slow-tog'),valueEl=$('value'),reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
   const START=2048,STAGGER=70;
-  let value=START,dur=550,dir='up',oneByOne=true,raf=0;
+  let value=START,dur=550,dir='short',oneByOne=true,raf=0;
   // Each wheel keeps a position that only grows or shrinks: 7 shows a 7, and so do 17 and -3. A roll moves it from where it is
   // drawn now (mid-roll too) to its new target, so a roll that starts before the last one ended carries on without a jump.
   const wheels=[...document.querySelectorAll('.wheel')].map(el=>({el,strip:el.firstChild,pos:0,from:0,to:0,t0:0,ms:1}));
@@ -174,8 +174,8 @@
   }
 
   // Shows v: every digit that changes rolls the way Direction says, the ones on the left a little after the ones on their right when
-  // Digits one after another is on. Slow motion makes the rolls and the steps between them three times as long. Under reduced motion the
-  // digit is swapped at once and fades in.
+  // Digits one after another is on; a wheel still rolling turns toward its new digit at once. Slow motion makes the rolls and the steps
+  // between them three times as long. Under reduced motion the digit is swapped at once and fades in.
   function show(v,quiet){
     v=((v%10000)+10000)%10000;
     const target=digitsOf(v),slow=slowTog.checked?3:1,now=performance.now();
@@ -185,7 +185,7 @@
       if(target[i]===shown)continue;
       let steps=(target[i]-shown+10)%10;
       if(dir==='down')steps-=10;else if(dir==='short'&&steps>5)steps-=10;
-      const delay=oneByOne?n++*STAGGER*slow:0;
+      const delay=oneByOne&&w.pos===w.to?n*STAGGER*slow:0;n++;
       w.from=w.pos;w.to+=steps;w.t0=now+delay;w.ms=dur*slow;
       if(reduceMq.matches){
         w.pos=w.to;draw(w);
@@ -213,18 +213,20 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
+  // A run stopped partway leaves its number on the stage, so screen readers are given that number too.
+  function stopRun(){if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];valueEl.textContent=value.toLocaleString('en-US')}
   // The number goes up by one, then jumps to a number whose every digit is different, then rolls back to where it started. Each
-  // step waits for the longest roll before it (Roll speed plus the three steps of Digits one after another). It says nothing aloud.
+  // step waits for the roll before it (one or two digits, then all four), so the run ends within four seconds at any Roll speed.
+  // It says nothing aloud.
   $('btn-demo').addEventListener('click',()=>{
     stopRun();
     const v=value,d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
     if(!far[0])far[0]=1;
-    const roll=dur+3*STAGGER;
+    const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger;
     if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>show(v,true),0,1800);return}
     later(()=>show(v+1,true),0,150);
-    later(()=>show(+far.join(''),true),roll,400);
-    later(()=>show(v,true),2*roll,1000);
+    later(()=>show(+far.join(''),true),dur+stagger,350);
+    later(()=>show(v,true),dur+stagger+roll,700);
   });
   $('btn-reset').addEventListener('click',()=>{stopRun();show(START)});
   // The visitor pressed, typed or touched inside the stage: the run stops and the number stays as it is.

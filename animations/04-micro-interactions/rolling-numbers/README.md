@@ -15,7 +15,7 @@ Each digit is a fixed-width window with `overflow: hidden` over a strip that lis
 ```js
 let steps=(target[i]-shown+10)%10;
 if(dir==='down')steps-=10;else if(dir==='short'&&steps>5)steps-=10;
-const delay=oneByOne?n++*STAGGER*slow:0;
+const delay=oneByOne&&w.pos===w.to?n*STAGGER*slow:0;n++;
 w.from=w.pos;w.to+=steps;w.t0=now+delay;w.ms=dur*slow;
 ```
 
@@ -27,13 +27,13 @@ w.pos=k<1?w.from+(w.to-w.from)*(1-Math.pow(1-k,3)):w.to;
 draw(w);
 ```
 
-Because a roll starts from the drawn position, a click that comes before the last roll has ended carries on smoothly instead of jumping. The rolling digits are hidden from screen readers; a polite live region holds the plain number ("2,049"), so it is read once per change rather than as a string of digits. Under reduced motion the strip jumps to the new digit and the wheel fades in with a short CSS animation.
+Because a roll starts from the drawn position, and a wheel that is still rolling turns toward its new digit at once (it waits for no stagger), a click that comes before the last roll has ended carries on smoothly instead of jumping or pausing. The rolling digits are hidden from screen readers; a polite live region holds the plain number ("2,049"), so it is read once per change rather than as a string of digits; when the visitor stops a Show me run partway, it is given the number left on the stage. Under reduced motion the strip jumps to the new digit and the wheel fades in with a short CSS animation.
 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Roll speed | Normal | How long a digit takes to roll to its new value: slow is 900ms, normal 550ms and fast 300ms |
-| Direction | Up | Up turns every digit forward, as a mileage counter does, so 9 to 0 is one step; down turns them back, like a countdown; shortest turns each digit the nearer way round |
+| Direction | Shortest | Shortest turns each digit the nearer way round; up turns every digit forward, as a mileage counter does, so 9 to 0 is one step; down turns them back, like a countdown |
 | Digits one after another | on | Each changing digit starts 70ms after the changing digit to its right, so a big change ripples from right to left |
 
 ## Production notes
