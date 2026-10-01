@@ -73,11 +73,11 @@
         <p class="hb-hint">Brighter spots get letters with more ink, or bigger dots.</p>
       </div>
       <div class="hb-setting">
-        <p class="hb-setting-name" id="detail-lbl">Detail</p>
-        <div class="seg" id="detail-seg" role="group" aria-labelledby="detail-lbl">
-          <button type="button" data-detail="fine" aria-pressed="false">Fine</button>
-          <button type="button" data-detail="medium" class="on" aria-pressed="true">Medium</button>
-          <button type="button" data-detail="coarse" aria-pressed="false">Coarse</button>
+        <p class="hb-setting-name" id="size-lbl">Cell size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-size="small" aria-pressed="false">Small</button>
+          <button type="button" data-size="medium" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-size="large" aria-pressed="false">Large</button>
         </div>
         <p class="hb-hint">Smaller letters or dots show more of the picture; phones use bigger ones.</p>
       </div>
@@ -153,12 +153,12 @@ const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen 
 const phone=matchMedia('(max-width:600px),(max-height:500px)');
 const RAMP=' .-:*+=xo#'; // from no ink to the most ink, measured in the site font; each fits in its cell
 const DOTS=12; // dot sizes, from none to one that fills its cell
-const CELLS={fine:[8,10],medium:[11,14],coarse:[16,20]}; // the height of a cell in px: [other screens, phones]
+const CELLS={small:[8,10],medium:[11,14],large:[16,20]}; // the height of a cell in px: [other screens, phones]
 // The picture is drawn into src at one pixel per cell and read back every frame
 const src=document.createElement('canvas'),sctx=src.getContext('2d',{willReadFrequently:true});
 // The marks are drawn in device pixels, cw × ch per cell; pats[n] repeats mark n (a character or a dot size) once per cell
 let W=0,H=0,dpr=1,cw=8,ch=11,cols=1,rows=1,pats=[],t=4,raf=null,lastT=null;
-let MODE='letters',DETAIL='medium',COLOR='mono',ORIG=false,PAPER=false;
+let MODE='letters',SIZE='medium',COLOR='mono',ORIG=false,PAPER=false;
 
 // The moving picture at time t (seconds): an evening sky that is brightest at the horizon, a glowing sun that bobs, two
 // drifting clouds and three rows of dark hills that slide by at their own speeds. It is drawn in stage pixels, w × h, on
@@ -210,12 +210,12 @@ function render(){
   if(ORIG){pctx.setTransform(dpr,0,0,dpr,0,0);scene(pctx,gw,gh);}
 }
 
-// The grid for the chosen detail, in device pixels: letters are narrower than they are tall, dots sit in square cells. Each
+// The grid for the chosen cell size, in device pixels: letters are narrower than they are tall, dots sit in square cells. Each
 // mark is drawn once on a tile of one cell, which becomes a pattern repeating every cell: a character in the site font, or a
 // dot whose area grows evenly from none to one that fills the cell.
 function layout(){
   const letters=MODE==='letters';
-  ch=Math.max(2,Math.round(CELLS[DETAIL][phone.matches?1:0]*dpr));cw=letters?Math.round(ch*.7):ch;
+  ch=Math.max(2,Math.round(CELLS[SIZE][phone.matches?1:0]*dpr));cw=letters?Math.round(ch*.7):ch;
   cols=Math.ceil(cvs.width/cw);rows=Math.ceil(cvs.height/ch);src.width=cols;src.height=rows;
   pats=Array.from({length:letters?RAMP.length:DOTS},(_,n)=>{
     const tile=document.createElement('canvas'),g=tile.getContext('2d');
@@ -270,7 +270,7 @@ function choices(id,pick){
 }
 // Every setting draws the picture again at once, so the change shows while paused too
 choices('mode-seg',d=>{MODE=d.mode;layout();render();});
-choices('detail-seg',d=>{DETAIL=d.detail;layout();render();});
+choices('size-seg',d=>{SIZE=d.size;layout();render();});
 choices('color-seg',d=>{COLOR=d.color;render();});
 document.getElementById('orig-tog').addEventListener('change',e=>{ORIG=e.target.checked;pic.hidden=!ORIG;render();});
 document.getElementById('paper-tog').addEventListener('change',e=>{PAPER=e.target.checked;stage.classList.toggle('paper',PAPER);render();});
