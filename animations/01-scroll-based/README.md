@@ -30,3 +30,4 @@ Techniques driven by scroll position.
 - [SVG Line Draw on Scroll](svg-line-draw/) — A line draws itself along a route as you scroll. Best for timelines.
 - [Scrollspy Navigation](scrollspy-nav/) — A menu highlights the section you are reading. Best for long docs.
 - [Scroll-Driven Background Color](scroll-background-color/) — The background color changes as you scroll through sections. Best for stories.
+- [Hide-on-Scroll Header](hide-on-scroll-header/) — The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.

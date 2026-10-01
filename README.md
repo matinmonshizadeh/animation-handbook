@@ -68,6 +68,7 @@ All 129 techniques, each linked to its live demo.
 - **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A line draws itself along a route as you scroll. Best for timelines.
 - **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A menu highlights the section you are reading. Best for long docs.
 - **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background color changes as you scroll through sections. Best for stories.
+- **[Hide-on-Scroll Header](animations/01-scroll-based/hide-on-scroll-header/)** — The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.
 
 </details>
 
