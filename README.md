@@ -157,6 +157,7 @@ All 129 techniques, each linked to its live demo.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 - **[Animated Gradient Border](animations/04-micro-interactions/gradient-border/)** — A band of colors runs around the edge of a card or button. Best for featured offers.
 - **[Spotlight Hover Glow](animations/04-micro-interactions/spotlight-hover/)** — A soft light follows the pointer and lights up the card edges near it. Best for feature grids.
+- **[Add-to-Cart Fly](animations/04-micro-interactions/add-to-cart-fly/)** — A copy of the product flies into the cart, which bumps and counts up. Best for shops.
 
 </details>
 
