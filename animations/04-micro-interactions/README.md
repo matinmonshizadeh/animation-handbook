@@ -36,6 +36,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Segmented Control](segmented-control/) | A highlight slides to the option you pick. Best for switching views. |
 | [Pull to Refresh](pull-to-refresh/) | Pulling a list down shows a spinner, then new items. Best for feeds. |
 | [Drag to Reorder](drag-to-reorder/) | Drag an item and the others slide aside to make room. Best for to-do lists. |
+| [Rolling Numbers](rolling-numbers/) | Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices. |
 
 ## Key concepts
 
