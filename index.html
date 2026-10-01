@@ -1036,10 +1036,11 @@ button,input{font:inherit;color:inherit}
   </section>
 
   <section class="wrap results" id="results" aria-labelledby="results-title">
+    <!-- The phone bar's search box repeats the one at the top (they share their text), so only that one is a search landmark. -->
     <div class="pinbar" id="pinbar">
       <div class="pinrow">
         <button type="button" class="pin-back" id="pin-back" aria-label="Back to the start"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
-        <form class="pin-search" id="pin-form" role="search" action="./" method="get"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></form>
+        <form class="pin-search" id="pin-form" action="./" method="get"><label class="sr" for="q2">Describe the animation you want</label><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q2" name="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Search animations"></form>
       </div>
       <div class="pchips" role="group" aria-label="Places">
         <button type="button" class="pchip" data-place="btn" aria-pressed="false">Buttons</button>
@@ -2020,11 +2021,12 @@ cardsBox.addEventListener('click',e=>{
   if(btn.classList.contains('fail')){location.href=(FROM_DISK?url+'index.html':url)+'#hb-prompt-title';return;}
   writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
 });
-// Reading the page starts when a mouse pointer rests on a card or a card gets focus, so the copy is quick. A finger does not
-// count: on a phone the touch that sends it opens the card or scrolls the page.
+// Reading the page starts when a mouse pointer rests on a card or the keyboard brings focus to it, so the copy is quick. A
+// finger does not count: on a phone the touch that sends it opens the card or scrolls the page, and the focus a tap gives the
+// card's link (Chrome for Android) is not keyboard focus: it does not match :focus-visible.
 const warm=e=>{const card=e.target.closest&&e.target.closest('.card');if(!card)return;const url=urlOf(card);if(!failedPages.has(url))promptFor(url).catch(()=>{});};
 cardsBox.addEventListener('pointerover',e=>{if(e.pointerType==='mouse')warm(e);});
-cardsBox.addEventListener('focusin',warm);
+cardsBox.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible'))warm(e);});
 </script>
 </body>
 </html>

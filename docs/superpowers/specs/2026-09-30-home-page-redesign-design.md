@@ -85,9 +85,10 @@ opens All animations at that category's heading.
 ## Search
 
 Search looks at each animation's name, its one-line description, the names of its places and its category name. The
-query is split into words; common small words are dropped (a, an, and, the, that, this, to, for, with, when, on, in,
-of, my, it, i, want, make, some); each word is matched by its start, so "bounces", "bounce" and "bouncing" all match
-"bounce" (a typed word drops the first of the endings "ies", "ing", "ed", "es" and "s" that leaves at least three
+query is split into words; common small words are dropped from it and from each animation's own words (a, an, and,
+the, that, this, to, for, with, when, on, in, of, my, it, i, want, make, some, best: every description ends "Best for
+…", so "best" would match every card); each word is matched by its start, so "bounces", "bounce" and "bouncing" all
+match "bounce" (a typed word drops the first of the endings "ies", "ing", "ed", "es" and "s" that leaves at least three
 letters with a vowel, but not the last "s" of "ss"; after "ing" or "ed", a doubled last letter other than l, s, f or z
 loses one letter while three remain: "snapping" finds "snap", "ring" stays whole). An animation matches when at least
 one word matches; results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the
