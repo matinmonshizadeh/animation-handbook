@@ -25,6 +25,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Morphing Blob](morphing-blob/) | Blobs melt together, and one drop chases your pointer. Best for hero sections. |
 | [3D Flip Card](flip-card-3d/) | A card turns over in 3D to show its back. Best for profile and product cards. |
 | [Flocking](flocking/) | Birds swirl and turn together as one flock. Best for calm backgrounds. |
+| [ASCII / Halftone](ascii-halftone/) | A moving picture is redrawn with letters or dots. Best for retro and tech looks. |
 
 ## Key concepts
 

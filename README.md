@@ -210,6 +210,7 @@ All 129 techniques, each linked to its live demo.
 - **[Morphing Blob](animations/06-3d-advanced/morphing-blob/)** — Blobs melt together, and one drop chases your pointer. Best for hero sections.
 - **[3D Flip Card](animations/06-3d-advanced/flip-card-3d/)** — A card turns over in 3D to show its back. Best for profile and product cards.
 - **[Flocking](animations/06-3d-advanced/flocking/)** — Birds swirl and turn together as one flock. Best for calm backgrounds.
+- **[ASCII / Halftone](animations/06-3d-advanced/ascii-halftone/)** — A moving picture is redrawn with letters or dots. Best for retro and tech looks.
 
 </details>
 
