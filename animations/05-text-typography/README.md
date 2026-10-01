@@ -22,6 +22,8 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Wavy Text](wavy-text/) | A wave rolls through the word, letter by letter. Best for playful titles. |
 | [Highlighter Sweep](highlighter-sweep/) | A marker sweeps in behind the key words, one after another. Best for key points. |
 | [Split-Flap Board](split-flap-board/) | Tiles flip through the letters to spell a word, like an airport board. Best for hero titles. |
+| [Neon Flicker](neon-flicker/) | Glowing letters sputter now and then, like a worn neon sign. Best for night themes. |
+| [Handwriting Draw](handwriting-draw/) | A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures. |
 
 ## Key principles
 

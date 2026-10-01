@@ -183,6 +183,8 @@ All 129 techniques, each linked to its live demo.
 - **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
 - **[Highlighter Sweep](animations/05-text-typography/highlighter-sweep/)** — A marker sweeps in behind the key words, one after another. Best for key points.
 - **[Split-Flap Board](animations/05-text-typography/split-flap-board/)** — Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.
+- **[Neon Flicker](animations/05-text-typography/neon-flicker/)** — Glowing letters sputter now and then, like a worn neon sign. Best for night themes.
+- **[Handwriting Draw](animations/05-text-typography/handwriting-draw/)** — A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.
 
 </details>
 
