@@ -23,8 +23,8 @@
   <style>
     :root{--ui-accent:#ffce5a}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    /* The sky is the stage's own background: the canvas over it is see-through, and its trails fade to nothing, not to a color */
-    .stage{position:relative;overflow:hidden;background:linear-gradient(#02030a,#0b0c22 55%,#221640)}
+    /* The sky is the stage's background, drawn from under its see-through border; the canvas trails fade to it, not to a color */
+    .stage{position:relative;overflow:hidden;background:linear-gradient(#02030a,#0b0c22 55%,#221640);background-origin:border-box}
     canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
     .city{position:absolute;left:0;bottom:0;width:100%;height:24%;display:block}
   </style>
@@ -117,7 +117,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add fireworks to [the dark section you want them over]. On a see-through canvas laid over the section, launch a rocket from the bottom every so often; it slows as it climbs and, at the top of its climb, bursts into many sparks that fly out in all directions. Slow the sparks a little on every frame, pull them gently down and fade them out, so each burst blooms, droops and dies away. For trails, cover the canvas with a faint see-through layer instead of clearing it, the same number of times per second on every screen. Use fewer sparks on phones. If the visitor has reduced motion turned on, show one still burst. Match the settings listed below.</p>
+      <p class="hb-prompt">Add fireworks to [the dark section you want them over]. On a see-through canvas laid over the section, launch a rocket from the bottom every so often; it slows as it climbs and, at the top of its climb, bursts into many sparks that fly out in all directions. Slow the sparks a little on every frame, pull them gently down and fade them out, so each burst blooms, droops and dies away. For trails, cover the canvas with a faint see-through layer instead of clearing it, the same number of times per second on every screen. Use fewer sparks on phones. If the visitor has reduced motion turned on, show a still picture of the bursts. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -172,23 +172,30 @@
   function burst(x,y,sx){
     const c=PALETTES[PAL][Math.floor(Math.random()*PALETTES[PAL].length)],willow=SHAPE==='willow';
     const n=phone.matches?50:90,top=(willow?2.8:4.2)*U,P=new Float32Array(n*6),m=60*U;
-    for(let i=0;i<n;i++){
-      const a=Math.random()*6.283,u=Math.random()*2-1,v=top*(SHAPE==='ring'?.93+Math.random()*.07:.08+.92*Math.sqrt(1-u*u));
-      P.set([x,y,Math.cos(a)*v,Math.sin(a)*v,x,y],i*6);
-    }
+    for(let i=0;i<n;i++){const a=Math.random()*6.283,u=Math.random()*2-1,v=top*(SHAPE==='ring'?.93+Math.random()*.07:.08+.92*Math.sqrt(1-u*u));
+      P.set([x,y,Math.cos(a)*v,Math.sin(a)*v,x,y],i*6);}
     bursts.push({P,n,c,x,y,sx,box:[x-m,y-m,x+m,y+m],age:0,life:willow?125:70+Math.random()*20,drag:willow?.972:.955,g:(willow?.05:.032)*U,flash:true});
   }
   const column=(sx,x,y)=>[Math.min(sx,x)-4,y-4,Math.max(sx,x)+4,H]; // the path a rocket has drawn
+  // The parts of rectangle a that none of the rectangles in list covers, each of those taken 4 px wider on every side
+  function free(a,list){
+    return list.reduce((parts,r)=>{const q=[r[0]-4,r[1]-4,r[2]+4,r[3]+4];return parts.flatMap(p=>{
+      if(!(q[0]<p[2]&&q[2]>p[0]&&q[1]<p[3]&&q[3]>p[1]))return [p];
+      const y0=Math.max(p[1],q[1]),y1=Math.min(p[3],q[3]); // above, below, left and right of q
+      return [q[1]>p[1]&&[p[0],p[1],p[2],q[1]],q[3]<p[3]&&[p[0],q[3],p[2],p[3]],q[0]>p[0]&&[p[0],y0,q[0],y1],q[2]<p[2]&&[q[2],y0,p[2],y1]].filter(Boolean);
+    });},[a]);
+  }
   // An 8-bit canvas cannot fade a faint pixel to nothing (each cover rounds it back up), so every burst would leave a dim ghost.
-  // Once a burst has faded, its patch and its rocket's path are wiped clean on whole device pixels, as soon as no rocket, no
-  // burst and no rocket trail of the last half second still glows there.
+  // When a burst dies, its patch and its rocket's path wait half a second while their last embers fade, then are wiped (4 px
+  // wider, on whole device pixels) except where something may still glow: a rocket, a burst, the path of a rocket that burst
+  // in the last half second, or a patch still waiting. Those parts are wiped later with the patch of what glows there.
   function wipe(k){
-    const hit=(q,r)=>q[0]<r[2]&&q[2]>r[0]&&q[1]<r[3]&&q[3]>r[1],out=v=>Math.floor(v*D)/D,up=v=>Math.ceil(v*D)/D;
-    const busy=r=>rockets.some(q=>hit(column(q.sx,q.x,q.y),r))||bursts.some(b=>hit(b.box,r)||b.age<30&&hit(column(b.sx,b.x,b.y),r));
-    marks=marks.filter(m=>{
-      if((m.wait-=k)>0||busy(m.r))return true;
-      const r=m.r,x=out(r[0]-3),y=out(r[1]-3);ctx.clearRect(x,y,up(r[2]+3)-x,up(r[3]+3)-y);return false;
-    });
+    for(const m of marks)m.wait-=k;
+    const out=v=>Math.floor(v*D)/D,up=v=>Math.ceil(v*D)/D,busy=[...rockets.map(q=>column(q.sx,q.x,q.y)),
+      ...bursts.flatMap(b=>b.age<30?[b.box,column(b.sx,b.x,b.y)]:[b.box]),...marks.filter(m=>m.wait>0).map(m=>m.r)];
+    for(const m of marks)if(m.wait<=0)for(const p of free([m.r[0]-4,m.r[1]-4,m.r[2]+4,m.r[3]+4],busy)){
+      const x=out(p[0]),y=out(p[1]);ctx.clearRect(x,y,up(p[2])-x,up(p[3])-y);}
+    marks=marks.filter(m=>m.wait>0);
   }
   // Where everything is when a frame begins: the frame draws every rocket and spark from there to where it ends up
   function keep(){
@@ -205,11 +212,10 @@
       for(let i=0;i<b.n*6;i+=6){
         P[i+2]*=d;P[i+3]=P[i+3]*d+b.g*k;
         const x=P[i]+=P[i+2]*k,y=P[i+1]+=P[i+3]*k;
-        if(x<B[0])B[0]=x;else if(x>B[2])B[2]=x;
-        if(y<B[1])B[1]=y;else if(y>B[3])B[3]=y;
+        if(x<B[0])B[0]=x;else if(x>B[2])B[2]=x;if(y<B[1])B[1]=y;else if(y>B[3])B[3]=y;
       }
     }
-    for(const b of bursts)if(b.age>=b.life)marks.push({r:b.box,wait:30},{r:column(b.sx,b.x,b.y),wait:0});
+    for(const b of bursts)if(b.age>=b.life)marks.push({r:b.box,wait:30},{r:column(b.sx,b.x,b.y),wait:30});
     bursts=bursts.filter(b=>b.age<b.life);
     wipe(k);
   }
@@ -252,8 +258,7 @@
     if(lastT===null){lastT=ts;return;}
     const n=Math.min(ts-lastT,50)/FRAME,w=Math.max(1,Math.round(n));
     const f=fa+(Math.abs(n-w)<.05?w:n),nf=Math.round(f+.05); // within 5% of a whole number counts as it; .05 keeps a tie off the edge
-    if(!nf)return;
-    fa=f-nf;lastT=ts;
+    if(!nf)return;fa=f-nf;lastT=ts;
     const k=n*(slowTog.checked?1/3:1),parts=Math.ceil(k-.05);
     keep();for(let i=0;i<parts;i++)step(k/parts,true);
     paint(nf);
@@ -264,9 +269,7 @@
   document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(paused){cancelAnimationFrame(raf);raf=null;}else start();});
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
-
-  // Setting the canvas size wipes it, so a real change of the stage's size draws the still picture at once, playing or
-  // paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
+  // Sizing the canvas wipes it, so a real resize draws the still picture at once; one that leaves the stage as it was does nothing
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;if(w===W&&h===H)return;
     W=w;H=h;U=H/400;D=Math.min(window.devicePixelRatio||1,2);
@@ -288,7 +291,6 @@
   choices('pal-seg',d=>{PAL=d.pal;changed(true);});
   choices('trail-seg',d=>{TRAIL=d.trail;changed(false);});
   choices('shape-seg',d=>{SHAPE=d.shape;changed(true);});
-
   resize();
   window.addEventListener('resize',resize);
   start();

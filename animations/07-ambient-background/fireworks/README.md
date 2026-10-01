@@ -37,7 +37,17 @@ ctx.globalCompositeOperation = 'lighter';
 
 A frame longer than a 60th of a second (a 30 Hz phone, a busy moment) is moved in equal steps of at most one 60th, so drag and gravity put every spark where a 60 Hz screen would.
 
-An 8-bit canvas cannot fade a faint pixel all the way to nothing: a pixel at 3/255 covered by 13% becomes 2.61, which rounds back to 3. Left alone, every burst would leave a dim ghost in the sky. So each burst remembers the patch it has lit. When it dies, its rocket's path is wiped with `clearRect`, and half a second later (its last trails need that long to fade) its patch too, on whole device pixels, each as soon as no rocket or other burst still glows there.
+An 8-bit canvas cannot fade a faint pixel all the way to nothing: a pixel at 3/255 covered by 13% becomes 2.61, which rounds back to 3. Left alone, every burst would leave a dim ghost in the sky. So each burst remembers the patch it has lit. When it dies, its patch and its rocket's path wait half a second, while their last embers fade, and are then wiped with `clearRect`, 4 pixels wider on every side and on whole device pixels. The wipe leaves out every part where something may still glow: a rocket, a live burst, the path of a rocket that burst in the last half second, or another patch still waiting, each taken 4 pixels wider. Those parts are wiped later, with the patch of whatever glows there, so a wipe never cuts a visible ember.
+
+```js
+const busy = [...rockets.map(q => column(q.sx, q.x, q.y)),
+  ...bursts.flatMap(b => b.age < 30 ? [b.box, column(b.sx, b.x, b.y)] : [b.box]),
+  ...marks.filter(m => m.wait > 0).map(m => m.r)];
+for (const m of marks) if (m.wait <= 0)
+  for (const p of free([m.r[0] - 4, m.r[1] - 4, m.r[2] + 4, m.r[3] + 4], busy)) ctx.clearRect(/* p, on whole device pixels */);
+```
+
+At Rarely and Sometimes the sky between bursts ends up clean. At Often, where bursts keep overlapping, a faint haze (at most 3/255) can stay in places until the sky there is free.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -52,7 +62,7 @@ An 8-bit canvas cannot fade a faint pixel all the way to nothing: a pixel at 3/2
 - **One stroke per burst**: all the sparks of a burst share one color and opacity, so they go into one path; a frame with three bursts is three strokes, not hundreds.
 - **Flashes**: the glow at each burst is soft and drawn once. Avoid full-screen white flashes, which can trouble people with photosensitive conditions.
 - **Libraries**: fireworks-js and the tsParticles fireworks preset do the same with more shell types, and sound; the loop, drag, gravity and trail cover are the same idea.
-- **Reduced motion**: show one still burst, as the demo does; never fire bursts on a page someone asked to keep still.
+- **Reduced motion**: show a still picture of the bursts, as the demo does (one to three, as How often asks); never fire bursts on a page someone asked to keep still.
 
 ## See also
 - [Success Confetti](../../04-micro-interactions/success-confetti/) — one burst of confetti for a single big moment
