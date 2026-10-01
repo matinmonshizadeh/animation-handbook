@@ -35,7 +35,7 @@ A mouse lights the grid while it moves over it, and the light fades out (an `opa
 |-----------|---------|--------|
 | Glow size | Medium | How far the light reaches: small, medium and large are 0.7, 1.15 and 1.7 times the grid's shorter side across |
 | Color | Purple | The color of the light and of the lit edges; white looks the most natural on gray cards |
-| Light the edges | On | The card edges near the pointer glow brightly; off, only the faces brighten |
+| Lights the edges | On | The card edges near the pointer glow brightly; off, only the faces brighten |
 | Lag | Short | How far the light trails a moving pointer: none follows it exactly, short closes 30% of the gap per 60 Hz frame and long 10% |
 
 ## Production notes

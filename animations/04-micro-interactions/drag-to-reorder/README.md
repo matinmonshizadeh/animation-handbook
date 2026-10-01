@@ -47,7 +47,7 @@ Pointer Events cover mouse, pen and touch with one code path, and `setPointerCap
 |-----------|---------|--------|
 | Slide speed | Normal | How fast the passed items slide aside and the dropped one settles: slow is 420ms, normal 220ms and fast 120ms |
 | How much it lifts | Subtle | Subtle grows the held item by 2% with a soft shadow; strong grows it by 6%, tilts it a little and deepens the shadow |
-| Drag by the handle only | off | Only the grip starts a drag; when off, the whole row does, after a short press on touch screens |
+| Drags by the handle only | off | Only the grip starts a drag; when off, the whole row does, after a short press on touch screens |
 
 ## Production notes
 - **Save the order once, on drop.** Move the items with transforms while the drag lasts and rewrite the list (and send it to the server) only when the item is dropped; rebuilding the list on every pointer move makes it flicker and loses the pointer capture.
