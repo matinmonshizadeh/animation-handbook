@@ -60,3 +60,4 @@ document.documentElement.style.setProperty('--dur', next + 's');
 - [Notification Badge Pulse](../badge-pulse/) — another small loop that draws the eye
 - [Text Gradient Animation](../../05-text-typography/text-gradient-animation/) — colors that flow through letters
 - [Animated Gradient Background](../../07-ambient-background/animated-gradient-background/) — a whole background that slowly shifts color
+- [Spotlight Hover Glow](../spotlight-hover/) — card edges that light up near the pointer

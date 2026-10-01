@@ -156,6 +156,7 @@ All 129 techniques, each linked to its live demo.
 - **[Segmented Control](animations/04-micro-interactions/segmented-control/)** — A highlight slides to the option you pick. Best for switching views.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 - **[Animated Gradient Border](animations/04-micro-interactions/gradient-border/)** — A band of colors runs around the edge of a card or button. Best for featured offers.
+- **[Spotlight Hover Glow](animations/04-micro-interactions/spotlight-hover/)** — A soft light follows the pointer and lights up the card edges near it. Best for feature grids.
 
 </details>
 
