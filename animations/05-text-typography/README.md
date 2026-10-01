@@ -24,6 +24,7 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Split-Flap Board](split-flap-board/) | Tiles flip through the letters to spell a word, like an airport board. Best for hero titles. |
 | [Neon Flicker](neon-flicker/) | Glowing letters sputter now and then, like a worn neon sign. Best for night themes. |
 | [Handwriting Draw](handwriting-draw/) | A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures. |
+| [Text Particles](text-particles/) | A word of dots scatters from your pointer and springs back. Best for intros. |
 
 ## Key principles
 

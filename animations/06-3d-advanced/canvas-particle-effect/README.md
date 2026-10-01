@@ -105,3 +105,4 @@ Stroking each link on its own costs one draw call per line, thousands a frame; g
 - [Noise-Based Motion](../noise-based-motion/) — dots moved by smooth noise instead of physics
 - [Particle Constellation](../../07-ambient-background/particle-constellation/) — calmer linked dots, as a background
 - [Flocking](../flocking/) — dots that follow their neighbors and swirl as one flock
+- [Text Particles](../../05-text-typography/text-particles/) — dots that spell a word scatter from the pointer and spring back

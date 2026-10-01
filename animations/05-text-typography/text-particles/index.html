@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Particles — Animation Handbook</title>
+  <meta name="description" content="A word of dots scatters from your pointer and springs back. Best for intros.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-particles/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Text Particles — Animation Handbook">
+  <meta property="og:description" content="A word of dots scatters from your pointer and springs back. Best for intros.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-particles/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Text Particles — Animation Handbook">
+  <meta name="twitter:description" content="A word of dots scatters from your pointer and springs back. Best for intros.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text Particles", "name": "Text Particles", "description": "A word of dots scatters from your pointer and springs back. Best for intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-particles/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text Particles"}</script>
+  <style>
+    :root{--ui-accent:#ff6f8b}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* A dark stage with a soft glow of the word's colors behind it (still: only the dots move) */
+    .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse 60% 46% at 50% 50%,color-mix(in srgb,var(--glow,#ff6f8b) 14%,transparent),transparent 72%),#0b0b0d}
+    /* touch-action none: a finger dragged over the word pushes the dots instead of scrolling the page */
+    canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../handwriting-draw/" rel="prev" aria-label="Previous: Handwriting Draw"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Handwriting Draw</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.19 · Text &amp; Typography</p>
+    <h1>Text Particles</h1>
+    <p class="hb-lede">A word of dots scatters from your pointer and springs back. Best for intros.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer through the word, drag a finger across it, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="The word HELLO, made of small dots"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Dot size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-k="3" aria-pressed="false">Small</button>
+          <button type="button" data-k="4.2" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-k="6" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">Smaller dots sit closer together, so the letters look finer.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="far-lbl">How far they scatter</p>
+        <div class="seg" id="far-seg" role="group" aria-labelledby="far-lbl">
+          <button type="button" data-k=".28" aria-pressed="false">Short</button>
+          <button type="button" data-k=".42" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-k=".65" aria-pressed="false">Far</button>
+        </div>
+        <p class="hb-hint">How wide a gap the pointer opens in the word.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pal-lbl">Colors</p>
+        <div class="seg" id="pal-seg" role="group" aria-labelledby="pal-lbl">
+          <button type="button" data-pal="sunset" class="on" aria-pressed="true">Sunset</button>
+          <button type="button" data-pal="cool" aria-pressed="false">Cool</button>
+          <button type="button" data-pal="rainbow" aria-pressed="false">Rainbow</button>
+          <button type="button" data-pal="white" aria-pressed="false">White</button>
+        </div>
+        <p class="hb-hint">The colors across the word, from left to right.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="back-lbl">How fast they come back</p>
+          <div class="seg" id="back-seg" role="group" aria-labelledby="back-lbl">
+            <button type="button" data-b="slow" aria-pressed="false">Slow</button>
+            <button type="button" data-b="normal" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-b="fast" aria-pressed="false">Fast</button>
+          </div>
+          <p class="hb-hint">How quickly the dots spring back into the letters.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-setting-name" for="text-inp">Your text</label>
+          <input class="hb-text" type="text" id="text-inp" value="HELLO" maxlength="10" autocomplete="off">
+          <p class="hb-hint">Short words work best, up to 10 letters.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a text particle effect to [the word or short title you want to animate]. Sample the word's pixels from a hidden canvas on an even grid, placing a dot wherever a letter covers it. Push the dots near the pointer away, so they glow as they fly, and tie each to its home with a spring, so it flies back with a slight wobble once the pointer moves on. Run one frame loop that moves by elapsed time, stop it once every dot is home, and draw fewer dots on phones. On touch screens, a dragged finger pushes the dots the same way. With reduced motion turned on, keep the dots still and only light up those near the pointer. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero titles</li><li>Page intros</li><li>Portfolios</li><li>Launch pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Small text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.getElementById('stage'),cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d'),txtIn=document.getElementById('text-inp');
+  const slowTog=document.getElementById('slow-tog'),reduce=matchMedia('(prefers-reduced-motion: reduce)'),PHONE=matchMedia('(max-width:600px),(max-height:500px)');
+  const FONT='"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif',F100='900 100px "Schibsted Grotesk"',FRAME=1000/60,TAU=Math.PI*2;
+  // Each palette: its colors from left to right across the word, and the glow behind it
+  const PAL={sunset:[['#ff6f8b','#ff9d5c','#ffce5a'],'#ff6f8b'],cool:[['#3fd6c4','#6ea8ff','#b98cff'],'#6ea8ff'],
+    rainbow:[['#ff6f8b','#ff9d5c','#ffce5a','#5fd88a','#3fd6c4','#6ea8ff','#b98cff'],'#b98cff'],white:[['#ffffff','#d4d4dc'],'#ffffff']};
+  // How fast they come back: the spring (the share of the way home added to a dot's speed each step) and the speed a dot keeps
+  const BACK={slow:[.022,.87],normal:[.045,.82],fast:[.09,.76]};
+  let text='HELLO',gapK=4.2,far=.42,pal='sunset',back='normal',W=0,H=0,fs=0,box={l:0,r:0,t:0,b:0},R=60,rad=1.6,cols=[],sq=false,N=0;
+  let hx,hy,x,y,px,py,vx,vy,bk,L1,L2,L3,user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0;
+  let raf=0,lastT=null,acc=0,still=true,ready=false,wantShow=false;
+  // The word is drawn on a hidden canvas the size of the stage (as large as fits 86% of its width and 42% of its height) and a dot
+  // is kept wherever a letter covers a point of an offset grid, column by column, so the dots run left to right. At most 2,000 on phones.
+  function sample(){
+    if(!W||!H)return [];
+    const off=document.createElement('canvas');off.width=W;off.height=H;
+    const g=off.getContext('2d',{willReadFrequently:true}),ink=m=>[m.actualBoundingBoxLeft+m.actualBoundingBoxRight,m.actualBoundingBoxAscent+m.actualBoundingBoxDescent];
+    const fit=s=>{g.font='900 '+s+'px '+FONT;g.letterSpacing=s*.04+'px';return g.measureText(text)},[w,h]=ink(fit(100));
+    if(!(w>0&&h>0))return [];
+    fs=Math.min(100*W*.86/w,100*H*.42/h);
+    const m=fit(fs),[iw,ih]=ink(m);
+    box={l:(W-iw)/2,r:(W+iw)/2,t:(H-ih)/2,b:(H+ih)/2};
+    g.fillStyle='#fff';g.fillText(text,box.l+m.actualBoundingBoxLeft,box.t+m.actualBoundingBoxAscent);
+    const bx=Math.max(0,Math.floor(box.l)-2),by=Math.max(0,Math.floor(box.t)-2),bw=Math.min(W,Math.ceil(box.r)+2)-bx,bh=Math.min(H,Math.ceil(box.b)+2)-by;
+    const data=g.getImageData(bx,by,bw,bh).data,cap=PHONE.matches?2000:6000,grid=gap=>{const out=[],dy=gap*.866;
+      for(let c=0,xx=bx+gap/2;xx<bx+bw;c++,xx+=gap/2)for(let yy=by+gap/2+(c&1)*dy;yy<by+bh;yy+=2*dy)
+        if(data[(((yy|0)-by)*bw+(xx|0)-bx)*4+3]>128)out.push(xx,yy);
+      return out};
+    let gap=gapK*Math.min(1.25,Math.max(.75,fs/180)),pts=grid(gap);
+    if(pts.length/2>cap){gap*=Math.sqrt(pts.length/2/cap)*1.02;pts=grid(gap);}
+    rad=gap*.38;return pts;
+  }
+  // New homes for the dots. With fly, each new dot starts where an old one is (in the same left-to-right order), so they flow into the new letters.
+  function rebuild(fly){
+    const pts=sample(),n=pts.length/2,o={N,x,y,vx,vy};
+    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));[L1,L2,L3]=[0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);
+    for(let j=0;j<n;j++){
+      const k=fly&&o.N?Math.floor(j*o.N/n):-1;
+      hx[j]=pts[2*j];hy[j]=pts[2*j+1];bk[j]=Math.min(31,Math.max(0,(hx[j]-box.l)/(box.r-box.l)*32|0));x[j]=px[j]=k<0?hx[j]:o.x[k];y[j]=py[j]=k<0?hy[j]:o.y[k];
+      if(k>=0){vx[j]=o.vx[k];vy[j]=o.vy[k];}
+    }
+    R=far*Math.max(fs,120);paint();cvs.setAttribute('aria-label','The word '+text+', made of small dots');
+    // Canvas text uses whatever font is ready: once the site font has loaded for these letters, the dots flow into it
+    if(document.fonts&&!document.fonts.check(F100,text))document.fonts.load(F100,text).then(()=>{if(document.fonts.check(F100,text))rebuild(!reduce.matches)},()=>{});
+    still=!(fly&&o.N)&&!user;
+    if(still)draw(1);else wake();
+  }
+  // The palette as 32 colors from left to right; each dot takes the one at its home, so it keeps its color as it flies
+  function paint(){const [stops,glowCol]=PAL[pal],rgb=stops.map(c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)));
+    cols=Array.from({length:32},(_,k)=>{const t=k/31*(rgb.length-1),i=Math.min(rgb.length-2,t|0),f=t-i;return 'rgb('+rgb[i].map((v,j)=>Math.round(v+(rgb[i+1][j]-v)*f))+')';});
+    stage.style.setProperty('--glow',glowCol);}
+  // One step is 1/60 s. Inside the pointer's reach R a dot is pushed away, harder the closer it is; a spring pulls it home and it keeps
+  // part of its speed. The push grows with the spring and the reach, so the gap it opens is the same share of R at every return speed.
+  function step(){
+    const [K,D]=BACK[back],P=2.4*K*R,R2=R*R,p=ptr;let maxE=0,maxV=0;
+    for(let i=0;i<N;i++){
+      px[i]=x[i];py[i]=y[i];
+      let ax=(hx[i]-x[i])*K,ay=(hy[i]-y[i])*K;
+      if(p){const dx=x[i]-p.x,dy=y[i]-p.y,d2=dx*dx+dy*dy;if(d2<R2&&d2>.01){const d=Math.sqrt(d2),f=(1-d/R)*P/d;ax+=dx*f;ay+=dy*f;}}
+      vx[i]=(vx[i]+ax)*D;vy[i]=(vy[i]+ay)*D;x[i]+=vx[i];y[i]+=vy[i];
+      maxE=Math.max(maxE,Math.abs(x[i]-hx[i])+Math.abs(y[i]-hy[i]));maxV=Math.max(maxV,Math.abs(vx[i])+Math.abs(vy[i]));
+    }
+    // With no pointer, dots within a third of a pixel of home are put there and the loop stops; under a still pointer, once they stop
+    if(!p&&maxE<.3&&maxV<.05){home();still=true;}else still=!!p&&maxV<.02;
+  }
+  function home(){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);}
+  const ease=(v,to,k,t)=>{const n=v+(to-v)*(1-Math.pow(1-k,t/FRAME));return Math.abs(to-n)<.01?to:n};
+  // The loop runs only while something moves. It adds up the time (a third of it in slow motion), takes one step per 60th of a second
+  // and draws the dots between their last two steps, so slow motion stays smooth; a first frame counts as one 60th.
+  function frame(ts){
+    const t=(lastT===null?FRAME:Math.min(ts-lastT,50))*(slowTog.checked?1/3:1),red=reduce.matches;lastT=ts;
+    if(run){run.t+=t;mark=run.at(Math.min(run.t,run.dur));if(run.t>=run.dur)run=null;}
+    ptr=run?mark:user;if(ptr)lightAt=ptr;
+    markA=ease(markA,run?1:0,.25,t);glow=ease(glow,ptr?1:0,.2,t);
+    if(!red){acc+=t;for(let n=0;acc>=FRAME-1&&n<3;n++){step();acc-=FRAME;}}
+    draw(red?1:Math.min(1,Math.max(0,acc/FRAME)));
+    raf=run||markA||(red?glow%1:!still)?requestAnimationFrame(frame):0;
+    if(!raf){lastT=null;acc=0;}
+  }
+  function wake(){if(!raf&&N){lastT=null;acc=0;raf=requestAnimationFrame(frame);}}
+  document.addEventListener('visibilitychange',()=>{lastT=null;acc=0;});
+  // A dot away from home is drawn again, larger and added to itself, so it glows (under reduced motion: the dots near the pointer).
+  function draw(a){
+    ctx.clearRect(0,0,W,H);sq=PHONE.matches;
+    const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6;let n1=0,n2=0,n3=0;
+    for(let i=0;i<N;i++){
+      let v=0;
+      if(!red)v=(Math.abs(px[i]+(x[i]-px[i])*a-hx[i])+Math.abs(py[i]+(y[i]-py[i])*a-hy[i]))/far2;
+      else if(glow&&l){const dx=hx[i]-l.x,dy=hy[i]-l.y,d2=dx*dx+dy*dy;if(d2<R2)v=(1-Math.sqrt(d2)/R)*glow;}
+      if(v>.62)L3[n3++]=i;else if(v>.32)L2[n2++]=i;else if(v>.1)L1[n1++]=i;
+    }
+    dots(null,N,rad,a);
+    ctx.globalCompositeOperation='lighter';
+    ctx.globalAlpha=.3;dots(L1,n1,rad*1.09,a);ctx.globalAlpha=.55;dots(L2,n2,rad*1.18,a);ctx.globalAlpha=.85;dots(L3,n3,rad*1.27,a);
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+    if(!markA||!mark)return; // a run's pretend pointer: a small light, and a ring for its reach
+    ctx.globalAlpha=markA;ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(mark.x,mark.y,R,0,TAU);ctx.stroke();
+    const g=ctx.createRadialGradient(mark.x,mark.y,0,mark.x,mark.y,14);
+    g.addColorStop(0,'#fff');g.addColorStop(.35,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(mark.x,mark.y,14,0,TAU);ctx.fill();ctx.globalAlpha=1;
+  }
+  // Dots of one color are one path, filled once (they run left to right, so each color comes once); phones draw cheaper squares
+  function dots(list,n,s,a){let c=-1;
+    for(let k=0;k<n;k++){
+      const i=list?list[k]:k,X=px[i]+(x[i]-px[i])*a,Y=py[i]+(y[i]-py[i])*a;
+      if(bk[i]!==c){if(c>=0&&!sq)ctx.fill();c=bk[i];ctx.fillStyle=cols[c];ctx.beginPath();}
+      if(sq)ctx.fillRect(X-s*.89,Y-s*.89,s*1.77,s*1.77);else{ctx.moveTo(X+s,Y);ctx.arc(X,Y,s,0,TAU);}
+    }
+    if(c>=0&&!sq)ctx.fill();
+  }
+  // A mouse or a pen in the air pushes the dots as it moves over the word, a finger where it touches; the visitor's own pointer ends a run
+  function aimAt(e){const b=cvs.getBoundingClientRect();user={x:e.clientX-b.left,y:e.clientY-b.top};wake();}
+  cvs.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&e.pointerId!==touchId)return;if(e.isTrusted)run=null;aimAt(e);});
+  cvs.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){user=null;wake();}});
+  cvs.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchId=e.pointerId;try{cvs.setPointerCapture(touchId)}catch(_){}}aimAt(e);});
+  ['pointerup','pointercancel'].forEach(type=>cvs.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;user=null;wake();}}));
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the dots go home, or follow the visitor
+  document.addEventListener('hb:input',()=>{if(run){run=null;wake();}});
+  // Show me: a pretend pointer sweeps through the word in 2.6 s, rising and falling; under reduced motion it rests on the middle for 1.4 s
+  const middle=()=>({x:(box.l+box.r)/2,y:(box.t+box.b)/2});
+  function showMe(){
+    if(!N){wantShow=true;return;}
+    run=reduce.matches?{t:0,dur:1400,at:middle}:{t:0,dur:2600,at:t=>{
+      const s=t/2600,e=s<.5?2*s*s:1-2*(1-s)*(1-s),x0=box.l-R*.2,x1=box.r+R*.2;
+      return {x:x0+(x1-x0)*e,y:(box.t+box.b)/2-(box.b-box.t)*.3*Math.sin(TAU*1.5*e)};
+    }};
+    wake();
+  }
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  // A new reach or return speed shows at once: the pretend pointer touches the middle of the word for a moment
+  function poke(){if(!run&&N){run={t:0,dur:reduce.matches?900:400,at:middle};wake();}}
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
+      buttons.forEach(o=>{o.classList.toggle('on',o===b);o.setAttribute('aria-pressed',String(o===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('size-seg',d=>{gapK=+d.k;if(ready)rebuild(!reduce.matches);});
+  choices('far-seg',d=>{far=+d.k;R=far*Math.max(fs,120);poke();});
+  choices('pal-seg',d=>{pal=d.pal;paint();if(!raf)draw(1);});
+  choices('back-seg',d=>{back=d.b;poke();});
+  // The word is the typed text with single spaces and none at its ends, or HELLO; an emptied field goes back to HELLO when left
+  txtIn.addEventListener('input',()=>{const t=txtIn.value.replace(/\s+/g,' ').trim()||'HELLO';if(t!==text){text=t;if(ready)rebuild(!reduce.matches);}});
+  txtIn.addEventListener('change',()=>{if(!txtIn.value.trim()){txtIn.value='HELLO';txtIn.dispatchEvent(new Event('input',{bubbles:true}));}});
+  // The canvas works in CSS pixels, its backing store scaled by the pixel ratio (at most 2); a new stage size samples the word again
+  function layout(){const w=stage.clientWidth,h=stage.clientHeight,dpr=Math.min(window.devicePixelRatio||1,2);
+    if(!w||!h||(w===W&&h===H))return false;
+    W=w;H=h;cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);return true;}
+  // The first word waits for the site font (at most 1.5 s), so it does not form in a fallback font first
+  function begin(){if(ready)return;ready=true;layout();rebuild(false);if(wantShow){wantShow=false;showMe();}}
+  if(document.fonts&&document.fonts.load){document.fonts.load(F100,text).then(begin,begin);setTimeout(begin,1500);}else begin();
+  new ResizeObserver(()=>{if(ready&&layout())rebuild(false);}).observe(stage);
+  // Reduced motion switched on while the dots move: they are put home at once
+  const onReduce=()=>{if(reduce.matches&&N){home();still=true;}run=null;wake();};
+  if(reduce.addEventListener)reduce.addEventListener('change',onReduce);else if(reduce.addListener)reduce.addListener(onReduce);
+</script>
+</body>
+</html>
