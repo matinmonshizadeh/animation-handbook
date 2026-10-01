@@ -1,6 +1,6 @@
 # 06 — 3D & Advanced
 
-WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. The demos that move by themselves have Pause (SVG Path Animation has Replay and Loop); the ones you hover, click or scroll have Show me or Play.
+WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. The demos that move by themselves have Pause (SVG Path Animation has Replay and Loop); the ones you hover, click, drag or scroll have Show me or Play.
 
 ## Animations
 
