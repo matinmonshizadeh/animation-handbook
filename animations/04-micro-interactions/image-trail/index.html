@@ -21,28 +21,27 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Image Trail", "name": "Image Trail", "description": "Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Image Trail"}</script>
   <style>
-    :root{--ui-accent:#ff9d5c}
+    :root{--ui-accent:#ff9d5c;--bg:#0b0b0d;--glow:#251a30;--ink:#f4f4f2;--dim:#adadb2;--edge:rgba(255,255,255,.14);--shade:rgba(0,0,0,.55)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     /* The stage is a photo journal's hero. touch-action none: a finger dragged over it leaves the trail instead of scrolling the page */
-    .stage{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(90% 70% at 50% 112%,#251a30,transparent 70%),#0b0b0d;
+    .stage{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(90% 70% at 50% 112%,var(--glow),transparent 70%),var(--bg);
       touch-action:none;-webkit-user-select:none;user-select:none}
-    .top{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:clamp(14px,2.4vw,24px) clamp(16px,3vw,28px);font-size:13px;color:#adadb2}
-    .top b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4f4f2}.hero{padding:0 16px;text-align:center}.sub{font-size:clamp(14px,1.5vw,17px);color:#adadb2}
-    .kick{font-size:clamp(11px,1.2vw,13px);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#ff9d5c}
-    .ttl{margin:12px 0 14px;font-size:clamp(42px,7.8vw,96px);font-weight:800;line-height:.92;letter-spacing:-.045em;color:#f4f4f2}
+    .top{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:clamp(14px,2.4vw,24px) clamp(16px,3vw,28px);font-size:13px;color:var(--dim)}
+    .top b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}.hero{padding:0 16px;text-align:center}.sub{font-size:clamp(14px,1.5vw,17px);color:var(--dim)}
+    .kick{font-size:clamp(11px,1.2vw,13px);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ui-accent)}
+    .ttl{margin:12px 0 14px;font-size:clamp(42px,7.8vw,96px);font-weight:800;line-height:.92;letter-spacing:-.045em;color:var(--ink)}
     /* The trail lies over everything in the hero. Each picture is a frame from a small pool, moved only by transform */
     .trail{position:absolute;inset:0;z-index:1;pointer-events:none}
     .pic{position:absolute;left:0;top:0;width:var(--w,150px);aspect-ratio:4/5;overflow:hidden;border-radius:calc(var(--w,150px)*.07);opacity:0;
-      outline:1px solid rgba(255,255,255,.14);outline-offset:-1px;box-shadow:0 14px 36px rgba(0,0,0,.55)}
+      outline:1px solid var(--edge);outline-offset:-1px;box-shadow:0 14px 36px var(--shade)}
     .pic svg{display:block;width:100%;height:100%}
-    /* The skies; the rest of each picture is drawn in the hidden svg below */
+    /* The skies; the rest of each picture is drawn in the hidden svg below. The pictures keep their own colors: they are the drawing */
     .k1{background:linear-gradient(#2d1b4e,#a8457a 52%,#ff9e6d 78%,#ffc58a)}.k2{background:linear-gradient(#1f3b73,#7d5ba6 45%,#f08aa0 64%,#ffc896 70%)}
     .k3{background:linear-gradient(#ffd98e,#ffab6e 60%,#f47c5d)}.k4{background:linear-gradient(#050a1f,#0c2238 60%,#123247)}
     .k5{background:linear-gradient(#0f2140,#24496a 70%,#3d6d86)}.k6{background:linear-gradient(#0b0820,#1d1240 60%,#2c1a52)}
     .k7{background:linear-gradient(#1b1d4a,#6d3a78 50%,#f0876a 80%,#ffb07a)}.k8{background:#f3e7d7}
     .defs{position:absolute;width:0;height:0}
-    /* Phones: a lighter shadow (and fewer frames at a time, in the script) */
-    @media(max-width:600px),(max-height:500px){.pic{box-shadow:0 8px 20px rgba(0,0,0,.5)}}
+    @media(max-width:600px),(max-height:500px){.pic{box-shadow:0 8px 20px var(--shade)}} /* phones: a lighter shadow, and fewer frames (in the script) */
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -181,8 +180,8 @@
   const reduce=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
   const POP=400,LEAVE=500,RUN=2400;   // ms: a picture's pop, its leaving, and Show me's sweep
   // The eight pictures are drawn once (#it1 … #it8). A pool of frames shows them in turn, each frame reused when its turn comes
-  // round again, so nothing is created while the pointer moves. Phones use 14 of the 24 frames.
-  const pool=Array.from({length:24},()=>trail.appendChild(Object.assign(document.createElement('i'),{className:'pic',innerHTML:'<svg viewBox="0 0 80 100"><use href="#it1"/></svg>'})));
+  // round again and its last picture has left, so nothing is created while the pointer moves. Phones use 20 of the 32 frames.
+  const pool=Array.from({length:32},()=>trail.appendChild(Object.assign(document.createElement('i'),{className:'pic',innerHTML:'<svg viewBox="0 0 80 100"><use href="#it1"/></svg>'})));
   // W,H: the stage's size; last: where the last picture dropped (null between strokes); live: the one picture under reduced motion
   let W=0,H=0,gapK=.2,stay=800,sizeK=.34,leave='shrink',tilt=true,last=null,next=0,pic=0,z=0,live=null,hovering=false,touchId=null,runTimers=[],runFrame=0;
 
@@ -194,12 +193,14 @@
     const cs=getComputedStyle(el),from={transform:cs.transform,opacity:cs.opacity};
     el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250});
   }
-  // Drops the next picture at x,y, on top of the others. Its whole life is one animation of transform and opacity: it glides in
-  // from the last drop (from), growing from half size with a small overshoot, stays, then leaves as How they leave says, and is
-  // hidden again when it ends. Slow motion slows every animation on the stage, so it slows all of it. Under reduced motion the
-  // picture only fades in and out where it is, and the one before it fades out at once.
+  // Drops the next picture at x,y, on top of the others, and says whether it did: a picture still out is never cut short, so when
+  // every frame is busy nothing drops and the trail thins. A picture's life is one animation (el._a) of transform and opacity: it
+  // glides in from the last drop (from), growing from half size with a small overshoot, stays, then leaves as How they leave says;
+  // Slow motion slows all of it. Under reduced motion it only fades in and out where it is, and the one before it fades out.
   function drop(x,y,from){
-    const el=pool[next];next=(next+1)%(phone.matches?14:pool.length);
+    const el=pool[next];
+    if(el._a&&el._a.playState==='running')return false;
+    next=(next+1)%(phone.matches?20:pool.length);
     el.getAnimations().forEach(a=>a.cancel());
     pic=pic%8+1;el.className='pic k'+pic;el.querySelector('use').setAttribute('href','#it'+pic);
     el.style.zIndex=++z;
@@ -216,23 +217,23 @@
         {transform:still,opacity:1,offset:stay/life,easing:leave==='fall'?'cubic-bezier(.55,0,1,.45)':'ease-in'},
         {transform:end,opacity:0}];
     }
-    el.animate(frames,{duration:life}).playbackRate=slowTog.checked?1/3:1;
+    el._a=el.animate(frames,{duration:life});el._a.playbackRate=slowTog.checked?1/3:1;
+    return true;
   }
   // Every pointer, finger and Show me position comes through here. A picture drops each time the pointer has gone the gap (How
-  // often a picture appears, a share of the hero's shorter side) from the last drop; a stroke's first point only marks where it
-  // starts. Under reduced motion a picture also shows wherever the pointer is when none is showing.
+  // often a picture appears, a share of the hero's shorter side) from the last drop, or as soon as a frame is free after that; a
+  // stroke's first point only marks where it starts. Under reduced motion a picture also shows wherever the pointer is when none is showing.
   function track(x,y){
-    const free=reduce.matches&&!(live&&live.getAnimations().length);   // reduced motion, and no picture is showing
+    const free=reduce.matches&&!(live&&live._a.playState==='running');   // reduced motion, and no picture is showing
     if(last&&!free&&Math.hypot(x-last.x,y-last.y)<gapK*Math.min(W,H))return;
-    if(last||reduce.matches)drop(x,y,last||{x,y});
+    if((last||reduce.matches)&&!drop(x,y,last||{x,y}))return;
     last={x,y};
   }
   function spot(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left-stage.clientLeft,y:e.clientY-r.top-stage.clientTop}}
 
-  // Show me: one run at a time. Its timers go through later(), its sweep is drawn frame by frame (runFrame).
-  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
-  function later(fn,move,hold){
-    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+  // Show me: one run at a time. Its sweep is drawn frame by frame (runFrame); its timers (reduced motion only) go through later().
+  function later(fn,ms){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);
     runTimers.push(id);
   }
   function running(){return runTimers.length>0||runFrame!==0}
@@ -264,7 +265,7 @@
     if(!e.isTrusted&&hovering)return;
     stopRun();toRest();measure();
     if(reduce.matches){
-      [[.24,.42],[.5,.62],[.76,.4]].forEach(([fx,fy],i)=>later(()=>{last=null;track(W*fx,H*fy)},0,i*1000));
+      [[.24,.42],[.5,.62],[.76,.4]].forEach(([fx,fy],i)=>later(()=>{last=null;track(W*fx,H*fy)},i*1000));
       return;
     }
     let p=0,lastT=null;

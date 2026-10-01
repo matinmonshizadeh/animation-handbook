@@ -10,14 +10,14 @@ An image trail leaves a stream of pictures behind the pointer as it moves over a
 - 404 and "coming soon" pages, where a little play is welcome
 
 ## How it works
-The pictures are drawn once in the page: eight small SVG scenes in a hidden `<defs>`, each sky a CSS gradient. A fixed pool of 24 frames shows them in turn, each frame an `<i>` holding an `<svg>` whose `<use>` points at one scene. The frames are reused round-robin, so nothing is created while the pointer moves, and phones cycle through only 14 of them.
+The pictures are drawn once in the page: eight small SVG scenes in a hidden `<defs>`, each sky a CSS gradient. A fixed pool of 32 frames shows them in turn, each frame an `<i>` holding an `<svg>` whose `<use>` points at one scene. The frames are reused round-robin, so nothing is created while the pointer moves, and phones cycle through only 20 of them. A frame is reused only once its last picture has left: while the next frame in turn is still busy, no picture drops, so a fast pointer (or long stays) thins the trail out instead of cutting pictures short.
 
 A picture drops each time the pointer has gone the gap (a share of the hero's shorter side) from the last drop. The first point of a stroke only marks where it starts, so a still pointer leaves nothing. Here is the demo's `track()` without its reduced-motion case (below):
 
 ```js
 function track(x, y) {
   if (last && Math.hypot(x - last.x, y - last.y) < gapK * Math.min(W, H)) return;
-  if (last) drop(x, y, last);
+  if (last && !drop(x, y, last)) return;   // every frame is busy: try again on the next move
   last = { x, y };
 }
 ```
@@ -48,7 +48,7 @@ On touch screens the hero has `touch-action: none` and takes pointer capture, so
 | Tilts the pictures | on | Each picture leans up to 8 degrees to one side, at random, and turns into place as it pops; off, they all stand straight |
 
 ## Production notes
-- **Pool the frames**: creating and removing an element for every picture works, but it adds page work and garbage with every picture and can stutter on phones. A fixed pool reused in turn costs nothing while the pointer moves; when the pool runs out, the oldest frame is simply taken again.
+- **Pool the frames**: creating and removing an element for every picture works, but it adds page work and garbage with every picture and can stutter on phones. A fixed pool reused in turn costs nothing while the pointer moves. Take a frame back only once its picture has left: when every frame is still out, let the trail wait, so it thins instead of pictures blinking away mid-stay.
 - **Distance, not time**: dropping a picture every N milliseconds piles pictures up under a slow pointer and spreads them out under a fast one. Dropping one every N pixels keeps the spacing even at any speed and leaves nothing behind a pointer that holds still.
 - **Real photos**: decode them before the first drop (`img.decode()`, or keep them in the pool from the start), or the first pass shows empty frames. Small, cropped files keep each frame's paint cheap.
 - **Keep the headline readable**: pictures cover what lies under them for a moment, so put the key text where the trail passes least, or above the trail with enough contrast against any picture.
