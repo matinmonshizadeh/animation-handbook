@@ -232,6 +232,8 @@ function soften(){
 // R times the size of the one around it, from the outside in, so each fills the window of the one before. At p = 1 the next
 // picture fills the view at exactly its own size, which is where it starts as picture `at`: nothing jumps.
 function render(){
+  // The pictures tile the canvas, but their edges are soft, so they go over a dark fill: no frame mixes in the one before it
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0c10';ctx.fillRect(0,0,cvs.width,cvs.height);
   const seen=[];for(let j=0;j<9;j++){const s=Math.pow(R,j-p);if(s*Math.max(W,H)<3)break;seen.push([s,(at+j)%COUNT]);} // under 3px: left out
   seen.forEach(([s,n],j)=>{
     ctx.setTransform(kx*s,0,0,ky*s,kx*W/2*(1-s),ky*H/2*(1-s));
@@ -240,12 +242,17 @@ function render(){
     if(phone.matches)box(0,0,W,H,FLAT[n]);else ctx.drawImage(SOFT[n],0,0,W,H);
     SCENES[n]();ctx.restore();
   });
-  ctx.setTransform(kx,0,0,ky,0,0);
-  if(EDGES)for(const [s,n] of seen){ // each picture's edge, dashed over a dark line, with its number in the chain
-    const x=W/2*(1-s),y=H/2*(1-s);ctx.setLineDash([]);ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.strokeRect(x,y,W*s,H*s);
+  if(!EDGES)return;
+  // Each picture's edge, dashed over a dark line, with its number in the chain. save() and restore() undo the dash, the widths and
+  // the font afterwards, so the scenes' own lines are never drawn dashed
+  ctx.save();ctx.setTransform(kx,0,0,ky,0,0);ctx.font='700 13px "Schibsted Grotesk",system-ui,sans-serif';ctx.textAlign='center';
+  for(const [s,n] of seen){
+    const x=W/2*(1-s),y=H/2*(1-s);
+    ctx.setLineDash([]);ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.strokeRect(x,y,W*s,H*s);
     ctx.setLineDash([7,5]);ctx.lineWidth=2;ctx.strokeStyle=EDGE;ctx.strokeRect(x,y,W*s,H*s);
-    if(H*s>60){box(x+6,y+6,24,22,'rgba(8,10,14,.85)',5);ctx.fillStyle=EDGE;ctx.font='700 13px "Schibsted Grotesk",system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(n+1,x+18,y+22);}
+    if(H*s>60){box(x+6,y+6,24,22,'rgba(8,10,14,.85)',5);ctx.fillStyle=EDGE;ctx.fillText(n+1,x+18,y+22);}
   }
+  ctx.restore();
 }
 
 // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per 16 ms
