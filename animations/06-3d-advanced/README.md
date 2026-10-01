@@ -24,6 +24,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Volumetric Smoke](volumetric-smoke/) | Soft smoke curls upward, drawn as a real 3D cloud. Best for moody backgrounds. |
 | [Morphing Blob](morphing-blob/) | Blobs melt together, and one drop chases your pointer. Best for hero sections. |
 | [3D Flip Card](flip-card-3d/) | A card turns over in 3D to show its back. Best for profile and product cards. |
+| [Flocking](flocking/) | Birds swirl and turn together as one flock. Best for calm backgrounds. |
 
 ## Key concepts
 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flocking — Animation Handbook</title>
+  <meta name="description" content="Birds swirl and turn together as one flock. Best for calm backgrounds.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flocking/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Flocking — Animation Handbook">
+  <meta property="og:description" content="Birds swirl and turn together as one flock. Best for calm backgrounds.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flocking/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Flocking — Animation Handbook">
+  <meta name="twitter:description" content="Birds swirl and turn together as one flock. Best for calm backgrounds.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Flocking", "name": "Flocking", "description": "Birds swirl and turn together as one flock. Best for calm backgrounds.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flocking/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Flocking"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4;--sky-top:#05070f;--sky-mid:#0c1230;--sky-low:#2a1a38;--bird:rgba(236,240,255,.92);--lead:#ffb454}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:linear-gradient(var(--sky-top),var(--sky-mid) 55%,var(--sky-low))}
+    canvas{display:block;width:100%;height:100%}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../flip-card-3d/" rel="prev" aria-label="Previous: 3D Flip Card"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>3D Flip Card</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.21 · 3D &amp; Advanced</p>
+    <h1>Flocking</h1>
+    <p class="hb-lede">Birds swirl and turn together as one flock. Best for calm backgrounds.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and the birds swerve away from your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cvs" role="img" aria-label="Small light birds flying in flocks across a dark evening sky, swerving away from the pointer"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Flock size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-size="small" aria-pressed="false">Small</button>
+          <button type="button" data-size="medium" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-size="large" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How many birds fly; phones show about half as many.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="close-lbl">How close they fly</p>
+        <div class="seg" id="close-seg" role="group" aria-labelledby="close-lbl">
+          <button type="button" data-close="loose" aria-pressed="false">Loose</button>
+          <button type="button" data-close="normal" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-close="tight" aria-pressed="false">Tight</button>
+        </div>
+        <p class="hb-hint">Tight flocks bunch up and turn together; loose ones spread out.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Flees the pointer</span><input class="hb-switch" type="checkbox" role="switch" id="flee-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Birds swerve away from your pointer or finger.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="speed-lbl">Speed</p>
+          <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+            <button type="button" data-spd="1.3" aria-pressed="false">Slow</button>
+            <button type="button" data-spd="2" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-spd="3" aria-pressed="false">Fast</button>
+          </div>
+          <p class="hb-hint">How fast the birds fly; slow is calmer behind text.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows one bird's view</span><input class="hb-switch" type="checkbox" role="switch" id="view-tog" autocomplete="off"></label>
+          <p class="hb-hint">Rings one bird and links it to the neighbors it follows.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a flock of birds to [the section you want it behind]. Draw each bird as a small arrowhead on a canvas, pointing the way it flies. Each bird sees only the birds near it and follows three rules: keep a little room from the closest ones, turn the way its neighbors fly, and drift toward their middle, so the flock swirls and turns as one. Turn birds back before they reach the edges, and move them by the time since the last frame so the speed is the same on every screen. Use fewer birds on phones. When the settings include it, birds swerve away from the pointer or a finger. If the visitor has reduced motion turned on, show the flock still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero sections</li><li>Nature and travel sites</li><li>Art and game pages</li><li>Dark backgrounds</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long reading pages</li><li>Busy layouts</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+const stage=document.getElementById('stage');
+const slowTog=document.getElementById('slow-tog');
+const css=getComputedStyle(document.documentElement),BIRD=css.getPropertyValue('--bird'),LEAD=css.getPropertyValue('--lead');
+const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
+// Phones are screens up to 600px wide, or up to 500px tall when held sideways: they fly about half as many birds
+const phone=matchMedia('(max-width:600px),(max-height:500px)');
+const COUNTS={small:[70,35],medium:[150,70],large:[280,130]}; // [other screens, phones]
+// How close they fly: the room each bird keeps around it (sep, in px) and the pull of the other two rules
+const CLOSE={loose:{sep:32,align:.7,cohere:.3},normal:{sep:22,align:1,cohere:.5},tight:{sep:15,align:1.2,cohere:.9}};
+let W=0,H=0,S=1,raf=null,lastT=null,paused=false;
+let SIZE='medium',RULES=CLOSE.normal,SPD=2,FLEE=true,VIEW=false;
+let birds=[];
+const ptr={x:-1e4,y:-1e4},acc={x:0,y:0};
+
+function makeBird(){
+  const a=Math.random()*Math.PI*2,v=SPD*S*(.6+Math.random()*.4);
+  return {x:W*(.08+Math.random()*.84),y:H*(.08+Math.random()*.84),vx:Math.cos(a)*v,vy:Math.sin(a)*v};
+}
+// Reynolds steering: the change of velocity that turns bird b toward the direction (dx,dy) at full speed, at most F, times w
+function steer(b,dx,dy,vmax,F,w){
+  const d=Math.hypot(dx,dy);if(!d)return;
+  let x=dx/d*vmax-b.vx,y=dy/d*vmax-b.vy;const l=Math.hypot(x,y);
+  if(l>F){x*=F/l;y*=F/l;}
+  acc.x+=x*w;acc.y+=y*w;
+}
+// One move of the flock, k 60 Hz frames long. Each bird looks only at the birds within R in front of and beside it (not
+// right behind) and follows the three rules: keep apart (from those within sep), match their direction, and stay close
+// (to their middle). Inside the margin M it turns back, the harder the closer it is to the edge.
+function step(k){
+  const R=50*S,SEP=RULES.sep*S,vmax=SPD*S,vmin=vmax*.55,F=.045*SPD*S,M=70*S,E=F*2.4/M,RF=90*S;
+  for(const b of birds){
+    let n=0,cx=0,cy=0,ax=0,ay=0,sx=0,sy=0;
+    const vb=Math.hypot(b.vx,b.vy);
+    for(const o of birds){
+      if(o===b)continue;
+      const dx=o.x-b.x,dy=o.y-b.y,d2=dx*dx+dy*dy;
+      if(d2>R*R||dx*b.vx+dy*b.vy<-.5*vb*Math.sqrt(d2))continue;
+      n++;cx+=o.x;cy+=o.y;ax+=o.vx;ay+=o.vy;
+      if(d2<SEP*SEP&&d2>0){sx-=dx/d2;sy-=dy/d2;} // a closer neighbor pushes harder
+    }
+    acc.x=acc.y=0;
+    if(n){steer(b,ax,ay,vmax,F,RULES.align);steer(b,cx/n-b.x,cy/n-b.y,vmax,F,RULES.cohere);}
+    steer(b,sx,sy,vmax,F*1.5,2); // keeping apart may turn a bird three times as hard as the other two rules
+    if(b.x<M)acc.x+=(M-b.x)*E;else if(b.x>W-M)acc.x-=(b.x-W+M)*E;
+    if(b.y<M)acc.y+=(M-b.y)*E;else if(b.y>H-M)acc.y-=(b.y-H+M)*E;
+    if(FLEE){const dx=b.x-ptr.x,dy=b.y-ptr.y;if(dx*dx+dy*dy<RF*RF)steer(b,dx,dy,vmax,F*4,1);}
+    b.vx+=acc.x*k;b.vy+=acc.y*k;
+    const sp=Math.hypot(b.vx,b.vy)||1,lim=Math.min(vmax,Math.max(vmin,sp))/sp;
+    b.vx*=lim;b.vy*=lim;b.x+=b.vx*k;b.y+=b.vy*k;
+  }
+}
+
+// A bird is an arrowhead pointing where it flies, added to the current path
+function birdPath(b,L,w){
+  const sp=Math.hypot(b.vx,b.vy)||1,ux=b.vx/sp,uy=b.vy/sp;
+  ctx.moveTo(b.x+ux*L,b.y+uy*L);
+  ctx.lineTo(b.x-ux*L*.75-uy*w,b.y-uy*L*.75+ux*w);
+  ctx.lineTo(b.x-ux*L*.35,b.y-uy*L*.35);
+  ctx.lineTo(b.x-ux*L*.75+uy*w,b.y-uy*L*.75-ux*w);
+  ctx.closePath();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const L=5.5*S+1.5,w=3*S+.5;
+  ctx.beginPath();birds.forEach(b=>birdPath(b,L,w));
+  ctx.fillStyle=BIRD;ctx.fill();
+  if(!VIEW||!birds.length)return;
+  // One bird's view: the ring it looks within, the dashed room it keeps, and a line to every neighbor it follows
+  const b=birds[0],R=50*S;
+  ctx.strokeStyle=LEAD;ctx.lineWidth=1;ctx.globalAlpha=.55;ctx.beginPath();
+  for(const o of birds)if(o!==b&&(o.x-b.x)**2+(o.y-b.y)**2<R*R){ctx.moveTo(b.x,b.y);ctx.lineTo(o.x,o.y);}
+  ctx.stroke();
+  ctx.beginPath();ctx.arc(b.x,b.y,R,0,Math.PI*2);ctx.stroke();
+  ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(b.x,b.y,RULES.sep*S,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  ctx.globalAlpha=1;ctx.fillStyle=LEAD;ctx.beginPath();birdPath(b,L*1.3,w*1.3);ctx.fill();
+}
+
+// A fresh flock flies 3 seconds out of sight first, so even the first picture (and the still one under reduced motion) shows flocks
+function spawn(){birds=Array.from({length:COUNTS[SIZE][phone.matches?1:0]},makeBird);for(let i=0;i<180;i++)step(1);draw();}
+// Flock size and the phone limit add birds at random places (they join a flock in a few seconds) or take the last ones away
+function recount(){
+  const n=COUNTS[SIZE][phone.matches?1:0];
+  while(birds.length<n)birds.push(makeBird());
+  birds.length=n;
+  if(paused)draw();
+}
+
+// loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
+// 16 ms. A move stands for the time since the last frame in 60 Hz frames (a third of it in slow motion), never more than
+// 50 ms, so a background tab does not leap; the first frame after a start has nothing to measure from and moves nothing.
+function loop(ts){
+  raf=requestAnimationFrame(loop);
+  if(lastT!==null&&ts-lastT<16)return;
+  const dt=lastT===null?0:Math.min(ts-lastT,50);
+  lastT=ts;
+  if(dt)step(dt/FRAME*(slowTog.checked?1/3:1));
+  draw();
+}
+function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
+
+// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+// loop on arrival, which this listener must catch. The birds on screen stay where they are while paused.
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
+  if(paused){cancelAnimationFrame(raf);raf=null;}
+  else start();
+});
+// A tab that comes back after being hidden has no earlier frame to measure from, so its first frame moves nothing
+document.addEventListener('visibilitychange',()=>{lastT=null;});
+
+// Setting the canvas size wipes it, so a real change of the stage's size draws the flock again at once, playing or paused:
+// the first one starts the flock, later ones stretch it to the new size. A resize that leaves the stage as it was (a phone's
+// address bar sliding in or out) does nothing.
+function resize(){
+  const w=stage.clientWidth,h=stage.clientHeight;
+  if(w===W&&h===H)return;
+  if(W)birds.forEach(b=>{b.x*=w/W;b.y*=h/H;});
+  W=w;H=h;S=Math.min(1,Math.max(.65,Math.min(W,H)/380));
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  cvs.width=W*dpr;cvs.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(birds.length)draw();else spawn();
+}
+
+// The pointer is recorded even while paused; the birds react to it only when they move. A mouse or pen uses pointer
+// events; a finger uses touch events, so it keeps working while the page scrolls.
+function aim(x,y){const r=cvs.getBoundingClientRect();ptr.x=x-r.left;ptr.y=y-r.top;}
+function away(){ptr.x=ptr.y=-1e4;}
+stage.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')aim(e.clientX,e.clientY);});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')away();});
+const finger=e=>aim(e.touches[0].clientX,e.touches[0].clientY);
+stage.addEventListener('touchstart',finger,{passive:true});
+stage.addEventListener('touchmove',finger,{passive:true});
+['touchend','touchcancel'].forEach(t=>stage.addEventListener(t,away));
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    if(b.classList.contains('on'))return; // pressing the choice already made does nothing
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('size-seg',d=>{SIZE=d.size;recount();});
+choices('close-seg',d=>{RULES=CLOSE[d.close];});
+// A new speed scales every bird's speed, so the flock carries on smoothly instead of jumping to the new limits
+choices('speed-seg',d=>{const n=+d.spd,r=n/SPD;SPD=n;birds.forEach(b=>{b.vx*=r;b.vy*=r;});});
+document.getElementById('flee-tog').addEventListener('change',e=>{FLEE=e.target.checked;});
+document.getElementById('view-tog').addEventListener('change',e=>{VIEW=e.target.checked;if(paused)draw();});
+
+resize();
+window.addEventListener('resize',resize);
+if(phone.addEventListener)phone.addEventListener('change',recount);
+else if(phone.addListener)phone.addListener(recount);
+start();
+</script>
+</body>
+</html>
