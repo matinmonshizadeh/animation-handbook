@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highlighter Sweep — Animation Handbook</title>
+  <meta name="description" content="A marker sweeps in behind the key words, one after another. Best for key points.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/highlighter-sweep/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Highlighter Sweep — Animation Handbook">
+  <meta property="og:description" content="A marker sweeps in behind the key words, one after another. Best for key points.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/highlighter-sweep/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Highlighter Sweep — Animation Handbook">
+  <meta name="twitter:description" content="A marker sweeps in behind the key words, one after another. Best for key points.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Highlighter Sweep", "name": "Highlighter Sweep", "description": "A marker sweeps in behind the key words, one after another. Best for key points.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/highlighter-sweep/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Highlighter Sweep"}</script>
+  <style>
+    :root{--ui-accent:#ff6f8b;--marker:#ffe066;--top:.12em}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:clamp(16px,3vw,24px);background:#0b0b0d}
+    /* A sheet of paper: isolated, so each band can sit behind the words (z-index -1) without dropping behind the sheet */
+    .paper{position:relative;isolation:isolate;width:min(100%,640px);padding:clamp(16px,3vw,32px);border-radius:12px;background:#f7f4ec}
+    .para{font-size:clamp(18px,2.6vw,28px);font-weight:500;line-height:1.5;letter-spacing:-.005em;color:#1d1d22}
+    mark{background:none;color:inherit}
+    /* Each word of a key phrase, with the space after it, carries its own band: so a phrase that wraps is marked line by line */
+    .w{position:relative}
+    .w::before{content:'';position:absolute;z-index:-1;left:-.08em;right:-.08em;top:var(--top);bottom:-.06em;
+      background:var(--marker);transform:scaleX(0);transform-origin:left center;transition:transform var(--t,600ms) var(--e,linear) var(--d,0ms)}
+    /* Only the ends of a phrase are rounded, so its words read as one stroke of the pen */
+    .w:first-child::before{border-radius:.25em 0 0 .3em}
+    .w:last-child::before{border-radius:0 .35em .2em 0}
+    .w:only-child::before{border-radius:.25em .35em .2em .3em}
+    .para.on .w::before{transform:scaleX(1)}
+    .para.out .w::before{opacity:0;transition:opacity .35s linear}
+    .para.snap .w::before{transition:none!important}
+    /* Reduced motion: the bands are full width from the start and fade in, phrase by phrase */
+    @media(prefers-reduced-motion:reduce){
+      .w::before{transform:none;opacity:0;transition:opacity .4s linear var(--d,0ms)}
+      .para.on .w::before{opacity:1}
+    }
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="once" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../wavy-text/" rel="prev" aria-label="Previous: Wavy Text"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Wavy Text</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.15 · Text &amp; Typography</p>
+    <h1>Highlighter Sweep</h1>
+    <p class="hb-lede">A marker sweeps in behind the key words, one after another. Best for key points.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="paper">
+        <p class="para" id="para">Readers skim first. A marker sweeps behind <mark>the words that matter</mark>, one phrase at a time, so <mark>the main idea</mark> stands out <mark>at a glance</mark>.</p>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and the animation plays again.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Marker color</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="Yellow" data-c="#ffe066" style="background:#ffe066"></button>
+          <button type="button" aria-pressed="false" aria-label="Pink" data-c="#ffa8cc" style="background:#ffa8cc"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#a6efab" style="background:#a6efab"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-c="#a9d5ff" style="background:#a9d5ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Orange" data-c="#ffc27d" style="background:#ffc27d"></button>
+        </div>
+        <p class="hb-hint">Light colors keep the dark words easy to read.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1300" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="700" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="400" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the marker takes to cross each phrase.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="cover-lbl">How much it covers</p>
+        <div class="seg" id="cover-seg" role="group" aria-labelledby="cover-lbl">
+          <button type="button" data-top=".12em" class="on" aria-pressed="true">Whole words</button>
+          <button type="button" data-top=".62em" aria-pressed="false">Lower half</button>
+        </div>
+        <p class="hb-hint">The lower half reads like a thick underline.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a highlighter sweep to [the key words in your paragraph or quote]. Behind each key phrase, a band of marker color grows from left to right, as if drawn with a highlighter pen, and the phrases are marked one after another in reading order. Draw the band behind the text, never over it, and grow it by scaling it from its left edge, so the words never move or reflow. When a phrase wraps onto a second line, sweep each line in turn, as one continuous stroke. Keep the words dark enough to read on the marker color. If the visitor has reduced motion turned on, fade the highlights in instead of sweeping them. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Key points</li><li>Quotes</li><li>Headlines</li><li>Study notes</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long paragraphs</li><li>Too many words</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const para=document.getElementById('para');
+  const vars=document.documentElement.style;
+  const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
+  const motionOk=()=>!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const START=200,GAP=250; // the wait before the first phrase and between phrases: holds, which Slow motion does not stretch
+  let ms=700,timers=[],total=0;
+
+  // Each key phrase's words become spans that keep the space after them, so the bands of one line join up
+  const phrases=[...para.querySelectorAll('mark')].map(m=>{
+    const parts=m.textContent.split(' ');
+    m.textContent='';
+    return parts.map((word,i)=>{
+      const s=document.createElement('span');
+      s.className='w';
+      s.textContent=i<parts.length-1?word+' ':word;
+      m.appendChild(s);
+      return s;
+    });
+  });
+
+  // One smooth curve S per phrase: the pen speeds up and slows down once, not once per word. A word covering p0..p1 of the
+  // phrase's width runs between the times where S reaches p0 and p1 (inv), and its own curve is that piece of S, as a cubic Bezier.
+  const S=t=>t*t*(3-2*t),dS=t=>6*t*(1-t);
+  function inv(p){let a=0,b=1;for(let i=0;i<24;i++){const m=(a+b)/2;if(S(m)<p)a=m;else b=m}return (a+b)/2}
+  function plan(){
+    const D=ms*(slowTog.checked?3:1),reduced=!motionOk();
+    let at=START;
+    phrases.forEach(words=>{
+      const widths=words.map(w=>w.offsetWidth),sum=widths.reduce((a,b)=>a+b,0)||1;
+      let p0=0;
+      words.forEach((w,i)=>{
+        const p1=p0+widths[i]/sum,t0=inv(p0),t1=i===words.length-1?1:inv(p1),k=(t1-t0)/Math.max(p1-p0,1e-6);
+        w.style.setProperty('--d',Math.round(at+(reduced?0:t0*D))+'ms');
+        w.style.setProperty('--t',Math.max(1,Math.round((t1-t0)*D))+'ms');
+        w.style.setProperty('--e','cubic-bezier(.333,'+(dS(t0)*k/3).toFixed(3)+',.667,'+(1-dS(t1)*k/3).toFixed(3)+')');
+        p0=p1;
+      });
+      at+=(reduced?400:D)+GAP;
+    });
+    total=at-GAP;
+  }
+  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // Every play starts from bare paper: the bands drop to nothing without a transition, then sweep in again
+  function sweep(){
+    para.classList.add('snap');
+    para.classList.remove('on','out');
+    void para.offsetWidth;
+    para.classList.remove('snap');
+    para.classList.add('on');
+  }
+  // One play marks the phrases in turn. While Loop is on, the marks hold 1600ms, fade away and the play starts again;
+  // switching Loop off leaves them marked.
+  function cycle(){
+    plan();sweep();
+    if(!loopTog.checked||!motionOk())return;
+    later(()=>{
+      if(!loopTog.checked)return;
+      para.classList.add('out');
+      later(cycle,450);
+    },total+1600);
+  }
+  function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+
+  document.getElementById('btn-play').addEventListener('click',play);
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('color-sw',d=>{vars.setProperty('--marker',d.c)});
+  choices('speed-seg',d=>{ms=+d.ms});
+  choices('cover-seg',d=>{vars.setProperty('--top',d.top)});
+</script>
+</body>
+</html>
