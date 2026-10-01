@@ -75,11 +75,15 @@ fix a bug, or improve an explanation are all welcome.
    inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a `STILL` point when the
    middle of its loop is not a clear frame (reduced motion holds every preview there). Without
    one the card shows the category's generic picture.
-6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
-   the same name and description, and update the technique count where it is written: the
-   root `README.md` (the total and the category's count), the home page,
-   `.github/ISSUE_TEMPLATE/config.yml`, `docs/launch-kit.md` and the picture `og-image.png`.
-   The home check reads its totals from the page.
+6. Add it to the category's `README.md` list (and to any other table there that names pages,
+   such as 07's Implementation summary) and to the list in the root `README.md`, with the same
+   name and description, and update the technique count where it is written: the root
+   `README.md` (the total and the category's count), the home page (its title and meta tags
+   too), `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md` (its sitemap line counts
+   the home page as well: the total plus one); the tests compare each with `CATS`. Leave the
+   picture `og-image.png`, which shows the count too, to the maintainer, who redraws it (a new
+   social image is planned). The home check needs no edit: it reads its totals from `CATS` and
+   `PLACES`.
 7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
    on the new page and on every page you edited. Run the home page check (`home`) too: the
    new card's Copy prompt is compared there.

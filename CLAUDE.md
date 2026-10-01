@@ -203,10 +203,15 @@ inside an entry's "Production notes" section, never as their own entry.
    opacity, no new canvas engine, inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a
    `STILL` point when the middle of its loop is not a clear frame (reduced motion holds every preview
    there). Without one the card shows the category's generic picture.
-7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line
-   description, in home page order), and the technique count wherever it is written: the root `README.md`
-   (the total and the category's count), the home page, `.github/ISSUE_TEMPLATE/config.yml`,
-   `docs/launch-kit.md` and the picture `og-image.png`. The home check reads its totals from the page.
+7. Update `animations/<category>/README.md` (its list of pages, and any other table there that names pages, such
+   as 07's Implementation summary) and the root `README.md` list (the card's name and one-line description, in
+   home page order), and the technique count wherever it is written: the root `README.md` (the total and the
+   category's count), the home page (its title and meta tags too), `.github/ISSUE_TEMPLATE/config.yml` and
+   `docs/launch-kit.md` (its sitemap line counts the home page as well: the total plus one); the tests compare
+   each with `CATS`. The picture `og-image.png` shows the count twice: redraw its digits with Pillow over its
+   background and 28px dot grid, in Consolas 28px at (90,512) in #adadb2 and Consolas Bold 30px at (882,212) in
+   #6ea8ff (the old number drawn that way first gives back the same pixels). A new social image is planned; the
+   maintainer draws it. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run the tests and the page check on the new folder and on every page you edited. Run the home page check
    (`home`) too: the new card's Copy prompt is compared there.
 
