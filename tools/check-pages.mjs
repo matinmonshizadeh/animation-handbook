@@ -584,9 +584,10 @@ async function homeViewProblems() {
     listeners.delete(onLoad);
     await sleep(300);
   };
-  // The totals come from the page's own data (every card, its groups, the cards placed in Buttons), so adding an animation
-  // needs no edit here; the tests compare the counts written in the page with the same data.
-  const total = await evaluate(`({ cards: ALL.length, groups: CATS.length, buttons: ALL.filter(e => e.places.includes('btn')).length })`);
+  // The totals come from the page's data (every entry in CATS, its groups, the cards PLACES puts in Buttons), not from the list
+  // the page builds from it (ALL), so a card lost on the way shows up as a missing card below. Adding an animation needs no
+  // edit here; the tests compare the counts written in the page with the same data.
+  const total = await evaluate(`({ cards: CATS.reduce((n, c) => n + c.entries.length, 0), groups: CATS.length, buttons: Object.values(PLACES).filter(p => p.includes('btn')).length })`);
   if (!total.cards || !total.groups || total.buttons <= 8) problems.push(`the page's own data: ${JSON.stringify(total)} (the Buttons steps below need more than one page of Buttons cards)`);
   await evaluate(`document.querySelector('.place[data-place="btn"]').click()`);
   await sleep(300);
@@ -870,7 +871,7 @@ async function homeMotionProblems() {
   })`).then(found => { if (found.length) problems.push(`reduced motion: ${found.length} animations run ${when} (${[...new Set(found)].slice(0, 8).join(', ')})`); });
   await running('in All animations');
   const slugs = await evaluate(`[...document.querySelectorAll('#cards .card')].map(c => c.dataset.slug)`);
-  const total = await evaluate(`ALL.length`);
+  const total = await evaluate(`CATS.reduce((n, c) => n + c.entries.length, 0)`); // from the data, as in the desktop run
   if (slugs.length !== total) problems.push(`reduced motion: All animations shows ${slugs.length} cards, not ${total}`);
   const card = slug => `document.querySelector('#cards .card[data-slug="${slug}"]')`;
   const frames = n => `new Promise(done => { let left = ${n}; const tick = () => (--left ? requestAnimationFrame(tick) : done()); requestAnimationFrame(tick); })`;
