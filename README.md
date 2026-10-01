@@ -155,6 +155,7 @@ All 129 techniques, each linked to its live demo.
 - **[Toast Notification](animations/04-micro-interactions/toast-notification/)** — Short messages slide into a corner, then leave on their own. Best for updates.
 - **[Segmented Control](animations/04-micro-interactions/segmented-control/)** — A highlight slides to the option you pick. Best for switching views.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
+- **[Animated Gradient Border](animations/04-micro-interactions/gradient-border/)** — A band of colors runs around the edge of a card or button. Best for featured offers.
 
 </details>
 

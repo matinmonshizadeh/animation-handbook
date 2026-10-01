@@ -35,6 +35,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Toast Notification](toast-notification/) | Short messages slide into a corner, then leave on their own. Best for updates. |
 | [Segmented Control](segmented-control/) | A highlight slides to the option you pick. Best for switching views. |
 | [Pull to Refresh](pull-to-refresh/) | Pulling a list down shows a spinner, then new items. Best for feeds. |
+| [Animated Gradient Border](gradient-border/) | A band of colors runs around the edge of a card or button. Best for featured offers. |
 
 ## Key concepts
 

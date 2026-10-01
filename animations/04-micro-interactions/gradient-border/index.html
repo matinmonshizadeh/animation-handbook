@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Gradient Border — Animation Handbook</title>
+  <meta name="description" content="A band of colors runs around the edge of a card or button. Best for featured offers.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gradient-border/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Animated Gradient Border — Animation Handbook">
+  <meta property="og:description" content="A band of colors runs around the edge of a card or button. Best for featured offers.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gradient-border/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Animated Gradient Border — Animation Handbook">
+  <meta name="twitter:description" content="A band of colors runs around the edge of a card or button. Best for featured offers.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Animated Gradient Border", "name": "Animated Gradient Border", "description": "A band of colors runs around the edge of a card or button. Best for featured offers.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gradient-border/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Animated Gradient Border"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--dur:4s;--bw:2px;--c1:#ff6f8b;--c2:#ffce5a;--c3:#5fd88a;--c4:#6ea8ff}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* --band is the color stops of the turning layer: a band that fades in behind its bright front, or colors all around */
+    .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;
+      --band:transparent 0 40%,var(--c1) 58%,var(--c2) 72%,var(--c3) 85%,var(--c4) 96%,transparent}
+    .stage.b-short{--band:transparent 0 68%,var(--c1) 78%,var(--c2) 85%,var(--c3) 91%,var(--c4) 97%,transparent}
+    .stage.b-full{--band:var(--c1),var(--c2),var(--c3),var(--c4),var(--c1)}
+    .scene{display:flex;align-items:center;justify-content:center;gap:clamp(28px,6vw,72px);width:100%;padding:clamp(16px,3vw,32px)}
+    /* Each bordered element: a turning layer clipped to its rounded box (the ring), a blurred copy behind it (the glow),
+       and an inner box that covers all but the edge */
+    .gb{position:relative;isolation:isolate;display:block;border-radius:18px;color:#f4f4f2}
+    .gb-ring,.gb-glow{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+    .gb-ring{background:rgba(255,255,255,.12)}
+    .gb-glow{z-index:-1;filter:blur(16px);opacity:.75}
+    /* Hidden, not removed, so its turn keeps step with the ring's */
+    .stage.no-glow .gb-glow{visibility:hidden}
+    /* The turning layer: a square twice as wide as the element, so it covers every corner at every angle */
+    .gb i{position:absolute;left:50%;top:50%;width:200%;aspect-ratio:1;background:conic-gradient(var(--band));
+      transform:translate(-50%,-50%);animation:gb-turn var(--dur) linear infinite;will-change:transform}
+    .gb-btn i{animation-delay:calc(var(--dur)*-.4)}
+    @keyframes gb-turn{to{transform:translate(-50%,-50%) rotate(1turn)}}
+    .gb-in{position:relative;display:block;margin:var(--bw);border-radius:calc(18px - var(--bw));background:#121216}
+    .gb-card{flex:0 1 280px;min-width:0}
+    .card-in{padding:clamp(16px,2.4vw,24px) clamp(18px,2.6vw,28px)}
+    .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ffce5a}
+    .plan{margin-top:6px;font-size:clamp(24px,3vw,30px);font-weight:800;letter-spacing:-.02em}
+    .price{margin-top:2px;font-size:14px;color:#adadb2}
+    .price b{font-size:18px;color:#f4f4f2}
+    .feats{margin-top:12px;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#d6d6da}
+    .feats li::before{content:"✓";margin-right:8px;color:#5fd88a}
+    .gb-btn{flex:none;border:0;padding:0;background:none;font:inherit;cursor:pointer;border-radius:999px}
+    .btn-in{display:flex;align-items:center;min-height:52px;padding:0 clamp(22px,2.8vw,32px);border-radius:999px;font-size:clamp(15px,1.6vw,17px);font-weight:700}
+    .gb-btn:active .btn-in{background:#1a1a20}
+    @media(max-width:600px){
+      .scene{flex-direction:column;gap:22px}
+      .gb-card{flex:none;width:min(260px,100%)}
+      .feats li+li{display:none}
+    }
+    /* Blur costs the most on phones, and their stage is smaller, so less blur looks as soft */
+    @media(max-width:600px),(max-height:500px){.gb-glow{filter:blur(10px)}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../pull-to-refresh/" rel="prev" aria-label="Previous: Pull to Refresh"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Pull to Refresh</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.30 · Micro-Interactions</p>
+    <h1>Animated Gradient Border</h1>
+    <p class="hb-lede">A band of colors runs around the edge of a card or button. Best for featured offers.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="scene">
+        <div class="gb gb-card">
+          <span class="gb-glow" aria-hidden="true"><i></i></span>
+          <span class="gb-ring" aria-hidden="true"><i></i></span>
+          <div class="gb-in card-in">
+            <p class="eyebrow">Most popular</p>
+            <p class="plan">Pro</p>
+            <p class="price"><b>$12</b> / month</p>
+            <ul class="feats"><li>Unlimited projects</li><li>Priority support</li></ul>
+          </div>
+        </div>
+        <button class="gb gb-btn" type="button">
+          <span class="gb-glow" aria-hidden="true"><i></i></span>
+          <span class="gb-ring" aria-hidden="true"><i></i></span>
+          <span class="gb-in btn-in">Upgrade now</span>
+        </button>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pal-lbl">Colors</p>
+        <div class="seg" id="pal-seg" role="group" aria-labelledby="pal-lbl">
+          <button type="button" data-pal="rainbow" class="on" aria-pressed="true">Rainbow</button>
+          <button type="button" data-pal="sunset" aria-pressed="false">Sunset</button>
+          <button type="button" data-pal="ocean" aria-pressed="false">Ocean</button>
+        </div>
+        <p class="hb-hint">The colors that travel around the edge.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-secs="7" aria-pressed="false">Slow</button>
+          <button type="button" data-secs="4" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-secs="2" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long one trip around the edge takes.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Soft glow</span><input class="hb-switch" type="checkbox" role="switch" id="glow-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">A blurred halo of the same colors around it.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="band-lbl">Band length</p>
+          <div class="seg" id="band-seg" role="group" aria-labelledby="band-lbl">
+            <button type="button" data-band="short" aria-pressed="false">Short</button>
+            <button type="button" data-band="long" class="on" aria-pressed="true">Long</button>
+            <button type="button" data-band="full" aria-pressed="false">All around</button>
+          </div>
+          <p class="hb-hint">How much of the edge the colors cover at once.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="width-lbl">Border width</p>
+          <div class="seg" id="width-seg" role="group" aria-labelledby="width-lbl">
+            <button type="button" data-px="1" aria-pressed="false">Thin</button>
+            <button type="button" data-px="2" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-px="4" aria-pressed="false">Thick</button>
+          </div>
+          <p class="hb-hint">How thick the colored edge is.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an animated gradient border to [the card or button you want to stand out]. Give it an edge where a band of colors keeps running around it over a faint base line. Build it from a square layer, twice as wide as the element, filled with a gradient that sweeps around its center, clipped to the element's rounded shape and covered by an inner box everywhere but the edge. Turn that layer and never animate the gradient itself, so the browser only rotates a finished picture. For a glow, put a blurred copy of the same layer behind it. If the visitor has reduced motion turned on, keep the border still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Featured plans</li><li>Main buttons</li><li>New features</li><li>Promo cards</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Every card on a page</li><li>Calm reading pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage');
+  const vars=document.documentElement.style;
+  // Each set of colors is the four stops of the band, from its faint tail to its bright front
+  const PALETTES={
+    rainbow:['#ff6f8b','#ffce5a','#5fd88a','#6ea8ff'],
+    sunset:['#ffce5a','#ff9d5c','#ff6f8b','#b98cff'],
+    ocean:['#3fd6c4','#4cc3ff','#6ea8ff','#8f7bff']
+  };
+  let secs=4;
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('pal-seg',d=>{PALETTES[d.pal].forEach((c,i)=>vars.setProperty('--c'+(i+1),c))});
+  // A new --dur keeps the time already played, so every band would jump to another point of its turn.
+  // Scaling each turn's time by the same factor as its length keeps the bands where they are, moving or paused,
+  // and keeps each glow in step with its ring.
+  choices('speed-seg',d=>{
+    const next=+d.secs;
+    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs});
+    secs=next;
+    vars.setProperty('--dur',next+'s');
+  });
+  document.getElementById('glow-tog').addEventListener('change',e=>{stage.classList.toggle('no-glow',!e.target.checked)});
+  choices('band-seg',d=>{stage.classList.toggle('b-short',d.band==='short');stage.classList.toggle('b-full',d.band==='full')});
+  choices('width-seg',d=>{vars.setProperty('--bw',d.px+'px')});
+</script>
+</body>
+</html>
