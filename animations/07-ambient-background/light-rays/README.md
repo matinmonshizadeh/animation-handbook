@@ -47,11 +47,11 @@ Each speck of dust drifts up and sideways with a gentle wobble. Its brightness i
 ## Production notes
 - **Cheap to draw**: a frame is one haze fill, one gradient wedge per beam, one fade, one glow and a few dozen dots, a fraction of a millisecond on a laptop. Nothing is blurred: the soft edges come from the gradient itself, which is far cheaper than a blur filter.
 - **Phones**: phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways) float half as much dust.
-- **Browser support**: `createConicGradient` on a canvas is in every current browser (Chrome 99, Safari 16.1, Firefox 112). For older ones, fill each wedge with a flat, faint color instead.
+- **Browser support**: `createConicGradient` on a canvas is in every current browser (Chrome 99, Safari 16.1, Firefox 112). The demo checks for it first; where it is missing, each beam is a narrower wedge of one flat, faint color and the haze is left out, so the page still shows light instead of failing.
 - **CSS alternative**: beams can also be long, narrow elements with a soft gradient across them, turned around the source with `transform: rotate()` and faded with a mask. Keep them few and narrow, since every one is a large layer in memory, especially on high-density phone screens.
 - **WebGL**: games and 3D scenes make god rays with a radial blur of the bright parts of the image (volumetric light scattering); three.js has a `GodRaysEffect` in the postprocessing library.
 - **Reduced motion**: the demo starts paused with the rays drawn still, until the visitor presses Play.
-- **Keep text readable**: the beams fade out toward the bottom, where the headline sits; keep the brightest part of the light away from small text.
+- **Keep text readable**: the beams fade out toward the bottom, where the headline sits, and a soft dark shade (a radial gradient behind the text) keeps it readable where several beams cross under it; keep small text away from the brightest part of the light.
 
 ## See also
 - [Light Leak](../light-leak/) — warm light washes in from a corner at random times

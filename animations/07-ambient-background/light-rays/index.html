@@ -28,7 +28,8 @@
     .stage[data-tone="cool"]{background:radial-gradient(ellipse 90% 75% at var(--sx) 0%,#14223a,#09101c 55%,#04060a)}
     canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
     .fg{position:absolute;left:50%;bottom:clamp(18px,9%,40px);transform:translateX(-50%);width:min(86%,440px);text-align:center;z-index:1;pointer-events:none}
-    .fg-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.72);margin-bottom:6px}
+    .fg::before{content:"";position:absolute;inset:-24px -32px;z-index:-1;background:radial-gradient(closest-side,rgba(7,5,5,.6),rgba(7,5,5,0))} /* keeps the text readable where beams cross under it */
+    .fg-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:6px}
     .fg-title{font-size:clamp(18px,3.2vw,28px);font-weight:800;line-height:1.2;color:#fff;text-wrap:balance}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
@@ -123,7 +124,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add soft light rays to [the dark section you want them in]. From one point just above the top edge, draw a fan of long, narrow beams on a canvas, each soft at its edges, brightest near the source and fading to nothing farther away. Let each beam sway a little and brighten and dim on its own slow cycle, so the light seems to sweep across the scene, and add the beams together where they overlap. When the settings include dust, float tiny specks that glint only where a beam crosses them, with fewer specks on phones. Keep the content above the light. If the visitor has reduced motion turned on, show the rays still. Match the settings listed below.</p>
+      <p class="hb-prompt">Add soft light rays to [the dark section you want them in]. From one point just above the top edge, draw a fan of long, narrow beams on a canvas, made soft by gradients rather than blur filters: clear at the edges, brightest near the source and fading out farther away. Let each beam sway and brighten and dim on its own slow cycle, paced by elapsed time, so the light seems to sweep across the scene, and add overlapping beams together. When the settings include dust, float tiny specks that glint only where a beam crosses them, with fewer specks on phones. Keep the content above the light. If the visitor has reduced motion turned on, show the rays still. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -159,6 +160,7 @@
   const stage=document.querySelector('.stage');
   const slowTog=document.getElementById('slow-tog');
   const TAU=Math.PI*2;
+  const CONIC=!!ctx.createConicGradient; // browsers before about 2023 have none: there each beam is a narrow wedge of one flat, faint color
   const LIGHT={warm:'255,212,150',cool:'168,204,255'},SPECK={warm:'255,236,205',cool:'220,234,255'};
   const PHONE_MOTES=40,MOTES=80; // phones and short screens float half as many specks of dust
   const phone=matchMedia('(max-width:600px),(max-height:500px)');
@@ -168,8 +170,7 @@
   let rays=[],motes=[],sx=0,sy=0,base=0,reach=1,fade=null,glow=null;
 
   // The beams: each has its place in the fan (c), a width and a strength, and its own slow sway and slow brightening
-  function build(){
-    const spread=.55;
+  function build(){const spread=.55;
     rays=Array.from({length:COUNT},(_,i)=>({
       c:-spread+(i+.5+(Math.random()-.5)*.6)*2*spread/COUNT,w:.1+Math.random()*.16,a:.14+Math.random()*.16,
       s:.025+Math.random()*.04,f:TAU/(12+Math.random()*10),p:Math.random()*TAU,
@@ -199,26 +200,28 @@
     for(const r of rays){const u=(ang-r.now)*2/r.w;if(u>-1&&u<1){const b=1-u*u;sum+=r.al*b*b;}}
     return sum*(1-d);
   }
-  // The whole picture at the light's current time. Each beam is a soft wedge: a conic gradient around the source, clear at
-  // both edges and brightest in the middle, drawn with 'lighter' so overlapping beams add up. 'destination-in' with a radial
-  // gradient then fades all of them with distance, and the dust is drawn on top, as bright as the light where each speck is.
+  // The whole picture at the light's current time. Each beam is a soft wedge: a conic gradient around the source, clear at both edges
+  // and brightest in the middle, drawn with 'lighter' so overlapping beams add up. 'destination-in' with a radial gradient then fades
+  // all of them with distance, and the dust is drawn on top, as bright as the light where each speck is.
   function draw(){
     const rgb=LIGHT[TONE],t=clock,sweep=.06*Math.sin(t*.11),R=reach*1.3;
     ctx.clearRect(0,0,W,H);
     ctx.globalCompositeOperation='lighter';
-    // a faint haze over the whole fan, so the beams shine through lit air instead of a black room
-    const hz=ctx.createConicGradient(base-.75+sweep,sx,sy),h=1.5/TAU;
-    hz.addColorStop(0,`rgba(${rgb},0)`);hz.addColorStop(h*.3,`rgba(${rgb},.07)`);hz.addColorStop(h*.7,`rgba(${rgb},.07)`);hz.addColorStop(h,`rgba(${rgb},0)`);
-    ctx.fillStyle=hz;ctx.fillRect(0,0,W,H);
+    if(CONIC){ // a faint haze over the whole fan, so the beams shine through lit air instead of a black room
+      const hz=ctx.createConicGradient(base-.75+sweep,sx,sy),h=1.5/TAU;
+      hz.addColorStop(0,`rgba(${rgb},0)`);hz.addColorStop(h*.3,`rgba(${rgb},.07)`);hz.addColorStop(h*.7,`rgba(${rgb},.07)`);hz.addColorStop(h,`rgba(${rgb},0)`);
+      ctx.fillStyle=hz;ctx.fillRect(0,0,W,H);
+    }
     for(const r of rays){
       r.now=base+r.c+r.s*Math.sin(r.f*t+r.p)+sweep;
       r.al=r.a*(.6+.4*Math.sin(r.g*t+r.q));
-      const g=ctx.createConicGradient(r.now-r.w/2,sx,sy),k=r.w/TAU;
-      g.addColorStop(0,`rgba(${rgb},0)`);g.addColorStop(k*.2,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k*.5,`rgba(${rgb},${r.al})`);
-      g.addColorStop(k*.8,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k,`rgba(${rgb},0)`);
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+Math.cos(r.now-r.w)*R,sy+Math.sin(r.now-r.w)*R);
-      ctx.lineTo(sx+Math.cos(r.now+r.w)*R,sy+Math.sin(r.now+r.w)*R);ctx.fill();
+      const e=CONIC?r.w:r.w/4; // the triangle filled: wider than a soft wedge, or the middle half of one in a flat color
+      if(CONIC){const g=ctx.createConicGradient(r.now-r.w/2,sx,sy),k=r.w/TAU;
+        g.addColorStop(0,`rgba(${rgb},0)`);g.addColorStop(k*.2,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k*.5,`rgba(${rgb},${r.al})`);
+        g.addColorStop(k*.8,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k,`rgba(${rgb},0)`);ctx.fillStyle=g;}
+      else ctx.fillStyle=`rgba(${rgb},${r.al*.6})`;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+Math.cos(r.now-e)*R,sy+Math.sin(r.now-e)*R);
+      ctx.lineTo(sx+Math.cos(r.now+e)*R,sy+Math.sin(r.now+e)*R);ctx.fill();
     }
     ctx.globalCompositeOperation='destination-in';ctx.fillStyle=fade;ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='lighter';ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
@@ -239,16 +242,14 @@
       if(m.x<-4)m.x=W+4;else if(m.x>W+4)m.x=-4;
     }
   }
-
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one picture per
   // 16 ms. The light's time grows by the time since the last picture (never more than 50 ms, so a background tab does not
   // leap) times Speed, or a third of that in slow motion; the first frame after a start has nothing to measure from and adds none.
   function loop(ts){
     raf=requestAnimationFrame(loop);
     if(lastT!==null&&ts-lastT<16)return;
-    const dt=lastT===null?0:Math.min(ts-lastT,50);
+    const dt=lastT===null?0:Math.min(ts-lastT,50),s=dt/1000*SPD*(slowTog.checked?1/3:1);
     lastT=ts;
-    const s=dt/1000*SPD*(slowTog.checked?1/3:1);
     clock+=s;drift(s);draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
@@ -267,8 +268,7 @@
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
-    W=w;H=h;
-    const dpr=Math.min(window.devicePixelRatio||1,2);
+    W=w;H=h;const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
     aim();scatter();draw();
   }
