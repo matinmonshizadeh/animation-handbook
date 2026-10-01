@@ -220,17 +220,17 @@
   // Where each small button settles, from the round button's center, in units of a menu with a 64-unit round button, 50-unit small
   // ones and 20-unit gaps (77 = 32 + 20 + 25 to the first, 70 = 50 + 20 to each next one; the arc's radius is 84).
   const PLACES={row:[[77,0],[147,0],[217,0]],arc:[[-72.7,-42],[0,-84],[72.7,-42]],col:[[0,-77],[0,-147],[0,-217]]};
-  let lay='arc',goo=9,dur=600,stag=60,flip=false,moving=false,runTimers=[],sayTimer=0,boxTimer=0;
+  let lay='arc',goo=9,dur=600,stag=60,flip=false,moving=null,runTimers=[],sayTimer=0,boxTimer=0;
   // The open menu's box around the round button's center, in units: [left, right, top, bottom]
   const extent=name=>PLACES[name].reduce((b,[x,y])=>[Math.min(b[0],x-25),Math.max(b[1],x+25),Math.min(b[2],y-25),Math.max(b[3],y+25)],[-32,32,-32,32]);
   // A unit is k px: the longest layout (274 units) fits the stage with 14px to spare, from 0.88 (44px small buttons) to 1.2. The round button
-  // sits where the open menu is centered. The filter works on the open menu's box and 22 units around it (on all layouts' boxes while the
-  // buttons move to a new layout). The blur grows with the menu, a fifth lighter on phones; a bigger one gets a steeper alpha (m).
+  // sits where the open menu is centered. The filter works on the open menu's box and 22 units around it (on the old and the new layout's
+  // boxes while the buttons move between them). The blur grows with the menu, a fifth lighter on phones; a bigger one gets a steeper alpha (m).
   function place(prev){
     const k=Math.min(1.2,Math.max(.88,(Math.min(stage.clientWidth,stage.clientHeight)-28)/274)),px=v=>(v*k).toFixed(1)+'px';
-    if(prev&&prev!==lay){moving=true;clearTimeout(boxTimer);boxTimer=setTimeout(()=>{moving=false;place()},travel(1.35)*(slowTog.checked?3:1)+200)}
+    if(prev&&prev!==lay){moving=[...new Set([...(moving||[]),prev,lay])];clearTimeout(boxTimer);boxTimer=setTimeout(()=>{moving=null;place()},travel(1.35)*(slowTog.checked?3:1)+200)}
     const e=extent(lay),blur=goo*k*(phoneMq.matches?.8:1),m=Math.max(20,blur*2.2);
-    const r=moving?Object.keys(PLACES).map(extent).reduce((a,c)=>[Math.min(a[0],c[0]),Math.max(a[1],c[1]),Math.min(a[2],c[2]),Math.max(a[3],c[3])]):e;
+    const r=(moving||[lay]).map(extent).reduce((a,c)=>[Math.min(a[0],c[0]),Math.max(a[1],c[1]),Math.min(a[2],c[2]),Math.max(a[3],c[3])]);
     set(gm,'--d',px(64));set(gm,'--s',px(50));set(gm,'--mx',px(-(e[0]+e[1])/2));set(gm,'--my',px(-(e[2]+e[3])/2));
     set(gm,'--bx',px(r[0]-22));set(gm,'--by',px(r[2]-22));set(gm,'--bw',px(r[1]-r[0]+44));set(gm,'--bh',px(r[3]-r[2]+44));
     PLACES[lay].forEach(([x,y],i)=>[items[i],blobs[i],tails[i]].forEach(el=>{set(el,'--x',px(x));set(el,'--y',px(y))}));
@@ -253,7 +253,8 @@
     say.textContent=items[i].dataset.said;say.classList.add('show');clearTimeout(sayTimer);
     sayTimer=setTimeout(hideSay,(reduceMq.matches?400:(dur*.6+250)*(slowTog.checked?3:1))+900);
     if(fromRun)return;
-    $('gm-sr').textContent=items[i].dataset.said+'.';if(had)main.focus({preventScroll:true});
+    const sr=$('gm-sr');sr.textContent='';setTimeout(()=>{sr.textContent=items[i].dataset.said+'.'},100); // emptied first: a choice made twice is read twice
+    if(had)main.focus({preventScroll:true});
   }
   main.addEventListener('click',()=>setOpen(!isOpen()));
   items.forEach((b,i)=>b.addEventListener('click',()=>choose(i,false)));
