@@ -245,10 +245,12 @@
     mb.classList.remove('p1','p2');mb.classList.add((flip=!flip)?'p1':'p2');if(on)hideSay();
   }
   function hideSay(){clearTimeout(sayTimer);say.classList.remove('show')}
-  // A small button does its job (here it only says so) and the menu closes; the focus, if it was on that button, goes back to the round one
+  // A small button does its job (here it only says so) and the menu closes; the focus, if it was on that button, goes back to the round one.
+  // The pill is fully in after 0.6 x Speed and a 250ms fade (3 times as long in Slow motion, 400ms under reduced motion) and stays 900ms.
   function choose(i,fromRun){
     setOpen(false);
-    say.textContent=items[i].dataset.said;say.classList.add('show');clearTimeout(sayTimer);sayTimer=setTimeout(hideSay,1300);
+    say.textContent=items[i].dataset.said;say.classList.add('show');clearTimeout(sayTimer);
+    sayTimer=setTimeout(hideSay,(reduceMq.matches?400:(dur*.6+250)*(slowTog.checked?3:1))+900);
     if(fromRun)return;
     $('gm-sr').textContent=items[i].dataset.said+'.';if(document.activeElement===items[i])main.focus({preventScroll:true});
   }
@@ -272,7 +274,7 @@
     els.forEach(el=>el.style.removeProperty('transition'));
   }
   // The round button is pressed at 250ms and opens the menu at 370ms. Once the drops are in place and 600ms have passed, Like is
-  // pressed, the menu closes and says Liked. At Normal speed the stage is back at rest at about 3.6 s.
+  // pressed, the menu closes and says Liked. At Normal speed the stage is back at rest at about 3.8 s.
   $('btn-demo').addEventListener('click',()=>{
     stopRun();toRest();
     later(()=>main.classList.add('down'),0,250);
