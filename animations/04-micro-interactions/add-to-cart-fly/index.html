@@ -45,7 +45,7 @@
     .price{color:#adadb2}
     .add{flex:none;min-height:44px;border:0;border-radius:10px;background:var(--ui-accent);color:#1a0e05;font:inherit;font-size:clamp(13px,1.5vw,15px);
       font-weight:700;cursor:pointer;transition:transform .12s ease}
-    .add:active,.add.pressing{transform:scale(.95)}
+    .add:active{transform:scale(.95)}
     /* The site focus ring is drawn inside the button. On the orange fill it is as light as the fill, so it turns dark. */
     .hb-page .stage .add:focus-visible{outline-color:#0b0b0d}
     /* The flying copy: an outer layer moves it sideways, an inner one up and down, the copy itself shrinks */
@@ -184,7 +184,7 @@
   const prods=[...stage.querySelectorAll('.prod')];
   const OUT='cubic-bezier(.333,.667,.667,1)',IN='cubic-bezier(.333,0,.667,.333)';   // the two halves of a thrown arc
   const REST=2;
-  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[];
+  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false;
 
   function show(){countEl.textContent=count>99?'99+':String(count)}
   // The copy has landed: the count goes up, and the cart and its badge bump (Cart bumps). Under reduced motion nothing flew,
@@ -200,10 +200,10 @@
   }
   // A copy of the picture is laid over it and flown to the middle of the cart icon. Arc: the outer layer moves sideways at an
   // even pace while the inner one rises, slowing, to a little above the cart and then drops into it, gathering speed, which is
-  // the path of a thrown ball. Straight: both layers ease the same way, so the copy goes in a line.
-  function add(prod,quiet){
+  // the path of a thrown ball. Straight: both layers ease the same way, so the copy goes in a line. onLand runs after the landing.
+  function add(prod,quiet,onLand){
     const name=prod.querySelector('.name').textContent;
-    if(reduce.matches){land(name,quiet);return}
+    if(reduce.matches){land(name,quiet);if(onLand)onLand();return}
     const pic=prod.querySelector('.pic'),s=stage.getBoundingClientRect(),p=pic.getBoundingClientRect(),c=cartIcon.getBoundingClientRect();
     const x0=p.left+p.width/2-s.left-stage.clientLeft,y0=p.top+p.height/2-s.top-stage.clientTop;
     const dx=c.left+c.width/2-(p.left+p.width/2),dy=c.top+c.height/2-(p.top+p.height/2);
@@ -227,7 +227,7 @@
     copy.animate([{transform:'none',easing:'ease-out'},{offset:.3,transform:`scale(${mid})`},{offset:.85,transform:`scale(${end})`,opacity:1},
       {transform:`scale(${end*.6})`,opacity:0}],opts);
     const f={fly,flight};flights.push(f);
-    flight.finished.then(()=>{fly.remove();flights=flights.filter(x=>x!==f);land(name,quiet)},()=>{});
+    flight.finished.then(()=>{fly.remove();flights=flights.filter(x=>x!==f);land(name,quiet);if(onLand)onLand()},()=>{});
   }
   prods.forEach(prod=>prod.querySelector('.add').addEventListener('click',()=>add(prod,false)));
 
@@ -237,28 +237,34 @@
     const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
     runTimers.push(id);
   }
-  function running(){return runTimers.length>0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
-  // Back to the cart of the start: copies in the air are dropped (cancelled, so they never land), bumps stop, the count is 2.
+  // awaiting: the run's copy is in the air and the run waits for it to land
+  function running(){return runTimers.length>0||awaiting}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];awaiting=false}
+  // Back to the cart of the start: copies in the air are dropped (cancelled, so they never land), bumps and presses stop,
+  // the count is 2.
   function toRest(){
     flights.forEach(f=>{f.flight.cancel();f.fly.remove()});flights=[];
     bumps.forEach(a=>a.cancel());bumps=[];
     countEl.getAnimations().forEach(a=>a.cancel());
-    prods.forEach(p=>p.querySelector('.add').classList.remove('pressing'));
+    prods.forEach(p=>p.querySelector('.add').getAnimations().forEach(a=>a.cancel()));
     count=REST;show();statusEl.textContent='';
   }
-  // The first product's button is pressed after 300ms of rest; the copy flies for Flight speed and the cart bumps for 450ms;
-  // after 1.5 s more the count fades back to 2. At the defaults the run is over at 3 s. Show me's press says nothing aloud.
+  // The first product's button is pressed after 300ms of rest. The press is an animation, so it always ends by itself, and Slow
+  // motion slows it with the rest of the stage. When the copy has landed and the cart has bumped (450ms), and 1.2 s more have
+  // passed, the count fades back to 2; at the defaults the run is over at about 3 s. Show me's press says nothing aloud.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
-    const btn=prods[0].querySelector('.add');
-    later(()=>{btn.classList.add('pressing');add(prods[0],true)},0,300);
-    later(()=>btn.classList.remove('pressing'),0,450);
-    later(()=>{count=REST;show();countEl.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'})},dur+450,1500);
+    later(()=>{
+      const btn=prods[0].querySelector('.add');
+      btn.animate([{transform:'none'},{transform:'scale(.95)',offset:.3},{transform:'none'}],{duration:300,easing:'ease-out'});
+      awaiting=true;
+      add(prods[0],true,()=>{if(!awaiting)return;awaiting=false;later(back,450,1200)});
+    },0,300);
   });
+  function back(){count=REST;show();countEl.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'})}
   document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
-  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, and a copy in the air still lands.
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops; a copy in the air still lands and its count stays.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
 
   function choices(id,pick){
