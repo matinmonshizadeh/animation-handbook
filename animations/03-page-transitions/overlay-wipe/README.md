@@ -10,26 +10,23 @@ An overlay wipe hides a page change behind a solid colored panel. The panel swee
 - Any change where the old and new page have nothing in common to animate between
 
 ## How it works
-Each panel is an absolutely placed box over the page area. One Web Animations call per panel holds its whole run as keyframes on `transform`: it waits, slides in, covers the page, slides out and stays out of view. The page is swapped by a timer in the middle of the covered moment, and the panels are taken away once the run has ended:
+Each panel is an absolutely placed box over the page area, and each slide is one Web Animations call on `transform` that holds where it ends. The change runs in three steps, each started when the one before has finished: the panels slide in; once the front panel's slide in has finished, the page behind it is swapped; only then do the panels slide out, after a short covered moment, and when the last one is out of view they are taken away:
 
 ```js
-function sweep(el,start,ms,stay,total){
-  const at=t=>t/total;
-  el.animate([
-    {transform:FROM[dir],offset:0},{transform:FROM[dir],offset:at(start),easing:EASE},
-    {transform:'none',offset:at(start+ms)},{transform:'none',offset:at(start+ms+stay),easing:EASE},
-    {transform:TO[dir],offset:at(start+2*ms+stay)},{transform:TO[dir],offset:1}
-  ],{duration:total,fill:'both'});
+function slide(el,from,to,ms,wait){
+  return el.animate([{transform:from},{transform:to}],{duration:ms,delay:wait,easing:EASE,fill:'both'});
 }
 // in navigate():
-const ms=sweepMs*(slowTog.checked?3:1),stay=ms/3,two=twoTog.checked,lead=two?ms*.35:0,total=2*ms+stay+2*lead;
-if(two)sweep(back,0,ms,stay+2*lead,total);   // the lighter panel goes in first and comes out last
-sweep(front,lead,ms,stay,total);
-later(()=>{rest(oldEl,false);rest(newEl,true)},lead+ms+stay/2);   // the swap, while the page is covered
-later(()=>{clearWipe();finish()},total+30);
+const ms=sweepMs*(slowTog.checked?3:1),stay=ms/4,two=twoTog.checked,lead=two?ms/4:0,from=FROM[dir],to=TO[dir];
+if(two)slide(back,from,'none',ms,0);              // the lighter panel goes in first
+slide(front,from,'none',ms,lead).onfinish=()=>{    // 1. in: the page is now covered
+  rest(oldEl,false);rest(newEl,true);              // 2. swap behind the panel
+  const out=slide(front,'none',to,ms,stay),last=two?slide(back,'none',to,ms,stay+lead):out;
+  last.onfinish=()=>{clearWipe();finish()};        // 3. out: the lighter panel leaves last
+};
 ```
 
-`FROM` and `TO` hold the two off-page places for each direction (for Left to right, `translateX(-100%)` and `translateX(100%)`), so the panel always leaves on the side opposite the one it came from. The easing `cubic-bezier(.7,0,.3,1)` starts and stops each sweep softly and crosses the middle fast. Only `transform` changes, so the browser can move the panels without laying out or repainting the page.
+The panels move on the compositor while the swap runs on the main thread. A swap started by a timer can come late when the main thread is busy, and the panel may already have left; chained this way, a busy moment only makes the covered moment longer. `FROM` and `TO` hold the two off-page places for each direction (for Left to right, `translateX(-100%)` and `translateX(100%)`), so the panel always leaves on the side opposite the one it came from. The easing `cubic-bezier(.7,0,.3,1)` starts and stops each sweep softly and crosses the middle fast. Only `transform` changes, so the browser can move the panels without laying out or repainting the page.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -37,11 +34,11 @@ later(()=>{clearWipe();finish()},total+30);
 | Direction | Left to right | The side the panel comes in from; it always leaves on the opposite side |
 | Panel color | Violet | The color of the panel; the second panel is a lighter shade of it |
 | Two stacked panels | off | A lighter panel runs just ahead of the main one on the way in and just behind it on the way out |
-| Speed | Normal | How long each sweep takes: slow is 700ms, normal 450ms and fast 300ms; the page stays covered for a third of that |
+| Speed | Normal | How long each sweep takes: slow is 550ms, normal 400ms and fast 270ms; the page stays covered for a quarter of that |
 
 ## Production notes
 - **Slide, never resize.** Growing the panel's width or height makes the browser lay out the page on every frame; a `transform` moves an already painted layer.
-- **Swap only while covered.** Changing the page before the panel fully covers it shows a cut through the gap. Time the swap from the middle of the covered moment, not from the start of the sweep.
+- **Swap only while covered, and chain the steps.** Changing the page before the panel fully covers it shows a cut through the gap, and a swap timed by a timer can come after the panel has already left if the main thread stalls. Swap when the slide in has finished, and start the slide out from there.
 - **Real page loads.** On a multi-page site, play the first half (in) before leaving the page and the second half (out) on the new page; the View Transitions API can do both halves with `::view-transition-old` and `::view-transition-new` and a pseudo-element for the panel. Barba.js `leave` and `enter` hooks map onto the same two halves.
 - **Keep it short.** A wipe on every click of an app used all day gets tiring; under a second for the whole change is a good ceiling.
 - **Reduced motion** skips the panels and fades the new page in over 250ms.

@@ -121,9 +121,9 @@
         <div class="hb-setting">
           <p class="hb-setting-name" id="speed-lbl">Speed</p>
           <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
-            <button type="button" data-ms="700" aria-pressed="false">Slow</button>
-            <button type="button" data-ms="450" class="on" aria-pressed="true">Normal</button>
-            <button type="button" data-ms="300" aria-pressed="false">Fast</button>
+            <button type="button" data-ms="550" aria-pressed="false">Slow</button>
+            <button type="button" data-ms="400" class="on" aria-pressed="true">Normal</button>
+            <button type="button" data-ms="270" aria-pressed="false">Fast</button>
           </div>
           <p class="hb-hint">How long each sweep of the panel takes.</p>
         </div>
@@ -182,7 +182,7 @@
   const FROM={ltr:'translateX(-100%)',rtl:'translateX(100%)',btt:'translateY(100%)',ttb:'translateY(-100%)'};
   const TO={ltr:'translateX(100%)',rtl:'translateX(-100%)',btt:'translateY(-100%)',ttb:'translateY(100%)'};
   const EASE='cubic-bezier(.7,0,.3,1)';
-  let current=0,animating=false,dir='ltr',sweepMs=450,afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,dir='ltr',sweepMs=400,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -236,14 +236,9 @@
     showPage(current);
   }
 
-  // One panel: it waits `start` ms, slides in over `ms`, covers the page for `stay` ms and slides out over `ms`; `total` is the whole change
-  function sweep(el,start,ms,stay,total){
-    const at=t=>t/total;
-    el.animate([
-      {transform:FROM[dir],offset:0},{transform:FROM[dir],offset:at(start),easing:EASE},
-      {transform:'none',offset:at(start+ms)},{transform:'none',offset:at(start+ms+stay),easing:EASE},
-      {transform:TO[dir],offset:at(start+2*ms+stay)},{transform:TO[dir],offset:1}
-    ],{duration:total,fill:'both'});
+  // One panel slides from `from` to `to` over `ms`, after waiting `wait` ms, and holds where it ends
+  function slide(el,from,to,ms,wait){
+    return el.animate([{transform:from},{transform:to}],{duration:ms,delay:wait,easing:EASE,fill:'both'});
   }
 
   function navigate(next,then){
@@ -258,16 +253,19 @@
       later(()=>{rest(oldEl,false);rest(newEl,true);finish()},300);
       return;
     }
-    // Read when the change starts; three times as long in slow motion. The page is covered for a third of a sweep.
-    const ms=sweepMs*(slowTog.checked?3:1),stay=ms/3,two=twoTog.checked,lead=two?ms*.35:0,total=2*ms+stay+2*lead;
+    // Read when the change starts; three times as long in slow motion. The page stays covered for a quarter of a sweep.
+    const ms=sweepMs*(slowTog.checked?3:1),stay=ms/4,two=twoTog.checked,lead=two?ms/4:0,from=FROM[dir],to=TO[dir];
     nameEl.textContent=PAGES[next].name;
     back.hidden=!two;
     wipe.classList.add('on');
-    // With two panels the lighter one goes in first and comes out last, so it leads the way in and trails on the way out
-    if(two)sweep(back,0,ms,stay+2*lead,total);
-    sweep(front,lead,ms,stay,total);
-    later(()=>{rest(oldEl,false);rest(newEl,true)},lead+ms+stay/2); // the swap, while the page is covered
-    later(()=>{clearWipe();finish()},total+30);
+    // In, swap, out: each step starts when the one before has finished, so a busy moment can delay the change but never
+    // uncover the old page. With two panels the lighter one goes in first and comes out last: it leads in and trails out.
+    if(two)slide(back,from,'none',ms,0);
+    slide(front,from,'none',ms,lead).onfinish=()=>{
+      rest(oldEl,false);rest(newEl,true);
+      const out=slide(front,'none',to,ms,stay),last=two?slide(back,'none',to,ms,stay+lead):out;
+      last.onfinish=()=>{clearWipe();finish()};
+    };
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
