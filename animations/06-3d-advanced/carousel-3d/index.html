@@ -24,13 +24,11 @@
     :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;flex-direction:column;background:radial-gradient(120% 90% at 50% 8%,#17131f,#08070a)}
-    /* The ring's box: the camera (perspective) looks at it, and dragging anywhere on it turns the ring. A vertical swipe
-       still scrolls the page. --r (radius) and --cw (card width) are set by the script; --tilt and --lift by Seen from above. */
+    /* The camera's box: dragging on it turns the ring, a vertical swipe still scrolls the page. The script sets --r and --cw. */
     .view{position:relative;flex:1;min-height:0;display:grid;place-items:center;perspective:900px;touch-action:pan-y;cursor:grab;
       -webkit-user-select:none;user-select:none;--tilt:-14deg;--lift:-.11}
     .view.grabbing{cursor:grabbing}
-    /* push: the ring's middle sits one radius behind the screen, so the front card keeps its size. tilt: the view from above,
-       lifted so the tilted ring stays in the middle; it eases only once the first size is set (ready). ring: the script turns it. */
+    /* push: one radius back, so the front card keeps its size; tilt: the view from above, eased once the first size is set */
     .push,.tilt,.ring,.card{transform-style:preserve-3d}
     .push{transform:translateZ(calc(var(--r,200px) * -1))}
     .tilt{transform:translateY(calc(var(--r,200px) * var(--lift))) rotateX(var(--tilt))}
@@ -47,7 +45,6 @@
     .front span{flex:1;min-width:0;padding:7% 9%;background:rgba(8,8,12,.76);color:#f4f4f2;font-weight:700;font-size:max(11px,calc(var(--cw) * .085));
       line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .back{transform:rotateY(180deg);border:1px solid hsl(var(--h) 28% 30%);background:linear-gradient(hsl(var(--h) 30% 18%),hsl(var(--h) 34% 9%))}
-    /* Previous, the card number and Next, under the ring */
     .nav{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 0 clamp(10px,2vw,16px)}
     .arrow{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.06);color:#f4f4f2;cursor:pointer}
     .arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -178,8 +175,8 @@
     }
     angle=0;target=null;front=-1;layout();render();
   }
-  // The card width that fits: a 3:4 card two thirds of the box's height, made smaller until the ring's outer corners, seen at
-  // their depth, fit 94% of its width. The radius puts N cards with a gap of 12% of a card around a polygon.
+  // A 3:4 card as wide as half the box's height (two thirds of it tall), made narrower until the ring's outer corners, seen at
+  // their depth, fit 94% of the box's width. The radius puts N cards with a gap of 12% of a card around a polygon.
   function layout(){
     const W=view.clientWidth,H=view.clientHeight,t=Math.tan(Math.PI/N);
     let cw=Math.min(H*.5,220);
@@ -195,22 +192,19 @@
     const i=((Math.round(-angle/step)%N)+N)%N;
     if(i!==front){front=i;countEl.textContent=`${i+1} of ${N}`;}
   }
-  // The card in front is announced when the ring comes to rest after the visitor (or Show me) moved it, never while it spins by itself
+  // The card in front is announced when the ring comes to rest after the visitor moved it (or pressed Show me), never by itself
   function rested(){statusEl.textContent=`Card ${front+1} of ${N}: ${names[front]}`;}
-  function jump(a){run=null;target=null;angle=wrap(a);render();rested();}
+  function jump(a,say=true){run=null;target=null;angle=wrap(a);render();if(say)rested();}
 
-  // One frame loop, running only while something moves. Show me runs by its own clock; a settle closes a share of the gap per
-  // 60th of a second; Spins by itself eases up to its speed once the ring has been left alone for 1.2 s.
+  // One loop, only while something moves: Show me by its own clock, a settle by a share per 60th of a second, the spin by dt
   function wake(){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
   function tick(ts){
-    raf=0;
-    const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
-    let more=!!drag;
+    raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;let more=!!drag;
     if(run){
       if(run.t0===null)run.t0=ts;
       const p=Math.min(1,(ts-run.t0)/RUN_MS),e=1-Math.pow(1-p,4)*(1+4*p); // speeds up for a quarter, then coasts to a stop
       angle=run.a0+(run.a1-run.a0)*e;
-      if(p<1)more=true;else{angle=wrap(run.a1);run=null;idle=0;rested();}
+      if(p<1)more=true;else{const say=run.say;angle=wrap(run.a1);run=null;idle=0;if(say)rested();}
     }else if(target!==null&&!drag){
       angle+=(target-angle)*(1-Math.pow(1-K,dt/FRAME));
       if(Math.abs(target-angle)<.01){angle=wrap(target);target=null;idle=0;rested();}else more=true;
@@ -225,10 +219,8 @@
   }
   document.addEventListener('visibilitychange',()=>{lastT=null;});
 
-  // Dragging: the front card follows the pointer (pixels become degrees at the ring's radius). On release, the speed of the
-  // last tenth of a second says how far the ring would coast in GLIDE ms; that place is rounded to a card and the ring eases
-  // there, starting at the pointer's speed. A press that hardly moves brings the pressed card to the front. Under reduced
-  // motion the ring does not follow: a drag past 30px steps one card.
+  // The front card follows the pointer; on release the ring coasts as far as GLIDE ms at the pointer's speed, rounded to a card.
+  // A press that hardly moves brings the pressed card to the front. Under reduced motion a drag past 30px steps one card.
   view.addEventListener('pointerdown',e=>{
     if(e.button>0)return;
     run=null;target=null;spinV=0;idle=0;
@@ -263,24 +255,21 @@
   }
   document.getElementById('prev').addEventListener('click',()=>go(-1));
   document.getElementById('next').addEventListener('click',()=>go(1));
-  view.addEventListener('keydown',e=>{
-    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();go(e.key==='ArrowRight'?1:-1);}
-  });
+  view.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();go(e.key==='ArrowRight'?1:-1);}});
 
-  // Show me: one flick that turns the ring all the way round in three seconds and stops on the card it started from. Under
-  // reduced motion it steps to the next card without turning, holds it for 1.2 s and steps back.
+  // Show me: one flick, a full turn in 3 s back to the same card; under reduced motion one step, held 1.2 s, and back.
+  // Only a press by the visitor is announced at the end (the shared script presses it once on arrival).
   function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
-  document.getElementById('btn-demo').addEventListener('click',()=>{
-    stopHold();drag=null;target=null;spinV=0;idle=0;
-    if(reduce.matches){const a=snap(angle);jump(a-step);holdTimer=setTimeout(()=>{holdTimer=0;jump(a);},1200);return;}
-    run={a0:angle,a1:snap(angle)-360,t0:null};wake();
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    const say=e.isTrusted;stopHold();drag=null;target=null;spinV=0;idle=0;
+    if(reduce.matches){const a=snap(angle);jump(a-step,say);holdTimer=setTimeout(()=>{holdTimer=0;jump(a,say);},1200);return;}
+    run={a0:angle,a1:snap(angle)-360,t0:null,say};wake();
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{
     stopHold();run=null;drag=null;spinV=0;idle=0;
     if(reduce.matches)jump(0);else{target=nearest(0);wake();}
   });
-  // The visitor pressed, typed, scrolled or touched inside the stage: a run under way stops and the ring settles on the nearest
-  // card, unless the same press starts a drag (that comes next and takes the ring from where it is).
+  // A press in the stage stops a run and the ring settles on the nearest card, unless the same press starts a drag
   document.addEventListener('hb:input',()=>{
     if(holdTimer)stopHold();
     if(run){run=null;target=snap(angle);wake();}
@@ -297,12 +286,9 @@
   document.getElementById('tilt-tog').addEventListener('change',e=>{
     view.style.setProperty('--tilt',e.target.checked?'-14deg':'0deg');view.style.setProperty('--lift',e.target.checked?'-.11':'0');
   });
-  // Switched on, it starts at once; switched off, the ring settles on the next card in the way it was turning
-  document.getElementById('spin-tog').addEventListener('change',e=>{
-    spinOn=e.target.checked;
-    if(spinOn){idle=1200;spinV=0;}else if(!run&&!drag&&target===null&&spinV){target=Math.floor(angle/step)*step;spinV=0;}
-    wake();
-  });
+  document.getElementById('spin-tog').addEventListener('change',e=>{ // on: starts at once; off: settles on the next card it was turning to
+    spinOn=e.target.checked;if(spinOn){idle=1200;spinV=0;}else if(!run&&!drag&&target===null&&spinV){target=Math.floor(angle/step)*step;spinV=0;}
+    wake();});
   addEventListener('resize',layout);
   build();
   void view.offsetWidth;view.classList.add('ready'); // the first size is in place before the tilt starts easing
