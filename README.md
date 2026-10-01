@@ -157,6 +157,7 @@ All 129 techniques, each linked to its live demo.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 - **[Hold to Confirm](animations/04-micro-interactions/hold-to-confirm/)** — Fills up while you hold it and acts only once it is full. Best for delete buttons.
 - **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field you can type in, and closes when done. Best for toolbars.
+- **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.
 
 </details>
 

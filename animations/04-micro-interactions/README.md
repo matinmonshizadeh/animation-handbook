@@ -37,6 +37,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Pull to Refresh](pull-to-refresh/) | Pulling a list down shows a spinner, then new items. Best for feeds. |
 | [Hold to Confirm](hold-to-confirm/) | Fills up while you hold it and acts only once it is full. Best for delete buttons. |
 | [Expanding Search](expanding-search/) | A search icon opens into a field you can type in, and closes when done. Best for toolbars. |
+| [Button Loading States](button-loading-states/) | The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons. |
 
 ## Key concepts
 
