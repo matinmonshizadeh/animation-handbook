@@ -16,7 +16,15 @@
 
 ## What this is
 
-Every major web-animation technique in one place, each shown working. Open any folder's `index.html` in a browser and it runs offline — no build step, no frameworks, no CDN. The accompanying `README.md` explains the mechanic, the parameters that matter, and the production gotchas. Built to *inspire* and *teach*, not to sell a library.
+Every major web-animation technique in one place, each shown working. Every page plays its animation live, lets you change it with a few plain settings, and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+
+Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and it runs offline. Built to *inspire* and *teach*, not to sell a library.
+
+## How to use it
+
+1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked".
+2. **Watch it and try it.** Each page plays the animation and offers a few plain settings, such as speed or direction, so you see exactly what you will get.
+3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 
 ## Categories
 
@@ -276,6 +284,10 @@ All 158 techniques, each linked to its live demo.
 **Show, then explain.** The demo is the main artifact. The README supports it.
 
 **Technique over tool.** GSAP, Framer Motion, and Three.js are mentioned in production notes — they are never the subject of an entry.
+
+**Plain words, not code.** The pages explain each animation in plain words and give a prompt instead of code. The code is still there for anyone who wants it, in each page's source and its README.
+
+**Works for everyone.** Every page works on phones, by touch and by keyboard, and respects the reduced-motion setting.
 
 ## Contributing
 
