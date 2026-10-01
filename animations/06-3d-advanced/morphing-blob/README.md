@@ -90,3 +90,4 @@ shape of the stage.
 - [Noise-Based Motion](../noise-based-motion/) — smooth noise ripples a blob's outline
 - [SVG Path Animation](../svg-path-animation/) — lines that draw themselves
 - [Ray Marching / SDF Scene](../ray-marching-sdf/) — shapes that melt together in 3D
+- [Gooey Menu](../../04-micro-interactions/gooey-menu/) — the same goo on buttons that ooze out of a round button

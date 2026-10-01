@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gooey Menu — Animation Handbook</title>
+  <meta name="description" content="Small buttons ooze out of a round button like liquid. Best for quick actions.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gooey-menu/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Gooey Menu — Animation Handbook">
+  <meta property="og:description" content="Small buttons ooze out of a round button like liquid. Best for quick actions.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gooey-menu/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gooey Menu — Animation Handbook">
+  <meta name="twitter:description" content="Small buttons ooze out of a round button like liquid. Best for quick actions.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Gooey Menu", "name": "Gooey Menu", "description": "Small buttons ooze out of a round button like liquid. Best for quick actions.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gooey-menu/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Gooey Menu"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--goo:#ff9d5c;--dur:600ms;--stag:60ms;--pop:cubic-bezier(.3,1.4,.55,1);--pull:cubic-bezier(.55,-.25,.75,.25)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* A soft light in the liquid's color, brighter while the menu is open */
+    .stage{position:relative;background:#0b0b0d}.stage:has(.open)::before{opacity:1}
+    .stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,color-mix(in srgb,var(--goo) 16%,transparent),transparent 58%);opacity:.5;transition:opacity var(--dur);pointer-events:none}
+    /* The menu hangs from the round button's center; the script sets every size and offset (px) from the stage's size. The goo layer
+       holds only plain circles, is as big as the open menu and goes through the filter #gm-f. */
+    .gm{position:absolute;left:50%;top:50%;transform:translate(var(--mx),var(--my));transition:transform var(--dur) cubic-bezier(.65,0,.35,1)}
+    .gm-goo{position:absolute;left:var(--bx);top:var(--by);width:var(--bw);height:var(--bh);filter:url(#gm-f)}
+    .gm-o{position:absolute;left:calc(var(--bx)*-1);top:calc(var(--by)*-1)}
+    .gm-goo i,.gm-main,.gm-it{position:absolute;--h:calc(var(--s)/-2);left:var(--h);top:var(--h);width:var(--s);height:var(--s);border-radius:50%}
+    .gm-mb,.gm-main{--s:var(--d);transition:scale .2s}
+    .gm-goo i{background:var(--goo)}
+    .gm-b,.gm-t,.gm-it{--out:calc(var(--i)*var(--stag));--back:calc((2 - var(--i))*var(--stag))}
+    /* Closed, each small circle waits inside the big one; open, it pops a little past its place (--x, --y) and settles while its tail
+       follows later and slower, so a neck of liquid stretches between them. Closing pulls them back in, the last one first. */
+    .gm-b,.gm-it{transform:translate(0,0) scale(.5)}
+    .gm-b{transition:transform calc(var(--dur)*.8) var(--pull) var(--back),scale .2s}
+    .gm-t{transform:translate(0,0) scale(.4);transition:transform calc(var(--dur)*.95) var(--pull) calc(var(--back) + var(--dur)*.12)}
+    .open :is(.gm-b,.gm-it){transform:translate(var(--x),var(--y)) scale(1)}
+    .open .gm-b{transition:transform var(--dur) var(--pop) var(--out),scale .2s}
+    .open .gm-t{transform:translate(var(--x),var(--y)) scale(.6);transition:transform calc(var(--dur)*1.35) cubic-bezier(.25,.8,.3,1) calc(var(--out) + var(--dur)*.1)}
+    .gm-mb.p1{animation:gm-p1 var(--dur)}.gm-mb.p2{animation:gm-p2 var(--dur)}
+    @keyframes gm-p1{40%{transform:scale(1.1)}75%{transform:scale(.97)}}@keyframes gm-p2{40%{transform:scale(1.1)}75%{transform:scale(.97)}}
+    /* The real buttons lie over the circles: see-through, with a dark icon and a sheen kept 3px inside the edge (the filtered circle
+       ends a little inside it), each moving as its circle does */
+    .gm-main,.gm-it{display:grid;place-items:center;padding:3px;border:0;color:#0b0b0d;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+      background:radial-gradient(circle closest-side at 40% 34%,rgba(255,255,255,.42),rgba(255,255,255,0)) content-box}
+    .gm-main{z-index:1}
+    .gm svg{width:42%;height:42%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    .gm-main svg{transition:transform var(--dur) var(--pop)}
+    .open .gm-main svg{transform:rotate(135deg)}
+    .gm-it{opacity:0;visibility:hidden;pointer-events:none;transition:transform calc(var(--dur)*.8) var(--pull) var(--back),opacity calc(var(--dur)*.3) var(--back),visibility 0s calc(var(--dur) + var(--stag)*2),scale .2s}
+    .open .gm-it{opacity:1;visibility:visible;pointer-events:auto;transition:transform var(--dur) var(--pop) var(--out),opacity calc(var(--dur)*.4) calc(var(--out) + var(--dur)*.3),visibility 0s,scale .2s}
+    @media(hover:hover){.gm:has([data-k="m"]:hover) [data-k="m"],.gm:has([data-k="0"]:hover) [data-k="0"],.gm:has([data-k="1"]:hover) [data-k="1"],.gm:has([data-k="2"]:hover) [data-k="2"]{scale:1.08}}
+    .gm:has([data-k="m"]:is(.down,:active)) [data-k="m"],.gm:has([data-k="0"]:is(.down,:active)) [data-k="0"],.gm:has([data-k="1"]:is(.down,:active)) [data-k="1"],.gm:has([data-k="2"]:is(.down,:active)) [data-k="2"]{scale:.9}
+    .hb-page .stage :is(.gm-main,.gm-it):focus-visible{outline:2px solid #f4f4f2;outline-offset:3px}
+    /* Shows the plain circles: no filter, every circle drawn as a ring */
+    .gm-xray .gm-goo{filter:none}.gm-xray :is(.gm-main,.gm-it){color:#f4f4f2}
+    .gm-xray .gm-goo i{background:color-mix(in srgb,var(--goo) 28%,transparent);box-shadow:inset 0 0 0 2px var(--goo)}
+    /* What a small button did, said once the buttons have mostly gone back in */
+    .gm-say{position:absolute;left:50%;top:14px;display:flex;align-items:center;gap:8px;padding:7px 14px 7px 12px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:#1b1b20;
+      color:#f4f4f2;font-size:14px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-6px);transition:opacity .25s,transform .25s}
+    .gm-say::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--goo)}.gm-say.show{opacity:1;transform:translate(-50%,0);transition-delay:calc(var(--dur)*.6)}
+    .gm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.gm-defs{position:absolute;width:0;height:0}
+    .gm-still,.gm-still *{transition:none!important}
+    /* Reduced motion: nothing travels. The circles and buttons wait at their places and fade in and out, with no filter and no tails. */
+    @media(prefers-reduced-motion:reduce){
+      .gm,.gm-main svg,.stage::before{transition:none}.gm-goo{filter:none}.gm-t{display:none}.gm-mb{animation:none!important}[data-k]{scale:none!important}
+      .gm-b,.gm-it,.open :is(.gm-b,.gm-it){transform:translate(var(--x),var(--y))}
+      .gm-b,.gm-it{opacity:0;transition:opacity .2s,visibility 0s .2s}.open :is(.gm-b,.gm-it){opacity:1;transition:opacity .2s}
+      .gm-say,.gm-say.show{transform:translate(-50%,0);transition:opacity .25s .15s}.gm-say{transition-delay:0s}
+    }
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../button-loading-states/" rel="prev" aria-label="Previous: Button Loading States"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Button Loading States</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.40 · Micro-Interactions</p>
+    <h1>Gooey Menu</h1>
+    <p class="hb-lede">Small buttons ooze out of a round button like liquid. Best for quick actions.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the round button to open the menu and again to close it, or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots" id="stage">
+      <div class="gm" id="gm">
+        <div class="gm-goo" aria-hidden="true"><div class="gm-o">
+          <i class="gm-t" style="--i:0"></i><i class="gm-t" style="--i:1"></i><i class="gm-t" style="--i:2"></i>
+          <i class="gm-b" data-k="0" style="--i:0"></i><i class="gm-b" data-k="1" style="--i:1"></i><i class="gm-b" data-k="2" style="--i:2"></i>
+          <i class="gm-mb" id="gm-mb" data-k="m"></i>
+        </div></div>
+        <button class="gm-main" id="gm-main" type="button" data-k="m" aria-label="Open menu" aria-expanded="false" aria-controls="gm-items"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div id="gm-items" role="group" aria-label="Quick actions">
+          <button class="gm-it" type="button" data-k="0" style="--i:0" aria-label="Share" data-said="Shared"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4m0-11-6.8 4"/></svg></button>
+          <button class="gm-it" type="button" data-k="1" style="--i:1" aria-label="Like" data-said="Liked"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg></button>
+          <button class="gm-it" type="button" data-k="2" style="--i:2" aria-label="Save" data-said="Saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/></svg></button>
+        </div>
+      </div>
+      <p class="gm-say" id="gm-say" aria-hidden="true"></p>
+      <p class="gm-sr" id="gm-sr" role="status"></p>
+      <svg class="gm-defs" aria-hidden="true" focusable="false"><filter id="gm-f" color-interpolation-filters="sRGB"><feGaussianBlur id="gm-blur" stdDeviation="9"/><feColorMatrix id="gm-cm" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter></svg>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="lay-lbl">Layout</p>
+        <div class="seg" id="lay-seg" role="group" aria-labelledby="lay-lbl">
+          <button type="button" data-lay="row" aria-pressed="false">Row</button>
+          <button type="button" data-lay="arc" class="on" aria-pressed="true">Arc</button>
+          <button type="button" data-lay="col" aria-pressed="false">Column</button>
+        </div>
+        <p class="hb-hint">Where the small buttons settle once they pop out.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="goo-lbl">How gooey</p>
+        <div class="seg" id="goo-seg" role="group" aria-labelledby="goo-lbl">
+          <button type="button" data-goo="5" aria-pressed="false">Low</button>
+          <button type="button" data-goo="9" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-goo="13" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">How far the liquid stretches before it lets go.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="950" data-st="90" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="600" data-st="60" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="380" data-st="40" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly the buttons pop out and are pulled back.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting" data-hb-skip>
+          <label class="hb-switch-row"><span>Shows the plain circles</span><input class="hb-switch" type="checkbox" role="switch" id="xray-tog" autocomplete="off"></label>
+          <p class="hb-hint">Turns the goo off to show the circles that move underneath.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Button color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" class="on" aria-pressed="true" aria-label="Orange" data-c="#ff9d5c" style="background:#ff9d5c"></button>
+            <button type="button" aria-pressed="false" aria-label="Pink" data-c="#ff6f8b" style="background:#ff6f8b"></button>
+            <button type="button" aria-pressed="false" aria-label="Purple" data-c="#d2a8ff" style="background:#d2a8ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Blue" data-c="#58a6ff" style="background:#58a6ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Green" data-c="#56d364" style="background:#56d364"></button>
+          </div>
+          <p class="hb-hint">The color of the liquid; the icons stay dark.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a gooey menu to [the round action button on your page]. Pressing it lets smaller buttons ooze out like drops of liquid and pop into place; pressing again pulls them back in. Draw plain circles of one color on a layer under the icons and run that layer through a filter that blurs it, then sharpens the blurred edge again, so circles that touch melt together. Move them only with transforms, keep the filtered layer small and blur less on phones. Make every button a real button the keyboard can reach, tell screen readers whether the menu is open, and let Escape close it. If the visitor has reduced motion turned on, fade the buttons in place without the stretch. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Quick actions</li><li>Share menus</li><li>Mobile apps</li><li>Playful brands</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long menus</li><li>Formal sites</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id),set=(el,name,v)=>el.style.setProperty(name,v),root=document.documentElement;
+  const stage=$('stage'),gm=$('gm'),main=$('gm-main'),mb=$('gm-mb'),say=$('gm-say'),slowTog=$('slow-tog');
+  const items=[...stage.querySelectorAll('.gm-it')],blobs=[...stage.querySelectorAll('.gm-b')],tails=[...stage.querySelectorAll('.gm-t')];
+  const reduceMq=matchMedia('(prefers-reduced-motion:reduce)'),phoneMq=matchMedia('(max-width:600px),(max-height:500px)');
+  // Where each small button settles, from the round button's center, in units of a menu with a 64-unit round button, 50-unit small
+  // ones and 20-unit gaps (77 = 32 + 20 + 25 to the first, 70 = 50 + 20 to each next one; the arc's radius is 84).
+  const PLACES={row:[[77,0],[147,0],[217,0]],arc:[[-72.7,-42],[0,-84],[72.7,-42]],col:[[0,-77],[0,-147],[0,-217]]};
+  let lay='arc',goo=9,dur=600,stag=60,flip=false,moving=false,runTimers=[],sayTimer=0,boxTimer=0;
+  // The open menu's box around the round button's center, in units: [left, right, top, bottom]
+  const extent=name=>PLACES[name].reduce((b,[x,y])=>[Math.min(b[0],x-25),Math.max(b[1],x+25),Math.min(b[2],y-25),Math.max(b[3],y+25)],[-32,32,-32,32]);
+  // A unit is k px: the longest layout (274 units) fits the stage with 14px to spare, from 0.88 (44px small buttons) to 1.2. The round button
+  // sits where the open menu is centered. The filter works on the open menu's box and 22 units around it (on all layouts' boxes while the
+  // buttons move to a new layout). The blur grows with the menu, a fifth lighter on phones; a bigger one gets a steeper alpha (m).
+  function place(prev){
+    const k=Math.min(1.2,Math.max(.88,(Math.min(stage.clientWidth,stage.clientHeight)-28)/274)),px=v=>(v*k).toFixed(1)+'px';
+    if(prev&&prev!==lay){moving=true;clearTimeout(boxTimer);boxTimer=setTimeout(()=>{moving=false;place()},travel(1.35)*(slowTog.checked?3:1)+200)}
+    const e=extent(lay),blur=goo*k*(phoneMq.matches?.8:1),m=Math.max(20,blur*2.2);
+    const r=moving?Object.keys(PLACES).map(extent).reduce((a,c)=>[Math.min(a[0],c[0]),Math.max(a[1],c[1]),Math.min(a[2],c[2]),Math.max(a[3],c[3])]):e;
+    set(gm,'--d',px(64));set(gm,'--s',px(50));set(gm,'--mx',px(-(e[0]+e[1])/2));set(gm,'--my',px(-(e[2]+e[3])/2));
+    set(gm,'--bx',px(r[0]-22));set(gm,'--by',px(r[2]-22));set(gm,'--bw',px(r[1]-r[0]+44));set(gm,'--bh',px(r[3]-r[2]+44));
+    PLACES[lay].forEach(([x,y],i)=>[items[i],blobs[i],tails[i]].forEach(el=>{set(el,'--x',px(x));set(el,'--y',px(y))}));
+    $('gm-blur').setAttribute('stdDeviation',blur.toFixed(1));
+    $('gm-cm').setAttribute('values','1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 '+m.toFixed(1)+' '+(.5-.475*m).toFixed(2));
+  }
+  const isOpen=()=>gm.classList.contains('open');
+  // The round button and Show me open and close the menu here; the big circle swells once each time (p1 and p2 restart it)
+  function setOpen(on){
+    if(isOpen()===on)return;
+    gm.classList.toggle('open',on);main.setAttribute('aria-expanded',String(on));main.setAttribute('aria-label',on?'Close menu':'Open menu');
+    mb.classList.remove('p1','p2');mb.classList.add((flip=!flip)?'p1':'p2');if(on)hideSay();
+  }
+  function hideSay(){clearTimeout(sayTimer);say.classList.remove('show')}
+  // A small button does its job (here it only says so) and the menu closes; the focus, if it was on that button, goes back to the round one
+  function choose(i,fromRun){
+    setOpen(false);
+    say.textContent=items[i].dataset.said;say.classList.add('show');clearTimeout(sayTimer);sayTimer=setTimeout(hideSay,1300);
+    if(fromRun)return;
+    $('gm-sr').textContent=items[i].dataset.said+'.';if(document.activeElement===items[i])main.focus({preventScroll:true});
+  }
+  main.addEventListener('click',()=>setOpen(!isOpen()));
+  items.forEach((b,i)=>b.addEventListener('click',()=>choose(i,false)));
+  // Escape closes the menu from any of its buttons and gives the focus back to the round one; a press beside the menu closes it too
+  gm.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen()){e.preventDefault();setOpen(false);main.focus({preventScroll:true})}});
+  stage.addEventListener('click',e=>{if(isOpen()&&!e.target.closest('.gm-main,.gm-it'))setOpen(false)});
+  // Show me: one run at a time. later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
+  const running=()=>runTimers.length>0;
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];stage.querySelectorAll('.down').forEach(el=>el.classList.remove('down'))}
+  // The time the circles take to arrive: the last tail starts two staggers late and takes f x Speed (a short fade under reduced motion)
+  const travel=f=>reduceMq.matches?200:dur*f+2*stag;
+  // A run starts closed, put there without animating: the transitions go off, the menu closes, a reflow makes it stick, they come back
+  function toRest(){
+    const els=[gm,main,...stage.querySelectorAll('.gm-goo i,.gm-it,.gm svg,.gm-say')];
+    els.forEach(el=>el.style.setProperty('transition','none','important'));
+    gm.classList.remove('open');main.setAttribute('aria-expanded','false');main.setAttribute('aria-label','Open menu');
+    mb.classList.remove('p1','p2');hideSay();void stage.offsetWidth;
+    els.forEach(el=>el.style.removeProperty('transition'));
+  }
+  // The round button is pressed at 250ms and opens the menu at 370ms. Once the drops are in place and 600ms have passed, Like is
+  // pressed, the menu closes and says Liked. At Normal speed the stage is back at rest at about 3.6 s.
+  $('btn-demo').addEventListener('click',()=>{
+    stopRun();toRest();
+    later(()=>main.classList.add('down'),0,250);
+    later(()=>{main.classList.remove('down');setOpen(true)},0,370);
+    later(()=>items[1].classList.add('down'),travel(1.35),970);
+    later(()=>{items[1].classList.remove('down');choose(1,true)},travel(1.35),1120);
+  });
+  // The visitor pressed, typed, scrolled, touched or tabbed into the stage: the run stops and the menu stays as it is
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  stage.addEventListener('focusin',()=>{if(running())stopRun()});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('lay-seg',d=>{const prev=lay;lay=d.lay;place(prev)});
+  choices('goo-seg',d=>{goo=+d.goo;place()});
+  choices('speed-seg',d=>{dur=+d.ms;stag=+d.st;set(root,'--dur',dur+'ms');set(root,'--stag',stag+'ms')});
+  choices('color-sw',d=>set(root,'--goo',d.c));
+  $('xray-tog').addEventListener('change',e=>stage.classList.toggle('gm-xray',e.target.checked));
+  // The first sizes go in without animating; later ones (a turned phone, a resized window) glide
+  stage.classList.add('gm-still');place();void stage.offsetWidth;stage.classList.remove('gm-still');
+  new ResizeObserver(()=>place()).observe(stage);
+  phoneMq.addEventListener('change',()=>place());
+</script>
+</body>
+</html>
