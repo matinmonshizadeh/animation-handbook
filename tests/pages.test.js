@@ -420,12 +420,75 @@ test('the home page uses Schibsted Grotesk and asks what to animate', () => {
   assert.ok(HOME.includes('Pick a place, or describe it in your own words. Every animation plays live, and each one comes with a ready-made prompt for your AI assistant.'), 'intro line');
 });
 
+// Every place the number of animations is written is compared with the cards in CATS: the home page (its head too), the root
+// README, the issue template and the launch kit. Each sentence named below must still be found, so rewording one fails here
+// instead of leaving its number unchecked.
+const totalCards = () => homeConst('CATS').reduce((n, cat) => n + cat.entries.length, 0);
+// The number in the first match of `pattern` (its first group) in `text`, or NaN when nothing matches.
+const numberIn = (text, pattern) => { const m = String(text).match(pattern); return m ? Number(m[1]) : NaN; };
+
 test('the counts written on the home page match its cards', () => {
-  const cards = homeConst('CATS').reduce((n, cat) => n + cat.entries.length, 0);
+  const cards = totalCards();
   assert.ok(HOME.includes(`${cards} free animations · no coding needed`), 'hero pill');
   assert.ok(HOME.includes(`<span id="more-label">Browse all ${cards} animations</span>`), 'Browse all button');
   assert.ok(HOME.includes(`<p class="foot-t">${cards} web animations with live demos and copyable prompts.</p>`), 'footer');
   assert.ok(between(HOME, '<noscript>', '</noscript>').includes(`All ${cards} are still easy to reach`), 'no-JavaScript note');
+  // The head: what search engines and social sites show.
+  const head = between(HOME, '<head>', '</head>');
+  const meta = attr => (head.match(new RegExp(`<meta ${attr} content="([^"]*)">`)) || [])[1];
+  const ld = between(head, '<script type="application/ld+json">', '</script>').replace('<script type="application/ld+json">', '');
+  const texts = {
+    '<title>': (head.match(/<title>([^<]*)<\/title>/) || [])[1],
+    'meta description': meta('name="description"'),
+    'og:title': meta('property="og:title"'),
+    'og:description': meta('property="og:description"'),
+    'twitter:title': meta('name="twitter:title"'),
+    'twitter:description': meta('name="twitter:description"'),
+    'JSON-LD description': ld && JSON.parse(ld).description
+  };
+  for (const [where, text] of Object.entries(texts)) {
+    assert.ok(text, `the home page has its ${where}`);
+    assert.equal(numberIn(text, /(\d+) web animation techniques/i), cards, `${where}: ${text}`);
+  }
+});
+
+test('the counts written in the root README match the cards', () => {
+  const cats = homeConst('CATS'), cards = totalCards();
+  const readme = read(path.join(ROOT, 'README.md'));
+  assert.equal(numberIn(readme, /<img src="og-image\.png" alt="[^"]*?(\d+) web animation techniques/), cards, "README: the picture's alt text");
+  assert.equal(numberIn(readme, /^\*\*A visual reference of (\d+) web animation techniques/m), cards, 'README: the intro line');
+  assert.equal(numberIn(readme, /badge\/techniques-(\d+)-/), cards, 'README: the techniques badge');
+  assert.equal(numberIn(readme, /^All (\d+) techniques, each linked to its live demo\.$/m), cards, 'README: the Full catalog line');
+  for (const [said] of readme.matchAll(/\d+ web animation techniques/gi)) assert.equal(numberIn(said, /(\d+)/), cards, `README: "${said}"`);
+  // Each category's count, in the Categories table and in its heading in the Full catalog.
+  const rows = table(sections(readme)['Categories']);
+  const headings = [...readme.matchAll(/^### (\d{2}) · (.+?) · (\d+) techniques$/gm)];
+  assert.equal(rows.length, cats.length, 'README: one Categories row per category');
+  assert.equal(headings.length, cats.length, 'README: one Full catalog heading per category');
+  for (const cat of cats) {
+    const row = rows.find(r => r[0] === cat.n), heading = headings.find(h => h[1] === cat.n);
+    assert.ok(row && row[1].startsWith(`[${cat.name}]`), `README: a Categories row for ${cat.n} ${cat.name}`);
+    assert.equal(Number(row[2]), cat.entries.length, `README: the Categories count of ${cat.n} ${cat.name}`);
+    assert.ok(heading && heading[2] === cat.name, `README: a Full catalog heading for ${cat.n} ${cat.name}`);
+    assert.equal(Number(heading[3]), cat.entries.length, `README: the heading "${heading[0]}"`);
+  }
+});
+
+test('the counts written in the issue template and the launch kit match the cards', () => {
+  const cats = homeConst('CATS'), cards = totalCards();
+  const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
+  assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
+  // The launch kit says the total in many sentences: every "N techniques" or "N web animation techniques" is the total, every
+  // "N categories" the number of categories, and the sitemap's URL count is one more than the total (the home page), as many
+  // as sitemap.xml lists.
+  const kit = read(path.join(ROOT, 'docs/launch-kit.md'));
+  const said = [...kit.matchAll(/(\d+) (?:web animation )?techniques\b/g)];
+  assert.ok(said.length > 0, 'the launch kit says how many techniques');
+  for (const [text, n] of said) assert.equal(Number(n), cards, `launch kit: "${text}"`);
+  for (const [text, n] of kit.matchAll(/(\d+) categories\b/g)) assert.equal(Number(n), cats.length, `launch kit: "${text}"`);
+  const urls = count(read(path.join(ROOT, 'sitemap.xml')), '<url>');
+  assert.equal(urls, cards + 1, 'sitemap.xml lists the home page and every animation');
+  assert.equal(numberIn(kit, /should list (\d+) URLs/), urls, 'launch kit: the sitemap URL count');
 });
 
 // Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket
