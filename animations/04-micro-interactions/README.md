@@ -38,6 +38,9 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Animated Gradient Border](gradient-border/) | A band of colors runs around the edge of a card or button. Best for featured offers. |
 | [Spotlight Hover Glow](spotlight-hover/) | A soft light follows the pointer and lights up the card edges near it. Best for feature grids. |
 | [Add-to-Cart Fly](add-to-cart-fly/) | A copy of the product flies into the cart, which bumps and counts up. Best for shops. |
+| [Drag to Reorder](drag-to-reorder/) | Drag an item and the others slide aside to make room. Best for to-do lists. |
+| [Rolling Numbers](rolling-numbers/) | Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices. |
+| [Typing Indicator](typing-indicator/) | Three dots in a chat bubble move in turn while someone types. Best for chat apps. |
 
 ## Key concepts
 

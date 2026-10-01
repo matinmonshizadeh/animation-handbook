@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rolling Numbers — Animation Handbook</title>
+  <meta name="description" content="Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/rolling-numbers/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Rolling Numbers — Animation Handbook">
+  <meta property="og:description" content="Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/rolling-numbers/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rolling Numbers — Animation Handbook">
+  <meta name="twitter:description" content="Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Rolling Numbers", "name": "Rolling Numbers", "description": "Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/rolling-numbers/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Rolling Numbers"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--card:#16161a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .counter{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:340px;padding:clamp(18px,4vw,26px) 16px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:var(--card)}
+    .cap{font-size:14px;color:var(--ui-muted)}
+    .num{display:flex;align-items:center;font-size:clamp(46px,13vw,76px);font-weight:800;line-height:1.1;color:var(--ui-text)}
+    /* Each digit is a window one line tall over a column of the digits 0 to 9 and 0 again; the column slides, the window clips it,
+       and the soft top and bottom edges make a digit rolling through look like a turning wheel */
+    .wheel{display:block;width:.64em;height:1.1em;overflow:hidden;text-align:center;-webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
+    .strip{display:block;will-change:transform}
+    .strip::before{content:"0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0";white-space:pre}
+    .sep{width:.3em;text-align:center}
+    /* Reduced motion: a changed digit is swapped at once and fades in */
+    .wheel.fade{animation:rn-fade .35s ease-out both}
+    @keyframes rn-fade{from{opacity:.1}to{opacity:1}}
+    .btns{display:flex;gap:8px}
+    .btn{min-width:64px;height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#1d1d23;color:var(--ui-text);font:600 16px/1 var(--hb-font);cursor:pointer}
+    @media(hover:hover){.btn:hover{border-color:var(--ui-accent)}}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../drag-to-reorder/" rel="prev" aria-label="Previous: Drag to Reorder"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Drag to Reorder</span></a><a href="../typing-indicator/" rel="next" aria-label="Next: Typing Indicator"><span><span class="hb-dir">Next: </span>Typing Indicator</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.34 · Micro-Interactions</p>
+    <h1>Rolling Numbers</h1>
+    <p class="hb-lede">Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap −1, +1 or Random to change the number (Reset brings it back), or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="counter">
+        <p class="cap" id="cap">Visitors today</p>
+        <div class="num" aria-hidden="true"><span class="wheel"><span class="strip"></span></span><span class="sep">,</span><span class="wheel"><span class="strip"></span></span><span class="wheel"><span class="strip"></span></span><span class="wheel"><span class="strip"></span></span></div>
+        <p class="sr-only" id="value" aria-live="polite">2,048</p>
+        <div class="btns">
+          <button class="btn" type="button" data-add="-1" aria-label="Subtract 1">−1</button>
+          <button class="btn" type="button" data-add="1" aria-label="Add 1">+1</button>
+          <button class="btn" type="button" data-add="0">Random</button>
+        </div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Roll speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="900" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="550" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="300" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long a digit takes to roll to its new value.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="dir-lbl">Direction</p>
+        <div class="seg" id="dir-seg" role="group" aria-labelledby="dir-lbl">
+          <button type="button" data-dir="up" aria-pressed="false">Up</button>
+          <button type="button" data-dir="down" aria-pressed="false">Down</button>
+          <button type="button" data-dir="short" class="on" aria-pressed="true">Shortest</button>
+        </div>
+        <p class="hb-hint">Up turns every digit forward like a mileage counter; shortest takes the nearer way round.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Digits one after another</span><input class="hb-switch" type="checkbox" role="switch" id="stagger-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Each digit starts a moment after the one to its right.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add rolling numbers to [the number that changes, such as a counter, score or price]. Show each digit in a small window over a column of the digits 0 to 9, and when the value changes, slide each column so its new digit rolls into view, like the wheels of a mileage counter; digits that stay the same do not move, and separators stay still. Give every digit the same width so the number never shifts sideways, and only slide the columns, never resize anything, so it stays smooth. Let screen readers hear the plain number once. If the visitor has reduced motion turned on, swap the digits with a short fade instead of rolling. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Counters</li><li>Prices</li><li>Scores</li><li>Dashboards</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Numbers that change every second</li><li>Long decimals</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const slowTog=$('slow-tog'),valueEl=$('value'),reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
+  const START=2048,STAGGER=70;
+  let value=START,dur=550,dir='short',oneByOne=true,raf=0;
+  // Each wheel keeps a position that only grows or shrinks: 7 shows a 7, and so do 17 and -3. A roll moves it from where it is
+  // drawn now (mid-roll too) to its new target, so a roll that starts before the last one ended carries on without a jump.
+  const wheels=[...document.querySelectorAll('.wheel')].map(el=>({el,strip:el.firstChild,pos:0,from:0,to:0,t0:0,ms:1}));
+  const digitsOf=v=>String(v).padStart(4,'0').split('').map(Number);
+  function draw(w){w.strip.style.transform=`translateY(${(-(((w.pos%10)+10)%10)*100/11).toFixed(3)}%)`}
+
+  // The frame loop: every moving wheel is placed by the time passed since its start, eased out, so it runs at the same speed at any
+  // frame rate. It stops when every wheel has reached its target.
+  function frame(now){
+    let moving=false;
+    for(const w of wheels){
+      if(w.pos===w.to)continue;
+      const k=Math.min(1,Math.max(0,(now-w.t0)/w.ms));
+      w.pos=k<1?w.from+(w.to-w.from)*(1-Math.pow(1-k,3)):w.to;
+      draw(w);
+      if(k<1)moving=true;
+    }
+    raf=moving?requestAnimationFrame(frame):0;
+  }
+
+  // Shows v: every digit that changes rolls the way Direction says, the ones on the left a little after the ones on their right when
+  // Digits one after another is on; a wheel still rolling turns toward its new digit at once. Slow motion makes the rolls and the steps
+  // between them three times as long. Under reduced motion the digit is swapped at once and fades in.
+  function show(v,quiet){
+    v=((v%10000)+10000)%10000;
+    const target=digitsOf(v),slow=slowTog.checked?3:1,now=performance.now();
+    let n=0;
+    for(let i=wheels.length-1;i>=0;i--){
+      const w=wheels[i],shown=((Math.round(w.to)%10)+10)%10;
+      if(target[i]===shown)continue;
+      let steps=(target[i]-shown+10)%10;
+      if(dir==='down')steps-=10;else if(dir==='short'&&steps>5)steps-=10;
+      const delay=oneByOne&&w.pos===w.to?n*STAGGER*slow:0;n++;
+      w.from=w.pos;w.to+=steps;w.t0=now+delay;w.ms=dur*slow;
+      if(reduceMq.matches){
+        w.pos=w.to;draw(w);
+        w.el.classList.remove('fade');void w.el.offsetWidth;w.el.style.animationDelay=delay+'ms';w.el.classList.add('fade');
+      }
+    }
+    value=v;
+    if(!quiet)valueEl.textContent=v.toLocaleString('en-US');
+    if(!raf&&!reduceMq.matches)raf=requestAnimationFrame(frame);
+  }
+  wheels.forEach((w,i)=>{w.pos=w.to=digitsOf(START)[i];draw(w)});
+
+  document.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>{
+    const add=+b.dataset.add;
+    let next=value+add;
+    if(!add)do{next=1000+Math.floor(Math.random()*9000)}while(next===value);
+    show(next);
+  }));
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  let runTimers=[];
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0}
+  // A run stopped partway leaves its number on the stage, so screen readers are given that number too (say), unless the press that
+  // stopped it is on −1, +1 or Random, whose own number follows. This listener is added before the shared script's, so it runs first.
+  function stopRun(say){if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];if(say)valueEl.textContent=value.toLocaleString('en-US')}
+  let onButton=false;
+  ['pointerdown','keydown','click','wheel','touchstart'].forEach(t=>document.querySelector('.stage').addEventListener(t,e=>{
+    onButton=!!e.target.closest('.btn')&&(t==='pointerdown'||t==='click'||e.key==='Enter'||e.key===' ')},true));
+  // The number goes up by one, then jumps to a number whose every digit is different, then rolls back to where it started. Each
+  // step waits for the roll before it (one or two digits, then all four); the holds grow when the rolls are short, so the run lasts
+  // two to four seconds at any Roll speed. It says nothing aloud.
+  $('btn-demo').addEventListener('click',()=>{
+    stopRun(true);
+    const v=value,d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
+    if(!far[0])far[0]=1;
+    const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger,pad=Math.max(0,2100-(dur+stagger+2*roll+700));
+    if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>show(v,true),0,1800);return}
+    later(()=>show(v+1,true),0,150);
+    later(()=>show(+far.join(''),true),dur+stagger,350+pad/2);
+    later(()=>show(v,true),dur+stagger+roll,700+pad);
+  });
+  $('btn-reset').addEventListener('click',()=>{stopRun(false);show(START)});
+  // The visitor pressed, typed or touched inside the stage: the run stops and the number stays as it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun(!onButton)});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('dir-seg',d=>{dir=d.dir});
+  $('stagger-tog').addEventListener('change',e=>{oneByOne=e.target.checked});
+</script>
+</body>
+</html>
