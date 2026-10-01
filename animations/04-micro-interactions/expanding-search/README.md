@@ -41,7 +41,7 @@ field.addEventListener('focusout', e => {             // leaving it: the focus w
 });
 ```
 
-The icon stays on top of the field. As the field opens, the icon's background turns see-through and its glass turns and fades away while the close button's cross turns in under it, so one seems to become the other; the links under the field fade out. While the field is open the icon lets presses through and is `inert`, so Tab cannot land on something hidden, and the field shows its focus with an inset ring while anything inside it has the focus. Show me opens the field and types into it without moving the real focus, so it never opens a phone's keyboard. Under reduced motion the transitions are switched off and the field opens and closes at once.
+The icon stays on top of the field. As the field opens, the icon's background turns see-through and its glass turns and fades away while the close button's cross turns in under it, so one seems to become the other; the links under the field fade out. While the field is open the icon lets presses through and is `inert`, so Tab cannot land on something hidden, and the field shows its focus with an inset ring while anything inside it has the focus. A press on the field around the text box (its glass or its edge) cancels the `mousedown` and puts the cursor back in the box, so it does not count as leaving. Show me opens the field and types into it without moving the real focus, so it never opens a phone's keyboard. Under reduced motion the transitions are switched off and the field opens and closes at once.
 
 ## Key parameters
 | Parameter | Default | Effect |
