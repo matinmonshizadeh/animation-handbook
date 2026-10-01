@@ -11,12 +11,13 @@ A Dynamic Island is a small black pill at the top of a phone screen that grows i
 - Live scores and other short updates worth a glance
 
 ## How it works
-The island is a box the size of its largest card, with a little room left around it for the bounce. Everything inside is laid out once at full size; what the visitor sees is a black layer cut out with `clip-path: inset()`. Three custom properties describe the visible shape: half its width (`--hw`), its height (`--h`) and its corner radius (`--r`). Changing them is the whole animation: the browser eases the clip from one shape to the other, so the pill grows into a card, or one card changes straight into another, without ever animating `width` or `height`.
+The island is a box the size of its largest card, with a little room left around it for the bounce. Everything inside is laid out once at full size; what the visitor sees is a black layer cut out with `clip-path: inset()`, and each card's content sits inside that layer, so the same clip cuts the content too and nothing shows outside the shape while it grows or shrinks. Three custom properties describe the visible shape: half its width (`--hw`), its height (`--h`) and its corner radius (`--r`). Changing them is the whole animation: the browser eases the clip from one shape to the other, so the pill grows into a card, or one card changes straight into another, without ever animating `width` or `height`.
 
 ```html
 <button class="isl" type="button" aria-label="Phone notification" aria-expanded="false" data-n="call">
-  <span class="shape"></span>                        <!-- the black layer, clipped -->
-  <span class="c c-call" aria-hidden="true">…</span>  <!-- each card's content, at full size -->
+  <span class="shape">                                    <!-- the black layer, clipped -->
+    <span class="c c-call" aria-hidden="true">…</span>  <!-- each card's content, at full size, clipped with it -->
+  </span>
 </button>
 ```
 
@@ -57,7 +58,7 @@ function spring(z) {
 }
 ```
 
-The same transition runs whichever two shapes it goes between, so picking another notification while one is open morphs the card directly. The clip also decides where the button can be pressed, so the small pill gets a larger invisible target (124 × 48px), and the focus ring is a second clipped layer 3px larger than the shape, behind it, because an outline would be clipped away. While a card is open the status bar fades out, and a polite live region reads out the message when the visitor opened it, not when Show me did. On larger screens the content also comes into focus from a slight blur; phones skip the blur. Under reduced motion a resting pill stays in place and the card fades in over it at its own size, so nothing grows or moves.
+The same transition runs whichever two shapes it goes between, so picking another notification while one is open morphs the card directly. The clip also decides where the button can be pressed, so the small pill gets a larger invisible target (124 × 48px). The button is the whole box, so its own outline would not follow the shape: the focus ring is a second clipped layer 3px larger than the shape, behind it, and the outline stays, transparent, for forced-colors mode. While a card is open the status bar fades out, and a polite live region reads out the message when the visitor opened it, not when Show me did. On larger screens the content also comes into focus from a slight blur; phones skip the blur. Under reduced motion a resting pill stays in place and the card fades in over it at its own size, so nothing grows or moves; picking another notification fades the open card out, puts the new content and size in place while it is hidden, and fades it in again.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -69,11 +70,12 @@ The same transition runs whichever two shapes it goes between, so picking anothe
 ## Production notes
 - **Never animate `width` or `height`**: every frame would lay out the card and its text again, and the words would wrap and jump while it grows. A clip, or a scale on a layer whose children are scaled back, changes only what is painted.
 - **A clip is repainted**: a `clip-path` animation repaints the island on every frame. That is cheap for a shape this size; for a large panel, animate `transform: scale()` on the layer and scale its content the other way (the FLIP technique), which stays on the compositor.
+- **Clip the content with the shape**: put the content inside the clipped layer, not beside it. A shrinking clip outruns a fade, so content laid over the shape shows on the page around it for a moment at the start of every close.
 - **Leave room for the bounce**: a spring goes past the target size, and a clip cannot show more than its box. Make the box larger than the largest card by the overshoot, or the corners turn square for a moment at the peak.
-- **`linear()` support**: the spring curve needs `linear()` (Chrome and Edge 113, Firefox 112, Safari 17.2). Check with `CSS.supports()` and fall back to a `cubic-bezier()` that overshoots, such as `cubic-bezier(.3, 1.5, .45, 1)`.
-- **Hit area and focus**: the clip also clips pointer hits and the outline. Give the small pill a target of at least 44 × 44px, and draw the focus ring as a clipped layer of its own.
+- **`linear()` support**: the spring curve needs `linear()` (Chrome and Edge 113, Firefox 112, Safari 17.2). Check with `CSS.supports()` and fall back to a `cubic-bezier()` that overshoots about as far: `cubic-bezier(.3, 1.4, .5, 1)` goes about 5% past the end and `cubic-bezier(.3, 1.75, .45, 1)` about 16%.
+- **Hit area and focus**: the clip also clips pointer hits. Give the small pill a target of at least 44 × 44px, draw the focus ring as a clipped layer of its own, and keep a transparent outline for forced-colors mode.
 - **Accessibility**: make the pill a real `<button>` with `aria-expanded`, announce a new message in a polite `role="status"` region, never move the focus into the card, and let Escape close it.
-- **Framer Motion**: `<motion.div layout style={{ borderRadius: 30 }} />` animates a size change with transforms and corrects the corner radius and the children's scale for you.
+- **Framer Motion**: `<motion.div layout style={{ borderRadius: 30 }} />` animates a size change with transforms and keeps the corner radius right; give the children `layout` too, so they are scaled back and their text does not stretch.
 - **GSAP**: the Flip plugin records the pill's box and animates to the card's; `gsap.to(shape, { clipPath: "inset(0% 6% 14% 6% round 30px)", ease: "elastic.out(1, 0.6)" })` animates the clip itself with a bounce.
 - **Native apps**: on iOS the real Dynamic Island shows Live Activities through ActivityKit; on the web it is a pattern you draw yourself.
 
