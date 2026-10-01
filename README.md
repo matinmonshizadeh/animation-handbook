@@ -211,6 +211,7 @@ All 129 techniques, each linked to its live demo.
 - **[3D Flip Card](animations/06-3d-advanced/flip-card-3d/)** — A card turns over in 3D to show its back. Best for profile and product cards.
 - **[Flocking](animations/06-3d-advanced/flocking/)** — Birds swirl and turn together as one flock. Best for calm backgrounds.
 - **[ASCII / Halftone](animations/06-3d-advanced/ascii-halftone/)** — A moving picture is redrawn with letters or dots. Best for retro and tech looks.
+- **[2D Physics](animations/06-3d-advanced/physics-2d/)** — Balls drop where you click, bounce and pile up. Best for playful intros.
 
 </details>
 
