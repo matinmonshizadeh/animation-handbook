@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Trail — Animation Handbook</title>
+  <meta name="description" content="Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Image Trail — Animation Handbook">
+  <meta property="og:description" content="Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Image Trail — Animation Handbook">
+  <meta name="twitter:description" content="Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Image Trail", "name": "Image Trail", "description": "Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Image Trail"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* The stage is a photo journal's hero. touch-action none: a finger dragged over it leaves the trail instead of scrolling the page */
+    .stage{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(90% 70% at 50% 112%,#251a30,transparent 70%),#0b0b0d;
+      touch-action:none;-webkit-user-select:none;user-select:none}
+    .top{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:baseline;padding:clamp(14px,2.4vw,24px) clamp(16px,3vw,28px);font-size:13px;color:#adadb2}
+    .top b{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#f4f4f2}.hero{padding:0 16px;text-align:center}.sub{font-size:clamp(14px,1.5vw,17px);color:#adadb2}
+    .kick{font-size:clamp(11px,1.2vw,13px);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#ff9d5c}
+    .ttl{margin:12px 0 14px;font-size:clamp(42px,7.8vw,96px);font-weight:800;line-height:.92;letter-spacing:-.045em;color:#f4f4f2}
+    /* The trail lies over everything in the hero. Each picture is a frame from a small pool, moved only by transform */
+    .trail{position:absolute;inset:0;z-index:1;pointer-events:none}
+    .pic{position:absolute;left:0;top:0;width:var(--w,150px);aspect-ratio:4/5;overflow:hidden;border-radius:calc(var(--w,150px)*.07);opacity:0;
+      outline:1px solid rgba(255,255,255,.14);outline-offset:-1px;box-shadow:0 14px 36px rgba(0,0,0,.55)}
+    .pic svg{display:block;width:100%;height:100%}
+    /* The skies; the rest of each picture is drawn in the hidden svg below */
+    .k1{background:linear-gradient(#2d1b4e,#a8457a 52%,#ff9e6d 78%,#ffc58a)}.k2{background:linear-gradient(#1f3b73,#7d5ba6 45%,#f08aa0 64%,#ffc896 70%)}
+    .k3{background:linear-gradient(#ffd98e,#ffab6e 60%,#f47c5d)}.k4{background:linear-gradient(#050a1f,#0c2238 60%,#123247)}
+    .k5{background:linear-gradient(#0f2140,#24496a 70%,#3d6d86)}.k6{background:linear-gradient(#0b0820,#1d1240 60%,#2c1a52)}
+    .k7{background:linear-gradient(#1b1d4a,#6d3a78 50%,#f0876a 80%,#ffb07a)}.k8{background:#f3e7d7}
+    .defs{position:absolute;width:0;height:0}
+    /* Phones: a lighter shadow (and fewer frames at a time, in the script) */
+    @media(max-width:600px),(max-height:500px){.pic{box-shadow:0 8px 20px rgba(0,0,0,.5)}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../button-loading-states/" rel="prev" aria-label="Previous: Button Loading States"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Button Loading States</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.39 · Micro-Interactions</p>
+    <h1>Image Trail</h1>
+    <p class="hb-lede">Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the hero, drag a finger across it, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <p class="top"><b>lumen</b><span>Journal · Prints · About</span></p>
+      <div class="hero"><p class="kick">Photo journal · 2026</p><p class="ttl">Chasing<br>the light</p><p class="sub">Eight places, one camera</p></div>
+      <div class="trail" id="trail" aria-hidden="true"></div>
+      <svg class="defs" aria-hidden="true"><defs>
+        <g id="it1"><circle cx="40" cy="50" r="18" fill="#ffd9a0" opacity=".25"/><circle cx="40" cy="50" r="10" fill="#ffe3ad"/><path d="M0 64l12-9 9 6 13-15 12 12 9-7 25 16v33H0z" fill="#6b3466"/><path d="M0 76l17-12 11 8 15-13 22 16 15-9v34H0z" fill="#2b1638"/></g>
+        <g id="it2"><circle cx="54" cy="66" r="9" fill="#fff0c8"/><path d="M0 70h80v30H0z" fill="#1d3461"/><path d="M47 74h14M45 79h18M48 84h12M46 90h16M49 95h10" stroke="#ffd9a8" stroke-width="1.6" stroke-linecap="round" opacity=".75"/><path d="M22 68V52l10 16zM21 68V55l-6 13zM15 69h20l-3 4H18z" fill="#121c38"/></g>
+        <g id="it3"><circle cx="27" cy="30" r="9" fill="#fff4d8"/><path d="M0 70Q30 48 60 64Q72 70 80 64V100H0z" fill="#e8894a"/><path d="M0 86Q22 66 46 78Q64 87 80 76V100H0z" fill="#c4592b"/><path d="M50 22q3-3 6 0q3-3 6 0M58 30q2-2 4 0q2-2 4 0" fill="none" stroke="#8a4a2a" stroke-width="1.2" stroke-linecap="round"/></g>
+        <g id="it4"><path d="M8 10h0M20 24h0M33 8h0M50 18h0M66 9h0M74 28h0M12 42h0M60 38h0" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M-4 34C10 22 24 30 38 18S64 2 86 4v8C66 10 54 26 40 30S12 44-4 48z" fill="#b98cff" opacity=".35"/><path d="M-4 48C14 30 28 44 44 28S70 10 86 16v12C70 24 60 38 44 42S16 58-4 64z" fill="#3fd6a0" opacity=".5"/><path d="M-4 56C14 38 28 50 44 35S70 18 86 23" fill="none" stroke="#8ff5c8" stroke-width="1.5" opacity=".75"/><path d="M0 84l14-10 10 6 16-14 18 13 10-6 12 8v19H0z" fill="#081120"/></g>
+        <g id="it5"><circle cx="58" cy="22" r="8" fill="#f4f0dc"/><path d="M12 14h0M30 8h0M44 20h0M70 42h0M22 34h0" stroke="#e6ecff" stroke-width="1.1" stroke-linecap="round"/><path d="M-2 100l7-36 7 36zM12 100l8-42 8 42zM30 100l7-32 7 32zM44 100l8-40 8 40zM60 100l7-34 7 34zM72 100l7-38 7 38z" fill="#1d3b4c"/><path d="M-6 100l10-28 10 28zM6 100l11-36 11 36zM28 100l9-24 9 24zM40 100l12-38 12 38zM62 100l10-30 10 30z" fill="#0b1c1f"/></g>
+        <g id="it6"><path d="M10 12h0M24 30h0M62 14h0M70 74h0M14 80h0M52 90h0M36 10h0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><g transform="rotate(-16 40 56)" fill="none" stroke="#ffd9a8" stroke-width="2.4"><path d="M12 56a28 8 0 0 1 56 0" opacity=".7"/><circle cx="40" cy="56" r="17" fill="#f08a4b" stroke="none"/><circle cx="35" cy="50" r="9" fill="#ffc48a" stroke="none" opacity=".45"/><path d="M23.5 52h33M23.5 59h33" stroke="#c9663a" stroke-width="2"/><path d="M12 56a28 8 0 0 0 56 0"/></g></g>
+        <g id="it7"><circle cx="44" cy="74" r="13" fill="#ffd08f"/><path d="M0 100V74h9v-6h6v32zM15 100V60h12v40zM27 100V70h8v30zM35 100V54h11v46zM46 100V66h9v34zM55 100V58h6v-5h6v47zM67 100V72h13v28z" fill="#17142e"/><path d="M18 64v34M23 64v34M38 58v40M42 58v40M58 62v36M63 62v36M70 76v22M75 76v22" stroke="#ffd27a" stroke-width="1.3" stroke-dasharray="1.3 2.7" opacity=".8"/></g>
+        <g id="it8"><circle cx="28" cy="30" r="17" fill="#ff6f8b"/><rect x="46" y="20" width="22" height="22" fill="#ffce5a" transform="rotate(14 57 31)"/><path d="M30 100a25 25 0 0 1 50 0z" fill="#2f5bea"/><path d="M8 72a16 16 0 0 1 32 0" fill="none" stroke="#16161b" stroke-width="3.5"/><circle cx="64" cy="60" r="4" fill="#16161b"/><path d="M8 86h16" stroke="#16161b" stroke-width="3.5" stroke-linecap="round"/></g>
+      </defs></svg>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="often-lbl">How often a picture appears</p>
+        <div class="seg" id="often-seg" role="group" aria-labelledby="often-lbl">
+          <button type="button" data-k="0.12" aria-pressed="false">Often</button>
+          <button type="button" data-k="0.2" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-k="0.32" aria-pressed="false">Rarely</button>
+        </div>
+        <p class="hb-hint">How far the pointer goes before the next picture appears.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="stay-lbl">How long they stay</p>
+        <div class="seg" id="stay-seg" role="group" aria-labelledby="stay-lbl">
+          <button type="button" data-ms="400" aria-pressed="false">Short</button>
+          <button type="button" data-ms="800" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="1600" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">Long stays make a longer trail behind the pointer.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Picture size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-k="0.26" aria-pressed="false">Small</button>
+          <button type="button" data-k="0.34" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-k="0.44" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">Large pictures cover more of the hero.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="leave-lbl">How they leave</p>
+          <div class="seg" id="leave-seg" role="group" aria-labelledby="leave-lbl">
+            <button type="button" data-leave="shrink" class="on" aria-pressed="true">Shrink</button>
+            <button type="button" data-leave="fade" aria-pressed="false">Fade</button>
+            <button type="button" data-leave="fall" aria-pressed="false">Fall</button>
+          </div>
+          <p class="hb-hint">What each picture does as it disappears.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Tilts the pictures</span><input class="hb-switch" type="checkbox" role="switch" id="tilt-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Each one leans a little to one side, at random.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an image trail to [the hero section the pointer moves over]. Each time the pointer has traveled a set distance, drop a picture at its tip, so a still pointer leaves none. Each new picture pops up on top of the others, gliding in from where the last one appeared, stays a while, then leaves and fades away. Reuse a small set of picture elements in turn, and move, scale and fade them with transforms and opacity only, so it stays smooth. On touch screens, let a finger dragged across the section leave the trail. If the visitor has reduced motion turned on, show one picture at a time where they point, fading in and out without moving. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Portfolio heroes</li><li>Photo galleries</li><li>Agency sites</li><li>Lookbooks</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Reading pages</li><li>Busy layouts</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.getElementById('stage'),trail=document.getElementById('trail'),slowTog=document.getElementById('slow-tog');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  const POP=400,LEAVE=500,RUN=2400;   // ms: a picture's pop, its leaving, and Show me's sweep
+  // The eight pictures are drawn once (#it1 … #it8). A pool of frames shows them in turn, each frame reused when its turn comes
+  // round again, so nothing is created while the pointer moves. Phones use 14 of the 24 frames.
+  const pool=Array.from({length:24},()=>trail.appendChild(Object.assign(document.createElement('i'),{className:'pic',innerHTML:'<svg viewBox="0 0 80 100"><use href="#it1"/></svg>'})));
+  // W,H: the stage's size; last: where the last picture dropped (null between strokes); live: the one picture under reduced motion
+  let W=0,H=0,gapK=.2,stay=800,sizeK=.34,leave='shrink',tilt=true,last=null,next=0,pic=0,z=0,live=null,hovering=false,touchId=null,runTimers=[],runFrame=0;
+
+  function measure(){W=stage.clientWidth;H=stage.clientHeight;stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
+  // A frame centered on x,y, turned by r degrees and scaled by s
+  const at=(x,y,s,r)=>`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%) rotate(${r.toFixed(1)}deg) scale(${s})`;
+  // Under reduced motion: the picture that was showing fades out where it is
+  function fadeOut(el){
+    const cs=getComputedStyle(el),from={transform:cs.transform,opacity:cs.opacity};
+    el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250});
+  }
+  // Drops the next picture at x,y, on top of the others. Its whole life is one animation of transform and opacity: it glides in
+  // from the last drop (from), growing from half size with a small overshoot, stays, then leaves as How they leave says, and is
+  // hidden again when it ends. Slow motion slows every animation on the stage, so it slows all of it. Under reduced motion the
+  // picture only fades in and out where it is, and the one before it fades out at once.
+  function drop(x,y,from){
+    const el=pool[next];next=(next+1)%(phone.matches?14:pool.length);
+    el.getAnimations().forEach(a=>a.cancel());
+    pic=pic%8+1;el.className='pic k'+pic;el.querySelector('use').setAttribute('href','#it'+pic);
+    el.style.zIndex=++z;
+    const r=tilt?Math.random()*16-8:0,life=stay+LEAVE,still=at(x,y,1,r);
+    let frames;
+    if(reduce.matches){
+      if(live&&live!==el)fadeOut(live);
+      live=el;
+      frames=[{transform:still,opacity:0},{transform:still,opacity:1,offset:150/life},{transform:still,opacity:1,offset:stay/life},{transform:still,opacity:0}];
+    }else{
+      const end=leave==='fall'?at(x,y+H*.3,.9,r*2.5):at(x,y,leave==='shrink'?.25:1,r);
+      frames=[{transform:at(from.x,from.y,.5,r*2),opacity:0,easing:'cubic-bezier(.22,1.3,.36,1)'},
+        {transform:still,opacity:1,offset:POP/life},
+        {transform:still,opacity:1,offset:stay/life,easing:leave==='fall'?'cubic-bezier(.55,0,1,.45)':'ease-in'},
+        {transform:end,opacity:0}];
+    }
+    el.animate(frames,{duration:life}).playbackRate=slowTog.checked?1/3:1;
+  }
+  // Every pointer, finger and Show me position comes through here. A picture drops each time the pointer has gone the gap (How
+  // often a picture appears, a share of the hero's shorter side) from the last drop; a stroke's first point only marks where it
+  // starts. Under reduced motion a picture also shows wherever the pointer is when none is showing.
+  function track(x,y){
+    const free=reduce.matches&&!(live&&live.getAnimations().length);   // reduced motion, and no picture is showing
+    if(last&&!free&&Math.hypot(x-last.x,y-last.y)<gapK*Math.min(W,H))return;
+    if(last||reduce.matches)drop(x,y,last||{x,y});
+    last={x,y};
+  }
+  function spot(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left-stage.clientLeft,y:e.clientY-r.top-stage.clientTop}}
+
+  // Show me: one run at a time. Its timers go through later(), its sweep is drawn frame by frame (runFrame).
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0||runFrame!==0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;last=null}
+  // The empty hero: every picture goes at once
+  function toRest(){pool.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));last=null;live=null}
+
+  // A mouse or a pen in the air leaves the trail while it moves over the hero; a finger drops a picture where it touches and
+  // leaves the trail while it drags (the capture keeps its moves coming). Pointer events only. The visitor's own pointer stops a
+  // run, and the trail follows them after it.
+  stage.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'&&e.pointerId!==touchId)return;
+    if(e.isTrusted){if(e.pointerType!=='touch')hovering=true;if(running())stopRun()}
+    const p=spot(e);track(p.x,p.y);
+  });
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){hovering=false;last=null}});
+  stage.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='touch')return;
+    touchId=e.pointerId;try{stage.setPointerCapture(touchId)}catch(_){}
+    const p=spot(e);drop(p.x,p.y,p);last=p;
+  });
+  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(e.pointerId===touchId){touchId=null;last=null}}));
+
+  // A pretend pointer sweeps across the hero in 2.4 s (three times as long in Slow motion), easing in and out, in one and a half
+  // waves; the pictures it drops leave as usual, and at the defaults the hero is empty again at about 3.7 s. It moves by elapsed
+  // time, so the sweep takes as long on every screen. Under reduced motion a picture fades in at three spots in turn, a second
+  // apart. The arrival press leaves alone a visitor whose pointer is already moving over the hero.
+  document.getElementById('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&hovering)return;
+    stopRun();toRest();measure();
+    if(reduce.matches){
+      [[.24,.42],[.5,.62],[.76,.4]].forEach(([fx,fy],i)=>later(()=>{last=null;track(W*fx,H*fy)},0,i*1000));
+      return;
+    }
+    let p=0,lastT=null;
+    runFrame=requestAnimationFrame(function frame(ts){
+      const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
+      p=Math.min(1,p+dt/(RUN*(slowTog.checked?3:1)));
+      const s=p<.5?2*p*p:1-2*(1-p)*(1-p);
+      track(W*(.08+.84*s),H*(.5-.3*Math.sin(3*Math.PI*s)));
+      runFrame=p<1?requestAnimationFrame(frame):0;
+      if(p>=1)last=null;
+    });
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, and the pictures already out leave as usual.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('often-seg',d=>{gapK=+d.k});
+  choices('stay-seg',d=>{stay=+d.ms});
+  choices('size-seg',d=>{sizeK=+d.k;measure()});
+  choices('leave-seg',d=>{leave=d.leave});
+  document.getElementById('tilt-tog').addEventListener('change',e=>{tilt=e.target.checked});
+  new ResizeObserver(measure).observe(stage);
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@ quality is already there; this is the distribution layer. Work top to bottom.
 GitHub → repo **Settings** (or the ⚙️ next to "About" on the repo home page):
 
 **Description:**
-> 158 web animation techniques, each a live demo with plain settings and a ready-made prompt for your AI assistant. No dependencies, no build step.
+> 159 web animation techniques, each a live demo with plain settings and a ready-made prompt for your AI assistant. No dependencies, no build step.
 
 **Website:** `https://matinmonshizadeh.github.io/animation-handbook/`
 
@@ -25,7 +25,7 @@ With the GitHub CLI (`gh`), this is one command:
 
 ```bash
 gh repo edit matinmonshizadeh/animation-handbook \
-  --description "158 web animation techniques, each a live demo with plain settings and a ready-made prompt for your AI assistant. No dependencies, no build step." \
+  --description "159 web animation techniques, each a live demo with plain settings and a ready-made prompt for your AI assistant. No dependencies, no build step." \
   --homepage "https://matinmonshizadeh.github.io/animation-handbook/" \
   --add-topic web-animation,css-animation,animation,frontend,web-development,javascript,motion-design,ui-animation,scroll-animation,microinteractions,webgl,ai-prompts,reference,no-dependencies,github-pages \
   --remove-topic awesome
@@ -41,7 +41,7 @@ and share, which drives return visits.
 
 ## 2. Verify SEO is live (after pushing)
 
-- `https://matinmonshizadeh.github.io/animation-handbook/sitemap.xml` → should list 159 URLs
+- `https://matinmonshizadeh.github.io/animation-handbook/sitemap.xml` → should list 160 URLs
 - `https://matinmonshizadeh.github.io/animation-handbook/robots.txt` → should load
 - Submit the sitemap to **Google Search Console** (add the property, then Sitemaps → submit `sitemap.xml`).
 - Test the social card at https://opengraph.xyz — paste the homepage URL, confirm the og-image shows.
@@ -59,14 +59,14 @@ comments yourself in the first hours.
 ### Show HN (news.ycombinator.com/submit)
 
 **Title:**
-> Show HN: Animation Handbook – 158 web animations, each with a prompt for your AI
+> Show HN: Animation Handbook – 159 web animations, each with a prompt for your AI
 
 **URL:** `https://matinmonshizadeh.github.io/animation-handbook/`
 
 **First comment (post immediately after submitting):**
 > I kept re-googling the same animation techniques and landing on either a
 > library's marketing page or a CodePen with no explanation. So I built a
-> reference: 158 techniques, from scroll effects and page transitions to
+> reference: 159 techniques, from scroll effects and page transitions to
 > micro-interactions, text, 3D, and ambient backgrounds. You find one by where it
 > goes on your page (buttons, text, backgrounds, page changes…) or by describing
 > it. Each one plays live, has a few plain settings, and gives you a ready-made
@@ -78,10 +78,10 @@ comments yourself in the first hours.
 ### Reddit — r/webdev (Showoff Saturday) and r/Frontend
 
 **Title:**
-> I built a handbook of 158 web animations — watch each one live, tweak it, and copy a prompt for your AI assistant
+> I built a handbook of 159 web animations — watch each one live, tweak it, and copy a prompt for your AI assistant
 
 **Body:**
-> 158 techniques in 7 categories (scroll, entrance/exit, page transitions,
+> 159 techniques in 7 categories (scroll, entrance/exit, page transitions,
 > micro-interactions, text, 3D, ambient). Find one by where it goes on your page or
 > by describing it, try a few plain settings, then copy a prompt that describes it in
 > plain words for ChatGPT, Claude or Cursor. Each technique is also one standalone
@@ -93,7 +93,7 @@ comments yourself in the first hours.
 
 ### dev.to / Hashnode article
 
-**Title:** `158 web animations you can copy as a prompt for your AI assistant`
+**Title:** `159 web animations you can copy as a prompt for your AI assistant`
 
 **Outline:**
 1. The problem — animation knowledge is scattered across libraries and CodePens, and an AI
@@ -108,7 +108,7 @@ comments yourself in the first hours.
 
 ### X / Bluesky thread
 
-> 1/ I built Animation Handbook — 158 web animations you can watch live, tweak, and
+> 1/ I built Animation Handbook — 159 web animations you can watch live, tweak, and
 > copy as a prompt for your AI assistant. No dependencies, no build step. 🧵 <docs/demo.gif>
 >
 > 2/ Find one by where it goes — buttons, text, backgrounds, page changes — or just
@@ -126,7 +126,7 @@ awesome-web-animation) via PR.
 
 ### Product Hunt
 
-**Tagline:** `158 web animations, each with a prompt for your AI assistant`
+**Tagline:** `159 web animations, each with a prompt for your AI assistant`
 Schedule for a Tuesday–Thursday 12:01am PT. Line up 5–10 people to comment/upvote early.
 
 ---
