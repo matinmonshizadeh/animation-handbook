@@ -34,7 +34,7 @@
     .links span{padding:0 10px;font-size:14px;line-height:44px;color:var(--ui-dim);white-space:nowrap}
     .bar.open .links{opacity:0}
     /* The icon sits at the end the field grows from: the right end (Left), or first, beside the logo (Right) */
-    .sbtn{position:relative;z-index:1;order:2;margin-left:auto;flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background-color:var(--field);color:var(--ui-text);cursor:pointer;transition:background-color var(--dur) var(--ease)}
+    .sbtn{position:relative;z-index:1;order:2;margin-left:auto;flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background-color:var(--field);color:var(--ui-text);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--dur) var(--ease)}
     .to-right .sbtn{order:-1;margin:0 4px 0 0}
     /* Open, the icon stays on top but turns see-through and lets presses through, while its glass turns away as the field's cross turns in */
     .bar.open .sbtn{background-color:transparent;pointer-events:none}
@@ -54,7 +54,7 @@
     .sfield input{flex:1;min-width:0;height:100%;border:0;background:none;color:var(--ui-text);font:inherit;font-size:15px;outline:none;-webkit-appearance:none;appearance:none}
     .sfield input::placeholder{color:var(--ui-muted);opacity:1}
     .sfield input::-webkit-search-cancel-button{display:none}
-    .sclose{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--ui-text);cursor:pointer;transition:background-color .15s}
+    .sclose{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--ui-text);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s}
     .sclose svg{transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
     .bar:not(.open) .sclose svg{opacity:0;transform:rotate(-90deg) scale(.6)}
     .sclose.hit{background:rgba(255,255,255,.12)}
@@ -247,15 +247,17 @@
     later(()=>{input.value=''},2*dur,t+250);
   });
   $('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
-  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A press on the field, open or still closing,
-  // takes it over (it stays open with the run's text, and the press puts the focus in it); any other input closes it and empties it.
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A press on the field, open or still closing, or
+  // input while the focus is in it takes it over (it stays open with the run's text and the focus); any other input closes and empties it.
   stage.addEventListener('pointerdown',e=>{downInField=field.contains(e.target)},true);
   document.addEventListener('hb:input',e=>{
     if(!running())return;
     stopRun();
-    if(e.detail.type==='pointerdown'&&downInField){bar.classList.remove('is-demo');open(false);return}
+    if((e.detail.type==='pointerdown'&&downInField)||field.contains(document.activeElement)){bar.classList.remove('is-demo');open(false);return}
     close(false);input.value='';
   });
+  // Focus that comes into the field while the run goes on (Shift+Tab from Show me lands on its close button) takes it over the same way
+  field.addEventListener('focusin',()=>{if(running()){stopRun();bar.classList.remove('is-demo');open(false)}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
