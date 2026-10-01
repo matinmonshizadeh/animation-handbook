@@ -53,8 +53,8 @@
     .gm svg{width:42%;height:42%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .gm-main svg{transition:transform var(--dur) var(--pop)}
     .open .gm-main svg{transform:rotate(135deg)}
-    .gm-it{opacity:0;visibility:hidden;pointer-events:none;transition:transform calc(var(--dur)*.8) var(--pull) var(--back),opacity calc(var(--dur)*.3) var(--back),visibility 0s calc(var(--dur) + var(--stag)*2),scale .2s}
-    .open .gm-it{opacity:1;visibility:visible;pointer-events:auto;transition:transform var(--dur) var(--pop) var(--out),opacity calc(var(--dur)*.4) calc(var(--out) + var(--dur)*.3),visibility 0s,scale .2s}
+    .gm-it{opacity:0;visibility:hidden;transition:transform calc(var(--dur)*.8) var(--pull) var(--back),opacity calc(var(--dur)*.3) var(--back),visibility 0s calc(var(--dur) + var(--stag)*2),scale .2s}
+    .open .gm-it{opacity:1;visibility:visible;transition:transform var(--dur) var(--pop) var(--out),opacity calc(var(--dur)*.4) calc(var(--out) + var(--dur)*.3),visibility 0s,scale .2s}
     @media(hover:hover){.gm:has([data-k="m"]:hover) [data-k="m"],.gm:has([data-k="0"]:hover) [data-k="0"],.gm:has([data-k="1"]:hover) [data-k="1"],.gm:has([data-k="2"]:hover) [data-k="2"]{scale:1.08}}
     .gm:has([data-k="m"]:is(.down,:active)) [data-k="m"],.gm:has([data-k="0"]:is(.down,:active)) [data-k="0"],.gm:has([data-k="1"]:is(.down,:active)) [data-k="1"],.gm:has([data-k="2"]:is(.down,:active)) [data-k="2"]{scale:.9}
     .hb-page .stage :is(.gm-main,.gm-it):focus-visible{outline:2px solid #f4f4f2;outline-offset:3px}
@@ -103,7 +103,7 @@
           <i class="gm-mb" id="gm-mb" data-k="m"></i>
         </div></div>
         <button class="gm-main" id="gm-main" type="button" data-k="m" aria-label="Open menu" aria-expanded="false" aria-controls="gm-items"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-        <div id="gm-items" role="group" aria-label="Quick actions">
+        <div id="gm-items" role="group" aria-label="Quick actions" inert>
           <button class="gm-it" type="button" data-k="0" style="--i:0" aria-label="Share" data-said="Shared"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4m0-11-6.8 4"/></svg></button>
           <button class="gm-it" type="button" data-k="1" style="--i:1" aria-label="Like" data-said="Liked"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg></button>
           <button class="gm-it" type="button" data-k="2" style="--i:2" aria-label="Save" data-said="Saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/></svg></button>
@@ -214,7 +214,7 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const $=id=>document.getElementById(id),set=(el,name,v)=>el.style.setProperty(name,v),root=document.documentElement;
-  const stage=$('stage'),gm=$('gm'),main=$('gm-main'),mb=$('gm-mb'),say=$('gm-say'),slowTog=$('slow-tog');
+  const stage=$('stage'),gm=$('gm'),main=$('gm-main'),mb=$('gm-mb'),group=$('gm-items'),say=$('gm-say'),slowTog=$('slow-tog');
   const items=[...stage.querySelectorAll('.gm-it')],blobs=[...stage.querySelectorAll('.gm-b')],tails=[...stage.querySelectorAll('.gm-t')];
   const reduceMq=matchMedia('(prefers-reduced-motion:reduce)'),phoneMq=matchMedia('(max-width:600px),(max-height:500px)');
   // Where each small button settles, from the round button's center, in units of a menu with a 64-unit round button, 50-unit small
@@ -238,21 +238,22 @@
     $('gm-cm').setAttribute('values','1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 '+m.toFixed(1)+' '+(.5-.475*m).toFixed(2));
   }
   const isOpen=()=>gm.classList.contains('open');
-  // The round button and Show me open and close the menu here; the big circle swells once each time (p1 and p2 restart it)
+  // The round button and Show me open and close the menu here. Closed, the small buttons are inert at once, so neither Tab nor a click
+  // reaches one while it fades; the big circle swells once each time (p1 and p2 restart it).
   function setOpen(on){
     if(isOpen()===on)return;
-    gm.classList.toggle('open',on);main.setAttribute('aria-expanded',String(on));main.setAttribute('aria-label',on?'Close menu':'Open menu');
+    gm.classList.toggle('open',on);group.inert=!on;main.setAttribute('aria-expanded',String(on));main.setAttribute('aria-label',on?'Close menu':'Open menu');
     mb.classList.remove('p1','p2');mb.classList.add((flip=!flip)?'p1':'p2');if(on)hideSay();
   }
   function hideSay(){clearTimeout(sayTimer);say.classList.remove('show')}
   // A small button does its job (here it only says so) and the menu closes; the focus, if it was on that button, goes back to the round one.
   // The pill is fully in after 0.6 x Speed and a 250ms fade (3 times as long in Slow motion, 400ms under reduced motion) and stays 900ms.
   function choose(i,fromRun){
-    setOpen(false);
+    const had=document.activeElement===items[i];setOpen(false);
     say.textContent=items[i].dataset.said;say.classList.add('show');clearTimeout(sayTimer);
     sayTimer=setTimeout(hideSay,(reduceMq.matches?400:(dur*.6+250)*(slowTog.checked?3:1))+900);
     if(fromRun)return;
-    $('gm-sr').textContent=items[i].dataset.said+'.';if(document.activeElement===items[i])main.focus({preventScroll:true});
+    $('gm-sr').textContent=items[i].dataset.said+'.';if(had)main.focus({preventScroll:true});
   }
   main.addEventListener('click',()=>setOpen(!isOpen()));
   items.forEach((b,i)=>b.addEventListener('click',()=>choose(i,false)));
@@ -269,7 +270,7 @@
   function toRest(){
     const els=[gm,main,...stage.querySelectorAll('.gm-goo i,.gm-it,.gm svg,.gm-say')];
     els.forEach(el=>el.style.setProperty('transition','none','important'));
-    gm.classList.remove('open');main.setAttribute('aria-expanded','false');main.setAttribute('aria-label','Open menu');
+    gm.classList.remove('open');group.inert=true;main.setAttribute('aria-expanded','false');main.setAttribute('aria-label','Open menu');
     mb.classList.remove('p1','p2');hideSay();void stage.offsetWidth;
     els.forEach(el=>el.style.removeProperty('transition'));
   }

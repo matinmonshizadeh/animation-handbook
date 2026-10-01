@@ -52,7 +52,7 @@ gm.addEventListener('keydown', e => {   // Escape, from any of its buttons
 });
 ```
 
-Closed, the small buttons are hidden (`visibility: hidden` once the closing has ended), so Tab skips them. Pressing one does its job (here a short message says Shared, Liked or Saved, and a status region reads it out), closes the menu and gives the focus back to the round button; a press beside the menu closes it too. Show me presses the round button and then Like without moving the focus, and a press, key, wheel, touch or Tab into the stage stops it. Under reduced motion the filter and the tails are off and nothing travels: the small buttons fade in and out at their places.
+Closed, the small buttons' group is `inert` at once (the buttons turn `visibility: hidden` only once they have faded), so neither Tab nor a click can reach a button that is fading away. Pressing one does its job (here a short message says Shared, Liked or Saved, and a status region reads it out), closes the menu and gives the focus back to the round button; a press beside the menu closes it too. Show me presses the round button and then Like without moving the focus, and a press, key, wheel, touch or Tab into the stage stops it. Under reduced motion the filter and the tails are off and nothing travels: the small buttons fade in and out at their places.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -69,7 +69,7 @@ Closed, the small buttons are hidden (`visibility: hidden` once the closing has 
 - **Sharp icons**: an icon inside the filtered layer would be blurred and cut into a blob. Put icons on a layer above, as here, or name the color matrix's result (`result="goo"`) and end the filter with `<feComposite in="SourceGraphic" in2="goo" operator="atop"/>`, so the original drawing is painted back over the goo.
 - **One color**: `color-interpolation-filters="sRGB"` keeps the color exact (the default, linearRGB, shifts it at the edges). A gradient on separate circles breaks at every neck, so give the whole layer one fill.
 - **The cut**: a filtered circle ends a little inside its real size, more so with a bigger blur. Keep anything drawn on the buttons, such as a sheen or a border, a few pixels inside the edge, or it shows as a thin ring.
-- **Accessibility**: the round button is a real `<button>` with `aria-expanded`, `aria-controls` and a label that says Open menu or Close menu; every small button has a name; closed ones are out of the Tab order; Escape closes the menu and returns the focus; the result of a choice is announced.
+- **Accessibility**: the round button is a real `<button>` with `aria-expanded`, `aria-controls` and a label that says Open menu or Close menu; every small button has a name; make the closed ones `inert` at once, not only once they have faded, so Tab cannot land on one the visitor no longer sees; Escape closes the menu and returns the focus; the result of a choice is announced.
 - **GSAP**: `gsap.to(blobs, { x: i => places[i][0], y: i => places[i][1], scale: 1, duration: 0.6, stagger: 0.06, ease: "back.out(1.7)" })`, and the same on the buttons; the filter stays on its layer.
 - **Framer Motion**: give each circle `<motion.i animate={open ? { x, y, scale: 1 } : { x: 0, y: 0, scale: 0.5 }} transition={{ type: "spring", stiffness: 400, damping: 18, delay: i * 0.06 }} />` inside a `<div style={{ filter: "url(#goo)" }}>`.
 
