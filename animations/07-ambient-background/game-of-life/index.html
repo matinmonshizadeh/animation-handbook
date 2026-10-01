@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game of Life — Animation Handbook</title>
+  <meta name="description" content="Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/game-of-life/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Game of Life — Animation Handbook">
+  <meta property="og:description" content="Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/game-of-life/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Game of Life — Animation Handbook">
+  <meta name="twitter:description" content="Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Game of Life", "name": "Game of Life", "description": "Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/game-of-life/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Game of Life"}</script>
+  <style>
+    :root{--ui-accent:#ffce5a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#0e1214,#07090b 75%)}
+    /* the cells are drawn with a pen: a finger on the stage draws instead of scrolling the page */
+    canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../light-rays/" rel="prev" aria-label="Previous: Light Rays"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Light Rays</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.23 · Ambient &amp; Background</p>
+    <h1>Game of Life</h1>
+    <p class="hb-lede">Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Click, drag or touch it to draw new cells, or press Reset to start again.</p></div>
+    </div>
+    <div class="stage">
+      <canvas id="cvs" aria-hidden="true"></canvas>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-gens="4" aria-pressed="false">Slow</button>
+          <button type="button" data-gens="10" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-gens="20" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly one generation follows the next.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Cell size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-px="6" aria-pressed="false">Small</button>
+          <button type="button" data-px="9" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-px="14" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">Smaller cells make a bigger world; on phones the small ones are a little larger.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pattern-lbl">Start pattern</p>
+        <div class="seg" id="pattern-seg" role="group" aria-labelledby="pattern-lbl">
+          <button type="button" data-pattern="random" class="on" aria-pressed="true">Random</button>
+          <button type="button" data-pattern="gun" aria-pressed="false">Glider gun</button>
+          <button type="button" data-pattern="acorn" aria-pressed="false">Acorn</button>
+        </div>
+        <p class="hb-hint">The glider gun fires gliders forever; the acorn grows from seven cells.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="color-lbl">Color</p>
+          <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+            <button type="button" class="on" aria-pressed="true" aria-label="Mint" data-col="mint" style="background:#5fe0a8"></button>
+            <button type="button" aria-pressed="false" aria-label="Amber" data-col="amber" style="background:#ffc55a"></button>
+            <button type="button" aria-pressed="false" aria-label="Sky blue" data-col="sky" style="background:#6ab4ff"></button>
+            <button type="button" aria-pressed="false" aria-label="Pink" data-col="pink" style="background:#ff80a0"></button>
+          </div>
+          <p class="hb-hint">The color of the living cells.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Fading trails</span><input class="hb-switch" type="checkbox" role="switch" id="trail-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Cells that die fade out instead of vanishing at once.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Grid lines</span><input class="hb-switch" type="checkbox" role="switch" id="grid-tog" autocomplete="off"></label>
+          <p class="hb-hint">Shows the squares the cells live in.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a Game of Life background to [the section you want it behind]. Split a canvas into a grid of square cells, each alive or dead, and at a steady pace work out the next generation from each cell's eight neighbors: a dead cell with exactly three live neighbors is born, a live cell with two or three stays alive, and every other cell dies. Time the generations by elapsed time, not by frames, and when the settings include trails, let dying cells fade out. Let the visitor click, drag or touch to draw cells, and start again when the world settles. Keep the cells from getting too small on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Tech and science sites</li><li>Developer portfolios</li><li>Loading and idle screens</li><li>404 pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Calm brands</li><li>Long reading pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+  const stage=document.querySelector('.stage');
+  const slowTog=document.getElementById('slow-tog');
+  const COLORS={mint:'95,224,168',amber:'255,197,90',sky:'106,180,255',pink:'255,128,160'};
+  const phone=matchMedia('(max-width:600px),(max-height:500px)'); // phones and short screens draw cells at least 8px wide
+  const M=16; // hidden cells all round the view, where gliders fly off and settle out of sight
+  const PATTERNS={gun:'24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!',acorn:'bo5b$3bo3b$2o2b3o!'};
+  const AHEAD={random:20,gun:120,acorn:60}; // generations run before the first picture, so it already looks alive
+  let W=0,H=0,raf=null,lastT=null,acc=0;
+  let GENS=10,CELL=9,PATTERN='random',COL='mint',TRAILS=true,GRID=false;
+  let cs=9,C=0,R=0,S=0,ox=0,oy=0,cells=null,next=null,glow=null,ring=[],stuck=0,pen=null;
+
+  // Patterns in run-length code: b is a dead cell, o a live one, $ ends a row, and a number repeats what follows it
+  function rle(s){const out=[];let x=0,y=0,n='';
+    for(const ch of s){if(ch>='0'&&ch<='9'){n+=ch;continue;}const k=+n||1;n='';if(ch==='b')x+=k;else if(ch==='o')for(let i=0;i<k;i++)out.push([x++,y]);else if(ch==='$'){y+=k;x=0;}}
+    return out;}
+  // The world: the C × R cells in view, M hidden cells on every side, and one more ring of cells that stay dead, so every
+  // cell has eight neighbors to count. at(x, y) is where the cell x across and y down in view sits in the arrays.
+  const at=(x,y)=>(M+1+y)*S+M+1+x;
+  function grid(){
+    cs=phone.matches?Math.max(CELL,8):CELL;
+    C=Math.ceil(W/cs);R=Math.ceil(H/cs);ox=Math.floor((W-C*cs)/2);oy=Math.floor((H-R*cs)/2);
+    S=C+2*M+2;const n=S*(R+2*M+2);
+    cells=new Uint8Array(n);next=new Uint8Array(n);glow=new Float32Array(n);
+  }
+  // A fresh world for the start pattern. soft (a world that settled starting again) lets the old cells fade out as it begins.
+  function seed(soft){
+    const old=soft&&TRAILS?cells.slice():null;cells.fill(0);
+    if(PATTERN==='random'){for(let y=0;y<R;y++)for(let x=0;x<C;x++)if(Math.random()<.3)cells[at(x,y)]=1;}
+    else{ // the gun sits at the top, placed so its stream of gliders crosses the middle; the acorn sits in the middle
+      const gun=PATTERN==='gun',y0=gun?1:Math.round(R/2)-1;
+      const x0=!gun?Math.round(C/2)-3:C>=38?Math.max(1,Math.min(C-37,Math.round(C/2-24-(R-10)/2))):Math.round((C-36)/2);
+      for(const [x,y] of rle(PATTERNS[PATTERN]))cells[at(x0+x,y0+y)]=1;
+    }
+    for(let i=0;i<AHEAD[PATTERN];i++)step();
+    glow.fill(0);
+    if(old)for(let i=0;i<old.length;i++)if(old[i]&&!cells[i])glow[i]=1;
+    ring=[];stuck=0;acc=0;
+  }
+  // One generation: a dead cell with exactly three live neighbors is born, a live one with two or three lives on, and every
+  // other cell dies. A cell that dies starts to glow (its trail). A world that repeats itself within 15 generations has settled.
+  function step(){
+    let h=0;
+    for(let y=1,rows=R+2*M;y<=rows;y++)for(let i=y*S+1,end=i+S-2;i<end;i++){
+      const n=cells[i-S-1]+cells[i-S]+cells[i-S+1]+cells[i-1]+cells[i+1]+cells[i+S-1]+cells[i+S]+cells[i+S+1];
+      const v=next[i]=n===3||(n===2&&cells[i])?1:0;
+      if(v)h=(h+Math.imul(i,0x9E3779B1))|0;else if(cells[i])glow[i]=1;
+    }
+    [cells,next]=[next,cells];
+    stuck=ring.includes(h)?stuck+1:0;
+    ring.push(h);if(ring.length>15)ring.shift();
+  }
+  // Trails dim by the time that passed in the world: the glow of a dead cell halves every 120 ms
+  function fadeBy(ms){const k=Math.pow(.5,ms/120);for(let i=0;i<glow.length;i++)if(glow[i])glow[i]=glow[i]<.03?0:glow[i]*k;}
+  // The whole picture: grid lines if chosen, the fading trails in three steps of brightness, then the living cells. Cells of
+  // one brightness go into one path, so a frame is a handful of fills however many cells there are.
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    if(GRID){const p=new Path2D();
+      for(let x=0;x<=C;x++){p.moveTo(ox+x*cs+.5,0);p.lineTo(ox+x*cs+.5,H);}for(let y=0;y<=R;y++){p.moveTo(0,oy+y*cs+.5);p.lineTo(W,oy+y*cs+.5);}
+      ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.stroke(p);}
+    const g=Math.max(.5,cs*.08),sz=cs-2*g,live=new Path2D(),dim=[new Path2D(),new Path2D(),new Path2D()];
+    for(let y=0;y<R;y++)for(let x=0,i=at(0,y);x<C;x++,i++){
+      if(cells[i])live.rect(ox+x*cs+g,oy+y*cs+g,sz,sz);
+      else if(TRAILS&&glow[i]>.03)dim[glow[i]>.5?0:glow[i]>.2?1:2].rect(ox+x*cs+g,oy+y*cs+g,sz,sz);
+    }
+    ctx.fillStyle=`rgb(${COLORS[COL]})`;
+    if(TRAILS)[.42,.24,.1].forEach((a,k)=>{ctx.globalAlpha=a;ctx.fill(dim[k]);});
+    ctx.globalAlpha=1;ctx.fill(live);
+  }
+  // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one picture per
+  // 16 ms. The world's time grows by the time since the last picture (never more than 50 ms, so a background tab does not
+  // leap), or a third of it in slow motion, and a generation is due for every 1/Speed of a second of it; the first frame
+  // after a start has nothing to measure from and adds none. A world that has settled for 40 generations starts again.
+  function loop(ts){
+    raf=requestAnimationFrame(loop);
+    if(lastT!==null&&ts-lastT<16)return;
+    const dt=lastT===null?0:Math.min(ts-lastT,50),ms=dt*(slowTog.checked?1/3:1),every=1000/GENS;
+    lastT=ts;acc+=ms;
+    for(let n=0;acc>=every&&n<3;n++){step();acc-=every;}
+    acc=Math.min(acc,every);
+    if(stuck>=40)seed(true);
+    fadeBy(ms);draw();
+  }
+  function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
+
+  // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
+  // loop on arrival, which this listener must catch. The world on screen stays as it is while paused.
+  document.addEventListener('hb:pause',e=>{
+    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    else start();
+  });
+  // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
+  document.addEventListener('visibilitychange',()=>{lastT=null;});
+
+  // Setting the canvas size wipes it, so a real change of the stage's size builds the world again and draws it at once,
+  // playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;
+    if(w===W&&h===H)return;
+    W=w;H=h;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    grid();seed();draw();
+  }
+
+  // Drawing: a press or a finger brings the cell under it to life, and a stroke draws every cell on the straight line from
+  // the last one, so a quick stroke leaves no gaps. Pointer Events cover mouse, touch and pen; capture keeps the stroke going
+  // when it leaves the stage. The picture is drawn at once, so drawing works while paused too.
+  function cellAt(e){const r=cvs.getBoundingClientRect();return [Math.floor((e.clientX-r.left-ox)/cs),Math.floor((e.clientY-r.top-oy)/cs)];}
+  function ink(e){
+    const [x,y]=cellAt(e),[px,py]=pen||[x,y],n=Math.max(Math.abs(x-px),Math.abs(y-py),1);
+    for(let k=0;k<=n;k++){const cx=Math.round(px+(x-px)*k/n),cy=Math.round(py+(y-py)*k/n);if(cx>=0&&cy>=0&&cx<C&&cy<R)cells[at(cx,cy)]=1;}
+    pen=[x,y];ring=[];stuck=0;draw();
+  }
+  cvs.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;pen=null;try{cvs.setPointerCapture(e.pointerId);}catch(_){}ink(e);});
+  cvs.addEventListener('pointermove',e=>{if(pen&&e.isPrimary)ink(e);});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,e=>{if(e.isPrimary)pen=null;}));
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // A setting that changes the picture draws it at once, so the change shows while the loop is paused; Cell size and Start
+  // pattern start a fresh world. Speed changes no picture: the world carries on from where it is, at the new pace.
+  choices('speed-seg',d=>{GENS=+d.gens;});
+  choices('size-seg',d=>{CELL=+d.px;grid();seed();draw();});
+  choices('pattern-seg',d=>{PATTERN=d.pattern;seed();draw();});
+  choices('color-sw',d=>{COL=d.col;draw();});
+  document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;draw();});
+  document.getElementById('grid-tog').addEventListener('change',e=>{GRID=e.target.checked;draw();});
+  document.getElementById('btn-reset').addEventListener('click',()=>{seed();draw();});
+  resize();
+  window.addEventListener('resize',resize);
+  // A window that crosses the phone size can change the cell size, even when the stage keeps its size
+  phone.addEventListener('change',()=>{if((phone.matches?Math.max(CELL,8):CELL)!==cs){grid();seed();draw();}});
+  start();
+</script>
+</body>
+</html>

@@ -260,6 +260,9 @@ All 129 techniques, each linked to its live demo.
 - **[Wave Layers](animations/07-ambient-background/wave-layers/)** — Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.
 - **[Snow / Rain](animations/07-ambient-background/snow-rain/)** — Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal pages.
 - **[Fireworks](animations/07-ambient-background/fireworks/)** — Rockets rise and burst into glowing sparks that fall and fade. Best for celebrations.
+- **[Topographic Lines](animations/07-ambient-background/topographic-lines/)** — Contour lines like those on a hiking map slowly bend and drift. Best for outdoor brands.
+- **[Light Rays](animations/07-ambient-background/light-rays/)** — Soft beams of light fall from above and slowly sweep across. Best for hero intros.
+- **[Game of Life](animations/07-ambient-background/game-of-life/)** — Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.
 
 </details>
 
