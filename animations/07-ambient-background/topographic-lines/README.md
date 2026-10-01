@@ -10,7 +10,7 @@ Topographic lines are the contour lines of a map, drawn over an invisible height
 - Section dividers or footers where a slow pattern fills empty space
 
 ## How it works
-The height of every point comes from smooth noise (Perlin gradient noise): two layers of it, broad hills plus smaller bumps, each sliding slowly in its own direction, so their sum swells and sinks instead of moving in one piece. The height is sampled on a grid, 7px squares on a computer and 9px on a phone. Each frame, marching squares turns the grid into lines: for every square and every contour level between its lowest and highest corner, the level crosses the square's sides where the height equals it, and a short segment joins the crossings. A square's side is shared with its neighbor, so both find the same crossing and the segments join into continuous lines.
+The height of every point comes from smooth noise (Perlin gradient noise): two layers of it, broad hills plus smaller bumps, each sliding slowly in its own direction, so their sum swells and sinks instead of moving in one piece. The height is sampled on a grid, 7px squares on a computer and 8px on a phone. Each frame, marching squares turns the grid into lines: for every square and every contour level between its lowest and highest corner, the level crosses the square's sides where the height equals it, and a short segment joins the crossings. A square's side is shared with its neighbor, so both find the same crossing and the segments join into continuous lines.
 
 ```js
 for (let m = Math.ceil(lowest / GAP); m * GAP < highest; m++) {
@@ -41,7 +41,7 @@ The field has its own clock, which grows by the time since the last frame times 
 | Bold every fifth line | on | Every fifth line is drawn thicker and brighter, like the index contours of a printed map |
 
 ## Production notes
-- **Cost**: the work is the noise at every grid point plus one pass of marching squares, under a millisecond a frame on a laptop for a 960 × 380 stage. A coarser grid is the main saving; phones (up to 600px wide, or up to 500px tall for a phone held sideways) sample every 9px instead of 7px.
+- **Cost**: the work is the noise at every grid point plus one pass of marching squares, under a millisecond a frame on a laptop for a 960 × 380 stage. A coarser grid is the main saving; phones (up to 600px wide, or up to 500px tall for a phone held sideways) sample every 8px instead of 7px.
 - **One stroke per style**: all thin segments go into one path and all bold ones into another, so a frame is two strokes, not thousands.
 - **Smoother lines**: for a print-quality look, join the segments into polylines and draw them as curves, or render the contours in a WebGL fragment shader (the fractional part of height divided by spacing, drawn where it is near zero, with its screen-space derivative for an even line width).
 - **Libraries**: [d3-contour](https://github.com/d3/d3-contour) builds contour polygons from a grid of values with the same marching squares method; [simplex-noise](https://github.com/jwagner/simplex-noise.js) supplies the height field.
