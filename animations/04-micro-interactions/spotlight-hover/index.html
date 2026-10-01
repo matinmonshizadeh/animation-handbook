@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotlight Hover Glow — Animation Handbook</title>
+  <meta name="description" content="A soft light follows the pointer and lights up the card edges near it. Best for feature grids.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/spotlight-hover/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Spotlight Hover Glow — Animation Handbook">
+  <meta property="og:description" content="A soft light follows the pointer and lights up the card edges near it. Best for feature grids.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/spotlight-hover/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Spotlight Hover Glow — Animation Handbook">
+  <meta name="twitter:description" content="A soft light follows the pointer and lights up the card edges near it. Best for feature grids.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Spotlight Hover Glow", "name": "Spotlight Hover Glow", "description": "A soft light follows the pointer and lights up the card edges near it. Best for feature grids.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/spotlight-hover/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Spotlight Hover Glow"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--glow:#b98cff;--g:300px;--bw:1.5px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;overflow:hidden;background:#09090b;padding:clamp(12px,2.4vw,24px)}
+    /* touch-action none: a finger dragged over the cards moves the light instead of scrolling the page */
+    .grid{position:relative;flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(8px,1.4vw,14px);touch-action:none;-webkit-user-select:none;user-select:none}
+    /* A card is a faint frame (its padding is the edge) around an opaque face */
+    .sc{position:relative;overflow:hidden;border-radius:14px;padding:var(--bw);background:rgba(255,255,255,.09)}
+    /* Both lights are the same soft disc, moved to the pointer by transform only: the one behind the face shows only at
+       the edge, the one inside the face lights it faintly */
+    .eg,.fg{position:absolute;left:0;top:0;width:var(--g);height:var(--g);margin:calc(var(--g)/-2) 0 0 calc(var(--g)/-2);border-radius:50%;
+      pointer-events:none;opacity:0;transition:opacity .35s ease;will-change:transform,opacity}
+    .eg{background:radial-gradient(closest-side,var(--glow) 15%,color-mix(in srgb,var(--glow) 50%,transparent) 55%,transparent)}
+    .fg{background:radial-gradient(closest-side,color-mix(in srgb,var(--glow) 20%,transparent),transparent)}
+    .grid.lit .eg,.grid.lit .fg{opacity:1}
+    .grid.no-edge .eg{visibility:hidden}
+    .face{position:relative;display:flex;flex-direction:column;gap:6px;height:100%;overflow:hidden;border-radius:calc(14px - var(--bw));
+      background:#121216;padding:clamp(12px,1.8vw,18px);color:#f4f4f2}
+    .face>:not(.fg){position:relative}
+    .ic{width:22px;height:22px;margin-bottom:auto;fill:none;stroke:#d6d6da;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .t{font-size:clamp(14px,1.6vw,16px);font-weight:700;letter-spacing:-.01em}
+    .d{font-size:clamp(12px,1.3vw,13px);line-height:1.35;color:#b4b4bb}
+    @media(max-width:600px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .sc:nth-child(n+5){display:none}
+    }
+    @media(prefers-reduced-motion:reduce){.eg,.fg{transition-duration:.2s}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../gradient-border/" rel="prev" aria-label="Previous: Animated Gradient Border"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Animated Gradient Border</span></a><a href="../add-to-cart-fly/" rel="next" aria-label="Next: Add-to-Cart Fly"><span><span class="hb-dir">Next: </span>Add-to-Cart Fly</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.31 · Micro-Interactions</p>
+    <h1>Spotlight Hover Glow</h1>
+    <p class="hb-lede">A soft light follows the pointer and lights up the card edges near it. Best for feature grids.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the cards, drag a finger across them, or press Show me.</p></div>
+    </div>
+    <div class="stage">
+      <div class="grid" id="grid">
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg><p class="t">Analytics</p><p class="d">See what people click.</p></div></div>
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><p class="t">Automations</p><p class="d">Runs tasks for you.</p></div></div>
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><p class="t">Security</p><p class="d">Logins kept safe.</p></div></div>
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.4L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.4L21 15"/><path d="M21 20v-5h-5"/></svg><p class="t">Sync</p><p class="d">Work on every device.</p></div></div>
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h5"/></svg><p class="t">Reports</p><p class="d">Weekly summaries.</p></div></div>
+        <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20c0-2.6-1.6-4.8-4-5.6"/></svg><p class="t">Teams</p><p class="d">Invite and share.</p></div></div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Glow size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-k="0.7" aria-pressed="false">Small</button>
+          <button type="button" data-k="1.15" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-k="1.7" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How far the light reaches around the pointer.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Color</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" aria-pressed="false" aria-label="White" data-c="#f4f4f2" style="background:#f4f4f2"></button>
+          <button type="button" aria-pressed="false" aria-label="Orange" data-c="#ff9d5c" style="background:#ff9d5c"></button>
+          <button type="button" aria-pressed="false" aria-label="Pink" data-c="#ff6f8b" style="background:#ff6f8b"></button>
+          <button type="button" class="on" aria-pressed="true" aria-label="Purple" data-c="#b98cff" style="background:#b98cff"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-c="#6ea8ff" style="background:#6ea8ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#5fd88a" style="background:#5fd88a"></button>
+        </div>
+        <p class="hb-hint">The color of the light and of the lit edges.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Light the edges</span><input class="hb-switch" type="checkbox" role="switch" id="edge-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">The card edges near the pointer glow brightly.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="lag-lbl">Lag</p>
+          <div class="seg" id="lag-seg" role="group" aria-labelledby="lag-lbl">
+            <button type="button" data-ease="1" aria-pressed="false">None</button>
+            <button type="button" data-ease="0.3" class="on" aria-pressed="true">Short</button>
+            <button type="button" data-ease="0.1" aria-pressed="false">Long</button>
+          </div>
+          <p class="hb-hint">How far the light trails behind a moving pointer.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a spotlight glow to [the grid of dark cards you want to light up]. As the pointer moves over the grid, a soft round light follows it across the cards and, when the settings include it, lights up the card edges closest to the pointer while the far edges stay dim. Give each card its own light, clipped to the card, and move it to the pointer with transforms only, so nothing is repainted while it moves. Fade the light in when the pointer arrives and out when it leaves. On touch screens, let a finger dragged across the cards move the light. If the visitor has reduced motion turned on, keep the light on the pointer with no glide. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Feature grids</li><li>Pricing cards</li><li>Dashboards</li><li>Portfolios</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Light themes</li><li>Text-heavy pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const grid=document.getElementById('grid');
+  const lights=[...grid.querySelectorAll('.eg,.fg')];
+  const cards=[...grid.querySelectorAll('.sc')].map(el=>({el,eg:el.querySelector('.eg'),fg:el.querySelector('.fg'),x:0,y:0,w:0,h:0}));
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: ease is the share of the gap the light closes in one of them
+  // lx,ly: where the light is; tx,ty: where it is heading (both on the grid, from its top left); W,H: the grid's size
+  let lx=0,ly=0,tx=0,ty=0,W=0,H=0,bw=1.5,k=1.15,ease=0.3,lit=false,raf=0,last=null,touchId=null,runTimers=[],runFrame=0;
+
+  // Card places and the light's size are measured once and again whenever the grid changes size; a pointer move reads only the grid's rectangle
+  function measure(){
+    W=grid.clientWidth;H=grid.clientHeight;
+    bw=parseFloat(getComputedStyle(cards[0].el).paddingLeft)||0;
+    cards.forEach(c=>{c.x=c.el.offsetLeft;c.y=c.el.offsetTop;c.w=c.el.offsetWidth;c.h=c.el.offsetHeight});
+    grid.style.setProperty('--g',Math.round(k*Math.min(W,H))+'px');
+    draw();
+  }
+  // Every card's two lights go to the same spot of the grid, each counted from its own corner
+  function draw(){
+    for(const c of cards){
+      if(!c.w)continue;   // a card hidden on phones
+      c.eg.style.transform=`translate(${(lx-c.x).toFixed(1)}px,${(ly-c.y).toFixed(1)}px)`;
+      c.fg.style.transform=`translate(${(lx-c.x-bw).toFixed(1)}px,${(ly-c.y-bw).toFixed(1)}px)`;
+    }
+  }
+  // A frame longer or shorter than a 60 Hz one closes the share of the gap that fits its time, so the lag is the same on
+  // every screen. The first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms. Under reduced motion the
+  // light goes straight to its spot.
+  function tick(ts){
+    const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
+    const a=reduce.matches?1:1-Math.pow(1-ease,dt/FRAME);
+    lx+=(tx-lx)*a;ly+=(ty-ly)*a;
+    const done=Math.abs(tx-lx)<.3&&Math.abs(ty-ly)<.3;
+    if(done){lx=tx;ly=ty;last=null}
+    draw();
+    raf=done?0:requestAnimationFrame(tick);
+  }
+  // The pointer, a finger and Show me all send the light to a spot. It appears there directly, as the pointer enters,
+  // so it never swoops in from where it was last; once it is shown it glides after each new spot.
+  function aim(x,y){
+    tx=x;ty=y;
+    if(!lit){lx=x;ly=y;draw();lit=true;grid.classList.add('lit');return}
+    if(!raf)raf=requestAnimationFrame(tick);
+  }
+  function off(){lit=false;grid.classList.remove('lit');cancelAnimationFrame(raf);raf=0;last=null}
+  function aimAt(e){const r=grid.getBoundingClientRect();aim(e.clientX-r.left,e.clientY-r.top)}
+
+  // Show me: one run at a time. Every timer of the run goes through later(); its path is drawn frame by frame (runFrame).
+  // later(fn, move, hold) waits move + hold ms; this page has no Slow motion, so every step is a hold: later(step, 0, ms).
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move+(hold||0));
+    runTimers.push(id);
+  }
+  function running(){return runTimers.length>0||runFrame!==0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0}
+
+  // A mouse or a pen in the air lights the cards while it moves over them; a finger where it touches and while it drags
+  // (touch-action none keeps the drag on the grid). Pointer events only, so the mouse events that follow a tap leave nothing
+  // behind. A run under way is stopped first, and the light follows the visitor after it.
+  grid.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'&&e.pointerId!==touchId)return;
+    if(e.isTrusted&&running())stopRun();
+    aimAt(e);
+  });
+  grid.addEventListener('pointerleave',e=>{
+    if(e.pointerType==='touch')return;
+    if(e.isTrusted&&running())stopRun();
+    off();
+  });
+  grid.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='touch')return;
+    touchId=e.pointerId;
+    try{grid.setPointerCapture(touchId)}catch(_){}
+    aimAt(e);
+  });
+  ['pointerup','pointercancel'].forEach(type=>grid.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;off()}}));
+
+  // A run starts with the light off, put there without its fade: the transitions are turned off, the state is set, a reflow
+  // makes it stick, and the transitions come back.
+  function toRest(){
+    lights.forEach(l=>{l.style.transition='none'});
+    off();
+    void grid.offsetWidth;
+    lights.forEach(l=>{l.style.transition=''});
+  }
+  // A pretend pointer crosses the grid from left to right in 2.8 s, easing in and out, while it swings up and down across the
+  // gap between the rows; then the light fades away. Under reduced motion the light shows where four cards meet, holds 1.4 s
+  // and fades, with no glide. The light follows the pretend pointer with the Lag setting, as it follows a real one.
+  const RUN=2800;
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    measure();
+    if(reduce.matches){
+      const a=cards[0],b=cards[1],below=cards.find(c=>c.w&&c.y>a.y)||a;
+      aim((a.x+a.w+b.x)/2,(a.y+a.h+below.y)/2);
+      later(off,0,1400);
+      return;
+    }
+    let t0=0;
+    (function frame(now){
+      if(!t0)t0=now;
+      const s=Math.min(1,Math.max(0,now-t0)/RUN),e=s<.5?2*s*s:1-2*(1-s)*(1-s);
+      aim(W*(.06+.88*e),H*(.5-.3*Math.sin(2*Math.PI*s)));
+      runFrame=s<1?requestAnimationFrame(frame):0;
+      if(s>=1)later(off,0,150);
+    })(performance.now());
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the light goes; their own pointer
+  // brings it back where they are.
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();off()}});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('size-seg',d=>{k=+d.k;measure()});
+  choices('color-sw',d=>{grid.style.setProperty('--glow',d.c)});
+  choices('lag-seg',d=>{ease=+d.ease});
+  document.getElementById('edge-tog').addEventListener('change',e=>{grid.classList.toggle('no-edge',!e.target.checked)});
+  new ResizeObserver(measure).observe(grid);
+</script>
+</body>
+</html>

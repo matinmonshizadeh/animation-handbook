@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add-to-Cart Fly — Animation Handbook</title>
+  <meta name="description" content="A copy of the product flies into the cart, which bumps and counts up. Best for shops.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/add-to-cart-fly/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Add-to-Cart Fly — Animation Handbook">
+  <meta property="og:description" content="A copy of the product flies into the cart, which bumps and counts up. Best for shops.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/add-to-cart-fly/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Add-to-Cart Fly — Animation Handbook">
+  <meta name="twitter:description" content="A copy of the product flies into the cart, which bumps and counts up. Best for shops.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Add-to-Cart Fly", "name": "Add-to-Cart Fly", "description": "A copy of the product flies into the cart, which bumps and counts up. Best for shops.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/add-to-cart-fly/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Add-to-Cart Fly"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:#0b0b0d;color:#f4f4f2;touch-action:manipulation}
+    /* The stage is a small shop: a header with the cart, then a row of products */
+    .bar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:clamp(12px,2vw,26px) clamp(14px,2.4vw,24px) 0}
+    .brand{font-size:15px;font-weight:800;letter-spacing:-.01em}
+    .cart{position:relative;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#141418}
+    .cart svg{width:22px;height:22px;fill:none;stroke:#f4f4f2;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .badge{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;min-width:21px;height:21px;padding:0 5px;border-radius:11px;
+      background:var(--ui-accent);color:#1a0e05;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+    .products{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,2vw,20px);
+      width:100%;max-width:820px;margin:0 auto;padding:clamp(12px,2vw,20px) clamp(14px,2.4vw,24px) clamp(14px,2.4vw,24px)}
+    .prod{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+    /* The picture is the part that gets copied and flown: it fills what the name, price and button leave */
+    .pic{flex:1;min-height:0;display:grid;place-items:center;border-radius:12px}
+    .pic svg{width:clamp(30px,22%,52px);height:auto;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .p1{background:linear-gradient(140deg,#6ea8ff,#3b5bdb)}
+    .p2{background:linear-gradient(140deg,#ffb27d,#e8590c)}
+    .p3{background:linear-gradient(140deg,#7be0a0,#2b9a4a)}
+    .row{display:flex;justify-content:space-between;gap:8px;font-size:clamp(13px,1.5vw,15px)}
+    .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .price{color:#adadb2}
+    .add{flex:none;min-height:44px;border:0;border-radius:10px;background:var(--ui-accent);color:#1a0e05;font:inherit;font-size:clamp(13px,1.5vw,15px);
+      font-weight:700;cursor:pointer;transition:transform .12s ease}
+    .add:active{transform:scale(.95)}
+    /* The site focus ring is drawn inside the button. On the orange fill it is as light as the fill, so it turns dark. */
+    .hb-page .stage .add:focus-visible{outline-color:#0b0b0d}
+    /* The flying copy: an outer layer moves it sideways, an inner one up and down, the copy itself shrinks */
+    .fly{position:absolute;left:0;top:0;z-index:5;pointer-events:none;will-change:transform}
+    .fly>div{will-change:transform}
+    .copy{position:absolute;left:0;top:0;box-shadow:0 8px 24px rgba(0,0,0,.45);will-change:transform,opacity}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    @media(max-width:600px){
+      .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .prod:nth-child(3){display:none}
+    }
+    @media(prefers-reduced-motion:reduce){.add{transition:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../spotlight-hover/" rel="prev" aria-label="Previous: Spotlight Hover Glow"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Spotlight Hover Glow</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.32 · Micro-Interactions</p>
+    <h1>Add-to-Cart Fly</h1>
+    <p class="hb-lede">A copy of the product flies into the cart, which bumps and counts up. Best for shops.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Add to cart (Reset brings the count back), or press Show me.</p></div>
+    </div>
+    <div class="stage">
+      <div class="bar">
+        <span class="brand">Shop</span>
+        <span class="cart" id="cart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 3.5h2.3l2.5 11a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.4-1.1l1.9-6.6H6"/><circle cx="9.5" cy="19.6" r="1.4"/><circle cx="17" cy="19.6" r="1.4"/></svg><span class="badge" id="badge"><span id="count">2</span></span></span>
+      </div>
+      <div class="products">
+        <div class="prod">
+          <div class="pic p1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="7" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.5"/></svg></div>
+          <p class="row"><span class="name">Headphones</span><span class="price">$89</span></p>
+          <button class="add" type="button" aria-label="Add Headphones to cart">Add to cart</button>
+        </div>
+        <div class="prod">
+          <div class="pic p2" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7 10 4.5h4L15.5 7"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
+          <p class="row"><span class="name">Camera</span><span class="price">$249</span></p>
+          <button class="add" type="button" aria-label="Add Camera to cart">Add to cart</button>
+        </div>
+        <div class="prod">
+          <div class="pic p3" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5v2.5M12 3.5v2.5"/></svg></div>
+          <p class="row"><span class="name">Mug</span><span class="price">$14</span></p>
+          <button class="add" type="button" aria-label="Add Mug to cart">Add to cart</button>
+        </div>
+      </div>
+      <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Flight speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1100" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="700" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="450" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the copy takes to reach the cart.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="path-lbl">Path</p>
+        <div class="seg" id="path-seg" role="group" aria-labelledby="path-lbl">
+          <button type="button" data-arc="1" class="on" aria-pressed="true">Arc</button>
+          <button type="button" data-arc="0" aria-pressed="false">Straight</button>
+        </div>
+        <p class="hb-hint">An arc rises and drops into the cart, like a toss.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Cart bumps</span><input class="hb-switch" type="checkbox" role="switch" id="bump-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">The cart and its count jump as the copy lands.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an add-to-cart animation to [the Add to cart buttons of your product list]. When one is pressed, copy that product's picture and fly the copy into the cart icon, shrinking it on the way, then remove it. Move it with transforms only: for a curved path, slide it sideways at an even pace while an inner layer rises and then drops into the cart; for a straight path, move both together. As it lands, raise the number on the cart and, when the settings include it, give the cart a small bump. Tell screen readers that the item was added. If the visitor has reduced motion turned on, fly nothing and fade the new number in. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Online shops</li><li>Product lists</li><li>Food ordering</li><li>Wish lists</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Bulk order forms</li><li>Quick reorder lists</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage'),cart=document.getElementById('cart'),cartIcon=cart.querySelector('svg'),
+        badge=document.getElementById('badge'),countEl=document.getElementById('count'),statusEl=document.getElementById('status'),
+        slowTog=document.getElementById('slow-tog'),reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const prods=[...stage.querySelectorAll('.prod')];
+  const OUT='cubic-bezier(.333,.667,.667,1)',IN='cubic-bezier(.333,0,.667,.333)';   // the two halves of a thrown arc
+  const REST=2;
+  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false;
+
+  function show(){countEl.textContent=count>99?'99+':String(count)}
+  // The copy has landed: the count goes up, and the cart and its badge bump (Cart bumps). Under reduced motion nothing flew,
+  // and the new number fades in instead.
+  function land(name,quiet){
+    count++;show();
+    if(!quiet)statusEl.textContent=name+' added to the cart, '+count+' items.';
+    if(reduce.matches){countEl.animate([{opacity:0},{opacity:1}],{duration:400,easing:'ease-out'});return}
+    if(!bump)return;
+    bumps.forEach(a=>a.cancel());
+    bumps=[cart.animate([{transform:'none'},{transform:'scale(1.22) rotate(-7deg)',offset:.35},{transform:'scale(.94) rotate(3deg)',offset:.7},{transform:'none'}],{duration:450,easing:'ease-out'}),
+      badge.animate([{transform:'none'},{transform:'scale(1.45)',offset:.4},{transform:'none'}],{duration:450,easing:'ease-out'})];
+  }
+  // A copy of the picture is laid over it and flown to the middle of the cart icon. Arc: the outer layer moves sideways at an
+  // even pace while the inner one rises, slowing, to a little above the cart and then drops into it, gathering speed, which is
+  // the path of a thrown ball. Straight: both layers ease the same way, so the copy goes in a line. onLand runs after the landing.
+  function add(prod,quiet,onLand){
+    const name=prod.querySelector('.name').textContent;
+    if(reduce.matches){land(name,quiet);if(onLand)onLand();return}
+    const pic=prod.querySelector('.pic'),s=stage.getBoundingClientRect(),p=pic.getBoundingClientRect(),c=cartIcon.getBoundingClientRect();
+    const x0=p.left+p.width/2-s.left-stage.clientLeft,y0=p.top+p.height/2-s.top-stage.clientTop;
+    const dx=c.left+c.width/2-(p.left+p.width/2),dy=c.top+c.height/2-(p.top+p.height/2);
+    const fly=document.createElement('div'),lift=document.createElement('div'),copy=pic.cloneNode(true);
+    fly.className='fly';fly.style.left=x0+'px';fly.style.top=y0+'px';
+    copy.classList.add('copy');
+    Object.assign(copy.style,{width:p.width+'px',height:p.height+'px',marginLeft:-p.width/2+'px',marginTop:-p.height/2+'px'});
+    lift.append(copy);fly.append(lift);stage.append(fly);
+    const opts={duration:dur,fill:'forwards'};
+    fly.animate([{transform:'none'},{transform:`translateX(${dx}px)`}],{...opts,easing:arc?'linear':'ease-in-out'});
+    let ys=[{transform:'none'},{transform:`translateY(${dy}px)`}];
+    if(arc){
+      // The top of the arc: a little above both ends, and never closer than 20px to the top of the stage
+      const top=Math.max(Math.min(0,dy)-Math.min(28,Math.max(10,Math.abs(dx)*.05)),20-y0);
+      const v=2*top-2*Math.sqrt(top*(top-dy)),at=-v/(2*(dy-v));   // start speed and the moment it is reached
+      ys=[{transform:'none',easing:OUT},{offset:at,transform:`translateY(${top}px)`,easing:IN},{transform:`translateY(${dy}px)`}];
+    }
+    const flight=lift.animate(ys,{...opts,easing:arc?'linear':'ease-in-out'});
+    // The copy shrinks fast to a token at most 90px across, then on to the size of the cart icon, and fades into it
+    const big=Math.max(p.width,p.height),end=Math.min(1,26/big),mid=Math.max(end,Math.min(1,90/big));
+    copy.animate([{transform:'none',easing:'ease-out'},{offset:.3,transform:`scale(${mid})`},{offset:.85,transform:`scale(${end})`,opacity:1},
+      {transform:`scale(${end*.6})`,opacity:0}],opts);
+    const f={fly,flight};flights.push(f);
+    flight.finished.then(()=>{fly.remove();flights=flights.filter(x=>x!==f);land(name,quiet);if(onLand)onLand()},()=>{});
+  }
+  prods.forEach(prod=>prod.querySelector('.add').addEventListener('click',()=>add(prod,false)));
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
+  // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    runTimers.push(id);
+  }
+  // awaiting: the run's copy is in the air and the run waits for it to land
+  function running(){return runTimers.length>0||awaiting}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];awaiting=false}
+  // Back to the cart of the start: copies in the air are dropped (cancelled, so they never land), bumps and presses stop,
+  // the count is 2.
+  function toRest(){
+    flights.forEach(f=>{f.flight.cancel();f.fly.remove()});flights=[];
+    bumps.forEach(a=>a.cancel());bumps=[];
+    countEl.getAnimations().forEach(a=>a.cancel());
+    prods.forEach(p=>p.querySelector('.add').getAnimations().forEach(a=>a.cancel()));
+    count=REST;show();statusEl.textContent='';
+  }
+  // The first product's button is pressed after 300ms of rest. The press is an animation, so it always ends by itself, and Slow
+  // motion slows it with the rest of the stage. When the copy has landed and the cart has bumped (450ms), and 1.2 s more have
+  // passed, the count fades back to 2; at the defaults the run is over at about 3 s. Show me's press says nothing aloud.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    toRest();
+    later(()=>{
+      const btn=prods[0].querySelector('.add');
+      // Under reduced motion the pressed look is only held for a moment, with no easing in or out
+      btn.animate(reduce.matches?[{transform:'scale(.95)'},{transform:'scale(.95)'}]:[{transform:'none'},{transform:'scale(.95)',offset:.3},{transform:'none'}],
+        {duration:reduce.matches?150:300,easing:'ease-out'});
+      awaiting=true;
+      add(prods[0],true,()=>{if(!awaiting)return;awaiting=false;later(back,450,1200)});
+    },0,300);
+  });
+  function back(){count=REST;show();countEl.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'})}
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops; a copy in the air still lands and its count stays.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('path-seg',d=>{arc=d.arc==='1'});
+  document.getElementById('bump-tog').addEventListener('change',e=>{bump=e.target.checked});
+</script>
+</body>
+</html>

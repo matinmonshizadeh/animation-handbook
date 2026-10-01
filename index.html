@@ -738,6 +738,48 @@ button,input{font:inherit;color:inherit}
 .pv-cursor .foll{position:absolute;width:12%;aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--accent) 40%,transparent);border:1px solid var(--accent);animation:m-foll 4s ease-in-out infinite}
 @keyframes m-tgt{0%{left:20%;top:30%}25%{left:70%;top:24%}50%{left:74%;top:64%}75%{left:24%;top:68%}100%{left:20%;top:30%}}
 @keyframes m-foll{0%{left:20%;top:30%}29%{left:70%;top:24%}54%{left:74%;top:64%}79%{left:24%;top:68%}100%{left:20%;top:30%}}
+/* gradient border: a square layer of colors turns behind a card; the inner box covers all but the edge, and a blurred copy glows */
+.pv-gradborder{background:#08090c;display:grid;place-items:center}
+.pv-gradborder .gbx{position:relative;top:8%;width:46%;height:58%;border-radius:10px} /* a little low, clear of the place label */
+.pv-gradborder .rg,.pv-gradborder .gl{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
+.pv-gradborder .rg{background:rgba(255,255,255,.1)}
+.pv-gradborder .gl{filter:blur(9px);opacity:.8}
+.pv-gradborder i{position:absolute;left:50%;top:50%;width:200%;aspect-ratio:1;background:conic-gradient(transparent 0 40%,var(--c5) 58%,var(--c7) 72%,var(--c2) 85%,var(--c1) 96%,transparent);transform:translate(-50%,-50%);animation:m-gbturn 3.2s linear infinite}
+@keyframes m-gbturn{to{transform:translate(-50%,-50%) rotate(1turn)}}
+.pv-gradborder .in{position:absolute;inset:2px;display:flex;flex-direction:column;justify-content:center;gap:9%;padding:0 13%;border-radius:8px;background:#111217}
+.pv-gradborder .in b{height:7px;border-radius:2px;background:#262a33}
+.pv-gradborder .in b:first-child{width:38%;background:var(--c7)}
+.pv-gradborder .in b:nth-child(2){width:62%;height:11px;background:#e9e9ec}
+.pv-gradborder .in b:last-child{width:84%}
+/* spotlight: a soft light drifts behind a grid of dark tiles; it shows fully in the gaps, which read as lit edges, and faintly through the tiles */
+.pv-spotlight{background:#08090c;display:grid;place-items:center}
+.pv-spotlight .sg{position:relative;top:9%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:3px;width:76%;height:60%;padding:3px;overflow:hidden;border-radius:9px;background:#1d1f27}
+.pv-spotlight .lt{position:absolute;left:0;top:0;width:56%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,var(--c3) 15%,color-mix(in srgb,var(--c3) 45%,transparent) 55%,transparent);animation:m-spot 4.4s ease-in-out infinite}
+.pv-spotlight .sg i{position:relative;border-radius:6px;background:rgba(18,19,24,.88)}
+.pv-spotlight .sg i::after{content:"";position:absolute;left:14%;bottom:24%;width:48%;height:5px;border-radius:2px;background:#2b2e38}
+@keyframes m-spot{0%,100%{transform:translate(-22%,-18%)}30%{transform:translate(45%,22%)}60%{transform:translate(112%,-8%)}80%{transform:translate(60%,-30%)}}
+/* add to cart: a copy of the product is tossed along an arc (an even sideways move, a rise that slows and a fall that speeds up)
+   into the cart, which bumps as its count goes from 2 to 3; 1cqw and 1cqh are 1% of the stage's width and height */
+.pv-cartfly{background:#08090c;overflow:hidden;container-type:size}
+.pv-cartfly .pd,.pv-cartfly .fs{border-radius:7px;background:linear-gradient(140deg,var(--c1),#3b5bdb)}
+.pv-cartfly .pd{position:absolute;left:12cqw;top:34cqh;width:32cqw;height:44cqh}
+.pv-cartfly .bt{position:absolute;left:12cqw;top:82cqh;width:32cqw;height:9cqh;border-radius:4px;background:var(--accent);animation:m-cfbt 3s ease-out infinite}
+.pv-cartfly .ct{position:absolute;left:calc(86cqw - 8cqh);top:12cqh;width:16cqh;height:16cqh;display:grid;place-items:center;border-radius:6px;border:1px solid rgba(255,255,255,.2);animation:m-cfbump 3s ease-out infinite}
+.pv-cartfly .ct svg{width:64%;height:64%;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pv-cartfly .bd{position:absolute;right:-3cqh;top:-3cqh;width:8cqh;height:8cqh;border-radius:50%;background:var(--accent);color:#16161b;font:800 5.5cqh/8cqh var(--text);text-align:center}
+.pv-cartfly .bd b{position:absolute;inset:0}
+.pv-cartfly .n2{animation:m-cfn2 3s infinite}
+.pv-cartfly .n3{opacity:0;animation:m-cfn3 3s infinite}
+.pv-cartfly .fx{position:absolute;left:28cqw;top:56cqh;animation:m-cfx 3s linear infinite}
+.pv-cartfly .fy{position:absolute;left:0;top:0;animation:m-cfy 3s infinite}
+.pv-cartfly .fs{position:absolute;left:-16cqw;top:-22cqh;width:32cqw;height:44cqh;opacity:0;box-shadow:0 4px 12px rgba(0,0,0,.5);animation:m-cfs 3s infinite}
+@keyframes m-cfbt{0%,12%{transform:none}15%{transform:scale(.9)}20%,100%{transform:none}}
+@keyframes m-cfx{0%,18%{transform:translateX(0)}58%,100%{transform:translateX(58cqw)}}
+@keyframes m-cfy{0%,18%{transform:translateY(0);animation-timing-function:cubic-bezier(.333,.667,.667,1)}47%{transform:translateY(-42cqh);animation-timing-function:cubic-bezier(.333,0,.667,.333)}58%,100%{transform:translateY(-36cqh)}}
+@keyframes m-cfs{0%,17.9%{opacity:0;transform:none}18%{opacity:1;transform:none;animation-timing-function:ease-out}30%{transform:scale(.55)}52%{opacity:1;transform:scale(.3)}58%,100%{opacity:0;transform:scale(.18)}}
+@keyframes m-cfbump{0%,58%{transform:none}63%{transform:scale(1.25) rotate(-8deg)}68%{transform:scale(.94) rotate(3deg)}74%,100%{transform:none}}
+@keyframes m-cfn2{0%,57.9%{opacity:1}58%,100%{opacity:0}}
+@keyframes m-cfn3{0%,57.9%{opacity:0}58%,100%{opacity:1}}
 
 /* ── bespoke: 05 Text & Typography ── */
 .pv-kinetic{background:#0c0608;display:grid;place-items:center;overflow:hidden}
@@ -1110,7 +1152,7 @@ button,input{font:inherit;color:inherit}
   <section class="wrap home-hero" aria-labelledby="hero-title">
     <span class="float fl1" aria-hidden="true"></span><span class="float fl2" aria-hidden="true"></span><span class="float fl3" aria-hidden="true"></span>
     <span class="float fl4" aria-hidden="true"></span><span class="float fl5" aria-hidden="true"></span><span class="float fl6" aria-hidden="true"></span>
-    <p class="pill"><span class="pill-dot" aria-hidden="true"></span>138 free animations · no coding needed</p>
+    <p class="pill"><span class="pill-dot" aria-hidden="true"></span>141 free animations · no coding needed</p>
     <h1 class="h1" id="hero-title">What do you want to animate?</h1>
     <p class="sub">Pick a place, or describe it in your own words. Every animation plays live, and each one comes with a ready-made prompt for your AI assistant.</p>
     <form class="search" id="search-form" role="search" action="./" method="get">
@@ -1167,8 +1209,8 @@ button,input{font:inherit;color:inherit}
       <p class="empty-s">Try a simpler word, or pick one of these:</p>
       <p class="pop"><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
     </div>
-    <div class="more" id="more"><button type="button" class="bigbtn" id="more-btn"><span id="more-label">Browse all 138 animations</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
-    <noscript><p class="noscript">This page shows its animations with JavaScript. All 138 are still easy to reach: see the <a href="https://github.com/matinmonshizadeh/animation-handbook#categories">category list on GitHub</a> or the <a href="sitemap.xml">full sitemap</a>. Each demo is a page of its own under <code>/animations/&lt;category&gt;/&lt;name&gt;/</code>.</p></noscript>
+    <div class="more" id="more"><button type="button" class="bigbtn" id="more-btn"><span id="more-label">Browse all 141 animations</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
+    <noscript><p class="noscript">This page shows its animations with JavaScript. All 141 are still easy to reach: see the <a href="https://github.com/matinmonshizadeh/animation-handbook#categories">category list on GitHub</a> or the <a href="sitemap.xml">full sitemap</a>. Each demo is a page of its own under <code>/animations/&lt;category&gt;/&lt;name&gt;/</code>.</p></noscript>
   </section>
 
   <section class="how" id="how" aria-labelledby="how-title">
@@ -1186,7 +1228,7 @@ button,input{font:inherit;color:inherit}
 
 <footer class="wrap foot">
   <a class="brand" href="./"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="ring" cx="11.16" cy="20.84" r="6.1"/><circle class="ring" cx="15.12" cy="16.88" r="6.1"/><circle class="ring" cx="18.51" cy="13.49" r="6.1"/><circle class="ball" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
-  <p class="foot-t">138 web animations with live demos and copyable prompts.</p>
+  <p class="foot-t">141 web animations with live demos and copyable prompts.</p>
   <nav class="nav" aria-label="Footer"><a class="lnk" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">GitHub</a><a class="lnk" href="#top">Back to top</a></nav>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"><span class="ok" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="toast-t"></span></div>
@@ -1313,6 +1355,9 @@ const CATS=[
       ['toast-notification','Toast Notification','Short messages slide into a corner, then leave on their own. Best for updates.'],
       ['segmented-control','Segmented Control','A highlight slides to the option you pick. Best for switching views.'],
       ['pull-to-refresh','Pull to Refresh','Pulling a list down shows a spinner, then new items. Best for feeds.'],
+      ['gradient-border','Animated Gradient Border','A band of colors runs around the edge of a card or button. Best for featured offers.'],
+      ['spotlight-hover','Spotlight Hover Glow','A soft light follows the pointer and lights up the card edges near it. Best for feature grids.'],
+      ['add-to-cart-fly','Add-to-Cart Fly','A copy of the product flies into the cart, which bumps and counts up. Best for shops.'],
     ]
   },
   {
@@ -1396,6 +1441,7 @@ const PV={
   'svg-line-draw':'linedraw','scrollspy-nav':'spy','scroll-background-color':'bgblend','hide-on-scroll-header':'hideheader',
   'hamburger-menu-toggle':'hamb','theme-toggle-morph':'thememorph','copy-to-clipboard':'copyfx',
   'star-rating':'stars','toast-notification':'toast','segmented-control':'segct','pull-to-refresh':'pullref',
+  'gradient-border':'gradborder','spotlight-hover':'spotlight','add-to-cart-fly':'cartfly',
   'flip-card-3d':'flip3d','matrix-rain':'matrix','plasma':'plasmapv',
   'parallax-depth-of-field':'dof','parallax-scrolling':'plx','reverse-scrolling-columns':'revcol',
   'cover-card-to-fixed-header':'cover','fly-in-fly-out-contact-list':'flylist','stacking-cards':'stack',
@@ -1524,6 +1570,9 @@ const PLACES={
   'toast-notification':['load'],
   'segmented-control':['menu','btn'],
   'pull-to-refresh':['load'],
+  'gradient-border':['btn','imgcard'],
+  'spotlight-hover':['imgcard','btn'],
+  'add-to-cart-fly':['btn'],
   // 05
   'kinetic-typography':['text','intro'],
   'typewriter-effect':['text','intro'],
@@ -1595,6 +1644,9 @@ function pvMarkup(k){
     case 'pcurl': return '<span class="pg"><b></b><b></b><b></b></span><span class="nb anim"></span><span class="pg pb anim"><b></b><b></b><b></b></span><span class="fl anim"></span>';
     case 'owipe': return '<span class="pg"><b></b><b></b><b></b></span><span class="pbg anim"><span class="pg"><b></b><b></b><b></b></span></span><span class="w w1 anim"></span><span class="w w2 anim"></span>';
     case 'sig4': return '<span class="s4r anim"></span><span class="s4r r2 anim"></span><span class="s4r r3 anim"></span><span class="s4d"></span>';
+    case 'gradborder': return '<span class="gbx"><span class="gl"><i class="anim"></i></span><span class="rg"><i class="anim"></i></span><span class="in"><b></b><b></b><b></b></span></span>';
+    case 'spotlight': return '<span class="sg"><span class="lt anim"></span>'+'<i></i>'.repeat(6)+'</span>';
+    case 'cartfly': return '<span class="pd"></span><span class="bt anim"></span><span class="ct anim"><svg viewBox="0 0 24 24"><path d="M2.5 3.5h2.3l2.5 11a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.4-1.1l1.9-6.6H6"/><circle cx="9.5" cy="19.6" r="1.4"/><circle cx="17" cy="19.6" r="1.4"/></svg><span class="bd"><b class="n2 anim">2</b><b class="n3 anim">3</b></span></span><span class="fx anim"><span class="fy anim"><span class="fs anim"></span></span></span>';
     case 'sig5': return '<span class="s5 anim"></span><span class="s5 anim"></span><span class="s5 anim"></span>';
     case 'hilite': return '<span class="ppr"><span class="ln"><b style="width:24%"></b><b class="k anim" style="width:40%"></b><b style="width:22%"></b></span>'+
       '<span class="ln"><b style="width:20%"></b><b style="width:28%"></b><b class="k k2 anim" style="width:38%"></b></span>'+
