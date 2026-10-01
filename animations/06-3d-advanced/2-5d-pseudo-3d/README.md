@@ -69,3 +69,4 @@ The demo also blends in the camera's starting position, so a second press, or a 
 - [Parallax Depth-of-Field](../../01-scroll-based/parallax-depth-of-field/) — the same layered depth, driven by scrolling
 - [Parallax 3D Tilt](../parallax-3d-tilt/) — one card leans toward the pointer
 - [Scroll-Driven 3D Rotation](../scroll-driven-3d-rotation/) — scrolling moves a 3D object
+- [Depth-Map Photo](../depth-map-photo/) — one photo whose near parts shift more than its far ones

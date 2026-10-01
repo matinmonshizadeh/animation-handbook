@@ -64,3 +64,4 @@ The `background-size: 200% 100%` and position animation gives more control over 
 - [Skeleton Loader](../skeleton-loader/) — the placeholders pulse instead
 - [Loading Spinner](../loading-spinner/) — a spinner for waits of unknown length
 - [Progress Animation](../progress-animation/) — a bar that shows how much is done
+- [Animated Gradient Border](../gradient-border/) — a band of colors that runs around an edge instead of across

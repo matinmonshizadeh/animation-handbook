@@ -49,3 +49,5 @@ Because the canvas is never fully cleared, the length of the tail is entirely co
 - [Starfield / Space Particles](../starfield/) — another canvas background of moving points
 - [Scanline Effect](../scanline/) — dark lines for the same old-terminal mood
 - [Synthwave Grid](../synthwave-grid/) — a neon grid for a retro-future backdrop
+- [ASCII / Halftone](../../06-3d-advanced/ascii-halftone/) — a moving picture redrawn with characters, for the same retro look
+- [Game of Life](../game-of-life/) — a grid of cells that live and die by simple rules

@@ -73,3 +73,4 @@ Because the loop reads live `pCount`, `spreadDeg`, and `gravity` values, changin
 - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
 - [Heart / Like Burst](../heart-burst/) — a smaller burst for each like
 - [Modal Expand](../modal-expand/) — a dialog grows from the button that opened it
+- [Fireworks](../../07-ambient-background/fireworks/) — bursts of sparks that keep going, as a background

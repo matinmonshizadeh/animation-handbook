@@ -47,3 +47,4 @@ A small JS loop re-triggers the animation and nudges the element's `translateX` 
 - [Scramble / Glitch Text](../scramble-text/) — random symbols lock into the real text
 - [Text Clip-Path Reveal](../text-clip-path-reveal/) — lines of text are uncovered one by one
 - [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
+- [Neon Flicker](../neon-flicker/) — glowing letters that sputter like a worn neon sign

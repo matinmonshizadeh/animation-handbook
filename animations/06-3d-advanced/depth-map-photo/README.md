@@ -32,7 +32,7 @@ float t = 1., tp = 1., h = texture2D(uDep, uv + uOff * (1. - uFocus)).r - 1.;
 for (int i = 0; i < 24; i++) { if (h >= 0.) break; tp = t; t -= 1. / 24.; h = texture2D(uDep, uv + uOff * (t - uFocus)).r - t; }
 for (int i = 0; i < 5; i++) { float m = (t + tp) * .5; if (texture2D(uDep, uv + uOff * (m - uFocus)).r >= m) t = m; else tp = m; }
 vec2 p = uv + uOff * (t - uFocus);
-gl_FragColor = vec4(texture2D(uImg, p).rgb, 1.);   // Show the depth map mixes in the map's gray here
+gl_FragColor = vec4(texture2D(uImg, p).rgb, 1.);   // the Shows the depth map switch mixes in the map's gray here
 ```
 
 Where a near shape moves aside, it uncovers a strip the photo never had, and the search fills it by stretching the pixels at the shape's edge. Because the near shapes were grown in the depth map, those edge pixels are background, so the strip fills with background instead of a smear of the tree.
@@ -51,7 +51,7 @@ Pointer Events make a mouse, a pen and a finger aim the view alike; a mouse that
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Depth strength | Medium | How far the nearest part slides against the farthest when the pointer reaches the edge of the picture: subtle is 2%, medium 3.5% and strong 5% of the picture's width; up and down move about a third as far, which keeps the stretched strips small |
-| Show the depth map | off | Shows the gray depth map in place of the picture, moving the same way: white is near and black is far |
+| Shows the depth map | off | Draws the gray depth map in place of the picture, moving the same way: white is near and black is far |
 
 ## Production notes
 - **Getting a depth map**: depth-estimation models (MiDaS, Depth Anything) make one from any photo, phones save one with portrait-mode photos, and an image editor can paint one by hand, one gray shape per layer. Save it as a grayscale image the same size as the photo.

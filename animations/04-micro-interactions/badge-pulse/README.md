@@ -85,3 +85,4 @@ Stopping after three pulses takes two more declarations on the animated parts, `
 - [Tooltip Reveal](../tooltip-reveal/) — pointing at an icon shows a short note
 - [Loading Spinner](../loading-spinner/) — another sign that something is going on
 - [Hover State Animation](../hover-state/) — items react when the pointer is over them
+- [Add-to-Cart Fly](../add-to-cart-fly/) — the cart's count goes up as a product flies in

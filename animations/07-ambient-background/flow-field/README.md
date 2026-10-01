@@ -59,3 +59,4 @@ The step grows with the time since the last drawn frame, and so does the fade, i
 - [Particle Constellation](../particle-constellation/) — particles that link up instead of flowing
 - [Aurora / Northern Lights](../aurora/) — flowing bands of color made with blur
 - [Mesh Gradient Animation](../mesh-gradient/) — smooth drifting color with no particles
+- [Topographic Lines](../topographic-lines/) — the same kind of noise, drawn as map lines instead of trails

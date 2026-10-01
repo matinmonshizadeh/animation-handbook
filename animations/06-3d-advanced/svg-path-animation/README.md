@@ -76,3 +76,4 @@ path.addEventListener('transitionend', () => {
 - [Checkmark Draw](../../04-micro-interactions/checkmark-draw/) — the same technique for a success tick
 - [Text Clip-Path Reveal](../../05-text-typography/text-clip-path-reveal/) — lines of text uncovered one by one
 - [Outline to Fill](../../05-text-typography/outline-to-fill/) — hollow letters fill with color
+- [Handwriting Draw](../../05-text-typography/handwriting-draw/) — the same technique writes out a word, stroke by stroke

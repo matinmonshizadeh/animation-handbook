@@ -64,3 +64,4 @@ The label and the spinner crossfade in place, the tick and the cross draw themse
 - [Loading Spinner](../loading-spinner/) — six small shapes that show something is loading
 - [Error Shake](../error-shake/) — a shake that says the input was wrong
 - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
+- [Hold to Confirm](../hold-to-confirm/) — a button that fills while you hold it and acts only when full

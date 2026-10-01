@@ -104,3 +104,4 @@ Stroking each link on its own costs one draw call per line, thousands a frame; g
 - [GPGPU Particle System](../gpgpu-particle-system/) — tens of thousands of particles moved on the graphics chip
 - [Noise-Based Motion](../noise-based-motion/) — dots moved by smooth noise instead of physics
 - [Particle Constellation](../../07-ambient-background/particle-constellation/) — calmer linked dots, as a background
+- [Flocking](../flocking/) — dots that follow their neighbors and swirl as one flock

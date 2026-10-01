@@ -89,3 +89,4 @@ circle.style.strokeDashoffset = 201 * (1 - p);
 - [Skeleton Loader](../skeleton-loader/) — gray shapes stand in for the content
 - [Checkmark Draw](../checkmark-draw/) — the success sign once it reaches the end
 - [Progress Bar](../../01-scroll-based/progress-bar/) — a bar that fills as you scroll
+- [Hold to Confirm](../hold-to-confirm/) — a button that fills while you hold it down

@@ -17,6 +17,6 @@ Full-page transitions between routes or views — how one screen gives way to th
 - [Dissolve](dissolve/) — The page breaks into tiles that give way to the next. Best for photo galleries.
 - [FLIP Technique](flip-technique/) — Cards glide to their new places when the layout changes. Best for sorting lists.
 - [Circle Reveal](circle-reveal/) — Pages grow from any spot you click and shrink back into it. Best for app navigation.
-- [Overlay Wipe](overlay-wipe/) — A colored panel sweeps over the page, which changes behind it. Best for portfolio sites.
-- [Page Curl](page-curl/) — The page peels back from its corner like paper to show the next. Best for digital magazines.
-- [Cube Transition](cube-transition/) — The pages sit on the sides of a cube that turns to show the next. Best for photo stories.
+- [Overlay Wipe](overlay-wipe/) — A colored panel sweeps over the page as it changes. Best for portfolio sites.
+- [Page Curl](page-curl/) — The page peels back from its corner like paper. Best for digital magazines.
+- [Cube Transition](cube-transition/) — The pages sit on a cube that turns to show the next. Best for photo stories.

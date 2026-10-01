@@ -78,3 +78,4 @@ The demo opens on a leak at its peak rather than a dark stage: it lights the glo
 - [Grain / Film Noise Overlay](../grain-overlay/) — the film grain that pairs with a leak
 - [Scanline Effect](../scanline/) — dark lines over the page, like an old monitor
 - [Glassmorphism Animated](../../06-3d-advanced/glassmorphism-animated/) — frosted glass over moving color
+- [Light Rays](../light-rays/) — soft beams of light that fall from above and slowly sweep

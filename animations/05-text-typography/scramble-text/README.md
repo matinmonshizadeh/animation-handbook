@@ -75,3 +75,4 @@ function scramble(el, targetText) {
 - [Typewriter Effect](../typewriter-effect/) — text typed one character at a time
 - [Kinetic Typography](../kinetic-typography/) — words that each move in their own way
 - [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
+- [Split-Flap Board](../split-flap-board/) — tiles flip through the alphabet to spell a word

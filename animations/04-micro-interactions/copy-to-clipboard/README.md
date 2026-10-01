@@ -53,3 +53,4 @@ The two labels are stacked in the same grid cell so they crossfade in place with
 - [Checkmark Draw](../checkmark-draw/) — a tick that draws itself
 - [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
 - [Success Confetti](../success-confetti/) — a bigger celebration for a bigger moment
+- [Button Loading States](../button-loading-states/) — a button that shows a spinner, then a tick or a cross

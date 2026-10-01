@@ -68,7 +68,7 @@ All 158 techniques, each linked to its live demo.
 - **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A line draws itself along a route as you scroll. Best for timelines.
 - **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A menu highlights the section you are reading. Best for long docs.
 - **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background color changes as you scroll through sections. Best for stories.
-- **[Hide-on-Scroll Header](animations/01-scroll-based/hide-on-scroll-header/)** — The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.
+- **[Hide-on-Scroll Header](animations/01-scroll-based/hide-on-scroll-header/)** — Scrolling down hides the top bar; scrolling up shows it. Best for mobile pages.
 
 </details>
 
@@ -117,9 +117,9 @@ All 158 techniques, each linked to its live demo.
 - **[Dissolve](animations/03-page-transitions/dissolve/)** — The page breaks into tiles that give way to the next. Best for photo galleries.
 - **[FLIP Technique](animations/03-page-transitions/flip-technique/)** — Cards glide to their new places when the layout changes. Best for sorting lists.
 - **[Circle Reveal](animations/03-page-transitions/circle-reveal/)** — Pages grow from any spot you click and shrink back into it. Best for app navigation.
-- **[Overlay Wipe](animations/03-page-transitions/overlay-wipe/)** — A colored panel sweeps over the page, which changes behind it. Best for portfolio sites.
-- **[Page Curl](animations/03-page-transitions/page-curl/)** — The page peels back from its corner like paper to show the next. Best for digital magazines.
-- **[Cube Transition](animations/03-page-transitions/cube-transition/)** — The pages sit on the sides of a cube that turns to show the next. Best for photo stories.
+- **[Overlay Wipe](animations/03-page-transitions/overlay-wipe/)** — A colored panel sweeps over the page as it changes. Best for portfolio sites.
+- **[Page Curl](animations/03-page-transitions/page-curl/)** — The page peels back from its corner like paper. Best for digital magazines.
+- **[Cube Transition](animations/03-page-transitions/cube-transition/)** — The pages sit on a cube that turns to show the next. Best for photo stories.
 
 </details>
 
@@ -161,14 +161,14 @@ All 158 techniques, each linked to its live demo.
 - **[Segmented Control](animations/04-micro-interactions/segmented-control/)** — A highlight slides to the option you pick. Best for switching views.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 - **[Animated Gradient Border](animations/04-micro-interactions/gradient-border/)** — A band of colors runs around the edge of a card or button. Best for featured offers.
-- **[Spotlight Hover Glow](animations/04-micro-interactions/spotlight-hover/)** — A soft light follows the pointer and lights up the card edges near it. Best for feature grids.
-- **[Add-to-Cart Fly](animations/04-micro-interactions/add-to-cart-fly/)** — A copy of the product flies into the cart, which bumps and counts up. Best for shops.
+- **[Spotlight Hover Glow](animations/04-micro-interactions/spotlight-hover/)** — A soft glow follows the pointer and lights card edges. Best for feature grids.
+- **[Add-to-Cart Fly](animations/04-micro-interactions/add-to-cart-fly/)** — The product flies into the cart, which bumps and counts up. Best for shops.
 - **[Drag to Reorder](animations/04-micro-interactions/drag-to-reorder/)** — Drag an item and the others slide aside to make room. Best for to-do lists.
-- **[Rolling Numbers](animations/04-micro-interactions/rolling-numbers/)** — Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.
+- **[Rolling Numbers](animations/04-micro-interactions/rolling-numbers/)** — Each digit rolls to its new value, like a mileage counter. Best for prices.
 - **[Typing Indicator](animations/04-micro-interactions/typing-indicator/)** — Three dots in a chat bubble move in turn while someone types. Best for chat apps.
 - **[Hold to Confirm](animations/04-micro-interactions/hold-to-confirm/)** — A button fills up while you hold it and acts only once it is full. Best for delete buttons.
-- **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field you can type in, and closes when done. Best for toolbars.
-- **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button turns into a spinner while it works, then a tick or a cross. Best for Save buttons.
+- **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field, then closes when done. Best for toolbars.
+- **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button becomes a spinner, then a tick or a cross. Best for Save buttons.
 
 </details>
 
@@ -228,7 +228,7 @@ All 158 techniques, each linked to its live demo.
 - **[Morphing Blob](animations/06-3d-advanced/morphing-blob/)** — Blobs melt together, and one drop chases your pointer. Best for hero sections.
 - **[3D Flip Card](animations/06-3d-advanced/flip-card-3d/)** — A card turns over in 3D to show its back. Best for profile and product cards.
 - **[3D Carousel](animations/06-3d-advanced/carousel-3d/)** — Cards stand in a ring that spins in 3D as you drag it. Best for image galleries.
-- **[Depth-Map Photo](animations/06-3d-advanced/depth-map-photo/)** — A flat picture turns 3D as you point: near parts shift more than far ones. Best for hero images.
+- **[Depth-Map Photo](animations/06-3d-advanced/depth-map-photo/)** — A flat photo turns 3D as you point: near parts shift more. Best for hero images.
 - **[Flocking](animations/06-3d-advanced/flocking/)** — Birds swirl and turn together as one flock. Best for calm backgrounds.
 - **[ASCII / Halftone](animations/06-3d-advanced/ascii-halftone/)** — A moving picture is redrawn with letters or dots. Best for retro and tech looks.
 - **[2D Physics](animations/06-3d-advanced/physics-2d/)** — Balls drop where you click, bounce and pile up. Best for playful intros.
@@ -260,12 +260,12 @@ All 158 techniques, each linked to its live demo.
 - **[Synthwave Grid](animations/07-ambient-background/synthwave-grid/)** — A glowing grid rolls toward you under a striped sun. Best for music and games.
 - **[Matrix Rain](animations/07-ambient-background/matrix-rain/)** — Columns of glowing characters rain down a dark screen. Best for tech themes.
 - **[Plasma Field](animations/07-ambient-background/plasma/)** — Smooth waves of color flow endlessly, made from math. Best for creative sites.
-- **[Wave Layers](animations/07-ambient-background/wave-layers/)** — Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.
+- **[Wave Layers](animations/07-ambient-background/wave-layers/)** — Layers of waves drift sideways, each at its own speed. Best for hero sections.
 - **[Snow / Rain](animations/07-ambient-background/snow-rain/)** — Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal pages.
 - **[Fireworks](animations/07-ambient-background/fireworks/)** — Rockets rise and burst into glowing sparks that fall and fade. Best for celebrations.
-- **[Topographic Lines](animations/07-ambient-background/topographic-lines/)** — Contour lines like those on a hiking map slowly bend and drift. Best for outdoor brands.
+- **[Topographic Lines](animations/07-ambient-background/topographic-lines/)** — Lines like those on a hiking map slowly bend and drift. Best for outdoor brands.
 - **[Light Rays](animations/07-ambient-background/light-rays/)** — Soft beams of light fall from above and slowly sweep across. Best for hero intros.
-- **[Game of Life](animations/07-ambient-background/game-of-life/)** — Cells live and die by simple neighbor rules, and patterns grow on their own. Best for tech sites.
+- **[Game of Life](animations/07-ambient-background/game-of-life/)** — Cells live and die by their neighbors, and patterns grow. Best for tech sites.
 
 </details>
 

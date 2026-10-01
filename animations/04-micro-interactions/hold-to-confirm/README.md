@@ -56,3 +56,4 @@ Pressing and letting go come from the pointer and from the keyboard. The pointer
 - [Progress Animation](../progress-animation/) — bars and rings that fill to show progress
 - [Error Shake](../error-shake/) — a shake that says the input was wrong
 - [Checkmark Draw](../checkmark-draw/) — a tick that draws itself once a task is done
+- [Button Loading States](../button-loading-states/) — a button that waits with a spinner, then shows a tick or a cross

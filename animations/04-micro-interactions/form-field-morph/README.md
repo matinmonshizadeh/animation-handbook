@@ -91,3 +91,4 @@ input:focus ~ label {
 - [Focus Ring Animation](../focus-ring/) — a ring shows which item the keyboard is on
 - [Toggle / Switch Slide](../toggle-switch/) — a switch slides between on and off
 - [Accordion Open/Close](../accordion/) — a panel opens and closes smoothly
+- [Expanding Search](../expanding-search/) — a search icon opens into a field you can type in

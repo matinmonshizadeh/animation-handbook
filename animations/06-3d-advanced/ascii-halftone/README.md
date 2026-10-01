@@ -26,7 +26,7 @@ function level(px, i) {                                  // 0 to 1: how bright t
 }
 ```
 
-**One pattern per mark.** Drawing a character in every cell with `fillText` or `drawImage` costs one call per cell, over 9,000 a frame at fine detail. Instead, each mark is drawn once on a tile the size of one cell and turned into a repeating pattern. A run of neighboring cells that share a mark becomes one rectangle, and each mark's rectangles are filled in one go, so a frame is about ten fills:
+**One pattern per mark.** Drawing a character in every cell with `fillText` or `drawImage` costs one call per cell, over 9,000 a frame with small cells. Instead, each mark is drawn once on a tile the size of one cell and turned into a repeating pattern. A run of neighboring cells that share a mark becomes one rectangle, and each mark's rectangles are filled in one go, so a frame is about ten fills:
 
 ```js
 const RAMP = ' .-:*+=xo#';                               // from no ink to the most ink
@@ -68,13 +68,13 @@ The characters are drawn with the site font. Its glyphs are not all the same wid
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Drawn with | Letters | Letters gives each cell one of ten characters, from a space to a hash sign, by its brightness; dots gives it one of twelve dot sizes, from none to one that fills the cell |
-| Detail | Medium | The height of a cell: fine is 8px, medium 11px and coarse 16px, and phones use 10, 14 and 20px; letter cells are 0.7 as wide as they are tall, dot cells are square |
+| Cell size | Medium | The height of a cell: small is 8px, medium 11px and large 16px, and phones use 10, 14 and 20px; letter cells are 0.7 as wide as they are tall, dot cells are square |
 | Colors | One color | One color paints every mark mint green, or near-black on paper; full color gives each mark the color of its spot in the picture |
 | Shows the original picture | off | Draws the moving picture at 40% under the marks, so you can see what each mark stands for |
 | Light paper | off | A light page with dark marks: each cell's darkness, not its brightness, picks the mark, as in a printed photo |
 
 ## Production notes
-- **Count the calls, not the cells**: one `drawImage` per cell cost 36 ms a frame at fine detail in a software-rendered test; the pattern fills above draw the same frame in about 4 ms, whatever the detail.
+- **Count the calls, not the cells**: one `drawImage` per cell cost 36 ms a frame with small cells in a software-rendered test; the pattern fills above draw the same frame in about 4 ms, whatever the cell size.
 - **Video and webcam**: draw the `<video>` into the tiny canvas each frame instead of a scene. A video from another site needs CORS headers, or reading its pixels throws a security error.
 - **Glyphs and fonts**: with a monospace font every character has the same width and any ramp fits; with a proportional font, measure the characters and keep the ones narrower than a cell.
 - **WebGL**: for full-screen effects at high resolution, do it in a fragment shader with a texture of characters. three.js ships an `AsciiEffect` and a `DotScreenShader`; the postprocessing library has ASCII and dot-screen effects.

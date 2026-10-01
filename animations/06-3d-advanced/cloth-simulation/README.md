@@ -103,3 +103,4 @@ for (let r = 0; r < ROWS; r++) {
 - [GPGPU Particle System](../gpgpu-particle-system/) — physics moved to the graphics chip
 - [Noise-Based Motion](../noise-based-motion/) — natural movement from noise instead of physics
 - [Canvas Particle Effect](../canvas-particle-effect/) — simpler physics for loose particles
+- [2D Physics](../physics-2d/) — solid balls that fall, bounce and pile up

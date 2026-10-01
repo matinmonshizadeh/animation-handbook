@@ -58,3 +58,4 @@ Cards are matched across the re-render by a stable `id`, so a card that moves fr
 - [Morph Transition](../morph-transition/) — a shape changes instead of moving
 - [Elastic Transition](../elastic-transition/) — a springy finish to the movement
 - [View Transitions API](../view-transitions-api/) — the browser can animate layout changes itself
+- [Drag to Reorder](../../04-micro-interactions/drag-to-reorder/) — items slide aside as you drag one into a new place
