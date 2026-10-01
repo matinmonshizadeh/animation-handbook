@@ -211,9 +211,10 @@ function draw(){
   ctx.fillStyle=BIRD;ctx.fill();
   if(!VIEW||!birds.length)return;
   // One bird's view: the ring it looks within, the dashed room it keeps, and a line to every neighbor it follows
-  const b=birds[0],R=50*S;
+  const b=birds[0],R=50*S,vb=Math.hypot(b.vx,b.vy);
   ctx.strokeStyle=LEAD;ctx.lineWidth=1;ctx.globalAlpha=.55;ctx.beginPath();
-  for(const o of birds)if(o!==b&&(o.x-b.x)**2+(o.y-b.y)**2<R*R){ctx.moveTo(b.x,b.y);ctx.lineTo(o.x,o.y);}
+  for(const o of birds){const dx=o.x-b.x,dy=o.y-b.y,d2=dx*dx+dy*dy; // the same test as in step(): within R, not right behind
+    if(o!==b&&d2<=R*R&&dx*b.vx+dy*b.vy>=-.5*vb*Math.sqrt(d2)){ctx.moveTo(b.x,b.y);ctx.lineTo(o.x,o.y);}}
   ctx.stroke();
   ctx.beginPath();ctx.arc(b.x,b.y,R,0,Math.PI*2);ctx.stroke();
   ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(b.x,b.y,RULES.sep*S,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -238,9 +239,11 @@ function loop(ts){
   if(lastT!==null&&ts-lastT<16)return;
   const dt=lastT===null?0:Math.min(ts-lastT,50);
   lastT=ts;
-  if(dt)step(dt/FRAME*(slowTog.checked?1/3:1));
+  if(dt)advance(dt/FRAME*(slowTog.checked?1/3:1));
   draw();
 }
+// A long frame is flown as equal moves of at most one 60 Hz frame each, so a bird turns no harder in one move on a 30 Hz screen
+function advance(k){const n=Math.max(1,Math.ceil(k-.05));for(let i=0;i<n;i++)step(k/n);}
 function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
 
 // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the

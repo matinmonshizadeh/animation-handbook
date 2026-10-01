@@ -13,7 +13,7 @@ Flocking makes a crowd of simple dots move like one flock of birds or a school o
 Every move, each bird gathers the birds within its view radius `R` that are in front of it or beside it (a bird has a blind spot right behind it), and turns by up to three steering pulls:
 
 ```js
-function step(k) {                       // k: 60 Hz frames since the last move (a third of that in slow motion)
+function step(k) {                       // k: the length of this move in 60 Hz frames, about 1 at most
   for (const b of birds) {
     let n = 0, cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0;
     const vb = Math.hypot(b.vx, b.vy);
@@ -52,7 +52,11 @@ function steer(b, dx, dy, cap, weight) {
 
 The demo adds two more pulls. Inside a margin along each edge a bird turns back, harder the deeper it is in the margin, so the flock curves away from the edges instead of piling up against them. With Flees the pointer on, a bird near the pointer or a finger steers straight away from it with four times the usual turn.
 
-**Time, not frames.** The loop draws at most once per 16 ms, and `k` is the time since the last drawn frame in 60 Hz frames (capped at 50 ms), so the birds fly at the same speed on a 30, 60 or 120 Hz screen. Slow motion multiplies `k` by a third.
+**Time, not frames.** The loop draws at most once per 16 ms and flies the birds for the time since the last drawn frame, counted in 60 Hz frames (capped at 50 ms), so they fly at the same speed on a 30, 60 or 120 Hz screen; slow motion counts a third of it. A frame longer than one 60 Hz frame is flown as equal moves of at most one 60 Hz frame each (two moves on a 30 Hz screen), so a bird never turns harder in one move than it would at 60 Hz, and a 30 Hz screen flies exactly the 60 Hz path:
+
+```js
+function advance(k) { const n = Math.max(1, Math.ceil(k - 0.05)); for (let i = 0; i < n; i++) step(k / n); }
+```
 
 **Drawing.** Every bird is an arrowhead pointed along its velocity; all of them go into one path that is filled once per frame.
 
