@@ -48,3 +48,4 @@ Because a roll starts from the drawn position, and a wheel that is still rolling
 - [Counter Animation](../../01-scroll-based/counter-animation/) — numbers that count up when they scroll into view
 - [Rotate Word Carousel](../../05-text-typography/rotate-word-carousel/) — one word in a sentence that keeps swapping for the next
 - [Progress Animation](../progress-animation/) — a bar, a ring and steps that fill up to show progress
+- [Split-Flap Board](../../05-text-typography/split-flap-board/) — tiles flip through the letters, like an old airport board

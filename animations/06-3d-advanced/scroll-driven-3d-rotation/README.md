@@ -79,3 +79,4 @@ The demo asks for another frame only while the cube is still catching up, and st
 - [3D Model Orbit](../3d-model-orbit/) — time turns the object instead of scrolling
 - [Scrub Animation](../../01-scroll-based/scrub-animation/) — scroll position drives any animation, without 3D
 - [Sticky Section](../../01-scroll-based/sticky-section/) — the pinning that keeps the object in view
+- [Cube Transition](../../03-page-transitions/cube-transition/) — a click turns a cube of pages instead of scrolling

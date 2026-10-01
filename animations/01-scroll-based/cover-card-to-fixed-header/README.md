@@ -120,3 +120,4 @@ Back to top and Play from the end set the eased value at once.
 - [Pin Animation](../pin-animation/) — one part holds still while the page scrolls past
 - [Stacking Cards](../stacking-cards/) — cards pile into a deck as you scroll
 - [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
+- [Hide-on-Scroll Header](../hide-on-scroll-header/) — the header slides away as you scroll down and back as you scroll up

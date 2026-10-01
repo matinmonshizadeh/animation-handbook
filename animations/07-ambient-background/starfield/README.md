@@ -109,3 +109,4 @@ One stronger cover, `1 - 0.15 ** n`, would fade the same amount in theory, but a
 - [Aurora / Northern Lights](../aurora/) — bands of light that pair with a night sky
 - [Canvas Particle Effect](../../06-3d-advanced/canvas-particle-effect/) — particles that link up and react to the pointer
 - [Floating Elements](../floating-elements/) — shapes that drift slowly on their own paths
+- [Snow / Rain](../snow-rain/) — snow or rain that falls instead of streaming toward you

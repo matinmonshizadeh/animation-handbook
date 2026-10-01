@@ -48,3 +48,4 @@ The end radius is `150%` rather than `100%` because the circle must reach the co
 - [Shared Element Transition](../shared-element-transition/) — a picture grows into the next page
 - [Flash / Light Leak Transition](../flash-transition/) — a burst of light hides the change
 - [Morph Transition](../morph-transition/) — a shape changes between pages
+- [Circle Reveal](../circle-reveal/) — the next page grows in a circle from any spot you click

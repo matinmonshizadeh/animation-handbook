@@ -54,3 +54,4 @@ Both sides uses two half-width panels that start off opposite edges, meet in the
 - [Slide Up Reveal](../slide-up-reveal/) — text rises from behind an invisible edge
 - [Slide In](../slide-in/) — travels into place from one edge
 - [Split Text Reveal](../split-text-reveal/) — text appears piece by piece
+- [Overlay Wipe](../../03-page-transitions/overlay-wipe/) — a colored panel that hides a whole page change

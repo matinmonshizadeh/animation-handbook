@@ -86,3 +86,4 @@ All distances and speeds shrink by up to a third on small stages, such as on pho
 - [Canvas Particle Effect](../canvas-particle-effect/) — dots that drift and react to the pointer, without following each other
 - [Flow Field](../../07-ambient-background/flow-field/) — particles that ride invisible currents instead of their neighbors
 - [GPGPU Particle System](../gpgpu-particle-system/) — tens of thousands of particles moved on the graphics chip
+- [Game of Life](../../07-ambient-background/game-of-life/) — cells on a grid that live and die by their neighbors

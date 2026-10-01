@@ -56,3 +56,4 @@ The `@media (hover: hover)` gate prevents hover styles from sticking on touch de
 - [Button Press Scale](../button-press-scale/) — the button shrinks while it is pressed
 - [Tooltip Reveal](../tooltip-reveal/) — pointing at an item shows a short note
 - [Click / Tap Ripple](../click-ripple/) — a ripple spreads from the spot you press
+- [Spotlight Hover Glow](../spotlight-hover/) — a soft light follows the pointer across a grid of cards

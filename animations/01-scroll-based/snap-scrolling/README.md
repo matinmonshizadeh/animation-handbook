@@ -65,3 +65,4 @@ const sectionIndex = Math.round(scroller.scrollTop / scroller.clientHeight);
 - [Stacking Cards](../stacking-cards/) — cards pile into a deck as you scroll
 - [Section Wipe](../section-wipe/) — each section slides up over the one before
 - [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — rows fade and slide as they near the edges
+- [3D Carousel](../../06-3d-advanced/carousel-3d/) — cards in a 3D ring that settles on one card at a time

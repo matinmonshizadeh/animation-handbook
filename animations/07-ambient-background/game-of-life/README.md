@@ -48,3 +48,4 @@ A random world usually settles into still shapes and blinkers within a few hundr
 - [Matrix Rain](../matrix-rain/) — another canvas grid that changes step by step
 - [Particle Constellation](../particle-constellation/) — dots that link up whenever they come close
 - [Flow Field](../flow-field/) — simple rules steer many particles into a living pattern
+- [Flocking](../../06-3d-advanced/flocking/) — birds that follow a few simple rules about their neighbors

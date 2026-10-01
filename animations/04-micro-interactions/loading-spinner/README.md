@@ -76,3 +76,4 @@ The bounce-dots variant uses staggered animation delays on three sibling element
 - [Progress Animation](../progress-animation/) — a bar that shows how much is done
 - [Skeleton Loader](../skeleton-loader/) — gray shapes stand in for the content
 - [Checkmark Draw](../checkmark-draw/) — the success sign once the wait is over
+- [Typing Indicator](../typing-indicator/) — three dots in a chat bubble show that someone is typing

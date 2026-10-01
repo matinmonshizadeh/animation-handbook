@@ -57,3 +57,4 @@ Each tile's run of letters is the drum from a blank to its letter (" ABC…" up 
 - [Text Morphing](../text-morphing/) — one word changes into the next, letter by letter
 - [Flip In](../../02-entrance-and-exit/flip-in/) — swings into view in 3D, like a card turning over
 - [3D Flip Card](../../06-3d-advanced/flip-card-3d/) — a card turns over in 3D to show its back
+- [Rolling Numbers](../../04-micro-interactions/rolling-numbers/) — digits roll to their new values, like a mileage counter

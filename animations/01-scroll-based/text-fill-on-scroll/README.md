@@ -54,3 +54,4 @@ On a normal scroll step that is one or two class toggles instead of fifty, and a
 - [Reveal on Scroll](../reveal-on-scroll/) — whole cards appear as they scroll into view; this is the continuous version for one paragraph
 - [Scrub Animation](../scrub-animation/) — scroll position drives a drawing, both ways
 - [Kinetic Typography](../../05-text-typography/kinetic-typography/) — words that each move in their own way, on a timer instead of the scroll
+- [Highlighter Sweep](../../05-text-typography/highlighter-sweep/) — marker color sweeps behind the key words, on a timer instead of the scroll

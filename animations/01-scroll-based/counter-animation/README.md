@@ -79,3 +79,4 @@ const EASE = {
 
 - [Reveal on Scroll](../reveal-on-scroll/) — cards appear as they scroll into view
 - [Stagger Reveal](../stagger-reveal/) — items appear one after another as their group scrolls in
+- [Rolling Numbers](../../04-micro-interactions/rolling-numbers/) — each digit rolls to its new value instead of counting up

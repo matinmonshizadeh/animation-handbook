@@ -65,3 +65,4 @@ ratio between speeds determines how convincing the illusion is.
 
 - [Parallax Depth-of-Field](../parallax-depth-of-field/) — the same layers, with a moving focus that blurs them
 - [Reverse-Scrolling Columns](../reverse-scrolling-columns/) — columns move against each other as you scroll
+- [Wave Layers](../../07-ambient-background/wave-layers/) — the same near-fast, far-slow rule, on a loop instead of the scroll
