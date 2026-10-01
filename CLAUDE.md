@@ -199,8 +199,8 @@ inside an entry's "Production notes" section, never as their own entry.
    `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading & messages,
    `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card. Keep
    `PLACES` in the same order as `CATS` (a test checks it). Give the card its own preview too: its key in
-   `PV`, its CSS at the end of the category's `/* ── bespoke: … ── */` block (transform and opacity only,
-   inside its 16:10 stage and clear of the place label), its markup as a `case` in `pvMarkup()`, and a
+   `PV`, its CSS at the end of the category's `/* ── bespoke: … ── */` block (light: CSS with transform and
+   opacity, no new canvas engine, inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a
    `STILL` point when the middle of its loop is not a clear frame (reduced motion holds every preview
    there). Without one the card shows the category's generic picture.
 7. Update `animations/<category>/README.md` and the root `README.md` list (the card's name and one-line

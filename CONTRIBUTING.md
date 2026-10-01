@@ -71,8 +71,8 @@ fix a bug, or improve an explanation are all welcome.
    description is the page's one-line description, word for word. The entry goes at the same
    position in `PLACES` as in `CATS` (both lists follow home page order; a test checks it).
    Give the card its own preview too: its key in `PV`, its CSS at the end of the category's
-   `/* ── bespoke: … ── */` block (transform and opacity only, inside its 16:10 stage and clear
-   of the place label), its markup as a `case` in `pvMarkup()`, and a `STILL` point when the
+   `/* ── bespoke: … ── */` block (light: CSS with transform and opacity, no new canvas engine,
+   inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a `STILL` point when the
    middle of its loop is not a clear frame (reduced motion holds every preview there). Without
    one the card shows the category's generic picture.
 6. Add it to the category's `README.md` list and to the list in the root `README.md`, with
