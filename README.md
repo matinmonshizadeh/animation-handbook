@@ -115,6 +115,7 @@ All 129 techniques, each linked to its live demo.
 - **[Portal / Tunnel Zoom](animations/03-page-transitions/portal-zoom/)** — The next page opens out of a circle you click. Best for big reveals.
 - **[Dissolve](animations/03-page-transitions/dissolve/)** — The page breaks into tiles that give way to the next. Best for photo galleries.
 - **[FLIP Technique](animations/03-page-transitions/flip-technique/)** — Cards glide to their new places when the layout changes. Best for sorting lists.
+- **[Circle Reveal](animations/03-page-transitions/circle-reveal/)** — The next page grows in a circle from the spot you click. Best for app-style navigation.
 
 </details>
 
