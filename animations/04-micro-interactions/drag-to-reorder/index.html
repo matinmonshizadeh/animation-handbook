@@ -241,19 +241,21 @@
     }
   });
   list.addEventListener('focusout',e=>{if(drag&&drag.by==='key'&&drag.row.contains(e.target))drop(true)});
-  // Puts the rows in this order: sliding there from where they are drawn (Reset) or at once, with the slides off for a moment (before a run).
+  // Puts the rows in this order: sliding from where they are drawn, around the settling row so its lift and fingertip fade out (Reset),
+  // or at once, with the slides off for a moment (before a run).
   function setOrder(next,slide){
-    const move=()=>{order=[...next];list.append(...order);order.forEach((r,i)=>{place(r,i);r.classList.remove('settling')})};
+    const keep=slide&&list.querySelector('.settling'),k=next.indexOf(keep),move=()=>{order=[...next];if(keep){order.slice(0,k).forEach(r=>list.insertBefore(r,keep));list.append(...order.slice(k+1))}else list.append(...order);order.forEach((r,i)=>place(r,i))};
     if(slide)return keepSlides([...order],move);
-    order.forEach(r=>{r.style.transition='none'});move();void list.offsetWidth;order.forEach(r=>{r.style.transition=''});
+    order.forEach(r=>{r.style.transition='none';r.classList.remove('settling')});move();void list.offsetWidth;order.forEach(r=>{r.style.transition=''});
   }
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   let runTimers=[],runFrame=0;
   function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);runTimers.push(id)}
   function running(){return runTimers.length>0||runFrame!==0}
-  function stopRun(){
+  // A task still held by the run is put down where it is when the visitor takes over (keep), else back where the run picked it up.
+  function stopRun(keep){
     runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;tip.classList.remove('on');
-    if(drag&&drag.by==='run')drop(false);   // a task still held by the run goes back where the run picked it up
+    if(drag&&drag.by==='run')drop(!!keep);
   }
   // The fingertip rides in the row the run holds; glide() moves the row as a hand would, frame by frame by the time passed.
   function hold(row){lift(row,'run');row.append(tip);void tip.offsetWidth;tip.classList.add('on')}
@@ -283,7 +285,7 @@
   });
   $('btn-reset').addEventListener('click',()=>{stopRun();if(drag)drop(false);setOrder(START,true);say('')});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running())stopRun(true)});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
