@@ -21,6 +21,7 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Text on a Path](text-on-path/) | Text travels along a wave, an arc or a circle. Best for badges and seals. |
 | [Wavy Text](wavy-text/) | A wave rolls through the word, letter by letter. Best for playful titles. |
 | [Neon Flicker](neon-flicker/) | Glowing letters sputter now and then, like a worn neon sign. Best for night themes. |
+| [Handwriting Draw](handwriting-draw/) | A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures. |
 
 ## Key principles
 

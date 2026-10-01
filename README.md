@@ -181,6 +181,7 @@ All 129 techniques, each linked to its live demo.
 - **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text travels along a wave, an arc or a circle. Best for badges and seals.
 - **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
 - **[Neon Flicker](animations/05-text-typography/neon-flicker/)** — Glowing letters sputter now and then, like a worn neon sign. Best for night themes.
+- **[Handwriting Draw](animations/05-text-typography/handwriting-draw/)** — A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.
 
 </details>
 

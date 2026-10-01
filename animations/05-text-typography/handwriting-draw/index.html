@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handwriting Draw — Animation Handbook</title>
+  <meta name="description" content="A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/handwriting-draw/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Handwriting Draw — Animation Handbook">
+  <meta property="og:description" content="A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/handwriting-draw/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Handwriting Draw — Animation Handbook">
+  <meta name="twitter:description" content="A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Handwriting Draw", "name": "Handwriting Draw", "description": "A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/handwriting-draw/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Handwriting Draw"}</script>
+  <style>
+    :root{--ui-accent:#ff6f8b}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:24px;background:#0b0b0d;container-type:size}
+    /* A sheet of note paper, as wide as fits: the stage's width, 600px, or 85% of its height at the paper's 1.8:1 shape */
+    .paper{--ink:#2346b5;--pen-w:1.8;width:min(100cqw,600px,153cqh);aspect-ratio:1.8;border-radius:6px;
+      background:linear-gradient(170deg,#fbf7ee,#f1eadb);box-shadow:0 18px 40px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);transform:rotate(-1.5deg)}
+    .paper svg{display:block;width:100%;height:100%;overflow:visible}
+    .rule{stroke:#9db0d6;stroke-width:.6}
+    /* The word: single pen lines, not filled letters. Each one is hidden behind a dash as long as itself. */
+    .ink{fill:none;stroke:var(--ink);stroke-width:var(--pen-w);stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s}
+    .ink.gone{opacity:0}
+    .pen{opacity:0;transition:opacity .2s}
+    .pen.shown{opacity:1}
+    .pen-body{fill:var(--ink)}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="once" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../neon-flicker/" rel="prev" aria-label="Previous: Neon Flicker"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Neon Flicker</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.18 · Text &amp; Typography</p>
+    <h1>Handwriting Draw</h1>
+    <p class="hb-lede">A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to follow the pen stroke by stroke.</p></div>
+    </div>
+    <div class="stage hb-dots" id="stage">
+      <div class="paper" id="paper">
+        <svg id="sheet" viewBox="-44 -96 200 111" role="img" aria-label="hello">
+          <line class="rule" id="rule" x1="-44" x2="156" y1="0" y2="0"/>
+          <g class="ink" id="ink"></g>
+          <g class="pen" id="pen" aria-hidden="true"><g transform="rotate(-58)">
+            <path d="M0 0 9 -2.6V2.6Z" fill="#c4c7d0"/>
+            <rect x="9" y="-3.2" width="8" height="6.4" rx="1" fill="#3a3d48"/>
+            <rect class="pen-body" x="17" y="-3.8" width="28" height="7.6" rx="3.8"/>
+          </g></g>
+        </svg>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and the animation plays again.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="word-lbl">Word</p>
+        <div class="seg" id="word-seg" role="group" aria-labelledby="word-lbl">
+          <button type="button" data-w="hello" class="on" aria-pressed="true">hello</button>
+          <button type="button" data-w="thanks" aria-pressed="false">thanks</button>
+          <button type="button" data-w="hi there" aria-pressed="false">hi there</button>
+        </div>
+        <p class="hb-hint">Each word is a few pen lines drawn in the page, dots and crosses last.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Pen speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-s="200" aria-pressed="false">Slow</button>
+          <button type="button" data-s="400" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-s="800" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How fast the pen moves along the line.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="ink-lbl">Ink color</p>
+        <div class="swatches" id="ink-sw" role="group" aria-labelledby="ink-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="Blue" data-c="#2346b5" style="background:#2346b5"></button>
+          <button type="button" aria-pressed="false" aria-label="Black" data-c="#24232a" style="background:#24232a"></button>
+          <button type="button" aria-pressed="false" aria-label="Red" data-c="#c2332b" style="background:#c2332b"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#1d7a4c" style="background:#1d7a4c"></button>
+        </div>
+        <p class="hb-hint">The color of the ink, and of the pen.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="size-lbl">Pen size</p>
+          <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+            <button type="button" data-w="1.1" aria-pressed="false">Fine</button>
+            <button type="button" data-w="1.8" class="on" aria-pressed="true">Medium</button>
+            <button type="button" data-w="2.8" aria-pressed="false">Bold</button>
+          </div>
+          <p class="hb-hint">Fine looks like a ballpoint; bold, like a marker.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the pen</span><input class="hb-switch" type="checkbox" role="switch" id="pen-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">A small pen rides on the tip of the line and lifts between strokes.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a handwriting animation to [your word or signature, drawn as single SVG lines]. Write it with pen lines instead of filled letters, split into strokes in the order a person writes them: the joined letters first, then the dots on the i's and the crosses on the t's. Hide each stroke behind a dash as long as itself and slide the dash away, one stroke after another, at one steady pen speed, so longer strokes take longer, with a short pause where the pen lifts. When the settings include it, let a small pen ride on the tip of the line. Screen readers should get the word as text. If the visitor has reduced motion turned on, fade the finished word in instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Greetings and thank-you notes</li><li>Signatures</li><li>Page intros</li><li>Invitations</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Small text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  // Each word is its strokes in writing order: the joined letters, then the i dot and the t cross. Drawn by hand as
+  // cubic curves on a baseline at y=0 (x-height 28, loops 76 high), already slanted; no font file is involved.
+  const WORDS={
+    'hello':['M0 0C3 0 6.9-4 10.6-12C14.8-22 24.7-44 28.3-58C31.4-70 30.7-76 27.7-76C24.7-76 22.4-70 21.1-62C18.1-46 12.5-18 8.5 0C11.6-12 18.9-27 25.6-27.5C31.2-28 30.2-19 27.9-11C25.7-3 27.5 0 31 0C34.5 0 39.8-3.5 44-9C48.2-14.5 50.6-21 46.7-21.5C42.8-22 38-16 37.1-9.5C36-2.5 40.5 0 45 0C48 0 51.9-4 55.6-12C59.8-22 69.7-44 73.3-58C76.4-70 75.7-76 72.7-76C69.7-76 67.4-70 66.1-62C63.1-46 57-16 55.5-7C54.9-2 57 0 60 0C63 0 66.9-4 70.6-12C74.8-22 84.7-44 88.3-58C91.4-70 90.7-76 87.7-76C84.7-76 82.4-70 81.1-62C78.1-46 72-16 70.5-7C69.9-2 72 0 75 0C78 0 83.2-10 89.3-22C92.4-27 95.9-29 98.9-29C100.9-29 102.2-28 102.3-26.5C102.2-28 100.9-29 98.9-29C95.9-29 92.4-27 89.3-22C86.7-17 83.6-5 87.3-1.5C91.2 1.5 97.8-6 99.6-14C100.9-20 101.3-24 100.7-26C103.3-28.5 107.8-28.5 111.9-27'],
+    'thanks':['M0 0C3 0 6.9-4 10.6-12C15.3-24 22.7-44 26.3-56C23.2-44 17.4-20 15-9C13.4-2 16 0 19 0C22 0 25.9-4 29.6-12C33.8-22 43.7-44 47.3-58C50.4-70 49.7-76 46.7-76C43.7-76 41.4-70 40.1-62C37.1-46 31.5-18 27.5 0C30.6-12 37.9-27 44.5-27.5C50.2-28 49.2-19 46.9-11C44.7-3 46.5 0 50 0C53 0 58.2-10 64.3-22C67.4-27 70.9-29 73.9-29C75.9-29 77.2-28 77.3-26.5C77.2-28 75.9-29 73.9-29C70.9-29 67.4-27 64.3-22C61.7-17 58.6-5 62.3-1.5C66.2 1.5 72.8-6 74.6-14C75.9-20 77-25 77.8-28.5C75.5-18 73.3-8 73.4-4C73.7-1 75 0 78 0C81 0 85.6-12 89.8-22C91.9-27 94.2-28 95.7-28C97.7-28 97.3-24 96-18C94.2-10 92.9-4 92 0C94.6-12 102.2-28 107.2-28C111.2-28 110.4-20 108.6-12C106.9-4 108 0 111 0C114 0 117.9-4 121.6-12C125.8-22 135.7-44 139.3-58C142.4-70 141.7-76 138.7-76C135.7-76 133.4-70 132.1-62C129.1-46 123.5-18 119.5 0C122.6-12 131.2-28 136.9-27C140.8-26.5 137.7-17 131.5-16C128.5-15.8 127.3-15 130.1-14C133.6-12 134.3-6 134.7-3C135.2-1 137 0 140 0C143 0 149-9 155.6-21C157.4-24.5 158.7-27 159.6-28.5C159.6-23 164-18 162.3-10.5C160.8-3.5 156 0 152 0C148.5 0 146.9-2 147.7-4',
+      'M11.5-34C16.7-35 22.8-35.5 29.7-35'],
+    'hi there':['M0 0C3 0 6.9-4 10.6-12C14.8-22 24.7-44 28.3-58C31.4-70 30.7-76 27.7-76C24.7-76 22.4-70 21.1-62C18.1-46 12.5-18 8.5 0C11.6-12 18.9-27 25.6-27.5C31.2-28 30.2-19 27.9-11C25.7-3 27.5 0 31 0C34 0 38.3-6 42.1-14C44.4-20 46.5-25 47.7-28C45.4-20 42.8-8 42.9-4C43.2-1 45 0 48 0',
+      'M51.5-41C52.3-41.3 52.8-40.9 52.9-40.3',
+      'M62 0C65 0 68.9-4 72.6-12C77.3-24 84.7-44 88.3-56C85.2-44 79.4-20 77-9C75.4-2 78 0 81 0C84 0 87.9-4 91.6-12C95.8-22 105.7-44 109.3-58C112.4-70 111.7-76 108.7-76C105.7-76 103.4-70 102.1-62C99.1-46 93.5-18 89.5 0C92.6-12 99.9-27 106.5-27.5C112.2-28 111.2-19 108.9-11C106.7-3 108.5 0 112 0C115.5 0 120.8-3.5 125-9C129.2-14.5 131.6-21 127.7-21.5C123.8-22 119-16 118.1-9.5C117-2.5 121.5 0 126 0C129 0 134.2-10 138.8-22C140.2-26 141.3-28.5 142.1-30C142.4-27 143.7-26 145.9-27C148.2-28 149.6-27.5 148.8-24C146.6-14 144.3-6 144.7-3C145.1-0.5 146.5 0 149 0C152.5 0 157.8-3.5 162-9C166.2-14.5 168.6-21 164.7-21.5C160.8-22 156-16 155.1-9.5C154.1-2.5 158.5 0 163 0',
+      'M73.5-34C78.7-35 84.8-35.5 91.7-35']
+  };
+  const NS='http://www.w3.org/2000/svg',FRAME=1000/60,LIFT=220,HOLD=1400;
+  const sheet=document.getElementById('sheet'),ink=document.getElementById('ink'),pen=document.getElementById('pen');
+  const rule=document.getElementById('rule'),paper=document.getElementById('paper');
+  const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog'),penTog=document.getElementById('pen-tog');
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let word='hello',speed=400,strokes=[],total=0,t=0,lastT=null,raf=0,timers=[];
+
+  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // A gentle ease: the pen starts and ends each stroke at 40% of its average speed and is fastest in the middle.
+  const ease=p=>p-.6*Math.sin(2*Math.PI*p)/(2*Math.PI);
+
+  // Builds the word's strokes hidden, centers the word on the sheet, and plans when each stroke starts:
+  // its time is its length over the pen speed, so long strokes take longer, plus a short lift before the next.
+  function build(){
+    ink.textContent='';
+    sheet.setAttribute('aria-label',word);
+    let at=0;
+    strokes=WORDS[word].map((d,i,all)=>{
+      const el=document.createElementNS(NS,'path');
+      el.setAttribute('d',d);
+      ink.appendChild(el);
+      const len=el.getTotalLength(),s={el,len,start:at,dur:Math.max(120,len/speed*1000)};
+      el.style.strokeDasharray=len+' '+len;
+      el.style.strokeDashoffset=len;
+      at+=s.dur+(i<all.length-1?LIFT:0);
+      return s;
+    });
+    total=at;
+    const box=ink.getBBox(),x=box.x+box.width/2-100;
+    sheet.setAttribute('viewBox',x+' -96 200 111');
+    rule.setAttribute('x1',x);rule.setAttribute('x2',x+200);
+  }
+
+  // Draws the moment t: every stroke uncovered as far as its own share of the time, and the pen on the tip of the one
+  // being drawn, or gliding just above the paper from the end of one stroke to the start of the next.
+  function render(){
+    let at=null;
+    strokes.forEach((s,i)=>{
+      const p=Math.min(1,Math.max(0,(t-s.start)/s.dur)),e=ease(p),next=strokes[i+1];
+      s.el.style.strokeDashoffset=s.len*(1-e);
+      if(t>=s.start&&t<s.start+s.dur)at=s.el.getPointAtLength(s.len*e);
+      else if(next&&t>=s.start+s.dur&&t<next.start){
+        const k=(t-s.start-s.dur)/LIFT,a=s.el.getPointAtLength(s.len),b=next.el.getPointAtLength(0);
+        at={x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k-Math.sin(Math.PI*k)*6};
+      }
+    });
+    if(at)pen.setAttribute('transform','translate('+at.x+' '+at.y+')');
+    pen.classList.toggle('shown',!!at&&penTog.checked);
+  }
+
+  // The frame loop moves by elapsed time (a third as fast in slow motion), so the pen keeps its speed on any screen.
+  function frame(ts){
+    const dt=lastT===null?0:Math.min(ts-lastT,50);
+    lastT=ts;
+    t+=dt*(slowTog.checked?1/3:1);
+    render();
+    if(t<total){raf=requestAnimationFrame(frame);return}
+    raf=0;
+    pen.classList.remove('shown');
+    // While Loop is on, the finished word holds, fades out and is written again; switching Loop off keeps it.
+    if(loopTog.checked)later(()=>{
+      if(!loopTog.checked)return;
+      ink.classList.add('gone');
+      later(()=>{if(loopTog.checked)play();else ink.classList.remove('gone')},400);
+    },HOLD);
+  }
+  // Every play starts from a blank sheet. Under reduced motion the finished word fades in instead.
+  function play(){
+    timers.forEach(clearTimeout);timers=[];
+    cancelAnimationFrame(raf);raf=0;
+    build();
+    t=0;lastT=null;
+    if(!motionOk){
+      strokes.forEach(s=>{s.el.style.strokeDashoffset=0});
+      pen.classList.remove('shown');
+      ink.style.transition='none';ink.classList.add('gone');ink.getBoundingClientRect();
+      ink.style.transition='opacity .6s';ink.classList.remove('gone');
+      return;
+    }
+    ink.style.transition='none';ink.classList.remove('gone');ink.getBoundingClientRect();ink.style.transition='';
+    render();
+    raf=requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange',()=>{lastT=null});
+
+  document.getElementById('btn-play').addEventListener('click',play);
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('word-seg',d=>{word=d.w});
+  choices('speed-seg',d=>{speed=+d.s});
+  choices('ink-sw',d=>{paper.style.setProperty('--ink',d.c)});
+  choices('size-seg',d=>{paper.style.setProperty('--pen-w',d.w)});
+  build();
+</script>
+</body>
+</html>
