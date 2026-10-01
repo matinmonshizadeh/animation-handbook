@@ -548,7 +548,7 @@ async function homeCopyProblems() {
 // all shows the rest, Back returns to the start, a plain sentence finds the right animations, a typed word finds the other
 // forms of its word and one letter already finds cards (but not every card: "best" and "for" are no card's words, and a
 // typed "best" is left out), typing only replaces the address (spaces as %20), a word with no match says so, All
-// animations lists every card under its seven headings with the card titles a level below them, Browse all pressed there
+// animations lists every card under its group headings with the card titles a level below them, Browse all pressed there
 // adds no history step, an address opened directly shows its view, "/" puts keyboard focus in the search box and Escape on
 // the empty box keeps the picked place, a tile or Popular suggestion press brings the results heading into view with
 // keyboard focus (the picked tile pressed again does not scroll), and the old ?q= and ?cat= links still work. Keyboard
@@ -584,14 +584,18 @@ async function homeViewProblems() {
     listeners.delete(onLoad);
     await sleep(300);
   };
+  // The totals come from the page's own data (every card, its groups, the cards placed in Buttons), so adding an animation
+  // needs no edit here; the tests compare the counts written in the page with the same data.
+  const total = await evaluate(`({ cards: ALL.length, groups: CATS.length, buttons: ALL.filter(e => e.places.includes('btn')).length })`);
+  if (!total.cards || !total.groups || total.buttons <= 8) problems.push(`the page's own data: ${JSON.stringify(total)} (the Buttons steps below need more than one page of Buttons cards)`);
   await evaluate(`document.querySelector('.place[data-place="btn"]').click()`);
   await sleep(300);
   let v = await view();
-  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.search !== '?place=buttons' || v.pressed !== 'btn') problems.push(`Buttons tile: ${JSON.stringify(v)}`);
+  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== `Show all ${total.buttons}` || v.search !== '?place=buttons' || v.pressed !== 'btn') problems.push(`Buttons tile: ${JSON.stringify(v)}`);
   await press('#more-btn');
   await sleep(300);
   v = await view();
-  if (v.cards !== 15 || v.more !== '' || v.search !== '?place=buttons&all=1') problems.push(`Show all: ${JSON.stringify(v)}`);
+  if (v.cards !== total.buttons || v.more !== '' || v.search !== '?place=buttons&all=1') problems.push(`Show all: ${JSON.stringify(v)}`);
   let on = await focused();
   if (on !== 'card link 9') problems.push(`Show all: keyboard focus is on ${on}, not on the ninth card's link`);
   await evaluate(`history.back()`);
@@ -617,8 +621,12 @@ async function homeViewProblems() {
   if (v.title !== 'Text' || v.pressed !== 'text' || boxes.join('') !== '') problems.push(`Text tile pressed while the search box has focus: ${JSON.stringify(v)}, the boxes hold ${JSON.stringify(boxes)}`);
   await type('a button that bounces when clicked');
   await sleep(300);
+  // Click / Tap Ripple comes first (click in its name, a Buttons card, a button in its line). Bounce In, the one name with
+  // "bounce", must be on the first page of results (shown before Show all), not at a set place: the cards named for buttons
+  // and placed in Buttons score as high as Click / Tap Ripple and rank ahead of it, and each new one moves it down a place
+  // (fifth since Button Loading States joined Button Press Scale and Magnetic Button).
   const found = await evaluate(`[...document.querySelectorAll('#cards .card .title a')].map(a => a.textContent)`);
-  if (found[0] !== 'Click / Tap Ripple' || !found.slice(0, 4).includes('Bounce In')) problems.push(`search order: ${found.slice(0, 5).join(', ')}`);
+  if (found[0] !== 'Click / Tap Ripple' || !found.includes('Bounce In')) problems.push(`search order: ${found.join(', ')}`);
   if ((v = await view()).pressed) problems.push(`search: a tile stays pressed: ${JSON.stringify(v)}`);
   // Word endings: "snapping" and "blurred" find their short forms, "ring" is not cut down to "r" (Ambient Ripple Effect
   // says "Rings"), "scrolling" finds as many as "scroll", and the first letter typed already finds cards.
@@ -677,9 +685,9 @@ async function homeViewProblems() {
   const all = await evaluate(`({ groups: document.querySelectorAll('#cards .group').length, cards: document.querySelectorAll('#cards .card').length, search: location.search,
     steps: history.length, level4: document.querySelectorAll('#cards .card .title[aria-level="4"]').length, named: document.querySelectorAll('#cards .group[aria-labelledby]').length,
     pressed: document.querySelectorAll('#places .place[aria-pressed="true"]').length })`);
-  if (all.groups !== 7 || all.cards !== 129 || all.search !== '?view=all' || all.pressed) problems.push(`All animations: ${JSON.stringify(all)}`);
+  if (all.groups !== total.groups || all.cards !== total.cards || all.search !== '?view=all' || all.pressed) problems.push(`All animations: ${JSON.stringify(all)}`);
   if (all.steps !== stepsBefore) problems.push('Browse all pressed in All animations adds a history step');
-  if (all.level4 !== 129 || all.named) problems.push(`All animations: ${all.level4} card titles at level 4, not 129, and ${all.named} group sections named, not 0`);
+  if (all.level4 !== total.cards || all.named) problems.push(`All animations: ${all.level4} card titles at level 4, not ${total.cards}, and ${all.named} group sections named, not 0`);
   on = await focused();
   if (on !== 'results-title') problems.push(`Browse all link: keyboard focus is on ${on}, not on the results heading`);
   await type('fade');
@@ -690,7 +698,7 @@ async function homeViewProblems() {
   // box only leaves the box: the place and its address stay.
   await load('?place=buttons');
   v = await view();
-  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== 'Show all 15' || v.pressed !== 'btn') problems.push(`?place=buttons: ${JSON.stringify(v)}`);
+  if (v.title !== 'Buttons' || v.cards !== 8 || v.more !== `Show all ${total.buttons}` || v.pressed !== 'btn') problems.push(`?place=buttons: ${JSON.stringify(v)}`);
   await key('/', 'Slash', 191, '/');
   await sleep(100);
   on = await focused();
@@ -700,7 +708,8 @@ async function homeViewProblems() {
   v = await view();
   on = await focused();
   if (v.title !== 'Buttons' || v.search !== '?place=buttons' || v.pressed !== 'btn' || on === 'q') problems.push(`Escape in the empty search box: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
-  for (const [query, want] of [['?view=all', { title: 'All animations', groups: 7, cards: 129, pressed: '' }], ['?place=buttons&all=1', { title: 'Buttons', cards: 15, more: '', pressed: 'btn' }]]) {
+  for (const [query, want] of [['?view=all', { title: 'All animations', groups: total.groups, cards: total.cards, pressed: '' }],
+    ['?place=buttons&all=1', { title: 'Buttons', cards: total.buttons, more: '', pressed: 'btn' }]]) {
     await load(query);
     v = await view();
     if (Object.keys(want).some(k => v[k] !== want[k])) problems.push(`${query}: ${JSON.stringify(v)}`);
