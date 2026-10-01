@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Curl — Animation Handbook</title>
+  <meta name="description" content="The page peels back from its corner like paper to show the next. Best for digital magazines.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/page-curl/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Page Curl — Animation Handbook">
+  <meta property="og:description" content="The page peels back from its corner like paper to show the next. Best for digital magazines.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/page-curl/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Page Curl — Animation Handbook">
+  <meta name="twitter:description" content="The page peels back from its corner like paper to show the next. Best for digital magazines.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Page Curl", "name": "Page Curl", "description": "The page peels back from its corner like paper to show the next. Best for digital magazines.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/page-curl/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Page Curl"}</script>
+  <style>
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.nav-btn:hover{border-color:var(--ui-accent)}}
+    .page-area{flex:1;position:relative;overflow:hidden;background:#060608}
+    .page{position:absolute;inset:0;opacity:0;pointer-events:none}
+    .page.active{opacity:1;pointer-events:auto}
+    /* While a page turns: the shadow lies on the page underneath, the flap (the back of the turning sheet) on top of everything */
+    .shade,.flap{position:absolute;inset:0;display:none;pointer-events:none}.shade{z-index:2}.flap{z-index:4}.turning .shade,.turning .flap{display:block}
+    /* page content */
+    .pc{display:flex;flex-direction:column;justify-content:center;height:100%;padding:clamp(20px,4vw,40px);gap:12px}
+    .pe{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.6}
+    .ph{font-size:clamp(22px,3.5vw,36px);font-weight:bold;line-height:1.15}
+    .pp{font-size:12px;opacity:.6;line-height:1.65;max-width:320px}
+    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+    .gi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:18px 12px;font-size:11px}
+    .pstat{display:flex;gap:20px;margin-top:4px}
+    .pstat b{display:block;font-size:clamp(18px,2.5vw,24px);color:var(--ui-accent)}
+    .pstat span{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
+    /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
+    @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../overlay-wipe/" rel="prev" aria-label="Previous: Overlay Wipe"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Overlay Wipe</span></a><a href="../cube-transition/" rel="next" aria-label="Next: Cube Transition"><span><span class="hb-dir">Next: </span>Cube Transition</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">03.15 · Page Transitions</p>
+    <h1>Page Curl</h1>
+    <p class="hb-lede">The page peels back from its corner like paper to show the next. Best for digital magazines.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
+    </div>
+    <div class="stage">
+      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+      <div class="page-area" id="page-area"><div class="shade" id="shade"></div><div class="flap" id="flap"></div></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Turn speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1500" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="1000" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="650" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long one page takes to turn over.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="way-lbl">Which way it turns</p>
+        <div class="seg" id="way-seg" role="group" aria-labelledby="way-lbl">
+          <button type="button" data-way="both" class="on" aria-pressed="true">Forward and back</button>
+          <button type="button" data-way="fwd" aria-pressed="false">Always forward</button>
+          <button type="button" data-way="back" aria-pressed="false">Always back</button>
+        </div>
+        <p class="hb-hint">Back lays an earlier page down over the one you are on.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shade-lbl">Paper shading</p>
+        <div class="seg" id="shade-seg" role="group" aria-labelledby="shade-lbl">
+          <button type="button" data-k="0" aria-pressed="false">Off</button>
+          <button type="button" data-k="0.6" class="on" aria-pressed="true">Soft</button>
+          <button type="button" data-k="1" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Shading makes the folded paper look curved.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a page curl to [the pages you want to turn, such as a magazine]. A forward turn lifts the bottom corner of the current page and turns it over to the left like paper, so the page underneath shows. A turn back runs the same movement in reverse and lays a page down over the current one. Draw the folded part as the back of the sheet, lying over the page along a straight fold that moves with the corner. Paper shading darkens the fold and casts a shadow on the page below. Work out the fold from the corner on every frame, timing the turn by elapsed time. If the visitor has reduced motion turned on, fade between the pages instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Digital magazines</li><li>Picture books</li><li>Menus and brochures</li><li>Photo albums</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Everyday navigation</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  // back: the color of the back of each sheet, seen on the flap while it turns
+  const PAGES=[
+    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',back:'#b7c3dc',html:`<div class="pc"><div class="pe">Creative Studio</div><p class="ph">Design without compromise.</p><p class="pp">We craft digital products that earn attention and keep it. Every pixel considered.</p></div>`},
+    {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',back:'#b5cfbb',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',back:'#cbb8dc',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div><div><b>3</b><span>Continents</span></div></div></div>`},
+  ];
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area'),shade=document.getElementById('shade'),flap=document.getElementById('flap'),slowTog=document.getElementById('slow-tog');
+  const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let current=0,animating=false,dur=1000,way='both',k=.6,raf=0,afterMove=null,wayBack=0,timers=[];
+  const pages=[],navBtns=[];
+
+  PAGES.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.insertBefore(d,shade);pages.push(d);
+    const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
+    b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
+  });
+
+  // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
+  function later(fn,wait){
+    const id=setTimeout(()=>{
+      const i=timers.indexOf(id);
+      if(i>-1)timers.splice(i,1);
+      fn();
+    },wait);
+    timers.push(id);
+    return id;
+  }
+  function cancel(id){
+    clearTimeout(id);
+    const i=timers.indexOf(id);
+    if(i>-1)timers.splice(i,1);
+  }
+
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
+  // One page's resting look: its class alone shows or hides it, with no clip, fade or stacking left over (its background stays).
+  // A page that is not shown is also out of the Tab order and the accessibility tree (inert).
+  function rest(el,on){
+    el.classList.toggle('active',on);
+    el.inert=!on;
+    el.style.clipPath='';el.style.zIndex='';el.style.transition='';el.style.opacity='';
+  }
+  // The resting state for page n, at once: no turn or fade left running
+  function showPage(n){
+    cancelAnimationFrame(raf);raf=0;area.classList.remove('turning');
+    pages.forEach((el,i)=>{rest(el,i===n);el.getAnimations().forEach(a=>a.cancel())});
+    updateNav(n);
+  }
+
+  // Ends a change: the demo is idle again, and a Show me run goes on to its next step
+  function finish(){
+    animating=false;
+    const then=afterMove;afterMove=null;
+    if(then)then();
+  }
+  // Stops everything at once and shows the resting state for `current`
+  function settle(){
+    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    animating=false;
+    showPage(current);
+  }
+
+  // The part of polygon `pts` where side(point) >= 0: one edge of a Sutherland-Hodgman clip
+  function cut(pts,side){
+    const out=[];
+    pts.forEach((a,i)=>{
+      const b=pts[(i+1)%pts.length],sa=side(a),sb=side(b);
+      if(sa>=0)out.push(a);
+      if((sa>=0)!==(sb>=0)){const t=sa/(sa-sb);out.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t})}
+    });
+    return out;
+  }
+  const poly=pts=>pts.length<3?'polygon(0 0,0 0,0 0)':'polygon('+pts.map(q=>q.x.toFixed(1)+'px '+q.y.toFixed(1)+'px').join(',')+')';
+
+  // The sheet on top at progress p (0 flat, 1 turned away to the left). Its bottom-right corner moves to C, rising on the way;
+  // the fold is the line halfway between where the corner was and C. What lies past the fold is mirrored over it: the flap.
+  function curl(sheet,p){
+    const w=area.clientWidth,h=area.clientHeight,c={x:w-2*w*p,y:h-.8*h*Math.sin(Math.PI*p)};
+    const dx=w-c.x,dy=h-c.y,len=Math.hypot(dx,dy),box=[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}];
+    if(len<.5){sheet.style.clipPath='';flap.style.clipPath=shade.style.clipPath=poly([]);return}
+    const n={x:dx/len,y:dy/len},m={x:(w+c.x)/2,y:(h+c.y)/2},past=q=>(q.x-m.x)*n.x+(q.y-m.y)*n.y;
+    const lifted=cut(box,past);
+    sheet.style.clipPath=poly(cut(box,q=>-past(q)));
+    flap.style.clipPath=poly(lifted.map(q=>({x:q.x-2*past(q)*n.x,y:q.y-2*past(q)*n.y})));
+    shade.style.clipPath=poly(lifted);
+    // Gradients that start at the fold: its distance along a gradient line at this angle, and how far the flap reaches
+    const deg=Math.atan2(n.x,-n.y)*180/Math.PI,line=Math.abs(w*n.x)+Math.abs(h*n.y),at=(m.x-w/2)*n.x+(m.y-h/2)*n.y+line/2;
+    const f=line-at,reach=Math.max(...box.map(past)),dark=a=>`rgba(0,0,0,${(a*k).toFixed(3)})`;
+    flap.style.backgroundImage=`linear-gradient(${deg+180}deg,${dark(.5)} ${f}px,${dark(0)} ${f+Math.min(reach*.35,70)}px,rgba(255,255,255,${(.25*k).toFixed(3)}) ${f+reach*.7}px,${dark(.18)} ${f+reach}px)`;
+    shade.style.backgroundImage=`linear-gradient(${deg}deg,${dark(.7*Math.sqrt(Math.sin(Math.PI*p)))} ${at}px,${dark(0)} ${at+Math.min(w,h)*.22}px)`;
+  }
+
+  function navigate(next,then){
+    if(next===current||animating)return;
+    const prev=current;current=next;updateNav(next);
+    afterMove=then||null;animating=true;
+    const oldEl=pages[prev],newEl=pages[next];
+    newEl.classList.add('active'); // both pages are on show while the sheet turns
+    if(!motionOk){
+      // Reduced motion: the new page fades in over the old one, nothing turns
+      newEl.style.zIndex='3';newEl.style.opacity='0';newEl.offsetHeight;
+      newEl.style.transition='opacity 300ms linear';newEl.style.opacity='1';
+      later(()=>{rest(oldEl,false);rest(newEl,true);finish()},350);
+      return;
+    }
+    // Forward: the old page turns away from over the new one. Back: the new page is laid down over the old one.
+    const fwd=way==='fwd'||(way==='both'&&next>prev),sheet=fwd?oldEl:newEl,d=dur*(slowTog.checked?3:1);
+    (fwd?newEl:oldEl).style.zIndex='1';sheet.style.zIndex='3';
+    flap.style.backgroundColor=PAGES[fwd?prev:next].back;
+    area.classList.add('turning');
+    curl(sheet,fwd?0:1);
+    let start=null;
+    // The turn moves by elapsed time (eased in and out), so it takes d ms at any frame rate
+    const frame=ts=>{
+      if(start===null)start=ts;
+      const t=Math.min((ts-start)/d,1),e=t<.5?4*t*t*t:1-Math.pow(2-2*t,3)/2;
+      curl(sheet,fwd?e:1-e);
+      if(t<1)raf=requestAnimationFrame(frame);else{raf=0;area.classList.remove('turning');rest(oldEl,false);rest(newEl,true);finish()}
+    };
+    raf=requestAnimationFrame(frame);
+  }
+
+  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  function showMe(){
+    settle();
+    const start=current;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+  }
+  function reset(){current=0;settle()}
+
+  document.getElementById('btn-demo').addEventListener('click',showMe);
+  document.getElementById('btn-reset').addEventListener('click',reset);
+  // The visitor took over: cancel what the run has not started yet. A turn already under way finishes on its own.
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{dur=+d.ms});
+  choices('way-seg',d=>{way=d.way});
+  choices('shade-seg',d=>{k=+d.k});
+  showPage(0);
+</script>
+</body>
+</html>
