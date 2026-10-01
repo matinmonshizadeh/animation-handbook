@@ -25,7 +25,7 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;padding:12px clamp(16px,4vw,32px);background:#0b0b0d;overflow:hidden}
     /* Every row sits at the top of the list and is moved to its place, slot --i, with a transform, so a new order never changes the layout */
-    .list{position:relative;width:100%;max-width:360px;height:calc(4*var(--row) + 3*var(--gap));gap:var(--gap);list-style:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    .list{position:relative;width:100%;max-width:360px;height:calc(4*var(--row) + 3*var(--gap));list-style:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     .row{position:absolute;left:0;right:0;top:0;height:var(--row);transform:translateY(calc(var(--i)*(var(--row) + var(--gap))));transition:transform var(--slide) cubic-bezier(.2,.8,.2,1);cursor:grab;touch-action:pan-y}
     .row.lifted{z-index:2;cursor:grabbing}.row.settling{z-index:1}
     .card{position:relative;height:100%;display:flex;align-items:center;gap:10px;padding-right:14px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:var(--card);transition:transform .16s ease-out}
@@ -38,8 +38,7 @@
     /* Drag by the handle only: the grip looks like the thing to hold, and only it starts a drag */
     .by-grip .row{cursor:default}
     .by-grip .grip{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--ui-text);cursor:grab}
-    .tag{flex:none;width:10px;height:10px;border-radius:50%}
-    .label{min-width:0;font-size:14px;color:var(--ui-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tag{flex:none;width:10px;height:10px;border-radius:50%}.label{min-width:0;font-size:14px;color:var(--ui-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     /* Show me's fingertip: it rides in the row it holds */
     .tip{position:absolute;left:62%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:rgba(255,255,255,.28);border:2px solid rgba(255,255,255,.75);opacity:0;transition:opacity .2s;pointer-events:none}
     .by-grip .tip{left:25px}.tip.on{opacity:1}
@@ -118,7 +117,7 @@
       <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
     </div>
     <div class="hb-card">
-      <p class="hb-prompt">Add drag to reorder to [the list whose order people can change]. Lift the picked-up item above the list and let it follow the pointer exactly; as it passes the middle of a neighbor, slide that neighbor into the gap, and on release settle it into its new place and save the order. Shift the items rather than changing the layout, so it stays smooth. Support the keyboard: Space picks up, the arrow keys move, Space drops and Escape cancels, each step read out to screen readers. On touch screens, start a drag at once from a grip but only after a short press elsewhere, so the page still scrolls. If the visitor has reduced motion turned on, move items straight to their places. Match the settings listed below.</p>
+      <p class="hb-prompt">Add drag to reorder to [the list whose order people can change]. Lift the picked-up item and let it follow the pointer exactly; as it passes a neighbor's middle, slide that neighbor into the gap, and on release settle it into place and save the order. Shift the items rather than changing the layout, so it stays smooth. Support the keyboard: Space picks up, the arrow keys move, Space drops and Escape cancels, each step read out to screen readers. On touch screens, start a drag at once from the grip; if the rest of an item can start one too, only after a short press, so swipes still scroll. If the visitor has reduced motion turned on, move items straight to their places. Match the settings listed below.</p>
       <div class="hb-chips-box" hidden>
         <p class="hb-chips-title">Your settings</p>
         <ul class="hb-chips"></ul>
@@ -154,9 +153,8 @@
   const list=$('list'),tip=$('tip'),statusEl=$('status'),reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
   const START=[...list.children];
   let order=[...START],byGrip=false,drag=null,press=null;   // drag: the row held now; press: a finger waiting on a row
-  const nameOf=row=>row.querySelector('.label').textContent;
-  const say=text=>{statusEl.textContent=text};
-  const slotPx=()=>START[0].offsetHeight+parseFloat(getComputedStyle(list).rowGap);
+  const nameOf=row=>row.querySelector('.label').textContent,say=text=>{statusEl.textContent=text};
+  const slotPx=()=>START[0].offsetHeight+parseFloat(getComputedStyle(list).getPropertyValue('--gap'));
   const place=(row,i)=>row.style.setProperty('--i',i);
   const drawnY=row=>new DOMMatrix(getComputedStyle(row).transform).m42;   // where the row is drawn now, mid-slide too
 
@@ -181,14 +179,20 @@
   }
   // Keyboard and reduced motion: the held row itself slides (or jumps) one slot.
   function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to)}
+  // Moving a row in the document ends the slide it is in the middle of: it would be drawn in its slot at once. So each moved row is
+  // first read where it is drawn, given that place back as a still transform after the move, and let go, so its slide carries on.
+  function keepSlides(rows,move){
+    const at=rows.map(drawnY);move();
+    rows.forEach((r,i)=>{r.style.transition='none';r.style.transform=`translateY(${at[i]}px)`});
+    void list.offsetWidth;rows.forEach(r=>{r.style.transition=r.style.transform=''});
+  }
   // Letting go: the row settles into its slot (or back where it was picked up), and the list's real order follows. The rows it
   // passed move to its other side in the document, so the held row never leaves it and keeps its keyboard focus.
   function drop(keep){
-    const {row,from}=drag,to=keep?drag.to:from;
+    const {row,from}=drag,to=keep?drag.to:from,passed=to>from?order.slice(from+1,to+1):order.slice(to,from).reverse();
     if(!keep)makeRoom(from);
     row.style.transition=row.style.transform='';row.classList.remove('lifted');row.classList.add('settling');place(row,to);
-    if(to>from)for(let j=from+1;j<=to;j++)list.insertBefore(order[j],row);
-    else for(let j=from-1;j>=to;j--)list.insertBefore(order[j],row.nextSibling);
+    keepSlides(passed,()=>passed.forEach(r=>list.insertBefore(r,to>from?row:row.nextSibling)));
     order.splice(from,1);order.splice(to,0,row);drag=null;
     return to;
   }
@@ -214,8 +218,7 @@
     const {row,from}=drag,to=drop(e.type==='pointerup');
     if(to!==from)say(`${nameOf(row)} moved to position ${to+1} of ${order.length}.`);
   }
-  list.addEventListener('pointerup',letGo);
-  list.addEventListener('pointercancel',letGo);
+  list.addEventListener('pointerup',letGo);list.addEventListener('pointercancel',letGo);
   list.addEventListener('touchmove',e=>{if(drag&&drag.by==='pointer'&&e.cancelable)e.preventDefault()},{passive:false});
   list.addEventListener('contextmenu',e=>{if(press||drag)e.preventDefault()});
   // The keyboard, on a grip: Space or Enter picks the task up and puts it down, the arrows move it, Escape puts it back.
@@ -238,12 +241,11 @@
     }
   });
   list.addEventListener('focusout',e=>{if(drag&&drag.by==='key'&&drag.row.contains(e.target))drop(true)});
-  // Puts the rows in this order: sliding there (Reset) or at once, with the slides switched off for a moment (before a run).
+  // Puts the rows in this order: sliding there from where they are drawn (Reset) or at once, with the slides off for a moment (before a run).
   function setOrder(next,slide){
-    if(!slide)order.forEach(r=>{r.style.transition='none'});
-    order=[...next];list.append(...order);
-    order.forEach((r,i)=>{place(r,i);r.classList.remove('settling')});
-    if(!slide){void list.offsetWidth;order.forEach(r=>{r.style.transition=''})}
+    const move=()=>{order=[...next];list.append(...order);order.forEach((r,i)=>{place(r,i);r.classList.remove('settling')})};
+    if(slide)return keepSlides([...order],move);
+    order.forEach(r=>{r.style.transition='none'});move();void list.offsetWidth;order.forEach(r=>{r.style.transition=''});
   }
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   let runTimers=[],runFrame=0;
@@ -254,7 +256,7 @@
     if(drag&&drag.by==='run')drop(false);   // a task still held by the run goes back where the run picked it up
   }
   // The fingertip rides in the row the run holds; glide() moves the row as a hand would, frame by frame by the time passed.
-  function hold(row){lift(row,'run');row.append(tip);tip.classList.add('on')}
+  function hold(row){lift(row,'run');row.append(tip);void tip.offsetWidth;tip.classList.add('on')}
   function release(){cancelAnimationFrame(runFrame);runFrame=0;tip.classList.remove('on');if(drag&&drag.by==='run')drop(true)}
   function glide(to,ms){
     const y0=drag.y,y1=to*slotPx(),t0=performance.now();
@@ -282,7 +284,6 @@
   $('btn-reset').addEventListener('click',()=>{stopRun();if(drag)drop(false);setOrder(START,true);say('')});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
-
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{

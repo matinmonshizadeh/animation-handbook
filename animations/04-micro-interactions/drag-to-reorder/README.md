@@ -28,7 +28,17 @@ function follow(y){
 }
 ```
 
-On release, `drop()` clears the inline transform, so the row slides from under the pointer into its slot, and the list's real order follows: the rows it passed are moved to its other side with `insertBefore`, so the held row never leaves the document and keeps its keyboard focus. The lift is a `scale` on the row's inner card plus a shadow on a pseudo-element whose opacity fades in, so no shadow is ever animated.
+On release, `drop()` clears the inline transform, so the row slides from under the pointer into its slot, and the list's real order follows: the rows it passed are moved to its other side with `insertBefore`, so the held row never leaves the document and keeps its keyboard focus. Moving an element in the document ends any transition it is in the middle of, so a row still sliding aside would jump to its slot. `keepSlides()` uses the FLIP idea against that: it reads where each row is drawn before the move, gives it that place back as a still transform after the move, then lets go, so the slide carries on from there. Reset puts the whole list back in order through it too, so the rows slide home:
+
+```js
+function keepSlides(rows,move){
+  const at=rows.map(drawnY);move();
+  rows.forEach((r,i)=>{r.style.transition='none';r.style.transform=`translateY(${at[i]}px)`});
+  void list.offsetWidth;rows.forEach(r=>{r.style.transition=r.style.transform=''});
+}
+```
+
+The lift is a `scale` on the row's inner card plus a shadow on a pseudo-element whose opacity fades in, so no shadow is ever animated.
 
 Pointer Events cover mouse, pen and touch with one code path, and `setPointerCapture` keeps the row following even when the pointer leaves it. A mouse lifts the row at once. A finger lifts it at once from the grip, which has `touch-action: none`, but from the rest of the row only after a 300ms press, so a quick swipe over the list still scrolls the page (the row has `touch-action: pan-y`); once a row is held, a `touchmove` listener that is not passive calls `preventDefault`, so the browser does not scroll under it. On the keyboard each grip is a button: Space or Enter picks the task up and puts it down, the arrow keys move it one slot, Escape puts it back, and a polite live region reads each step aloud.
 
