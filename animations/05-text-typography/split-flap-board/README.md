@@ -50,7 +50,7 @@ Each tile's run of letters is the drum from a blank to its letter (" ABC…" up 
 - **Exact halves**: the two halves of a letter must meet at the hinge. Use `line-height: 1`, a letter box exactly twice the height of a half, and check the font's capitals: some sit a little high or low and need a small nudge.
 - **Accessibility**: the row is one image named with the final word, and the tiles are hidden from screen readers, so the word is read once rather than every letter it passes through.
 - **Sound**: a soft clatter makes the board feel real, but play it only after the visitor has interacted, and give them a way to mute it.
-- **Libraries**: GSAP can sequence the `rotationX` tweens per tile; there are also small split-flap web components. CSS-only versions use keyframes with `steps()`, but they cannot stop each tile on its own letter.
+- **Libraries**: GSAP can sequence the `rotationX` tweens per tile; there are also small split-flap web components. A CSS-only version works too: give each tile a column of letters and move it with `steps()`, as the card on the handbook's home page does, so each tile stops on its own letter. The catch is that the keyframes and the number of steps have to be generated for every word.
 
 ## See also
 - [Scramble / Glitch Text](../scramble-text/) — random symbols lock into the real text, left to right

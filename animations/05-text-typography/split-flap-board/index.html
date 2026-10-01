@@ -160,9 +160,28 @@
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=()=>!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const DRUM=' ABCDEFGHIJKLMNOPQRSTUVWXYZ',STAGGER=40; // the letters a tile turns through, in order; each tile starts 40ms after the one on its left
-  let flipMs=85,tiles=[],raf=0,clock=0,lastT=null,timers=[];
+  let ms=85,flipMs=85,tiles=[],raf=0,clock=0,lastT=null,timers=[]; // ms: the setting; flipMs: the flip time of the play under way
 
-  function word(){return wordIn.value.toUpperCase().replace(/[^A-Z ]/g,'').trim()||'BOARDING'}
+  // The field only ever holds what the board can show (capitals, A to Z, single spaces), so the board, the field and the
+  // "Word" chip always agree. Cleaned as the visitor types, before the shared script reads it; the caret stays in place.
+  // A phone keyboard that is still composing a word is left alone until it is done.
+  const clean=s=>s.toUpperCase().replace(/[^A-Z ]/g,'').replace(/ {2,}/g,' ');
+  function tidy(){
+    const v=wordIn.value,c=clean(v);
+    if(c===v)return false;
+    const at=clean(v.slice(0,wordIn.selectionStart)).length;
+    wordIn.value=c;wordIn.setSelectionRange(at,at);
+    return true;
+  }
+  wordIn.addEventListener('input',e=>{if(!e.isComposing)tidy()});
+  wordIn.addEventListener('compositionend',()=>{if(tidy())wordIn.dispatchEvent(new Event('input',{bubbles:true}))});
+  // A field left empty gets the default word back, and the input event updates the chip and plays it again
+  wordIn.addEventListener('blur',()=>{
+    if(wordIn.value.trim())return;
+    wordIn.value='BOARDING';
+    wordIn.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  function word(){return clean(wordIn.value).trim()||'BOARDING'}
   // One tile per letter. Each tile keeps its run of letters, from a blank to its own letter, and the flip it is on (k).
   function build(text){
     row.textContent='';
@@ -213,9 +232,11 @@
       later(cycle,400);
     },1800);
   }
-  // Every play starts from blank tiles. Under reduced motion the letters fade in instead of flipping.
+  // Every play starts from blank tiles. Under reduced motion the letters fade in instead of flipping. The flip time is read
+  // here, once per play: a Flip speed pressed mid-run applies from the next play, so no tile jumps or flips again.
   function cycle(){
     cancelAnimationFrame(raf);raf=0;
+    flipMs=ms;
     build(word());
     row.classList.remove('clearing');
     if(!motionOk()){
@@ -238,7 +259,7 @@
       pick(b.dataset);
     }));
   }
-  choices('speed-seg',d=>{flipMs=+d.ms});
+  choices('speed-seg',d=>{ms=+d.ms});
   choices('color-sw',d=>{vars.setProperty('--tile',d.c);vars.setProperty('--ink',d.ink)});
   build(word());tiles.forEach(t=>rest(t,' '));
 </script>
