@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Indicator — Animation Handbook</title>
+  <meta name="description" content="Three dots in a chat bubble move in turn while someone types. Best for chat apps.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/typing-indicator/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Typing Indicator — Animation Handbook">
+  <meta property="og:description" content="Three dots in a chat bubble move in turn while someone types. Best for chat apps.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/typing-indicator/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Typing Indicator — Animation Handbook">
+  <meta name="twitter:description" content="Three dots in a chat bubble move in turn while someone types. Best for chat apps.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Typing Indicator", "name": "Typing Indicator", "description": "Three dots in a chat bubble move in turn while someone types. Best for chat apps.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/typing-indicator/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Typing Indicator"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--in:#2a2a31;--dot:#b9b9c2;--dur:1200ms}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .chat{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#141418}
+    .head{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .avatar{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#56d364;color:#0b0b0d;font-size:14px;font-weight:700}
+    .who{font-size:14px;font-weight:700;color:var(--ui-text)}
+    .state{display:block;font-size:12px;font-weight:400;color:var(--ui-muted)}
+    .msg{max-width:80%;padding:9px 13px;border-radius:16px;font-size:14px;line-height:1.35}
+    .in{align-self:flex-start;border-bottom-left-radius:5px;background:var(--in);color:var(--ui-text)}
+    .out{align-self:flex-end;border-bottom-right-radius:5px;background:var(--ui-accent);color:#1a1208}
+    /* The indicator: three dots on one round, each starting a little after the one before it, so they move in turn. Only their
+       position, size and opacity change. Under reduced motion the moves are zero: the dots stay in place and only brighten in turn. */
+    .typing{display:flex;gap:6px;padding:14px 16px;--hop:-7px;--lift:-5px;--small:.7}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--dot);animation:ty-bounce var(--dur) ease-in-out infinite both}
+    .dot:nth-child(2){animation-delay:calc(var(--dur)*.15)}
+    .dot:nth-child(3){animation-delay:calc(var(--dur)*.3)}
+    .s-fade .dot{animation-name:ty-fade}
+    .s-wave .dot{animation-name:ty-wave}
+    @keyframes ty-bounce{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(var(--hop));opacity:1}}
+    @keyframes ty-fade{0%,60%,100%{transform:scale(var(--small));opacity:.3}30%{transform:scale(1);opacity:1}}
+    @keyframes ty-wave{0%,100%{transform:translateY(calc(var(--lift)*-.5));opacity:.55}50%{transform:translateY(var(--lift));opacity:1}}
+    @media(prefers-reduced-motion:reduce){.typing{--hop:0px;--lift:0px;--small:1}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../rolling-numbers/" rel="prev" aria-label="Previous: Rolling Numbers"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Rolling Numbers</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.35 · Micro-Interactions</p>
+    <h1>Typing Indicator</h1>
+    <p class="hb-lede">Three dots in a chat bubble move in turn while someone types. Best for chat apps.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each dot take its turn.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="chat" role="group" aria-label="Chat with Maya">
+        <div class="head"><span class="avatar" aria-hidden="true">M</span><p class="who">Maya<span class="state">typing…</span></p></div>
+        <p class="msg in">Are you free on Saturday?</p>
+        <p class="msg out">Yes! What's the plan?</p>
+        <div class="msg in typing" id="bubble" role="img" aria-label="Maya is typing"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="style-lbl">How the dots move</p>
+        <div class="seg" id="style-seg" role="group" aria-labelledby="style-lbl">
+          <button type="button" data-style="bounce" class="on" aria-pressed="true">Bounce</button>
+          <button type="button" data-style="fade" aria-pressed="false">Fade</button>
+          <button type="button" data-style="wave" aria-pressed="false">Wave</button>
+        </div>
+        <p class="hb-hint">Bounce hops each dot and rests; fade brightens them; wave never stops rising and falling.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1800" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="1200" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="800" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long one round of the three dots takes. Fast can look impatient.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Bubble color</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="Gray" data-c="#2a2a31" data-dot="#b9b9c2" style="background:#2a2a31"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-c="#2f62d8" data-dot="#ffffff" style="background:#2f62d8"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#1f7a45" data-dot="#ffffff" style="background:#1f7a45"></button>
+          <button type="button" aria-pressed="false" aria-label="Purple" data-c="#6b46c1" data-dot="#ffffff" style="background:#6b46c1"></button>
+        </div>
+        <p class="hb-hint">The other person's bubbles; the dots change with them so they stay easy to see.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a typing indicator to [the chat or comment thread where replies arrive]. While the other person is typing, show a small bubble on their side of the conversation with three dots that move one after another in a steady loop, so it reads as someone writing right now. Show it only while they are really typing, hide it after a few quiet seconds, and when their message arrives, put the message where the bubble was. Animate only the dots, never the bubble's size, so it stays smooth, and give screen readers a short text that says who is typing. If the visitor has reduced motion turned on, keep the dots in place and only let them brighten in turn. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Chat apps</li><li>Support chat</li><li>AI assistants</li><li>Comment threads</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long waits</li><li>Replies that are not live</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage'),bubble=document.getElementById('bubble');
+  const vars=document.documentElement.style;
+  let dotMs=1200;
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // A new style starts the dots' round again from its beginning (paused there while the demo is paused).
+  choices('style-seg',d=>{bubble.classList.remove('s-bounce','s-fade','s-wave');bubble.classList.add('s-'+d.style)});
+  // A new --dur keeps the time already played, so every dot would jump to another point of its round. Scaling each dot's time by the
+  // same factor as its length (its delay is a share of the length too) keeps the dots where they are, moving or paused.
+  choices('speed-seg',d=>{
+    const next=+d.ms;
+    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/dotMs});
+    dotMs=next;
+    vars.setProperty('--dur',next+'ms');
+  });
+  choices('color-sw',d=>{vars.setProperty('--in',d.c);vars.setProperty('--dot',d.dot)});
+</script>
+</body>
+</html>

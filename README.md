@@ -157,6 +157,7 @@ All 129 techniques, each linked to its live demo.
 - **[Pull to Refresh](animations/04-micro-interactions/pull-to-refresh/)** — Pulling a list down shows a spinner, then new items. Best for feeds.
 - **[Drag to Reorder](animations/04-micro-interactions/drag-to-reorder/)** — Drag an item and the others slide aside to make room. Best for to-do lists.
 - **[Rolling Numbers](animations/04-micro-interactions/rolling-numbers/)** — Each digit rolls to its new value, like a car's mileage counter. Best for counters and prices.
+- **[Typing Indicator](animations/04-micro-interactions/typing-indicator/)** — Three dots in a chat bubble move in turn while someone types. Best for chat apps.
 
 </details>
 
