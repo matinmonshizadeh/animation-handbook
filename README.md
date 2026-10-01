@@ -182,6 +182,7 @@ All 129 techniques, each linked to its live demo.
 - **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text travels along a wave, an arc or a circle. Best for badges and seals.
 - **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
 - **[Highlighter Sweep](animations/05-text-typography/highlighter-sweep/)** — A marker sweeps in behind the key words, one after another. Best for key points.
+- **[Split-Flap Board](animations/05-text-typography/split-flap-board/)** — Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.
 
 </details>
 

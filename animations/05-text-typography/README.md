@@ -21,6 +21,7 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Text on a Path](text-on-path/) | Text travels along a wave, an arc or a circle. Best for badges and seals. |
 | [Wavy Text](wavy-text/) | A wave rolls through the word, letter by letter. Best for playful titles. |
 | [Highlighter Sweep](highlighter-sweep/) | A marker sweeps in behind the key words, one after another. Best for key points. |
+| [Split-Flap Board](split-flap-board/) | Tiles flip through the letters to spell a word, like an airport board. Best for hero titles. |
 
 ## Key principles
 
