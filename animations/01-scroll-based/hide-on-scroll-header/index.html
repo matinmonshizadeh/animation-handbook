@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hide-on-Scroll Header — Animation Handbook</title>
+  <meta name="description" content="The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/hide-on-scroll-header/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Hide-on-Scroll Header — Animation Handbook">
+  <meta property="og:description" content="The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/hide-on-scroll-header/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hide-on-Scroll Header — Animation Handbook">
+  <meta name="twitter:description" content="The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Hide-on-Scroll Header", "name": "Hide-on-Scroll Header", "description": "The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/hide-on-scroll-header/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Hide-on-Scroll Header"}</script>
+  <style>
+    :root{--ui-accent:#6ea8ff;--bar-h:56px;--dur:300ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:#0b0b0d}
+    /* The bar floats over the page and only ever moves with a transform; the page under it is what scrolls */
+    .topbar{position:absolute;top:0;left:0;right:0;z-index:2;height:var(--bar-h);display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:0 clamp(14px,3vw,24px);background:#171920;border-bottom:1px solid rgba(255,255,255,.1);
+      transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease);will-change:transform}
+    .brand,.nav,.menu{display:flex;align-items:center;transition:transform var(--dur) var(--ease)}
+    .brand{gap:10px;transform-origin:left center;font-weight:700;font-size:17px;letter-spacing:-.01em;color:#f4f4f2;white-space:nowrap}
+    .logo{width:22px;height:22px;border-radius:50%;background:var(--ui-accent);flex:none}
+    .nav{gap:clamp(14px,2.4vw,24px);transform-origin:right center;font-size:14px;color:#adadb2}
+    .menu{display:none;flex-direction:column;align-items:stretch;justify-content:center;gap:4px;width:20px;transform-origin:right center}
+    .menu i{display:block;height:2px;border-radius:1px;background:#d6d6da}
+    /* Scrolled down: the bar slides up by its own height (border included) and 2px to spare, out of view */
+    .topbar.away{transform:translateY(calc(-100% - 2px))}
+    /* Shrinks instead: a slim strip stays, its contents smaller and centered in what is left of it */
+    .stage.shrink .topbar.away{transform:translateY(-18px)}
+    .stage.shrink .topbar.away .brand{transform:translateY(9px) scale(.82)}
+    .stage.shrink .topbar.away .nav,.stage.shrink .topbar.away .menu{transform:translateY(9px) scale(.9)}
+    .snap,.snap *{transition:none!important}
+    .scroller{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding-top:var(--bar-h)}
+    .scroller::-webkit-scrollbar{display:none}
+    .post{max-width:640px;margin:0 auto;padding:clamp(22px,4vw,40px) clamp(16px,4vw,32px) 40px}
+    .kicker{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ui-accent)}
+    .post h3{margin:10px 0 12px;font-weight:800;font-size:clamp(24px,3.6vw,34px);line-height:1.15;letter-spacing:-.02em;color:#f4f4f2}
+    .post h4{margin:30px 0 8px;font-weight:700;font-size:clamp(18px,2.4vw,21px);color:#f4f4f2}
+    .post p{font-size:15px;line-height:1.7;color:#adadb2}
+    .post .lead{font-size:17px;color:#d6d6da}
+    .pic{margin-top:26px;aspect-ratio:16/7;border-radius:10px;background:linear-gradient(135deg,#1f3a66,#3d2a5c 55%,#5a2d45)}
+    .pic.two{background:linear-gradient(135deg,#123d3a,#1f3a66 60%,#2b2f45)}
+    .post .end{margin-top:30px;padding-top:18px;border-top:1px solid rgba(255,255,255,.09);color:#8a8a92}
+    @media(max-width:600px){:root{--bar-h:52px}.nav{display:none}.menu{display:flex}}
+    /* Reduced motion: the bar fades out and back instead of sliding, and the slim strip appears without moving */
+    @media(prefers-reduced-motion:reduce){
+      .topbar{transition:opacity var(--dur) linear;will-change:auto}
+      .brand,.nav,.menu{transition:none}
+      .topbar.away{transform:none;opacity:0}
+      .stage.shrink .topbar.away{transform:translateY(-18px);opacity:1}
+    }
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../scroll-background-color/" rel="prev" aria-label="Previous: Scroll-Driven Background Color"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Scroll-Driven Background Color</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">01.27 · Scroll-Based</p>
+    <h1>Hide-on-Scroll Header</h1>
+    <p class="hb-lede">The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll down inside the box, then back up, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="topbar" id="topbar" aria-hidden="true">
+        <span class="brand"><span class="logo"></span>Field Notes</span>
+        <span class="nav"><span>Latest</span><span>Topics</span><span>About</span></span>
+        <span class="menu"><i></i><i></i><i></i></span>
+      </div>
+      <div class="scroller" id="scroller" tabindex="0" role="region" aria-label="A page whose top bar slides away as you scroll down">
+        <article class="post">
+          <p class="kicker">Field Notes · Design</p>
+          <h3>A bar that steps aside while you read</h3>
+          <p class="lead">Scroll down and the bar above slides out of the way. Scroll back up to bring it home.</p>
+          <div class="pic" aria-hidden="true"></div>
+          <h4>Scroll down</h4>
+          <p>Reading down the page, you do not need the menu, so the bar slides up out of view and the story gets the whole screen.</p>
+          <h4>Scroll back up</h4>
+          <p>The bar returns: at the first move up, or only once you are back near the top, whichever the page asks for.</p>
+          <div class="pic two" aria-hidden="true"></div>
+          <h4>Near the top it stays</h4>
+          <p>Close to the top of the page the bar always shows, whichever way you scroll.</p>
+          <h4>Small moves do not count</h4>
+          <p>A few pixels of jitter never flip the bar in and out, so it does not flicker.</p>
+          <h4>It floats over the page</h4>
+          <p>The bar sits on top of the page and moves with a transform, so nothing below it jumps.</p>
+          <p class="end">The end of the page. Scroll back up.</p>
+        </article>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then scroll again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="700" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="300" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="150" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly the bar slides away and back.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="back-lbl">Comes back</p>
+        <div class="seg" id="back-seg" role="group" aria-labelledby="back-lbl">
+          <button type="button" data-back="any" class="on" aria-pressed="true">On any scroll up</button>
+          <button type="button" data-back="top" aria-pressed="false">Only near the top</button>
+        </div>
+        <p class="hb-hint">Any scroll up keeps the menu one small move away.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shrinks instead of hiding</span><input class="hb-switch" type="checkbox" role="switch" id="shrink-tog" autocomplete="off"></label>
+        <p class="hb-hint">A slim bar stays in view instead of leaving.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a hide-on-scroll header to [the top bar of your site]. When the visitor scrolls down, slide the bar up out of view, or shrink it to a slim strip if the settings ask for that; when they scroll back up, bring it back as the settings say. Tell the direction by comparing each scroll position with the last one, ignore moves of a few pixels so the bar never flickers, and always show it near the top of the page. Let the bar float over the content, move it only with a transform and read the scroll once per frame. Touch scrolling counts too. If the visitor has reduced motion turned on, fade the bar out and in instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Mobile pages</li><li>News and blogs</li><li>Long articles</li><li>Online shops</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Short pages</li><li>Bars with key buttons</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.getElementById('stage'),scroller=document.getElementById('scroller'),bar=document.getElementById('topbar');
+  const slowTog=document.getElementById('slow-tog'),shrinkTog=document.getElementById('shrink-tog');
+  const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const vars=document.documentElement.style;
+  const JITTER=6,MOVE=1100,HOLD=500; // a move under JITTER px is ignored; a Show me glide takes MOVE ms each way
+  let ms=300,comeBack='any',maxY=0,nearTop=112,lastY=0,away=false,ticking=false;
+  let runFrame=0,runTimers=[],runFrom=0;
+
+  // The visitor pressed, typed, scrolled or touched inside the stage: a Show me run under way stops where it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  // Layout is read here, never in the scroll handler: at the start, after the site font loads and on resize.
+  function measure(){maxY=Math.max(0,scroller.scrollHeight-scroller.clientHeight);nearTop=bar.offsetHeight*2}
+  function setAway(on){if(on===away)return;away=on;bar.classList.toggle('away',on)}
+
+  // Once per frame: near the top the bar always shows; below that, a move down hides it and a move up brings it back
+  // (with "Only near the top", only the top does). lastY changes only on a move past JITTER, so a slow scroll still adds up.
+  // The position is clamped, so the rubber-band bounce at either end of a touch scroll does not count as a move.
+  function update(){
+    ticking=false;
+    const y=Math.min(Math.max(scroller.scrollTop,0),maxY);
+    if(y<=nearTop){setAway(false);lastY=y;return}
+    const dy=y-lastY;
+    if(Math.abs(dy)<JITTER)return;
+    if(dy>0)setAway(true);
+    else if(comeBack==='any')setAway(false);
+    lastY=y;
+  }
+  scroller.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(update)}},{passive:true});
+
+  // Slow motion makes the slide and Show me's glides three times longer (not the hold between them)
+  function slow(){return slowTog.checked?3:1}
+  function applySpeed(){vars.setProperty('--dur',ms*slow()+'ms')}
+  slowTog.addEventListener('change',applySpeed);
+  // The shared script switches Slow motion off without a change event when reduced motion turns on: read it again after it
+  motionMQ.addEventListener('change',()=>setTimeout(applySpeed,0));
+
+  // Show me: one run, every timer and frame of it kept so stopRun() ends it at once
+  function running(){return runFrame!==0||runTimers.length>0}
+  function stopRun(){cancelAnimationFrame(runFrame);runFrame=0;runTimers.forEach(clearTimeout);runTimers=[]}
+  function later(fn,wait){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},wait);runTimers.push(id)}
+  const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  // Scrolls the page to `to` over `time` ms; the position on each frame comes from the time since the start
+  function glide(to,time,done){
+    const from=scroller.scrollTop;let start=null;
+    function step(now){
+      if(start===null)start=now;
+      const t=Math.min((now-start)/time,1);
+      scroller.scrollTop=from+(to-from)*ease(t);
+      runFrame=t<1?requestAnimationFrame(step):0;
+      if(t>=1&&done)done();
+    }
+    runFrame=requestAnimationFrame(step);
+  }
+  // The page glides down one and a half boxes (up instead when there is no room below), holds, and glides back to where it
+  // began. Under reduced motion it jumps instead: down, halfway back (where only "On any scroll up" brings the bar back), home.
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    const again=running(); // pressed during a run: it begins again from the same place
+    stopRun();measure();
+    const from=again?runFrom:scroller.scrollTop,span=Math.round(scroller.clientHeight*1.5);
+    const far=from+span<=maxY?from+span:Math.max(0,from-span);
+    runFrom=from;
+    if(motionMQ.matches){
+      scroller.scrollTop=far;
+      later(()=>{scroller.scrollTop=Math.round((from+far)/2)},1000);
+      later(()=>{scroller.scrollTop=from},2000);
+      return;
+    }
+    glide(far,MOVE*slow(),()=>later(()=>glide(from,MOVE*slow()),HOLD));
+  });
+  // Reset: back to the top with the bar in place, at once
+  document.getElementById('btn-reset').addEventListener('click',()=>{
+    stopRun();
+    bar.classList.add('snap');
+    scroller.scrollTop=0;lastY=0;setAway(false);
+    void bar.offsetWidth;
+    bar.classList.remove('snap');
+  });
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{ms=+d.ms;applySpeed()});
+  choices('back-seg',d=>{comeBack=d.back});
+  shrinkTog.addEventListener('change',()=>stage.classList.toggle('shrink',shrinkTog.checked));
+
+  window.addEventListener('resize',measure);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+  measure();applySpeed();
+</script>
+</body>
+</html>

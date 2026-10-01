@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Split-Flap Board — Animation Handbook</title>
+  <meta name="description" content="Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/split-flap-board/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Split-Flap Board — Animation Handbook">
+  <meta property="og:description" content="Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/split-flap-board/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Split-Flap Board — Animation Handbook">
+  <meta name="twitter:description" content="Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Split-Flap Board", "name": "Split-Flap Board", "description": "Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/split-flap-board/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Split-Flap Board"}</script>
+  <style>
+    :root{--ui-accent:#ff6f8b;--tile:#1c1d22;--ink:#f4f4f2}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d;container-type:inline-size}
+    /* The tiles share the stage's width (100cqw), up to 68px each */
+    .board{--gap:clamp(4px,1.2cqw,8px);--pad:clamp(12px,3cqw,26px);--tw:min(68px,calc((100cqw - 2 * var(--pad) - (var(--n,8) - 1) * var(--gap)) / var(--n,8)));
+      display:flex;flex-direction:column;gap:clamp(10px,2cqw,16px);padding:var(--pad);border-radius:14px;background:#141519;border:1px solid rgba(255,255,255,.08)}
+    .board-top{display:flex;align-items:center;gap:8px;font-size:clamp(12px,1.6cqw,14px);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#f2c94c}
+    .lamp{width:8px;height:8px;border-radius:50%;background:#5fd88a}
+    .row{display:flex;gap:var(--gap)}
+    /* A tile: two still halves, and two flaps that turn on the hinge in the middle */
+    .tile{position:relative;flex:none;width:var(--tw);height:calc(var(--tw) * 1.4);perspective:calc(var(--tw) * 5);
+      font-size:calc(var(--tw) * .78);font-weight:700;line-height:1;color:var(--ink)}
+    .half,.flap{position:absolute;left:0;right:0;height:50%;overflow:hidden;background-color:var(--tile)}
+    .up{top:0;border-radius:calc(var(--tw) * .1) calc(var(--tw) * .1) 0 0;background-image:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,0))}
+    .down{bottom:0;border-radius:0 0 calc(var(--tw) * .1) calc(var(--tw) * .1);background-image:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.14))}
+    /* Each half holds the whole letter, as tall as the tile, so it shows the top or the bottom of it */
+    .half b,.flap b{position:absolute;left:0;right:0;height:200%;display:flex;align-items:center;justify-content:center}
+    .up b{top:0}
+    .down b{bottom:0}
+    .flap{z-index:1;visibility:hidden;backface-visibility:hidden}
+    .flap.up{transform-origin:50% 100%}
+    .flap.down{transform-origin:50% 0}
+    .flap i{position:absolute;inset:0;background:#000;opacity:0}
+    .tile::after{content:'';position:absolute;z-index:2;left:0;right:0;top:calc(50% - 1px);height:2px;background:rgba(0,0,0,.55)}
+    .row.clearing .half b{opacity:0;transition:opacity .3s linear}
+    .row.pre .half b{opacity:0;transition:none!important}
+    /* Reduced motion: no flipping; each letter fades in, tile after tile */
+    @media(prefers-reduced-motion:reduce){.half b{transition:opacity .4s linear calc(var(--i,0) * 60ms)}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="once" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../highlighter-sweep/" rel="prev" aria-label="Previous: Highlighter Sweep"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Highlighter Sweep</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">05.16 · Text &amp; Typography</p>
+    <h1>Split-Flap Board</h1>
+    <p class="hb-lede">Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="board">
+        <p class="board-top" aria-hidden="true"><span class="lamp"></span>Departures</p>
+        <div class="row" id="row" role="img" aria-label="BOARDING"></div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and the animation plays again.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <label class="hb-setting-name" for="word-in">Word</label>
+        <input class="hb-text" type="text" id="word-in" value="BOARDING" maxlength="10" autocomplete="off" spellcheck="false" autocapitalize="characters">
+        <p class="hb-hint">Up to 10 letters, A to Z. A space leaves a blank tile.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Flip speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="150" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="85" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="45" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long each tile takes to turn one letter.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Tile color</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="Black" data-c="#1c1d22" data-ink="#f4f4f2" style="background:#1c1d22"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-c="#1d3a6e" data-ink="#f4f4f2" style="background:#1d3a6e"></button>
+          <button type="button" aria-pressed="false" aria-label="Red" data-c="#8a1d27" data-ink="#f4f4f2" style="background:#8a1d27"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#134c39" data-ink="#f4f4f2" style="background:#134c39"></button>
+          <button type="button" aria-pressed="false" aria-label="Cream" data-c="#ece5d3" data-ink="#1d1d22" style="background:#ece5d3"></button>
+        </div>
+        <p class="hb-hint">Cream tiles get dark letters.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a split-flap board to [your headline or short word]. Show each letter on its own tile, split across the middle like an old airport departures board. To change a tile, flip it through the alphabet one letter at a time until it reaches its letter: the top half of the old letter falls forward over the hinge, turning in 3D and darkening as it turns, and the bottom half of the next letter swings down into place. Start the tiles a moment apart from left to right, so they settle one by one. Turn the halves with transforms only, and let screen readers hear the final word once. If the visitor has reduced motion turned on, fade the letters in instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero titles</li><li>Travel sites</li><li>Event intros</li><li>Retro designs</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Calm pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const row=document.getElementById('row'),wordIn=document.getElementById('word-in');
+  const vars=document.documentElement.style;
+  const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
+  const motionOk=()=>!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const DRUM=' ABCDEFGHIJKLMNOPQRSTUVWXYZ',STAGGER=40; // the letters a tile turns through, in order; each tile starts 40ms after the one on its left
+  let ms=85,flipMs=85,tiles=[],raf=0,clock=0,lastT=null,timers=[]; // ms: the setting; flipMs: the flip time of the play under way
+
+  // The field only ever holds what the board can show (capitals, A to Z, single spaces), so the board, the field and the
+  // "Word" chip always agree. Cleaned as the visitor types, before the shared script reads it; the caret stays in place.
+  // A phone keyboard that is still composing a word is left alone until it is done.
+  const clean=s=>s.toUpperCase().replace(/[^A-Z ]/g,'').replace(/ {2,}/g,' ');
+  function tidy(){
+    const v=wordIn.value,c=clean(v);
+    if(c===v)return false;
+    const at=clean(v.slice(0,wordIn.selectionStart)).length;
+    wordIn.value=c;wordIn.setSelectionRange(at,at);
+    return true;
+  }
+  wordIn.addEventListener('input',e=>{if(!e.isComposing)tidy()});
+  wordIn.addEventListener('compositionend',()=>{if(tidy())wordIn.dispatchEvent(new Event('input',{bubbles:true}))});
+  // A field left empty gets the default word back, and the input event updates the chip and plays it again
+  wordIn.addEventListener('blur',()=>{
+    if(wordIn.value.trim())return;
+    wordIn.value='BOARDING';
+    wordIn.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  function word(){return clean(wordIn.value).trim()||'BOARDING'}
+  // One tile per letter. Each tile keeps its run of letters, from a blank to its own letter, and the flip it is on (k).
+  function build(text){
+    row.textContent='';
+    row.parentNode.style.setProperty('--n',text.length);
+    row.setAttribute('aria-label',text.trim());
+    tiles=[...text].map((ch,i)=>{
+      const el=document.createElement('div');
+      el.className='tile';el.setAttribute('aria-hidden','true');el.style.setProperty('--i',i);
+      el.innerHTML='<div class="half up"><b></b></div><div class="half down"><b></b></div><div class="flap up"><b></b><i></i></div><div class="flap down"><b></b><i></i></div>';
+      row.appendChild(el);
+      const [u,d,f1,f2]=el.children;
+      return {u:u.firstChild,d:d.firstChild,f1,f2,f1b:f1.firstChild,f2b:f2.firstChild,s1:f1.lastChild,s2:f2.lastChild,seq:DRUM.slice(0,DRUM.indexOf(ch)+1),k:-1};
+    });
+  }
+  function rest(t,ch){t.u.textContent=t.d.textContent=ch;t.f1.style.visibility=t.f2.style.visibility='hidden'}
+  function turn(flap,shade,deg){flap.style.visibility='visible';flap.style.transform='rotateX('+deg.toFixed(2)+'deg)';shade.style.opacity=(Math.abs(deg)/180).toFixed(3)}
+
+  // Every frame works out, from the time played, which flip each tile is on and how far through it. During a flip from
+  // cur to nxt the still top half already shows nxt and the still bottom half still shows cur; cur's top half falls from
+  // upright to edge-on (speeding up), then nxt's bottom half swings from edge-on down into place (slowing down).
+  // The clock moves by the time since the last frame (at most 50ms, so a hidden tab does not jump), a third as fast in
+  // Slow motion.
+  function frame(ts){
+    const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
+    clock+=dt*(slowTog.checked?1/3:1);
+    let busy=false;
+    tiles.forEach((t,i)=>{
+      const flips=t.seq.length-1,local=clock-i*STAGGER;
+      if(local<0){busy=true;return}
+      const k=Math.floor(local/flipMs);
+      if(k>=flips){if(t.k!=='done'){t.k='done';rest(t,t.seq[flips])}return}
+      busy=true;
+      if(t.k!==k){t.k=k;const cur=t.seq[k],nxt=t.seq[k+1];t.u.textContent=t.f2b.textContent=nxt;t.d.textContent=t.f1b.textContent=cur}
+      const p=local/flipMs-k;
+      if(p<.5){const q=p*2;turn(t.f1,t.s1,-90*q*q);t.f2.style.visibility='hidden'}
+      else{const q=(p-.5)*2;t.f1.style.visibility='hidden';turn(t.f2,t.s2,90*(1-q)*(1-q))}
+    });
+    raf=busy?requestAnimationFrame(frame):0;
+    if(!busy)finished();
+  }
+  function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // While Loop is on, the word holds 1800ms, the letters fade away and the board flips again from blank
+  function finished(){
+    if(!loopTog.checked||!motionOk())return;
+    later(()=>{
+      if(!loopTog.checked)return;
+      row.classList.add('clearing');
+      later(cycle,400);
+    },1800);
+  }
+  // Every play starts from blank tiles. Under reduced motion the letters fade in instead of flipping. The flip time is read
+  // here, once per play: a Flip speed pressed mid-run applies from the next play, so no tile jumps or flips again.
+  function cycle(){
+    cancelAnimationFrame(raf);raf=0;
+    flipMs=ms;
+    build(word());
+    row.classList.remove('clearing');
+    if(!motionOk()){
+      tiles.forEach(t=>rest(t,t.seq[t.seq.length-1]));
+      row.classList.add('pre');void row.offsetWidth;row.classList.remove('pre');
+      return;
+    }
+    tiles.forEach(t=>rest(t,' '));
+    clock=0;lastT=null;raf=requestAnimationFrame(frame);
+  }
+  function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+  document.addEventListener('visibilitychange',()=>{lastT=null});
+
+  document.getElementById('btn-play').addEventListener('click',play);
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('speed-seg',d=>{ms=+d.ms});
+  choices('color-sw',d=>{vars.setProperty('--tile',d.c);vars.setProperty('--ink',d.ink)});
+  build(word());tiles.forEach(t=>rest(t,' '));
+</script>
+</body>
+</html>

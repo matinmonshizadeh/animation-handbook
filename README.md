@@ -68,6 +68,7 @@ All 129 techniques, each linked to its live demo.
 - **[SVG Line Draw on Scroll](animations/01-scroll-based/svg-line-draw/)** — A line draws itself along a route as you scroll. Best for timelines.
 - **[Scrollspy Navigation](animations/01-scroll-based/scrollspy-nav/)** — A menu highlights the section you are reading. Best for long docs.
 - **[Scroll-Driven Background Color](animations/01-scroll-based/scroll-background-color/)** — The background color changes as you scroll through sections. Best for stories.
+- **[Hide-on-Scroll Header](animations/01-scroll-based/hide-on-scroll-header/)** — The top bar slides away as you scroll down and comes back as you scroll up. Best for mobile pages.
 
 </details>
 
@@ -180,6 +181,8 @@ All 129 techniques, each linked to its live demo.
 - **[Glitch Text](animations/05-text-typography/glitch-text/)** — Text tears into red and cyan strips like a broken signal. Best for bold titles.
 - **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text travels along a wave, an arc or a circle. Best for badges and seals.
 - **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
+- **[Highlighter Sweep](animations/05-text-typography/highlighter-sweep/)** — A marker sweeps in behind the key words, one after another. Best for key points.
+- **[Split-Flap Board](animations/05-text-typography/split-flap-board/)** — Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.
 
 </details>
 
