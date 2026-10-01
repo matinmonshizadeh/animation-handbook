@@ -168,9 +168,8 @@ function steer(b,dx,dy,vmax,F,w){
   if(l>F){x*=F/l;y*=F/l;}
   acc.x+=x*w;acc.y+=y*w;
 }
-// One move of the flock, k 60 Hz frames long. Each bird looks only at the birds within R in front of and beside it (not
-// right behind) and follows the three rules: keep apart (from those within sep), match their direction, and stay close
-// (to their middle). Inside the margin M it turns back, the harder the closer it is to the edge.
+// One move, k 60 Hz frames long. Each bird heeds only the birds within R, not right behind it: it keeps apart (from those within
+// sep), matches their direction and stays close (to their middle). Inside the margin M it turns back, harder nearer the edge.
 function step(k){
   const R=50*S,SEP=RULES.sep*S,vmax=SPD*S,vmin=vmax*.55,F=.045*SPD*S,M=70*S,E=F*2.4/M,RF=90*S;
   for(const b of birds){
@@ -195,8 +194,7 @@ function step(k){
   }
 }
 
-// A bird is an arrowhead pointing where it flies, added to the current path
-function birdPath(b,L,w){
+function birdPath(b,L,w){ // an arrowhead pointing where the bird flies, added to the current path
   const sp=Math.hypot(b.vx,b.vy)||1,ux=b.vx/sp,uy=b.vy/sp;
   ctx.moveTo(b.x+ux*L,b.y+uy*L);
   ctx.lineTo(b.x-ux*L*.75-uy*w,b.y-uy*L*.75+ux*w);
@@ -231,9 +229,8 @@ function recount(){
   if(paused)draw();
 }
 
-// loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
-// 16 ms. A move stands for the time since the last frame in 60 Hz frames (a third of it in slow motion), never more than
-// 50 ms, so a background tab does not leap; the first frame after a start has nothing to measure from and moves nothing.
+// loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per 16 ms
+// flies the time since the last one (at most 50 ms, a third in slow motion); a first frame after a start only takes the time.
 function loop(ts){
   raf=requestAnimationFrame(loop);
   if(lastT!==null&&ts-lastT<16)return;
@@ -242,12 +239,11 @@ function loop(ts){
   if(dt)advance(dt/FRAME*(slowTog.checked?1/3:1));
   draw();
 }
-// A long frame is flown as equal moves of at most one 60 Hz frame each, so a bird turns no harder in one move on a 30 Hz screen
+// A long frame is flown as equal moves of at most 1.05 of a 60 Hz frame, so a bird turns no harder in one move on a 30 Hz screen
 function advance(k){const n=Math.max(1,Math.ceil(k-.05));for(let i=0;i<n;i++)step(k/n);}
 function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
 
-// Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
-// loop on arrival, which this listener must catch. The birds on screen stay where they are while paused.
+// At the top level, before the deferred shared script runs: under reduced motion it pauses the loop on arrival. Paused birds stay put.
 document.addEventListener('hb:pause',e=>{
   paused=e.detail.paused;
   if(paused){cancelAnimationFrame(raf);raf=null;}
@@ -256,9 +252,8 @@ document.addEventListener('hb:pause',e=>{
 // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame moves nothing
 document.addEventListener('visibilitychange',()=>{lastT=null;});
 
-// Setting the canvas size wipes it, so a real change of the stage's size draws the flock again at once, playing or paused:
-// the first one starts the flock, later ones stretch it to the new size. A resize that leaves the stage as it was (a phone's
-// address bar sliding in or out) does nothing.
+// Setting the canvas size wipes it, so a real change of the stage's size draws the flock again at once: the first starts the flock,
+// later ones stretch it. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
 function resize(){
   const w=stage.clientWidth,h=stage.clientHeight;
   if(w===W&&h===H)return;
