@@ -27,7 +27,7 @@ w.pos=k<1?w.from+(w.to-w.from)*(1-Math.pow(1-k,3)):w.to;
 draw(w);
 ```
 
-Because a roll starts from the drawn position, and a wheel that is still rolling turns toward its new digit at once (it waits for no stagger), a click that comes before the last roll has ended carries on smoothly instead of jumping or pausing. The rolling digits are hidden from screen readers; a polite live region holds the plain number ("2,049"), so it is read once per change rather than as a string of digits; when the visitor stops a Show me run partway, it is given the number left on the stage. Under reduced motion the strip jumps to the new digit and the wheel fades in with a short CSS animation.
+Because a roll starts from the drawn position, and a wheel that is still rolling turns toward its new digit at once (it waits for no stagger), a click that comes before the last roll has ended carries on smoothly instead of jumping or pausing. The rolling digits are hidden from screen readers; a polite live region holds the plain number ("2,049"), so it is read once per change rather than as a string of digits; when the visitor stops a Show me run partway, it is given the number left on the stage, unless the press that stopped it was on −1, +1 or Random, which give their own number. Under reduced motion the strip jumps to the new digit and the wheel fades in with a short CSS animation.
 
 ## Key parameters
 | Parameter | Default | Effect |

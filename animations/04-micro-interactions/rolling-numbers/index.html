@@ -213,24 +213,28 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
-  // A run stopped partway leaves its number on the stage, so screen readers are given that number too.
-  function stopRun(){if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];valueEl.textContent=value.toLocaleString('en-US')}
+  // A run stopped partway leaves its number on the stage, so screen readers are given that number too (say), unless the press that
+  // stopped it is on −1, +1 or Random, whose own number follows. This listener is added before the shared script's, so it runs first.
+  function stopRun(say){if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];if(say)valueEl.textContent=value.toLocaleString('en-US')}
+  let onButton=false;
+  ['pointerdown','keydown','click','wheel','touchstart'].forEach(t=>document.querySelector('.stage').addEventListener(t,e=>{
+    onButton=!!e.target.closest('.btn')&&(t==='pointerdown'||t==='click'||e.key==='Enter'||e.key===' ')},true));
   // The number goes up by one, then jumps to a number whose every digit is different, then rolls back to where it started. Each
-  // step waits for the roll before it (one or two digits, then all four), so the run ends within four seconds at any Roll speed.
-  // It says nothing aloud.
+  // step waits for the roll before it (one or two digits, then all four); the holds grow when the rolls are short, so the run lasts
+  // two to four seconds at any Roll speed. It says nothing aloud.
   $('btn-demo').addEventListener('click',()=>{
-    stopRun();
+    stopRun(true);
     const v=value,d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
     if(!far[0])far[0]=1;
-    const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger;
+    const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger,pad=Math.max(0,2100-(dur+stagger+2*roll+700));
     if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>show(v,true),0,1800);return}
     later(()=>show(v+1,true),0,150);
-    later(()=>show(+far.join(''),true),dur+stagger,350);
-    later(()=>show(v,true),dur+stagger+roll,700);
+    later(()=>show(+far.join(''),true),dur+stagger,350+pad/2);
+    later(()=>show(v,true),dur+stagger+roll,700+pad);
   });
-  $('btn-reset').addEventListener('click',()=>{stopRun();show(START)});
+  $('btn-reset').addEventListener('click',()=>{stopRun(false);show(START)});
   // The visitor pressed, typed or touched inside the stage: the run stops and the number stays as it is.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running())stopRun(!onButton)});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
