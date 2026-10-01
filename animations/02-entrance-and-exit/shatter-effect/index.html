@@ -35,9 +35,9 @@
     .cap{padding:2.2cqh .6cqh 2.8cqh}
     .cap b{display:block;font-size:max(15px,4.6cqh);font-weight:800;line-height:1.15;letter-spacing:-.01em}
     .cap span{display:block;margin-top:.5cqh;font-size:max(12px,3.1cqh);color:var(--card-dim)}
-    /* The cracks: a dark line under a light one, so they show on the picture and on the caption */
+    /* The cracks: a soft dark line under a light one, seen on picture and caption; the pieces carry the same lines, so nothing changes at the break */
     .cracks{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none}
-    .cracks path{fill:none;stroke-linecap:round;stroke-linejoin:round}.cracks .dk{stroke:rgba(6,8,16,.6);stroke-width:2.8}.cracks .lt{stroke:rgba(255,255,255,.9);stroke-width:1.2}
+    .cracks path{fill:none;stroke-linecap:round;stroke-linejoin:round}.cracks .dk{stroke:rgba(6,8,16,.36);stroke-width:3.6}.cracks .lt{stroke:rgba(255,255,255,.85);stroke-width:1.8}
     .flash{position:absolute;z-index:3;width:34cqh;aspect-ratio:1;margin:-17cqh 0 0 -17cqh;border-radius:50%;opacity:0;pointer-events:none;
       background:radial-gradient(closest-side,#fff,rgba(255,255,255,.55) 35%,rgba(255,255,255,0))}
     /* A piece is a box around its polygon, holding a copy of the whole card clipped to that polygon. The pieces wait under
@@ -45,8 +45,6 @@
     .shards{position:absolute;z-index:1;inset:0;perspective:900px;pointer-events:none}
     .shard{position:absolute;contain:layout paint;will-change:transform,opacity}
     .shard .card{position:absolute;box-shadow:none}
-    /* On a flying piece the crack is one soft light edge: a thin two-tone line breaks up into a sawtooth once the piece tilts */
-    .shard .cracks .dk{display:none}.shard .cracks .lt{stroke:rgba(255,255,255,.75);stroke-width:2.6}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -188,12 +186,12 @@
   const CUTS={few:[3,2],medium:[6,3],many:[11,4]},RINGS={2:[.45,1],3:[.24,.56,1],4:[.15,.36,.64,1]};
   // One flight, in card heights: how far the pieces burst outward, how high they are thrown and how far gravity pulls them
   const PULL={none:[1.1,0,0],normal:[.75,.6,2.3],heavy:[.55,.3,4.4]};
-  let pieces='medium',from='center',gravity='normal',ms=1100,cur=0,timers=[];
-  const later=(fn,wait)=>timers.push(setTimeout(fn,wait)),slow=v=>slowTog.checked?v*3:v,rnd=(a,b)=>a+Math.random()*(b-a);
+  let pieces='medium',from='center',gravity='normal',ms=1100,cur=0,held=0;
+  const slow=v=>slowTog.checked?v*3:v,rnd=(a,b)=>a+Math.random()*(b-a),P=v=>v[0].toFixed(1)+' '+v[1].toFixed(1);
 
-  // Cuts a W×H card like glass hit at one point: rays run from the point to the edge (through the four corners, so the outer
-  // pieces end exactly on the edge, and spread evenly in between), rings cross them, and each crack from one ring to the next
-  // bends once. A piece lies between two rays and two rings; neighbors share corners and bends, so the pieces tile the card.
+  // Cuts a W×H card like glass hit at one point: rays run to the edge (through the four corners, so outer pieces end exactly
+  // on it, and evenly between), rings cross them, and each crack between rings bends once, at most a third of the way to the
+  // nearest other crack (no piece folds over itself). A piece lies between two rays and two rings; neighbors share corners.
   function cut(W,H){
     const TAU=2*Math.PI,p=from==='center'?[W*rnd(.45,.55),H*rnd(.36,.46)]:[W*.15,H*.13];
     const extra=pieces==='many'&&phone.matches?8:CUTS[pieces][0],f=RINGS[CUTS[pieces][1]];
@@ -202,16 +200,18 @@
       return [c,...[...Array(m)].map((_,j)=>c+span*(j+1+rnd(-.3,.3))/(m+1))]});
     const edge=a=>{const c=Math.cos(a),s=Math.sin(a);return Math.min(c>1e-9?(W-p[0])/c:c<-1e-9?-p[0]/c:1e9,s>1e-9?(H-p[1])/s:s<-1e-9?-p[1]/s:1e9)};
     const grid=[rays.map(()=>p),...f.map((k,i)=>rays.map(a=>{const r=edge(a)*(i<f.length-1?k*rnd(.88,1.12):1);return [p[0]+Math.cos(a)*r,p[1]+Math.sin(a)*r]}))];
-    const bends=grid.slice(1).map((ring,i)=>ring.map((b,k)=>{const a=grid[i][k],t=rnd(.4,.6),j=rnd(-.08,.08);
-      return [a[0]+(b[0]-a[0])*t-(b[1]-a[1])*j,a[1]+(b[1]-a[1])*t+(b[0]-a[0])*j]}));
+    const off=(m,b,c)=>{const x=c[0]-b[0],y=c[1]-b[1],l=Math.hypot(x,y);return l?Math.abs(x*(m[1]-b[1])-y*(m[0]-b[0]))/l:1e9}; // m to line bc
+    const bends=grid.slice(1).map((ring,i)=>ring.map((b,k)=>{const a=grid[i][k],t=rnd(.4,.6),m=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],N=ring.length;
+      const room=Math.min(...[p,b,a].flatMap((o,s)=>[k+1,k+N-1].map(n=>off(m,o,(s<2?ring:grid[i])[n%N])))); // neighbor rays, ring chords
+      const j=rnd(-1,1)*Math.min(.08,room/3/(Math.hypot(b[0]-a[0],b[1]-a[1])||1));return [m[0]-(b[1]-a[1])*j,m[1]+(b[0]-a[0])*j]}));
     const polys=[];
-    for(let i=0;i<f.length;i++)rays.forEach((_,k)=>{const n=(k+1)%rays.length;
-      polys.push([grid[i][k],bends[i][k],grid[i+1][k],grid[i+1][n],bends[i][n]].concat(i?[grid[i][n]]:[]))});
+    for(let i=0;i<f.length;i++)rays.forEach((_,k)=>{const n=(k+1)%rays.length,q=[grid[i][k],bends[i][k],grid[i+1][k],grid[i+1][n],bends[i][n]].concat(i?[grid[i][n]]:[]);
+      q.edge=i===f.length-1;polys.push(q)}); // edge: the stretch from its third to its fourth corner is the card's own border
     return {p,grid,bends,polys};
   }
   // The cracks, ring by ring from the break outward (the card's own edge is not a crack)
   function crackLines(card,{grid,bends},crack){
-    const svg=card.querySelector('.cracks'),P=v=>v[0].toFixed(1)+' '+v[1].toFixed(1);
+    const svg=card.querySelector('.cracks');
     svg.setAttribute('viewBox','0 0 '+card.offsetWidth+' '+card.offsetHeight);
     svg.innerHTML=bends.map((ring,i)=>{
       const d=ring.map((v,k)=>'M'+P(grid[i][k])+'L'+P(v)+'L'+P(grid[i+1][k])).join('')+(i<bends.length-1?'M'+grid[i+1].map(P).join('L')+'Z':'');
@@ -220,23 +220,23 @@
     [...svg.children].forEach((g,i)=>g.animate([{opacity:0},{opacity:1}],{duration:crack*.3,delay:crack*.14*i,fill:'backwards'}));
   }
   // Every piece is a box around its polygon holding a copy of the whole card, clipped to the polygon (grown by 0.7px so
-  // neighbors overlap and no seam shows). Its flight is sampled into keyframes: a burst away from the break that slows
+  // neighbors overlap and no seam shows), with only its own cracks drawn. Its flight is sampled into keyframes: a burst that slows
   // down, an upward throw and the pull of gravity; it turns all the way and fades over the second half. It starts at the
   // break (start), and nearer pieces go first.
   function shatter(card,{p,polys},start){
     const W=card.offsetWidth,H=card.offsetHeight,X=card.offsetLeft,Y=card.offsetTop,T=slow(ms),wave=slow(ms*.16);
-    const [push,lift,grav]=PULL[gravity],tumble=tumbleTog.checked,layer=document.createElement('div');
+    const [push,lift,grav]=PULL[gravity],tumble=tumbleTog.checked,layer=Object.assign(document.createElement('div'),{className:'shards'});
     const mid=polys.map(q=>q.reduce((m,v)=>[m[0]+v[0]/q.length,m[1]+v[1]/q.length],[0,0]));
     const far=Math.max(...mid.map(c=>Math.hypot(c[0]-p[0],c[1]-p[1])));
-    layer.className='shards';
     polys.forEach((q,i)=>{
+      if(phone.matches&&Math.abs(q.reduce((s,v,j)=>s+v[0]*q[(j+1)%q.length][1]-q[(j+1)%q.length][0]*v[1],0))<8)return; // a sliver under 4px² is not worth a layer on a phone
       const c=mid[i],pts=q.map(([x,y])=>{const l=Math.hypot(x-c[0],y-c[1])||1;return [x+(x-c[0])/l*.7,y+(y-c[1])/l*.7]});
       const xs=pts.map(v=>v[0]),ys=pts.map(v=>v[1]),bx=Math.floor(Math.min(...xs)),by=Math.floor(Math.min(...ys));
-      const el=document.createElement('div'),copy=card.cloneNode(true);
-      el.className='shard';
+      const el=Object.assign(document.createElement('div'),{className:'shard'}),copy=card.cloneNode(true),o=q.edge?[...q.slice(3),...q.slice(0,3)]:q;
       el.style.cssText='left:'+(X+bx)+'px;top:'+(Y+by)+'px;width:'+(Math.ceil(Math.max(...xs))-bx)+'px;height:'+(Math.ceil(Math.max(...ys))-by)+'px;'+
         'transform-origin:'+(c[0]-bx)+'px '+(c[1]-by)+'px;clip-path:polygon('+pts.map(([x,y])=>(x-bx).toFixed(1)+'px '+(y-by).toFixed(1)+'px')+')';
       copy.style.cssText='left:'+(-bx)+'px;top:'+(-by)+'px;width:'+W+'px;height:'+H+'px';
+      if(start)copy.querySelector('.cracks').innerHTML=['dk','lt'].map(cls=>'<path class="'+cls+'" d="M'+o.map(P).join('L')+(q.edge?'':'Z')+'"/>').join('');
       el.appendChild(copy);layer.appendChild(el);
       const d=Math.hypot(c[0]-p[0],c[1]-p[1]),a=Math.atan2(c[1]-p[1],c[0]-p[0])+rnd(-.35,.35);
       const v=H*push*rnd(.6,1.15)*(1.2-.45*d/far),vx=Math.cos(a)*v,vy=Math.sin(a)*v-H*lift*rnd(.6,1.2),g=H*grav;
@@ -253,16 +253,15 @@
   }
   // Puts every card back at rest: the pieces, cracks and running animations go, and only the card on show is visible.
   function reset(){
-    timers.forEach(clearTimeout);timers=[];
     deck.getAnimations({subtree:true}).forEach(a=>a.cancel());
     deck.querySelectorAll('.shards').forEach(n=>n.remove());
     cards.forEach((c,i)=>{c.classList.toggle('on',i===cur);c.style.zIndex='';c.querySelector('.cracks').textContent=''});
   }
   // One play: a flash where it is hit, the cracks, then the card breaks and flies apart while the next card fades in behind
-  // the pieces. Under reduced motion the next card fades in over it instead. While Loop is on the next card holds, then
-  // breaks in turn. Slow motion stretches the play, not the hold. Replay or a setting change starts it over.
-  function play(){
-    reset();
+  // the pieces. Under reduced motion the next card fades in over it instead. While Loop is on the next card holds for wait
+  // ms, then breaks in turn. Slow motion stretches the play, not the hold. Replay or a setting change starts it over.
+  function play(wait=0){
+    reset();held=performance.now()+wait;
     const old=cards[cur],next=(cur+1)%cards.length,card=cards[next];
     deck.insertBefore(card,flashEl);card.classList.add('on'); // the next card goes on top of the others
     if(reduce.matches)card.animate([{opacity:0},{opacity:1}],{duration:500});
@@ -271,19 +270,20 @@
       flashEl.style.left=old.offsetLeft+plan.p[0]+'px';flashEl.style.top=old.offsetTop+plan.p[1]+'px';
       flashEl.animate([{opacity:0,transform:'scale(.25)'},{opacity:.85,offset:.18},{opacity:0,transform:'scale(1.5)'}],{duration:Math.max(crack,slow(260)),easing:'ease-out'});
       if(crack){crackLines(old,plan,crack);old.animate([{transform:'none'},{transform:'scale(.97)',offset:.2},{transform:'none'}],{duration:crack*.7,easing:'ease-out'})}
-      // The pieces are built now, before anything moves (the costly part), and wait under the card. The card goes at the
-      // break by an animation too, so it keeps time with the pieces however long the first frame takes.
+      // The pieces are built before anything moves and wait under the card; it goes at the break by an animation, on their clock
       shatter(old,plan,crack);old.style.zIndex=2;
       old.animate([{opacity:0},{opacity:0}],{duration:0,delay:crack,fill:'forwards'});
       card.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],{duration:T*.5,delay:crack+T*.45,easing:'cubic-bezier(.2,.7,.3,1)',fill:'backwards'});
     }
+    // A Loop hold is spent waiting by every animation of the next break, so it is built while nothing moves
+    if(wait)deck.getAnimations({subtree:true}).forEach(a=>a.effect.updateTiming({delay:a.effect.getTiming().delay+wait}));
     // Once all of it has played, the next card is the one on show (a reset in between cancels the play, and this with it)
     Promise.all(deck.getAnimations({subtree:true}).map(a=>a.finished)).then(()=>settle(next),()=>{});
   }
-  function settle(i){cur=i;reset();if(loopTog.checked&&!reduce.matches)later(()=>{if(loopTog.checked)play()},1000)}
+  function settle(i){cur=i;reset();if(loopTog.checked&&!reduce.matches)play(1000)}
 
-  document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  document.getElementById('btn-play').addEventListener('click',()=>play());
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else if(performance.now()<held)reset()}); // off in a hold: no next break
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
