@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hold to Confirm — Animation Handbook</title>
+  <meta name="description" content="Fills up while you hold it and acts only once it is full. Best for delete buttons.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hold-to-confirm/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Hold to Confirm — Animation Handbook">
+  <meta property="og:description" content="Fills up while you hold it and acts only once it is full. Best for delete buttons.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hold-to-confirm/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hold to Confirm — Animation Handbook">
+  <meta name="twitter:description" content="Fills up while you hold it and acts only once it is full. Best for delete buttons.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Hold to Confirm", "name": "Hold to Confirm", "description": "Fills up while you hold it and acts only once it is full. Best for delete buttons.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hold-to-confirm/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Hold to Confirm"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-muted:#9a9aa2;--red:#c43a36;--red-dim:#2a1416;--red-edge:#6b2a2a;--ring:#ff6b63}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .card{width:100%;max-width:320px;display:flex;flex-direction:column;gap:18px;padding:20px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-bg)}
+    .file{display:flex;align-items:center;gap:12px;transition:opacity .3s}
+    .file svg{flex:none;width:40px;height:40px;padding:9px;border-radius:8px;background:#1c1c21;fill:none;stroke:#adadb2;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .name{font-size:15px;font-weight:700}
+    .meta{margin-top:2px;font-size:13px;color:var(--ui-muted)}
+    .card.gone .file{opacity:.35}
+    /* Let go early: the button gives a short shake (on its wrapper, so it never fights the press scale) */
+    .shaker{display:flex;justify-content:center}
+    .shaker.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97)}
+    @keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+    /* Bar: a pill whose fill grows from the left with scaleX. touch-action and the callout rules keep a long press a press. */
+    .hold{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 20px;border:1px solid var(--red-edge);border-radius:999px;background:var(--red-dim);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .12s ease}
+    .hold.down{transform:scale(.97)}
+    /* The fill would cover the site's inward ring, so this button keeps its ring outside (the card leaves room for it) */
+    .hb-page .stage .hold:focus-visible{outline-color:#f4f4f2;outline-offset:3px}
+    .fill{position:absolute;inset:0;background:var(--red);transform:scaleX(0);transform-origin:left center}
+    .dial{position:relative;display:grid;place-items:center;width:20px;height:20px;transition:transform .12s ease}
+    .ic{grid-area:1/1;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s,transform .2s}
+    .words{position:relative;display:grid}
+    .words span{grid-area:1/1;white-space:nowrap;transition:opacity .2s}
+    .w-done{opacity:0}.tick{opacity:0;transform:scale(.5)}
+    .hold.done .trash,.hold.done .w-hold{opacity:0}
+    .hold.done .tick,.hold.done .w-done{opacity:1;transform:none}
+    /* Ring: a round dial beside the words, and a ring around it that fills clockwise from the top */
+    .ring,.ring-mode .fill{display:none}
+    .ring-mode .hold{width:auto;gap:14px;padding:0 8px 0 0;border:0;background:none;overflow:visible}
+    .ring-mode .hold.down{transform:none}
+    .ring-mode .hold.down .dial{transform:scale(.94)}
+    .ring-mode .dial{width:64px;height:64px;border-radius:50%;background:var(--red-dim)}
+    .ring-mode .ring{display:block;position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+    .ring circle{fill:none;stroke-width:4}
+    .ring .rt{stroke:var(--red-edge)}
+    .ring .rf{stroke:var(--ring);stroke-dasharray:1;stroke-dashoffset:1}
+    .tip{font-size:13px;line-height:1.4;color:var(--ui-muted);text-align:center;opacity:0;transition:opacity .2s}
+    .tip.on{opacity:1}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    @media(prefers-reduced-motion:reduce){.file,.hold,.dial,.ic,.words span,.tip{transition:none!important}.shaker.shake{animation:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../pull-to-refresh/" rel="prev" aria-label="Previous: Pull to Refresh"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Pull to Refresh</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.36 · Micro-Interactions</p>
+    <h1>Hold to Confirm</h1>
+    <p class="hb-lede">Fills up while you hold it and acts only once it is full. Best for delete buttons.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Press and hold the button until it fills (or hold Space or Enter on it), or press Show me.</p></div>
+    </div>
+    <div class="stage hb-dots">
+      <div class="card" id="card">
+        <div class="file">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+          <div><p class="name">Old drafts</p><p class="meta">12 files · 48 MB</p></div>
+        </div>
+        <div class="shaker" id="shaker">
+          <button class="hold" id="hold" type="button">
+            <span class="fill" id="fill" aria-hidden="true"></span>
+            <span class="dial" aria-hidden="true">
+              <svg class="ring" viewBox="0 0 64 64"><circle class="rt" cx="32" cy="32" r="30"/><circle class="rf" id="rf" cx="32" cy="32" r="30" pathLength="1"/></svg>
+              <svg class="ic trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <svg class="ic tick" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <span class="words"><span class="w-hold">Hold to delete</span><span class="w-done" aria-hidden="true">Drafts deleted</span></span>
+          </button>
+        </div>
+        <p class="tip" id="tip" aria-hidden="true">Keep holding until it fills</p>
+      </div>
+      <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="time-lbl">How long to hold</p>
+        <div class="seg" id="time-seg" role="group" aria-labelledby="time-lbl">
+          <button type="button" data-ms="800" aria-pressed="false">Short</button>
+          <button type="button" data-ms="1500" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-ms="2500" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How long the button must be held before it acts.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="style-lbl">Fill style</p>
+        <div class="seg" id="style-seg" role="group" aria-labelledby="style-lbl">
+          <button type="button" data-s="bar" class="on" aria-pressed="true">Bar</button>
+          <button type="button" data-s="ring" aria-pressed="false">Ring</button>
+        </div>
+        <p class="hb-hint">A bar fills the button; a ring fills around a round button.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shakes if let go early</span><input class="hb-switch" type="checkbox" role="switch" id="shake-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">A small shake says the hold was too short.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="drain-lbl">How fast it drains</p>
+          <div class="seg" id="drain-seg" role="group" aria-labelledby="drain-lbl">
+            <button type="button" data-ms="400" class="on" aria-pressed="true">Quickly</button>
+            <button type="button" data-ms="1500" aria-pressed="false">Slowly</button>
+          </div>
+          <p class="hb-hint">How the fill runs back out when you let go early.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add hold to confirm to [the button for a risky action, such as Delete]. While the visitor holds it down, a fill grows steadily, and the action runs only once it is full, when a tick shows. If they let go early, the fill drains back, nothing happens and a short hint says to keep holding; when the settings ask for it, the button also shakes. Holding Space or Enter works the same way, and on touch a long press must not open the browser's menu. Grow the fill with a transform by elapsed time, and announce the result to screen readers. If the visitor has reduced motion turned on, fill in a few steps without the shake. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Delete buttons</li><li>Closing an account</li><li>Sending money</li><li>Emergency alerts</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Everyday actions</li><li>Actions with Undo</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const stage=document.querySelector('.stage'),card=$('card'),hold=$('hold'),fill=$('fill'),rf=$('rf'),tip=$('tip'),shaker=$('shaker'),statusEl=$('status'),shakeTog=$('shake-tog');
+  const reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
+  // Everything that eases between two looks; toRest() switches these transitions off for a moment
+  const easing=[hold,tip,card.querySelector('.file'),...hold.querySelectorAll('.dial,.ic,.words span')];
+  let holdMs=1500,drainMs=400,p=0,holding=false,done=false,byVisitor=false,raf=0,lastT=null,doneTimer=0,tipTimer=0,runTimers=[];
+
+  // p is how full it is (0 to 1). Under reduced motion the fill shows it in quarters, so it steps instead of sliding.
+  function draw(){
+    const v=reduceMq.matches?Math.floor(p*4+1e-9)/4:p;
+    fill.style.transform='scaleX('+v+')';
+    rf.style.strokeDashoffset=String(1-v);
+  }
+  // One frame: held, it fills by the time passed over How long to hold; let go, it drains by the time passed over How fast it drains.
+  function frame(ts){
+    const dt=lastT===null?0:Math.min(ts-lastT,50);
+    lastT=ts;
+    if(holding){p=Math.min(1,p+dt/holdMs);if(p>=1)full()}
+    else p=Math.max(0,p-dt/drainMs);
+    draw();
+    raf=holding||(!done&&p>0)?requestAnimationFrame(frame):0;
+  }
+  function run(){if(!raf){lastT=null;raf=requestAnimationFrame(frame)}}
+  document.addEventListener('visibilitychange',()=>{lastT=null});
+
+  // A press starts filling (a confirmed button ignores presses until it is back). byVisitor keeps Show me's run quiet for screen readers.
+  function press(visitor){
+    if(done)return;
+    byVisitor=visitor;holding=true;
+    hold.classList.add('down');
+    clearTimeout(tipTimer);tip.classList.remove('on');statusEl.textContent='';
+    run();
+  }
+  // Letting go before it is full: the fill drains, the hint shows, and the button shakes if Shakes if let go early is on.
+  function release(){
+    if(!holding)return;
+    holding=false;
+    hold.classList.remove('down');
+    if(shakeTog.checked&&!reduceMq.matches){shaker.classList.remove('shake');void shaker.offsetWidth;shaker.classList.add('shake')}
+    tip.classList.add('on');
+    clearTimeout(tipTimer);tipTimer=setTimeout(()=>tip.classList.remove('on'),1600);
+    if(byVisitor)statusEl.textContent='Not deleted. Keep holding until it fills.';
+    run();
+  }
+  shaker.addEventListener('animationend',()=>shaker.classList.remove('shake'));
+  // Full: the press is used up (letting go now changes nothing), the tick shows and the file fades; 1.2 s later it all drains back.
+  function full(){
+    holding=false;done=true;
+    hold.classList.remove('down');hold.classList.add('done');card.classList.add('gone');
+    if(byVisitor)statusEl.textContent='Old drafts deleted.';
+    doneTimer=setTimeout(()=>{done=false;hold.classList.remove('done');card.classList.remove('gone');statusEl.textContent='';run()},1200);
+  }
+
+  hold.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    try{hold.setPointerCapture(e.pointerId)}catch(_){}
+    press(true);
+  });
+  ['pointerup','pointercancel','lostpointercapture','blur'].forEach(t=>hold.addEventListener(t,release));
+  hold.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat)press(true)}});
+  hold.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')release()});
+  hold.addEventListener('contextmenu',e=>e.preventDefault());
+
+  // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run and lets go of its
+  // press without the shake or the hint. This page has no Slow motion: How long to hold already sets the pace.
+  function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);runTimers.push(id)}
+  function running(){return runTimers.length>0}
+  function stopRun(){
+    runTimers.forEach(clearTimeout);runTimers=[];
+    if(holding&&!byVisitor){holding=false;hold.classList.remove('down');run()}
+  }
+  // A run starts from an empty, unconfirmed button, put there without animating: the transitions are turned off, the state is
+  // cleared, a reflow makes it stick, and the transitions come back.
+  function toRest(){
+    cancelAnimationFrame(raf);raf=0;clearTimeout(doneTimer);clearTimeout(tipTimer);
+    holding=done=false;p=0;
+    easing.forEach(el=>{el.style.transition='none'});
+    hold.classList.remove('down','done');card.classList.remove('gone');tip.classList.remove('on');shaker.classList.remove('shake');
+    statusEl.textContent='';draw();
+    void hold.offsetWidth;
+    easing.forEach(el=>{el.style.transition=''});
+  }
+  // A press let go at 30% of How long to hold (the drain, the hint and the shake), then a press held until it is full. At the defaults
+  // the tick shows at 2.7 s and the button is empty again at 4.3 s. The arrival press leaves a visitor's own hold alone.
+  $('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&(holding||done||p>0))return;
+    stopRun();toRest();
+    const early=.3*holdMs;
+    later(()=>press(false),150);
+    later(release,150+early);
+    later(()=>press(false),750+early);
+  });
+  // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. The shared script sends this before the button's
+  // own pointerdown, so a press on the button takes over the fill where it is.
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('time-seg',d=>{holdMs=+d.ms});
+  choices('style-seg',d=>{stage.classList.toggle('ring-mode',d.s==='ring')});
+  choices('drain-seg',d=>{drainMs=+d.ms});
+</script>
+</body>
+</html>
