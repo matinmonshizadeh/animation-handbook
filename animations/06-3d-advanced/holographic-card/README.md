@@ -17,7 +17,9 @@ The card is four layers stacked in one box, each clipped to the card's rounded c
   <div class="ly art">…the picture…</div>
   <div class="ly foil"><div class="sheen"></div></div>
   <div class="ly gl"><div class="spot"></div></div>
-  <div class="ly txt">…the text panels…</div>
+  <div class="ly txt">…the text panels…
+    <div class="spot gloss"></div>   <!-- a faint copy of the glare, over the panels -->
+  </div>
 </div>
 ```
 
