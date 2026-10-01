@@ -37,7 +37,7 @@ d[k + 1] = 128 - 127 * (ny * m + z * Y / hh) / (1 + MAG);                  // gr
 
 The filter shifts a pixel by up to half its `scale`, so How much it bends only changes `scale` (twice the bend times the rim's width, times 1.15 for the pull toward the middle); the map is drawn again only when the panel changes size or shape.
 
-**Which browsers bend.** Chromium-based browsers, such as Chrome, Edge and Opera, draw an SVG filter in `backdrop-filter` (the demo was checked in Chrome and Edge). Safari and Firefox do not draw it, and a feature test cannot tell: `CSS.supports()` checks only that the rule is valid, not that the bend appears. The demo gives the bend to browsers that list Chromium among their brands in `navigator.userAgentData`, which only Chromium-based browsers have, and shows everyone else frosted glass: a blur of the backdrop with the same tint, rim and shadow, and a glow inside the rim that grows with How much it bends.
+**Which browsers bend.** Chromium-based browsers, such as Chrome, Edge and Opera, draw an SVG filter in `backdrop-filter` (the demo was checked in Chrome and Edge). Safari and Firefox do not draw it, and a feature test cannot tell: `CSS.supports()` checks only that the rule is valid, not that the bend appears. The demo gives the bend to browsers that list Chromium among their brands in `navigator.userAgentData`, which only Chromium-based browsers have, and shows everyone else frosted glass: a blur of the backdrop with the same tint, rim and shadow, and a glow inside the rim that grows with How much it bends. There the help line above the stage adds that this browser shows the frosted version. `navigator.userAgentData` exists only on secure pages (https, or localhost), so Chrome opening the page over plain http at a network address gets the frosted glass too.
 
 ```js
 const REFRACT = !!(navigator.userAgentData && navigator.userAgentData.brands.some(b => b.brand === 'Chromium'))
@@ -55,9 +55,9 @@ for (acc += dt * f; acc >= FRAME; acc -= FRAME) {                     // f is 1/
 glass.style.transform = `translate(${x - gw / 2}px, ${y - gh / 2}px) matrix(${1 + a}, ${b}, ${b}, ${1 - a}, 0, 0)`;
 ```
 
-Show me glides along three legs (to the left end, across to the right end and back where it started), each eased in and out and timed by its length, 3.6 s in all. The arrow keys move a target a step at a time (8% of the stage's shorter side, three steps with Shift), and the panel glides toward it by a share of the gap per 1/60 s, the same on any screen.
+Show me glides along three legs (to the left end, across to the right end and back where it started), each eased in and out and timed by its length, 3.6 s in all. When the stage changes size (a resize, or a phone turned sideways), the glass, the end of a glide, every point of a run and the place a held Show me returns to keep their shares of the stage; one that was at the rest place goes to the new rest place. The arrow keys move a target a step at a time (8% of the stage's shorter side, three steps with Shift), and the panel glides toward it by a share of the gap per 1/60 s, the same on any screen.
 
-**Reduced motion.** The panel still follows the pointer or finger while it is dragged, but it never stretches, wobbles or glides: the arrow keys, a tap and Reset move it at once, and Show me puts it at the right end for 1.2 s and back.
+**Reduced motion.** The panel still follows the pointer or finger while it is dragged, but it never stretches, wobbles or glides: the arrow keys, a tap and Reset move it at once, and Show me puts it at the right end for 1.2 s and back. Every frame under reduced motion sets the stretch and its speed to zero, and turning reduced motion on while the glass moves stops a run where it is and ends a glide at its target, so nothing is left stretched or moving.
 
 ## Key parameters
 | Parameter | Default | Effect |
