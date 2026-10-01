@@ -20,6 +20,7 @@ Animations specifically for type — where the letterforms themselves are the co
 | [Glitch Text](glitch-text/) | Text tears into red and cyan strips like a broken signal. Best for bold titles. |
 | [Text on a Path](text-on-path/) | Text travels along a wave, an arc or a circle. Best for badges and seals. |
 | [Wavy Text](wavy-text/) | A wave rolls through the word, letter by letter. Best for playful titles. |
+| [Neon Flicker](neon-flicker/) | Glowing letters sputter now and then, like a worn neon sign. Best for night themes. |
 
 ## Key principles
 

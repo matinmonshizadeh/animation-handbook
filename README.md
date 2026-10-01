@@ -180,6 +180,7 @@ All 129 techniques, each linked to its live demo.
 - **[Glitch Text](animations/05-text-typography/glitch-text/)** — Text tears into red and cyan strips like a broken signal. Best for bold titles.
 - **[Text on a Path](animations/05-text-typography/text-on-path/)** — Text travels along a wave, an arc or a circle. Best for badges and seals.
 - **[Wavy Text](animations/05-text-typography/wavy-text/)** — A wave rolls through the word, letter by letter. Best for playful titles.
+- **[Neon Flicker](animations/05-text-typography/neon-flicker/)** — Glowing letters sputter now and then, like a worn neon sign. Best for night themes.
 
 </details>
 
