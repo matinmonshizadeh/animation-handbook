@@ -1,14 +1,14 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 158 web animation techniques with live demos" width="820"></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 159 web animation techniques with live demos" width="820"></a>
 
 # Animation Handbook
 
-**A visual reference of 158 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
+**A visual reference of 159 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-158-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-159-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
 
 </div>
 
@@ -35,7 +35,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 | # | Category | Count | What's in it |
 |:--:|----------|:-----:|--------------|
 | 01 | [Scroll-Based](#01) | 27 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
-| 02 | [Entrance & Exit](#02) | 13 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
+| 02 | [Entrance & Exit](#02) | 14 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
 | 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
 | 04 | [Micro-Interactions](#04) | 38 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
 | 05 | [Text & Typography](#05) | 18 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
@@ -44,7 +44,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 
 ## Full catalog
 
-All 158 techniques, each linked to its live demo.
+All 159 techniques, each linked to its live demo.
 
 <a id="01"></a>
 
@@ -86,7 +86,7 @@ All 158 techniques, each linked to its live demo.
 
 <a id="02"></a>
 
-### 02 · Entrance & Exit · 13 techniques
+### 02 · Entrance & Exit · 14 techniques
 
 <sub>Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.</sub>
 
@@ -105,6 +105,7 @@ All 158 techniques, each linked to its live demo.
 - **[Flip In](animations/02-entrance-and-exit/flip-in/)** — Swings into view in 3D, like a card turning over. Best for cards and tiles.
 - **[Bounce In](animations/02-entrance-and-exit/bounce-in/)** — Lands with a springy bounce. Best for badges and success messages.
 - **[Rotate In](animations/02-entrance-and-exit/rotate-in/)** — Spins into place while it grows. Best for icons, stars and badges.
+- **[Shatter Effect](animations/02-entrance-and-exit/shatter-effect/)** — Breaks into pieces that fly apart and fade. Best for galleries and bold exits.
 
 </details>
 
