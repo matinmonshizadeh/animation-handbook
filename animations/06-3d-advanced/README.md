@@ -29,6 +29,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Flocking](flocking/) | Birds swirl and turn together as one flock. Best for calm backgrounds. |
 | [ASCII / Halftone](ascii-halftone/) | A moving picture is redrawn with letters or dots. Best for retro and tech looks. |
 | [2D Physics](physics-2d/) | Balls drop where you click, bounce and pile up. Best for playful intros. |
+| [Infinite Zoom](infinite-zoom/) | The view keeps zooming into pictures inside pictures. Best for page intros. |
 
 ## Key concepts
 
