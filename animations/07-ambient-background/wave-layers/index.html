@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wave Layers — Animation Handbook</title>
+  <meta name="description" content="Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/wave-layers/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Wave Layers — Animation Handbook">
+  <meta property="og:description" content="Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/wave-layers/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wave Layers — Animation Handbook">
+  <meta name="twitter:description" content="Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Wave Layers", "name": "Wave Layers", "description": "Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/wave-layers/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Wave Layers"}</script>
+  <style>
+    :root{--ui-accent:#ffce5a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* A size container, so the waves are measured in cqh: hundredths of the stage's height */
+    /* The sky glows lightest at the horizon and every layer is darker than that glow, the near ones darkest, so each
+       layer stands out against the one behind it and against the sky, however many are shown. The sky starts under the
+       stage's see-through border, so the border shows its dark top, not a repeat of its light bottom. */
+    .stage{position:relative;overflow:hidden;container-type:size;--dur:24s;--amp:11cqh;
+      --sky1:#040b16;--sky2:#3f8fb5;--c1:#1f6386;--c2:#164d6c;--c3:#0f3a54;--c4:#08263b;
+      background:linear-gradient(var(--sky1) 20%,var(--sky2) 44%);background-origin:border-box}
+    .stage[data-pal="sunset"]{--sky1:#1a0b2e;--sky2:#f08a5d;--c1:#c04a5e;--c2:#8e2f5a;--c3:#5c1f4f;--c4:#2f1238}
+    .stage[data-pal="night"]{--sky1:#03040b;--sky2:#43539c;--c1:#2a376f;--c2:#1f2856;--c3:#161c3e;--c4:#0d1129}
+    .defs{position:absolute;width:0;height:0}
+    .hero{position:absolute;top:clamp(14px,7cqh,36px);left:0;right:0;z-index:2;padding:0 16px;text-align:center}
+    .hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.72);margin-bottom:6px}
+    .hero-title{font-size:clamp(16px,2.4vw,24px);font-weight:700;line-height:1.25;color:#fff;text-wrap:balance}
+    /* A layer bobs gently up and down; its track, twice the stage's width, slides left by half its width and starts over.
+       Both cycles and the head start (--o, a share of the cycle) follow --dur, so a new speed can keep every wave in place. */
+    .wave{position:absolute;left:0;right:0;top:calc(var(--y) - var(--amp)*var(--k)/2);bottom:-12cqh;
+      animation:bob calc(var(--dur)*var(--s)/4) ease-in-out calc(var(--dur)*var(--s)*var(--o)) infinite alternate}
+    .track{display:flex;flex-direction:column;width:200%;height:100%;
+      animation:drift calc(var(--dur)*var(--s)) linear calc(var(--dur)*var(--s)*var(--o)) infinite}
+    .track svg{display:block;flex:none;width:100%;height:calc(var(--amp)*var(--k));fill:var(--fill)}
+    .track i{flex:1;margin-top:-1px;background:var(--fill)}
+    /* Far layers sit higher, with smaller waves and a slower cycle; near layers are lower, bigger and faster */
+    .w1{--y:42%;--k:.5;--s:1.7;--o:-.15;--fill:var(--c1)}
+    .w2{--y:54%;--k:.65;--s:1.35;--o:-.6;--fill:var(--c2)}
+    .w3{--y:66%;--k:.8;--s:1.1;--o:-.35;--fill:var(--c3)}
+    .w4{--y:80%;--k:1;--s:.9;--o:-.8;--fill:var(--c4)}
+    @keyframes drift{to{transform:translateX(-50%)}}
+    @keyframes bob{from{transform:translateY(-1.2cqh)}to{transform:translateY(1.2cqh)}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../plasma/" rel="prev" aria-label="Previous: Plasma Field"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Plasma Field</span></a><a href="../snow-rain/" rel="next" aria-label="Next: Snow / Rain"><span><span class="hb-dir">Next: </span>Snow / Rain</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.18 · Ambient &amp; Background</p>
+    <h1>Wave Layers</h1>
+    <p class="hb-lede">Layers of waves drift sideways, each at its own speed. Best for hero sections and footers.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="stage">
+      <!-- One path of ten whole waves; each layer's viewBox shows the first ten, eight, six or four of them -->
+      <svg class="defs" aria-hidden="true"><defs><path id="wv" d="M0 0C18 0 32 40 50 40S82 0 100 0S132 40 150 40S182 0 200 0S232 40 250 40S282 0 300 0S332 40 350 40S382 0 400 0S432 40 450 40S482 0 500 0S532 40 550 40S582 0 600 0S632 40 650 40S682 0 700 0S732 40 750 40S782 0 800 0S832 40 850 40S882 0 900 0S932 40 950 40S982 0 1000 0V40H0Z"/></defs></svg>
+      <div class="hero">
+        <p class="hero-eyebrow">Wave layers</p>
+        <p class="hero-title">Near waves move faster than far ones</p>
+      </div>
+      <div class="wave w1" aria-hidden="true"><div class="track"><svg viewBox="0 0 1000 40" preserveAspectRatio="none"><use href="#wv"/></svg><i></i></div></div>
+      <div class="wave w2" aria-hidden="true"><div class="track"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><use href="#wv"/></svg><i></i></div></div>
+      <div class="wave w3" aria-hidden="true"><div class="track"><svg viewBox="0 0 600 40" preserveAspectRatio="none"><use href="#wv"/></svg><i></i></div></div>
+      <div class="wave w4" aria-hidden="true"><div class="track"><svg viewBox="0 0 400 40" preserveAspectRatio="none"><use href="#wv"/></svg><i></i></div></div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-secs="40" aria-pressed="false">Slow</button>
+          <button type="button" data-secs="24" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-secs="14" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">Slow feels like a calm sea.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="pal-lbl">Colors</p>
+        <div class="seg" id="pal-seg" role="group" aria-labelledby="pal-lbl">
+          <button type="button" data-pal="ocean" class="on" aria-pressed="true">Ocean</button>
+          <button type="button" data-pal="sunset" aria-pressed="false">Sunset</button>
+          <button type="button" data-pal="night" aria-pressed="false">Night</button>
+        </div>
+        <p class="hb-hint">Far layers are the palest, near ones the darkest.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="amp-lbl">Wave height</p>
+        <div class="seg" id="amp-seg" role="group" aria-labelledby="amp-lbl">
+          <button type="button" data-amp="6cqh" aria-pressed="false">Low</button>
+          <button type="button" data-amp="11cqh" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-amp="17cqh" aria-pressed="false">High</button>
+        </div>
+        <p class="hb-hint">High waves look like rough water.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="count-lbl">Number of layers</p>
+          <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
+            <button type="button" data-n="2" aria-pressed="false">2</button>
+            <button type="button" data-n="3" aria-pressed="false">3</button>
+            <button type="button" data-n="4" class="on" aria-pressed="true">4</button>
+          </div>
+          <p class="hb-hint">More layers give more depth; the far ones go first.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add layered waves to [the bottom of the section you want them in]. Stack a few strips of water, each one twice as wide as the section with the same wave shape repeated along its top edge: far strips sit higher, paler and with smaller waves, near strips lower, darker and with bigger ones. Slide every strip sideways by half its width, over and over, so the repeated shape hides the restart, and give near strips a quicker pace than far ones so the water feels deep. Move the strips only by shifting them, which keeps it smooth on phones. If the visitor has reduced motion turned on, keep the waves still. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero sections</li><li>Page footers</li><li>Section dividers</li><li>Travel and beach sites</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Dense dashboards</li><li>Long reading pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage');
+  const waves=[...document.querySelectorAll('.wave')];
+  let secs=24;
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // A new --dur keeps the time already played, so every layer would jump to another point of its cycle. Scaling each
+  // animation's time by the same factor as its cycle (and its head start, which follows --dur) keeps it where it is.
+  choices('speed-seg',d=>{
+    const next=+d.secs;
+    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs});
+    secs=next;
+    stage.style.setProperty('--dur',next+'s');
+  });
+  choices('pal-seg',d=>{stage.dataset.pal=d.pal});
+  choices('amp-seg',d=>{stage.style.setProperty('--amp',d.amp)});
+  // Fewer layers hide the far ones first, so the near waves at the bottom always stay
+  choices('count-seg',d=>{waves.forEach((w,i)=>{w.hidden=i<waves.length-d.n})});
+</script>
+</body>
+</html>
