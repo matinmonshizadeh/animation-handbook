@@ -117,6 +117,7 @@ All 129 techniques, each linked to its live demo.
 - **[FLIP Technique](animations/03-page-transitions/flip-technique/)** — Cards glide to their new places when the layout changes. Best for sorting lists.
 - **[Circle Reveal](animations/03-page-transitions/circle-reveal/)** — The next page grows in a circle from the spot you click. Best for app-style navigation.
 - **[Overlay Wipe](animations/03-page-transitions/overlay-wipe/)** — A colored panel sweeps over the page, which changes behind it. Best for portfolio sites.
+- **[Page Curl](animations/03-page-transitions/page-curl/)** — The page peels back from its corner like paper to show the next. Best for digital magazines.
 
 </details>
 

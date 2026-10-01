@@ -18,3 +18,4 @@ Full-page transitions between routes or views — how one screen gives way to th
 - [FLIP Technique](flip-technique/) — Cards glide to their new places when the layout changes. Best for sorting lists.
 - [Circle Reveal](circle-reveal/) — The next page grows in a circle from the spot you click. Best for app-style navigation.
 - [Overlay Wipe](overlay-wipe/) — A colored panel sweeps over the page, which changes behind it. Best for portfolio sites.
+- [Page Curl](page-curl/) — The page peels back from its corner like paper to show the next. Best for digital magazines.
