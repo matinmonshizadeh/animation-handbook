@@ -21,7 +21,7 @@ function draw() {
 }
 ```
 
-The card places and the disc size are measured on load and again whenever the grid changes size (a `ResizeObserver`), so moving the light reads nothing from the layout. The light trails the pointer by closing a share of the gap on each frame, scaled to the time since the last frame, so the lag is the same on 60 Hz and 120 Hz screens:
+The card places and the disc size are measured on load and again whenever the grid changes size (a `ResizeObserver`); on each pointer move the page reads only the grid's own rectangle (`getBoundingClientRect()`), to turn the pointer's position into a spot on the grid. The light trails the pointer by closing a share of the gap on each frame, scaled to the time since the last frame, so the lag is the same on 60 Hz and 120 Hz screens:
 
 ```js
 const a = 1 - Math.pow(1 - ease, dt / FRAME);   // FRAME = 1000 / 60, dt: ms since the last frame
@@ -40,7 +40,7 @@ A mouse lights the grid while it moves over it, and the light fades out (an `opa
 
 ## Production notes
 - **Move layers, do not repaint them**: the common shortcut writes the pointer position into CSS variables used by a `radial-gradient(circle at var(--x) var(--y), …)`, which repaints every card on every pointer move. Moving finished layers with `transform` leaves the work to the compositor.
-- **Measure once**: read the card positions on load and on resize, never in the pointer handler, so moving the pointer forces no layout.
+- **Measure once**: read the card positions on load and on resize, never in the pointer handler, which then reads one rectangle (the grid's) instead of one per card. The page only writes transforms, which never change the layout, so that read stays cheap.
 - **Touch**: touch screens cannot hover, so let a drag move the light (with `touch-action: none` on the grid only, so the page still scrolls around it) or light the card that is tapped.
 - **Keyboard**: when the cards are links, light the card that has keyboard focus as well, so the effect is not pointer-only.
 - **Contrast**: the face light brightens the card behind its text; keep it faint enough that the text stays at 4.5:1 or more.
