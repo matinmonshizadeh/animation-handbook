@@ -42,7 +42,7 @@ When the vertical animation's `finished` promise resolves, the copy is removed, 
 - **Update the cart at once**: add the item to the cart data right away and only delay the visible count, so nothing is lost if the visitor leaves mid-flight, and announce the change to screen readers through a live region.
 - **Many presses**: each press gets its own copy; cancel copies still in the air (`animation.cancel()`) when the cart is emptied or the view changes.
 - **Keep it short**: a flight much longer than a second makes a quick shopper wait for feedback, and on a page where people add dozens of items, a simple count change is kinder.
-- **Reduced motion**: under `prefers-reduced-motion: reduce` nothing flies and the cart does not bump; the new number fades in.
+- **Reduced motion**: under `prefers-reduced-motion: reduce` nothing flies and the cart does not bump; the new number fades in. The button's press is not eased either: a real press switches to the pressed look at once (no transition), and Show me's press only holds that look for a moment.
 - **Libraries**: GSAP's MotionPathPlugin flies an element along a curve (`motionPath: { path: [...], curviness: 1.25 }`), Framer Motion can give `x` and `y` different `ease` values for the same arc, and the CSS `offset-path` property is another way to follow a curve.
 
 ## See also
