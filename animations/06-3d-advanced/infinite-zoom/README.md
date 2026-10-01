@@ -12,11 +12,13 @@ An infinite zoom keeps moving into a picture whose middle holds a smaller pictur
 ## How it works
 **Pictures with a window.** Each picture is drawn over the whole box around a window in its middle: 40% of the box's width and height (`R = 0.4`), so the window has the box's own shape. The next picture is the same full drawing scaled down by `R` about the center of the box, which lands it exactly in that window. In the demo the window is a painting's canvas, a drive-in movie screen, a television's screen, a laptop's screen and a photo; each frame is drawn outside the window, never over it.
 
-**One number for the whole zoom.** `p`, from 0 to 1, says how far the view has zoomed from picture `at` toward the next one. Picture `j`, counted from the outside, is drawn at scale `R^(j - p)`: the outer one a little larger than the box (up to 2.5 times), the next one up to the box's size, the one after that 40% of it, and so on, until a picture would be smaller than 3 pixels. They are drawn from the outside in, and each is clipped to its own rectangle less its window, so no picture paints over another and nothing of a picture spills over the frame around it:
+**One number for the whole zoom.** `p`, from 0 to 1, says how far the view has zoomed from picture `at` toward the next one. Picture `j`, counted from the outside, is drawn at scale `R^(j - p)`: the outer one a little larger than the box (up to 2.5 times), the next one up to the box's size, the one after that 40% of it, and so on, until a picture would be smaller than 3 pixels. They are drawn from the outside in, over a dark fill, and each is clipped to its own rectangle less its window, so no picture paints over another and nothing of a picture spills over the frame around it. The edges between two pictures are soft, half in one and half in the other, so without the fill they would keep a little of the frame before:
 
 ```js
 const R = 0.4;   // each window holds the next picture at 40% of its size
 function render() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);           // the dark fill, over the whole canvas
+  ctx.fillStyle = '#0c0c10'; ctx.fillRect(0, 0, cvs.width, cvs.height);
   const seen = [];
   for (let j = 0; j < 9; j++) {                 // picture j, from the outside in
     const s = Math.pow(R, j - p);

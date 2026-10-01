@@ -47,7 +47,7 @@
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each picture take over.</p></div>
     </div>
     <div class="stage" id="stage">
-      <canvas id="cvs" role="img" aria-label="A painting in a gallery holds a drive-in movie screen, which holds a television, then a laptop, then a photo on a table, each framed inside the one before, as the view keeps zooming in"></canvas>
+      <canvas id="cvs" role="img" aria-label="Framed pictures nested inside each other, each holding the next one, as the view zooms through them without end"></canvas>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
@@ -154,7 +154,8 @@ const lin=(x0,y0,x1,y1,...c)=>grad(ctx.createLinearGradient(x0,y0,x1,y1),c);
 function box(x,y,bw,bh,f,r){ctx.fillStyle=f;ctx.beginPath();if(r&&ctx.roundRect)ctx.roundRect(x,y,bw,bh,r);else ctx.rect(x,y,bw,bh);ctx.fill();}
 function oval(x,y,rx,ry,f,a){ctx.fillStyle=f;ctx.beginPath();ctx.ellipse(x,y,rx,ry,a||0,0,TAU);ctx.fill();}
 function poly(f,...q){ctx.fillStyle=f;ctx.beginPath();for(let i=0;i<q.length;i+=2)ctx.lineTo(q[i],q[i+1]);ctx.fill();}
-function line(c,lw,...q){ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.beginPath();for(let i=0;i<q.length;i+=2)ctx.lineTo(q[i],q[i+1]);ctx.stroke();}
+function line(c,lw,...q){ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.lineJoin=ctx.lineCap='round';
+  ctx.beginPath();for(let i=0;i<q.length;i+=2)ctx.lineTo(q[i],q[i+1]);ctx.stroke();}
 const light=(x,y,r,c)=>box(x-r,y-r,2*r,2*r,grad(ctx.createRadialGradient(x,y,0,x,y,r),[c,c.replace(/[\d.]+\)$/,'0)')]));
 // The frame m pixels around the window; hole() fills the window with a dark color, seen only in the smallest picture drawn
 const frame=(m,f,r)=>box(X-m,Y-m,w+2*m,h+2*m,f,r),hole=()=>box(X,Y,w,h,'#0c0c10');
@@ -186,13 +187,15 @@ function drivein(soft){
 }
 // 3: a living room in the evening: an old television on legs, a floor lamp and a plant
 function livingroom(soft){
-  if(soft){box(0,0,W,H,lin(0,0,0,H,'#8c4b2f','#55291b'));light(W/2,H/2,w*.95,'rgba(140,190,255,.22)');light(W*.12,H*.4,26*u,'rgba(255,200,120,.38)');return;}
+  if(soft){box(0,0,W,H,lin(0,0,0,H,'#8c4b2f','#55291b'));
+    light(W/2,H/2,w*.95,'rgba(140,190,255,.22)');light(W*.12,H*.4,26*u,'rgba(255,200,120,.38)');return;}
   for(let x=2*u;x<W;x+=7*u)box(x,0,2.4*u,H*.86,'rgba(255,230,200,.05)');
   box(0,H*.86,W,H*.14,lin(0,H*.86,0,H,'#3b2216','#22130c'));oval(W/2,H*.95,w*.7,3.4*u,'#7a2e38');
   box(W*.12-.4*u,H*.4,.8*u,H*.52,'#1d120d');poly('#f3c77e',W*.12-5*u,H*.4,W*.12+5*u,H*.4,W*.12+3*u,H*.4-7*u,W*.12-3*u,H*.4-7*u);
   for(const a of [-1.1,-.6,-.15,.3,.8])oval(W*.88+Math.sin(a)*6*u,H*.8-Math.cos(a)*7*u,2.2*u,6.5*u,'#3f7a4a',a);
   poly('#c26b3c',W*.88-4*u,H*.9,W*.88+4*u,H*.9,W*.88+5*u,H*.8,W*.88-5*u,H*.8);
-  line('#2a1a12',1.2*u,X+4*u,Y+h+8*u,X+u,H*.92);line('#2a1a12',1.2*u,X+w-4*u,Y+h+8*u,X+w-u,H*.92);line('#c9c2b8',.5*u,W/2-9*u,Y-17*u,W/2,Y-4*u,W/2+8*u,Y-18*u);
+  line('#2a1a12',1.2*u,X+4*u,Y+h+8*u,X+u,H*.92);line('#2a1a12',1.2*u,X+w-4*u,Y+h+8*u,X+w-u,H*.92);
+  line('#c9c2b8',.5*u,W/2-9*u,Y-17*u,W/2,Y-4*u,W/2+8*u,Y-18*u);
   box(X-5*u,Y-4*u,w+10*u,h+12*u,lin(0,Y,0,Y+h,'#a06c3f','#6d4425'),2.5*u);frame(1.6*u,'#141418',1.4*u);hole();
   for(const k of [1,2])oval(X+w-k*4.5*u,Y+h+4.8*u,1.3*u,1.3*u,'#e2cfa3');
   for(let k=0;k<4;k++)box(X+2*u,Y+h+3*u+k*.9*u,10*u,.4*u,'#4a2c18');
@@ -204,10 +207,12 @@ function desk(soft){
   box(X+w+8*u,Y+h*.35,30*u,1.2*u,'#3a4b70');
   ['#e46a5e','#f2c14e','#5aa9e6','#9b7fd1','#58c08f','#f08a4b'].forEach((c,k)=>{const bh=(9+k%3*2)*u;box(X+w+9*u+k*3.4*u,Y+h*.35-bh,2.8*u,bh,c);});
   const top=Y+h+.5*u;box(0,top,W,H-top,lin(0,top,0,H,'#5e4634','#3a2a1f'));
-  line('#cfd5e2',.9*u,X-16*u,Y+h+4*u,X-21*u,Y+h*.35,X-12*u,Y+h*.1);oval(X-16*u,Y+h+4*u,4*u,1.2*u,'#cfd5e2');poly('#cfd5e2',X-12*u,Y+h*.1-u,X-7*u,Y+h*.1+6*u,X-15*u,Y+h*.1+7*u);
+  line('#cfd5e2',.9*u,X-16*u,Y+h+4*u,X-21*u,Y+h*.35,X-12*u,Y+h*.1);oval(X-16*u,Y+h+4*u,4*u,1.2*u,'#cfd5e2');
+  poly('#cfd5e2',X-12*u,Y+h*.1-u,X-7*u,Y+h*.1+6*u,X-15*u,Y+h*.1+7*u);
   frame(2.2*u,'#0e1118',1.8*u);hole();oval(W/2,Y-1.1*u,.35*u,.35*u,'#3a4458');
   poly(lin(0,Y+h+2.2*u,0,Y+h+6*u,'#c9cfdb','#7c8496'),X-2.2*u,Y+h+2.2*u,X+w+2.2*u,Y+h+2.2*u,X+w+7*u,Y+h+6*u,X-7*u,Y+h+6*u);
-  box(X+w+12*u,Y+h+3*u,6*u,7*u,'#e9e4da',.8*u);ctx.strokeStyle='#e9e4da';ctx.lineWidth=u;ctx.beginPath();ctx.arc(X+w+18*u,Y+h+6.5*u,2*u,-1.4,1.4);ctx.stroke();
+  box(X+w+12*u,Y+h+3*u,6*u,7*u,'#e9e4da',.8*u);
+  ctx.strokeStyle='#e9e4da';ctx.lineWidth=u;ctx.beginPath();ctx.arc(X+w+18*u,Y+h+6.5*u,2*u,-1.4,1.4);ctx.stroke(); // its handle
 }
 // 5: a photo on a wooden table, seen from above, beside other photos, a cup of coffee and a camera
 function table(soft){
@@ -218,14 +223,18 @@ function table(soft){
   const cx=X-17*u,cy=Y+h*.95;oval(cx,cy,8*u,8*u,'#efe9df');oval(cx,cy,6.2*u,6.2*u,'#5a3420');box(cx+7.5*u,cy-1.2*u,4*u,2.4*u,'#efe9df',u);
   box(X+w+8*u,Y+h*.1,24*u,15*u,'#1d1d22',2*u);oval(X+w+20*u,Y+h*.1+7.5*u,5*u,5*u,'#3a3a44');oval(X+w+20*u,Y+h*.1+7.5*u,3*u,3*u,'#0d0d12');
   box(X-2.2*u,Y-1.6*u,w+6*u,h+13*u,'rgba(0,0,0,.35)',.6*u);box(X-3*u,Y-3*u,w+6*u,h+13*u,'#f5f1e8',.6*u);hole();
-  line('#3b4f8a',.5*u,...Array.from({length:18},(_,k)=>[X+w*.25+k*w*.03,Y+h+5.5*u+Math.sin(k*1.9)*1.1*u]).flat());
+  const a=w*.55/(14*Math.PI),cap=[]; // the caption: seven joined loops of different heights on one baseline, like handwriting
+  for(let t=0;t<=14*Math.PI;t+=.3)cap.push(X+w*.22+a*t-a*(1.9+.3*Math.sin(t*.53))*Math.sin(t),
+    Y+h+7.5*u-a*(3.2+.7*Math.sin(t*.37+2))*((1+Math.cos(t))/2)**1.6);
+  line('#3b4f8a',.45*u,...cap);
 }
 const SCENES=[gallery,drivein,livingroom,desk,table];
 // Each picture's soft light (the shading of its wall, sky or table and the glow of its lamps) changes slowly across it, so it is drawn
 // once per resize at a quarter of the stage's size and stretched to fit every frame: copying a picture costs far less than a gradient
 const SOFT=SCENES.map(()=>document.createElement('canvas')),FLAT=['#134250','#1b1648','#743b26','#18253f','#643d22'];
 function soften(){
-  SOFT.forEach((c,i)=>{c.width=Math.ceil(W/4);c.height=Math.ceil(H/4);ctx=c.getContext('2d');ctx.scale(c.width/W,c.height/H);SCENES[i](true);});ctx=main;
+  SOFT.forEach((c,i)=>{c.width=Math.ceil(W/4);c.height=Math.ceil(H/4);ctx=c.getContext('2d');ctx.scale(c.width/W,c.height/H);SCENES[i](true);});
+  ctx=main;
 }
 
 // One picture of the zoom. Picture `at` fills the view at p = 0 and is drawn R^-p times its size; each picture inside it is drawn
