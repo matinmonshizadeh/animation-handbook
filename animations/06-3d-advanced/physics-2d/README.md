@@ -54,7 +54,7 @@ Then every ball moves by its speed (never more than about one radius a step, so 
 
 **Sleeping.** When no ball has moved faster than about 0.14 px a step for 45 steps (three quarters of a second), every speed is set to zero and the loop stops drawing. A new ball, a throw, a removed ball or a new gravity wakes it again.
 
-**Throwing.** Pressing a ball holds it: it follows the pointer, nothing pushes it, and it pushes the others. Pointer moves give the pointer's speed in pixels per 1/60 s, smoothed over the last few moves; letting go throws the ball with that speed if the pointer was still moving in the last 80 ms.
+**Throwing.** Pressing picks up the nearest ball in reach, which is its radius plus 8px and never less than a 44px circle, so a small ball is still easy to catch with a finger. A held ball follows the pointer, nothing pushes it, and it pushes the others. Pointer moves give the pointer's speed in pixels per 1/60 s, smoothed over the last few moves; letting go throws the ball with that speed if the pointer was still moving in the last 80 ms.
 
 **Reduced motion.** Nothing falls on screen. The steps of a drop or throw run at once, out of sight, until everything is still, and the new ball fades in where it came to rest:
 

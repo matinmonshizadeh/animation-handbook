@@ -151,8 +151,7 @@ const FRAME=1000/60,FADE=300,RING=450; // one physics step is 1/60 s; a fade and
 const WALL={vx:0,vy:0,im:0}; // the walls and floor never move
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let W=0,H=0,R0=20,balls=[],rings=[],made=0,held=null,raf=null,lastT=null,behind=0,clock=0,awake=false,calm=0,runTimers=[];
-let GRAV=1,E=.5,MIX=false,SHOW=false;
-const target={x:0,y:0},grab={x:0,y:0},pv={x:0,y:0},last={x:0,y:0,t:0};
+let GRAV=1,E=.5,MIX=false,SHOW=false;const target={x:0,y:0},grab={x:0,y:0},pv={x:0,y:0},last={x:0,y:0,t:0};
 
 // One physics step of 1/60 s. Gravity, then the contacts: touching pairs and the four walls. Each contact pushes only apart,
 // and one that closes faster than 1 px a step bounces back with E of its speed (slower ones just rest). Eight passes over all
@@ -204,8 +203,7 @@ function draw(){
     ctx.globalAlpha=b.al;ctx.fillStyle=b.c;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha=b.al*.55;ctx.fillStyle=MARK;ctx.beginPath(); // a spot on the ball turns as it rolls
     ctx.arc(b.x+Math.cos(b.a)*b.r*.55,b.y+Math.sin(b.a)*b.r*.55,b.r*.16,0,Math.PI*2);ctx.fill();
-    const s=Math.hypot(b.vx,b.vy);
-    if(!SHOW||s<.3)continue;
+    const s=Math.hypot(b.vx,b.vy);if(!SHOW||s<.3)continue;
     const L=Math.min(s*6,b.r*3),ux=b.vx/s,uy=b.vy/s,ex=b.x+ux*L,ey=b.y+uy*L;
     ctx.globalAlpha=b.al;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(ex,ey);ctx.stroke();
     ctx.beginPath();ctx.moveTo(ex+ux*6,ey+uy*6);ctx.lineTo(ex-uy*4,ey+ux*4);ctx.lineTo(ex+uy*4,ey-ux*4);ctx.fill();
@@ -217,8 +215,7 @@ function fade(ms){
   let gone=false;
   for(const b of balls)if(b.al!==b.to){b.al=b.to>b.al?Math.min(b.to,b.al+ms/FADE):Math.max(b.to,b.al-ms/FADE);if(!b.al&&!b.to)gone=true;}
   rings=rings.filter(r=>clock-r.t<RING);
-  if(!gone)return;
-  balls=balls.filter(b=>b.al||b.to);
+  if(!gone)return;balls=balls.filter(b=>b.al||b.to);
   if(held&&!balls.includes(held))held=null;
   if(reduce.matches)settle();else wake(); // the balls that rested on it fall into the gap
 }
@@ -251,12 +248,14 @@ function drop(x,y){
   showHint();wake();
 }
 
-// Pointer Events cover mouse, touch and pen. Pressing a ball picks it up; pressing anywhere else drops a new one. While a ball is
+// Pointer Events cover mouse, touch and pen. Pressing a ball picks up the nearest one in reach (its radius plus 8px, and at least
+// a 44px circle); pressing anywhere else drops a new one. While a ball is
 // held, the pointer's speed is followed (in px per 1/60 s), and letting go throws the ball with it if the pointer was still moving.
 const local=e=>{const r=cvs.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
 cvs.addEventListener('pointerdown',e=>{
   if(!e.isPrimary||e.button!==0)return;
-  const p=local(e),b=balls.filter(o=>o.to>0).reverse().find(o=>(o.x-p.x)**2+(o.y-p.y)**2<(o.r+8)**2);
+  const p=local(e);let b=null,best=Infinity;
+  for(const o of balls){const d=Math.hypot(o.x-p.x,o.y-p.y);if(o.to>0&&d<=Math.max(o.r+8,22)&&d-o.r<best){best=d-o.r;b=o;}}
   if(!b){drop(p.x,p.y);return;}
   held=b;grab.x=b.x-p.x;grab.y=b.y-p.y;target.x=b.x;target.y=b.y;pv.x=pv.y=0;Object.assign(last,p,{t:e.timeStamp});
   try{cvs.setPointerCapture(e.pointerId);}catch(_){}
@@ -279,14 +278,15 @@ const release=e=>{
 // The keyboard drops a ball at a random spot near the top
 cvs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();drop(W*(.2+Math.random()*.6),H*.15);}});
 
-// Show me: five clicks' worth, 0.3 s apart, then the balls rest and fade out 1.7 s after the last one, so the box is empty again.
+// Show me: five clicks' worth, 0.3 s apart and a ball's width or less from the middle, so each new ball lands on the ones before
+// and they pile up; they fade out 1.7 s after the last one, so the box is empty again.
 // Slow motion stretches the waits three times. Every timer of the run goes through later(); stopRun() cancels the rest of it.
 function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn();},ms*(slowTog.checked?3:1));runTimers.push(id);}
 function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];}
 document.getElementById('btn-demo').addEventListener('click',e=>{
   if(!e.isTrusted&&balls.some(b=>b.to>0))return; // the press on arrival leaves alone a box the visitor has already filled
   stopRun();balls=[];rings=[];held=null;awake=false;showHint();draw();
-  [[.3,.18],[.62,.12],[.46,.22],[.72,.16],[.4,.1]].forEach(([x,y],i)=>later(()=>drop(W*x,H*y),300*i));
+  [[0,.18],[1.1,.12],[-1.2,.22],[.5,.16],[-.4,.1]].forEach(([x,y],i)=>later(()=>drop(W/2+R0*x,H*y),300*i));
   later(()=>{balls.forEach(b=>{b.to=0;});showHint();kick();},2900);
 });
 document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();held=null;balls.forEach(b=>{b.to=0;});showHint();kick();});
