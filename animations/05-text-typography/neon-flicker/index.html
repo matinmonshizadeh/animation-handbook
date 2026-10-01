@@ -56,7 +56,7 @@
       57%{opacity:.1}58.5%{opacity:.85}59.5%{opacity:.15}61%{opacity:1}80%{opacity:.4}81%{opacity:1}}
     @keyframes flick-busy{0%{opacity:1}1.2%{opacity:.2}2.4%{opacity:1}3.6%{opacity:.08}5.5%{opacity:1}18%{opacity:.3}19.2%{opacity:1}
       31%{opacity:.08}33%{opacity:.6}34.2%{opacity:.1}38%{opacity:1}52%{opacity:.35}53.2%{opacity:1}64%{opacity:.15}66%{opacity:1}
-      77%{opacity:.08}84%{opacity:1}92%{opacity:.3}93.2%{opacity:1}}
+      77%{opacity:.08}84%{opacity:1}85%{opacity:.3}86.2%{opacity:1}}
     @keyframes buzz{0%{opacity:1}1.5%{opacity:.12}3%{opacity:.9}4.5%{opacity:.1}6%{opacity:.7}7.5%{opacity:.1}21%{opacity:1}
       40%{opacity:.25}41.5%{opacity:1}55%{opacity:.1}56.5%{opacity:.8}58%{opacity:.15}60%{opacity:1}78%{opacity:.1}79.5%{opacity:.75}81%{opacity:.1}90%{opacity:1}}
     /* Reduced motion: the loop starts paused on a steady glow; pressed Play only dims it softly, with no flashes */
@@ -203,7 +203,7 @@
     sign.setAttribute('aria-label',text);
     const chars=[...text];
     let b=Math.min(chars.length-1,Math.floor(chars.length*.6));
-    while(b<chars.length-1&&chars[b]===' ')b++;
+    while(b<chars.length-1&&/\s/.test(chars[b]))b++;
     words.forEach(w=>{
       w.textContent='';
       chars.forEach((ch,i)=>{
@@ -221,10 +221,14 @@
     const r=Math.min((stage.clientWidth-48)/sign.offsetWidth,(stage.clientHeight-48)/sign.offsetHeight);
     if(r<1)sign.style.fontSize=parseFloat(getComputedStyle(sign).fontSize)*r+'px';
   }
+  // The sign shows the typed text with no spaces at its ends and single spaces inside (as its chip does), or OPEN.
+  const signText=()=>txtIn.value.replace(/\s+/g,' ').trim()||'OPEN';
   build('OPEN');
   addEventListener('resize',fit);
   if(document.fonts)document.fonts.ready.then(fit); // the site font can still be loading when fit() first runs
-  txtIn.addEventListener('input',()=>build(txtIn.value.trim()?txtIn.value:'OPEN'));
+  txtIn.addEventListener('input',()=>build(signText()));
+  // An emptied field goes back to OPEN when it is left, so its chip and the copied prompt name what the sign shows.
+  txtIn.addEventListener('change',()=>{if(!txtIn.value.trim()){txtIn.value='OPEN';txtIn.dispatchEvent(new Event('input',{bubbles:true}))}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');

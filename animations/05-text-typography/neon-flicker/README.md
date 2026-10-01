@@ -45,7 +45,7 @@ The sign is two copies of the same letters stacked in one grid cell. The bottom 
 | Broken letter | on | One letter a little past the middle of the word buzzes and drops out on its own cycle |
 | Glow size | Medium | How far the light spreads: small, medium or large sets of glow layers |
 | Frame around the word | on | Adds a rounded tube border that glows and flickers with the letters |
-| Your text | OPEN | The word on the sign, up to 10 letters; it shrinks to fit the stage |
+| Your text | OPEN | The word on the sign, up to 10 letters, with spaces at its ends dropped; it shrinks to fit the stage, and an emptied field goes back to OPEN |
 
 ## Production notes
 - **Flash safety**: flicker is flashing. Keep the whole sign below three flashes in any second (the demo's busiest setting stays there) and keep large bright areas out of it; a single buzzing letter is small enough to flicker faster. Never flicker a full-screen background.
