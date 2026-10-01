@@ -100,3 +100,4 @@ Three CSS properties create the glass effect:
 - [Mesh Gradient Animation](../../07-ambient-background/mesh-gradient/) — soft color blobs drifting as a background
 - [WebGL Shader Animation](../webgl-shader-animation/) — moving color drawn on the graphics chip
 - [Modal Expand](../../04-micro-interactions/modal-expand/) — a dialog, where frosted glass often appears
+- [Liquid Glass](../liquid-glass/) — clear glass that bends what is behind it at its edges instead of blurring it
