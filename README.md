@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 166 web animation techniques with live demos" width="820"></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero.png"><img src="docs/hero.gif" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card and Dynamic Island. Animation Handbook — 166 web animation techniques with live demos" width="820"></picture></a>
 
 # Animation Handbook
 

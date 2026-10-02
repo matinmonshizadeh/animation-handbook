@@ -54,3 +54,13 @@ This is a one-off, made with scratch scripts that are not committed.
 ## Out of scope
 - The install command, which comes with the AI skill (step 3).
 - Changes to `og-image.png`, to the site, or to any other part of the README.
+
+## Notes from the build
+- **Tile edges:** each tile has a faint 1 px edge (white at 10%), so the dark tiles don't blend into the background.
+- **Shatter Effect:** it cycles through three photos in about 8.4 s, so its tile plays that cycle 1.4 times faster to fit the 6 s loop without a jump.
+- **Synthwave Grid:** it repeats every 5/6 s, so its loop is exactly seven repeats, played at 0.97× speed.
+- **The other four** each play one Show me run from rest to rest, and their runs are spaced so they take turns.
+- **Palette:** it is built from whole frames (`stats_mode=full`) with ordered dithering (`bayer_scale=4`).
+  - A palette built from the moving parts only turned the suns pink.
+  - Error-diffusion dithering made still areas flicker.
+  - Result: 2.86 MB, with no flicker in still areas.

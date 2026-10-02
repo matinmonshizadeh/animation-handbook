@@ -455,7 +455,7 @@ test('the counts written on the home page match its cards', () => {
 test('the counts written in the root README match the cards', () => {
   const cats = homeConst('CATS'), cards = totalCards();
   const readme = read(path.join(ROOT, 'README.md'));
-  assert.equal(numberIn(readme, /<img src="og-image\.png" alt="[^"]*?(\d+) web animation techniques/), cards, "README: the picture's alt text");
+  assert.equal(numberIn(readme, /<img src="docs\/hero\.gif" alt="[^"]*?(\d+) web animation techniques/), cards, "README: the picture's alt text");
   assert.equal(numberIn(readme, /^\*\*A visual reference of (\d+) web animation techniques/m), cards, 'README: the intro line');
   assert.equal(numberIn(readme, /badge\/techniques-(\d+)-/), cards, 'README: the techniques badge');
   assert.equal(numberIn(readme, /^All (\d+) techniques, each linked to its live demo\.$/m), cards, 'README: the Full catalog line');
