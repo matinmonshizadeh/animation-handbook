@@ -188,11 +188,9 @@
   function measure(){W=stage.clientWidth;H=stage.clientHeight;stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
   // A frame centered on x,y, turned by r degrees and scaled by s
   const at=(x,y,s,r)=>`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%) rotate(${r.toFixed(1)}deg) scale(${s})`;
-  // Under reduced motion: the picture that was showing fades out where it is
-  function fadeOut(el){
-    const cs=getComputedStyle(el),from={transform:cs.transform,opacity:cs.opacity};
-    el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250});
-  }
+  // A picture fades out where it is: under reduced motion, and when reduced motion is switched on during Show me's sweep
+  function fadeOut(el){const cs=getComputedStyle(el),from={transform:cs.transform,opacity:cs.opacity};
+    el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250})}
   // Drops the next picture at x,y, on top of the others, and says whether it did: a picture still out is never cut short, so when
   // every frame is busy nothing drops and the trail thins. A picture's life is one animation (el._a) of transform and opacity: it
   // glides in from the last drop (from), growing from half size with a small overshoot, stays, then leaves as How they leave says;
@@ -258,9 +256,9 @@
   ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(e.pointerId===touchId){touchId=null;last=null}}));
 
   // A pretend pointer sweeps across the hero in 2.4 s (three times as long in Slow motion), easing in and out, in one and a half
-  // waves; the pictures it drops leave as usual, and at the defaults the hero is empty again at about 3.7 s. It moves by elapsed
-  // time, so the sweep takes as long on every screen. Under reduced motion a picture fades in at three spots in turn, a second
-  // apart. The arrival press leaves alone a visitor whose pointer is already moving over the hero.
+  // waves, by elapsed time, so it takes as long on every screen; at the defaults the hero is empty again at about 3.7 s. Reduced
+  // motion switched on mid-sweep (read every frame) stops it there and fades the pictures out where they are. Under reduced motion
+  // a picture fades in at three spots in turn, a second apart. The arrival press leaves alone a visitor already over the hero.
   document.getElementById('btn-demo').addEventListener('click',e=>{
     if(!e.isTrusted&&hovering)return;
     stopRun();toRest();measure();
@@ -270,6 +268,7 @@
     }
     let p=0,lastT=null;
     runFrame=requestAnimationFrame(function frame(ts){
+      if(reduce.matches){stopRun();pool.forEach(el=>{if(el._a&&el._a.playState==='running')fadeOut(el)});return}
       const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
       p=Math.min(1,p+dt/(RUN*(slowTog.checked?3:1)));
       const s=p<.5?2*p*p:1-2*(1-p)*(1-p);
