@@ -54,3 +54,4 @@ Each tile's inline style bakes the normalized delay into a real transition: `tra
 - [Flash / Light Leak Transition](../flash-transition/) — a burst of light hides the change
 - [Blur Transition](../blur-transition/) — a blur hides the change
 - [Slide Transition](../slide-transition/) — pages move instead of dissolving
+- [Shatter Effect](../../02-entrance-and-exit/shatter-effect/) — a card breaks into pieces that fly apart and fade

@@ -17,3 +17,4 @@ Element-level entrance and exit animations — how individual pieces of UI arriv
 - [Flip In](flip-in/) — Swings into view in 3D, like a card turning over. Best for cards and tiles.
 - [Bounce In](bounce-in/) — Lands with a springy bounce. Best for badges and success messages.
 - [Rotate In](rotate-in/) — Spins into place while it grows. Best for icons, stars and badges.
+- [Shatter Effect](shatter-effect/) — Breaks into pieces that fly apart and fade. Best for galleries and bold exits.
