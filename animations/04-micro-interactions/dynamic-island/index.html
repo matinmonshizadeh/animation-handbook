@@ -42,7 +42,7 @@
     /* The pill is short, so a larger invisible target covers it at rest */
     .hit{position:absolute;left:50%;top:-8px;width:124px;height:48px;margin-left:-62px;pointer-events:auto}
     /* Focus: the button is the whole box, so its outline would not follow the shape. A ring layer 3px larger than the shape sits
-       behind it (its box starts 3px higher); the outline stays, transparent, for forced-colors mode, which drops the ring's color. */
+       behind it (its box starts 3px higher); the outline stays, transparent, for forced colors where the ring cannot keep its color. */
     .ring{top:-3px;opacity:0;background:var(--ui-accent);clip-path:inset(0 calc(50% - var(--hw) - 3px) calc(100% - var(--h) - 6px) round calc(var(--r) + 3px))}
     .isl:focus-visible .ring{opacity:1}.hb-page .stage .isl:focus-visible{outline:2px solid transparent}
     .pill{display:none;inset:0 auto auto 50%;width:96px;height:32px;margin-left:-48px;border-radius:16px;background:#000}
@@ -76,15 +76,16 @@
     .isl.still,.isl.still *{transition:none!important}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
     /* Larger screens: the content comes into focus as it fades in (a phone skips the blur) */
     @media(min-width:601px) and (min-height:501px){.c{filter:blur(6px)}}
-    /* Forced colors: the phone keeps its own colors (a black pill on black would vanish); the button's outline is still forced */
-    @media(forced-colors:active){.screen,.shape,.pill{forced-color-adjust:none}.isl{forced-color-adjust:auto}}
-    /* Reduced motion: a resting pill shows; a card fades in over it and out at its own size (a new one after the open one fades out) */
+    /* Forced colors: the phone keeps its own colors (a black pill on black would vanish), and the focus ring takes the system highlight */
+    @media(forced-colors:active){.screen,.shape,.pill,.ring{forced-color-adjust:none}.ring,.pill{--ui-accent:Highlight}}
+    /* Reduced motion: a resting pill shows; a card fades in over it and out at its own size (a new one after the open one fades out).
+       The focus ring is a hollow outline here, sized by the same values, so nothing of it shows through a fading card. */
     @media(prefers-reduced-motion:reduce){
       .isl,.shape,.ring,.c{transition:opacity .3s ease!important}
-      .pill{display:block}.shape,.isl.swap .shape{opacity:0}.open .shape{opacity:1}.c{transform:none;filter:none}
+      .ring{clip-path:none;background:none;right:auto;bottom:auto;left:calc(50% - var(--hw) - 3px);width:calc(var(--hw) * 2 + 6px);height:calc(var(--h) + 6px);border:3px solid var(--ui-accent);border-radius:calc(var(--r) + 3px)}
+      .pill{display:block}.shape,.isl.swap .shape,.isl.swap .ring{opacity:0}.open .shape{opacity:1}.c{transform:none;filter:none}
       .isl:not(.open):focus-visible .ring{opacity:0}.isl:not(.open):focus-visible .pill{box-shadow:0 0 0 3px var(--ui-accent)}
-      .open[data-n] .av i,.open[data-n] .wave i{animation:none}
-    }
+      .open[data-n] .av i,.open[data-n] .wave i{animation:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -208,12 +209,13 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
 <script>
   const $=id=>document.getElementById(id);
-  const stage=document.querySelector('.stage'),isl=$('isl'),say=$('say'),tm=$('tm'),slowTog=$('slow-tog');
+  const stage=document.querySelector('.stage'),isl=$('isl'),shapeEl=isl.querySelector('.shape'),say=$('say'),tm=$('tm'),slowTog=$('slow-tog');
   const reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
   // Each shape as [half its width, its height, its corner radius]. A % is of the island's box, which leaves 6% on each side
   // of the widest card and room below the tallest, so a bounce past the card's size is never cut off by the box.
   const SIZE={rest:['48px','32px','16px'],call:['44%','76px','30px'],timer:['40%','64px','32px'],music:['44%','148px','34px']};
   const SAY={call:'Incoming call from Maya Chen.',timer:'Timer: 5 minutes left.',music:'Now playing: Golden Hour by Nova Lane.'};
+  // note is the notification picked in Try it; data-n on the island is the card on show, whose size the shape takes
   let note='call',open=false,dur=700,runTimers=[],tick=0,swap=0;
 
   // Bounce: a damped spring (damping z, 1 = no overshoot) sampled into a CSS linear() curve that settles by its end. Soft overshoots
@@ -226,22 +228,28 @@
   const curves=CSS.supports('transition-timing-function','linear(0,1)');
   const EASE={none:'cubic-bezier(.22,1,.36,1)',soft:curves?spring(.68):'cubic-bezier(.3,1.4,.5,1)',springy:curves?spring(.5):'cubic-bezier(.3,1.75,.45,1)'};
 
-  // The shape's size: the open card's, else the resting pill's. Under reduced motion the card keeps its size while it fades out.
-  function shape(){
-    const g=SIZE[open||reduceMq.matches?note:'rest'];
-    ['--hw','--h','--r'].forEach((v,i)=>isl.style.setProperty(v,g[i]));
-  }
+  // The shape's size: the card on show while it is open, else the resting pill's. Under reduced motion the card keeps its size while it fades out.
+  function shape(){const g=SIZE[open||reduceMq.matches?isl.dataset.n:'rest'];['--hw','--h','--r'].forEach((v,i)=>isl.style.setProperty(v,g[i]))}
   // The timer counts down from 5:00 while it shows
   function clock(){
-    clearInterval(tick);
-    if(!open||note!=='timer')return;
+    clearInterval(tick);if(!open||note!=='timer')return;
     const t0=performance.now();
     const draw=()=>{const s=Math.max(0,300-Math.floor((performance.now()-t0)/1000));tm.innerHTML=(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')).replace(/\d/g,'<i>$&</i>')};
     draw();tick=setInterval(draw,250);
   }
-  // Open or close it, calling off a card switch still waiting. Only the visitor's own changes are announced (politely), not Show me's.
+  // Under reduced motion the card on show changes only while the shape is hidden: its content and size go in without a transition
+  function showNote(){isl.classList.add('still');isl.dataset.n=note;shape();void isl.offsetWidth;isl.classList.remove('still')}
+  // Open or close it. Opening shows the picked card: the shape morphs into it at once, or under reduced motion a different card
+  // still in sight (open, or fading out) fades out first (swap). Only the visitor's own changes are announced (politely).
   function setOpen(next,visitor){
-    clearTimeout(swap);isl.classList.remove('swap');open=next;isl.classList.toggle('open',open);isl.setAttribute('aria-expanded',String(open));
+    const hidden=+getComputedStyle(shapeEl).opacity===0;
+    clearTimeout(swap);isl.classList.remove('swap');
+    if(next&&isl.dataset.n!==note){
+      if(!reduceMq.matches)isl.dataset.n=note;
+      else if(hidden)showNote();
+      else{isl.classList.add('swap');swap=setTimeout(()=>{showNote();isl.classList.remove('swap')},300)}
+    }
+    open=next;isl.classList.toggle('open',open);isl.setAttribute('aria-expanded',String(open));
     shape();clock();
     if(visitor)say.textContent=open?SAY[note]:'';
   }
@@ -252,10 +260,7 @@
   reduceMq.addEventListener('change',shape);
 
   // Show me: one run at a time. later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
-  function later(fn,move,hold){
-    const id=setTimeout(()=>{runTimers.splice(runTimers.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);
-    runTimers.push(id);
-  }
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers.splice(runTimers.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
   function running(){return runTimers.length>0}
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down')}
   // A run starts from the pill at rest, put there without animating
@@ -281,15 +286,8 @@
       pick(b.dataset);
     }));
   }
-  // A new notification opens the island, or changes the open card's shape into the new one. Under reduced motion the open card
-  // fades out first (swap); hidden, it takes the new content and size without a transition, then fades in again.
-  choices('note-seg',d=>{
-    const show=()=>{note=d.n;isl.dataset.n=note;setOpen(true,true)};
-    stopRun();clearTimeout(swap);
-    if(!open||!reduceMq.matches||d.n===note)return show();
-    isl.classList.add('swap');
-    swap=setTimeout(()=>{isl.classList.add('still');note=d.n;isl.dataset.n=note;shape();void isl.offsetWidth;isl.classList.remove('still');show()},300);
-  });
+  // A new notification is kept at once and opens the island, or changes the open card into the new one (setOpen shows it)
+  choices('note-seg',d=>{note=d.n;stopRun();setOpen(true,true)});
   choices('speed-seg',d=>{dur=+d.ms;isl.style.setProperty('--dur',dur+'ms')});
   choices('bounce-seg',d=>isl.style.setProperty('--ease',EASE[d.b]));
   isl.style.setProperty('--ease',EASE.soft);shape();
