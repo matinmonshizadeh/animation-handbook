@@ -183,6 +183,7 @@ All 159 techniques, each linked to its live demo.
 - **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field, then closes when done. Best for toolbars.
 - **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button becomes a spinner, then a tick or a cross. Best for Save buttons.
 - **[Image Trail](animations/04-micro-interactions/image-trail/)** — Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.
+- **[Gooey Menu](animations/04-micro-interactions/gooey-menu/)** — Small buttons ooze out of a round button like liquid. Best for quick actions.
 
 </details>
 

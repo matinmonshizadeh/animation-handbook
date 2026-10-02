@@ -45,6 +45,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Expanding Search](expanding-search/) | A search icon opens into a field, then closes when done. Best for toolbars. |
 | [Button Loading States](button-loading-states/) | The button becomes a spinner, then a tick or a cross. Best for Save buttons. |
 | [Image Trail](image-trail/) | Pictures pop up in a trail behind your pointer, then fade. Best for portfolios. |
+| [Gooey Menu](gooey-menu/) | Small buttons ooze out of a round button like liquid. Best for quick actions. |
 
 ## Key concepts
 
