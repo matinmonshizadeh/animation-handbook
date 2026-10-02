@@ -26,18 +26,20 @@ The card is four layers stacked in one box, each clipped to the card's rounded c
 The foil is a sheet of rainbow streaks with clear gaps, twice the card's size so it has room to slide. `mix-blend-mode: color-dodge` makes it brighten whatever lies under each streak, so dark parts of the picture glint only a little and light parts flare into color, which is what makes it read as foil rather than a colored film. The glare is a white spot the size of the card with a bright middle; `mix-blend-mode: plus-lighter` adds its light to the picture, so it reads as a highlight under the pointer rather than a haze. The text panels come next and are solid, so neither the foil nor the full glare ever sits under the text. A faint copy of the glare, the gloss, lies over the panels at a quarter of the glare's strength at most, which lights them too and keeps their dimmest text above 5:1:
 
 ```css
-.stage { perspective: 1000px; }                     /* depth for the tilt, on the parent */
+.stage { perspective: 1000px;                       /* depth for the tilt, on the parent */
+  --hc-c1: #f0648c; --hc-c2: #f4c35e; --hc-c3: #71e2a2; --hc-c4: #5ac2f4; --hc-c5: #a888f6;   /* the colors, in one place */
+  --hc-light: 255,255,255; --hc-panel: #110e27; }
 .card  { position: relative; aspect-ratio: 5 / 7; border-radius: 12px; will-change: transform; }
 .ly    { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
 .foil  { mix-blend-mode: color-dodge; }
 .sheen { position: absolute; inset: -50%; will-change: transform;
-  background: repeating-linear-gradient(118deg, transparent 0%, #f0648c 3%, #f4c35e 6%, #71e2a2 9%,
-    #5ac2f4 12%, #a888f6 15%, transparent 18%, transparent 21%); }
+  background: repeating-linear-gradient(118deg, transparent 0%, var(--hc-c1) 3%, var(--hc-c2) 6%, var(--hc-c3) 9%,
+    var(--hc-c4) 12%, var(--hc-c5) 15%, transparent 18%, transparent 21%); }
 .gl    { mix-blend-mode: plus-lighter; }
 .spot  { position: absolute; inset: 0; will-change: transform; opacity: 0;   /* the glare, and the gloss in the text layer */
-  background: radial-gradient(circle closest-side, #fff, rgba(255,255,255,.55) 22%,
-    rgba(255,255,255,.18) 58%, transparent); }
-.np, .ip { background: #110e27; }                   /* the solid text panels */
+  background: radial-gradient(circle closest-side, rgb(var(--hc-light)), rgba(var(--hc-light),.55) 22%,
+    rgba(var(--hc-light),.18) 58%, transparent); }
+.np, .ip { background: var(--hc-panel); }           /* the solid text panels */
 ```
 
 Each pointer move turns into three numbers: `x` and `y`, where the pointer is across the card from -0.5 to 0.5, and `h`, 1 while the pointer is on the card and 0 when it leaves. One function draws them, and it changes only transforms and opacities, so the browser moves layers it has already painted instead of painting anything again:
