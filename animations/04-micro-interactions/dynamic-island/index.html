@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Island — Animation Handbook</title>
+  <meta name="description" content="A black pill grows into a notification, then shrinks back. Best for live updates.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/dynamic-island/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Dynamic Island — Animation Handbook">
+  <meta property="og:description" content="A black pill grows into a notification, then shrinks back. Best for live updates.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/dynamic-island/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dynamic Island — Animation Handbook">
+  <meta name="twitter:description" content="A black pill grows into a notification, then shrinks back. Best for live updates.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Dynamic Island", "name": "Dynamic Island", "description": "A black pill grows into a notification, then shrinks back. Best for live updates.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/dynamic-island/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Dynamic Island"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--muted:#a1a1aa;--orange:#ff9f0a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* The top of a phone, its bottom running off the stage */
+    .stage{display:flex;justify-content:center;padding:18px clamp(8px,3vw,16px) 0;background:radial-gradient(46% 70% at 50% 40%,rgba(124,92,255,.2),transparent),#0b0b0d}
+    .phone{flex:none;width:min(420px,100%);height:calc(100% + 40px);border:7px solid #1c1c21;border-bottom:0;border-radius:54px 54px 0 0;box-shadow:0 0 0 1.5px #3a3a43}
+    .screen{position:relative;height:100%;overflow:hidden;border-radius:47px 47px 0 0;container-type:inline-size;color:#fff;
+      background:radial-gradient(70% 45% at 92% 92%,rgba(255,122,89,.5),transparent 70%),radial-gradient(80% 50% at 0 78%,rgba(124,92,255,.55),transparent 70%),linear-gradient(#2b3a5c,#1d1a3c 62%,#2b1a3c)}
+    /* The status bar steps aside while a card is open, as it does behind a real island */
+    .sb{position:absolute;inset:0 0 auto;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 min(24px,7cqw) 0 min(32px,10cqw);font-size:15px;font-weight:600;transition:opacity .2s}
+    .isl.open~.sb{opacity:0}.sb svg{width:58px;height:11px;fill:#fff}
+    .date,.clock{position:absolute;left:0;right:0;text-align:center}.date{top:188px;font-size:15px;font-weight:600;color:rgba(255,255,255,.88)}
+    .clock{top:206px;font-size:clamp(50px,19cqw,80px);font-weight:700;line-height:1;letter-spacing:-.02em}
+    /* The island: a box the size of the largest card plus room for a bounce. Only its black shape shows, clipped, with the cards' content
+       inside it, so the clip cuts the content too. The script sets --hw, --h and --r (half width, height, corner radius) for each shape */
+    .isl{--hw:48px;--h:32px;--r:16px;--dur:700ms;--ease:cubic-bezier(.3,1.4,.5,1);position:absolute;z-index:1;top:11px;left:6px;right:6px;height:172px;container-type:inline-size;border:0;background:none;color:#fff;font:inherit;text-align:left;
+      cursor:pointer;pointer-events:none;-webkit-tap-highlight-color:transparent;transform-origin:50% calc(var(--h) / 2);transition:transform .25s cubic-bezier(.22,1,.36,1)}
+    .shape,.ring,.pill{position:absolute;inset:0;transition:clip-path var(--dur) var(--ease)}
+    .shape{background:#000;pointer-events:auto;clip-path:inset(0 calc(50% - var(--hw)) calc(100% - var(--h)) round var(--r))}.isl:not(.open) .shape{pointer-events:none}
+    /* The pill is short, so a larger invisible target covers it at rest */
+    .hit{position:absolute;left:50%;top:-8px;width:124px;height:48px;margin-left:-62px;pointer-events:auto}
+    /* Focus: the button is the whole box, so its outline would not follow the shape. A ring layer 3px larger than the shape sits
+       behind it (its box starts 3px higher); the outline stays, transparent, for forced colors where the ring cannot keep its color. */
+    .ring{top:-3px;opacity:0;background:var(--ui-accent);clip-path:inset(0 calc(50% - var(--hw) - 3px) calc(100% - var(--h) - 6px) round calc(var(--r) + 3px))}
+    .isl:focus-visible .ring{opacity:1}.hb-page .stage .isl:focus-visible{outline:2px solid transparent}
+    .pill{display:none;inset:0 auto auto 50%;width:96px;height:32px;margin-left:-48px;border-radius:16px;background:#000}
+    /* A pointer over the pill swells it a little, and a press squeezes the island, as a finger does on a phone */
+    @media(hover:hover) and (prefers-reduced-motion:no-preference){.isl:not(.open):hover{transform:scale(1.06)}}
+    @media(prefers-reduced-motion:no-preference){.stage .isl:active,.isl.down{transform:scale(.95)}}
+    /* Each card's content is laid out once at its full size; it fades and grows in only once the shape has room for it. Sizes in cqw
+       follow the island's width, so a narrow phone gets smaller pieces, never squeezed ones. */
+    .c{position:absolute;top:0;left:6%;right:6%;display:flex;align-items:center;gap:min(10px,3cqw);padding:0 min(14px,4.5cqw);opacity:0;transform:scale(.88);transform-origin:50% 16px;
+      transition:opacity calc(var(--dur) * .25) ease,transform var(--dur) var(--ease),filter calc(var(--dur) * .25) ease}
+    .open[data-n=call] .c-call,.open[data-n=timer] .c-timer,.open[data-n=music] .c-music{opacity:1;transform:none;filter:none;
+      transition-duration:calc(var(--dur) * .45),var(--dur),calc(var(--dur) * .45);transition-delay:calc(var(--dur) * .2)}
+    .c-call{height:76px}.c-timer{left:10%;right:10%;height:64px;padding:0 min(12px,4cqw)}.c-music{height:148px;flex-direction:column;align-items:stretch;justify-content:center;gap:12px;padding:0 min(18px,5.5cqw)}
+    .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;white-space:nowrap}
+    .tx small{font-size:min(12px,4.6cqw);color:var(--muted)}.tx b{font-size:clamp(13px,5.6cqw,16px);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+    .av{position:relative;flex:none;display:grid;place-items:center;width:min(42px,14cqw);aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,#c2410c,#9d174d);font-size:min(15px,5cqw);font-weight:700}
+    .av i{position:absolute;inset:-4px;border:2px solid #ff8a65;border-radius:50%;opacity:0}.open[data-n=call] .av i{animation:ringing 1.6s ease-out infinite}@keyframes ringing{0%{transform:scale(.92);opacity:.9}100%{transform:scale(1.4);opacity:0}}
+    .rb{flex:none;display:grid;place-items:center;width:min(36px,12.5cqw);aspect-ratio:1;border-radius:50%}.rb svg{width:50%;height:50%;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round}
+    .no{background:#ff453a}.no svg{transform:rotate(135deg)}.yes{background:#30d158}.no svg,.yes svg{fill:#fff;stroke:none}
+    .pz{background:rgba(255,159,10,.24)}.pz svg{stroke:var(--orange)}.x{background:#3a3a3c}
+    .c-timer .tx{align-items:flex-end;color:var(--orange)}.c-timer .tx small{color:inherit}
+    /* The countdown's digits sit in cells of one width, so the time does not shift as they change */
+    .c-timer .tx b{font-size:min(30px,10cqw);line-height:1}.c-timer .tx b i{display:inline-block;width:.62em;text-align:center;font-style:normal}
+    .mrow{display:flex;align-items:center;gap:min(12px,3.5cqw)}
+    .art{flex:none;width:min(48px,16cqw);aspect-ratio:1;border-radius:12px;background:radial-gradient(circle at 32% 30%,#ffd36e 0 16%,transparent 17%),linear-gradient(140deg,#ff7a59,#c2185b 55%,#5b2a86)}
+    .wave{flex:none;display:flex;align-items:center;gap:3px;height:22px}.wave i{width:3px;height:100%;border-radius:2px;background:#ff8a65;transform:scaleY(.35)}
+    .open[data-n=music] .wave i{animation:wave .8s ease-in-out var(--d,0s) infinite alternate}@keyframes wave{to{transform:scaleY(1)}}
+    .wave i:nth-child(2){--d:-.5s}.wave i:nth-child(3){--d:-.2s}.wave i:nth-child(4){--d:-.65s}
+    .prog{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}.prog i{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,#fff 34%,#3a3a3c 34%)}
+    .mctl{display:flex;justify-content:center;gap:30px}.mctl svg{width:24px;height:24px;fill:#fff}
+    .isl.still,.isl.still *{transition:none!important}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    /* Larger screens: the content comes into focus as it fades in (a phone skips the blur) */
+    @media(min-width:601px) and (min-height:501px){.c{filter:blur(6px)}}
+    /* Forced colors: the phone keeps its own colors (a black pill on black would vanish), and so does its focus ring: a system color
+       is dark in light themes, but the ring's own color stands out against the dark phone in every theme */
+    @media(forced-colors:active){.screen,.shape,.pill,.ring{forced-color-adjust:none}}
+    /* Reduced motion: a resting pill shows; a card fades in over it and out at its own size (a new one after the open one fades out).
+       The focus ring is a hollow outline here, sized by the same values, so nothing of it shows through a fading card. */
+    @media(prefers-reduced-motion:reduce){
+      .isl,.shape,.ring,.c{transition:opacity .3s ease!important}
+      .ring{clip-path:none;background:none;right:auto;bottom:auto;left:calc(50% - var(--hw) - 3px);width:calc(var(--hw) * 2 + 6px);height:calc(var(--h) + 6px);border:3px solid var(--ui-accent);border-radius:calc(var(--r) + 3px)}
+      .pill{display:block}.shape,.isl.swap .shape,.isl.swap .ring{opacity:0}.open .shape{opacity:1}.c{transform:none;filter:none}
+      .isl:not(.open):focus-visible .ring{opacity:0}.isl:not(.open):focus-visible .pill{box-shadow:0 0 0 3px var(--ui-accent)}
+      .open[data-n] .av i,.open[data-n] .wave i{animation:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../button-loading-states/" rel="prev" aria-label="Previous: Button Loading States"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Button Loading States</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.41 · Micro-Interactions</p>
+    <h1>Dynamic Island</h1>
+    <p class="hb-lede">A black pill grows into a notification, then shrinks back. Best for live updates.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the black pill to open it and again to close it, or press Show me.</p></div>
+    </div>
+    <div class="stage">
+      <div class="phone">
+        <div class="screen">
+          <p class="date" aria-hidden="true">Thursday, October 1</p>
+          <p class="clock" aria-hidden="true">9:41</p>
+          <button class="isl" id="isl" type="button" aria-label="Phone notification" aria-expanded="false" data-n="call">
+            <span class="ring"></span><span class="pill"></span><span class="hit"></span>
+            <span class="shape"><span class="c c-call" aria-hidden="true"><span class="av">MC<i></i></span><span class="tx"><small>Incoming call</small><b>Maya Chen</b></span>
+              <span class="rb no"><svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15 15 0 0 1-6.59-6.59l2.2-2.21a1 1 0 0 0 .25-1A11.4 11.4 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1z"/></svg></span><span class="rb yes"><svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15 15 0 0 1-6.59-6.59l2.2-2.21a1 1 0 0 0 .25-1A11.4 11.4 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1z"/></svg></span></span>
+            <span class="c c-timer" aria-hidden="true"><span class="rb pz"><svg viewBox="0 0 24 24"><path d="M9 7v10M15 7v10"/></svg></span><span class="rb x"><svg viewBox="0 0 24 24"><path d="m7.5 7.5 9 9m0-9-9 9"/></svg></span>
+              <span class="tx"><small>Timer</small><b id="tm"><i>5</i>:<i>0</i><i>0</i></b></span></span>
+            <span class="c c-music" aria-hidden="true"><span class="mrow"><span class="art"></span><span class="tx"><b>Golden Hour</b><small>Nova Lane</small></span><span class="wave"><i></i><i></i><i></i><i></i></span></span>
+              <span class="prog">1:12<i></i>-2:31</span>
+              <span class="mctl"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg><svg viewBox="0 0 24 24"><path d="m6 18 8.5-6L6 6zM16 6v12h2V6z"/></svg></span></span></span>
+          </button>
+          <div class="sb" aria-hidden="true"><span>9:41</span><svg viewBox="0 0 58 11"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/><path d="M27 11l-2-2.2a3 3 0 0 1 4 0zm-3.4-3.6-1.4-1.5a6.6 6.6 0 0 1 9.6 0l-1.4 1.5a4.6 4.6 0 0 0-6.8 0zm-2.8-2.9L19.4 3a10.6 10.6 0 0 1 15.2 0l-1.4 1.5a8.6 8.6 0 0 0-12.4 0z"/><rect x="37.5" y=".5" width="18" height="10" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="39.5" y="2.5" width="11" height="6" rx="1.5"/></svg></div>
+        </div>
+      </div>
+      <p class="sr-only" id="say" role="status" aria-live="polite"></p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="note-lbl">Notification</p>
+        <div class="seg" id="note-seg" role="group" aria-labelledby="note-lbl">
+          <button type="button" data-n="call" class="on" aria-pressed="true">Call</button>
+          <button type="button" data-n="timer" aria-pressed="false">Timer</button>
+          <button type="button" data-n="music" aria-pressed="false">Music</button>
+        </div>
+        <p class="hb-hint">What the pill grows into; pick another while it is open to see it change shape.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1100" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="700" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="450" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How quickly it grows and shrinks.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="bounce-lbl">Bounce</p>
+        <div class="seg" id="bounce-seg" role="group" aria-labelledby="bounce-lbl">
+          <button type="button" data-b="none" aria-pressed="false">None</button>
+          <button type="button" data-b="soft" class="on" aria-pressed="true">Soft</button>
+          <button type="button" data-b="springy" aria-pressed="false">Springy</button>
+        </div>
+        <p class="hb-hint">How far it grows past its size before it settles.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a Dynamic Island style notification to [the top of your app or page]. At rest it is a small black pill; when [an event such as an incoming message] happens or the pill is pressed, it grows into a rounded card with the details, then shrinks back. Change the black shape with a clip or a scale, never by animating its width or height, so the text inside never stretches and nothing around it moves. Keep the details inside the shape, fading them in once it has room. Make the pill a real button for taps, clicks and the keyboard, and announce its message politely to screen readers. If the visitor has reduced motion turned on, crossfade the pill and the card instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Calls and timers</li><li>Music players</li><li>Order tracking</li><li>Live scores</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long messages</li><li>Errors that need action</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+  const $=id=>document.getElementById(id);
+  const stage=document.querySelector('.stage'),isl=$('isl'),shapeEl=isl.querySelector('.shape'),say=$('say'),tm=$('tm'),slowTog=$('slow-tog');
+  const reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
+  // Each shape as [half its width, its height, its corner radius]. A % is of the island's box, which leaves 6% on each side
+  // of the widest card and room below the tallest, so a bounce past the card's size is never cut off by the box.
+  const SIZE={rest:['48px','32px','16px'],call:['44%','76px','30px'],timer:['40%','64px','32px'],music:['44%','148px','34px']};
+  const SAY={call:'Incoming call from Maya Chen.',timer:'Timer: 5 minutes left.',music:'Now playing: Golden Hour by Nova Lane.'};
+  // note is the notification picked in Try it; data-n on the island is the card on show, whose size the shape takes
+  let note='call',open=false,dur=700,runTimers=[],tick=0,swap=0;
+
+  // Bounce: a damped spring (damping z, 1 = no overshoot) sampled into a CSS linear() curve that settles by its end. Soft overshoots
+  // the size by about 5%, Springy by about 16%. Browsers without linear() get a cubic-bezier that overshoots about as far.
+  function spring(z){
+    const w=4.6/z,d=w*Math.sqrt(1-z*z),p=[];
+    for(let i=0;i<40;i++){const t=i/40;p.push((1-Math.exp(-z*w*t)*(Math.cos(d*t)+z*w/d*Math.sin(d*t))).toFixed(3))}
+    return 'linear('+p.join(',')+',1)';
+  }
+  const curves=CSS.supports('transition-timing-function','linear(0,1)');
+  const EASE={none:'cubic-bezier(.22,1,.36,1)',soft:curves?spring(.68):'cubic-bezier(.3,1.4,.5,1)',springy:curves?spring(.5):'cubic-bezier(.3,1.75,.45,1)'};
+
+  // The shape's size: the card on show while it is open, else the resting pill's. Under reduced motion the card keeps its size while it fades out.
+  function shape(){const g=SIZE[open||reduceMq.matches?isl.dataset.n:'rest'];['--hw','--h','--r'].forEach((v,i)=>isl.style.setProperty(v,g[i]))}
+  // The timer counts down from 5:00 while it shows
+  function clock(){
+    clearInterval(tick);if(!open||note!=='timer')return;
+    const t0=performance.now();
+    const draw=()=>{const s=Math.max(0,300-Math.floor((performance.now()-t0)/1000));tm.innerHTML=(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')).replace(/\d/g,'<i>$&</i>')};
+    draw();tick=setInterval(draw,250);
+  }
+  // Under reduced motion the card on show changes only while the shape is hidden: its content and size go in without a transition
+  function showNote(){isl.classList.add('still');isl.dataset.n=note;shape();void isl.offsetWidth;isl.classList.remove('still')}
+  // Open or close it. Opening shows the picked card: the shape morphs into it at once, or under reduced motion a different card
+  // still in sight (open, or fading out) fades out first (swap). Only the visitor's own changes are announced (politely).
+  function setOpen(next,visitor){
+    const hidden=+getComputedStyle(shapeEl).opacity===0;
+    clearTimeout(swap);isl.classList.remove('swap');
+    if(next&&isl.dataset.n!==note){
+      if(!reduceMq.matches)isl.dataset.n=note;
+      else if(hidden)showNote();
+      else{isl.classList.add('swap');swap=setTimeout(()=>{showNote();isl.classList.remove('swap')},300)}
+    }
+    open=next;isl.classList.toggle('open',open);isl.setAttribute('aria-expanded',String(open));
+    shape();clock();
+    if(visitor)say.textContent=open?SAY[note]:'';
+  }
+  isl.addEventListener('click',()=>setOpen(!open,true));
+  isl.addEventListener('keydown',e=>{if(e.key==='Escape'&&open){e.preventDefault();setOpen(false,true)}});
+  // A press anywhere else on the stage closes it, as a tap outside does on a phone
+  stage.addEventListener('click',e=>{if(open&&!isl.contains(e.target))setOpen(false,true)});
+  reduceMq.addEventListener('change',shape);
+
+  // Show me: one run at a time. later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers.splice(runTimers.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
+  function running(){return runTimers.length>0}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down')}
+  // A run starts from the pill at rest, put there without animating
+  function toRest(){isl.classList.add('still');setOpen(false);void isl.offsetWidth;isl.classList.remove('still')}
+  // The pill is pressed at 300ms and opens at 420ms; it shrinks back after the move and 1.4 s. At Normal it is at rest again at 3.2 s.
+  // The arrival press leaves alone an island the visitor has already opened.
+  $('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&open)return;
+    stopRun();toRest();
+    later(()=>isl.classList.add('down'),0,300);
+    later(()=>{isl.classList.remove('down');setOpen(true)},0,420);
+    later(()=>setOpen(false),dur,1820);
+  });
+  $('btn-reset').addEventListener('click',()=>{stopRun();setOpen(false)});
+  // The visitor pressed, typed, scrolled or moved the focus into the stage: the run stops and the island stays as it is
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  isl.addEventListener('focus',()=>{if(running())stopRun()});
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // A new notification is kept at once and opens the island, or changes the open card into the new one (setOpen shows it)
+  choices('note-seg',d=>{note=d.n;stopRun();setOpen(true,true)});
+  choices('speed-seg',d=>{dur=+d.ms;isl.style.setProperty('--dur',dur+'ms')});
+  choices('bounce-seg',d=>isl.style.setProperty('--ease',EASE[d.b]));
+  isl.style.setProperty('--ease',EASE.soft);shape();
+</script>
+</body>
+</html>

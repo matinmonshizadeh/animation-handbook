@@ -47,3 +47,4 @@ The region is `role="status" aria-live="polite"` so each toast's text is announc
 - [Drawer / Panel Slide](../drawer-slide/) — a bigger panel that slides in from an edge
 - [Modal Expand](../modal-expand/) — a window that must be closed before you go on
 - [Success Confetti](../success-confetti/) — a celebration for a finished task
+- [Dynamic Island](../dynamic-island/) — a black pill that grows into a live notification and shrinks back
