@@ -248,6 +248,7 @@ All 159 techniques, each linked to its live demo.
 - **[ASCII / Halftone](animations/06-3d-advanced/ascii-halftone/)** — A moving picture is redrawn with letters or dots. Best for retro and tech looks.
 - **[2D Physics](animations/06-3d-advanced/physics-2d/)** — Balls drop where you click, bounce and pile up. Best for playful intros.
 - **[Liquid Glass](animations/06-3d-advanced/liquid-glass/)** — Drag a glass panel and the picture behind it bends at the edges. Best for cards.
+- **[Holographic Card](animations/06-3d-advanced/holographic-card/)** — A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.
 
 </details>
 

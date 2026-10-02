@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holographic Card — Animation Handbook</title>
+  <meta name="description" content="A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/holographic-card/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Holographic Card — Animation Handbook">
+  <meta property="og:description" content="A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/holographic-card/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Holographic Card — Animation Handbook">
+  <meta name="twitter:description" content="A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Holographic Card", "name": "Holographic Card", "description": "A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/holographic-card/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Holographic Card"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;display:grid;place-items:center;background:radial-gradient(70% 70% at 50% 45%,#221a40,#08070d);perspective:1000px}
+    /* The card is four layers in one 5:7 box: picture, foil, glare, text panels. The script turns it toward the pointer and moves the
+       foil and glare in it (only transform and opacity); it stays flat, its blend modes mixing its layers, except in Shows the layers. */
+    .card{position:relative;height:min(84%,380px);aspect-ratio:5/7;border-radius:12px;touch-action:none;will-change:transform;
+      box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 50px -14px rgba(0,0,0,.8)}
+    .ly{position:absolute;inset:0;border-radius:inherit;overflow:hidden;overflow:clip}
+    .art svg{display:block;width:100%;height:100%}
+    /* The foil: a sheet of rainbow streaks twice the card's size, slid by the script. Color dodge brightens the picture under each
+       streak and leaves it alone under the clear gaps. Glitter and Lines let it through dots or fine lines only; the dots come in six
+       tile sizes that share no pattern for hundreds of pixels, so they look scattered, not set in a grid (they are kept on the foil,
+       the one layer that uses them, so the card's new style every frame does not resolve them again). */
+    .foil{mix-blend-mode:color-dodge;--d:#000 0 1px,transparent 1.7px;--dots:radial-gradient(circle at 30% 40%,var(--d)) 0 0/17px 23px,radial-gradient(circle at 75% 15%,var(--d)) 0 0/23px 19px,
+        radial-gradient(circle at 50% 80%,#000 0 1.4px,transparent 2.2px) 0 0/31px 37px,radial-gradient(circle at 85% 60%,var(--d)) 0 0/29px 27px,
+        radial-gradient(circle at 15% 70%,#000 0 .7px,transparent 1.4px) 0 0/13px 29px,radial-gradient(circle at 60% 35%,#000 0 1.2px,transparent 2px) 0 0/41px 43px;
+      --lines:repeating-linear-gradient(60deg,#000 0 1.4px,transparent 1.4px 4.2px)}
+    .sheen{position:absolute;inset:-50%;will-change:transform;background:repeating-linear-gradient(118deg,transparent 0%,#f0648c 3%,#f4c35e 6%,#71e2a2 9%,#5ac2f4 12%,#a888f6 15%,transparent 18%,transparent 21%)}
+    .card[data-foil=glitter] .foil{-webkit-mask:var(--dots);mask:var(--dots)}
+    .card[data-foil=lines] .foil{-webkit-mask:var(--lines);mask:var(--lines)}
+    /* The glare: a white spot the size of the card, moved to the pointer; plus-lighter adds its light, so it reads as a highlight. The
+       gloss, a copy over the text panels at a quarter strength at most, lights them too and keeps their dimmest text above 5:1. */
+    .gl{mix-blend-mode:plus-lighter}
+    .spot{position:absolute;inset:0;will-change:transform;opacity:0;background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,.55) 22%,rgba(255,255,255,.18) 58%,transparent)}
+    /* Text panels: solid and above the foil and the glare, so only the faint gloss ever sits over the text */
+    .txt{container-type:inline-size;color:#f4f4f2}
+    .np,.ip{position:absolute;left:6%;right:6%;border-radius:5px;background:#110e27;border:1px solid rgba(255,255,255,.16)}
+    .np{top:4.3%;height:7.1%;display:flex;align-items:center;justify-content:space-between;padding:0 5%;font-weight:800;font-size:max(12px,6.4cqw);letter-spacing:-.01em}
+    .np svg{width:15%;fill:#cfc4ff}
+    .ip{top:59.3%;bottom:4.3%;display:flex;flex-direction:column;justify-content:center;gap:4%;padding:0 6%}
+    .ab{font-weight:700;font-size:max(12px,6cqw)}
+    .ds{font-size:max(11px,4.9cqw);line-height:1.3;color:#d6d6da}
+    .ft{display:flex;justify-content:space-between;margin-top:3%;font-size:max(11px,4.2cqw);color:#bdb7e6}
+    /* Shows the layers: the card turns to one side and its layers spread apart, each drawn as it is (no blending), with an edge;
+       the glare has its own sheet there, so the gloss over the text is left out */
+    .card.split{transform-style:preserve-3d}
+    .card.split .ly{will-change:transform;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+    .card.split .foil,.card.split .gl{mix-blend-mode:normal}.card.split .gloss{display:none}
+    /* Reduced motion: nothing moves; the foil and the glare only fade brighter and back */
+    @media(prefers-reduced-motion:reduce){.card{touch-action:auto}.foil,.spot{transition:opacity .3s}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../physics-2d/" rel="prev" aria-label="Previous: 2D Physics"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>2D Physics</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.25 · 3D &amp; Advanced</p>
+    <h1>Holographic Card</h1>
+    <p class="hb-lede">A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the card, drag a finger across it, or press Show me.</p></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="card" id="card" data-foil="smooth" role="img" aria-label="A holographic trading card named Aurora Prism: a glowing crystal over dark mountains under a night sky. As the card tilts toward the pointer, rainbow foil slides across it and a glare follows the pointer.">
+        <div class="ly art"><svg viewBox="0 0 100 140" aria-hidden="true">
+          <defs>
+            <linearGradient id="hc-frame" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efeaff"/><stop offset=".3" stop-color="#a191ee"/><stop offset=".55" stop-color="#4a3aa8"/><stop offset=".8" stop-color="#b8aaf5"/><stop offset="1" stop-color="#ece6ff"/></linearGradient>
+            <linearGradient id="hc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0f30"/><stop offset=".6" stop-color="#36206a"/><stop offset="1" stop-color="#a5467f"/></linearGradient>
+            <radialGradient id="hc-glow"><stop offset="0" stop-color="#c4f1ff" stop-opacity=".8"/><stop offset="1" stop-color="#c4f1ff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="100" height="140" fill="url(#hc-frame)"/><rect x="3" y="3" width="94" height="134" rx="3" fill="#141130"/>
+          <svg x="6" y="18" width="88" height="62" viewBox="0 0 88 62">
+            <rect width="88" height="62" fill="url(#hc-sky)"/>
+            <path d="M0 14C30 4 56 22 88 6V11C56 27 30 10 0 21Z" fill="#7cf0c8" opacity=".14"/><path d="M0 22C22 10 50 30 88 12V20C52 38 24 18 0 30Z" fill="#3fd6c4" opacity=".22"/>
+            <g fill="#fff"><circle cx="8" cy="6" r=".5"/><circle cx="19" cy="12" r=".4"/><circle cx="30" cy="5" r=".6"/><circle cx="63" cy="8" r=".5"/><circle cx="75" cy="16" r=".4"/><circle cx="82" cy="5" r=".6"/><circle cx="12" cy="26" r=".35"/><circle cx="72" cy="28" r=".35"/></g>
+            <circle cx="44" cy="29" r="24" fill="url(#hc-glow)"/>
+            <path d="M0 44 10 34 18 39 28 28 38 37 47 31 56 38 66 27 76 36 88 30V62H0Z" fill="#2c2263"/><path d="M0 52 12 45 22 50 34 43 46 51 58 44 70 50 80 45 88 49V62H0Z" fill="#171039"/>
+            <ellipse cx="44" cy="54" rx="10" ry="1.6" fill="#8fdcff" opacity=".3"/>
+            <path d="M44 8 35 20 44 24Z" fill="#d6f7ff"/><path d="M44 8 53 20 44 24Z" fill="#8fdcff"/><path d="M35 20 37 36 44 24Z" fill="#76b9ff"/>
+            <path d="M53 20 51 36 44 24Z" fill="#4f84e6"/><path d="M37 36 44 50 44 24Z" fill="#8a76f2"/><path d="M51 36 44 50 44 24Z" fill="#5b40c4"/>
+            <path d="M44 8 53 20 51 36 44 50 37 36 35 20Z" fill="none" stroke="#effcff" stroke-width=".5" stroke-opacity=".8"/>
+            <path d="M58 11l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="#fff"/>
+          </svg>
+          <rect x="6" y="18" width="88" height="62" rx="1" fill="none" stroke="#ddd5ff" stroke-width=".7" stroke-opacity=".7"/>
+        </svg></div>
+        <div class="ly foil" id="foil"><div class="sheen" id="sheen"></div></div>
+        <div class="ly gl"><div class="spot" id="spot"></div></div>
+        <div class="ly txt">
+          <p class="np"><span>Aurora Prism</span><svg viewBox="0 0 34 10" aria-hidden="true"><path d="M5 1l4 4-4 4-4-4zm12 0 4 4-4 4-4-4zm12 0 4 4-4 4-4-4z"/></svg></p>
+          <div class="ip"><p class="ab">Prism Burst</p><p class="ds">Splits starlight into every color.</p><p class="ft"><span>Holo rare</span><span>025/160</span></p></div>
+          <div class="spot gloss" id="gloss"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then try it again or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="foil-lbl">Foil pattern</p>
+        <div class="seg" id="foil-seg" role="group" aria-labelledby="foil-lbl">
+          <button type="button" data-f="smooth" class="on" aria-pressed="true">Smooth</button>
+          <button type="button" data-f="glitter" aria-pressed="false">Glitter</button>
+          <button type="button" data-f="lines" aria-pressed="false">Lines</button>
+        </div>
+        <p class="hb-hint">The shine comes as soft bands, sparkling dots or fine lines.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="tilt-lbl">How far it tilts</p>
+        <div class="seg" id="tilt-seg" role="group" aria-labelledby="tilt-lbl">
+          <button type="button" data-t="6" aria-pressed="false">Gentle</button>
+          <button type="button" data-t="12" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-t="20" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How far the card leans toward the pointer.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="glare-lbl">Glare</p>
+        <div class="seg" id="glare-seg" role="group" aria-labelledby="glare-lbl">
+          <button type="button" data-g="0" aria-pressed="false">Off</button>
+          <button type="button" data-g=".55" class="on" aria-pressed="true">Soft</button>
+          <button type="button" data-g="1" aria-pressed="false">Bright</button>
+        </div>
+        <p class="hb-hint">A spot of light that follows the pointer.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the layers</span><input class="hb-switch" type="checkbox" role="switch" id="layers-tog" autocomplete="off"></label>
+          <p class="hb-hint">The card comes apart into its picture, foil, glare and text.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a holographic foil to [the card you want to make shine]. Build the card from stacked layers: its picture, a rainbow sheet blended over it to light up the colors beneath, a spot of glare when the settings include one, and on top the text on solid panels so it stays readable. As the pointer moves over the card, tilt the card toward it in 3D, slide the foil with the tilt and keep any glare under the pointer. Ease each change, and move layers only by position and transparency so it stays smooth. On touch screens, dragging a finger does the same. If the visitor has reduced motion turned on, keep the card flat and the foil still, and only brighten it. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Trading cards</li><li>Membership cards</li><li>Rewards and badges</li><li>Product launches</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Text-heavy cards</li><li>Dense grids</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+const stage=document.getElementById('stage'),card=document.getElementById('card'),foil=document.getElementById('foil');
+const sheen=document.getElementById('sheen'),spot=document.getElementById('spot'),gloss=document.getElementById('gloss'),layers=[...card.querySelectorAll('.ly')];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)');
+const FRAME=1000/60,K=.14,RUN_MS=3200;
+// The foil's strength at rest and what lighting it adds, per pattern: the dots and lines let less of it through
+const FOIL={smooth:[.26,.4],glitter:[.55,.45],lines:[.45,.45]};
+let T=12,G=.55,pat='smooth',split=0;  // settings: the lean at the card's edges in degrees, the glare, the pattern, layers apart (0 or 1)
+let ax=0,ay=0,ah=0,sx=0,sy=0,sh=0,sp=0;  // a: the aim (x and y from -.5 to .5 across the card, h 1 while it is lit), s: what is shown
+let raf=0,lastT=null,run=null,holdTimer=0,spDrawn='';
+
+// Draws the state s on the card. Under reduced motion nothing turns or slides: the foil and the glare only fade in where they are.
+function draw(){
+  const still=reduce.matches,x=still?0:sx,y=still?0:sy,[f0,f1]=FOIL[pat];
+  card.style.transform=`rotateX(${(-2*T*y-14*sp).toFixed(2)}deg) rotateY(${(2*T*x+26*sp).toFixed(2)}deg) scale(${(1+(still?0:.04*sh)-.2*sp).toFixed(3)})`;
+  sheen.style.transform=`translate(${(-40*x).toFixed(2)}%,${(-40*y).toFixed(2)}%)`;
+  foil.style.opacity=(f0+f1*sh).toFixed(3);
+  // The glare and the gloss follow the pointer. In the layers view the glare stays lit at rest, up and to the right where its sheet
+  // reaches past the picture, so it reads as a layer of its own; under reduced motion it keeps a fixed spot (on the card, up left)
+  const rest=sp*(1-sh),gx=still?35*sp-15:100*x+20*rest,gy=still?4*sp-20:100*y-16*rest;
+  spot.style.transform=gloss.style.transform=`translate(${gx.toFixed(2)}%,${gy.toFixed(2)}%)`;
+  spot.style.opacity=(G*Math.max(sh,sp)).toFixed(3);
+  gloss.style.opacity=(.25*G*sh).toFixed(3);
+  // Shows the layers: each layer comes forward by its place in the stack, written only while they move (not as a custom property
+  // on the card: the card gets a new style every frame and would pass it down to every layer each time)
+  const v=sp.toFixed(3);
+  if(v!==spDrawn){spDrawn=v;card.classList.toggle('split',sp>0);layers.forEach((l,i)=>{l.style.transform=sp>0?`translateZ(${(30*i*sp).toFixed(1)}px)`:'';});}
+}
+
+// The loop runs only while something moves. Show me drives the state by its own clock; otherwise the state closes 14% of the
+// gap to the aim every 60th of a second (the same share at any frame rate) and snaps to it once close.
+function wake(){
+  if(reduce.matches){run=null;sh=ah;sp=split;draw();return;}
+  if(!raf){lastT=null;raf=requestAnimationFrame(tick);}
+}
+function tick(ts){
+  raf=0;const dt=lastT===null?FRAME:Math.min(ts-lastT,50);lastT=ts;let more=false;
+  const k=1-Math.pow(1-K,dt/FRAME);
+  if(run){
+    if(run.t0===null)run.t0=ts;
+    const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p);
+    sx=.42*Math.sin(2*Math.PI*e)+run.x*(1-p);sy=.34*Math.sin(4*Math.PI*e)+run.y*(1-p);sh=Math.min(1,5*Math.min(e,1-e));
+    if(p<1)more=true;else{run=null;sx=sy=sh=ax=ay=ah=0;}
+  }else{
+    sx+=(ax-sx)*k;sy+=(ay-sy)*k;sh+=(ah-sh)*k;
+    if(Math.abs(ax-sx)+Math.abs(ay-sy)+Math.abs(ah-sh)<.002){sx=ax;sy=ay;sh=ah;}else more=true;
+  }
+  sp+=(split-sp)*k;if(Math.abs(split-sp)<.002)sp=split;else more=true;
+  draw();
+  if(more)raf=requestAnimationFrame(tick);
+}
+document.addEventListener('visibilitychange',()=>{lastT=null;});
+
+// Show me: a pretend pointer draws a figure of eight over the card in 3.2 s, lit as it goes, and leaves it flat. Under reduced
+// motion the card stays flat and the foil and glare fade in for 1.2 s, then out.
+function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
+document.getElementById('btn-demo').addEventListener('click',()=>{stopHold();
+  if(reduce.matches){ah=1;wake();holdTimer=setTimeout(()=>{holdTimer=0;ah=0;wake();},1200);return;}
+  run={t0:null,x:sx,y:sy};wake();
+});
+// The visitor pressed, typed, scrolled or touched inside the stage: a run or hold stops and the card settles, unless that same
+// press aims it (the pointer handlers below come next)
+document.addEventListener('hb:input',()=>{if(holdTimer||run){stopHold();run=null;ax=ay=ah=0;wake();}});
+
+// The pointer aims the card where it is over the card's own place (not its tilted outline, which moves under a resting pointer).
+// A finger or pen pressed down keeps aiming at the nearest edge when it slides off; a mouse that leaves the card lets it settle.
+const clamp=v=>Math.max(-.5,Math.min(.5,v));
+function aim(e){
+  const r=stage.getBoundingClientRect();
+  const x=(e.clientX-r.left-stage.clientLeft-card.offsetLeft)/card.offsetWidth-.5,y=(e.clientY-r.top-stage.clientTop-card.offsetTop)/card.offsetHeight-.5;
+  const on=Math.abs(x)<=.5&&Math.abs(y)<=.5||e.pointerType!=='mouse'&&e.buttons>0;
+  ax=on?clamp(x):0;ay=on?clamp(y):0;ah=on?1:0;wake();
+}
+function rest(){if(!run&&!holdTimer){ax=ay=ah=0;wake();}}
+stage.addEventListener('pointerdown',aim);
+// Hovering sends no hb:input, so the visitor's own pointer ends a run here, then takes the card
+stage.addEventListener('pointermove',e=>{if(e.isTrusted&&(run||holdTimer)){stopHold();run=null;}aim(e);});
+['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,rest));
+stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')rest();});
+reduce.addEventListener('change',()=>{stopHold();run=null;sx=sy=sh=ax=ay=ah=0;sp=split;draw();});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+    pick(b.dataset);
+  }));
+}
+choices('foil-seg',d=>{pat=d.f;card.dataset.foil=pat;draw();});
+choices('tilt-seg',d=>{T=+d.t;});
+choices('glare-seg',d=>{G=+d.g;draw();});
+document.getElementById('layers-tog').addEventListener('change',e=>{split=e.target.checked?1:0;wake();});
+draw();
+</script>
+</body>
+</html>

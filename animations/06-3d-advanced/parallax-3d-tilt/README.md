@@ -98,3 +98,4 @@ function step(now) {                           // t0 = the time of the first fra
 - [3D Model Orbit](../3d-model-orbit/) — a real 3D object drawn with WebGL
 - [Hover State Animation](../../04-micro-interactions/hover-state/) — flat hover feedback, without the 3D
 - [2.5D / Pseudo-3D](../2-5d-pseudo-3d/) — layers at different depths move with the pointer
+- [Holographic Card](../holographic-card/) — the same tilt, with a rainbow foil and a glare that follow the pointer
