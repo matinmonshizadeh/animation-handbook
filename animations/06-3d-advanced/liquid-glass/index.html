@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liquid Glass — Animation Handbook</title>
+  <meta name="description" content="Drag a glass panel and the picture behind it bends at the edges. Best for cards.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/liquid-glass/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Liquid Glass — Animation Handbook">
+  <meta property="og:description" content="Drag a glass panel and the picture behind it bends at the edges. Best for cards.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/liquid-glass/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Liquid Glass — Animation Handbook">
+  <meta name="twitter:description" content="Drag a glass panel and the picture behind it bends at the edges. Best for cards.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Liquid Glass", "name": "Liquid Glass", "description": "Drag a glass panel and the picture behind it bends at the edges. Best for cards.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/liquid-glass/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Liquid Glass"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* The picture behind the glass, drawn with gradients and sized by the stage (1cqw and 1cqh are 1% of its width and height):
+       dots, stripes, thin neon lines and big letters give the bend edges to show. Its colors, and the glass's, are set here;
+       --lg-m is the stop of the masks, where only its alpha counts. */
+    .stage{--lg-glow:#3b2c86;--lg-sky:#1e1752;--lg-sky-2:#100f36;--lg-deep:#0a1b2d;--lg-dot:rgba(255,255,255,.32);--lg-sun:#ffd36e;--lg-sun-2:#ff8a5c;--lg-sun-3:#ff5c8a;
+      --lg-neon:#b98cff;--lg-tower:#2c2070;--lg-tower-2:#150f3c;--lg-sea:#3fd6c4;--lg-ball:#ff6f8b;--lg-ball-2:#ffce5a;--lg-ink:#fff;--lg-light:255,255,255;--lg-shade:0,0,0;--lg-m:#000;
+      --lg-tint:#f4f4f2;--lg-tp:9%;--lg-blur:0px;--lg-fb:3px;--lg-rim:23px;--lg-vh:1vh;position:relative;overflow:hidden;container-type:size;-webkit-user-select:none;user-select:none;
+      background:radial-gradient(80% 90% at 88% 4%,var(--lg-glow),transparent 62%),linear-gradient(168deg,var(--lg-sky),var(--lg-sky-2) 52%,var(--lg-deep))}
+    .lg-scene,.lg-scene>*{position:absolute;display:block}.lg-scene{inset:0}
+    .lg-dots{left:0;top:0;width:58%;height:70%;background:radial-gradient(circle,var(--lg-dot) 1.5px,transparent 2px) 0 0/18px 18px;-webkit-mask:radial-gradient(farthest-side at 0 0,var(--lg-m) 50%,transparent);mask:radial-gradient(farthest-side at 0 0,var(--lg-m) 50%,transparent)}
+    .lg-sun{right:6%;top:7%;width:min(42cqh,27cqw);aspect-ratio:1;border-radius:50%;background:linear-gradient(var(--lg-sun),var(--lg-sun-2) 55%,var(--lg-sun-3));-webkit-mask:linear-gradient(var(--lg-m) 50%,transparent 0),repeating-linear-gradient(transparent 0 2.5%,var(--lg-m) 0 9%);mask:linear-gradient(var(--lg-m) 50%,transparent 0),repeating-linear-gradient(transparent 0 2.5%,var(--lg-m) 0 9%)}
+    /* A skyline of dark towers lined with neon, cut out of one wide band */
+    .lg-city{left:0;right:0;bottom:30%;height:26%;background:repeating-linear-gradient(90deg,var(--lg-neon) 0 2px,transparent 2px 9px),linear-gradient(var(--lg-tower),var(--lg-tower-2));clip-path:polygon(0 100%,0 52%,6% 52%,6% 30%,11% 30%,11% 64%,15% 64%,15% 12%,21% 12%,21% 44%,26% 44%,26% 70%,31% 70%,31% 26%,36% 26%,36% 56%,41% 56%,41% 6%,46% 6%,46% 40%,52% 40%,52% 62%,57% 62%,57% 20%,62% 20%,62% 48%,67% 48%,67% 34%,72% 34%,72% 66%,77% 66%,77% 24%,83% 24%,83% 54%,88% 54%,88% 16%,94% 16%,94% 46%,100% 46%,100% 100%)}
+    .lg-sea{left:0;right:0;bottom:0;height:30%;background:repeating-linear-gradient(var(--lg-sea) 0 4px,transparent 4px 13px);-webkit-mask:linear-gradient(transparent,var(--lg-m) 25%);mask:linear-gradient(transparent,var(--lg-m) 25%)}
+    .lg-ball{width:7cqmin;aspect-ratio:1;border-radius:50%}
+    .lg-b1{left:47%;top:11%;background:var(--lg-ball)}.lg-b2{left:30%;top:20%;width:4cqmin;background:var(--lg-ball-2)}
+    .lg-word{left:5%;top:27%;font-weight:900;font-size:min(17cqh,10cqw);line-height:1;letter-spacing:-.03em;color:var(--lg-ink);white-space:nowrap}
+    /* Narrow stages (phones): a smaller sun, higher, so the letters pass under it */
+    @container (aspect-ratio < 1.8){.lg-sun{top:5%;width:26cqw}.lg-word{top:34%}.lg-b1{left:56%;top:6%}}
+    /* The glass: a faint tint, a gloss at the top, a thin rim that catches the light and a shadow below. Where the bend cannot be
+       drawn, the backdrop is blurred (frosted glass) and a glow inside the rim grows with the bend. */
+    .lg-glass{position:absolute;left:0;top:0;cursor:grab;touch-action:none;will-change:transform;
+      background:radial-gradient(120% 80% at 25% 0%,rgba(var(--lg-light),.16),transparent 55%),color-mix(in srgb,var(--lg-tint) var(--lg-tp),transparent);
+      -webkit-backdrop-filter:blur(var(--lg-fb)) saturate(1.7);backdrop-filter:blur(var(--lg-fb)) saturate(1.7);box-shadow:0 18px 38px rgba(var(--lg-shade),.45),0 3px 8px rgba(var(--lg-shade),.25),inset 0 0 var(--lg-rim) calc(var(--lg-rim) / 3) rgba(var(--lg-light),.3)}
+    .lg-refract .lg-glass{backdrop-filter:url(#lg-filter) blur(var(--lg-blur)) saturate(1.3);box-shadow:0 18px 38px rgba(var(--lg-shade),.45),0 3px 8px rgba(var(--lg-shade),.25),inset 0 0 14px rgba(var(--lg-light),.12),inset 0 -10px 16px -12px rgba(var(--lg-light),.45)}
+    .lg-glass::before,.lg-map{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+    .lg-glass::before{padding:1.5px;background:linear-gradient(135deg,rgb(var(--lg-light)),rgba(var(--lg-light),.2) 28%,rgba(var(--lg-light),.06) 55%,rgba(var(--lg-light),.62));-webkit-mask:linear-gradient(var(--lg-m) 0 0) content-box,linear-gradient(var(--lg-m) 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+    .lg-map{background:0 0/100% 100% no-repeat;opacity:.92}.lg-glass.lg-grab{cursor:grabbing}.lg-defs{position:absolute;width:0;height:0;overflow:hidden}
+    /* Where the glass is frosted the help line above has one more line, so from 601px wide (where the shared heights apply) the stage
+       gives it back, down to the shared 260px, and the player bar stays where it is in Chrome. --lg-vh: the small viewport height where known */
+    @supports(height:1svh){.stage{--lg-vh:1svh}}@media(min-width:601px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(300px,calc(100 * var(--lg-vh) - 444px),440px)}}@media(min-width:601px) and (max-height:760px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(260px,calc(100 * var(--lg-vh) - 354px),440px)}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
+  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../physics-2d/" rel="prev" aria-label="Previous: 2D Physics"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>2D Physics</span></a></span>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.24 · 3D &amp; Advanced</p>
+    <h1>Liquid Glass</h1>
+    <p class="hb-lede">Drag a glass panel and the picture behind it bends at the edges. Best for cards.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the glass or tap where it should go, use the arrow keys, or press Show me.<span id="lg-note" hidden> Frosted here: the bend shows in Chrome or Edge on a computer or Android.</span></p></div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="lg-scene" aria-hidden="true"><i class="lg-dots"></i><i class="lg-sun"></i><i class="lg-city"></i><i class="lg-sea"></i><i class="lg-ball lg-b1"></i><i class="lg-ball lg-b2"></i><p class="lg-word">Look closer</p></div>
+      <div class="lg-glass" id="glass" tabindex="0" role="group" aria-roledescription="glass panel" aria-label="Glass over a colorful picture. Drag it, or press the arrow keys to move it."><i class="lg-map" id="lg-map" hidden></i></div>
+      <svg class="lg-defs" aria-hidden="true" focusable="false"><filter id="lg-filter" filterUnits="userSpaceOnUse" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feImage id="lg-img" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map"/><feDisplacementMap id="lg-disp" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and look at the glass, then drag it or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="bend-lbl">How much it bends</p>
+        <div class="seg" id="bend-seg" role="group" aria-labelledby="bend-lbl">
+          <button type="button" data-b=".25" aria-pressed="false">Subtle</button>
+          <button type="button" data-b=".42" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-b=".6" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How far the rounded edge pulls in the picture behind it.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="frost-lbl">Frost</p>
+        <div class="seg" id="frost-seg" role="group" aria-labelledby="frost-lbl">
+          <button type="button" data-f="0" data-fb="3" class="on" aria-pressed="true">Clear</button>
+          <button type="button" data-f="1.5" data-fb="8" aria-pressed="false">Light</button>
+          <button type="button" data-f="4" data-fb="16" aria-pressed="false">Frosted</button>
+        </div>
+        <p class="hb-hint">How much the glass blurs what is behind it.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="tint-lbl">Tint</p>
+        <div class="swatches" id="tint-sw" role="group" aria-labelledby="tint-lbl">
+          <button type="button" aria-pressed="false" aria-label="Pink" data-c="#ff6f8b" data-p="20" style="background:#ff6f8b"></button>
+          <button type="button" class="on" aria-pressed="true" aria-label="White" data-c="#f4f4f2" data-p="9" style="background:#f4f4f2"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-c="#58a6ff" data-p="20" style="background:#58a6ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Purple" data-c="#d2a8ff" data-p="20" style="background:#d2a8ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-c="#56d364" data-p="20" style="background:#56d364"></button>
+          <button type="button" aria-pressed="false" aria-label="Orange" data-c="#ffa657" data-p="20" style="background:#ffa657"></button>
+        </div>
+        <p class="hb-hint">The color the glass adds.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="shape-lbl">Shape</p>
+          <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+            <button type="button" data-s="card" class="on" aria-pressed="true">Card</button>
+            <button type="button" data-s="pill" aria-pressed="false">Pill</button>
+            <button type="button" data-s="circle" aria-pressed="false">Circle</button>
+          </div>
+          <p class="hb-hint">A pill suits a menu bar; a circle works like a lens.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows the bend map</span><input class="hb-switch" type="checkbox" role="switch" id="map-tog" autocomplete="off"></label>
+          <p class="hb-hint">The picture that steers the bend: red moves it sideways, green up and down.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a liquid glass panel to [the card or menu you want to float over a picture]. The panel shows what is behind it bent and magnified near its rounded edges, like thick curved glass, with a soft highlight along the rim. Bend it with an SVG displacement filter applied to what is behind the panel, which Chromium browsers support; other browsers get blurred, tinted glass with the same highlight. Dragging with the pointer or a finger moves it, and so do the arrow keys; it stretches a little as it moves and wobbles back when it stops. Use transforms only, so it stays smooth. If the visitor has reduced motion turned on, let it jump instead of gliding, with no stretch or wobble. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Floating menus</li><li>Cards over photos</li><li>Tab bars</li><li>Media controls</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Long text</li><li>Plain backgrounds</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<script>
+const stage=document.getElementById('stage'),glass=document.getElementById('glass'),mapEl=document.getElementById('lg-map');
+const filt=document.getElementById('lg-filter'),fImg=document.getElementById('lg-img'),fDisp=document.getElementById('lg-disp');
+const slowTog=document.getElementById('slow-tog'),vars=stage.style,reduce=matchMedia('(prefers-reduced-motion:reduce)');
+// Chromium draws an SVG filter in backdrop-filter; Safari and Firefox do not, and CSS.supports() only checks the syntax, so the
+// bend goes to browsers that name Chromium among their brands and the others keep the frosted glass.
+const REFRACT=!!(navigator.userAgentData&&navigator.userAgentData.brands.some(b=>b.brand==='Chromium'))&&CSS.supports('backdrop-filter','url(#lg-filter)');
+stage.classList.toggle('lg-refract',REFRACT);stage.classList.toggle('lg-frost',!REFRACT);document.getElementById('lg-note').hidden=REFRACT;
+const FRAME=1000/60,RUN_MS=3600,EMAX=.12,MAG=.15;
+// Each shape: its width and height as shares of the base width, and its corner radius as a share of its height
+const SHAPES={card:[1,.62,.34],pill:[1.12,.42,.5],circle:[.68,.68,.5]};
+let W=0,H=0,gw=0,gh=0,shape='card',bend=.42,x=0,y=0,run=null,drag=null,target=null,hold=0,holdFrom=null,raf=0,lastT=null,acc=0;
+let lx=0,ly=0,vx=0,vy=0,a=0,b=0,va=0,vb=0; // where the last frame drew the glass, its smoothed speed (px/ms), its stretch (a, b) and its speed
+
+// The bend map, one pixel per CSS pixel of the glass. Red is the sideways shift and green the shift up or down (128: none).
+// Near the rim every pixel reads the picture from further in, most at the very edge (the rim magnifies), and a little
+// everywhere toward the middle (the whole glass magnifies slightly). Outside the rounded corners it stays at 128.
+function drawMap(){
+  const c=document.createElement('canvas');c.width=gw;c.height=gh;
+  const g=c.getContext('2d'),img=g.createImageData(gw,gh),d=img.data,hw=gw/2,hh=gh/2,r=gh*SHAPES[shape][2],B=Math.min(hw,hh)*.7;
+  for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){
+    const X=i+.5-hw,Y=j+.5-hh,qx=Math.abs(X)-hw+r,qy=Math.abs(Y)-hh+r,k=(j*gw+i)*4;
+    let e,nx=0,ny=0; // e: the distance in from the edge; (nx, ny): the way out
+    if(qx>0&&qy>0){const l=Math.hypot(qx,qy);e=r-l;nx=Math.sign(X)*qx/l;ny=Math.sign(Y)*qy/l;}
+    else if(qx>qy){e=r-qx;nx=Math.sign(X);}else{e=r-qy;ny=Math.sign(Y);}
+    const m=e<0?0:(1-Math.min(1,e/B))**2,z=e<0?0:MAG;
+    d[k]=128-127*(nx*m+z*X/hw)/(1+MAG);d[k+1]=128-127*(ny*m+z*Y/hh)/(1+MAG);d[k+2]=128;d[k+3]=255;
+  }
+  g.putImageData(img,0,0);const url=c.toDataURL();fImg.setAttribute('href',url);mapEl.style.backgroundImage='url('+url+')';
+  for(const el of [filt,fImg]){el.setAttribute('width',gw);el.setAttribute('height',gh);}setBend();
+}
+// The filter shifts a pixel by up to half its scale; at the very edge that is the bend times the rim's width
+function setBend(){fDisp.setAttribute('scale',(2*bend*Math.min(gw,gh)*.35*(1+MAG)).toFixed(1));vars.setProperty('--lg-rim',Math.round(bend*70-6)+'px');}
+
+const cx=v=>Math.min(W-gw/2,Math.max(gw/2,v)),cy=v=>Math.min(H-gh/2,Math.max(gh/2,v));
+const home=()=>[cx(W*.56),cy(H*.86-gh/2)]; // its lower edge over the sea, so the rim bends the stripes
+function place(){glass.style.transform=`translate(${(x-gw/2).toFixed(2)}px,${(y-gh/2).toFixed(2)}px) matrix(${(1+a).toFixed(4)},${b.toFixed(4)},${b.toFixed(4)},${(1-a).toFixed(4)},0,0)`;}
+// The glass is a share of the stage's width (150 to 280px wide for a card), at most 55% of its height. A new size draws the map
+// again and keeps each place the glass is at or heading for (run, glide, held Show me) at its share; its rest place stays home.
+function layout(){
+  const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+  const [sw,sh,sr]=SHAPES[shape],base=Math.min(280,Math.max(150,w*.3)),k=Math.min(1,h*.55/(base*sh)),nw=Math.round(base*sw*k),nh=Math.round(base*sh*k);
+  const first=!W,old=W&&home(),kx=W?w/W:1,ky=H?h/H:1;W=w;H=h;
+  const fit=p=>p&&(old&&Math.abs(p[0]-old[0])+Math.abs(p[1]-old[1])<1?home():[cx(p[0]*kx),cy(p[1]*ky)]);
+  if(nw!==gw||nh!==gh){gw=nw;gh=nh;glass.style.width=gw+'px';glass.style.height=gh+'px';glass.style.borderRadius=Math.round(gh*sr)+'px';drawMap();}
+  if(first)[x,y]=home();else{[x,y]=fit([x,y]);target=fit(target);holdFrom=fit(holdFrom);if(run)for(const l of run.legs){l[0]=fit(l[0]);l[1]=fit(l[1]);}}
+  lx=x;ly=y;place();
+}
+
+// One loop, only while something moves. Show me and a glide move the glass in the demo's own time (a third of it in slow motion);
+// the stretch follows its speed through a spring of 1/60 s steps, so it lags, overshoots when the glass stops and wobbles out.
+// The stretch is a squeeze that keeps the area: longer along the motion by a, b (a = e cos 2θ, b = e sin 2θ), shorter across.
+function wake(){if(!raf){lastT=null;lx=x;ly=y;raf=requestAnimationFrame(tick);}}
+function tick(ts){
+  raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50),f=slowTog.checked?1/3:1,ox=lx,oy=ly;lastT=ts;
+  // Reduced motion (even turned on mid-move): a run stops where it is, a glide ends at its target, nothing stretches
+  if(reduce.matches){if(target)[x,y]=target;run=target=null;a=b=va=vb=vx=vy=acc=0;}
+  if(run){run.t+=dt*f;const p=along(run);x=cx(p[0]);y=cy(p[1]);if(run.t>=run.end)run=null;}
+  else if(target){const k=1-Math.pow(.8,dt*f/FRAME);x+=(target[0]-x)*k;y+=(target[1]-y)*k;
+    if(Math.abs(target[0]-x)+Math.abs(target[1]-y)<.5){[x,y]=target;target=null;}}
+  if(dt&&!reduce.matches){
+    const s=dt*(drag?1:f),k=1-Math.pow(.7,dt*f/FRAME);
+    vx+=((x-ox)/s-vx)*k;vy+=((y-oy)/s-vy)*k;
+    const sp=Math.hypot(vx,vy),e=Math.min(EMAX,sp*60/gw),ux=sp?vx/sp:0,uy=sp?vy/sp:0,ta=e*(ux*ux-uy*uy),tb=e*2*ux*uy;
+    for(acc+=dt*f;acc>=FRAME;acc-=FRAME){va+=-.08*(a-ta)-.1*va;vb+=-.08*(b-tb)-.1*vb;a+=va;b+=vb;}
+  }
+  const more=run||target||drag||Math.abs(a)+Math.abs(b)+Math.abs(va)+Math.abs(vb)+Math.hypot(vx,vy)>1e-3;
+  if(!more)a=b=va=vb=vx=vy=acc=0;lx=x;ly=y;place();if(more)raf=requestAnimationFrame(tick);
+}
+document.addEventListener('visibilitychange',()=>{lastT=null;});
+// Show me's path: three legs (to the left end, the right end and back), each eased in and out, timed by its length
+function along(r){
+  let t=r.t,i=0;while(i<2&&t>r.legs[i][2]){t-=r.legs[i][2];i++;}
+  const [p,q,d]=r.legs[i],u=Math.min(1,t/d),e=u<.5?4*u*u*u:1-4*(1-u)**3;return [p[0]+(q[0]-p[0])*e,p[1]+(q[1]-p[1])*e];
+}
+
+// Pointer Events cover mouse, touch and pen: the glass follows the pointer from where it was picked up. A tap or click on the
+// picture sends it there. Under reduced motion the glass still follows the pointer, but it never stretches or glides.
+glass.addEventListener('pointerdown',e=>{
+  if(e.button>0)return;run=null;target=null;drag={id:e.pointerId,dx:x-e.clientX,dy:y-e.clientY};
+  try{glass.setPointerCapture(e.pointerId);}catch(_){}glass.classList.add('lg-grab');wake();
+});
+glass.addEventListener('pointermove',e=>{if(drag&&e.pointerId===drag.id){x=cx(e.clientX+drag.dx);y=cy(e.clientY+drag.dy);}});
+const letGo=e=>{if(drag&&e.pointerId===drag.id){drag=null;glass.classList.remove('lg-grab');wake();}};
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>glass.addEventListener(t,letGo));
+function goTo(p){run=null;if(reduce.matches){[x,y]=p;target=null;place();}else{target=p;wake();}}
+stage.addEventListener('click',e=>{if(!glass.contains(e.target)){const r=stage.getBoundingClientRect();goTo([cx(e.clientX-r.left),cy(e.clientY-r.top)]);}});
+// The arrow keys move it a step (three with Shift), and quick presses add up
+glass.addEventListener('keydown',e=>{
+  const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!k)return;
+  const s=Math.min(W,H)*(e.shiftKey?.24:.08),from=target||[x,y];e.preventDefault();goTo([cx(from[0]+k[0]*s),cy(from[1]+k[1]*s)]);
+});
+
+// Show me: the glass glides to the left end, across to the right end and back in 3.6 s. Under reduced motion it jumps to the
+// right end, stays 1.2 s and jumps back. A second press starts again from where the first one began.
+// The visitor pressed, typed, scrolled, touched or tabbed into the stage: a run stops where it is and the glass settles there
+function stopHold(){clearTimeout(hold);hold=0;}function stopRun(){if(hold)stopHold();if(run){run=null;wake();}}
+document.addEventListener('hb:input',stopRun);stage.addEventListener('focusin',e=>{if(e.isTrusted)stopRun();});
+document.getElementById('btn-demo').addEventListener('click',()=>{
+  if(hold){stopHold();[x,y]=holdFrom;}
+  const p=run?run.legs[2][1]:[x,y],l=[cx(0),cy(H*.4)],r=[cx(W),cy(H*.46)];
+  drag=null;target=null;glass.classList.remove('lg-grab');
+  if(reduce.matches){holdFrom=p;[x,y]=r;place();hold=setTimeout(()=>{hold=0;[x,y]=holdFrom;place();},1200);return;}
+  const pts=[[x,y],l,r,p],len=[0,1,2].map(i=>Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1])),L=len[0]+len[1]+len[2]||1;
+  const legs=[0,1,2].map(i=>[pts[i],pts[i+1],Math.max(1,RUN_MS*len[i]/L)]);
+  run={t:0,legs,end:legs[0][2]+legs[1][2]+legs[2][2]};wake();
+});
+document.getElementById('btn-reset').addEventListener('click',()=>{stopHold();drag=null;glass.classList.remove('lg-grab');goTo(home());});
+
+function choices(id,pick){
+  const buttons=document.querySelectorAll('#'+id+' button');
+  buttons.forEach(btn=>btn.addEventListener('click',()=>{
+    buttons.forEach(o=>{o.classList.toggle('on',o===btn);o.setAttribute('aria-pressed',String(o===btn))});
+    pick(btn.dataset);
+  }));
+}
+choices('bend-seg',d=>{bend=+d.b;setBend();});
+choices('frost-seg',d=>{vars.setProperty('--lg-blur',d.f+'px');vars.setProperty('--lg-fb',d.fb+'px');});
+choices('tint-sw',d=>{vars.setProperty('--lg-tint',d.c);vars.setProperty('--lg-tp',d.p+'%');});
+choices('shape-seg',d=>{shape=d.s;gw=0;layout();});
+document.getElementById('map-tog').addEventListener('change',e=>{mapEl.hidden=!e.target.checked;});
+addEventListener('resize',layout);
+layout();
+</script>
+</body>
+</html>

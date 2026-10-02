@@ -29,6 +29,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [Flocking](flocking/) | Birds swirl and turn together as one flock. Best for calm backgrounds. |
 | [ASCII / Halftone](ascii-halftone/) | A moving picture is redrawn with letters or dots. Best for retro and tech looks. |
 | [2D Physics](physics-2d/) | Balls drop where you click, bounce and pile up. Best for playful intros. |
+| [Liquid Glass](liquid-glass/) | Drag a glass panel and the picture behind it bends at the edges. Best for cards. |
 
 ## Key concepts
 
@@ -47,6 +48,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | All WebGL demos | WebGL 1.0 (all modern browsers) |
 | GPGPU Particle System | WebGL2 (Chrome 56+, Firefox 51+, Safari 15+) |
 | backdrop-filter (Glassmorphism) | Chrome, Edge, Safari; Firefox 103+ |
+| SVG filter in backdrop-filter (Liquid Glass) | Chromium browsers on a computer or Android (Chrome, Edge, Opera); Safari, Firefox and every browser on iPhone and iPad show frosted glass instead |
 
 ## See also
 - [04 — Micro-Interactions](../04-micro-interactions/) — lighter-weight interactive animations

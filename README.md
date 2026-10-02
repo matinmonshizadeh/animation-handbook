@@ -39,7 +39,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 | 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
 | 04 | [Micro-Interactions](#04) | 39 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
 | 05 | [Text & Typography](#05) | 18 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
-| 06 | [3D & Advanced](#06) | 23 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
+| 06 | [3D & Advanced](#06) | 24 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
 | 07 | [Ambient & Background](#07) | 23 | Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. |
 
 ## Full catalog
@@ -218,7 +218,7 @@ All 159 techniques, each linked to its live demo.
 
 <a id="06"></a>
 
-### 06 · 3D & Advanced · 23 techniques
+### 06 · 3D & Advanced · 24 techniques
 
 <sub>WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits.</sub>
 
@@ -247,6 +247,7 @@ All 159 techniques, each linked to its live demo.
 - **[Flocking](animations/06-3d-advanced/flocking/)** — Birds swirl and turn together as one flock. Best for calm backgrounds.
 - **[ASCII / Halftone](animations/06-3d-advanced/ascii-halftone/)** — A moving picture is redrawn with letters or dots. Best for retro and tech looks.
 - **[2D Physics](animations/06-3d-advanced/physics-2d/)** — Balls drop where you click, bounce and pile up. Best for playful intros.
+- **[Liquid Glass](animations/06-3d-advanced/liquid-glass/)** — Drag a glass panel and the picture behind it bends at the edges. Best for cards.
 
 </details>
 
