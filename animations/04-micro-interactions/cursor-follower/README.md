@@ -85,3 +85,4 @@ stage.addEventListener('pointermove', e => {
 - [Hover State Animation](../hover-state/) — items that react when the pointer is on them
 - [Tooltip Reveal](../tooltip-reveal/) — a label that appears where the pointer rests
 - [Click / Tap Ripple](../click-ripple/) — a ripple from the exact point you click
+- [Image Trail](../image-trail/) — pictures that pop up along the pointer's path and fade

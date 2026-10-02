@@ -37,7 +37,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 | 01 | [Scroll-Based](#01) | 27 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
 | 02 | [Entrance & Exit](#02) | 14 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
 | 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
-| 04 | [Micro-Interactions](#04) | 38 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
+| 04 | [Micro-Interactions](#04) | 39 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
 | 05 | [Text & Typography](#05) | 18 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
 | 06 | [3D & Advanced](#06) | 23 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
 | 07 | [Ambient & Background](#07) | 23 | Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. |
@@ -138,7 +138,7 @@ All 159 techniques, each linked to its live demo.
 
 <a id="04"></a>
 
-### 04 · Micro-Interactions · 38 techniques
+### 04 · Micro-Interactions · 39 techniques
 
 <sub>Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns.</sub>
 
@@ -182,6 +182,7 @@ All 159 techniques, each linked to its live demo.
 - **[Hold to Confirm](animations/04-micro-interactions/hold-to-confirm/)** — A button fills up while you hold it and acts only once it is full. Best for delete buttons.
 - **[Expanding Search](animations/04-micro-interactions/expanding-search/)** — A search icon opens into a field, then closes when done. Best for toolbars.
 - **[Button Loading States](animations/04-micro-interactions/button-loading-states/)** — The button becomes a spinner, then a tick or a cross. Best for Save buttons.
+- **[Image Trail](animations/04-micro-interactions/image-trail/)** — Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.
 
 </details>
 

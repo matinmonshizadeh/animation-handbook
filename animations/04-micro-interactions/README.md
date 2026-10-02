@@ -44,6 +44,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Hold to Confirm](hold-to-confirm/) | A button fills up while you hold it and acts only once it is full. Best for delete buttons. |
 | [Expanding Search](expanding-search/) | A search icon opens into a field, then closes when done. Best for toolbars. |
 | [Button Loading States](button-loading-states/) | The button becomes a spinner, then a tick or a cross. Best for Save buttons. |
+| [Image Trail](image-trail/) | Pictures pop up in a trail behind your pointer, then fade. Best for portfolios. |
 
 ## Key concepts
 
