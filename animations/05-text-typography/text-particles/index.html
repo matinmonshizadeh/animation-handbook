@@ -160,33 +160,32 @@
   // How fast they come back: the spring (the share of the way home added to a dot's speed each step) and the speed a dot keeps
   const BACK={slow:[.022,.87],normal:[.045,.82],fast:[.09,.76]};
   let text='HELLO',gapK=4.2,far=.42,pal='sunset',back='normal',W=0,H=0,fs=0,box={l:0,r:0,t:0,b:0},R=60,rad=1.6,cols=[],sq=false,N=0;
-  let hx,hy,x,y,px,py,vx,vy,bk,L1,L2,L3,user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0;
+  let hx,hy,x,y,px,py,vx,vy,bk,L=[],user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0,calm=0;
   let raf=0,lastT=null,acc=0,still=true,ready=false,wantShow=false;
-  // The word is drawn on a hidden canvas the size of the stage (as large as fits 86% of its width and 42% of its height) and a dot
-  // is kept wherever a letter covers a point of an offset grid, column by column, so the dots run left to right. At most 2,000 on phones.
+  // The word is drawn on a hidden canvas (as large as fits 86% of its width and 42% of its height) and a dot is kept wherever a letter
+  // covers a point of an offset grid, read column by column, so the dots run left to right.
   function sample(){
     if(!W||!H)return [];
     const off=document.createElement('canvas');off.width=W;off.height=H;
     const g=off.getContext('2d',{willReadFrequently:true}),ink=m=>[m.actualBoundingBoxLeft+m.actualBoundingBoxRight,m.actualBoundingBoxAscent+m.actualBoundingBoxDescent];
     const fit=s=>{g.font='900 '+s+'px '+FONT;g.letterSpacing=s*.04+'px';return g.measureText(text)},[w,h]=ink(fit(100));
-    if(!(w>0&&h>0))return [];
-    fs=Math.min(100*W*.86/w,100*H*.42/h);
-    const m=fit(fs),[iw,ih]=ink(m);
-    box={l:(W-iw)/2,r:(W+iw)/2,t:(H-ih)/2,b:(H+ih)/2};
+    if(!(w>0&&h>0))return [];fs=Math.min(100*W*.86/w,100*H*.42/h);
+    const m=fit(fs),[iw,ih]=ink(m);box={l:(W-iw)/2,r:(W+iw)/2,t:(H-ih)/2,b:(H+ih)/2};
     g.fillStyle='#fff';g.fillText(text,box.l+m.actualBoundingBoxLeft,box.t+m.actualBoundingBoxAscent);
     const bx=Math.max(0,Math.floor(box.l)-2),by=Math.max(0,Math.floor(box.t)-2),bw=Math.min(W,Math.ceil(box.r)+2)-bx,bh=Math.min(H,Math.ceil(box.b)+2)-by;
-    const data=g.getImageData(bx,by,bw,bh).data,cap=PHONE.matches?2000:6000,grid=gap=>{const out=[],dy=gap*.866;
+    const data=g.getImageData(bx,by,bw,bh).data,grid=gap=>{const out=[],dy=gap*.866;
       for(let c=0,xx=bx+gap/2;xx<bx+bw;c++,xx+=gap/2)for(let yy=by+gap/2+(c&1)*dy;yy<by+bh;yy+=2*dy)
         if(data[(((yy|0)-by)*bw+(xx|0)-bx)*4+3]>128)out.push(xx,yy);
       return out};
-    let gap=gapK*Math.min(1.25,Math.max(.75,fs/180)),pts=grid(gap);
-    if(pts.length/2>cap){gap*=Math.sqrt(pts.length/2/cap)*1.02;pts=grid(gap);}
-    rad=gap*.38;return pts;
+    // At most 2,000 dots on phones and 6,000 elsewhere, counted at the smallest size; every size takes the same scale, so they stay apart
+    const s=Math.min(1.25,Math.max(.75,fs/180)),small=grid(3*s).length/2,cap=PHONE.matches?2000:6000;
+    const gap=gapK*s*(small>cap?Math.sqrt(small/cap)*1.02:1);
+    rad=gap*.38;return grid(gap);
   }
   // New homes for the dots. With fly, each new dot starts where an old one is (in the same left-to-right order), so they flow into the new letters.
   function rebuild(fly){
     const pts=sample(),n=pts.length/2,o={N,x,y,vx,vy};
-    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));[L1,L2,L3]=[0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);
+    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));L=[0,0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);
     for(let j=0;j<n;j++){
       const k=fly&&o.N?Math.floor(j*o.N/n):-1;
       hx[j]=pts[2*j];hy[j]=pts[2*j+1];bk[j]=Math.min(31,Math.max(0,(hx[j]-box.l)/(box.r-box.l)*32|0));x[j]=px[j]=k<0?hx[j]:o.x[k];y[j]=py[j]=k<0?hy[j]:o.y[k];
@@ -198,28 +197,34 @@
     still=!(fly&&o.N)&&!user;
     if(still)draw(1);else wake();
   }
-  // The palette as 32 colors from left to right; each dot takes the one at its home, so it keeps its color as it flies
+  // The palette as 32 colors from left to right (each dot takes the one at its home, so it keeps its color as it flies), and three
+  // brighter versions of them for dots that are pushed away
   function paint(){const [stops,glowCol]=PAL[pal],rgb=stops.map(c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)));
-    cols=Array.from({length:32},(_,k)=>{const t=k/31*(rgb.length-1),i=Math.min(rgb.length-2,t|0),f=t-i;return 'rgb('+rgb[i].map((v,j)=>Math.round(v+(rgb[i+1][j]-v)*f))+')';});
+    const at=k=>{const t=k/31*(rgb.length-1),i=Math.min(rgb.length-2,t|0),f=t-i;return rgb[i].map((v,j)=>v+(rgb[i+1][j]-v)*f)};
+    cols=[0,.3,.55,.85].map(g=>Array.from({length:32},(_,k)=>'rgb('+at(k).map(v=>Math.min(255,Math.round(v*(1+g))))+')'));
     stage.style.setProperty('--glow',glowCol);}
   // One step is 1/60 s. Inside the pointer's reach R a dot is pushed away, harder the closer it is; a spring pulls it home and it keeps
   // part of its speed. The push grows with the spring and the reach, so the gap it opens is the same share of R at every return speed.
+  // A dot at home and out of reach is skipped; one out of reach, within a third of a pixel of home and nearly still is put there.
   function step(){
-    const [K,D]=BACK[back],P=2.4*K*R,R2=R*R,p=ptr;let maxE=0,maxV=0;
+    // Under the visitor's pointer, still for a second, friction rises over half a second, so dots still drifting around the rim come to rest
+    const p=ptr,held=!!p&&p===user&&++calm>60,[K,D0]=BACK[back],D=held?D0*Math.max(.15,1-(calm-60)/30):D0,P=2.4*K*R,R2=R*R;let maxV=0,act=0;
     for(let i=0;i<N;i++){
-      px[i]=x[i];py[i]=y[i];
-      let ax=(hx[i]-x[i])*K,ay=(hy[i]-y[i])*K;
-      if(p){const dx=x[i]-p.x,dy=y[i]-p.y,d2=dx*dx+dy*dy;if(d2<R2&&d2>.01){const d=Math.sqrt(d2),f=(1-d/R)*P/d;ax+=dx*f;ay+=dy*f;}}
+      const X=x[i],Y=y[i],dx=p?X-p.x:0,dy=p?Y-p.y:0,d2=p?dx*dx+dy*dy:R2;
+      if(X===hx[i]&&Y===hy[i]&&vx[i]===0&&vy[i]===0&&d2>=R2)continue;
+      px[i]=X;py[i]=Y;
+      let ax=(hx[i]-X)*K,ay=(hy[i]-Y)*K;
+      if(d2<R2&&d2>.01){const d=Math.sqrt(d2),f=(1-d/R)*P/d;ax+=dx*f;ay+=dy*f;}
       vx[i]=(vx[i]+ax)*D;vy[i]=(vy[i]+ay)*D;x[i]+=vx[i];y[i]+=vy[i];
-      maxE=Math.max(maxE,Math.abs(x[i]-hx[i])+Math.abs(y[i]-hy[i]));maxV=Math.max(maxV,Math.abs(vx[i])+Math.abs(vy[i]));
+      const v=Math.abs(vx[i])+Math.abs(vy[i]);
+      if(d2>=R2&&v<.05&&Math.abs(x[i]-hx[i])+Math.abs(y[i]-hy[i])<.3){x[i]=px[i]=hx[i];y[i]=py[i]=hy[i];vx[i]=vy[i]=0;}
+      else{act++;if(v>maxV)maxV=v;}
     }
-    // With no pointer, dots within a third of a pixel of home are put there and the loop stops; under a still pointer, once they stop
-    if(!p&&maxE<.3&&maxV<.05){home();still=true;}else still=!!p&&maxV<.02;
+    still=!act||!!p&&maxV<(held?.1:.02); // every dot home, or the dots under a pointer still
   }
-  function home(){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);}
   const ease=(v,to,k,t)=>{const n=v+(to-v)*(1-Math.pow(1-k,t/FRAME));return Math.abs(to-n)<.01?to:n};
-  // The loop runs only while something moves. It adds up the time (a third of it in slow motion), takes one step per 60th of a second
-  // and draws the dots between their last two steps, so slow motion stays smooth; a first frame counts as one 60th.
+  // The loop runs only while something moves: it adds up the time (a third in slow motion), takes one step per 60th of a second and
+  // draws the dots between their last two steps, so slow motion stays smooth; a first frame counts as one 60th.
   function frame(ts){
     const t=(lastT===null?FRAME:Math.min(ts-lastT,50))*(slowTog.checked?1/3:1),red=reduce.matches;lastT=ts;
     if(run){run.t+=t;mark=run.at(Math.min(run.t,run.dur));if(run.t>=run.dur)run=null;}
@@ -232,37 +237,29 @@
   }
   function wake(){if(!raf&&N){lastT=null;acc=0;raf=requestAnimationFrame(frame);}}
   document.addEventListener('visibilitychange',()=>{lastT=null;acc=0;});
-  // A dot away from home is drawn again, larger and added to itself, so it glows (under reduced motion: the dots near the pointer).
+  // Each dot is filled as a circle of its own, which browsers draw much faster than one path of thousands (phones draw squares). A dot
+  // pushed away from home is drawn brighter and larger, more the further it is pushed; under reduced motion, the dots near the pointer.
   function draw(a){
     ctx.clearRect(0,0,W,H);sq=PHONE.matches;
-    const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6;let n1=0,n2=0,n3=0;
+    const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6,n=[0,0,0,0];
     for(let i=0;i<N;i++){
       let v=0;
       if(!red)v=(Math.abs(px[i]+(x[i]-px[i])*a-hx[i])+Math.abs(py[i]+(y[i]-py[i])*a-hy[i]))/far2;
       else if(glow&&l){const dx=hx[i]-l.x,dy=hy[i]-l.y,d2=dx*dx+dy*dy;if(d2<R2)v=(1-Math.sqrt(d2)/R)*glow;}
-      if(v>.62)L3[n3++]=i;else if(v>.32)L2[n2++]=i;else if(v>.1)L1[n1++]=i;
+      const g=v>.62?3:v>.32?2:v>.1?1:0;L[g][n[g]++]=i;
     }
-    dots(null,N,rad,a);
-    ctx.globalCompositeOperation='lighter';
-    ctx.globalAlpha=.3;dots(L1,n1,rad*1.09,a);ctx.globalAlpha=.55;dots(L2,n2,rad*1.18,a);ctx.globalAlpha=.85;dots(L3,n3,rad*1.27,a);
-    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+    for(let g=0;g<4;g++){const s=rad*(1+g*.09),list=L[g],cs=cols[g];let c=-1;
+      for(let k=0;k<n[g];k++){const i=list[k],X=px[i]+(x[i]-px[i])*a,Y=py[i]+(y[i]-py[i])*a;
+        if(bk[i]!==c){c=bk[i];ctx.fillStyle=cs[c];}
+        if(sq)ctx.fillRect(X-s*.75,Y-s*.75,s*1.5,s*1.5);else{ctx.beginPath();ctx.arc(X,Y,s,0,TAU);ctx.fill();}}}
     if(!markA||!mark)return; // a run's pretend pointer: a small light, and a ring for its reach
     ctx.globalAlpha=markA;ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(mark.x,mark.y,R,0,TAU);ctx.stroke();
-    const g=ctx.createRadialGradient(mark.x,mark.y,0,mark.x,mark.y,14);
-    g.addColorStop(0,'#fff');g.addColorStop(.35,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(mark.x,mark.y,14,0,TAU);ctx.fill();ctx.globalAlpha=1;
-  }
-  // Dots of one color are one path, filled once (they run left to right, so each color comes once); phones draw cheaper squares
-  function dots(list,n,s,a){let c=-1;
-    for(let k=0;k<n;k++){
-      const i=list?list[k]:k,X=px[i]+(x[i]-px[i])*a,Y=py[i]+(y[i]-py[i])*a;
-      if(bk[i]!==c){if(c>=0&&!sq)ctx.fill();c=bk[i];ctx.fillStyle=cols[c];ctx.beginPath();}
-      if(sq)ctx.fillRect(X-s*.75,Y-s*.75,s*1.5,s*1.5);else{ctx.moveTo(X+s,Y);ctx.arc(X,Y,s,0,TAU);}
-    }
-    if(c>=0&&!sq)ctx.fill();
+    const gr=ctx.createRadialGradient(mark.x,mark.y,0,mark.x,mark.y,14);
+    gr.addColorStop(0,'#fff');gr.addColorStop(.35,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(mark.x,mark.y,14,0,TAU);ctx.fill();ctx.globalAlpha=1;
   }
   // A mouse or a pen in the air pushes the dots as it moves over the word, a finger where it touches; the visitor's own pointer ends a run
-  function aimAt(e){const b=cvs.getBoundingClientRect();user={x:e.clientX-b.left,y:e.clientY-b.top};wake();}
+  function aimAt(e){const b=cvs.getBoundingClientRect();user={x:e.clientX-b.left,y:e.clientY-b.top};calm=0;wake();}
   cvs.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&e.pointerId!==touchId)return;if(e.isTrusted)run=null;aimAt(e);});
   cvs.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){user=null;wake();}});
   cvs.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchId=e.pointerId;try{cvs.setPointerCapture(touchId)}catch(_){}}aimAt(e);});
@@ -271,25 +268,16 @@
   document.addEventListener('hb:input',()=>{if(run){run=null;wake();}});
   // Show me: a pretend pointer sweeps through the word in 2.6 s, rising and falling; under reduced motion it rests on the middle for 1.4 s
   const middle=()=>({x:(box.l+box.r)/2,y:(box.t+box.b)/2});
-  function showMe(){
-    if(!N){wantShow=true;return;}
+  function showMe(){if(!N){wantShow=true;return;}
     run=reduce.matches?{t:0,dur:1400,at:middle}:{t:0,dur:2600,at:t=>{
       const s=t/2600,e=s<.5?2*s*s:1-2*(1-s)*(1-s),x0=box.l-R*.2,x1=box.r+R*.2;
-      return {x:x0+(x1-x0)*e,y:(box.t+box.b)/2-(box.b-box.t)*.3*Math.sin(TAU*1.5*e)};
-    }};
-    wake();
-  }
+      return {x:x0+(x1-x0)*e,y:(box.t+box.b)/2-(box.b-box.t)*.3*Math.sin(TAU*1.5*e)};}};wake();}
   document.getElementById('btn-demo').addEventListener('click',showMe);
   // A new reach or return speed shows at once: the pretend pointer touches the middle of the word for a moment
   function poke(){if(!run&&N){run={t:0,dur:reduce.matches?900:400,at:middle};wake();}}
-  function choices(id,pick){
-    const buttons=document.querySelectorAll('#'+id+' button');
-    buttons.forEach(b=>b.addEventListener('click',()=>{
-      if(b.classList.contains('on'))return; // pressing the choice already made does nothing
-      buttons.forEach(o=>{o.classList.toggle('on',o===b);o.setAttribute('aria-pressed',String(o===b))});
-      pick(b.dataset);
-    }));
-  }
+  function choices(id,pick){const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('on'))return; // pressing the choice already made does nothing
+      buttons.forEach(o=>{o.classList.toggle('on',o===b);o.setAttribute('aria-pressed',String(o===b))});pick(b.dataset);}));}
   choices('size-seg',d=>{gapK=+d.k;if(ready)rebuild(!reduce.matches);});
   choices('far-seg',d=>{far=+d.k;R=far*Math.max(fs,120);poke();});
   choices('pal-seg',d=>{pal=d.pal;paint();if(!raf)draw(1);});
@@ -306,8 +294,7 @@
   if(document.fonts&&document.fonts.load){document.fonts.load(F100,text).then(begin,begin);setTimeout(begin,1500);}else begin();
   new ResizeObserver(()=>{if(ready&&layout())rebuild(false);}).observe(stage);
   // Reduced motion switched on while the dots move: they are put home at once
-  const onReduce=()=>{if(reduce.matches&&N){home();still=true;}run=null;wake();};
-  if(reduce.addEventListener)reduce.addEventListener('change',onReduce);else if(reduce.addListener)reduce.addListener(onReduce);
+  reduce.addEventListener('change',()=>{if(reduce.matches&&N){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);still=true;}run=null;wake();});
 </script>
 </body>
 </html>
