@@ -1,14 +1,14 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 159 web animation techniques with live demos" width="820"></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="og-image.png" alt="Animation Handbook — 166 web animation techniques with live demos" width="820"></a>
 
 # Animation Handbook
 
-**A visual reference of 159 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
+**A visual reference of 166 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-159-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-166-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
 
 </div>
 
@@ -37,14 +37,14 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 | 01 | [Scroll-Based](#01) | 27 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
 | 02 | [Entrance & Exit](#02) | 14 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
 | 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
-| 04 | [Micro-Interactions](#04) | 39 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
+| 04 | [Micro-Interactions](#04) | 41 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
 | 05 | [Text & Typography](#05) | 19 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
-| 06 | [3D & Advanced](#06) | 24 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
+| 06 | [3D & Advanced](#06) | 26 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
 | 07 | [Ambient & Background](#07) | 23 | Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. |
 
 ## Full catalog
 
-All 159 techniques, each linked to its live demo.
+All 166 techniques, each linked to its live demo.
 
 <a id="01"></a>
 
@@ -138,7 +138,7 @@ All 159 techniques, each linked to its live demo.
 
 <a id="04"></a>
 
-### 04 · Micro-Interactions · 39 techniques
+### 04 · Micro-Interactions · 41 techniques
 
 <sub>Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns.</sub>
 
@@ -220,7 +220,7 @@ All 159 techniques, each linked to its live demo.
 
 <a id="06"></a>
 
-### 06 · 3D & Advanced · 24 techniques
+### 06 · 3D & Advanced · 26 techniques
 
 <sub>WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits.</sub>
 
