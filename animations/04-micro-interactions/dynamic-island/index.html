@@ -26,14 +26,15 @@
     /* The top of a phone, its bottom running off the stage */
     .stage{display:flex;justify-content:center;padding:18px clamp(8px,3vw,16px) 0;background:radial-gradient(46% 70% at 50% 40%,rgba(124,92,255,.2),transparent),#0b0b0d}
     .phone{flex:none;width:min(420px,100%);height:calc(100% + 40px);border:7px solid #1c1c21;border-bottom:0;border-radius:54px 54px 0 0;box-shadow:0 0 0 1.5px #3a3a43}
-    .screen{position:relative;height:100%;overflow:hidden;border-radius:47px 47px 0 0;container-type:inline-size;color:#fff;
+    .screen{position:relative;height:100%;overflow:hidden;border-radius:47px 47px 0 0;container-type:size;color:#fff;
       background:radial-gradient(70% 45% at 92% 92%,rgba(255,122,89,.5),transparent 70%),radial-gradient(80% 50% at 0 78%,rgba(124,92,255,.55),transparent 70%),linear-gradient(#2b3a5c,#1d1a3c 62%,#2b1a3c)}
     /* The status bar steps aside while a card is open, as it does behind a real island */
     .sb{position:absolute;inset:0 0 auto;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 min(24px,7cqw) 0 min(32px,10cqw);font-size:15px;font-weight:600;transition:opacity .2s}
     .isl.open~.sb{opacity:0}.sb svg{width:58px;height:11px;fill:#fff}
-    /* Date and clock (--clk tall) move up on a short stage, so the clock ends 8px above the stage's edge (40px before the screen's end) */
-    .date,.clock{--clk:clamp(50px,19cqw,80px);position:absolute;left:0;right:0;text-align:center}.date{top:min(188px,calc(100% - 66px - var(--clk)));font-size:15px;font-weight:600;color:rgba(255,255,255,.88)}
-    .clock{top:min(206px,calc(100% - 48px - var(--clk)));font-size:var(--clk);font-weight:700;line-height:1;letter-spacing:-.02em}
+    /* Date and clock (--clk tall) move up on a short stage: the clock's line box ends at the stage's edge (40px before the screen's end),
+       its digits about 10px above it. The open music card would cut the date there, so on a short screen the date fades out under it. */
+    .date,.clock{--clk:clamp(50px,19cqw,80px);position:absolute;left:0;right:0;text-align:center}.date{top:min(188px,calc(100% - 58px - var(--clk)));font-size:15px;font-weight:600;color:rgba(255,255,255,.88);transition:opacity .2s}
+    .clock{top:min(206px,calc(100% - 40px - var(--clk)));font-size:var(--clk);font-weight:700;line-height:1;letter-spacing:-.02em}@container (max-height:305px){.isl.open[data-n=music]~.date{opacity:0}}
     /* The island: a box the size of the largest card plus room for a bounce. Only its black shape shows, clipped, with the cards' content
        inside it, so the clip cuts the content too. The script sets --hw, --h and --r (half width, height, corner radius) for each shape */
     .isl{--hw:48px;--h:32px;--r:16px;--dur:700ms;--ease:cubic-bezier(.3,1.4,.5,1);position:absolute;z-index:1;top:11px;left:6px;right:6px;height:172px;container-type:inline-size;border:0;background:none;color:#fff;font:inherit;text-align:left;
@@ -112,8 +113,6 @@
     <div class="stage">
       <div class="phone">
         <div class="screen">
-          <p class="date" aria-hidden="true">Thursday, October 1</p>
-          <p class="clock" aria-hidden="true">9:41</p>
           <button class="isl" id="isl" type="button" aria-label="Phone notification" aria-expanded="false" data-n="call">
             <span class="ring"></span><span class="pill"></span><span class="hit"></span>
             <span class="shape"><span class="c c-call" aria-hidden="true"><span class="av">MC<i></i></span><span class="tx"><small>Incoming call</small><b>Maya Chen</b></span>
@@ -124,6 +123,8 @@
               <span class="prog">1:12<i></i>-2:31</span>
               <span class="mctl"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg><svg viewBox="0 0 24 24"><path d="m6 18 8.5-6L6 6zM16 6v12h2V6z"/></svg></span></span></span>
           </button>
+          <p class="date" aria-hidden="true">Thursday, October 1</p>
+          <p class="clock" aria-hidden="true">9:41</p>
           <div class="sb" aria-hidden="true"><span>9:41</span><svg viewBox="0 0 58 11"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/><path d="M27 11l-2-2.2a3 3 0 0 1 4 0zm-3.4-3.6-1.4-1.5a6.6 6.6 0 0 1 9.6 0l-1.4 1.5a4.6 4.6 0 0 0-6.8 0zm-2.8-2.9L19.4 3a10.6 10.6 0 0 1 15.2 0l-1.4 1.5a8.6 8.6 0 0 0-12.4 0z"/><rect x="37.5" y=".5" width="18" height="10" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="39.5" y="2.5" width="11" height="6" rx="1.5"/></svg></div>
         </div>
       </div>
