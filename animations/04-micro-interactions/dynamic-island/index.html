@@ -31,8 +31,9 @@
     /* The status bar steps aside while a card is open, as it does behind a real island */
     .sb{position:absolute;inset:0 0 auto;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 min(24px,7cqw) 0 min(32px,10cqw);font-size:15px;font-weight:600;transition:opacity .2s}
     .isl.open~.sb{opacity:0}.sb svg{width:58px;height:11px;fill:#fff}
-    .date,.clock{position:absolute;left:0;right:0;text-align:center}.date{top:188px;font-size:15px;font-weight:600;color:rgba(255,255,255,.88)}
-    .clock{top:206px;font-size:clamp(50px,19cqw,80px);font-weight:700;line-height:1;letter-spacing:-.02em}
+    /* Date and clock (--clk tall) move up on a short stage, so the clock ends 8px above the stage's edge (40px before the screen's end) */
+    .date,.clock{--clk:clamp(50px,19cqw,80px);position:absolute;left:0;right:0;text-align:center}.date{top:min(188px,calc(100% - 66px - var(--clk)));font-size:15px;font-weight:600;color:rgba(255,255,255,.88)}
+    .clock{top:min(206px,calc(100% - 48px - var(--clk)));font-size:var(--clk);font-weight:700;line-height:1;letter-spacing:-.02em}
     /* The island: a box the size of the largest card plus room for a bounce. Only its black shape shows, clipped, with the cards' content
        inside it, so the clip cuts the content too. The script sets --hw, --h and --r (half width, height, corner radius) for each shape */
     .isl{--hw:48px;--h:32px;--r:16px;--dur:700ms;--ease:cubic-bezier(.3,1.4,.5,1);position:absolute;z-index:1;top:11px;left:6px;right:6px;height:172px;container-type:inline-size;border:0;background:none;color:#fff;font:inherit;text-align:left;
@@ -233,13 +234,13 @@
   function shape(){const g=SIZE[open||reduceMq.matches?isl.dataset.n:'rest'];['--hw','--h','--r'].forEach((v,i)=>isl.style.setProperty(v,g[i]))}
   // The timer counts down from 5:00 while it shows
   function clock(){
-    clearInterval(tick);if(!open||note!=='timer')return;
-    const t0=performance.now();
+    clearInterval(tick);if(!open||note!=='timer')return;const t0=performance.now();
     const draw=()=>{const s=Math.max(0,300-Math.floor((performance.now()-t0)/1000));tm.innerHTML=(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')).replace(/\d/g,'<i>$&</i>')};
     draw();tick=setInterval(draw,250);
   }
+  function still(fn){isl.classList.add('still');fn();void isl.offsetWidth;isl.classList.remove('still')} // fn with the island's transitions off
   // Under reduced motion the card on show changes only while the shape is hidden: its content and size go in without a transition
-  function showNote(){isl.classList.add('still');isl.dataset.n=note;shape();void isl.offsetWidth;isl.classList.remove('still')}
+  function showNote(){still(()=>{isl.dataset.n=note;shape()})}
   // Open or close it. Opening shows the picked card: the shape morphs into it at once, or under reduced motion a different card
   // still in sight (open, or fading out) fades out first (swap). Only the visitor's own changes are announced (politely).
   function setOpen(next,visitor){
@@ -258,14 +259,14 @@
   isl.addEventListener('keydown',e=>{if(e.key==='Escape'&&open){e.preventDefault();setOpen(false,true)}});
   // A press anywhere else on the stage closes it, as a tap outside does on a phone
   stage.addEventListener('click',e=>{if(open&&!isl.contains(e.target))setOpen(false,true)});
-  reduceMq.addEventListener('change',shape);
+  // Reduced motion switched on or off: the shape takes its new size and look at once, so a closed island never shows a card in passing
+  reduceMq.addEventListener('change',()=>still(shape));
 
   // Show me: one run at a time. later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
   function later(fn,move,hold){const id=setTimeout(()=>{runTimers.splice(runTimers.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
-  function running(){return runTimers.length>0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down')}
+  function running(){return runTimers.length>0}function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down')}
   // A run starts from the pill at rest, put there without animating
-  function toRest(){isl.classList.add('still');setOpen(false);void isl.offsetWidth;isl.classList.remove('still')}
+  function toRest(){still(()=>setOpen(false))}
   // The pill is pressed at 300ms and opens at 420ms; it shrinks back after the move and 1.4 s. At Normal it is at rest again at 3.2 s.
   // The arrival press leaves alone an island the visitor has already opened.
   $('btn-demo').addEventListener('click',e=>{
