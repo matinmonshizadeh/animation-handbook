@@ -21,10 +21,10 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text Particles", "name": "Text Particles", "description": "A word of dots scatters from your pointer and springs back. Best for intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-particles/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text Particles"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b}
+    :root{--ui-accent:#ff6f8b;--bg:#0b0b0d;--glow:#ff6f8b}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    /* A dark stage with a soft glow of the word's colors behind it (still: only the dots move) */
-    .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse 60% 46% at 50% 50%,color-mix(in srgb,var(--glow,#ff6f8b) 14%,transparent),transparent 72%),#0b0b0d}
+    /* A dark stage with a soft glow of the word's colors (still); kept in forced colors, which do not adjust the canvas dots */
+    .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse 60% 46% at 50% 50%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),var(--bg);forced-color-adjust:none}
     /* touch-action none: a finger dragged over the word pushes the dots instead of scrolling the page */
     canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
   </style>
@@ -160,7 +160,7 @@
   // How fast they come back: the spring (the share of the way home added to a dot's speed each step) and the speed a dot keeps
   const BACK={slow:[.022,.87],normal:[.045,.82],fast:[.09,.76]};
   let text='HELLO',gapK=4.2,far=.42,pal='sunset',back='normal',W=0,H=0,fs=0,box={l:0,r:0,t:0,b:0},R=60,rad=1.6,cols=[],sq=false,N=0;
-  let hx,hy,x,y,px,py,vx,vy,bk,L=[],user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0,calm=0;
+  let hx,hy,x,y,px,py,vx,vy,bk,dn,dnAny=false,L=[],user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0,calm=0;
   let raf=0,lastT=null,acc=0,still=true,ready=false,wantShow=false,DPR=1,redWas=reduce.matches;
   // The word is drawn on a hidden canvas (86% of its width, 42% of its height at most); a dot is kept wherever a letter covers a point of an offset grid
   function sample(){
@@ -184,7 +184,7 @@
   // New homes for the dots. With fly, each new dot starts where an old one is (in the same left-to-right order), so they flow into the new letters.
   function rebuild(fly){
     const pts=sample(),n=pts.length/2,o={N,x,y,vx,vy};
-    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));L=[0,0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);
+    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));L=[0,0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);dn=new Uint8Array(n);
     for(let j=0;j<n;j++){
       const k=fly&&o.N?Math.floor(j*o.N/n):-1;
       hx[j]=pts[2*j];hy[j]=pts[2*j+1];bk[j]=Math.min(31,Math.max(0,(hx[j]-box.l)/(box.r-box.l)*32|0));x[j]=px[j]=k<0?hx[j]:o.x[k];y[j]=py[j]=k<0?hy[j]:o.y[k];
@@ -206,7 +206,8 @@
   // out of reach is skipped; one out of reach, within a third of a pixel of home and nearly still is put there.
   function step(){
     const p=ptr,rest=!!p&&p===user&&++calm>30,[K,D]=BACK[back],P=2.4*K*R,R2=R*R;let act=0;
-    for(let i=0;i<N;i++){
+    if(!rest&&dnAny){dn.fill(0);dnAny=false;} // a dot that reached its resting place is skipped until the settle ends
+    for(let i=0;i<N;i++){if(rest&&dn[i]){px[i]=x[i];py[i]=y[i];continue;}
       const X=x[i],Y=y[i],dx=p?X-p.x:0,dy=p?Y-p.y:0,d2=p?dx*dx+dy*dy:R2;
       if(X===hx[i]&&Y===hy[i]&&vx[i]===0&&vy[i]===0&&d2>=R2)continue;
       px[i]=X;py[i]=Y;
@@ -215,7 +216,7 @@
       const hdx=p?hx[i]-p.x:0,hdy=p?hy[i]-p.y:0,h2=hdx*hdx+hdy*hdy;
       if(rest&&h2<R2&&d2<R2*1.69){const h=Math.sqrt(h2),r0=Math.sqrt(d2),rT=(2.4*R+h)/3.4,a0=Math.atan2(dy,dx),a1=h>.5?Math.atan2(hdy,hdx):a0,da=a1-a0-TAU*Math.round((a1-a0)/TAU);
         const a=Math.abs(da)*r0<.3?a1:a0+Math.sign(da)*Math.min(Math.abs(da)*.12,3/r0),r=Math.abs(rT-r0)<.3?rT:r0+(rT-r0)*.12;
-        x[i]=p.x+Math.cos(a)*r;y[i]=p.y+Math.sin(a)*r;vx[i]=vy[i]=0;if(a!==a1||r!==rT)act++;continue;}
+        x[i]=p.x+Math.cos(a)*r;y[i]=p.y+Math.sin(a)*r;vx[i]=vy[i]=0;if(a!==a1||r!==rT)act++;else{dn[i]=1;dnAny=true;}continue;}
       let ax=(hx[i]-X)*K,ay=(hy[i]-Y)*K;
       if(d2<R2&&d2>.01){const d=Math.sqrt(d2),f=(1-d/R)*P/d;ax+=dx*f;ay+=dy*f;}
       vx[i]=(vx[i]+ax)*D;vy[i]=(vy[i]+ay)*D;x[i]+=vx[i];y[i]+=vy[i];
@@ -225,12 +226,11 @@
     still=!act; // every dot home, or at its resting place under a pointer at rest
   }
   const ease=(v,to,k,t)=>{const n=v+(to-v)*(1-Math.pow(1-k,t/FRAME));return Math.abs(to-n)<.01?to:n};
-  // The loop runs only while something moves: it adds up the time (a third in slow motion), takes one step per 60th of a second and
-  // draws the dots between their last two steps, so slow motion stays smooth; a first frame counts as one 60th.
+  // The loop runs while something moves: it adds up the time (a third in slow motion), steps once per 60th of a second, draws dots between steps
   function frame(ts){
     const t=(lastT===null?FRAME:Math.min(ts-lastT,50))*(slowTog.checked?1/3:1),red=reduce.matches;lastT=ts;
     // Reduced motion switched on: every dot goes home at once and a run ends (reading the setting here can swallow its change event)
-    if(red&&!redWas){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);run=null;markA=0;still=true;}redWas=red;
+    if(red&&!redWas){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);run=null;markA=0;still=true;calm=0;}redWas=red;
     if(run){run.t+=t;mark=run.at(Math.min(run.t,run.dur));if(run.t>=run.dur)run=null;}
     ptr=run?mark:user;if(ptr)lightAt=ptr;
     markA=ease(markA,run?1:0,.25,t);glow=ease(glow,ptr?1:0,.2,t);
@@ -239,11 +239,11 @@
     raf=run||markA||(red?glow%1:!still)?requestAnimationFrame(frame):0;
     if(!raf){lastT=null;acc=0;}
   }
-  function wake(){if(!raf&&N){lastT=null;acc=0;raf=requestAnimationFrame(frame);}}document.addEventListener('visibilitychange',()=>{lastT=null;acc=0;});
-  // Each dot is a circle of its own (browsers draw these much faster than one path of thousands; phones draw squares), 0.12 device pixels
-  // smaller for its softer edge. A dot pushed from home is drawn brighter and larger; under reduced motion, the dots near the pointer.
+  function wake(){if(!raf&&N){lastT=null;acc=0;still=false;raf=requestAnimationFrame(frame);}}document.addEventListener('visibilitychange',()=>{lastT=null;acc=0;});
+  // Each dot is a circle of its own (Chrome draws these much faster than one path of thousands), 0.12 device pixels smaller for its softer
+  // edge; a phone draws tiny dots as squares. A dot pushed from home is drawn brighter and larger; under reduced motion, those near the pointer.
   function draw(a){
-    ctx.clearRect(0,0,W,H);sq=PHONE.matches;
+    ctx.clearRect(0,0,W,H);sq=PHONE.matches&&rad*DPR<2.5;
     const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6,n=[0,0,0,0];
     for(let i=0;i<N;i++){
       let v=0;if(!red)v=(Math.abs(px[i]+(x[i]-px[i])*a-hx[i])+Math.abs(py[i]+(y[i]-py[i])*a-hy[i]))/far2;
