@@ -36,7 +36,7 @@ el.animate([
 
 `at(x, y, s, r)` writes `translate(x, y) translate(-50%, -50%) rotate(r) scale(s)`: every keyframe has the same list of functions, so the browser interpolates each one, and the frame stays centered on its spot while it turns and scales. When the pictures fall, the last step eases in more steeply, like something dropping. The demo's Slow motion sets `playbackRate` to a third on every animation in the hero, which slows each picture's whole life.
 
-On touch screens the hero has `touch-action: none` and takes pointer capture, so a finger drops a picture where it touches and leaves the trail as it drags, instead of scrolling the page. Under reduced motion there is no trail: one picture fades in where the pointer is, without moving or growing, and fades out when the next one appears or its time is up. Show me's sweep reads the setting on every frame, so if reduced motion is switched on while it runs, the sweep stops there and the pictures already out fade where they are.
+On touch screens the hero has `touch-action: none` and takes pointer capture, so a finger drops a picture where it touches and leaves the trail as it drags, instead of scrolling the page. Under reduced motion there is no trail: one picture fades in where the pointer is, without moving or growing, and fades out when the next one appears or its time is up. If reduced motion is switched on while pictures are out, every one of them fades where it is: a `change` listener on the media query does it, and Show me's sweep also reads the setting on every frame, so it stops there too.
 
 ## Key parameters
 | Parameter | Default | Effect |
