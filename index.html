@@ -985,6 +985,15 @@ button,input{font:inherit;color:inherit}
 .pv-handwrite .rl{stroke:#9db0d6;stroke-width:.8}
 .pv-handwrite .w{fill:none;stroke:#2346b5;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:1;animation:t-hand 5s linear infinite}
 @keyframes t-hand{0%,6%{stroke-dashoffset:1;opacity:1}62%,86%{stroke-dashoffset:0;opacity:1}96%{stroke-dashoffset:0;opacity:0}100%{stroke-dashoffset:1;opacity:0}}
+/* "HELLO" in 73 dots (5 × 7 per letter): a pointer and its reach sweep through, and each dot it passes jumps aside, swings a little past home and settles (the delays line each dot up with the pointer); mid-sweep at 36% (STILL) */
+.pv-tparticles{background:radial-gradient(ellipse 58% 44% at 50% 58%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 72%),#0c0608}
+.pv-tparticles svg{position:absolute;inset:0;width:100%;height:100%}
+.pv-tparticles .d{fill:url(#tpG);animation:tp-d 4.8s infinite}
+.pv-tparticles .cur{animation:tp-c 4.8s infinite}
+.pv-tparticles .rg{fill:none;stroke:rgba(255,255,255,.3);stroke-width:.6}
+.pv-tparticles .pt{fill:#fff}
+@keyframes tp-d{0%{transform:none;animation-timing-function:cubic-bezier(.2,.7,.3,1)}7%{transform:translate(var(--dx),var(--dy))}15%{transform:translate(calc(var(--dx) * -.2),calc(var(--dy) * -.2))}21%{transform:translate(calc(var(--dx) * .07),calc(var(--dy) * .07))}27%,100%{transform:none}}
+@keyframes tp-c{0%{transform:translate(14px,58px);opacity:0}8%{transform:translate(14px,58px);opacity:1;animation-timing-function:linear}60%{transform:translate(146px,58px);opacity:1}68%,100%{transform:translate(146px,58px);opacity:0}}
 
 /* ── bespoke: 06 3D & Advanced ── */
 /* the cube's half side --h: 30px, smaller on a small card, and the cube a little low, so it turns clear of the place label (1cqh is 1% of the stage's height; closest at 601px, three cards across) */
@@ -1679,6 +1688,7 @@ const CATS=[
       ['split-flap-board','Split-Flap Board','Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.'],
       ['neon-flicker','Neon Flicker','Glowing letters sputter now and then, like a worn neon sign. Best for night themes.'],
       ['handwriting-draw','Handwriting Draw','A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.'],
+      ['text-particles','Text Particles','A word of dots scatters from your pointer and springs back. Best for intros.'],
     ]
   },
   {
@@ -1792,7 +1802,7 @@ const PV={
   'grid-dot-pattern-parallax':'dotgrid','abstract-geometric-motion':'geo',
   'magnetic-button':'magnet','heart-burst':'heart','success-confetti':'confetti','error-shake':'shake','swipe-to-dismiss':'swipe',
   'glitch-text':'glitch','text-on-path':'onpath','wavy-text':'wavy','highlighter-sweep':'hilite','split-flap-board':'splitflap',
-  'neon-flicker':'neon','handwriting-draw':'handwrite',
+  'neon-flicker':'neon','handwriting-draw':'handwrite','text-particles':'tparticles',
   'particle-constellation':'particles','flow-field':'flow','synthwave-grid':'synth'
 };
 
@@ -1919,6 +1929,7 @@ const PLACES={
   'split-flap-board':['text','intro'],
   'neon-flicker':['text','bg'],
   'handwriting-draw':['text','intro'],
+  'text-particles':['text','intro'],
   // 06
   '3d-model-orbit':['imgcard'],
   'scroll-driven-3d-rotation':['scroll','imgcard'],
@@ -2004,6 +2015,11 @@ function pvMarkup(k){
     case 'xsearch': return '<span class="tb"><i class="br"></i><span class="ln anim"><i></i><i></i><i></i></span><span class="fd anim"><i class="tx anim"></i></span><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m19.5 19.5-4-4"/></svg></span><span class="pg"><i></i><i></i></span>';
     case 'btnload': return '<span class="bw"><span class="pl anim">SUBMIT</span><span class="cc anim"></span><span class="gc anim"></span><span class="sp anim"></span><svg class="tk anim" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>';
     case 'sig5': return '<span class="s5 anim"></span><span class="s5 anim"></span><span class="s5 anim"></span>';
+    case 'tparticles': {const F={H:'10001100011000111111100011000110001',E:'11111100001000011110100001000011111',L:'10000100001000010000100001000011111',O:'01110100011000110001100011000101110'};let d='';
+      // each dot is pushed away from the pointer's line (dots on it alternate up and down), less the further it sits, starting .2 s before the pointer reaches its column
+      [...'HELLO'].forEach((ch,k)=>[...F[ch]].forEach((b,i)=>{if(b!=='1')return;const c=k*6+i%5,r=(i/5|0)-3,f=1-Math.abs(r)/4,x=24+c*4,s=r?Math.sign(r):c%2?1:-1;
+        d+='<circle class="d anim" cx="'+x+'" cy="'+(58+r*4)+'" r="1.5" style="--dx:'+(1.8*f).toFixed(2)+'px;--dy:'+(10*f*s).toFixed(2)+'px;animation-delay:'+(4.8*(.08+(x-14)/132*.52)-5).toFixed(2)+'s"/>';}));
+      return '<svg viewBox="0 0 160 100"><defs><linearGradient id="tpG" gradientUnits="userSpaceOnUse" x1="24" x2="136"><stop offset="0" stop-color="#ff6f8b"/><stop offset=".5" stop-color="#ff9d5c"/><stop offset="1" stop-color="#ffce5a"/></linearGradient></defs>'+d+'<g class="cur anim"><circle class="rg" r="12"/><circle class="pt" r="2.2"/></g></svg>';}
     case 'hilite': return '<span class="ppr"><span class="ln"><b style="width:24%"></b><b class="k anim" style="width:40%"></b><b style="width:22%"></b></span>'+
       '<span class="ln"><b style="width:20%"></b><b style="width:28%"></b><b class="k k2 anim" style="width:38%"></b></span>'+
       '<span class="ln"><b class="k k3 anim" style="width:44%"></b><b style="width:30%"></b></span></span>';
@@ -2314,7 +2330,7 @@ let shown=[];
 // under the place label or between two states). Nothing here runs without reduced motion.
 const STILL={
   cover:.1,curtain:.6,kinetic:.25,carousel:.1,typewriter:.55,textclip:.7,svgpath:.7,smoke:.3,leak:.7,
-  flash:.41,blurpage:.2,toggle:.7,shake:.8,hideheader:.72,hilite:.7,splitflap:.7,handwrite:.75,circlerev:.25,owipe:.165,pcurl:.44,cubepage:.3,reorder:.4,ascii:.2,phys2d:.6,shatter:.15,izoom:.02
+  flash:.41,blurpage:.2,toggle:.7,shake:.8,hideheader:.72,hilite:.7,splitflap:.7,handwrite:.75,tparticles:.36,circlerev:.25,owipe:.165,pcurl:.44,cubepage:.3,reorder:.4,ascii:.2,phys2d:.6,shatter:.15,izoom:.02
 };
 function hold(card){
   const anims=card.querySelector('.pv').getAnimations({subtree:true});

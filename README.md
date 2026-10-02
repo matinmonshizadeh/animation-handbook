@@ -38,7 +38,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 | 02 | [Entrance & Exit](#02) | 14 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
 | 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
 | 04 | [Micro-Interactions](#04) | 39 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
-| 05 | [Text & Typography](#05) | 18 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
+| 05 | [Text & Typography](#05) | 19 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
 | 06 | [3D & Advanced](#06) | 24 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
 | 07 | [Ambient & Background](#07) | 23 | Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. |
 
@@ -190,7 +190,7 @@ All 159 techniques, each linked to its live demo.
 
 <a id="05"></a>
 
-### 05 · Text & Typography · 18 techniques
+### 05 · Text & Typography · 19 techniques
 
 <sub>Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations.</sub>
 
@@ -214,6 +214,7 @@ All 159 techniques, each linked to its live demo.
 - **[Split-Flap Board](animations/05-text-typography/split-flap-board/)** — Tiles flip through the letters to spell a word, like an airport board. Best for hero titles.
 - **[Neon Flicker](animations/05-text-typography/neon-flicker/)** — Glowing letters sputter now and then, like a worn neon sign. Best for night themes.
 - **[Handwriting Draw](animations/05-text-typography/handwriting-draw/)** — A word writes itself stroke by stroke, as if by a pen. Best for greetings and signatures.
+- **[Text Particles](animations/05-text-typography/text-particles/)** — A word of dots scatters from your pointer and springs back. Best for intros.
 
 </details>
 
