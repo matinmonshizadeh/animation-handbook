@@ -48,7 +48,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | All WebGL demos | WebGL 1.0 (all modern browsers) |
 | GPGPU Particle System | WebGL2 (Chrome 56+, Firefox 51+, Safari 15+) |
 | backdrop-filter (Glassmorphism) | Chrome, Edge, Safari; Firefox 103+ |
-| SVG filter in backdrop-filter (Liquid Glass) | Chromium browsers (Chrome, Edge, Opera); Safari and Firefox show frosted glass instead |
+| SVG filter in backdrop-filter (Liquid Glass) | Chromium browsers on a computer or Android (Chrome, Edge, Opera); Safari, Firefox and every browser on iPhone and iPad show frosted glass instead |
 
 ## See also
 - [04 — Micro-Interactions](../04-micro-interactions/) — lighter-weight interactive animations

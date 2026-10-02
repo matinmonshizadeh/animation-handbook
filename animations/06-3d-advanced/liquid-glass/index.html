@@ -28,7 +28,7 @@
        --lg-m is the stop of the masks, where only its alpha counts. */
     .stage{--lg-glow:#3b2c86;--lg-sky:#1e1752;--lg-sky-2:#100f36;--lg-deep:#0a1b2d;--lg-dot:rgba(255,255,255,.32);--lg-sun:#ffd36e;--lg-sun-2:#ff8a5c;--lg-sun-3:#ff5c8a;
       --lg-neon:#b98cff;--lg-tower:#2c2070;--lg-tower-2:#150f3c;--lg-sea:#3fd6c4;--lg-ball:#ff6f8b;--lg-ball-2:#ffce5a;--lg-ink:#fff;--lg-light:255,255,255;--lg-shade:0,0,0;--lg-m:#000;
-      --lg-tint:#f4f4f2;--lg-tp:9%;--lg-blur:0px;--lg-fb:3px;--lg-rim:23px;position:relative;overflow:hidden;container-type:size;-webkit-user-select:none;user-select:none;
+      --lg-tint:#f4f4f2;--lg-tp:9%;--lg-blur:0px;--lg-fb:3px;--lg-rim:23px;--lg-vh:1vh;position:relative;overflow:hidden;container-type:size;-webkit-user-select:none;user-select:none;
       background:radial-gradient(80% 90% at 88% 4%,var(--lg-glow),transparent 62%),linear-gradient(168deg,var(--lg-sky),var(--lg-sky-2) 52%,var(--lg-deep))}
     .lg-scene,.lg-scene>*{position:absolute;display:block}.lg-scene{inset:0}
     .lg-dots{left:0;top:0;width:58%;height:70%;background:radial-gradient(circle,var(--lg-dot) 1.5px,transparent 2px) 0 0/18px 18px;-webkit-mask:radial-gradient(farthest-side at 0 0,var(--lg-m) 50%,transparent);mask:radial-gradient(farthest-side at 0 0,var(--lg-m) 50%,transparent)}
@@ -50,8 +50,9 @@
     .lg-glass::before,.lg-map{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
     .lg-glass::before{padding:1.5px;background:linear-gradient(135deg,rgb(var(--lg-light)),rgba(var(--lg-light),.2) 28%,rgba(var(--lg-light),.06) 55%,rgba(var(--lg-light),.62));-webkit-mask:linear-gradient(var(--lg-m) 0 0) content-box,linear-gradient(var(--lg-m) 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
     .lg-map{background:0 0/100% 100% no-repeat;opacity:.92}.lg-glass.lg-grab{cursor:grabbing}.lg-defs{position:absolute;width:0;height:0;overflow:hidden}
-    /* Where the glass is frosted, the help line above has one more line: on a laptop the stage gives it back, so the player bar stays on the first screen */
-    @media(min-width:1025px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(300px,calc(100vh - 444px),440px)}}@media(min-width:1025px) and (max-height:760px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(260px,calc(100vh - 354px),440px)}}
+    /* Where the glass is frosted the help line above has one more line, so from 601px wide (where the shared heights apply) the stage
+       gives it back, down to the shared 260px, and the player bar stays where it is in Chrome. --lg-vh: the small viewport height where known */
+    @supports(height:1svh){.stage{--lg-vh:1svh}}@media(min-width:601px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(300px,calc(100 * var(--lg-vh) - 444px),440px)}}@media(min-width:601px) and (max-height:760px){.hb-page .stage.lg-frost{--hb-stage-h:clamp(260px,calc(100 * var(--lg-vh) - 354px),440px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -71,7 +72,7 @@
   <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
-      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the glass or tap where it should go, use the arrow keys, or press Show me.<span id="lg-note" hidden> This browser shows the frosted version; the bend shows in Chrome and Edge.</span></p></div>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the glass or tap where it should go, use the arrow keys, or press Show me.<span id="lg-note" hidden> Frosted here: the bend shows in Chrome or Edge on a computer or Android.</span></p></div>
     </div>
     <div class="stage" id="stage">
       <div class="lg-scene" aria-hidden="true"><i class="lg-dots"></i><i class="lg-sun"></i><i class="lg-city"></i><i class="lg-sea"></i><i class="lg-ball lg-b1"></i><i class="lg-ball lg-b2"></i><p class="lg-word">Look closer</p></div>
