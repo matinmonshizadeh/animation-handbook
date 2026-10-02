@@ -31,6 +31,7 @@ WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects 
 | [2D Physics](physics-2d/) | Balls drop where you click, bounce and pile up. Best for playful intros. |
 | [Liquid Glass](liquid-glass/) | Drag a glass panel and the picture behind it bends at the edges. Best for cards. |
 | [Holographic Card](holographic-card/) | A card tilts as you point, and its rainbow foil shimmers. Best for collectibles. |
+| [Infinite Zoom](infinite-zoom/) | The view keeps zooming into pictures inside pictures. Best for page intros. |
 
 ## Key concepts
 

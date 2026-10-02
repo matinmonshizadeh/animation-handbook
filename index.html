@@ -1117,6 +1117,20 @@ button,input{font:inherit;color:inherit}
 @keyframes d-holo{0%,100%{transform:rotateY(-24deg) rotateX(8deg)}50%{transform:rotateY(24deg) rotateX(-8deg)}}
 @keyframes d-holof{0%,100%{transform:translate(12%,4%)}50%{transform:translate(-12%,-4%)}}
 @keyframes d-holog{0%,100%{transform:translate(-32%,-18%)}50%{transform:translate(32%,18%)}}
+/* Five pictures, each in the window of the one around it at 40% of its size (a gallery's gilt frame, a drive-in screen, a television,
+   a laptop and a photo), zoom in by one picture every 2.4 s. Each layer grows from the smallest past the edges in five steps and then
+   starts again as the smallest; the easing bends every step into the same steady zoom. Each layer has its window cut out, so no two
+   overlap and the order they are drawn in never matters. Its frame (::before) is 3cqh wide on every side, a share of the stage's height. */
+.pv-izoom{background:#0b0b0d;overflow:hidden;container-type:size}
+.pv-izoom i{position:absolute;inset:0;background:var(--b);clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,30% 30%,70% 30%,70% 70%,30% 70%,30% 30%);animation:d-izoom 12s cubic-bezier(.33,.2,.67,.49) infinite;animation-delay:calc(var(--k) * -2.4s)}
+.pv-izoom i::before{content:"";position:absolute;inset:calc(30% - 3cqh);border-radius:var(--r,0);background:var(--f)}
+.pv-izoom i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14%;background:var(--g,transparent)}
+.pv-izoom .g{--k:4;--b:radial-gradient(50% 45% at 50% 22%,rgba(255,220,160,.28),transparent),linear-gradient(#1b5563,#0b2a33);--f:linear-gradient(135deg,#fbe7a6,#c9962f 45%,#8c5b17 70%,#e9c568);--g:#08212a}
+.pv-izoom .d{--k:3;--b:radial-gradient(circle at 86% 18%,#fff2cf 0 3.6cqh,transparent 4cqh),linear-gradient(#070b24,#1f1850 55%,#5b2c63 86%);--f:#dcd6ee;--g:#0d0a1d}
+.pv-izoom .t{--k:2;--b:linear-gradient(#8c4b2f,#55291b);--f:linear-gradient(#a06c3f,#6d4425);--r:2cqh;--g:#2b170f}
+.pv-izoom .l{--k:1;--b:linear-gradient(#1c2c4d,#111a30);--f:#0e1118;--r:1.6cqh;--g:#4e3a2b}
+.pv-izoom .p{--k:0;--b:linear-gradient(135deg,#7a4d2c,#4b2c17);--f:#f5f1e8}
+@keyframes d-izoom{0%{transform:scale(.0256)}20%{transform:scale(.064)}40%{transform:scale(.16)}60%{transform:scale(.4)}80%{transform:scale(1)}100%{transform:scale(2.5)}}
 
 /* ── bespoke: 07 Ambient & Background ── */
 .pv-grain2{background:radial-gradient(circle at 50% 40%,#1a1710,#08080a);overflow:hidden}
@@ -1679,6 +1693,7 @@ const CATS=[
       ['physics-2d','2D Physics','Balls drop where you click, bounce and pile up. Best for playful intros.'],
       ['liquid-glass','Liquid Glass','Drag a glass panel and the picture behind it bends at the edges. Best for cards.'],
       ['holographic-card','Holographic Card','A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.'],
+      ['infinite-zoom','Infinite Zoom','The view keeps zooming into pictures inside pictures. Best for page intros.'],
     ]
   },
   {
@@ -1724,7 +1739,7 @@ const PV={
   'typing-indicator':'typing',
   'hold-to-confirm':'holdconf','expanding-search':'xsearch','button-loading-states':'btnload',
   'image-trail':'imgtrail','gooey-menu':'gooey',
-  'flip-card-3d':'flip3d','carousel-3d':'carousel3d','depth-map-photo':'depthmap','flocking':'flock','ascii-halftone':'ascii','physics-2d':'phys2d','liquid-glass':'liquidglass','holographic-card':'holo','matrix-rain':'matrix','plasma':'plasmapv',
+  'flip-card-3d':'flip3d','carousel-3d':'carousel3d','depth-map-photo':'depthmap','flocking':'flock','ascii-halftone':'ascii','physics-2d':'phys2d','liquid-glass':'liquidglass','holographic-card':'holo','infinite-zoom':'izoom','matrix-rain':'matrix','plasma':'plasmapv',
   'wave-layers':'wavelayers','snow-rain':'snowrain','fireworks':'fireworks',
   'topographic-lines':'topo','light-rays':'rays','game-of-life':'life',
   'parallax-depth-of-field':'dof','parallax-scrolling':'plx','reverse-scrolling-columns':'revcol',
@@ -1911,6 +1926,7 @@ const PLACES={
   'physics-2d':['intro','bg'],
   'liquid-glass':['imgcard','menu'],
   'holographic-card':['imgcard'],
+  'infinite-zoom':['intro','bg'],
   // 07
   'animated-gradient-background':['bg'],
   'mesh-gradient':['bg'],
@@ -1977,6 +1993,7 @@ function pvMarkup(k){
     case 'sig6': return '<div class="cube anim"><span class="face f1"></span><span class="face f2"></span><span class="face f3"></span><span class="face f4"></span><span class="face f5"></span><span class="face f6"></span></div>';
     case 'liquidglass': {const sc=k=>'<span class="sc'+k+'"><b class="sun"></b><b class="city"></b><b class="sea"></b></span>';return sc('')+'<span class="gl anim">'+sc(' anim')+'</span>';}
     case 'holo': return '<span class="hc anim"><i class="cr"></i><i class="fo anim"></i><i class="gl anim"></i><i class="np"></i><i class="ip"></i></span>';
+    case 'izoom': return '<i class="g anim"></i><i class="d anim"></i><i class="t anim"></i><i class="l anim"></i><i class="p anim"></i>';
     case 'carousel3d': return '<div class="sc"><div class="tl"><div class="rg anim">'+[0,1,2,3,4,5].map(k=>'<i style="--k:'+k+'"></i>').join('')+'</div></div></div>';
     case 'depthmap': return [['sun',-.4],['mt',-.2],['hl',.05],['md',.25],['tr',.45],['gd',.55]].map(([c,k])=>'<i class="'+c+' anim" style="--k:'+k+'"></i>').join('');
     case 'flock': return '<span class="fk anim">'+[[0,18,0],[-10,6,-.3],[9,5,-.7],[-20,-5,-1.1],[1,-4,-.5],[17,-8,-.9],[-8,-17,-.2],[10,-20,-1.2],[-1,-29,-.6]].map(function(b){return '<i class="anim" style="--x:'+b[0]+'%;--y:'+b[1]+'%;--d:'+b[2]+'s"></i>';}).join('')+'</span>';
@@ -2277,7 +2294,7 @@ let shown=[];
 // under the place label or between two states). Nothing here runs without reduced motion.
 const STILL={
   cover:.1,curtain:.6,kinetic:.25,carousel:.1,typewriter:.55,textclip:.7,svgpath:.7,smoke:.3,leak:.7,
-  flash:.41,blurpage:.2,toggle:.7,shake:.8,hideheader:.72,hilite:.7,splitflap:.7,handwrite:.75,circlerev:.25,owipe:.165,pcurl:.44,cubepage:.3,reorder:.4,ascii:.2,phys2d:.6,shatter:.15
+  flash:.41,blurpage:.2,toggle:.7,shake:.8,hideheader:.72,hilite:.7,splitflap:.7,handwrite:.75,circlerev:.25,owipe:.165,pcurl:.44,cubepage:.3,reorder:.4,ascii:.2,phys2d:.6,shatter:.15,izoom:.02
 };
 function hold(card){
   const anims=card.querySelector('.pv').getAnimations({subtree:true});

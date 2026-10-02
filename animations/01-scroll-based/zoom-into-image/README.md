@@ -47,3 +47,4 @@ Clipping rather than scaling is the crucial choice: `clip-path` reveals more of 
 - [Scrub Animation](../scrub-animation/) — scroll position drives the movement, both ways
 - [Cover Card to Fixed Header](../cover-card-to-fixed-header/) — a big cover changes shape as you scroll
 - [Parallax Depth-of-Field](../parallax-depth-of-field/) — layers move and blur for depth as you scroll
+- [Infinite Zoom](../../06-3d-advanced/infinite-zoom/) — the view keeps diving into pictures inside pictures on its own
