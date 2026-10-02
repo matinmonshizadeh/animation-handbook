@@ -23,44 +23,42 @@
   <style>
     :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{position:relative;display:grid;place-items:center;background:radial-gradient(70% 70% at 50% 45%,#221a40,#08070d);perspective:1000px}
-    /* The card is four layers in one 5:7 box: picture, foil, glare, text panels. The script turns it toward the pointer and moves the
-       foil and glare in it (only transform and opacity); it stays flat, its blend modes mixing its layers, except in Shows the layers. */
+    .stage{--hc-glow:#221a40;--hc-bg:#08070d;--hc-c1:#f0648c;--hc-c2:#f4c35e;--hc-c3:#71e2a2;--hc-c4:#5ac2f4;--hc-c5:#a888f6;--hc-light:255,255,255;--hc-shade:0,0,0;
+      --hc-m:#000;--hc-panel:#110e27;--hc-ink:#f4f4f2;--hc-ink-2:#d6d6da;--hc-ink-3:#bdb7e6;--hc-gem:#cfc4ff;
+      position:relative;display:grid;place-items:center;background:radial-gradient(70% 70% at 50% 45%,var(--hc-glow),var(--hc-bg));perspective:1000px}
+    /* Four layers in one 5:7 box (picture, foil, glare, text panels), moved only by transform and opacity; flat but in Shows the layers */
     .card{position:relative;height:min(84%,380px);aspect-ratio:5/7;border-radius:12px;touch-action:none;will-change:transform;
-      box-shadow:0 0 0 1px rgba(255,255,255,.1),0 24px 50px -14px rgba(0,0,0,.8)}
+      box-shadow:0 0 0 1px rgba(var(--hc-light),.1),0 24px 50px -14px rgba(var(--hc-shade),.8)}
     .ly{position:absolute;inset:0;border-radius:inherit;overflow:hidden;overflow:clip}
     .art svg{display:block;width:100%;height:100%}
-    /* The foil: a sheet of rainbow streaks twice the card's size, slid by the script. Color dodge brightens the picture under each
-       streak and leaves it alone under the clear gaps. Glitter and Lines let it through dots or fine lines only; the dots come in six
-       tile sizes that share no pattern for hundreds of pixels, so they look scattered, not set in a grid (they are kept on the foil,
-       the one layer that uses them, so the card's new style every frame does not resolve them again). */
-    .foil{mix-blend-mode:color-dodge;--d:#000 0 1px,transparent 1.7px;--dots:radial-gradient(circle at 30% 40%,var(--d)) 0 0/17px 23px,radial-gradient(circle at 75% 15%,var(--d)) 0 0/23px 19px,
-        radial-gradient(circle at 50% 80%,#000 0 1.4px,transparent 2.2px) 0 0/31px 37px,radial-gradient(circle at 85% 60%,var(--d)) 0 0/29px 27px,
-        radial-gradient(circle at 15% 70%,#000 0 .7px,transparent 1.4px) 0 0/13px 29px,radial-gradient(circle at 60% 35%,#000 0 1.2px,transparent 2px) 0 0/41px 43px;
-      --lines:repeating-linear-gradient(60deg,#000 0 1.4px,transparent 1.4px 4.2px)}
-    .sheen{position:absolute;inset:-50%;will-change:transform;background:repeating-linear-gradient(118deg,transparent 0%,#f0648c 3%,#f4c35e 6%,#71e2a2 9%,#5ac2f4 12%,#a888f6 15%,transparent 18%,transparent 21%)}
+    /* The foil: rainbow streaks twice the card's size, slid by the script; color dodge brightens the picture under each streak. Glitter
+       and Lines show it through dots in six tile sizes (so no grid shows; kept on the foil, the one layer using them) or fine lines. */
+    .foil{mix-blend-mode:color-dodge;--d:var(--hc-m) 0 1px,transparent 1.7px;--dots:radial-gradient(circle at 30% 40%,var(--d)) 0 0/17px 23px,radial-gradient(circle at 75% 15%,var(--d)) 0 0/23px 19px,
+        radial-gradient(circle at 50% 80%,var(--hc-m) 0 1.4px,transparent 2.2px) 0 0/31px 37px,radial-gradient(circle at 85% 60%,var(--d)) 0 0/29px 27px,
+        radial-gradient(circle at 15% 70%,var(--hc-m) 0 .7px,transparent 1.4px) 0 0/13px 29px,radial-gradient(circle at 60% 35%,var(--hc-m) 0 1.2px,transparent 2px) 0 0/41px 43px;
+      --lines:repeating-linear-gradient(60deg,var(--hc-m) 0 1.4px,transparent 1.4px 4.2px)}
+    .sheen{position:absolute;inset:-50%;will-change:transform;
+      background:repeating-linear-gradient(118deg,transparent 0%,var(--hc-c1) 3%,var(--hc-c2) 6%,var(--hc-c3) 9%,var(--hc-c4) 12%,var(--hc-c5) 15%,transparent 18%,transparent 21%)}
     .card[data-foil=glitter] .foil{-webkit-mask:var(--dots);mask:var(--dots)}
     .card[data-foil=lines] .foil{-webkit-mask:var(--lines);mask:var(--lines)}
     /* The glare: a white spot the size of the card, moved to the pointer; plus-lighter adds its light, so it reads as a highlight. The
        gloss, a copy over the text panels at a quarter strength at most, lights them too and keeps their dimmest text above 5:1. */
     .gl{mix-blend-mode:plus-lighter}
-    .spot{position:absolute;inset:0;will-change:transform;opacity:0;background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,.55) 22%,rgba(255,255,255,.18) 58%,transparent)}
+    .spot{position:absolute;inset:0;will-change:transform;opacity:0;
+      background:radial-gradient(circle closest-side,rgb(var(--hc-light)),rgba(var(--hc-light),.55) 22%,rgba(var(--hc-light),.18) 58%,transparent)}
     /* Text panels: solid and above the foil and the glare, so only the faint gloss ever sits over the text */
-    .txt{container-type:inline-size;color:#f4f4f2}
-    .np,.ip{position:absolute;left:6%;right:6%;border-radius:5px;background:#110e27;border:1px solid rgba(255,255,255,.16)}
+    .txt{container-type:inline-size;color:var(--hc-ink)}
+    .np,.ip{position:absolute;left:6%;right:6%;border-radius:5px;background:var(--hc-panel);border:1px solid rgba(var(--hc-light),.16)}
     .np{top:4.3%;height:7.1%;display:flex;align-items:center;justify-content:space-between;padding:0 5%;font-weight:800;font-size:max(12px,6.4cqw);letter-spacing:-.01em}
-    .np svg{width:15%;fill:#cfc4ff}
+    .np svg{width:15%;fill:var(--hc-gem)}
     .ip{top:59.3%;bottom:4.3%;display:flex;flex-direction:column;justify-content:center;gap:4%;padding:0 6%}
     .ab{font-weight:700;font-size:max(12px,6cqw)}
-    .ds{font-size:max(11px,4.9cqw);line-height:1.3;color:#d6d6da}
-    .ft{display:flex;justify-content:space-between;margin-top:3%;font-size:max(11px,4.2cqw);color:#bdb7e6}
-    /* Shows the layers: the card turns to one side and its layers spread apart, each drawn as it is (no blending), with an edge;
-       the glare has its own sheet there, so the gloss over the text is left out */
-    .card.split{transform-style:preserve-3d}
-    .card.split .ly{will-change:transform;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-    .card.split .foil,.card.split .gl{mix-blend-mode:normal}.card.split .gloss{display:none}
-    /* Reduced motion: nothing moves; the foil and the glare only fade brighter and back */
-    @media(prefers-reduced-motion:reduce){.card{touch-action:auto}.foil,.spot{transition:opacity .3s}}
+    .ds{font-size:max(11px,4.9cqw);line-height:1.3;color:var(--hc-ink-2)}
+    .ft{display:flex;justify-content:space-between;margin-top:3%;font-size:max(11px,4.2cqw);color:var(--hc-ink-3)}
+    /* Shows the layers: the card turns and its layers spread apart, each drawn as it is with an edge (the glare's own sheet, no gloss) */
+    .card.split{transform-style:preserve-3d}.card.split .foil,.card.split .gl{mix-blend-mode:normal}.card.split .gloss{display:none}
+    .card.split .ly{will-change:transform;box-shadow:inset 0 0 0 1px rgba(var(--hc-light),.3)}
+    @media(prefers-reduced-motion:reduce){.card{touch-action:auto}.foil,.spot{transition:opacity .3s}} /* nothing moves: only fades */
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -237,7 +235,9 @@ function wake(){
   if(!raf){lastT=null;raf=requestAnimationFrame(tick);}
 }
 function tick(ts){
-  raf=0;const dt=lastT===null?FRAME:Math.min(ts-lastT,50);lastT=ts;let more=false;
+  // Reduced motion turned on mid-move (no change event comes once draw() has read the query): straight to its rest, loop stopped
+  raf=0;if(reduce.matches){run=null;sx=sy=sh=ax=ay=ah=0;sp=split;draw();return;}
+  const dt=lastT===null?FRAME:Math.min(ts-lastT,50);lastT=ts;let more=false;
   const k=1-Math.pow(1-K,dt/FRAME);
   if(run){
     if(run.t0===null)run.t0=ts;
