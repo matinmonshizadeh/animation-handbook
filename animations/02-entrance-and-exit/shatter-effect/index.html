@@ -42,8 +42,7 @@
     /* A piece is a box around its polygon, holding a copy of the whole card clipped to that polygon. The pieces wait under
        the cracking card (z-index 2) until the break and fly in front of the next card. */
     .shards{position:absolute;z-index:1;inset:0;perspective:900px;pointer-events:none}
-    .shard{position:absolute;contain:layout paint;will-change:transform,opacity}
-    .shard .card{position:absolute;box-shadow:none}
+    .shard{position:absolute;contain:layout paint;will-change:transform,opacity}.shard .card{position:absolute;box-shadow:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
   <script src="../../../assets/js/demo-page.js?v=6" defer></script>
@@ -185,7 +184,7 @@
   const CUTS={few:[3,2],medium:[6,3],many:[11,4]},RINGS={2:[.45,1],3:[.24,.56,1],4:[.15,.36,.64,1]};
   // One flight, in card heights: how far the pieces burst outward, how high they are thrown and how far gravity pulls them
   const PULL={none:[1.1,0,0],normal:[.75,.6,2.3],heavy:[.55,.3,4.4]};
-  let pieces='medium',from='center',gravity='normal',ms=1100,cur=0,playing=-1,size='',timers=[];
+  let pieces='medium',from='center',gravity='normal',ms=1100,cur=0,playing=-1,size='',seen=true,waiting=false,timers=[];
   const later=(fn,wait)=>timers.push(setTimeout(fn,wait)),slow=v=>slowTog.checked?v*3:v,rnd=(a,b)=>a+Math.random()*(b-a),P=v=>v[0].toFixed(1)+' '+v[1].toFixed(1);
 
   // Cuts a W×H card like glass hit at one point: rays run to the edge (through the four corners, so outer pieces end exactly
@@ -219,9 +218,8 @@
     [...svg.children].forEach((g,i)=>g.animate([{opacity:0},{opacity:1}],{duration:crack*.3,delay:crack*.14*i,fill:'backwards'}));
   }
   // Every piece is a box around its polygon holding a copy of the whole card, clipped to the polygon (grown by 0.7px so
-  // neighbors overlap and no seam shows), with only its own cracks drawn. Its flight is sampled into keyframes: a burst that slows
-  // down, an upward throw and the pull of gravity; it turns all the way and fades over the second half. It starts at the
-  // break (start), and nearer pieces go first.
+  // neighbors overlap and no seam shows), with only its own cracks drawn. Its flight is sampled into keyframes: a burst that
+  // slows, an upward throw and gravity; it turns all the way and fades over its second half. It starts at the break, nearer pieces first.
   function shatter(card,{p,polys,box:[X,Y,W,H]},start){
     const T=slow(ms),wave=slow(ms*.16);
     const [push,lift,grav]=PULL[gravity],tumble=tumbleTog.checked,layer=Object.assign(document.createElement('div'),{className:'shards'});
@@ -252,7 +250,7 @@
   }
   // Puts every card back at rest: the pieces, cracks and running animations go, and only the card on show is visible.
   function reset(){
-    timers.forEach(clearTimeout);timers=[];
+    timers.forEach(clearTimeout);timers=[];waiting=false;
     deck.getAnimations({subtree:true}).forEach(a=>a.cancel());
     deck.querySelectorAll('.shards').forEach(n=>n.remove());
     cards.forEach((c,i)=>{c.classList.toggle('on',i===cur);c.style.zIndex='';c.querySelector('.cracks').textContent=''});
@@ -279,12 +277,14 @@
     // Once all of it has played, the next card is the one on show (a reset in between cancels the play, and this with it)
     Promise.all(deck.getAnimations({subtree:true}).map(a=>a.finished)).then(()=>settle(next),()=>{});
   }
-  function settle(i){playing=-1;cur=i;reset();if(loopTog.checked&&!reduce.matches)later(()=>{if(loopTog.checked)play()},1000)}
-  // The pieces are placed for the stage's size when the play starts: if the stage changes size during a play, it ends at once
+  // Loop's next play comes a second after a play ends, or, with the stage scrolled out of view, once it is back in view
+  function settle(i){playing=-1;cur=i;reset();if(loopTog.checked&&!reduce.matches)later(()=>{if(loopTog.checked)seen?play():waiting=true},1000)}
+  new IntersectionObserver(es=>{seen=es[es.length-1].isIntersecting;if(seen&&waiting&&loopTog.checked&&!reduce.matches)play()}).observe(deck);
+  // A play ends at once on the next card when the stage changes size (its pieces were placed for the old size) or reduced motion comes on
   new ResizeObserver(()=>{const now=deck.offsetWidth+'x'+deck.offsetHeight;if(size&&now!==size&&playing>=0)settle(playing);size=now}).observe(deck);
+  reduce.addEventListener('change',()=>{if(reduce.matches&&playing>=0)settle(playing)});
 
-  document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  document.getElementById('btn-play').addEventListener('click',play);loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
