@@ -24,6 +24,8 @@
     :root{--ui-accent:#3fd6c4}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#0b0b0d}
+    /* Keyboard focus on the picture: the ring goes around the stage, on the page, where it shows against every color of the picture */
+    @supports selector(:has(*)){.hb-page .stage:has(> canvas:focus-visible){outline:2px solid var(--ui-accent);outline-offset:3px}.hb-page .stage canvas:focus-visible{outline:none}}
     /* A finger on the picture aims the view both ways, so the picture keeps it; under reduced motion it scrolls the page */
     canvas{display:block;width:100%;height:100%;touch-action:none}
     @media(prefers-reduced-motion:reduce){canvas{touch-action:auto}}
@@ -49,7 +51,7 @@
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the picture, drag a finger across it, or press Show me.</p></div>
     </div>
     <div class="stage" id="stage">
-      <canvas id="cvs" role="img" aria-label="A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones."></canvas>
+      <canvas id="cvs" role="img" tabindex="0" aria-label="A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones. Press the arrow keys to move the view."></canvas>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
@@ -268,6 +270,18 @@ stage.addEventListener('pointerdown',aim);
 stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches)run=null;aim(e);});
 ['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,toMiddle));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')toMiddle();});
+// The keyboard is a pretend pointer through the same aim, heard on the stage (the 2D fallback swaps the canvas): focus by keyboard
+// ends a run, each arrow key moves the aim 6% of the picture (held, it repeats), and Escape or leaving the picture sends the view
+// back to the middle. Under reduced motion the keys move nothing, as the pointer does not, and the arrow keys scroll the page.
+const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+let keys=false;
+stage.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible')&&!reduce.matches){keys=true;if(run){run=null;ax=ay=0;wake();}}});
+stage.addEventListener('keydown',e=>{
+  const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
+  if(d&&!reduce.matches){e.preventDefault();keys=true;ax=clamp(ax+.12*d[0]);ay=clamp(ay+.12*d[1]);wake();}
+  else if(e.key==='Escape'&&keys){keys=false;toMiddle();}
+});
+stage.addEventListener('focusout',()=>{if(keys){keys=false;toMiddle();}});
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
@@ -279,8 +293,8 @@ function choices(id,pick){
 choices('str-seg',d=>{STR=+d.str;if(!raf)draw();});
 document.getElementById('map-tog').addEventListener('change',e=>{
   MAP=e.target.checked?1:0;if(!raf)draw();
-  cvs.setAttribute('aria-label',MAP?'The depth map of the landscape in gray: the sky is black, and the mountains, hills, meadow, tree and ground get lighter the nearer they are.':
-    'A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones.');
+  cvs.setAttribute('aria-label',MAP?'The depth map of the landscape in gray: the sky is black, and the mountains, hills, meadow, tree and ground get lighter the nearer they are. Press the arrow keys to move the view.':
+    'A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones. Press the arrow keys to move the view.');
 });
 
 if(!initGL())init2d();
