@@ -569,7 +569,9 @@ test('the Full catalog in the root README lists every card once, in home order, 
 test('the counts written in the root README match the cards', () => {
   const cats = homeConst('CATS'), cards = totalCards();
   const readme = read(path.join(ROOT, 'README.md'));
-  assert.equal(numberIn(readme, /<img src="docs\/hero\.gif" alt="[^"]*?(\d+) web animation techniques/), cards, "README: the picture's alt text");
+  assert.equal(numberIn(readme, /<img src="docs\/hero\.webp" alt="[^"]*?(\d+) web animation techniques/), cards, "README: the picture's alt text");
+  // Every picture the README shows (img src and source srcset) is in the repository.
+  for (const [, file] of readme.matchAll(/\s(?:src|srcset)="(docs\/[^"]+)"/g)) assert.ok(fs.existsSync(path.join(ROOT, file)), `README: ${file} is in the repository`);
   assert.equal(numberIn(readme, /^\*\*A visual reference of (\d+) web animation techniques/m), cards, 'README: the intro line');
   assert.equal(numberIn(readme, /badge\/techniques-(\d+)-/), cards, 'README: the techniques badge');
   assert.equal(numberIn(readme, /^All (\d+) techniques, each linked to its live demo\.$/m), cards, 'README: the Full catalog line');

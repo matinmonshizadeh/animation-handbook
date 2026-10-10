@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero.png"><img src="docs/hero.gif" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card and Dynamic Island. Animation Handbook — 166 web animation techniques with live demos" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp" width="820" height="922"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp" width="820" height="922"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 166 web animation techniques" width="820" height="354"></picture></a>
 
 # Animation Handbook
 
@@ -27,7 +27,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 
 <div align="center">
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="docs/demo.gif" alt="Screen recording: pressing Buttons on the home page brings up cards with live animations, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820"></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/demo-phone-still.webp" width="820" height="1531"><source media="(prefers-reduced-motion: reduce)" srcset="docs/demo-still.webp"><source media="(max-width: 600px)" srcset="docs/demo-phone.webp" width="820" height="1531"><img src="docs/demo.webp" alt="Screen recording of the handbook: on the home page, pressing Buttons brings up cards with live previews, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820" height="522"></picture></a>
 </div>
 
 ## Categories
