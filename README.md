@@ -18,7 +18,7 @@
 
 Here are 166 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
-Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and it runs offline. Built to *inspire* and *teach*, not to sell a library.
+Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and its demo runs offline; [Run it locally](#run-it-locally) covers the parts that need a local server. Built to *inspire* and *teach*, not to sell a library.
 
 ## How to use it
 
@@ -29,6 +29,20 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 <div align="center">
 <a href="https://matinmonshizadeh.github.io/animation-handbook/"><img src="docs/demo.gif" alt="Screen recording: pressing Buttons on the home page brings up cards with live animations, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820"></a>
 </div>
+
+## Run it locally
+
+Clone the repository and serve its folder with any static file server, such as the one that comes with Python:
+
+```bash
+git clone https://github.com/matinmonshizadeh/animation-handbook.git
+cd animation-handbook
+python -m http.server 8000
+```
+
+Then open http://localhost:8000/ in your browser. On macOS and Linux the last command may be `python3` instead.
+
+Without a server you can still open any page's `index.html` straight from the folder: every demo runs, and the links between pages work. Two parts need the server. Each page reads its *What it is* text and its *Similar animations* from its README, so opened from disk it shows a link to the README instead. And on the home page, a card's Copy prompt button turns into "Open to copy", which opens the animation's page so you can copy the prompt there.
 
 ## Categories
 
