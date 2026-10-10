@@ -30,7 +30,8 @@ function whereTo(path,rest){
   var last=parts.pop()||'';
   if(/^(index|readme)(\.[a-z]+)?$/i.test(last))last=parts.pop()||'';
   try{last=decodeURIComponent(last);}catch(e){}
-  var words=last.replace(/\.[a-z]+$/i,'').replace(/[-_+.\s]+/g,' ').trim().slice(0,80);
+  last=last.split('/').filter(Boolean).pop()||''; // an encoded slash (%2F) leaves folders in the segment
+  var words=last.replace(/\.[a-z]+$/i,'').replace(/[-_+.\s]+/g,' ').slice(0,80).trim();
   return {words:/[^\d\s]/.test(words)?words:''};
 }
 var to=whereTo(location.pathname,location.search+location.hash);
@@ -83,6 +84,7 @@ button,input{font:inherit;color:inherit}
 .search>.i{width:22px;height:22px;color:var(--muted)}
 #q{flex:1;min-width:0;min-height:48px;margin-left:12px;border:0;background:none;font-size:17px;text-overflow:ellipsis;outline:none;-webkit-appearance:none;appearance:none}
 #q::placeholder{color:var(--muted)}
+#q::-webkit-search-cancel-button{display:none}
 #q:focus-visible{outline:none}
 .go{display:inline-flex;align-items:center;justify-content:center;flex:none;min-height:48px;padding:0 26px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-size:16px;font-weight:700;cursor:pointer}
 .go .i{display:none}

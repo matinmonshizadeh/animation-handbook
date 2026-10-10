@@ -8,6 +8,7 @@
 
 - [ ] `node --test "tests/*.test.js"` passes
 - [ ] The page check gives six `ok` lines for every page the change touches (`node tools/check-pages.mjs --base http://127.0.0.1:<port> <page folder>`)
+- [ ] If the change touches the home page, or a page's settings or prompt, the home page check gives six `ok` lines too (`node tools/check-pages.mjs --base http://127.0.0.1:<port> home`)
 - [ ] If a shared file changed (`assets/css/demo-page.css`, `assets/js/demo-page.js`), `?v=N` is bumped on every page and on the home page
 
 ## A new technique

@@ -5,7 +5,8 @@
 //   The home page comes first, then every page in the order of the CATS array in index.html (the home page's order),
 //   at the home page's canonical address. A page's lastmod is the date of the last commit that touched its folder
 //   (git log -1 --format=%cs -- <folder>), or today's date when the folder has changes that are not committed yet (a
-//   new page too). The home page's lastmod is the latest of index.html, assets/ and the newest page. changefreq and
+//   new page too). The home page's lastmod is the latest of index.html and the files it loads (the page script and
+//   the two fonts): a change to a page alone does not change the home page. changefreq and
 //   priority stay as they are: weekly and 1.0 for the home page, monthly and 0.7 for every page.
 //   Without --out it rewrites sitemap.xml at the repo root, keeping its line endings; --out writes the same text to
 //   another file instead, to compare. It prints how many URLs it wrote and how many dates changed.
@@ -80,7 +81,8 @@ async function datesOf(targets, atOnce = 8) {
   return dates;
 }
 const pageDates = await datesOf(pages);
-const homeDate = [...await datesOf(['index.html', 'assets/']), ...pageDates].sort().pop();
+const homeDate = (await datesOf(['index.html', 'assets/js/demo-page.js', 'assets/fonts/schibsted-latin.woff2',
+  'assets/fonts/schibsted-latin-ext.woff2'])).sort().pop();
 
 const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const line = (loc, lastmod, changefreq, priority) =>

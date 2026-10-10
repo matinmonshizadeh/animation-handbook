@@ -1,7 +1,7 @@
 # Home Page Redesign — "Friendly guide"
 
 **Status:** approved direction (A), spec for review · **Date:** 2026-09-30
-**Design canvas:** (a private design canvas, not published) (row "A · Friendly guide": desktop, phone, phone after tapping Buttons)
+**Design canvas:** a private design canvas, not published (row "A · Friendly guide": desktop, phone, phone after tapping Buttons)
 
 ## Why
 

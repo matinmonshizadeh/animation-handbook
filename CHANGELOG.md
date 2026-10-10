@@ -13,7 +13,7 @@ The same 166 animations, easier to reach and to work on.
 - A 404 page: a mistyped address leads to the right page, to the full list or to the search. GitHub Pages now serves
   the files as they are, so no extra pages are built from the repository's notes.
 - A code of conduct, a security policy and the site font's license, and the tests run on GitHub Actions for every push
-  and pull request.
+  to main and every pull request.
 
 ## 2026-10-02 — 166 animations
 

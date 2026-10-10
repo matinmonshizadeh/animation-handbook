@@ -611,6 +611,31 @@ test('the 404 page stays out of search results and every address in it works at 
   const addresses = [...html.matchAll(/\s(?:href|src|action)="([^"]*)"/g), ...html.matchAll(/url\(\s*['"]?([^'")\s]+)/g)].map(m => m[1]);
   assert.ok(addresses.length > 0, 'the page has addresses to check');
   for (const address of addresses) assert.match(address, /^(?:\/animation-handbook\/|https:\/\/|#)/, address);
+  // Each file the page loads or links on the site is in the repository (a folder address stands for its index.html).
+  for (const address of addresses.filter(a => a.startsWith('/animation-handbook/'))) {
+    const file = address.replace(/^\/animation-handbook\//, '').replace(/[?#].*$/, '');
+    assert.ok(fs.existsSync(path.join(ROOT, file === '' || file.endsWith('/') ? file + 'index.html' : file)), `${address} is in the repository`);
+  }
+});
+
+test('the 404 page sends a mistyped address where it belongs and never off the site', () => {
+  const html = read(path.join(ROOT, '404.html'));
+  const start = html.indexOf('function whereTo(');
+  assert.ok(start >= 0, 'whereTo in 404.html');
+  let depth = 0, end = html.indexOf('{', start);
+  for (; end < html.length; end++) { if (html[end] === '{') depth++; else if (html[end] === '}' && --depth === 0) break; }
+  const whereTo = vm.runInNewContext('(' + html.slice(start, end + 1) + ')');
+  const cases = [
+    ['/animation-handbook/animations/02-entrance-and-exit/Rotate-In/', '?x=1#y', { go: '/animation-handbook/animations/02-entrance-and-exit/rotate-in/?x=1#y' }],
+    ['/animation-handbook/animations/', '', { go: '/animation-handbook/?view=all#results' }],
+    ['/animation-handbook/animations/02-entrance-and-exit/', '', { go: '/animation-handbook/?view=all#results' }],
+    ['/animation-handbook/animations/02-entrance-and-exit/rotate-inn/', '', { words: 'rotate inn' }],
+    ['/animation-handbook/animations%2F02-entrance-and-exit%2Frotate-in/', '', { words: 'rotate in' }],
+    ['/animation-handbook/12345', '', { words: '' }],
+    ['/FOO/Bar', '', { words: 'Bar' }],
+    ['//evil.example/X', '', { words: 'X' }]
+  ];
+  for (const [where, rest, want] of cases) assert.deepEqual({ ...whereTo(where, rest) }, want, where + rest);
 });
 
 // Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket
