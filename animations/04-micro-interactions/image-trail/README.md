@@ -38,6 +38,8 @@ el.animate([
 
 On touch screens the hero has `touch-action: none` and takes pointer capture, so a finger drops a picture where it touches and leaves the trail as it drags, instead of scrolling the page. Under reduced motion there is no trail: one picture fades in where the pointer is, without moving or growing, and fades out when the next one appears or its time is up. If reduced motion is switched on while pictures are out, every one of them fades where it is: a `change` listener on the media query does it, and Show me's sweep also reads the setting on every frame, so it stops there too.
 
+The keyboard leaves the trail too: Tab focuses a see-through layer over the hero, which drops a picture at an invisible pointer in its middle (or where the keys last left it), as a finger's touch does, and the arrow keys move that pointer a step at a time (6% of the hero's shorter side, three steps with Shift) through the same `track()` as the pointer, so the pictures keep the same spacing. Escape, or a Tab out of the hero, ends the stroke as the pointer leaving does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|

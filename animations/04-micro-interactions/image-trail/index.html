@@ -32,6 +32,8 @@
     .ttl{margin:12px 0 14px;font-size:clamp(42px,7.8vw,96px);font-weight:800;line-height:.92;letter-spacing:-.045em;color:var(--ink)}
     /* The trail lies over everything in the hero. Each picture is a frame from a small pool, moved only by transform */
     .trail{position:absolute;inset:0;z-index:1;pointer-events:none}
+    /* The keyboard's way in: a layer over the hero that Tab focuses (the pointer passes through it); its ring lies above the pictures */
+    .keys{position:absolute;inset:0;z-index:2;border-radius:11px;pointer-events:none}
     .pic{position:absolute;left:0;top:0;width:var(--w,150px);aspect-ratio:4/5;overflow:hidden;border-radius:calc(var(--w,150px)*.07);opacity:0;
       outline:1px solid var(--edge);outline-offset:-1px;box-shadow:0 14px 36px var(--shade)}
     .pic svg{display:block;width:100%;height:100%}
@@ -67,6 +69,7 @@
       <p class="top"><b>lumen</b><span>Journal · Prints · About</span></p>
       <div class="hero"><p class="kick">Photo journal · 2026</p><p class="ttl">Chasing<br>the light</p><p class="sub">Eight places, one camera</p></div>
       <div class="trail" id="trail" aria-hidden="true"></div>
+      <div class="keys" id="keys" tabindex="0" role="group" aria-label="Image trail: use the arrow keys to leave pictures behind"></div>
       <svg class="defs" aria-hidden="true"><defs>
         <g id="it1"><circle cx="40" cy="50" r="18" fill="#ffd9a0" opacity=".25"/><circle cx="40" cy="50" r="10" fill="#ffe3ad"/><path d="M0 64l12-9 9 6 13-15 12 12 9-7 25 16v33H0z" fill="#6b3466"/><path d="M0 76l17-12 11 8 15-13 22 16 15-9v34H0z" fill="#2b1638"/></g>
         <g id="it2"><circle cx="54" cy="66" r="9" fill="#fff0c8"/><path d="M0 70h80v30H0z" fill="#1d3461"/><path d="M47 74h14M45 79h18M48 84h12M46 90h16M49 95h10" stroke="#ffd9a8" stroke-width="1.6" stroke-linecap="round" opacity=".75"/><path d="M22 68V52l10 16zM21 68V55l-6 13zM15 69h20l-3 4H18z" fill="#121c38"/></g>
@@ -279,6 +282,21 @@
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, and the pictures already out leave as usual.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
   reduce.addEventListener('change',()=>{if(reduce.matches)fadeAll()});
+
+  // The keyboard: Tab focuses the layer over the hero, which stops a run and drops a picture at an invisible pointer in the middle of
+  // the hero, or where the keys last left it, as a finger's touch does; the arrow keys move it a step (6% of the hero's shorter side,
+  // three with Shift) and it leaves the trail through track(), as the pointer does. Escape, or focus leaving, ends the stroke as the
+  // pointer leaving does, and the pictures already out leave as usual.
+  const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kx=null,ky=null;
+  function keyAt(dx,dy,big){const s=Math.min(W,H)*(big?.18:.06);if(kx===null){kx=W/2;ky=H/2}
+    kx=Math.min(W,Math.max(0,kx+dx*s));ky=Math.min(H,Math.max(0,ky+dy*s))}
+  keys.addEventListener('focus',()=>{if(running())stopRun();keyAt(0,0);last={x:kx,y:ky};drop(kx,ky,last)});
+  keys.addEventListener('blur',()=>{last=null});
+  keys.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key==='Escape')last=null;
+    else if(ARROWS[e.key]){e.preventDefault();keyAt(...ARROWS[e.key],e.shiftKey);track(kx,ky)}
+  });
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
