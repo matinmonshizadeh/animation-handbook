@@ -315,7 +315,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 **Plain words, not code.** The pages explain each animation in plain words and give a prompt instead of code. The code is still there for anyone who wants it, in each page's source and its README.
 
-**Works for everyone.** Every page works on phones, by touch and by keyboard, and respects the reduced-motion setting.
+**Works for everyone.** Every page works on phones, by touch, and with the keyboard (where an effect follows the pointer, the arrow keys move it too), and it respects the reduced-motion setting.
 
 ## Browser support
 
