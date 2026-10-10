@@ -25,7 +25,7 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     /* A dark stage with a soft glow of the word's colors (still); kept in forced colors, which do not adjust the canvas dots */
     .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse 60% 46% at 50% 50%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),var(--bg);forced-color-adjust:none}
-    /* The keyboard's way in: a layer over the word that Tab focuses (the pointer passes through it to the canvas) */
+    /* The keyboard's way in: a layer over the stage that Tab focuses (the pointer passes through it to the canvas) */
     .keys{position:absolute;inset:0;border-radius:11px;pointer-events:none}
     /* touch-action none: a finger dragged over the word pushes the dots instead of scrolling the page */
     canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -278,11 +278,12 @@
       const s=t/2600,e=s<.5?2*s*s:1-2*(1-s)*(1-s),x0=box.l-R*.2,x1=box.r+R*.2;
       return {x:x0+(x1-x0)*e,y:(box.t+box.b)/2-(box.b-box.t)*.3*Math.sin(TAU*1.5*e)};}};wake();}
   document.getElementById('btn-demo').addEventListener('click',showMe);
-  // The keyboard: Tab focuses the layer over the word, which ends a run and puts an invisible pointer on the middle of the word, or
+  // The keyboard: Tab focuses the layer over the stage, which ends a run and puts an invisible pointer on the middle of the word, or
   // where the keys last left it; the arrow keys move it a step (6% of the stage's shorter side, three with Shift) and it pushes the
   // dots as the pointer does. Escape, or focus leaving, lets them go home as the pointer leaving does, unless a pointer has taken over.
   const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kp=null;
-  function keyAim(dx,dy,big){const s=Math.min(W,H)*(big?.18:.06),p=kp||middle();run=null;
+  function keyAim(dx,dy,big){if(!N)return; // no word yet (it waits for the font): begin() aims once it is there
+    const s=Math.min(W,H)*(big?.18:.06),p=kp||middle();run=null;
     user=kp={x:Math.min(W,Math.max(0,p.x+dx*s)),y:Math.min(H,Math.max(0,p.y+dy*s))};calm=0;wake();}
   function keyRest(){if(user&&user===kp){user=null;wake();}}
   keys.addEventListener('focus',()=>keyAim(0,0));keys.addEventListener('blur',keyRest);
@@ -305,7 +306,8 @@
     if(!w||!h||(w===W&&h===H))return false;
     W=w;H=h;cvs.width=Math.round(W*DPR);cvs.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);return true;}
   // The first word waits for the site font (at most 1.5 s), so it does not form in a fallback font first
-  function begin(){if(ready)return;ready=true;layout();rebuild(false);if(wantShow){wantShow=false;showMe();}}
+  function begin(){if(ready)return;ready=true;layout();rebuild(false);if(wantShow){wantShow=false;showMe();}
+    if(document.activeElement===keys)keyAim(0,0);} // a Tab that came before the word puts the pointer on it now
   if(document.fonts&&document.fonts.load){document.fonts.load(F100,text).then(begin,begin);setTimeout(begin,1500);}else begin();
   new ResizeObserver(()=>{if(ready&&layout())rebuild(false);}).observe(stage);reduce.addEventListener('change',wake); // a frame sees reduced motion
 </script>
