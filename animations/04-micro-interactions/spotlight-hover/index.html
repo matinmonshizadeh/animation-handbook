@@ -284,24 +284,20 @@
   document.addEventListener('hb:input',()=>{if(running()){stopRun();off()}});
 
   // The keyboard: Tab focuses the grid and the light appears where the keys last left it (kx,ky: shares of the grid's width and
-  // height, at first its middle). Each arrow press moves that spot by STEP, from where the light is heading when a pointer
-  // placed it, and a held key repeats; the light goes there through aim(), as after a pointer, so it trails with the same lag.
-  // Escape puts it out, as the pointer leaving does, and so does the focus leaving after the keys placed it. A run under way
-  // stops, as for a pointer. A click or a tap focuses the grid too, but without :focus-visible: then only keys move the light.
+  // height, first its middle), stopping a run as a pointer does. Each arrow press moves that spot by STEP (from the pointer's
+  // spot when a pointer placed the light) through aim(), so it trails with the same lag; a held key repeats. Escape puts it out,
+  // as the pointer leaving does, and so does the focus leaving after the keys placed it. A click or a tap focuses the grid
+  // without :focus-visible, and the light stays with the pointer.
   const STEP=0.06,ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   let kx=.5,ky=.5,keyed=false;
   function aimKeys(){keyed=true;aim(kx*W,ky*H)}
-  grid.addEventListener('focus',()=>{
-    if(!grid.matches(':focus-visible'))return;
-    if(running())stopRun();
-    aimKeys();
-  });
+  grid.addEventListener('focus',()=>{if(grid.matches(':focus-visible')){if(running())stopRun();aimKeys()}});
   grid.addEventListener('blur',()=>{if(keyed){keyed=false;off()}});
   grid.addEventListener('pointermove',()=>{keyed=false});
   grid.addEventListener('keydown',e=>{
+    const d=ARROWS[e.key];
     if(e.altKey||e.ctrlKey||e.metaKey)return;
     if(e.key==='Escape'){keyed=false;off();return}
-    const d=ARROWS[e.key];
     if(!d)return;
     e.preventDefault();
     if(!keyed&&lit&&W&&H){kx=tx/W;ky=ty/H}
