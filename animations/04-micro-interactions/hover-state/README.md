@@ -39,6 +39,8 @@ All six techniques use CSS `transition` driven by `:hover` (or `:active` as a to
 
 The `@media (hover: hover)` gate prevents hover styles from sticking on touch devices, while `:active` provides a tap fallback.
 
+Each card also takes keyboard focus (`tabindex="0"`), and `:focus-visible` sits beside `:active`, outside the hover gate, so pressing Tab shows the same change card by card, and a card returns to rest when the focus leaves it.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
