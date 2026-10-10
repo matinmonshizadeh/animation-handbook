@@ -406,6 +406,14 @@ test('a setting that starts lower on phones marks that choice data-hb-phone, and
   }
 });
 
+// The footer of every page: the site's name, a link to the source on GitHub (in a new tab) and Back to top.
+test('every guided-steps page has the same footer, with a link to the source on GitHub', () => {
+  const FOOTER = '<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>';
+  assert.ok(steps.length > 0, 'there are guided-steps pages');
+  assert.deepEqual(steps.filter(d => count(pageOf(d), FOOTER) !== 1 || count(pageOf(d), '<footer') !== 1).map(d => `${d.cat}/${d.slug}`), [],
+    'pages without exactly this footer');
+});
+
 const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));
 const rulesFor = selector => sharedRules.filter(rule => rule.selector.split(',').some(part => part.trim() === selector));
 
