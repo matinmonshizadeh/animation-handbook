@@ -585,7 +585,7 @@ test('the search finds what a visitor describes, and each Popular suggestion kee
   for (const name of ['2.5D / Pseudo-3D', 'Depth-Map Photo']) assert.ok(parallax.includes(name), `"parallax" finds ${name}: ${parallax.join(', ')}`);
   const change = page.search('page change animation')[0];
   assert.equal(change.cat.name, 'Page Transitions', `"page change animation": ${change.name} first`);
-  // The Popular suggestions, in the hero and in the Nothing-found panel, each with the first result it had before SAME.
+  // The Popular suggestions, in the hero and in the Nothing-found panel, each with the first result it had before the groups.
   const popular = { 'fade in': 'Fade In / Fade Out', 'typing text': 'Kinetic Typography', 'loading spinner': 'Loading Spinner', parallax: 'Parallax Depth-of-Field',
     confetti: 'Success Confetti' };
   for (const panel of [between(HOME, '<p class="pop"><span>Popular:</span>', '</p>'), between(HOME, '<div class="empty" id="empty"', '</div>')]) {
