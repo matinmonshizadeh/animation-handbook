@@ -42,7 +42,7 @@ python -m http.server 8000
 
 Then open http://localhost:8000/ in your browser. If `python` is not found, as on many macOS and Linux systems, use `python3`.
 
-Without a server you can still open any page's `index.html` straight from the folder: every demo runs, and the links between pages work. Two parts need the server. Each page reads its *What it is* text and its *Similar animations* from its README, so opened from disk it shows a link to the README instead. And on the home page, a card's Copy prompt button turns into "Open to copy", which opens the animation's page so you can copy the prompt there.
+Without a server you can still open any page's `index.html` straight from the folder: every demo runs, and the links between pages work. Two parts need the server. Each page reads its *What it is* text and its *Similar animations* from its README, so opened from disk it shows a link to the README instead. And on the home page, pressing a card's Copy prompt button turns it into "Open to copy", which opens the animation's page so you can copy the prompt there.
 
 ## Categories
 
