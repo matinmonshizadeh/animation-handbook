@@ -278,6 +278,15 @@ for (const d of steps) {
     for (const field of fields) assert.match(field, /\sautocomplete="off"/, field);
   });
 
+  test(`${d.slug}: the home page card uses the page's title, or the shorter name an owner ruling keeps`, () => {
+    // Four 3D & Advanced cards keep a shorter name than their page title (docs/superpowers/plans/2026-09-29-3d-content.md).
+    const SHORTER = { 'fluid-simulation': 'Fluid Simulation', 'ray-marching-sdf': 'Ray Marching / SDF', 'cloth-simulation': 'Cloth Simulation', 'volumetric-smoke': 'Volumetric Smoke' };
+    const h1 = decode(pageOf(d).match(/<h1>([^<]*)<\/h1>/)[1]);
+    const entry = HOME.match(new RegExp(`\\['${d.slug}','((?:[^'\\\\]|\\\\.)*)',`));
+    assert.ok(entry, 'home page entry');
+    assert.equal(entry[1].replace(/\\'/g, "'"), SHORTER[d.slug] || h1);
+  });
+
   test(`${d.slug}: the home page card uses the page's description`, () => {
     const lede = decode(pageOf(d).match(/<p class="hb-lede">([^<]*)<\/p>/)[1]);
     const entry = HOME.match(new RegExp(`\\['${d.slug}','(?:[^'\\\\]|\\\\.)*','((?:[^'\\\\]|\\\\.)*)'\\]`));
@@ -707,7 +716,8 @@ test('the search finds what a visitor describes, and each Popular suggestion kee
 test('a typed word also finds the cards that use another word of its group, after every card that has the word itself', () => {
   const page = homeSearch(), names = text => page.search(text).map(e => e.name);
   // Words a visitor may type that no card uses.
-  for (const [text, name] of [['wobble', 'Error Shake'], ['popup', 'Modal Expand'], ['mouse', 'Cursor Follower'], ['loader', 'Loading Spinner']]) {
+  for (const [text, name] of [['wobble', 'Error Shake'], ['popup', 'Modal Expand'], ['mouse', 'Cursor Follower'], ['loader', 'Loading Spinner'],
+    ['scrolltrigger', 'Scroll-Triggered Animation'], ['gsap scrolltrigger', 'Scroll-Triggered Animation']]) {
     assert.ok(names(text).includes(name), `"${text}" finds ${name}: ${names(text).join(', ')}`);
   }
   // Each word of every group, typed alone: the cards with the typed word itself come first, then the ones found through the group.
