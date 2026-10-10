@@ -314,9 +314,14 @@ test('the do-it pages played with the pointer can be played from the keyboard', 
       const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
       if (!stage) problems.push(`${cat}/${slug}: no stage found`);
       else if (!/<button\b|<a\b[^>]*\shref=|\stabindex="0"/.test(stage)) problems.push(`${cat}/${slug}: nothing in the stage takes keyboard focus`);
-      if (!/['"]keydown['"]|\bonkeydown\b/.test(script) && !cssRules(style).some(rule => rule.selector.includes(':focus-visible'))) {
-        problems.push(`${cat}/${slug}: the page has no keydown listener and no :focus-visible rule`);
-      }
+      // The keyboard does what the pointer does in one of three ways: the arrow keys move a pretend pointer (a keydown
+      // listener that names an arrow key), keyboard focus shows what Show me shows (a :focus-visible selector in a rule
+      // with .is-demo), or a click with no pointer (detail 0: Enter, Space or assistive technology) starts the effect.
+      // A :focus-visible rule that only recolors the focus ring is none of these.
+      const arrows = /['"]keydown['"]/.test(script) && /\bArrow(Left|Right|Up|Down)\b/.test(script);
+      const focusShows = cssRules(style).some(rule => rule.selector.includes(':focus-visible') && rule.selector.includes('.is-demo'));
+      const keyClick = /\.detail\s*[!=]==?\s*0\b/.test(script);
+      if (!arrows && !focusShows && !keyClick) problems.push(`${cat}/${slug}: no keyboard path (arrow keys, focus styled with .is-demo, or a click with detail 0)`);
     }
   }
   assert.deepEqual(problems, []);

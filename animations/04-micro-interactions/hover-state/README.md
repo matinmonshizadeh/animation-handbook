@@ -20,12 +20,12 @@ All six techniques use CSS `transition` driven by `:hover` (or `:active` as a to
 /* Color shift */
 .h-color { transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
 @media (hover: hover) { .h-color:hover { background: #2a201a; border-color: var(--ui-accent); } }
-.h-color:active { background: #2a201a; border-color: var(--ui-accent); }
+.h-color:active, .h-color:focus-visible { background: #2a201a; border-color: var(--ui-accent); }
 
 /* Scale */
 .h-scale { transition: transform var(--dur) var(--ease); }
 @media (hover: hover) { .h-scale:hover { transform: scale(1.03); } }
-.h-scale:active { transform: scale(1.03); }
+.h-scale:active, .h-scale:focus-visible { transform: scale(1.03); }
 
 /* Background sweep */
 .h-sweep::before {
