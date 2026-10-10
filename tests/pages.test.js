@@ -452,6 +452,42 @@ test('the counts written on the home page match its cards', () => {
   }
 });
 
+// The Full catalog of the root README lists every card of the home page once, in the order of CATS and under its category's
+// heading, each as "- **[Name](its page on the live site)** — description": Name and description are the card's, word for
+// word, and the folder the link names holds the page. Every problem is listed at once, so one run shows them all.
+test('the Full catalog in the root README lists every card once, in home order, linked to its live page', () => {
+  const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
+  const ENTRY = /^- \*\*\[([^\]]+)\]\(https:\/\/matinmonshizadeh\.github\.io\/animation-handbook\/(animations\/([^/()\s]+)\/([^/()\s]+)\/)\)\*\* — (.+)$/;
+  const cats = homeConst('CATS');
+  // Each card by the path of its page, "animations/<category folder>/<slug>/", in the order of CATS.
+  const cards = new Map(cats.flatMap(cat => cat.entries.map(([slug, name, desc]) => [`${cat.folder}/${slug}/`, { cat, name, desc }])));
+  const problems = [], listed = [];
+  let heading = null; // the category whose "### NN · Name · N techniques" heading the line is under
+  for (const line of sections(read(path.join(ROOT, 'README.md')))['Full catalog'].split('\n')) {
+    const h = line.match(/^### (\d{2}) · /);
+    if (h) { heading = cats.find(cat => cat.n === h[1]); continue; }
+    if (!line.startsWith('- ')) continue;
+    const m = line.match(ENTRY);
+    if (!m) { problems.push(`not "- **[Name](${LIVE}animations/<category>/<slug>/)** — description": ${line}`); continue; }
+    const [, name, page, folder, slug, desc] = m;
+    listed.push(page);
+    if (!isDemoDir(path.join(ANIM, folder, slug))) problems.push(`${page}: there is no index.html in that folder`);
+    const card = cards.get(page);
+    if (!card) { problems.push(`${page}: no card on the home page opens it`); continue; }
+    if (card.cat !== heading) problems.push(`${page}: listed under ${heading ? `${heading.n} ${heading.name}` : 'no category heading'}, its card is in ${card.cat.n} ${card.cat.name}`);
+    if (name !== card.name) problems.push(`${page}: named "${name}", its card "${card.name}"`);
+    if (desc !== card.desc) problems.push(`${page}: described "${desc}", its card "${card.desc}"`);
+  }
+  for (const page of cards.keys()) if (!listed.includes(page)) problems.push(`${page}: not in the Full catalog`);
+  for (const page of new Set(listed)) if (listed.indexOf(page) !== listed.lastIndexOf(page)) problems.push(`${page}: listed more than once`);
+  // The order: the cards that are listed, each at its first line, against the same cards in the order of CATS.
+  const order = listed.filter((page, i) => cards.has(page) && listed.indexOf(page) === i);
+  const want = [...cards.keys()].filter(page => order.includes(page));
+  const misplaced = order.findIndex((page, i) => page !== want[i]);
+  if (misplaced >= 0) problems.push(`${order[misplaced]}: out of the order of CATS, where ${want[misplaced]} comes here`);
+  assert.deepEqual(problems, []);
+});
+
 test('the counts written in the root README match the cards', () => {
   const cats = homeConst('CATS'), cards = totalCards();
   const readme = read(path.join(ROOT, 'README.md'));
@@ -460,17 +496,22 @@ test('the counts written in the root README match the cards', () => {
   assert.equal(numberIn(readme, /badge\/techniques-(\d+)-/), cards, 'README: the techniques badge');
   assert.equal(numberIn(readme, /^All (\d+) techniques, each linked to its live demo\.$/m), cards, 'README: the Full catalog line');
   for (const [said] of readme.matchAll(/\d+ web animation techniques/gi)) assert.equal(numberIn(said, /(\d+)/), cards, `README: "${said}"`);
-  // Each category's count, in the Categories table and in its heading in the Full catalog.
+  // Each category's count, in the Categories table, in its heading in the Full catalog and in the summary that opens its list.
   const rows = table(sections(readme)['Categories']);
   const headings = [...readme.matchAll(/^### (\d{2}) · (.+?) · (\d+) techniques$/gm)];
+  const summaries = [...readme.matchAll(/^<details><summary>Browse the (\d+) (.+?) techniques<\/summary>$/gm)];
   assert.equal(rows.length, cats.length, 'README: one Categories row per category');
   assert.equal(headings.length, cats.length, 'README: one Full catalog heading per category');
+  assert.equal(summaries.length, cats.length, 'README: one "Browse the N … techniques" summary per category');
   for (const cat of cats) {
     const row = rows.find(r => r[0] === cat.n), heading = headings.find(h => h[1] === cat.n);
+    const summary = summaries.find(s => decode(s[2]) === cat.name);
     assert.ok(row && row[1].startsWith(`[${cat.name}]`), `README: a Categories row for ${cat.n} ${cat.name}`);
     assert.equal(Number(row[2]), cat.entries.length, `README: the Categories count of ${cat.n} ${cat.name}`);
     assert.ok(heading && heading[2] === cat.name, `README: a Full catalog heading for ${cat.n} ${cat.name}`);
     assert.equal(Number(heading[3]), cat.entries.length, `README: the heading "${heading[0]}"`);
+    assert.ok(summary, `README: a "Browse the N ${cat.name} techniques" summary`);
+    assert.equal(Number(summary[1]), cat.entries.length, `README: the summary "${summary[0]}"`);
   }
 });
 
