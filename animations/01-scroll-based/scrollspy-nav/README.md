@@ -58,6 +58,6 @@ The menu sits inside the scroller, in a row that is zero tall and `position: sti
 
 ## See also
 
-- [ScrollTrigger Animation](../scroll-trigger/) — things start, scrub and pin as parts of the page scroll past
+- [Scroll-Triggered Animation](../scroll-trigger/) — things start, scrub and pin as parts of the page scroll past
 - [Progress Bar](../progress-bar/) — a bar shows how far you have read
 - [Snap Scrolling](../snap-scrolling/) — scrolling stops on one whole section at a time

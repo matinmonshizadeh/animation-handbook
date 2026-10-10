@@ -56,6 +56,6 @@ Nothing here is time-based: the Play button under the demo only scrolls the box 
 
 ## See also
 
-- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Scroll-Triggered Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
 - [Pin Animation](../pin-animation/) — one part holds still while the page scrolls past
 - [Progress Bar](../progress-bar/) — the same scroll progress, shown as a filling bar

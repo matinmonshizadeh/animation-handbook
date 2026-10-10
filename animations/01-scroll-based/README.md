@@ -10,7 +10,7 @@ Techniques driven by scroll position.
 - [Cover Card to Fixed Header](cover-card-to-fixed-header/) — A tall cover shrinks into a slim header as you scroll. Best for articles.
 - [Fly-in Fly-out Contact List](fly-in-fly-out-contact-list/) — Rows fade and slide as they near the top or bottom edge. Best for long lists.
 - [Stacking Cards](stacking-cards/) — Cards stick at the top and pile into a deck. Best for step-by-step stories.
-- [ScrollTrigger Animation](scroll-trigger/) — Animations start, follow and pin at set scroll points. Best for landing pages.
+- [Scroll-Triggered Animation](scroll-trigger/) — Animations start, follow and pin at set scroll points. Best for landing pages.
 - [Scrub Animation](scrub-animation/) — Scroll plays it forward and back, like dragging a video. Best for product tours.
 - [Pin Animation](pin-animation/) — One part stays put while its text changes on scroll. Best for feature lists.
 - [Snap Scrolling](snap-scrolling/) — The box settles on one whole section at a time. Best for slides and galleries.

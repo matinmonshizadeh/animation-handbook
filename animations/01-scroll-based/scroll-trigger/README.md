@@ -1,4 +1,4 @@
-# ScrollTrigger Animation
+# Scroll-Triggered Animation
 
 [Live demo](index.html)
 

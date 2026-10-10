@@ -48,6 +48,6 @@ The pre-states live entirely in CSS — for example `[data-fx="blur"]{opacity:0;
 
 ## See also
 - [Stagger Reveal](../stagger-reveal/) — items in a group appear one after another
-- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Scroll-Triggered Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
 - [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — rows fade and slide as they near the edges
 - [Scrollytelling](../scrollytelling/) — a picture beside the story changes as you read
