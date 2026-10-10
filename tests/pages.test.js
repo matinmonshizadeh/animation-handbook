@@ -611,6 +611,24 @@ test('a typed word also finds the cards that use another word of its group, afte
   }
 });
 
+test('the home page head gives search engines and social sites one title, one description and the author', () => {
+  const head = between(HOME, '<head>', '</head>');
+  const meta = attr => { const m = head.match(new RegExp(`<meta ${attr} content="([^"]*)">`)); return m && decode(m[1]); };
+  const ld = JSON.parse(between(head, '<script type="application/ld+json">', '</script>').replace('<script type="application/ld+json">', ''));
+  const title = decode((head.match(/<title>([^<]*)<\/title>/) || [])[1] || '');
+  assert.ok(title, 'the home page has a title');
+  for (const attr of ['property="og:title"', 'name="twitter:title"']) assert.equal(meta(attr), title, attr);
+  const description = meta('name="description"');
+  assert.ok(description && description.length <= 160, `the description has at most 160 characters (${description && description.length}): ${description}`);
+  assert.match(description, /ready-made prompt for your AI assistant/, 'the description names the prompt');
+  for (const attr of ['property="og:description"', 'name="twitter:description"']) assert.equal(meta(attr), description, attr);
+  assert.equal(ld.description, description, 'JSON-LD description');
+  const holder = read(path.join(ROOT, 'LICENSE')).match(/^Copyright \(c\) \d{4} (.+)$/m)[1].trim();
+  assert.equal(meta('name="author"'), holder, 'meta author: the name in the LICENSE');
+  assert.equal(ld.author && ld.author.name, holder, 'JSON-LD author: the name in the LICENSE');
+  assert.match(head, /<link rel="canonical" href="[^"]*">\r?\n<link rel="sitemap" type="application\/xml" title="Sitemap" href="sitemap\.xml">\r?\n/, 'the sitemap link, right after the canonical link');
+});
+
 test('every place has one tile, one phone-bar chip and one count, and the markup names no other place', () => {
   // The opening tags of the page's markup: scripts, styles and comments left out.
   const tags = HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
