@@ -317,6 +317,15 @@ Each technique's code and README are in its folder under [animations/](animation
 
 **Works for everyone.** Every page works on phones, by touch and by keyboard, and respects the reduced-motion setting.
 
+## Browser support
+
+The handbook is made for current versions of Chrome, Edge, Firefox, and Safari. A few pages depend on a feature that an older browser or some devices lack, and do something simpler without it:
+
+- **WebGL.** Eight pages in 3D & Advanced draw with it: 3D Model Orbit, Depth-Map Photo, Fluid Simulation, GPGPU Particle System, Image Distortion on Hover, Ray Marching / SDF, Volumetric Smoke, and WebGL Shader Animation. Without it, Depth-Map Photo moves its layers on a plain 2D canvas instead, and the other seven show a short note in place of the animation. GPGPU Particle System needs WebGL 2 with floating-point color buffers, and shows its note without them.
+- **View Transitions API.** Where a browser does not have it, the View Transitions API page switches between its pages with a simple fade, whatever transition style and speed you choose.
+- **CSS scroll-driven animations.** Only Stacking Cards uses them, to shrink each card as the next one covers it. Where they are missing, a small script does the same as you scroll.
+- **Frosted glass** (CSS `backdrop-filter`). Glassmorphism Animated and Liquid Glass are built on it, and Scrollspy Navigation, seven Ambient & Background demos, and the top bar of every animation page use it for a light blur behind a menu, a text card, or the bar. Without it, each panel keeps its see-through tint but nothing behind it blurs; the Off choice of Glassmorphism Animated's Frost setting shows that look. Liquid Glass also bends the picture at its edges, but only in Chrome, Edge, and other Chromium browsers on a computer or Android; elsewhere it is frosted glass.
+
 ## Contributing
 
 Contributions are welcome — new techniques, fixes, and improvements. Each animation lives under `animations/<category>/<slug>/` with exactly `index.html` and `README.md`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the authoring guide and [CLAUDE.md](CLAUDE.md) for the full spec.
