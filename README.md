@@ -40,7 +40,7 @@ cd animation-handbook
 python -m http.server 8000
 ```
 
-Then open http://localhost:8000/ in your browser. On macOS and Linux the last command may be `python3` instead.
+Then open http://localhost:8000/ in your browser. If `python` is not found, as on many macOS and Linux systems, use `python3`.
 
 Without a server you can still open any page's `index.html` straight from the folder: every demo runs, and the links between pages work. Two parts need the server. Each page reads its *What it is* text and its *Similar animations* from its README, so opened from disk it shows a link to the README instead. And on the home page, a card's Copy prompt button turns into "Open to copy", which opens the animation's page so you can copy the prompt there.
 
@@ -324,7 +324,7 @@ The handbook is made for current versions of Chrome, Edge, Firefox, and Safari. 
 - **WebGL.** Eight pages in 3D & Advanced draw with it: 3D Model Orbit, Depth-Map Photo, Fluid Simulation, GPGPU Particle System, Image Distortion on Hover, Ray Marching / SDF, Volumetric Smoke, and WebGL Shader Animation. Without it, Depth-Map Photo moves its layers on a plain 2D canvas instead, and the other seven show a short note in place of the animation. GPGPU Particle System needs WebGL 2 with floating-point color buffers, and shows its note without them.
 - **View Transitions API.** Where a browser does not have it, the View Transitions API page switches between its pages with a simple fade, whatever transition style and speed you choose.
 - **CSS scroll-driven animations.** Only Stacking Cards uses them, to shrink each card as the next one covers it. Where they are missing, a small script does the same as you scroll.
-- **Frosted glass** (CSS `backdrop-filter`). Glassmorphism Animated and Liquid Glass are built on it, and Scrollspy Navigation, seven Ambient & Background demos, and the top bar of every animation page use it for a light blur behind a menu, a text card, or the bar. Without it, each panel keeps its see-through tint but nothing behind it blurs; the Off choice of Glassmorphism Animated's Frost setting shows that look. Liquid Glass also bends the picture at its edges, but only in Chrome, Edge, and other Chromium browsers on a computer or Android; elsewhere it is frosted glass.
+- **Frosted glass (CSS `backdrop-filter`).** Glassmorphism Animated and Liquid Glass are built on it, and Scrollspy Navigation, seven Ambient & Background demos, and the top bar of every animation page use it for a light blur behind a menu, a text card, or the bar. Without it, each panel keeps its see-through tint but nothing behind it blurs; the Off choice of Glassmorphism Animated's Frost setting shows that look. Liquid Glass also bends the picture at its edges, but only in Chrome, Edge, and other Chromium browsers on a computer or Android; elsewhere it is frosted glass.
 
 ## Contributing
 
