@@ -328,10 +328,16 @@ The handbook is made for current versions of Chrome, Edge, Firefox, and Safari. 
 
 ## Contributing
 
-Contributions are welcome — new techniques, fixes, and improvements. Each animation lives under `animations/<category>/<slug>/` with exactly `index.html` and `README.md`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the authoring guide and [CLAUDE.md](CLAUDE.md) for the full spec.
+Contributions are welcome — new techniques, fixes, and improvements. Each animation lives under `animations/<category>/<slug>/` with its `index.html` and `README.md`, and optionally a preview image. See [CONTRIBUTING.md](CONTRIBUTING.md) for the authoring guide and [CLAUDE.md](CLAUDE.md) for the full spec, which is written for AI coding assistants.
+
+Ask questions and share ideas in [Discussions](https://github.com/matinmonshizadeh/animation-handbook/discussions). For what's new, see [CHANGELOG.md](CHANGELOG.md).
 
 If this handbook helped you, a ⭐ makes it easier for others to find.
 
+## Credits
+
+The site font is Schibsted Grotesk by The Schibsted Grotesk Project Authors, under the SIL Open Font License 1.1 — see [assets/fonts/OFL.txt](assets/fonts/OFL.txt).
+
 ## License
 
-[MIT](LICENSE) © matinmonshizadeh
+[MIT](LICENSE) © 2026 Matin Monshizadeh. The font is under the SIL Open Font License (see [Credits](#credits)).
