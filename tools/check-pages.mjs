@@ -622,12 +622,11 @@ async function homeViewProblems() {
   if (v.title !== 'Text' || v.pressed !== 'text' || boxes.join('') !== '') problems.push(`Text tile pressed while the search box has focus: ${JSON.stringify(v)}, the boxes hold ${JSON.stringify(boxes)}`);
   await type('a button that bounces when clicked');
   await sleep(300);
-  // Click / Tap Ripple comes first (click in its name, a Buttons card, a button in its line). Bounce In, the one name with
-  // "bounce", must be on the first page of results (shown before Show all), not at a set place: the cards named for buttons
-  // and placed in Buttons score as high as Click / Tap Ripple and rank ahead of it, and each new one moves it down a place
-  // (fifth since Button Loading States joined Button Press Scale and Magnetic Button).
+  // Button Press Scale comes first: a Buttons card with "button" in its name that springs back as you press it, and the
+  // search counts "spring" for "bounce" and "press" for "click". Bounce In, the one name with "bounce", must be on the first
+  // page of results (shown before Show all), not at a set place: each new card named for buttons moves it down a place.
   const found = await evaluate(`[...document.querySelectorAll('#cards .card .title a')].map(a => a.textContent)`);
-  if (found[0] !== 'Click / Tap Ripple' || !found.includes('Bounce In')) problems.push(`search order: ${found.join(', ')}`);
+  if (found[0] !== 'Button Press Scale' || !found.includes('Bounce In')) problems.push(`search order: ${found.join(', ')}`);
   if ((v = await view()).pressed) problems.push(`search: a tile stays pressed: ${JSON.stringify(v)}`);
   // Word endings: "snapping" and "blurred" find their short forms, "ring" is not cut down to "r" (Ambient Ripple Effect
   // says "Rings"), "scrolling" finds as many as "scroll", and the first letter typed already finds cards.
