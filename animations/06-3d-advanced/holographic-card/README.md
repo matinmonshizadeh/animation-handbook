@@ -76,6 +76,8 @@ The pointer is measured against the card's own place, its untransformed box, not
 
 **Show me** moves the same numbers along a figure of eight for 3.2 seconds (`x = 0.42 sin 2πe`, `y = 0.34 sin 4πe`, with `e` the eased progress), lit as it goes, and ends with the card flat. A press, key or wheel turn in the stage, or the visitor's own pointer moving over it, stops the run, and the card follows the visitor from where it was.
 
+The card also takes keyboard focus, and the keys stand in for the pointer. Keyboard focus lights the card where it aims (its middle at rest), each press of an arrow key moves the aim 6% of the way across the card (a key held down repeats), and Escape or moving focus away lets it settle, as the pointer leaving does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|

@@ -49,6 +49,8 @@ gl.uniform2f(uOff, O * sx / SW, -VY * O * sy / SH);    // O: the depth strength 
 
 Pointer Events make a mouse, a pen and a finger aim the view alike; a mouse that leaves or a finger that lifts sends it back to the middle. Show me moves the view around a figure of eight for three seconds and back to the middle. Without WebGL, the demo draws the six shapes on a 2D canvas every frame instead, each moved by its own depth, the way 2.5D layers move. Under reduced motion the picture does not follow the pointer, and Show me shows the view from one side for 1.2 seconds, with no movement in between, then the view from the front.
 
+The picture also takes keyboard focus, and the keys stand in for the pointer: each press of an arrow key moves the aim 6% of the way across the picture (a key held down repeats), and Escape or moving focus away sends the view back to the middle. Under reduced motion the keys move nothing, as the pointer does not.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|

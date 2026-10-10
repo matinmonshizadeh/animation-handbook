@@ -41,6 +41,8 @@
       will-change:transform
     }
     .tilt-card.active{transition:none}
+    /* Keyboard focus: the ring goes around the card, on the dark stage */
+    .hb-page .stage .tilt-card:focus-visible{outline-offset:4px}
     /* The light is one fixed gradient on a layer of its own, twice as wide as the card's diagonal (--shine-d, set by the script)
        and centred on the card's top left corner. The script moves it to the pointer with translate() and sizes it with scale(),
        so following the pointer never repaints the card. The card clips it. */
@@ -82,7 +84,7 @@
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the card, drag a finger across it, or press Show me.</p></div>
     </div>
     <div class="stage hb-dots">
-      <div class="tilt-card" id="card">
+      <div class="tilt-card" id="card" tabindex="0" role="group" aria-label="Feature card. Press the arrow keys to tilt it.">
         <div class="card-shine" id="shine"></div>
         <div class="float-orb orb1" id="orb1"></div>
         <div class="float-orb orb2" id="orb2"></div>
@@ -263,6 +265,17 @@
   card.addEventListener('pointermove',e=>{if(e.isTrusted&&raf)stopRun();onMove(e)});
   card.addEventListener('pointerleave',onLeave);
   card.addEventListener('pointercancel',onLeave);
+  // The keyboard is a pretend pointer through the same tilt(): focus by keyboard ends a run and tilts the card where it leans (the
+  // middle at rest), each arrow key moves it 6% of the card (held, it repeats), and Escape or leaving the card flattens it as onLeave()
+  const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  let keys=false;
+  card.addEventListener('focus',()=>{if(card.matches(':focus-visible')){if(raf)stopRun();keys=true;tilt(tiltX,tiltY)}});
+  card.addEventListener('keydown',e=>{
+    const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
+    if(d){e.preventDefault();keys=true;tilt(edge(tiltX+.06*d[0]),edge(tiltY+.06*d[1]))}
+    else if(e.key==='Escape'&&keys){keys=false;onLeave()}
+  });
+  card.addEventListener('blur',()=>{if(keys){keys=false;onLeave()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
