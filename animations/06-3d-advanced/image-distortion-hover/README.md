@@ -52,6 +52,8 @@ vec3 pattern(vec2 uv) {
 
 In the demo the pattern stands still, as a real image would: its time value stays at 0, and only the distortion moves. Once the pointer has gone and the fade has finished, the demo stops drawing, and the pointer or Show me starts it again.
 
+The picture also takes keyboard focus, and the keys stand in for the pointer: keyboard focus bends the picture in its middle (or where it last bent, while that fades), and each press of an arrow key moves that spot 6% of the way across the picture (a key held down repeats). Escape or moving focus away lets the bending fade, as the pointer leaving does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
