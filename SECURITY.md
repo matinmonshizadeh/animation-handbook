@@ -21,7 +21,7 @@ Please do not open a public issue, pull request or discussion for a security pro
 
 - with GitHub's private vulnerability reporting:
   [report a vulnerability](https://github.com/matinmonshizadeh/animation-handbook/security/advisories/new), or
-- by writing to [CONTACT].
+- through the contact details at https://matinmonshizadeh.com/contact.
 
 Say which page or file it is, what can happen and how to make it happen. You will get an answer as soon as possible,
 and another when it is fixed.
