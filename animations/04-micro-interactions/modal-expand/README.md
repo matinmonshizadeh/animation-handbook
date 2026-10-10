@@ -18,7 +18,7 @@ On click, measure the button's position with `getBoundingClientRect()`, then com
 function openModal(btn) {
   const sr = stage.getBoundingClientRect();
   const br = btn.getBoundingClientRect();
-  // The button's centre, relative to the stage
+  // The button's center, relative to the stage
   const bx = br.left + br.width / 2 - sr.left;
   const by = br.top + br.height / 2 - sr.top;
   // The same point, relative to the modal's laid-out corner (offsetLeft/Top ignore its scale)
@@ -36,7 +36,7 @@ function openModal(btn) {
 
 .modal {
   position: absolute;
-  inset: 0; margin: auto;              /* centred without a transform */
+  inset: 0; margin: auto;              /* centered without a transform */
   width: clamp(240px, 55%, 320px); height: fit-content;
   transform: scale(var(--start-scale));
   opacity: 0;

@@ -12,7 +12,7 @@ A 3D tilt makes a flat card lean toward the pointer, as if you were looking at a
 - NFT and gaming UIs where the tactile metaphor matches the product
 
 ## How it works
-`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's centre, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges.
+`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's center, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges.
 
 Bind **pointer** events, not mouse events — the same handler then covers mouse, pen and touch:
 

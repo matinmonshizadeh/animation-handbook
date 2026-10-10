@@ -20,7 +20,7 @@ without any image or video.
 ## How it works
 
 Each pixel gets a scalar value from a sum of sines — some of the position, some
-of time — and that value indexes a colour palette. Computing this per pixel at
+of time — and that value indexes a color palette. Computing this per pixel at
 full resolution is expensive, so the field is rendered into a small offscreen
 buffer (around 96–200px wide) and then scaled up onto the visible canvas with
 image smoothing on. The upscale blur is free and actually helps the plasma look
@@ -31,7 +31,7 @@ softer.
 const v = Math.sin(x*f + t)              // horizontal wave
         + Math.sin(y*f + t*1.3)          // vertical wave
         + Math.sin((x+y)*f*0.5 + t*0.7)  // diagonal wave
-        + Math.sin(dist*f + t*1.1);      // radial wave from centre
+        + Math.sin(dist*f + t*1.1);      // radial wave from center
 const idx = ((v + 4) * 31.875) | 0;      // v ∈ [-4,4] → palette index 0..255
 data[o++] = lut[idx*3]; data[o++] = lut[idx*3+1]; data[o++] = lut[idx*3+2]; data[o++] = 255;
 
@@ -40,8 +40,8 @@ vctx.drawImage(buf, 0, 0, bw, bh, 0, 0, view.width, view.height); // scale up sm
 ```
 
 The palette is a 256-entry lookup table built once with an Inigo Quilez cosine
-gradient, so changing palettes is just swapping the table — no per-pixel colour
-maths.
+gradient, so changing palettes is just swapping the table — no per-pixel color
+math.
 
 ## Key parameters
 
@@ -64,7 +64,7 @@ maths.
   the size, so it is computed once; the row, column and diagonal sines change
   with time, so they are computed once per frame for each row and column rather
   than for every pixel, leaving one sine per pixel in the inner loop.
-- Do colour through a palette lookup table, not live RGB maths per pixel.
+- Do color through a palette lookup table, not live RGB math per pixel.
 - Pause the `requestAnimationFrame` loop on `visibilitychange` when the tab is
   hidden so a background tab does no work.
 - Respect `prefers-reduced-motion`: render a single static frame and never start

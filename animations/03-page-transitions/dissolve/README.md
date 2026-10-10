@@ -27,7 +27,7 @@ function getDelays(n, style) {
       return (r + c) / (2 * (n - 1));
     });
   }
-  // radial: tile-centre distance, normalised so the corners land at 1
+  // radial: tile-center distance, normalized so the corners land at 1
   return Array.from({length: total}, (_, i) => {
     const r = Math.floor(i / n) - (n - 1) / 2, c = i % n - (n - 1) / 2;
     return Math.sqrt(r * r + c * c) / (Math.SQRT2 * (n - 1) / 2);

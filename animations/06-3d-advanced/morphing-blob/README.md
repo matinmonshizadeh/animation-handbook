@@ -66,7 +66,7 @@ lets the droplet close 0.03 of the gap in every 1/60 s instead of 0.09.
 
 The pointer's position is turned into the drawing's own units with the SVG's screen
 matrix (`svg.getScreenCTM().inverse()`), so the droplet stays under the pointer
-however the SVG is scaled and centred, also beside the drawing on a wide stage. The
+however the SVG is scaled and centered, also beside the drawing on a wide stage. The
 `viewBox` is a 360-unit box around the blob's middle (`20 20 360 360`) with
 `preserveAspectRatio="xMidYMid meet"`: the circles wander up to about 190 units from
 the middle, so the box shows them almost always, and the whole box fits whatever the
@@ -80,7 +80,7 @@ shape of the stage.
 | Speed | Normal | How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times |
 
 ## Production notes
-- **Filter performance is the gotcha.** SVG filters rasterise the filter region every frame on the CPU/GPU compositor; a large blurred area over a big viewport can drop frames on mobile. Keep the filtered `<g>` region as small as the design allows, cap `stdDeviation`, and reduce blob count on small screens. Test on a mid-range phone, not just desktop.
+- **Filter performance is the gotcha.** SVG filters rasterize the filter region every frame on the CPU/GPU compositor; a large blurred area over a big viewport can drop frames on mobile. Keep the filtered `<g>` region as small as the design allows, cap `stdDeviation`, and reduce blob count on small screens. Test on a mid-range phone, not just desktop.
 - **Safari and blur units.** `stdDeviation` is in user (viewBox) units, not pixels — the visual blur scales with your `viewBox`, so pin the viewBox size and let CSS scale the SVG rather than resizing the viewBox.
 - **Time, not frames**: easing that closes a fixed share of the gap on every frame follows the screen's refresh rate. Scale the share by the time since the last frame, as above, and cap that time (this demo uses 50 ms) so a tab that comes back does not lurch.
 - **`will-change: transform`** on the SVG element can promote it to its own layer and smooth things out, but watch memory on low-end devices.

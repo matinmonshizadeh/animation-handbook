@@ -32,7 +32,7 @@ last = now;
 offset += speed * 0.02 * dt / (1000 / 60) * (slow ? 1 / 3 : 1);
 ```
 
-The glow is a canvas `shadowBlur` set to the grid colour; the sun is a clipped semicircle filled with a vertical gradient and striped with background-coloured gaps.
+The glow is a canvas `shadowBlur` set to the grid color; the sun is a clipped semicircle filled with a vertical gradient and striped with background-colored gaps.
 
 ## Key parameters
 | Parameter | Default | Effect |
