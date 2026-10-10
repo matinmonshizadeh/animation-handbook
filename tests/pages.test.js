@@ -572,10 +572,10 @@ test('the counts written in the root README match the cards', () => {
   // Each category's count, in the Categories table, in its heading in the Full catalog and in the summary that opens its list.
   const rows = table(sections(readme)['Categories']);
   const headings = [...readme.matchAll(/^### (\d{2}) · (.+?) · (\d+) techniques$/gm)];
-  const summaries = [...readme.matchAll(/^<details><summary>Browse the (\d+) (.+?) techniques<\/summary>$/gm)];
+  const summaries = [...readme.matchAll(/^<details><summary>Browse all (\d+) techniques in (.+?)<\/summary>$/gm)];
   assert.equal(rows.length, cats.length, 'README: one Categories row per category');
   assert.equal(headings.length, cats.length, 'README: one Full catalog heading per category');
-  assert.equal(summaries.length, cats.length, 'README: one "Browse the N … techniques" summary per category');
+  assert.equal(summaries.length, cats.length, 'README: one "Browse all N techniques in …" summary per category');
   for (const cat of cats) {
     const row = rows.find(r => r[0] === cat.n), heading = headings.find(h => h[1] === cat.n);
     const summary = summaries.find(s => decode(s[2]) === cat.name);
@@ -583,8 +583,11 @@ test('the counts written in the root README match the cards', () => {
     assert.equal(Number(row[2]), cat.entries.length, `README: the Categories count of ${cat.n} ${cat.name}`);
     assert.ok(heading && heading[2] === cat.name, `README: a Full catalog heading for ${cat.n} ${cat.name}`);
     assert.equal(Number(heading[3]), cat.entries.length, `README: the heading "${heading[0]}"`);
-    assert.ok(summary, `README: a "Browse the N ${cat.name} techniques" summary`);
+    assert.ok(summary, `README: a "Browse all N techniques in ${cat.name}" summary`);
     assert.equal(Number(summary[1]), cat.entries.length, `README: the summary "${summary[0]}"`);
+    // The line under each heading is the category's description on the home page.
+    const line = between(readme, heading[0], '<details>').match(/<sub>([^<]*)<\/sub>/);
+    assert.ok(line && decode(line[1]) === cat.desc, `README: the line under "${heading[0]}" is the home page's description of ${cat.name}`);
   }
 });
 
