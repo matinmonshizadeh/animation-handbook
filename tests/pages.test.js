@@ -377,6 +377,43 @@ test('every guided-steps page and the home page link the same version of the sha
   assert.match(HOME, /<script src="assets\/js\/demo-page\.js\?v=\d+" defer><\/script>/, 'the home page links the page script, for Copy prompt');
 });
 
+// A page that starts a setting lower on phones marks that choice data-hb-phone, and its own script takes the phone default from
+// the mark and presses it there. The home page reads the page without running it, and on a phone the shared script counts the
+// marked choice instead of the pressed one, so a card's Copy prompt copies what the page copies on the same screen.
+test('a setting that starts lower on phones marks that choice data-hb-phone, and the page script starts there from the mark', () => {
+  const PHONE_DEFAULTS = { 'gpgpu-particle-system': ['count-seg', '16,000'], 'cloth-simulation': ['detail-seg', 'Low'] };
+  for (const slug of Object.keys(PHONE_DEFAULTS)) assert.ok(steps.some(d => d.slug === slug), `${slug} is a guided-steps page`);
+  for (const d of steps) {
+    const html = pageOf(d), where = `${d.cat}/${d.slug}`;
+    const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    const markup = html.replace(/<script\b[\s\S]*?<\/script>/g, '');
+    // Every mark is on a choice button of a choice group in Try it, one at most in each group, and never on the pressed choice:
+    // the markup presses the default of larger screens.
+    const marked = {};
+    for (const [, attrs, inner] of tryItOf(markup).matchAll(/<div\b(?=[^>]*\sclass="(?:[^"]*\s)?(?:seg|swatches)(?:\s[^"]*)?")([^>]*)>([\s\S]*?)<\/div>/g)) {
+      const id = (attrs.match(/\sid="([^"]+)"/) || [])[1];
+      const phone = [...inner.matchAll(/<button\b([^>]*)>([^<]*)<\/button>/g)].filter(([, a]) => /\sdata-hb-phone(?=[\s=]|$)/.test(a));
+      assert.ok(phone.length <= 1, `${where}: ${id} marks one phone default at most`);
+      for (const [, a, label] of phone) {
+        assert.ok(!/aria-pressed="true"/.test(a), `${where}: the phone default of ${id} is not the choice pressed in the markup`);
+        marked[id] = decode(label.trim());
+      }
+    }
+    assert.equal(Object.keys(marked).length, count(markup, 'data-hb-phone'), `${where}: every data-hb-phone is on a choice button in Try it`);
+    for (const id of Object.keys(marked)) assert.ok(scripts.includes(`#${id} [data-hb-phone]`), `${where}: the page script reads the phone default of ${id} from its mark`);
+    const known = PHONE_DEFAULTS[d.slug];
+    if (known) assert.deepEqual(marked, { [known[0]]: known[1] }, `${where}: phones start with ${known[1]}`);
+  }
+});
+
+// The footer of every page: the site's name, a link to the source on GitHub (in a new tab) and Back to top.
+test('every guided-steps page has the same footer, with a link to the source on GitHub', () => {
+  const FOOTER = '<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>';
+  assert.ok(steps.length > 0, 'there are guided-steps pages');
+  assert.deepEqual(steps.filter(d => count(pageOf(d), FOOTER) !== 1 || count(pageOf(d), '<footer') !== 1).map(d => `${d.cat}/${d.slug}`), [],
+    'pages without exactly this footer');
+});
+
 const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));
 const rulesFor = selector => sharedRules.filter(rule => rule.selector.split(',').some(part => part.trim() === selector));
 

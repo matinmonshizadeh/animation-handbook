@@ -21,6 +21,25 @@ test('isSafeHref allows relative, anchor and http(s) links only', () => {
   }
 });
 
+test('indexHref points a relative link to a folder at its index.html, keeping its query and hash, and leaves other links alone', () => {
+  const folders = {
+    '../bounce-in/': '../bounce-in/index.html',
+    '../../../': '../../../index.html',
+    './': './index.html',
+    'animations/02-entrance-and-exit/bounce-in/': 'animations/02-entrance-and-exit/bounce-in/index.html',
+    '../bounce-in/?from=home': '../bounce-in/index.html?from=home',
+    '../bounce-in/#hb-prompt-title': '../bounce-in/index.html#hb-prompt-title',
+    '../../../?place=buttons#top': '../../../index.html?place=buttons#top'
+  };
+  for (const [href, page] of Object.entries(folders)) assert.equal(DP.indexHref(href), page, href);
+  // Files, fragments, queries and links to other places stay as they are; so does a link that already names its page.
+  for (const href of ['README.md', '../bounce-in/index.html', '#top', '#', '', '?q=fade', '../bounce-in#a/', '../bounce-in?next=/',
+    'https://github.com/matinmonshizadeh/animation-handbook', 'https://example.com/a/', 'http://example.com/', '//example.com/a/',
+    '/animation-handbook/', 'mailto:a@b.c', 'file:///C:/animation-handbook/']) {
+    assert.equal(DP.indexHref(href), href, href);
+  }
+});
+
 test('inline shows code as plain text and renders links, bold and italics', () => {
   assert.equal(DP.inline('Use `opacity` on **one** *hero* [card](../scale-in/)'),
     'Use opacity on <strong>one</strong> <em>hero</em> <a href="../scale-in/">card</a>');
@@ -107,8 +126,9 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 // a stage and, by kind, the buttons boot() looks for. Events are sent to the stage by hand (with isTrusted set as a browser
 // would), timers wait in a list until the test runs them, and every hb:input the script sends is kept. A Copy prompt test passes
 // `copy` ({ prompt, controls, clipboard }) to add a Copy prompt button, text in the prompt, a Try it step holding `controls` (if
-// any) and the window's clipboard; no other test gets any of them.
-function standInPage(kind, reduced, bodyAttributes, copy) {
+// any) and the window's clipboard; no other test gets any of them. A link test passes `links` ({ protocol, hrefs }): the page is
+// served over that protocol (http: otherwise) and holds one link for each href.
+function standInPage(kind, reduced, bodyAttributes, copy, links) {
   const timers = [], sent = [];
   const node = () => ({
     attrs: {}, handlers: {}, children: [], clicks: 0, textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} },
@@ -133,16 +153,19 @@ function standInPage(kind, reduced, bodyAttributes, copy) {
   body.setAttribute('data-hb-kind', kind);
   body.setAttribute('data-hb-autoplay', '');
   Object.keys(bodyAttributes || {}).forEach(name => body.setAttribute(name, bodyAttributes[name]));
-  const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event) };
+  const anchors = ((links && links.hrefs) || []).map(href => { const a = node(); a.setAttribute('href', href); return a; });
+  const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event),
+    querySelectorAll: selector => (selector === 'a[href]' ? anchors : []) };
   const win = {
+    document: doc, // the page's own document, as in a browser
     matchMedia: () => ({ matches: !!reduced, addEventListener() {} }),
     setTimeout: (fn, ms) => timers.push({ fn, ms }),
-    clearTimeout() {}, location: { protocol: 'http:' }, console,
+    clearTimeout() {}, location: { protocol: (links && links.protocol) || 'http:' }, console,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init && init.detail; } }
   };
   if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard }, getComputedStyle: () => ({ display: '' }) });
   DP.boot(doc, win);
-  return { doc, win, stage, player, demo, button, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
+  return { doc, win, stage, player, demo, button, anchors, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
 
@@ -233,6 +256,22 @@ test('a scroll page with an empty sentence of its own gets the usual note, and o
   assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
 });
 
+// Opened from disk, Chrome shows a folder's listing for a link to the folder, so the links of the page must name index.html there.
+test('opened from disk, every link of the page to a folder opens its index.html; over http(s) no link changes', () => {
+  const hrefs = ['../../../', '../bounce-in/', '../scale-in/', '../blur-in/?from=home#hb-prompt-title', 'README.md', '#top',
+    'https://github.com/matinmonshizadeh/animation-handbook'];
+  const fromDisk = ['../../../index.html', '../bounce-in/index.html', '../scale-in/index.html', '../blur-in/index.html?from=home#hb-prompt-title',
+    'README.md', '#top', 'https://github.com/matinmonshizadeh/animation-handbook'];
+  for (const kind of ['once', 'loop', 'do', 'scroll']) {
+    const page = standInPage(kind, false, {}, null, { protocol: 'file:', hrefs });
+    assert.deepEqual(page.anchors.map(a => a.getAttribute('href')), fromDisk, `${kind} page opened from disk`);
+  }
+  for (const protocol of ['http:', 'https:']) {
+    const page = standInPage('once', false, {}, null, { protocol, hrefs });
+    assert.deepEqual(page.anchors.map(a => a.getAttribute('href')), hrefs, protocol);
+  }
+});
+
 test('promptWithSettings adds the settings line only when a setting is complete', () => {
   assert.equal(DP.promptWithSettings('Add it.', [{ label: 'Speed', value: 'Normal' }, { label: 'Size', value: 'Big' }]),
     'Add it.\n\nSettings from the demo: Speed: Normal, Size: Big.');
@@ -254,6 +293,75 @@ test('pageCopyText reads the prompt and the Try it settings of a page', () => {
   const noSettings = { querySelector: s => (s === '.hb-prompt' ? prompt : null) };
   assert.equal(DP.pageCopyText({ querySelector: s => (s === '.hb-page' ? noSettings : null) }, win), 'Add a fade to [the card].');
   assert.equal(DP.pageCopyText({ querySelector: () => null }, win), '');
+});
+
+// A choice group labelled `label`, of choices [{ text, pressed, phone }], as the shared script reads one: it asks for the choice
+// marked data-hb-phone and for the pressed one.
+function choiceGroup(label, choices) {
+  const button = choice => ({ textContent: choice.text, getAttribute: () => null });
+  return { hidden: false, parentElement: null, hasAttribute: () => false, matches: () => false,
+    getAttribute: name => (name === 'data-hb-label' ? label : null),
+    querySelector: selector => {
+      const found = choices.find(choice => (selector === '[data-hb-phone]' ? choice.phone : choice.pressed));
+      return found ? button(found) : null;
+    } };
+}
+// A page as the home page has it once fetched and parsed: its prompt, and a Try it step holding `controls`.
+function parsedPage(prompt, controls) {
+  const page = { querySelector: s => ({ '.hb-prompt': { textContent: prompt }, '.hb-try': { querySelectorAll: () => controls } })[s] || null };
+  return { querySelector: s => (s === '.hb-page' ? page : null), getElementById: () => null };
+}
+// A window of width × height whose own document is another one, answering the media queries the script asks (a list of
+// max-width and max-height features, as on the pages that start a setting lower on phones).
+function windowOf(width, height) {
+  return { document: {}, getComputedStyle: () => ({ display: '' }),
+    matchMedia: query => ({ matches: query.split(',').some(part => {
+      const m = /^\s*\(\s*max-(width|height)\s*:\s*(\d+)px\s*\)\s*$/.exec(part);
+      if (!m) throw new Error(`unexpected media query: ${query}`);
+      return (m[1] === 'width' ? width : height) <= Number(m[2]);
+    }) }) };
+}
+
+// GPGPU Particle System and Cloth Simulation start a setting lower on phones: their own script presses the choice marked
+// data-hb-phone there. The home page reads a page it fetched, where no script ran, so it must count that mark on a phone.
+test('a fetched page read on a phone gives the choices marked data-hb-phone and on larger screens the pressed ones; a page in its own window gives what is pressed', () => {
+  const prompt = 'Add a cloth to [the banner].';
+  // Detail: Medium is pressed in the markup and Low is the phone default; Wind has no phone default.
+  const wind = choiceGroup('Wind', [{ text: 'Light' }, { text: 'Medium', pressed: true }]);
+  const fetched = parsedPage(prompt, [choiceGroup('Detail', [{ text: 'Low', phone: true }, { text: 'Medium', pressed: true }, { text: 'High' }]), wind]);
+  const phone = prompt + '\n\nSettings from the demo: Detail: Low, Wind: Medium.';
+  const larger = prompt + '\n\nSettings from the demo: Detail: Medium, Wind: Medium.';
+  for (const [width, height, expected, screen] of [[375, 812, phone, 'a phone'], [320, 640, phone, 'a small phone'],
+    [812, 375, phone, 'a phone held sideways'], [1280, 800, larger, 'a desktop'], [1366, 657, larger, 'a laptop'], [768, 1024, larger, 'a tablet']]) {
+    assert.equal(DP.pageCopyText(fetched, windowOf(width, height)), expected, screen);
+  }
+  // The page in its own window ran its script, which pressed what counts there, so the pressed choice is read on any screen.
+  const own = parsedPage(prompt, [choiceGroup('Detail', [{ text: 'Low', phone: true }, { text: 'Medium' }, { text: 'High', pressed: true }]), wind]);
+  for (const [width, height] of [[375, 812], [1280, 800]]) {
+    const win = Object.assign(windowOf(width, height), { document: own });
+    assert.equal(DP.pageCopyText(own, win), prompt + '\n\nSettings from the demo: Detail: High, Wind: Medium.', `its own window, ${width}px wide`);
+  }
+});
+
+// The home page passes a stand-in window that only answers getComputedStyle (NO_STYLE in index.html): the window the script
+// runs in answers the media query then.
+test("on the home page's stand-in window, the window the script runs in says whether the screen is a phone", () => {
+  const prompt = 'Add particles to [the hero].';
+  const fetched = parsedPage(prompt, [choiceGroup('Number of particles', [{ text: '16,000', phone: true }, { text: '65,000', pressed: true }])]);
+  const NO_STYLE = { getComputedStyle: () => ({ display: '' }) };
+  const copied = value => `${prompt}\n\nSettings from the demo: Number of particles: ${value}.`;
+  const before = Object.getOwnPropertyDescriptor(globalThis, 'matchMedia');
+  try {
+    globalThis.matchMedia = windowOf(375, 812).matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('16,000'), 'a phone');
+    globalThis.matchMedia = windowOf(1280, 800).matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('65,000'), 'a desktop');
+    delete globalThis.matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('65,000'), 'where nothing answers media queries');
+  } finally {
+    if (before) Object.defineProperty(globalThis, 'matchMedia', before);
+    else delete globalThis.matchMedia;
+  }
 });
 
 // The home page copies a card's prompt with pageCopyText, so the button on the page itself has to copy exactly what that gives.

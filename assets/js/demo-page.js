@@ -6,6 +6,7 @@
  * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
  * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
+ * Opened from disk (file:), the page's links to folders open each folder's index.html instead of its listing.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -37,6 +38,15 @@
     href = String(href);
     return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) && !/^\/\//.test(href) &&
       !/^[a-z][a-z0-9+.-]*:/i.test(href.replace(/^https?:/i, ''));
+  }
+
+  // Opened from disk, a link to a folder shows the folder's listing, not its page. This is the link as it must be written
+  // there: a relative link whose path ends with "/" ("../bounce-in/", "../../../") names that folder's index.html and keeps
+  // its ?query and #hash. Any other link (a file, "#top", "/…", "//…" or one with a scheme such as https:) comes back as it is.
+  function indexHref(href) {
+    var s = String(href), cut = s.search(/[?#]/), path = cut < 0 ? s : s.slice(0, cut);
+    if (!/\/$/.test(path) || /^(?:\/|[a-z][a-z0-9+.-]*:)/i.test(path)) return s;
+    return path + 'index.html' + s.slice(path.length);
   }
 
   // Inline Markdown from README prose. Inline code becomes plain text: the site shows no code.
@@ -147,7 +157,9 @@
     return setting ? text(setting.querySelector('.hb-setting-name')) : '';
   }
 
-  function valueFor(control) {
+  // The value a control gives. A choice group gives its pressed choice or, with phone (see phoneDefaults), the choice it marks
+  // data-hb-phone where it marks one.
+  function valueFor(control, phone) {
     if (control.matches('input[type=range]')) {
       var setting = control.closest('.hb-setting');
       var shown = setting && setting.querySelector('.hb-value');
@@ -156,8 +168,22 @@
     if (control.matches('input[type=text], textarea')) return quoteText(control.value, 40);
     if (control.matches('input[type=checkbox]')) return control.checked ? 'on' : 'off';
     if (control.matches('select')) return control.selectedOptions[0] ? text(control.selectedOptions[0]) : control.value;
-    var active = control.querySelector('.on, [aria-pressed="true"]');
+    var active = (phone && control.querySelector('[data-hb-phone]')) || control.querySelector('.on, [aria-pressed="true"]');
     return active ? (active.getAttribute('aria-label') || text(active)) : '';
+  }
+
+  // Phones, as the pages that start a setting lower there see them: up to 600px wide, or up to 500px tall (held sideways).
+  var PHONE = '(max-width:600px),(max-height:500px)';
+
+  // Whether the phone defaults count. A page that starts a setting lower on phones marks that choice data-hb-phone, and its own
+  // script presses it there. A page the home page has fetched and parsed (any document but the window's own) ran no script, so
+  // on a phone its marked choices count in place of the pressed ones: the home page then copies what the page itself copies on
+  // the same screen. The home page's stand-in window only answers getComputedStyle; the window this script runs in then answers
+  // the media query.
+  function phoneDefaults(doc, win) {
+    if (doc === win.document) return false;
+    var query = typeof win.matchMedia === 'function' ? win.matchMedia(PHONE) : typeof matchMedia === 'function' ? matchMedia(PHONE) : null;
+    return !!(query && query.matches);
   }
 
   // A control counts unless it, or anything between it and the scope, is hidden, skipped or
@@ -172,15 +198,16 @@
 
   // The demo's current settings in page order, as [{ label, value }].
   function readSettings(doc, scope, win) {
+    var phone = phoneDefaults(doc, win);
     return Array.prototype.filter.call(scope.querySelectorAll(CONTROLS), function (control) {
       return isShown(control, scope, win);
     }).map(function (control) {
-      return { label: labelFor(doc, control), value: valueFor(control), control: control };
+      return { label: labelFor(doc, control), value: valueFor(control, phone), control: control };
     });
   }
 
   // What Copy prompt copies on a page, with its settings as they are now. The home page runs it on a page it has
-  // fetched and parsed, where every setting is at its default.
+  // fetched and parsed, where every setting is at its default: on a phone, the phone default where the page marks one.
   function pageCopyText(doc, win) {
     var page = doc.querySelector('.hb-page');
     var promptEl = page && page.querySelector('.hb-prompt');
@@ -307,6 +334,16 @@
         } else {
           fallback(textToCopy);
         }
+      });
+    }
+
+    // Opened from disk, every link of the page to a folder (the home link, Previous and Next, any other) opens that folder's
+    // index.html instead of its listing. Similar animations is not shown there (the README is not read from disk), so every
+    // link is in place by now.
+    function openFoldersAsPages() {
+      Array.prototype.forEach.call(doc.querySelectorAll('a[href]'), function (a) {
+        var href = a.getAttribute('href'), fixed = indexHref(href);
+        if (fixed !== href) a.setAttribute('href', fixed);
       });
     }
 
@@ -475,6 +512,7 @@
       }
     }
 
+    if (win.location.protocol === 'file:') openFoldersAsPages();
     setUpPrompt();
     if (copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
@@ -511,7 +549,7 @@
   }
 
   return {
-    escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
+    escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, indexHref: indexHref, inline: inline, sections: sections,
     paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, promptWithSettings: promptWithSettings,
     pageCopyText: pageCopyText, markFill: markFill, shorten: shorten,
     quoteText: quoteText, motionNote: motionNote, readSettings: readSettings, boot: boot

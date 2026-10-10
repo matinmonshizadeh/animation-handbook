@@ -26,8 +26,8 @@
     .stage{position:relative;background:#0b0b0d;touch-action:none}
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
   </style>
-  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=6">
-  <script src="../../../assets/js/demo-page.js?v=6" defer></script>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=7">
+  <script src="../../../assets/js/demo-page.js?v=7" defer></script>
 </head>
 <body class="hb" data-hb-kind="loop">
 <nav class="hb-bar" aria-label="Animation Handbook">
@@ -105,7 +105,7 @@
         <div class="hb-setting">
           <p class="hb-setting-name" id="detail-lbl">Detail</p>
           <div class="seg" id="detail-seg" role="group" aria-labelledby="detail-lbl">
-            <button type="button" data-cols="16" aria-pressed="false">Low</button>
+            <button type="button" data-cols="16" data-hb-phone aria-pressed="false">Low</button>
             <button type="button" data-cols="24" class="on" aria-pressed="true">Medium</button>
             <button type="button" data-cols="40" aria-pressed="false">High</button>
           </div>
@@ -155,7 +155,7 @@
     <div class="hb-rel-list"></div>
   </section>
 </main>
-<footer class="hb-foot"><span>Animation Handbook</span><a href="#top">Back to top ↑</a></footer>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
 const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
 const stage=document.getElementById('stage');
@@ -166,9 +166,10 @@ let pts=[],prev=[],pinned=[],constraints=[];
 let dragIdx=-1,dragMouse={x:0,y:0};
 
 // Phones are screens up to 600px wide, or up to 500px tall when held sideways. They start at Low detail (16 × 12 points),
-// a coarser grid that means far fewer constraint solves per frame; the visitor can still pick more.
+// a coarser grid that means far fewer constraint solves per frame; the visitor can still pick more. Low is the Detail choice
+// marked data-hb-phone, which the home page's Copy prompt reads on phones too.
 const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
-if(PHONE.matches){COLS=16;ROWS=12;}
+if(PHONE.matches){COLS=+document.querySelector('#detail-seg [data-hb-phone]').dataset.cols;ROWS=Math.round(COLS*.75);}
 // The pressed Detail choice follows the start (this runs before the shared script reads the settings for "Your settings")
 document.querySelectorAll('#detail-seg button').forEach(b=>{
   const on=+b.dataset.cols===COLS;
