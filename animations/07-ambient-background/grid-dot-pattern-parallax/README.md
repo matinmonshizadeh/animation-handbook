@@ -3,7 +3,7 @@
 [Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/grid-dot-pattern-parallax/)
 
 ## What it is
-A grid or dot pattern parallax places a faint repeating pattern of dots or lines behind the content and shifts it slightly in the opposite direction to the pointer. The shift is tiny, a few percent of the pointer's movement, so the pattern seems to sit a little deeper than the content: depth you feel more than see. When no pointer is over it, the grid drifts slowly by itself. Linear, Vercel and many developer tools use it.
+A grid or dot pattern parallax, common on the sites of developer tools such as Linear and Vercel, places a faint repeating pattern of dots or lines behind the content and shifts it slightly in the opposite direction to the pointer. The shift is tiny, a few percent of the pointer's movement, so the pattern seems to sit a little deeper than the content: depth you feel more than see. When no pointer is over it, the grid drifts slowly by itself.
 
 ## When to use it
 - Technical and developer-tool landing pages where grid patterns signal "structured and precise"

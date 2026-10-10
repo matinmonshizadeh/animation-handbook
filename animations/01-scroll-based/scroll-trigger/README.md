@@ -4,7 +4,7 @@
 
 ## What it is
 
-Scroll triggers start, follow or hold animations at chosen points as you scroll. Each zone of a page is either still ahead, on screen or already passed, and moving between those states starts or reverses its animation. The demo shows four common uses: fading content in as it arrives, tying an animation to the scroll, pinning a card while it changes, and lighting up steps. In production the GSAP ScrollTrigger plugin handles all of this; the demo does it by hand.
+Scroll triggers start, follow or hold animations at chosen points as you scroll. Each zone of a page is either still ahead, on screen or already passed, and moving between those states starts or reverses its animation. The demo shows four common uses: fading content in as it arrives, tying an animation to the scroll, pinning a card while it changes, and lighting up steps.
 
 ## When to use it
 
@@ -67,7 +67,7 @@ const p = clamp((stage.scrollTop - top[i]) / (height[i] - viewport), 0, 1);
 
 ## Production notes
 
-- **GSAP ScrollTrigger** is the production standard. It handles scroll direction, pinning, scrubbing, snapping, and lifecycle callbacks with a clean declarative API. The vanilla JS approach here is educational — it replicates the underlying mechanics without GSAP's optimizations.
+- **GSAP ScrollTrigger** is the production standard and handles all of this: scroll direction, pinning, scrubbing, snapping, and lifecycle callbacks, through a declarative API. The demo does it by hand to show the underlying mechanics, without GSAP's optimizations.
 - **`IntersectionObserver` vs. scroll events.** IO is the right tool for lifecycle callbacks (enter/leave); scroll-position arithmetic is right for scrubbing. This demo derives both from scroll position so the two stay in lockstep — with IO the callback and the scrub can disagree by a frame.
 - **Anchor the scrub to where the section *enters*, not to where it reaches the top.** Measuring progress as `scrollTop − zoneTop` keeps it at zero until the section's top has climbed all the way to the top of the viewport — by which point the reader has watched a full screen of it sit motionless, and the animation only plays as it leaves. That reads as a broken or badly late trigger. A common GSAP setting, `start: "top 80%"` / `end: "top 20%"`, begins just after the section appears and finishes as it settles; here that moved each trigger roughly 0.8 of a viewport earlier. Anchor it to the piece that animates, too: a zone that is nearly a box tall and centers its content puts the piece half a box below the zone's top, so the demo uses `start: "center 80%"` / `end: "center 25%"` on the square and on the row of dots, and the animation plays where it can be seen.
 - **`offsetTop` is not in the scroll container's coordinate space.** It is measured from the nearest *positioned* ancestor, which for a plain `overflow: scroll` panel is usually `body` — so it includes every pixel of page chrome above the container, while `scrollTop` starts at zero inside it. Comparing them directly put every trigger here 109px late. Measure the zone against the container's own box instead.
