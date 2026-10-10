@@ -1,5 +1,7 @@
 # Image Trail
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/)
+
 ## What it is
 An image trail leaves a stream of pictures behind the pointer as it moves over a hero or a gallery. Each time the pointer has traveled a set distance, a new picture pops up on top of the others where the pointer is, stays for a moment, then leaves and fades away. A quick sweep leaves a long ribbon of pictures, and a pointer that holds still leaves none.
 

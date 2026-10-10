@@ -1,5 +1,7 @@
 # Typing Indicator
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/typing-indicator/)
+
 ## What it is
 A typing indicator tells people in a conversation that the other person is writing a reply. It is a small chat bubble on their side of the conversation holding three dots that move one after another in a loop, by bouncing, brightening or rising and falling like a wave. When the reply arrives, the message takes the bubble's place.
 

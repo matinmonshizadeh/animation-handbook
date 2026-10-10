@@ -1,5 +1,7 @@
 # WebGL Shader Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/webgl-shader-animation/)
+
 ## What it is
 A shader animation draws a moving picture entirely on the graphics chip. One small program runs for every pixel, every frame, and works out that pixel's color from its position and the time, so the whole pattern is made of math, with no images. Each of the four patterns in the demo is one such program.
 

@@ -1,5 +1,7 @@
 # Animated Gradient Border
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gradient-border/)
+
 ## What it is
 An animated gradient border is a colored edge around a card or button, with a band of colors that keeps running around it. Behind the element sits a large layer painted with colors that sweep around its center; an inner box covers everything but the edge, and the layer turns, so the colors seem to travel along the border.
 

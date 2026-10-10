@@ -1,5 +1,7 @@
 # Shimmer Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/shimmer-effect/)
+
 ## What it is
 A shimmer is a band of light that sweeps across gray placeholder shapes again and again while content loads. Where a pulse fades every block up and down together, a shimmer travels in one direction, so the placeholders look like content streaming in.
 

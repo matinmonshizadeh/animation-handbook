@@ -1,5 +1,7 @@
 # Cloth / Soft-Body Simulation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/cloth-simulation/)
+
 ## What it is
 A cloth simulation treats fabric as a grid of points joined by links of fixed length. Sixty times a second, every point keeps moving the way it was moving, plus gravity and wind, and then the links pull neighboring points back into shape. Pin a few points and the grid hangs, sways and folds like fabric, and you can grab it.
 

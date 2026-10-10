@@ -1,5 +1,7 @@
 # Curtain Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/curtain-reveal/)
+
 ## What it is
 
 A curtain reveal happens in three steps: a solid panel slides across the content to cover it, pauses, then slides off the far side to show it. Unlike a clip-path reveal, the content really is hidden behind the moving panel and then uncovered, so the eye notices a clear before and after. It is theatrical on purpose and suits content that deserves the drama.

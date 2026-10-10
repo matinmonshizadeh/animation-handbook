@@ -1,5 +1,7 @@
 # Variable Font Morph
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/variable-font-morph/)
+
 ## What it is
 A variable font holds a whole range of styles, such as thin to black, in one file, and each style is just a number. Because of that, the browser can move smoothly from one style to another, so a word can grow heavier or lighter as you watch. In the demo, the word moves between the site font's regular and black weights and leans over by being tilted, since this font has no slanted style of its own.
 

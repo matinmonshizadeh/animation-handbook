@@ -1,5 +1,7 @@
 # Zoom Into Image
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/zoom-into-image/)
+
 ## What it is
 Zoom into image starts with a small window onto a picture and opens it up to fill the screen as you scroll, as if you were flying into the picture. The picture itself never grows: more of it is simply uncovered, so it stays sharp. The window's rounded corners square off as it opens, and a caption fades in at the end.
 

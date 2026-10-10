@@ -1,5 +1,7 @@
 # 3D Model Orbit
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/)
+
 ## What it is
 A 3D model orbit shows a solid-looking object turning in the browser. The shape is stored as triangles, and WebGL lights every point of it with a soft base light, a direct light and a shiny highlight, so each side reads as solid as it comes into view. It is the basic pattern behind 3D product viewers, drawn here without a 3D library.
 

@@ -1,5 +1,7 @@
 # Gooey Menu
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gooey-menu/)
+
 ## What it is
 A gooey menu is a round button that lets smaller buttons ooze out of it like drops of liquid, and pulls them back in when it is pressed again. The drops are plain circles moving apart; a filter blurs them and then sharpens the blurred edge again, so circles that come close melt into one shape and a neck of liquid stretches between them until it snaps.
 

@@ -1,6 +1,6 @@
 # Reverse-Scrolling Columns
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reverse-scrolling-columns/)
 
 ## What it is
 

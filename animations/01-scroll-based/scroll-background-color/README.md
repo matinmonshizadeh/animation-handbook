@@ -1,5 +1,7 @@
 # Scroll-Driven Background Color
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-background-color/)
+
 ## What it is
 
 A scroll-driven background color gives each section of a page its own color and blends from one to the next as you scroll, so the whole page seems to change mood. Halfway between two sections the background is a mix of both colors. When the background turns light, the text switches to dark so it stays readable.

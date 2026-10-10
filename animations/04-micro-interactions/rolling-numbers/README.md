@@ -1,5 +1,7 @@
 # Rolling Numbers
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/rolling-numbers/)
+
 ## What it is
 Rolling numbers show a changing number the way a car's mileage counter does: each digit sits in a small window over a column of the digits 0 to 9, and when the value changes, the column slides until the new digit is in the window. Only the digits that change move, so a small change turns one wheel and a big jump turns them all.
 

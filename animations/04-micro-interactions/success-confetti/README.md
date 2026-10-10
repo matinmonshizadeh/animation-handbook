@@ -1,5 +1,7 @@
 # Success Confetti
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/success-confetti/)
+
 ## What it is
 A burst of confetti that marks a finished task, such as placing an order. The button turns into a success state, and many small rectangles shoot up from it in a fan, spin, fall and fade. It is a reward: it celebrates the moment but adds no new information.
 

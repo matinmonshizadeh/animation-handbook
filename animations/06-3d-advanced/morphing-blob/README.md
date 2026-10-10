@@ -1,5 +1,7 @@
 # Morphing Blob
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/)
+
 ## What it is
 A morphing blob is a soft, liquid shape made from plain circles. The circles are blurred and then their edges are sharpened again, so wherever two come close they melt into one shape, like drops of mercury. As they drift, the blob stretches, splits and joins, and one drop follows the pointer.
 

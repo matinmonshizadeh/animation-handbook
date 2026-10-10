@@ -1,5 +1,7 @@
 # Aurora / Northern Lights
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/aurora/)
+
 ## What it is
 An aurora background imitates the northern lights with a few tall bands of color that sway slowly across a night sky. Each band fades away at the top and bottom and is softly blurred, and each one drifts sideways and leans a little on its own cycle, so the curtains of light never move together. The browser draws it all with no script.
 

@@ -1,5 +1,7 @@
 # Flip In
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/flip-in/)
+
 ## What it is
 
 Flip In swings an element from a turned-away angle into full view in 3D, like a hinged panel turning toward you. The key detail is that the 3D perspective is set on the element's container, not on the card itself; without it, the turn collapses into a flat squash with no sense of depth.

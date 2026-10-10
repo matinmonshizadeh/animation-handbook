@@ -1,5 +1,7 @@
 # Text Gradient Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-gradient-animation/)
+
 ## What it is
 Text gradient animation fills the letters with a gradient instead of a flat color, then moves the gradient behind them, so color seems to flow through the word while the letters stay still. The trick is to paint the gradient as the text's background, show that background only inside the letter shapes, and make the text color itself see-through.
 

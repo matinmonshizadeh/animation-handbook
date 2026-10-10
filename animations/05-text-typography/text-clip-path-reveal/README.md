@@ -1,5 +1,7 @@
 # Text Clip-Path Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-clip-path-reveal/)
+
 ## What it is
 A text clip-path reveal uncovers a headline one line at a time, as if a hidden window opens across each line. Every letter sits in its final place from the start; only the visible part of each line grows. Because the text itself never moves, its spacing stays exactly as designed, which is hard to keep when each letter is animated on its own.
 

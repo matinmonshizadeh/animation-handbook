@@ -1,5 +1,7 @@
 # Synthwave Grid
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/synthwave-grid/)
+
 ## What it is
 A synthwave grid is a glowing neon floor that stretches to the horizon and rolls steadily toward the viewer, under a purple sky with a striped, glowing sun. It is the retro look of 1980s album covers and arcade games, the 1980s idea of the future, drawn as a loop that never visibly restarts.
 

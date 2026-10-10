@@ -1,5 +1,7 @@
 # Flocking
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/flocking/)
+
 ## What it is
 Flocking makes a crowd of simple dots move like one flock of birds or a school of fish, with no leader and no plan. Each bird sees only the birds near it and follows three rules: keep a little room from the closest ones, fly the way its neighbors fly, and drift toward the middle of the group. Those three local rules are enough to make the whole flock swirl, split and join again; Craig Reynolds named the birds "boids" when he described them in 1986.
 

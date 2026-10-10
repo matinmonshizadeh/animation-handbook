@@ -1,5 +1,7 @@
 # Flow Field
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/flow-field/)
+
 ## What it is
 A flow field moves thousands of particles across a canvas, each one steering by the direction of an invisible current under it. The directions change smoothly from one spot to the next, so particles near each other curve together, and the whole surface shows gentle, river-like currents. The canvas is dimmed a little each frame instead of cleared, so every particle leaves a fading trail that traces the flow.
 

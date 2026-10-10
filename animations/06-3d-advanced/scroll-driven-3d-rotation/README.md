@@ -1,5 +1,7 @@
 # Scroll-Driven 3D Rotation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/scroll-driven-3d-rotation/)
+
 ## What it is
 Scroll-driven 3D rotation ties an object's turn to the scroll position. The object stays pinned in view while the visitor scrolls through a tall section, and each stretch of scrolling moves it on to the next pose: turned, tilted, grown, then showing its back. Scrolling back runs it in reverse, the way many product pages show off a new device.
 

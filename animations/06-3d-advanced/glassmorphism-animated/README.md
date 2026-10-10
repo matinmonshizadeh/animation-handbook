@@ -1,5 +1,7 @@
 # Glassmorphism Animated
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/glassmorphism-animated/)
+
 ## What it is
 Glassmorphism styles a card as frosted glass: a see-through tint, a blur of whatever sits behind it, and a thin light edge. It only works when something colorful moves behind the glass, so the demo drifts soft color blobs behind three cards: one with a still frost, one whose blur breathes, and one whose tint slowly changes.
 

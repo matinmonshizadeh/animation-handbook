@@ -1,5 +1,7 @@
 # Hold to Confirm
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hold-to-confirm/)
+
 ## What it is
 Hold to confirm is a button that acts only after it has been held down for a moment. While it is held, a fill grows across it or around it; when the fill is full, the action runs and a tick shows. Letting go early drains the fill and nothing happens, so a stray tap or click can never delete anything.
 

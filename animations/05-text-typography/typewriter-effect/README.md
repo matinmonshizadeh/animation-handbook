@@ -1,5 +1,7 @@
 # Typewriter Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/typewriter-effect/)
+
 ## What it is
 The typewriter effect shows text one character at a time, as if someone is typing it, with a blinking cursor just after the last character. Small random differences in the time between keystrokes make it feel typed by a person rather than a machine, because real typing is never perfectly even.
 

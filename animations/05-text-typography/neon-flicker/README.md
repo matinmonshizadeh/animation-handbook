@@ -1,5 +1,7 @@
 # Neon Flicker
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/neon-flicker/)
+
 ## What it is
 Neon flicker makes a word look like a glowing neon sign whose light sometimes stutters. The letters shine steadily most of the time, then drop out and come back in short, uneven bursts, the way a worn tube or a loose wire behaves, and one letter can buzz on its own like a tube that is about to fail.
 

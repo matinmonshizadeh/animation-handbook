@@ -1,5 +1,7 @@
 # Fireworks
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/fireworks/)
+
 ## What it is
 A fireworks effect launches rockets from the bottom of a dark scene; each one slows as it climbs and, at the top of its climb, bursts into a ball of sparks that fly out, droop under gravity and fade away. Instead of being cleared, the canvas is covered with a faint see-through layer on every frame, so each spark leaves a glowing trail of the path it has flown.
 

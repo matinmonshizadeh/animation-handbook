@@ -1,5 +1,7 @@
 # Glitch Text
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/)
+
 ## What it is
 Glitch text makes a headline look like a broken video signal. A red copy and a cyan copy of the word sit just to either side of it, and only thin horizontal strips of each copy show, changing all the time, so strips of color seem to tear away from the letters. It reads as a digital fault: a signal losing sync, or a tape dropping out.
 

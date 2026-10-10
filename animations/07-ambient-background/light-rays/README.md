@@ -1,5 +1,7 @@
 # Light Rays
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/light-rays/)
+
 ## What it is
 Light rays (also called god rays or sunbeams) are soft shafts of light that fan out from a bright point just out of view, as when sun falls through a window or between trees. Each beam is soft at its edges, brightest near where the light comes in and fading farther away. The beams sway a little and brighten and dim on their own slow cycles, so the light seems to sweep across the scene, and specks of dust glint only where a beam catches them.
 

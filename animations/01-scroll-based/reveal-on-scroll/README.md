@@ -1,5 +1,7 @@
 # Reveal on Scroll
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/)
+
 ## What it is
 A reveal on scroll keeps an element hidden, such as faded, shifted, shrunk, blurred or clipped, until it rises past a line in the view, then lets it settle into place. The browser reports when each element crosses the line, so nothing has to run on every scroll. The demo shows seven reveal styles behind one dashed line.
 

@@ -1,5 +1,7 @@
 # Volumetric Smoke / 3D Noise
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/volumetric-smoke/)
+
 ## What it is
 Volumetric smoke is drawn as a real 3D cloud rather than a flat picture. For every pixel, a ray passes through a cloud of smooth noise and adds up how much smoke it meets, shading each part by how much smoke lies between it and the light. That gives soft edges and depth, which is how films draw smoke, fog and clouds.
 

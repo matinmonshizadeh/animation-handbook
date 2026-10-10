@@ -1,5 +1,7 @@
 # Stagger Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/stagger-reveal/)
+
 ## What it is
 A stagger reveal shows a group of items one after another instead of all at once, with a short delay between them, so the group appears as a sweep. The order can run from first to last, last to first, from the middle outward, or at random. The demo plays it on a grid of cards, a list and a cluster of tags as each scrolls into view.
 

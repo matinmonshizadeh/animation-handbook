@@ -1,5 +1,7 @@
 # Text on a Path
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/)
+
 ## What it is
 Text on a path lets a line of type follow a curve instead of a straight line. The curve is defined once and the text is attached to it, so every letter sits on the line. Moving the point where the text starts along the curve makes the letters travel along it, like a ticker bent into a shape.
 

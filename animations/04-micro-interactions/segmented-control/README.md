@@ -1,5 +1,7 @@
 # Segmented Control
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/segmented-control/)
+
 ## What it is
 
 A segmented control is a row of options where exactly one is chosen, marked by a highlight behind it. When you choose another option, the highlight slides over to it and stretches to its width while the labels change color, so the change reads as one thing moving. It is the switch behind view pickers such as Day, Week and Month.

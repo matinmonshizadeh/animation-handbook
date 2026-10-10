@@ -1,5 +1,7 @@
 # Clip-Path Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/)
+
 ## What it is
 
 A clip-path reveal uncovers an element by growing a mask shape until the whole element shows. The element is fully drawn the entire time; only the visible part grows. Because nothing moves or fades, the content stays crisp and in place while a shape wipes across it, which gives the effect its cinematic, editorial feel.

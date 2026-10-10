@@ -1,5 +1,7 @@
 # Copy to Clipboard
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/copy-to-clipboard/)
+
 ## What it is
 Copy feedback is the short confirmation a Copy button gives after it copies something. The clipboard icon turns into a tick, the label changes from Copy to Copied! and a brief flash of color marks the moment. After a second or two the button changes back, ready to use again.
 

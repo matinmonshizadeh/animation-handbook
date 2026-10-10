@@ -1,5 +1,7 @@
 # Heart / Like Burst
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/heart-burst/)
+
 ## What it is
 A like button that celebrates the moment you like something. The heart quickly squashes, overshoots and settles as it fills with color, while tiny hearts and dots burst out from its center and fade. Unliking just removes the color, with no celebration.
 

@@ -1,5 +1,7 @@
 # ASCII / Halftone
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/ascii-halftone/)
+
 ## What it is
 An ASCII or halftone effect redraws a picture out of small marks on a grid. The picture is shrunk to one pixel per cell, and each cell's brightness picks a character (brighter cells get characters with more ink) or sets the size of a dot, as in a newspaper photo. Because the picture is read again every frame, it works on anything that moves: a canvas scene, a video or a webcam.
 

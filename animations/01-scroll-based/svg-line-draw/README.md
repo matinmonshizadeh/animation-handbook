@@ -1,6 +1,6 @@
 # SVG Line Draw on Scroll
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/svg-line-draw/)
 
 ## What it is
 

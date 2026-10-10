@@ -1,5 +1,7 @@
 # Scroll Image Sequence
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scroll-image-sequence/)
+
 ## What it is
 A scroll image sequence plays a series of still pictures as you scroll, like flipping through a flip-book: each scroll position shows one picture, so scrolling down plays the animation and scrolling up plays it backwards. Product pages use it to turn a pre-rendered animation, such as a phone turning around, into something the reader controls. The demo draws its pictures as it goes, a turning wireframe cube, so it needs no image files.
 

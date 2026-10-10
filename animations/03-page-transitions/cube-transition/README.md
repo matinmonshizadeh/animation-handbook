@@ -1,5 +1,7 @@
 # Cube Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/cube-transition/)
+
 ## What it is
 A cube transition treats two pages as neighboring sides of a cube. When the page changes, the cube makes a quarter turn: the old page swings away around the cube's middle and the new one swings in from the side to take its place. Going back turns the cube the other way, so the visitor always knows which way they went.
 

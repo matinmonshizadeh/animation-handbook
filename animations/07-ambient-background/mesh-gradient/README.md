@@ -1,5 +1,7 @@
 # Mesh Gradient Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/mesh-gradient/)
+
 ## What it is
 A mesh gradient is a background of a few large circles of color, blurred so their edges soften and the colors run into one another; with heavy blur they melt into soft washes. Each circle drifts and grows or shrinks slowly on its own path, so the colors keep blending in new ways, like paint that never quite dries. It is the look of Stripe, Linear and many modern software sites.
 

@@ -1,5 +1,7 @@
 # Hamburger Menu Toggle
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hamburger-menu-toggle/)
+
 ## What it is
 A three-line "hamburger" icon that morphs into an ✕ when activated. The same
 three bars serve both states: the top and bottom bars rotate toward the center

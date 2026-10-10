@@ -1,5 +1,7 @@
 # Text Particles
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-particles/)
+
 ## What it is
 Text particles draw a word as many small dots instead of solid letters. Each dot remembers its place in the word: the pointer pushes the nearby dots away and a spring pulls each one back, so the letters open up wherever you point and close again behind you.
 

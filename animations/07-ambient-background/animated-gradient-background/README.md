@@ -1,5 +1,7 @@
 # Animated Gradient Background
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/animated-gradient-background/)
+
 ## What it is
 An animated gradient background slowly shifts its colors behind the content, over a long cycle (typically 15 to 30 seconds), so the page feels alive without anything catching the eye. The gradient is painted much larger than the area it fills and slides slowly back and forth, or its colors turn around the color wheel. It is the lightest ambient effect: the browser animates it with no script at all.
 

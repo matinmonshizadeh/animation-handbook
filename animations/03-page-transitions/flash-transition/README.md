@@ -1,5 +1,7 @@
 # Flash / Light Leak Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flash-transition/)
+
 ## What it is
 A flash transition hides a page change inside a burst of light. A colored layer covers the page and rises to full strength, the page is swapped while it is covered, and the layer then fades away to reveal the new page. The eye reads it as one bright moment, so the swap itself is never seen — the same trick films use to hide a cut.
 

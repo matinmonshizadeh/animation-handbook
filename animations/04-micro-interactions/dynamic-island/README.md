@@ -1,5 +1,7 @@
 # Dynamic Island
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/dynamic-island/)
+
 ## What it is
 A Dynamic Island is a small black pill at the top of a phone screen that grows into a larger card to show something live, such as a call, a timer or the song that is playing, and shrinks back into the pill when it is done. The pill and the card are one black shape whose outline changes, so the change reads as one object stretching rather than a new window opening. The name comes from the iPhone, but the same idea suits any status area at the top of an app or page.
 

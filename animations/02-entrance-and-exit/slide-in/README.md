@@ -1,5 +1,7 @@
 # Slide In
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/slide-in/)
+
 ## What it is
 
 A slide-in moves an element from a short distance away into its final place. The motion has a direction (from the top, bottom, left or right), so the element seems to arrive from somewhere. Paired with a fade it feels like a natural entrance; on its own it can feel mechanical.

@@ -1,5 +1,7 @@
 # Light Leak
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/light-leak/)
+
 ## What it is
 A light leak is a warm glow that washes in from the edge of the frame and fades away again, like the stray light that reached the film when an old camera was not sealed properly. Real leaks happen at random and vary in strength, so the effect waits a random gap between leaks and peaks at a slightly different brightness each time; evenly timed leaks look like a machine, not a film camera.
 

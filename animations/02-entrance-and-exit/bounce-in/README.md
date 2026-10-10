@@ -1,5 +1,7 @@
 # Bounce In
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/bounce-in/)
+
 ## What it is
 
 Bounce In brings an element up from small and low, overshoots its final size and position, then springs back to rest, like something landing with momentum. A real bounce isn't one smooth curve: it's a few hand-placed steps, each going a little past the target and coming back.

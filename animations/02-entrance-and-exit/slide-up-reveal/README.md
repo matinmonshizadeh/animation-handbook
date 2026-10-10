@@ -1,5 +1,7 @@
 # Slide Up Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/slide-up-reveal/)
+
 ## What it is
 
 A slide-up reveal makes a line of text rise into view from behind an invisible edge, as if it is coming up from underneath a surface. The text moves, but everything below the line stays hidden, so only its arrival is visible. It is the classic entrance for headlines and hero copy.

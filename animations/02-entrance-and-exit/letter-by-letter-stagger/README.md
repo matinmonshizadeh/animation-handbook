@@ -1,5 +1,7 @@
 # Letter-by-Letter Stagger
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/letter-by-letter-stagger/)
+
 ## What it is
 
 A letter-by-letter stagger animates each character a moment after the previous one, so a phrase assembles as a cascade instead of appearing all at once. The demo shows two versions: a cascade where every letter plays a small entrance, and a typewriter that reveals letters one at a time, with an optional blinking cursor.

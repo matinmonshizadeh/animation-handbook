@@ -1,5 +1,7 @@
 # Particle Constellation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/particle-constellation/)
+
 ## What it is
 A particle constellation is a field of small dots drifting slowly across a background, where any two dots that come close enough are joined by a thin line that fades as they move apart. The lines keep forming and breaking, so the network seems to shift and grow: the "connected dots" background behind many tech and product sites.
 

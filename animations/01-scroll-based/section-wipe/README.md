@@ -1,5 +1,7 @@
 # Section Wipe
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/section-wipe/)
+
 ## What it is
 A section wipe replaces each full-screen section with the next by sliding the new one up over it, instead of scrolling the old one away. Every section sticks to the top of the screen and sits above the one before, so the next one covers it as you scroll. The covered section can shrink slightly, so it seems to sink behind the one arriving.
 

@@ -1,5 +1,7 @@
 # 2.5D / Pseudo-3D
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/2-5d-pseudo-3d/)
+
 ## What it is
 2.5D fakes depth with flat layers. The picture is split into layers at different distances, and when the camera moves, near layers slide further than far ones, as the view from a train window does. The same trick gave old cartoons and video games their sense of depth.
 

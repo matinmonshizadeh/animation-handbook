@@ -1,5 +1,7 @@
 # Marquee / Ticker
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/marquee-ticker/)
+
 ## What it is
 A marquee scrolls a line of text sideways without end, like a news ticker. The text is repeated, and the row moves by exactly the width of one copy before starting over, so an identical copy is always in place and the restart cannot be seen. In the demo, three rows scroll at the same pace, the middle one the other way, and pointing at a row or tapping it stops just that row.
 

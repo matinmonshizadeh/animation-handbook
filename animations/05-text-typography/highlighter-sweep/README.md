@@ -1,5 +1,7 @@
 # Highlighter Sweep
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/highlighter-sweep/)
+
 ## What it is
 A highlighter sweep marks the key words of a sentence the way a pen would. A band of marker color grows behind each key phrase from left to right, one phrase after another in reading order, so the eye is led from one idea to the next. The words themselves never move; only the color behind them is drawn.
 

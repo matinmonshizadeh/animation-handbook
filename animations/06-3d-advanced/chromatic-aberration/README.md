@@ -1,5 +1,7 @@
 # Chromatic Aberration
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/chromatic-aberration/)
+
 ## What it is
 Chromatic aberration copies a flaw of cheap lenses, where red, green and blue light land in slightly different places and leave colored fringes at the edges. The demo stacks a red, a green and a blue copy of a word, which add up to white where they overlap, and shifts the red and blue copies apart. The split can breathe in and out or glitch.
 

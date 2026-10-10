@@ -1,5 +1,7 @@
 # Modal Expand
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/modal-expand/)
+
 ## What it is
 Modal expand makes a dialog grow out of the button that opened it. The page measures where that button is and grows the window from that exact spot to its full size in the middle of the screen, so it is clear where the window came from and where it goes back to when it closes.
 

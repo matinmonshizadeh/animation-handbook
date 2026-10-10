@@ -1,5 +1,7 @@
 # 3D Carousel
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/carousel-3d/)
+
 ## What it is
 A 3D carousel stands its cards in a ring and turns the whole ring to bring one card to the front. Each card is turned by an equal share of the circle and pushed out from the middle by the same distance, so the cards beside the front one lean away and the ones behind show their backs. Dragging spins the ring, and when you let go it coasts a little before it settles on the nearest card.
 

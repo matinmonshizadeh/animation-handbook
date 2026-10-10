@@ -1,5 +1,7 @@
 # SVG Path Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/svg-path-animation/)
+
 ## What it is
 An SVG path animation makes a line drawing appear as if drawn by hand. Each line is hidden behind a dash exactly as long as the line, and sliding that dash away uncovers the line from one end to the other. The whole drawing is in the page from the start, with a label, so screen readers can always find it.
 

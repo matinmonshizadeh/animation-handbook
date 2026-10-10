@@ -1,5 +1,7 @@
 # Game of Life
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/game-of-life/)
+
 ## What it is
 Conway's Game of Life is a grid of square cells, each alive or dead, that changes one generation at a time by three rules about each cell's eight neighbors: a dead cell with exactly three live neighbors is born, a live cell with two or three lives on, and every other cell dies. Nobody steers it, yet out of these rules come still shapes, shapes that blink, gliders that crawl across the grid and guns that fire gliders forever. The mathematician John Conway devised it in 1970.
 

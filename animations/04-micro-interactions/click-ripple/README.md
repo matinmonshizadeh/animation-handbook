@@ -1,5 +1,7 @@
 # Click / Tap Ripple
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/click-ripple/)
+
 ## What it is
 A ripple is a soft circle that grows out from the spot you press and fades away. It confirms that the press registered and shows exactly where it landed, which helps most on touch screens, where nothing reacts to hovering. Material Design, Google's design system, made it popular.
 

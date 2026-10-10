@@ -1,5 +1,7 @@
 # Dissolve Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/dissolve/)
+
 ## What it is
 A dissolve breaks a page change into a grid of tiles. Each tile fades in over the old page at a slightly different moment, so the old page seems to break up into grain or blocks rather than fading evenly. The order of the tiles — random, a diagonal sweep or rings from the middle — gives the dissolve its texture.
 

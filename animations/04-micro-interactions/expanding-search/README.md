@@ -1,5 +1,7 @@
 # Expanding Search
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/expanding-search/)
+
 ## What it is
 An expanding search shows only a search icon until it is needed. Pressing the icon opens a search field out of it, over the links beside it, and puts the cursor inside; Escape, the close button or clicking away closes it again. It saves room in a busy toolbar while keeping search one press away.
 

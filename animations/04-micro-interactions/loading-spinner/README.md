@@ -1,5 +1,7 @@
 # Loading Spinner
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/loading-spinner/)
+
 ## What it is
 A loading spinner is a small shape that keeps moving in a loop to show that the system is busy. It says nothing about how long the wait will be, only that work is going on, so it suits waits of unknown length, such as a network request. The demo shows six common designs.
 

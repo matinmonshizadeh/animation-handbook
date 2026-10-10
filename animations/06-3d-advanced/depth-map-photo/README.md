@@ -1,5 +1,7 @@
 # Depth-Map Photo
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/depth-map-photo/)
+
 ## What it is
 A depth-map photo makes a flat picture look three-dimensional when you point at it. Beside the picture sits a grayscale depth map of the same size, white where things are near and black where they are far, and as the pointer moves, each part of the picture shifts by an amount set by its gray. Near parts slide further than far ones, and the eye reads the difference as depth, the way it does when you move your head.
 

@@ -1,5 +1,7 @@
 # Infinite Zoom
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/infinite-zoom/)
+
 ## What it is
 An infinite zoom keeps moving into a picture whose middle holds a smaller picture, which holds a smaller one again, so the view seems to dive forever. It is a short loop in disguise: every picture is drawn again at a smaller size inside the frame of the one around it, and the view zooms in by exactly the step between two of them. When the inner picture fills the view it simply takes the outer one's place, so nothing ever jumps.
 

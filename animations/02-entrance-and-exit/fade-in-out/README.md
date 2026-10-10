@@ -1,5 +1,7 @@
 # Fade In / Fade Out
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/fade-in-out/)
+
 ## What it is
 
 A fade changes an element's opacity between invisible and fully visible: it fades in to appear and fades out to leave. It is the simplest entrance animation and one of the cheapest to run, because the browser only blends a layer it has already drawn. Since nothing moves or changes shape, a fade reads as a neutral appearance rather than a movement.

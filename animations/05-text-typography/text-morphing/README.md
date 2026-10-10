@@ -1,5 +1,7 @@
 # Text Morphing
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-morphing/)
+
 ## What it is
 Text morphing changes one word into the next, letter by letter. The letters of the current word slide out of sight, then the letters of the next word slide in from the opposite side; a small delay between letters can send each change across the word like a wave. Each word stays still long enough to read before the next change.
 

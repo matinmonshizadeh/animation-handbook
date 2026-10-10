@@ -1,5 +1,7 @@
 # GPGPU Particle System
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/gpgpu-particle-system/)
+
 ## What it is
 A GPU particle system moves tens of thousands of particles on the graphics chip instead of in JavaScript. Every particle's position and speed is stored as one pixel of a texture, and a shader reads last frame's texture and writes the next one, all at once. A second step draws each particle as a tiny point.
 

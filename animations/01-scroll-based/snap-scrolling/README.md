@@ -1,6 +1,6 @@
 # Snap Scrolling
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/snap-scrolling/)
 
 ## What it is
 

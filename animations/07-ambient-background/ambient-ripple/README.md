@@ -1,5 +1,7 @@
 # Ambient Ripple Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ambient-ripple/)
+
 ## What it is
 An ambient ripple sends rings out from a few spots, over and over, like drops falling on a still pond or the ping of a sonar screen. Each ring grows from nothing and fades as it spreads, and the next one starts before it is gone, so the rings overlap into a gentle, steady pulse. It runs on its own rather than answering a click, and hints that something is alive there.
 

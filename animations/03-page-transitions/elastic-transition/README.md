@@ -1,5 +1,7 @@
 # Elastic Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/elastic-transition/)
+
 ## What it is
 An elastic transition slides the new page in so that it goes a little past its place and springs back before settling, instead of easing to a stop. The overshoot gives the movement weight, as if the page were pulled into place by a rubber band. The bounce can be planned ahead as a fixed path, which is cheap, or worked out live by simulating a spring, which feels physical.
 
