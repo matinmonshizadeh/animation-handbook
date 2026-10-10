@@ -43,7 +43,7 @@ Because the canvas is never fully cleared, the length of the tail is entirely co
 ## Production notes
 - **`fillRect` fade vs `clearRect`**: clearing the canvas each frame gives no trail — you would have to store and redraw every past glyph yourself. Painting a translucent `fillRect` is both the trail mechanism and cheaper, since it is one composited rectangle instead of hundreds of retained cells.
 - **Cap density on mobile**: column count is derived from a minimum pixel pitch, not an unbounded `width / fontSize`. Combined with clamping `devicePixelRatio` to 2, this keeps the per-frame `fillText` count bounded so the effect holds 60fps on mid-range phones. Heavy `shadowBlur` is the most expensive part — it is applied only to the single leader glyph, never the trail.
-- **Pause on hidden tab**: the `requestAnimationFrame` loop is cancelled on `visibilitychange` when `document.hidden` is true and restarted when the tab returns, so a background tab burns no CPU or battery.
+- **Pause on hidden tab**: the `requestAnimationFrame` loop is canceled on `visibilitychange` when `document.hidden` is true and restarted when the tab returns, so a background tab burns no CPU or battery.
 - **Reduced motion**: the demo starts paused, showing a screen of rain drawn at once, until the visitor presses Play. In production, show these visitors a still frame.
 - **It is decorative**: real usage should sit behind content with `aria-hidden="true"`, `pointer-events: none`, and enough contrast on the foreground text that the rain does not reduce readability. Treat it as texture, not information.
 - **No library needed**: a 2D canvas, `fillText` and a translucent `fillRect` are the whole effect.

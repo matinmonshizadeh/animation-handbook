@@ -57,7 +57,7 @@ The menu sits inside the scroller, in a row that is zero tall and `position: sti
 - **Suppress spy updates during programmatic scroll.** A smooth scroll from section 1 to section 5 passes through 2, 3, and 4; without a lock the indicator rapid-fires across every link in between. Activate the target immediately, ignore spy results until the scroll settles, then resume.
 - **IntersectionObserver is not a drop-in replacement.** It tells you which sections intersect a band, but scrollspy needs *exactly one* active section at all times — sections taller than the viewport report no intersection with a thin band unless you observe carefully-tuned `rootMargin` bands, and ties between two intersecting sections still need a scroll-position tiebreak. For "one active link" semantics, the cached-tops comparison is simpler and deterministic.
 - **Using native anchors instead?** If you link with `href="#section"` and let the browser jump, set `scroll-margin-top` on the targets so a fixed header does not cover the section heading, and use `scroll-behavior: smooth` on the scroller.
-- **Libraries**: Bootstrap's Scrollspy highlights the link of the section in view once `data-bs-spy="scroll"` is on the scroll container, and Gumshoe is a small standalone script that does the same.
+- **Libraries**: Bootstrap's Scrollspy highlights the link of the section in view once the scroll container has `data-bs-spy="scroll"` and a `data-bs-target` naming the menu, and Gumshoe is a small standalone script that does the same.
 
 ## See also
 

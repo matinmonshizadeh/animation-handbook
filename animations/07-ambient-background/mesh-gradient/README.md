@@ -12,7 +12,7 @@ A mesh gradient is a background of a few large circles of color, blurred so thei
 - App splash screens and loading states
 
 ## How it works
-Each blob is an absolutely-positioned round `<div>` filled with one color and softened with `filter: blur()`. The key is heavy blur — 80px or more — which dissolves the circle's hard edge into a wash of color. Each blob has keyframes of its own, a single move from where it starts to where it ends, played forward and back (`alternate`) over its own share of `--dur`, the Speed setting:
+Each blob is an absolutely-positioned round `<div>` filled with one color and softened with `filter: blur()`. The key is heavy blur — 80px or more — which dissolves the circle's hard edge into a wash of color. Each blob has keyframes of its own, a single move from where it starts to where it ends, played forward and back (`alternate`) over its own multiple of `--dur`, the Speed setting:
 
 ```css
 .blob {
@@ -74,9 +74,9 @@ Heavy blur is the costly part on phones, so the demo halves it on small screens:
 ## Production notes
 - **`filter: blur()` on GPU**: heavy blur is GPU-accelerated in modern browsers but creates a compositing layer per blurred element. Four blurred blobs = four compositing layers. On low-RAM devices, this stacks up — test on mobile.
 - **Overflow clipping**: blobs extend beyond the container. Always `overflow: hidden` on the parent so blobs don't bleed into the rest of the page.
-- **Native CSS mesh gradients**: the CSS Working Group has a `mesh()` function specification in progress that would render true mesh gradients in CSS without the blur trick. It is not yet shipped in any browser.
+- **Native CSS mesh gradients**: CSS has none yet. A proposal for mesh and freeform gradients is open at the CSS Working Group (csswg-drafts issue #7648), but it is not in any specification and no browser ships it, so blurred blobs remain the way to get this look.
 - **Figma / Sketch "mesh gradient" tools**: design tools generate mesh gradients as images. For web, the blur-div approach produces a similar aesthetic with full animation capability.
-- **Keep the blobs out of step**: if every blob shares one duration and starts with the others, they all turn around at the same moment and the same mix comes back every cycle. The demo gives each blob its own path and its own duration instead. A negative `animation-delay` (e.g., `-10s`) is another way: it starts an animation mid-cycle, so blobs that share a duration still never line up.
+- **Keep the blobs out of step**: if every blob shares one duration and starts with the others, they all turn around at the same moment and the same mix comes back every cycle. The demo gives each blob its own path and its own duration instead. A negative `animation-delay` (e.g., `-10s`) starts an animation mid-cycle, so blobs that share a duration no longer turn around together, though the whole mix still repeats every cycle.
 - **Libraries**: Paper Shaders has a `MeshGradient` that draws the colors in a shader instead of with blurred circles, animated by a speed setting, in plain JavaScript or as a React component.
 
 ## See also

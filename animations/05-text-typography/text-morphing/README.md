@@ -74,7 +74,7 @@ function afterExit() {
 ## Production notes
 - **Length mismatch**: this demo sidesteps it — the whole old word leaves before the new one arrives, so words of any length work. A morph that swaps letters in place has to fade the extra letters in or out with opacity only, so the letters around them do not jump.
 - **Fixed-width container**: to prevent layout shift as word length changes, give the rotating word container a fixed or `min-width` based on the longest word. Otherwise sibling elements jump as words swap.
-- **`will-change: transform`**: only add this during active morphing — set it at the start of a transition and remove it after. Persistent `will-change` on many small spans wastes GPU memory.
+- **`will-change`**: the demo sets `will-change: transform, opacity` on its letters in the stylesheet, which costs little for one short word whose spans are rebuilt at every change. With many letters on screen, add it just before a change and remove it after, because each promoted span keeps its own layer in GPU memory.
 - **GSAP**: `gsap.to(chars, { y: -50, opacity: 0, stagger: 0.03, duration: 0.4 })` for exits, then rebuild and animate in. GSAP's stagger model is cleaner than per-element `transitionDelay` in JavaScript.
 - **SplitType**: a lightweight library that splits text into `<div>` wrappers per word/char without the overhead of GSAP. Pairs well with this pattern.
 
