@@ -76,6 +76,8 @@ function step(now) {                           // t0 = the time of the first fra
 
 `x0` and `y0` are where the card already leans when Show me is pressed, so a second press carries on from there. A press, a finger or a wheel turn over the stage, or the pointer moving over the card, cancels the frame and flattens the card, so the visitor is always in control.
 
+The card also takes keyboard focus, and the keys stand in for the pointer through the same tilt function. Keyboard focus tilts the card where it leans (at rest it only lifts, with the light in its middle), each press of an arrow key moves the pretend pointer 6% of the way across the card (a key held down repeats), and Escape or moving focus away flattens it, as the pointer leaving does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
