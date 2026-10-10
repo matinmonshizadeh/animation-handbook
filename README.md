@@ -54,7 +54,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 27 Scroll-Based techniques</summary>
 
 - **[Parallax Depth-of-Field](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-depth-of-field/)** — Layers move at their own speed as the focus shifts. Best for cinematic intros.
 - **[Parallax Scrolling](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/)** — Far layers move slower than near ones as you scroll. Best for hero scenes.
@@ -92,7 +92,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 14 Entrance & Exit techniques</summary>
 
 - **[Fade In / Fade Out](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/fade-in-out/)** — Fades in to appear and fades out to leave. Best for pop-ups and tooltips.
 - **[Slide In](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/slide-in/)** — Travels into place from one edge. Best for side panels and notifications.
@@ -117,7 +117,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 16 Page Transitions techniques</summary>
 
 - **[View Transitions API](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/view-transitions-api/)** — The browser animates the change between two pages for you. Best for web apps.
 - **[Shared Element Transition](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/)** — A picture grows from the list into the next page's header. Best for galleries.
@@ -144,7 +144,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 41 Micro-Interactions techniques</summary>
 
 - **[Hover State Animation](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/)** — Six ways a card can react when you point at it. Best for buttons and cards.
 - **[Click / Tap Ripple](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/click-ripple/)** — A ripple spreads out from the spot you press. Best for buttons and list items.
@@ -196,7 +196,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 19 Text & Typography techniques</summary>
 
 - **[Kinetic Typography](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/kinetic-typography/)** — Words arrive and leave one by one, each moving its own way. Best for intros.
 - **[Typewriter Effect](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/typewriter-effect/)** — Text types itself out behind a blinking cursor. Best for short taglines.
@@ -226,7 +226,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 26 3D & Advanced techniques</summary>
 
 - **[3D Model Orbit](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/)** — A lit 3D shape spins, or turns to face your pointer. Best for product views.
 - **[Scroll-Driven 3D Rotation](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/scroll-driven-3d-rotation/)** — Scrolling turns a 3D cube from pose to pose. Best for product tours.
@@ -263,7 +263,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <sub>Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows.</sub>
 
-<details><summary>Browse techniques</summary>
+<details><summary>Browse the 23 Ambient & Background techniques</summary>
 
 - **[Animated Gradient Background](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/animated-gradient-background/)** — Colors slowly drift across a soft gradient background. Best for hero sections.
 - **[Mesh Gradient Animation](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/mesh-gradient/)** — Blurred blobs of color drift and melt together. Best for landing pages.
