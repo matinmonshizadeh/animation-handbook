@@ -182,6 +182,13 @@
     el.addEventListener('animationend',()=>el.remove(),{once:true});
   }
   btns.forEach(btn=>btn.addEventListener('pointerdown',e=>spawnRipple(btn,e)));
+  // Enter or Space clicks a button with no pointer, so the click's detail is 0 (as when assistive technology presses it): the
+  // ripple starts from the button's center. A pointer's click (detail 1 or more) adds none, its pointerdown made one already.
+  btns.forEach(btn=>btn.addEventListener('click',e=>{
+    if(e.detail!==0)return;
+    const r=btn.getBoundingClientRect();
+    spawnRipple(btn,{clientX:r.left+r.width/2,clientY:r.top+r.height/2});
+  }));
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
