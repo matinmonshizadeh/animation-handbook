@@ -30,6 +30,8 @@ lx += (tx - lx) * a;  ly += (ty - ly) * a;
 
 A mouse lights the grid while it moves over it, and the light fades out (an `opacity` transition on a class) when it leaves. A finger lights it where it touches and while it drags: the grid has `touch-action: none` and takes pointer capture, so the drag moves the light instead of scrolling the page, and lifting the finger fades it out.
 
+The grid also takes keyboard focus (`tabindex="0"`), and the light then appears in its middle, or where the keys last left it. Each arrow key press moves it by 6% of the grid's width or height, and it trails with the same lag as behind a pointer; Escape, or moving the focus away, fades it out.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
