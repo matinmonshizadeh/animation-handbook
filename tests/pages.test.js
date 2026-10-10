@@ -592,6 +592,80 @@ test('a typed word loses its ending by the rule in the spec', () => {
   assert.deepEqual(Object.fromEntries(Object.keys(want).map(word => [word, stem(word)])), want);
 });
 
+// The home page's search as the page runs it: the cards and their word lists built by the page's own code (from PLACE_LIST
+// up to BY_SLUG), then its search functions, in one context with the page's CATS, PLACES and SAME.
+function homeSearch() {
+  const at = marker => { const i = HOME.indexOf(marker); assert.ok(i >= 0, `${marker} in index.html`); return i; };
+  const context = vm.createContext({ CATS: homeConst('CATS'), PLACES: homeConst('PLACES'), SAME: homeConst('SAME') });
+  vm.runInContext(HOME.slice(at('const PLACE_LIST=['), at('const BY_SLUG=')), context);
+  for (const name of ['stem', 'queryWords', 'score', 'search']) {
+    const start = at(`function ${name}(`);
+    vm.runInContext(HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1), context);
+  }
+  return context;
+}
+
+test('the search finds what a visitor describes, and each Popular suggestion keeps its first result', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  const shown = Number(HOME.match(/const PAGE=(\d+);/)[1]);
+  // The search box's own example: a button that springs back as it is pressed comes first, and Bounce In is on the first page.
+  const example = HOME.match(/<input id="q"[^>]* placeholder="For example: ([^"]+)">/)[1];
+  const found = names(example);
+  assert.equal(found[0], 'Button Press Scale', `"${example}": ${found.slice(0, shown).join(', ')}`);
+  assert.ok(found.slice(0, shown).includes('Bounce In'), `"${example}" shows Bounce In on the first page: ${found.slice(0, shown).join(', ')}`);
+  const first = { 'text that types itself': 'Typewriter Effect', 'loading spinner': 'Loading Spinner', 'background with moving stars': 'Starfield / Space Particles',
+    'confetti when done': 'Success Confetti', 'menu that slides in': 'Drawer / Panel Slide', fade: 'Fade In / Fade Out' };
+  for (const [text, name] of Object.entries(first)) assert.equal(names(text)[0], name, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+  // A Parallax card first, and the two cards that fake depth without the word parallax come too.
+  const parallax = names('parallax');
+  assert.match(parallax[0], /Parallax/, `"parallax": ${parallax.join(', ')}`);
+  for (const name of ['2.5D / Pseudo-3D', 'Depth-Map Photo']) assert.ok(parallax.includes(name), `"parallax" finds ${name}: ${parallax.join(', ')}`);
+  const change = page.search('page change animation')[0];
+  assert.equal(change.cat.name, 'Page Transitions', `"page change animation": ${change.name} first`);
+  // The Popular suggestions, in the hero and in the Nothing-found panel, each with the first result it had before the groups.
+  const popular = { 'fade in': 'Fade In / Fade Out', 'typing text': 'Kinetic Typography', 'loading spinner': 'Loading Spinner', parallax: 'Parallax Depth-of-Field',
+    confetti: 'Success Confetti' };
+  for (const panel of [between(HOME, '<p class="pop"><span>Popular:</span>', '</p>'), between(HOME, '<div class="empty" id="empty"', '</div>')]) {
+    assert.deepEqual([...panel.matchAll(/data-q="([^"]*)"/g)].map(m => m[1]), Object.keys(popular), 'the Popular suggestions');
+  }
+  for (const [text, name] of Object.entries(popular)) assert.equal(names(text)[0], name, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+});
+
+test('a typed word also finds the cards that use another word of its group, after every card that has the word itself', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  // Words a visitor may type that no card uses.
+  for (const [text, name] of [['wobble', 'Error Shake'], ['popup', 'Modal Expand'], ['mouse', 'Cursor Follower'], ['loader', 'Loading Spinner']]) {
+    assert.ok(names(text).includes(name), `"${text}" finds ${name}: ${names(text).join(', ')}`);
+  }
+  // Each word of every group, typed alone: the cards with the typed word itself come first, then the ones found through the group.
+  for (const text of homeConst('SAME').flat()) {
+    const [word] = page.queryWords(text), has = e => [...e.nameW, ...e.placeW, ...e.descW].some(x => x.startsWith(word));
+    const found = page.search(text), others = found.findIndex(e => !has(e));
+    assert.ok(others < 0 || found.slice(others).every(e => !has(e)), `"${text}": ${found.map(e => e.name + (has(e) ? '' : ' (group)')).join(', ')}`);
+  }
+  for (const [text, name] of [['tap', 'Click / Tap Ripple'], ['click', 'Click / Tap Ripple'], ['elastic', 'Elastic Transition'], ['springy', 'Bounce In']]) {
+    assert.equal(names(text)[0], name, `"${text}": ${names(text).join(', ')}`);
+  }
+});
+
+test('the home page head gives search engines and social sites one title, one description and the author', () => {
+  const head = between(HOME, '<head>', '</head>');
+  const meta = attr => { const m = head.match(new RegExp(`<meta ${attr} content="([^"]*)">`)); return m && decode(m[1]); };
+  const ld = JSON.parse(between(head, '<script type="application/ld+json">', '</script>').replace('<script type="application/ld+json">', ''));
+  const title = decode((head.match(/<title>([^<]*)<\/title>/) || [])[1] || '');
+  assert.ok(title, 'the home page has a title');
+  for (const attr of ['property="og:title"', 'name="twitter:title"']) assert.equal(meta(attr), title, attr);
+  const description = meta('name="description"');
+  assert.ok(description && description.length <= 160, `the description has at most 160 characters (${description && description.length}): ${description}`);
+  assert.match(description, /ready-made prompt for your AI assistant/, 'the description names the prompt');
+  for (const attr of ['property="og:description"', 'name="twitter:description"']) assert.equal(meta(attr), description, attr);
+  assert.equal(ld.description, description, 'JSON-LD description');
+  const holder = read(path.join(ROOT, 'LICENSE')).match(/^Copyright \(c\) \d{4} (.+)$/m)[1].trim();
+  assert.equal(meta('name="author"'), holder, 'meta author: the name in the LICENSE');
+  assert.equal(ld.author && ld.author.name, holder, 'JSON-LD author: the name in the LICENSE');
+  assert.match(head, /<link rel="canonical" href="[^"]*">\r?\n<link rel="sitemap" type="application\/xml" title="Sitemap" href="sitemap\.xml">\r?\n/, 'the sitemap link, right after the canonical link');
+});
+
 test('every place has one tile, one phone-bar chip and one count, and the markup names no other place', () => {
   // The opening tags of the page's markup: scripts, styles and comments left out.
   const tags = HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
