@@ -458,7 +458,7 @@ test('the home page uses Schibsted Grotesk and asks what to animate', () => {
 });
 
 // Every place the number of animations is written is compared with the cards in CATS: the home page (its head too), the root
-// README, the issue template and the launch kit. Each sentence named below must still be found, so rewording one fails here
+// README, the issue template, the 404 page and the sitemap. Each sentence named below must still be found, so rewording one fails here
 // instead of leaving its number unchecked.
 const totalCards = () => homeConst('CATS').reduce((n, cat) => n + cat.entries.length, 0);
 // The number in the first match of `pattern` (its first group) in `text`, or NaN when nothing matches.
