@@ -27,7 +27,7 @@
 - **README:** only the top picture changes. `docs/demo.gif` and `og-image.png` stay where they are.
 - **Pushing:** pushing to GitHub needs the owner's OK.
 
-`$S` = `C:/Users/matin/AppData/Local/Temp/claude/C--Users-matin-OneDrive-Desktop-Projects-animation-handbook/5ce2c57d-d347-425c-97ad-8e4b34e4e096/scratchpad/hero`
+`$S` = `<scratchpad>/hero`
 
 ---
 

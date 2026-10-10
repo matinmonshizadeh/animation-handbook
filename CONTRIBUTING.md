@@ -4,6 +4,10 @@ Thanks for wanting to add to the handbook. The goal is a browsable, *teach-by-sh
 reference where every entry is a live demo. Contributions that add a new technique,
 fix a bug, or improve an explanation are all welcome.
 
+Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md). Questions and ideas go to
+[Discussions](https://github.com/matinmonshizadeh/animation-handbook/discussions); a security
+problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a public issue.
+
 ## Ground rules
 
 - **One technique = one folder** under `animations/<category>/<slug>/`.
@@ -18,6 +22,9 @@ fix a bug, or improve an explanation are all welcome.
 - **Keep demos under ~300 lines.** If it's longer, the explanation has failed.
 - **Must work offline.** Open the HTML in a browser and it runs (from a checkout of the
   repository, which holds the shared files the page links).
+- **The site is the repository as it is.** The root has `.nojekyll`, so GitHub Pages serves
+  every file as it is. It shows the root `404.html` at every missing address, at any depth, so
+  every address in that page starts with `/animation-handbook/`.
 - **This catalogs techniques, not tools.** GSAP, Framer Motion, and Lottie are tools that
   *implement* techniques. They belong in *Production notes*, never as their own entry.
 
@@ -55,8 +62,9 @@ fix a bug, or improve an explanation are all welcome.
    file, so write *What it is* and *Key parameters* in plain words with no code. Each *See also*
    line is `- [Title](../slug/) — one plain phrase`, where Title is the linked page's `<h1>`.
    *Key parameters* has one row per setting in Try it, named exactly as on the page. Opened
-   from disk (`file://`), a page shows a README link in place of *What it is* and hides
-   *Similar animations*; that is expected.
+   from disk (`file://`), the pages still link to each other (the shared script points folder
+   links at `index.html`), but *What it is* and *Similar animations* need a server: a page shows
+   a README link in place of *What it is* and hides *Similar animations*.
 4. Link it in: the page before it gets a Next link to it and the page after it a Previous link
    to it, each replacing its old one, if any (a page never has two `rel="next"` or two
    `rel="prev"` links); the new page links back to both. A new first or last page has one
@@ -67,26 +75,31 @@ fix a bug, or improve an explanation are all welcome.
    give it one or more places in `PLACES`, which sits right after `PV` in the same script (the
    home page's tiles: `btn` Buttons, `text` Text, `imgcard` Images & cards, `bg` Backgrounds,
    `menu` Menus & forms, `load` Loading & messages, `intro` Page intros, `scroll` Scrolling,
-   `page` Page changes; the first labels its card) and add the page to `sitemap.xml`. The
-   description is the page's one-line description, word for word. The entry goes at the same
-   position in `PLACES` as in `CATS` (both lists follow home page order; a test checks it).
+   `page` Page changes; the first labels its card). `sitemap.xml` is written from `CATS`
+   (step 7). The description is the page's one-line description, word for word. The entry
+   goes at the same position in `PLACES` as in `CATS` (both lists follow home page order; a
+   test checks it).
    Give the card its own preview too: its key in `PV`, its CSS at the end of the category's
    `/* ── bespoke: … ── */` block (light: CSS with transform and opacity, no new canvas engine,
    inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a `STILL` point when the
    middle of its loop is not a clear frame (reduced motion holds every preview there). Without
    one the card shows the category's generic picture.
 6. Add it to the category's `README.md` list (and to any other table there that names pages,
-   such as 07's Implementation summary) and to the list in the root `README.md`, with the same
-   name and description, and update the technique count where it is written: the root
-   `README.md` (the total and the category's count), the home page (its title and meta tags
-   too), `.github/ISSUE_TEMPLATE/config.yml` and `docs/launch-kit.md` (its sitemap line counts
-   the home page as well: the total plus one); the tests compare each with `CATS`. The picture
+   such as 07's Implementation summary) and to the catalog in the root `README.md`, with the
+   same name and description; there the name links to the live page,
+   `https://matinmonshizadeh.github.io/animation-handbook/animations/<category>/<slug>/`, and
+   the page's own README has `[Live demo](<that address>)` on the line under its title. Update
+   the technique count where it is written: the root `README.md` (the total and the category's
+   count), the home page (its title and meta tags too), `.github/ISSUE_TEMPLATE/config.yml` and
+   `404.html` (its Browse all link); the tests compare each with `CATS`. The picture
    `og-image.png` shows the count too, in the home page's pill: with the repo served, run
    `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it again from
    the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
-7. Run the tests and the page check (see [Tests and the page check](#tests-and-the-page-check))
-   on the new page and on every page you edited. Run the home page check (`home`) too: the
-   new card's Copy prompt is compared there.
+7. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the
+   last commit to its folder (today for a folder with changes not yet committed). Then run the
+   tests and the page check (see [Tests and the page check](#tests-and-the-page-check)) on the
+   new page and on every page you edited. Run the home page check (`home`) too: the new card's
+   Copy prompt is compared there.
 
 ## The demo page
 
@@ -98,13 +111,19 @@ Every demo is one column with three steps, then a short explanation:
 3. **Copy the prompt** — the prompt, the "Your settings" chips and a **Copy prompt** button.
 
 Then **What it is** (from the README), **Good for** (3–5 short tags) and **Avoid on**
-(1–3 tags), and **Similar animations** (from the README's *See also*). Above it all sit a
-top bar with Previous and Next links and a header: the category line, the title and a
-one-line description in plain words that ends "Best for …". That one sentence is also the
-page's meta, Open Graph, Twitter and JSON-LD description, its card on the home page and its
-line in both READMEs. The `<head>` holds the title `Name — Animation Handbook`, the canonical
-URL, the favicons, and the Open Graph, Twitter and JSON-LD tags that repeat the name and
-description; copy them from a neighbor page and change them together.
+(1–3 tags), **Similar animations** (from the README's *See also*) and the footer, the same on
+every page (copy it from a neighbor):
+
+```html
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+```
+
+Above it all sit a top bar with Previous and Next links and a header: the category line, the
+title and a one-line description in plain words that ends "Best for …". That one sentence is
+also the page's meta, Open Graph, Twitter and JSON-LD description, its card on the home page
+and its line in both READMEs. The `<head>` holds the title `Name — Animation Handbook`, the
+canonical URL, the favicons, and the Open Graph, Twitter and JSON-LD tags that repeat the name
+and description; copy them from a neighbor page and change them together.
 
 ### Shared files
 
@@ -176,7 +195,9 @@ it. Every control has a label and `autocomplete="off"`, and each group of choice
 has exactly one pressed. The "Your settings" chips and the copied prompt list each setting
 as `label: value`. Copy the markup from a page that uses the control you need. No page has
 a slider or a menu yet; for those, follow the controls table in
-`docs/superpowers/specs/2026-09-27-demo-page-rollout-design.md`.
+`docs/superpowers/specs/2026-09-27-demo-page-rollout-design.md`. A setting whose default is
+lower on phones marks the choice button of its phone default with `data-hb-phone`; the page
+and the home page's Copy prompt both read it.
 
 ### The copyable prompt
 
@@ -216,6 +237,9 @@ Every demo must work on mobile, tablet, and desktop.
   settings below it, with nothing beside the stage.
 - Touch targets are at least **44×44px**; gate hover effects behind `@media (hover: hover)`.
 - Drag interactions use Pointer Events, not mouse events.
+- An effect that follows the pointer or appears on hover also works from the keyboard: focus
+  shows it and the arrow keys move it. An effect that starts on a press also starts on Enter or
+  Space, from the control's center. A script never moves focus into the stage.
 - Animate `transform` and `opacity` only — never `width`, `height`, `top`, `left`, or `box-shadow`.
 - A JavaScript frame loop moves by the time since the last frame (in 60ths of a second, at most 50 ms), never by a
   fixed step per frame, so it runs at the same speed on every screen. Copy the loop of Synthwave Grid, Starfield
@@ -228,6 +252,7 @@ Every demo must work on mobile, tablet, and desktop.
 - [ ] Layout reflows cleanly at 375px width.
 - [ ] All touch targets ≥ 44px.
 - [ ] Works with touch scroll / drag, not just mouse.
+- [ ] A pointer, hover or press effect works from the keyboard too.
 - [ ] Text stays readable at every size, at least 4.5:1 against its background.
 - [ ] The player bar is right below the stage and Try it under it; nothing beside the stage on mobile.
 - [ ] Respects `prefers-reduced-motion`.
@@ -245,7 +270,8 @@ node --test "tests/*.test.js"
 
 They check every page (the template's parts, the player bar of its kind, labels, the prompt
 rules, one description across the page, its meta tags and its home card, one `?v=N`), every
-page's README, the shared stylesheet and the home page. Nothing to install.
+page's README, the shared stylesheet and the home page. Nothing to install. GitHub Actions
+runs them too, on every push to `main` and every pull request (`.github/workflows/tests.yml`).
 
 For the page itself, serve the repo and run the page check on the page or a whole category
 folder. It drives Chrome, found at the default Windows install path; set the `CHROME`

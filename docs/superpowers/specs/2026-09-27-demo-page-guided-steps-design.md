@@ -3,7 +3,7 @@
 **Date:** 2026-09-27
 **Scope:** a new demo page template, built first on one page (Rotate In) for approval, then rolled out to all 129 demos
 **Approved mockup:** option A ("Guided steps") on the canvas *Animation page: two options*
-(https://claude.ai/artifact/7tgqozQGWKAmYDZyrPMhEj)
+(a private design canvas, not published)
 **Replaces:** the side-column layout in `2026-09-25-demo-page-redesign-design.md`. What carries over from that spec
 is listed under "Kept from the first redesign".
 
