@@ -55,6 +55,8 @@ stage.addEventListener('pointermove', e => { if (e.pointerId === touchId) pointA
 
 The spring-back is just a CSS `transition: transform .55s cubic-bezier(.22,1,.36,1)` on the button — when JS clears the offsets, the button eases home on its own. On touch screens, which cannot hover, the same pull follows a finger while it touches the stage, and the button springs home when the finger lifts.
 
+The keyboard drives the same `pull()`: with the button focused, a pretend pointer starts at its center and each arrow key press moves it a tenth of Reach, so the button leans toward it and springs home once it is out of reach. Escape, or moving the focus away, sends it home, and Space or Enter presses it as a pointer does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|

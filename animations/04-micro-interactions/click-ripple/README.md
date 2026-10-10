@@ -45,6 +45,8 @@ function spawnRipple(btn, e) {
 
 The button needs `position: relative; overflow: hidden` to contain the ripple.
 
+A press from the keyboard has no position: Enter or Space fires a `click` whose `detail` is 0, and that click starts the ripple from the button's center.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|

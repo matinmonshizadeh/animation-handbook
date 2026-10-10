@@ -29,35 +29,36 @@
     .hgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
     .hcard{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px 12px;cursor:pointer;min-height:72px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
     .hcard-name{font-size:15px;font-weight:700}
-    /* Each change plays on hover (only where a pointer can hover), while pressed (the tap on touch screens) and while Show me points at the card (.is-demo) */
+    /* Each change plays on hover (only where a pointer can hover), while pressed (the tap on touch screens), while the card has
+       keyboard focus (:focus-visible, outside the hover gate, so a Tab shows it on any device) and while Show me points at the card (.is-demo) */
     /* 1. Color change */
     .h-color{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
     @media(hover:hover){.h-color:hover{background:#2a201a;border-color:var(--ui-accent)}}
-    .h-color:active,.h-color.is-demo{background:#2a201a;border-color:var(--ui-accent)}
+    .h-color:active,.h-color:focus-visible,.h-color.is-demo{background:#2a201a;border-color:var(--ui-accent)}
     /* 2. Grow */
     .h-scale{transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-scale:hover{transform:scale(1.03)}}
-    .h-scale:active,.h-scale.is-demo{transform:scale(1.03)}
+    .h-scale:active,.h-scale:focus-visible,.h-scale.is-demo{transform:scale(1.03)}
     /* 3. Lift: the card moves up and its shadow, a layer of its own, fades in */
     .h-lift{overflow:visible;transition:transform var(--dur) var(--ease)}
     .h-lift::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 8px 24px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
     @media(hover:hover){.h-lift:hover{transform:translateY(-4px)}.h-lift:hover::after{opacity:1}}
-    .h-lift:active,.h-lift.is-demo{transform:translateY(-4px)}
-    .h-lift:active::after,.h-lift.is-demo::after{opacity:1}
+    .h-lift:active,.h-lift:focus-visible,.h-lift.is-demo{transform:translateY(-4px)}
+    .h-lift:active::after,.h-lift:focus-visible::after,.h-lift.is-demo::after{opacity:1}
     /* 4. Underline: a line as wide as the link, scaled out from the left */
     .h-underline .card-link{display:inline-block;align-self:flex-start;position:relative;color:var(--ui-accent);font-size:15px;font-weight:700}
     .h-underline .card-link::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:1px;background:var(--ui-accent);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-underline:hover .card-link::after{transform:scaleX(1)}}
-    .h-underline:active .card-link::after,.h-underline.is-demo .card-link::after{transform:scaleX(1)}
+    .h-underline:active .card-link::after,.h-underline:focus-visible .card-link::after,.h-underline.is-demo .card-link::after{transform:scaleX(1)}
     /* 5. Arrow nudge */
     .h-icon-row{display:flex;align-items:center;gap:8px}
     .arrow{display:inline-block;transition:transform var(--dur) var(--ease);font-size:14px}
     @media(hover:hover){.h-icon:hover .arrow{transform:translateX(6px)}}
-    .h-icon:active .arrow,.h-icon.is-demo .arrow{transform:translateX(6px)}
+    .h-icon:active .arrow,.h-icon:focus-visible .arrow,.h-icon.is-demo .arrow{transform:translateX(6px)}
     /* 6. Sweep */
     .h-sweep::before{content:'';position:absolute;inset:0;background:rgba(255,157,92,.13);transform:translateX(-100%);transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-sweep:hover::before{transform:translateX(0)}}
-    .h-sweep:active::before,.h-sweep.is-demo::before{transform:translateX(0)}
+    .h-sweep:active::before,.h-sweep:focus-visible::before,.h-sweep.is-demo::before{transform:translateX(0)}
     /* Reduced motion: hover states still change, but without the tween */
     @media(prefers-reduced-motion:reduce){.h-color,.h-scale,.h-lift,.h-lift::after,.arrow,.h-underline .card-link::after,.h-sweep::before{transition:none!important}}
   </style>
@@ -84,12 +85,12 @@
     <div class="stage hb-dots">
       <div style="width:100%">
         <div class="hgrid">
-          <div class="hcard h-color"><div class="hcard-name">Color change</div></div>
-          <div class="hcard h-scale"><div class="hcard-name">Grow</div></div>
-          <div class="hcard h-lift"><div class="hcard-name">Lift</div></div>
-          <div class="hcard h-underline"><span class="card-link">Underline</span></div>
-          <div class="hcard h-icon"><div class="h-icon-row"><div class="hcard-name">Arrow nudge</div><span class="arrow">→</span></div></div>
-          <div class="hcard h-sweep"><div class="hcard-name">Sweep</div></div>
+          <div class="hcard h-color" tabindex="0" role="button"><div class="hcard-name">Color change</div></div>
+          <div class="hcard h-scale" tabindex="0" role="button"><div class="hcard-name">Grow</div></div>
+          <div class="hcard h-lift" tabindex="0" role="button"><div class="hcard-name">Lift</div></div>
+          <div class="hcard h-underline" tabindex="0" role="button"><span class="card-link">Underline</span></div>
+          <div class="hcard h-icon" tabindex="0" role="button"><div class="h-icon-row"><div class="hcard-name">Arrow nudge</div><span class="arrow" aria-hidden="true">→</span></div></div>
+          <div class="hcard h-sweep" tabindex="0" role="button"><div class="hcard-name">Sweep</div></div>
         </div>
       </div>
     </div>
@@ -187,9 +188,13 @@
       later(()=>c.classList.remove('is-demo'),(i+1)*dur,i*320+270);
     });
   });
-  // The visitor pressed, typed, scrolled or touched inside the stage, or moved a pointer over it: the run stops.
+  // The visitor pressed, typed, scrolled or touched inside the stage, moved a pointer over it or moved the keyboard focus onto a
+  // card (Tab, which also gives that card its change): the run stops.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
   stage.addEventListener('pointermove',e=>{if(e.isTrusted&&running())stopRun()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+  // A card stands for a button, and Space on a button does not scroll the page: on a card it does nothing, as a click does.
+  cards.forEach(c=>c.addEventListener('keydown',e=>{if(e.key===' ')e.preventDefault()}));
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');

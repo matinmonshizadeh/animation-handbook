@@ -191,6 +191,29 @@
   btn.addEventListener('pointerdown',()=>btn.classList.add('pressed'));
   ['pointerup','pointercancel','pointerleave'].forEach(type=>btn.addEventListener(type,()=>btn.classList.remove('pressed')));
 
+  // The keyboard: with the button focused, the arrow keys move a pretend pointer from its resting center (kx,ky, in Reach: a
+  // tenth of it a press, a held key repeating, up to 1.2, which is out of reach) through the same pull() as the mouse, so the
+  // button leans toward it and springs home once it is out of reach. Escape sends the button home, as the mouse leaving does,
+  // and so does the focus leaving after the keys pulled it; Space and Enter press it, as a pointer does. Focus arriving stops a
+  // run under way, as the mouse moving over the stage does.
+  const ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  let kx=0,ky=0,keyed=false;
+  btn.addEventListener('focus',()=>{kx=ky=0;if(running())stopRun()});
+  btn.addEventListener('blur',()=>{btn.classList.remove('pressed');if(keyed){keyed=false;home()}});
+  stage.addEventListener('pointermove',()=>{keyed=false});
+  btn.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key===' '||e.key==='Enter'){btn.classList.add('pressed');return}
+    if(e.key==='Escape'){kx=ky=0;keyed=false;home();return}
+    const d=ARROWS[e.key];
+    if(!d)return;
+    e.preventDefault();
+    kx=Math.max(-1.2,Math.min(1.2,kx+d[0]*.1));ky=Math.max(-1.2,Math.min(1.2,ky+d[1]*.1));
+    keyed=true;
+    pull(stage.clientLeft+btn.offsetLeft+btn.offsetWidth/2+kx*radius,stage.clientTop+btn.offsetTop+btn.offsetHeight/2+ky*radius);
+  });
+  btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')btn.classList.remove('pressed')});
+
   // A pretend pointer visits three spots around the button: each glide takes 550ms and each spot is held 150ms, then the button goes home.
   // The spots are fixed offsets from the button's resting centre, read from its layout box (the pull's transform never moves it) in the
   // pull's own frame, the stage's border box, and sized by Reach so they always fall within it.
