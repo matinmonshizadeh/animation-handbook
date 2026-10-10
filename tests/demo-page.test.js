@@ -21,6 +21,25 @@ test('isSafeHref allows relative, anchor and http(s) links only', () => {
   }
 });
 
+test('indexHref points a relative link to a folder at its index.html, keeping its query and hash, and leaves other links alone', () => {
+  const folders = {
+    '../bounce-in/': '../bounce-in/index.html',
+    '../../../': '../../../index.html',
+    './': './index.html',
+    'animations/02-entrance-and-exit/bounce-in/': 'animations/02-entrance-and-exit/bounce-in/index.html',
+    '../bounce-in/?from=home': '../bounce-in/index.html?from=home',
+    '../bounce-in/#hb-prompt-title': '../bounce-in/index.html#hb-prompt-title',
+    '../../../?place=buttons#top': '../../../index.html?place=buttons#top'
+  };
+  for (const [href, page] of Object.entries(folders)) assert.equal(DP.indexHref(href), page, href);
+  // Files, fragments, queries and links to other places stay as they are; so does a link that already names its page.
+  for (const href of ['README.md', '../bounce-in/index.html', '#top', '#', '', '?q=fade', '../bounce-in#a/', '../bounce-in?next=/',
+    'https://github.com/matinmonshizadeh/animation-handbook', 'https://example.com/a/', 'http://example.com/', '//example.com/a/',
+    '/animation-handbook/', 'mailto:a@b.c', 'file:///C:/animation-handbook/']) {
+    assert.equal(DP.indexHref(href), href, href);
+  }
+});
+
 test('inline shows code as plain text and renders links, bold and italics', () => {
   assert.equal(DP.inline('Use `opacity` on **one** *hero* [card](../scale-in/)'),
     'Use opacity on <strong>one</strong> <em>hero</em> <a href="../scale-in/">card</a>');
@@ -107,8 +126,9 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 // a stage and, by kind, the buttons boot() looks for. Events are sent to the stage by hand (with isTrusted set as a browser
 // would), timers wait in a list until the test runs them, and every hb:input the script sends is kept. A Copy prompt test passes
 // `copy` ({ prompt, controls, clipboard }) to add a Copy prompt button, text in the prompt, a Try it step holding `controls` (if
-// any) and the window's clipboard; no other test gets any of them.
-function standInPage(kind, reduced, bodyAttributes, copy) {
+// any) and the window's clipboard; no other test gets any of them. A link test passes `links` ({ protocol, hrefs }): the page is
+// served over that protocol (http: otherwise) and holds one link for each href.
+function standInPage(kind, reduced, bodyAttributes, copy, links) {
   const timers = [], sent = [];
   const node = () => ({
     attrs: {}, handlers: {}, children: [], clicks: 0, textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} },
@@ -133,16 +153,18 @@ function standInPage(kind, reduced, bodyAttributes, copy) {
   body.setAttribute('data-hb-kind', kind);
   body.setAttribute('data-hb-autoplay', '');
   Object.keys(bodyAttributes || {}).forEach(name => body.setAttribute(name, bodyAttributes[name]));
-  const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event) };
+  const anchors = ((links && links.hrefs) || []).map(href => { const a = node(); a.setAttribute('href', href); return a; });
+  const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event),
+    querySelectorAll: selector => (selector === 'a[href]' ? anchors : []) };
   const win = {
     matchMedia: () => ({ matches: !!reduced, addEventListener() {} }),
     setTimeout: (fn, ms) => timers.push({ fn, ms }),
-    clearTimeout() {}, location: { protocol: 'http:' }, console,
+    clearTimeout() {}, location: { protocol: (links && links.protocol) || 'http:' }, console,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init && init.detail; } }
   };
   if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard }, getComputedStyle: () => ({ display: '' }) });
   DP.boot(doc, win);
-  return { doc, win, stage, player, demo, button, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
+  return { doc, win, stage, player, demo, button, anchors, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
 
@@ -231,6 +253,22 @@ test('a scroll page with an empty sentence of its own gets the usual note, and o
   assert.deepEqual(standInPage('scroll', true, { 'data-hb-motion-note': '' }).player.children.map(c => c.textContent), [usual]);
   assert.equal(standInPage('do', true, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
   assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
+});
+
+// Opened from disk, Chrome shows a folder's listing for a link to the folder, so the links of the page must name index.html there.
+test('opened from disk, every link of the page to a folder opens its index.html; over http(s) no link changes', () => {
+  const hrefs = ['../../../', '../bounce-in/', '../scale-in/', '../blur-in/?from=home#hb-prompt-title', 'README.md', '#top',
+    'https://github.com/matinmonshizadeh/animation-handbook'];
+  const fromDisk = ['../../../index.html', '../bounce-in/index.html', '../scale-in/index.html', '../blur-in/index.html?from=home#hb-prompt-title',
+    'README.md', '#top', 'https://github.com/matinmonshizadeh/animation-handbook'];
+  for (const kind of ['once', 'loop', 'do', 'scroll']) {
+    const page = standInPage(kind, false, {}, null, { protocol: 'file:', hrefs });
+    assert.deepEqual(page.anchors.map(a => a.getAttribute('href')), fromDisk, `${kind} page opened from disk`);
+  }
+  for (const protocol of ['http:', 'https:']) {
+    const page = standInPage('once', false, {}, null, { protocol, hrefs });
+    assert.deepEqual(page.anchors.map(a => a.getAttribute('href')), hrefs, protocol);
+  }
 });
 
 test('promptWithSettings adds the settings line only when a setting is complete', () => {

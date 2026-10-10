@@ -6,6 +6,7 @@
  * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
  * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
+ * Opened from disk (file:), the page's links to folders open each folder's index.html instead of its listing.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
   var api = factory();
@@ -37,6 +38,15 @@
     href = String(href);
     return /^(?:https?:|#|\.{0,2}\/|[\w.-]+(?:\/|$))/i.test(href) && !/^\/\//.test(href) &&
       !/^[a-z][a-z0-9+.-]*:/i.test(href.replace(/^https?:/i, ''));
+  }
+
+  // Opened from disk, a link to a folder shows the folder's listing, not its page. This is the link as it must be written
+  // there: a relative link whose path ends with "/" ("../bounce-in/", "../../../") names that folder's index.html and keeps
+  // its ?query and #hash. Any other link (a file, "#top", "/…", "//…" or one with a scheme such as https:) comes back as it is.
+  function indexHref(href) {
+    var s = String(href), cut = s.search(/[?#]/), path = cut < 0 ? s : s.slice(0, cut);
+    if (!/\/$/.test(path) || /^(?:\/|[a-z][a-z0-9+.-]*:)/i.test(path)) return s;
+    return path + 'index.html' + s.slice(path.length);
   }
 
   // Inline Markdown from README prose. Inline code becomes plain text: the site shows no code.
@@ -310,6 +320,16 @@
       });
     }
 
+    // Opened from disk, every link of the page to a folder (the home link, Previous and Next, any other) opens that folder's
+    // index.html instead of its listing. Similar animations is not shown there (the README is not read from disk), so every
+    // link is in place by now.
+    function openFoldersAsPages() {
+      Array.prototype.forEach.call(doc.querySelectorAll('a[href]'), function (a) {
+        var href = a.getAttribute('href'), fixed = indexHref(href);
+        if (fixed !== href) a.setAttribute('href', fixed);
+      });
+    }
+
     // What it is and Similar animations from the README. Opened from disk, the README link stays.
     function loadReadme() {
       var what = page.querySelector('.hb-what-text');
@@ -475,6 +495,7 @@
       }
     }
 
+    if (win.location.protocol === 'file:') openFoldersAsPages();
     setUpPrompt();
     if (copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
@@ -511,7 +532,7 @@
   }
 
   return {
-    escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, inline: inline, sections: sections,
+    escapeHtml: escapeHtml, plain: plain, isSafeHref: isSafeHref, indexHref: indexHref, inline: inline, sections: sections,
     paragraphs: paragraphs, seeAlso: seeAlso, settingsLine: settingsLine, promptWithSettings: promptWithSettings,
     pageCopyText: pageCopyText, markFill: markFill, shorten: shorten,
     quoteText: quoteText, motionNote: motionNote, readSettings: readSettings, boot: boot
