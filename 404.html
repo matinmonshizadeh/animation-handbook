@@ -17,13 +17,14 @@
   document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0e0e11':'#f8f7f4';})();
 // Where a missing address leads: {go} to move on at once, else {words} for the search box. rest is the address's query
 // and fragment. GitHub Pages tells capital letters from small ones, so an address with capitals moves to its lowercase
-// path (percent escapes keep their case, so a lowercase path never moves again). /animations/ and a category folder have
-// no page of their own: they open Browse all. Any other address offers the words of its last part ("rotate-inn" gives
-// "rotate inn"), skipping an index or readme file; a part with no letters offers none.
+// path (percent escapes keep their case, so a lowercase path never moves again), and only within the handbook, so it
+// never leaves the site. /animations/ and a category folder have no page of their own: they open Browse all. Any other
+// address offers the words of its last part ("rotate-inn" gives "rotate inn"), skipping an index or readme file; a part
+// made only of digits offers none.
 function whereTo(path,rest){
   var lower=path.replace(/%[0-9A-Fa-f]{2}|[A-Z]+/g,function(s){return s.charAt(0)==='%'?s:s.toLowerCase();});
   if(/^\/animation-handbook\/animations(\/\d\d-[a-z0-9-]+)?(\/(index\.html?)?)?$/.test(lower))return {go:'/animation-handbook/?view=all#results'};
-  if(lower!==path)return {go:lower+(rest||'')};
+  if(lower!==path&&lower.indexOf('/animation-handbook/')===0)return {go:lower+(rest||'')};
   var parts=path.split('/').filter(Boolean);
   if(parts[0]==='animation-handbook')parts.shift();
   var last=parts.pop()||'';
