@@ -26,6 +26,8 @@
     .stage{position:relative;cursor:none;touch-action:pan-y;container-type:size}
     /* 3D scene container */
     .scene{width:100%;height:100%;position:relative;perspective:800px;perspective-origin:50% 50%;overflow:hidden}
+    /* Keyboard focus on the scene: its layers would cover its own ring, so the ring goes around the stage instead */
+    @supports selector(:has(*)){.hb-page .stage:has(> .scene:focus-visible){outline:2px solid var(--ui-accent);outline-offset:3px}.hb-page .stage .scene:focus-visible{outline:none}}
     .scene-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:translateZ(0);transition:transform 0ms linear}
     /* Layers */
     .layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;will-change:transform}
@@ -82,7 +84,7 @@
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer across the scene, drag a finger sideways, or press Show me.</p></div>
     </div>
     <div class="stage" id="stage">
-      <div class="scene" id="scene" role="img" aria-label="A night landscape of seven flat layers, from the sky to the ground, that slide by different amounts as the camera moves">
+      <div class="scene" id="scene" role="img" tabindex="0" aria-label="A night landscape of seven flat layers, from the sky to the ground, that slide by different amounts as the camera moves. Press the arrow keys to move the camera.">
         <div class="scene-inner" id="scene-inner">
           <!-- Layer 0: sky (slowest) -->
           <div class="layer sky" id="L0"><div class="depth-label" id="dl0">moves 5%</div></div>
@@ -278,6 +280,20 @@
   stage.addEventListener('pointermove',e=>{if(e.isTrusted&&raf)stopRun();aim(e)});
   stage.addEventListener('pointerdown',aim);
   stage.addEventListener('pointerleave',()=>{cursor.style.display='none'});
+  // The keyboard is a pretend pointer: focus by keyboard ends a run and shows the ring where the camera is (brought within the
+  // pointer's reach, which a run can pass), each arrow key moves the camera 6% of the stage (held, it repeats), and Escape or
+  // leaving the scene hides the ring as the pointer leaving does
+  const scene=document.getElementById('scene');
+  const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  let keys=false;
+  function ring(){const r=stage.getBoundingClientRect();cursor.style.display='block';cursor.style.transform=`translate(${(mx+.5)*r.width-10}px,${(my+.5)*r.height-10}px)`}
+  scene.addEventListener('focus',()=>{if(scene.matches(':focus-visible')){stopRun();keys=true;mx=edge(mx);my=edge(my);applyParallax(mx,my);ring()}});
+  scene.addEventListener('keydown',e=>{
+    const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
+    if(d){e.preventDefault();keys=true;mx=edge(mx+.06*d[0]);my=edge(my+.06*d[1]);ring();applyParallax(mx,my)}
+    else if(e.key==='Escape'&&keys){keys=false;cursor.style.display='none'}
+  });
+  scene.addEventListener('blur',()=>{if(keys){keys=false;cursor.style.display='none'}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
