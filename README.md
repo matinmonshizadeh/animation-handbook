@@ -8,7 +8,7 @@
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=6ea8ff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=5fd88a)](https://github.com/matinmonshizadeh/animation-handbook/stargazers) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=b98cff)](LICENSE) ![Techniques](https://img.shields.io/badge/techniques-166-ff9d5c) ![Dependencies](https://img.shields.io/badge/dependencies-0-ff6f8b) ![Build](https://img.shields.io/badge/build-none-3fd6c4)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-166-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
 
