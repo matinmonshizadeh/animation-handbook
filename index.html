@@ -2566,8 +2566,11 @@ if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 // (DemoPage), every setting at its default. Nothing on a fetched page is laid out, so no control counts as hidden by style.
 // Opened from disk every read fails and Chrome logs a CORS error for each one, so there nothing is fetched and the read fails at once.
 const pageTexts=new Map(),failedPages=new Set(),NO_STYLE={getComputedStyle:()=>({display:''})};
+// A page that starts a setting lower on phones (data-hb-phone) copies another text on a phone-sized window, so the text is
+// kept per page and per window size: a window that is narrowed or turned later gets the text for its new size.
 function promptFor(url){
-  let text=pageTexts.get(url);
+  const key=url+(matchMedia('(max-width:600px),(max-height:500px)').matches?'|phone':'');
+  let text=pageTexts.get(key);
   if(!text){
     const read=FROM_DISK?Promise.reject(new Error('opened from disk')):fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();});
     text=read.then(html=>{
@@ -2577,8 +2580,8 @@ function promptFor(url){
       return t;
     });
     // A failed page is forgotten, so the next press reads it again; failedPages only keeps the early read (below) from trying it over and over.
-    text.then(()=>failedPages.delete(url),()=>{pageTexts.delete(url);failedPages.add(url);});
-    pageTexts.set(url,text);
+    text.then(()=>failedPages.delete(url),()=>{pageTexts.delete(key);failedPages.add(url);});
+    pageTexts.set(key,text);
   }
   return text;
 }
