@@ -4,7 +4,7 @@
 
 # Animation Handbook
 
-**A visual reference of 166 web animation techniques — every entry is a live, dependency-free demo you can open in the browser and read how it works.**
+**A visual reference of 166 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
@@ -16,14 +16,14 @@
 
 ## What this is
 
-Every major web-animation technique in one place, each shown working. Every page plays its animation live, lets you change it with a few plain settings, and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+Here are 166 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
 Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and it runs offline. Built to *inspire* and *teach*, not to sell a library.
 
 ## How to use it
 
 1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked".
-2. **Watch it and try it.** Each page plays the animation and offers a few plain settings, such as speed or direction, so you see exactly what you will get.
+2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get.
 3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 
 <div align="center">
