@@ -23,6 +23,9 @@ prompt to paste into an AI assistant, so the site itself shows no code.
   has failed.
 - **Demos must work offline.** Open the HTML in a browser, it runs (from a
   checkout of the repository, which holds the shared files the page links).
+- **The site is the repository as it is.** The root has `.nojekyll`, so GitHub Pages serves every file as it is,
+  with no Jekyll pages built from the Markdown. GitHub Pages shows the root `404.html` at every missing address, at
+  any depth, so every address in it starts with `/animation-handbook/`.
 
 ## File template for each animation
 
@@ -59,7 +62,12 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
    (`details.hb-options`). No settings: leave it out and number the steps 1 and 2.
 5. **3 · Copy the prompt** (`section.hb-prompt-step`): prompt (`p.hb-prompt`), "Your settings" chips, **Copy prompt**.
 6. **About** (`section.hb-about`): **What it is** (from the README) beside **Good for** (3–5 tags) and
-   **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`) and the footer.
+   **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`) and the footer, the same on every
+   page (copy it from a neighbor):
+
+```html
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+```
 
 The page owns the stage's width, border, corners and height (`--hb-stage-h` and `--hb-stage-h-phone` set
 another one); the demo owns overflow, background, alignment and perspective. `hb-dots` adds a dotted
@@ -125,7 +133,8 @@ these from a page that has one. No page has a slider (`input[type=range]` with a
 menu (`select.hb-select`) yet: follow the controls table in
 `docs/superpowers/specs/2026-09-27-demo-page-rollout-design.md`. "Your settings" lists every control as
 `label: value`, except a hidden one or one with `data-hb-skip` (controls under a closed More options count);
-`data-hb-label` overrides a label.
+`data-hb-label` overrides a label. A setting whose default is lower on phones marks the choice button of its phone
+default with `data-hb-phone`; the page and the home page's Copy prompt both read it.
 
 #### The copyable prompt
 Written in the page (`p.hb-prompt`) in plain words: 60 to 130 words, never more, no code, no backticks. It
@@ -156,8 +165,9 @@ The tests require What it is, When to use it, Key parameters and See also; the o
 convention. The page loads **What it is** and **See also** from the README; What it is and Key parameters
 contain no code. Each See also line is `- [Title](../slug/) — one plain phrase`, Title being the linked
 page's `<h1>`. Key parameters has one row per setting in Try it, named as on the page (a page without Try it
-lists the technique's own values). How it works matches the demo's code. Opened from disk (`file://`), a page
-shows a README link in place of What it is and hides Similar animations; that is expected.
+lists the technique's own values). How it works matches the demo's code. Opened from disk (`file://`), the pages
+still link to each other (the shared script points folder links at `index.html`), but What it is and Similar
+animations need a server: a page shows a README link in place of What it is and hides Similar animations.
 
 ## Taxonomy (do not invent new top-level categories without asking)
 
@@ -194,8 +204,8 @@ inside an entry's "Production notes" section, never as their own entry.
    use the linked page's `<h1>`; copy the markup from a neighbor. Adding a page mid-category renumbers the
    `NN.MM` category line of every later page.
 6. Update the root `index.html` index page to link to it: add a card to the category's `entries` in the
-   `CATS` array (slug, name, the page's one-line description), and add the page to `sitemap.xml`. Give it one
-   or more places in `PLACES` (right after `PV` in the same script): `btn` Buttons, `text` Text,
+   `CATS` array (slug, name, the page's one-line description); `sitemap.xml` is written from `CATS` (step 8). Give it
+   one or more places in `PLACES` (right after `PV` in the same script): `btn` Buttons, `text` Text,
    `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading & messages,
    `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card. Keep
    `PLACES` in the same order as `CATS` (a test checks it). Give the card its own preview too: its key in
@@ -204,14 +214,17 @@ inside an entry's "Production notes" section, never as their own entry.
    `STILL` point when the middle of its loop is not a clear frame (reduced motion holds every preview
    there). Without one the card shows the category's generic picture.
 7. Update `animations/<category>/README.md` (its list of pages, and any other table there that names pages, such
-   as 07's Implementation summary) and the root `README.md` list (the card's name and one-line description, in
-   home page order), and the technique count wherever it is written: the root `README.md` (the total and the
-   category's count), the home page (its title and meta tags too) and `.github/ISSUE_TEMPLATE/config.yml`; the
-   tests compare each with `CATS`. The picture `og-image.png` shows the count in the home page's pill: with the repo served, run
-   `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it again from the home page. The
-   home check needs no edit: it reads its totals from `CATS` and `PLACES`.
-8. Run the tests and the page check on the new folder and on every page you edited. Run the home page check
-   (`home`) too: the new card's Copy prompt is compared there.
+   as 07's Implementation summary) and the root `README.md` catalog (the card's name, linked to its live page
+   `https://matinmonshizadeh.github.io/animation-handbook/animations/<category>/<slug>/`, and its one-line
+   description, in home page order); the page's own README has `[Live demo](<that address>)` on the line under its
+   title. Update the technique count wherever it is written: the root `README.md` (the total and the category's
+   count), the home page (its title and meta tags too), `.github/ISSUE_TEMPLATE/config.yml` and `404.html` (its
+   Browse all link); the tests compare each with `CATS`. The picture `og-image.png` shows the count in the home page's
+   pill: with the repo served, run `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it
+   again from the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
+8. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the last commit to its
+   folder (today for a folder with changes not yet committed). Run the tests and the page check on the new folder
+   and on every page you edited. Run the home page check (`home`) too: the new card's Copy prompt is compared there.
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than
@@ -222,7 +235,8 @@ inside an entry's "Production notes" section, never as their own entry.
 ## Tests and the page check
 Run both before calling a page done. They need Node 22 or later (the `--test` glob, the page check's `WebSocket`).
 - **Tests:** `node --test "tests/*.test.js"` from the repo root (nothing to install) checks every page and its
-  README, the shared stylesheet and the home page.
+  README, the shared stylesheet and the home page. GitHub Actions runs them too, on every push to `main` and every
+  pull request (`.github/workflows/tests.yml`).
 - **Page check:** serve the repo root (`python -m http.server <port> --bind 127.0.0.1`), then run
   `node tools/check-pages.mjs --base http://127.0.0.1:<port> <page or category folder>`. It drives Chrome (set
   `CHROME` to its path if it is not in the default Windows folder) and loads each page at six setups (1280×800,
@@ -274,6 +288,10 @@ This is non-negotiable — a demo that breaks on phones fails the quality bar.
   the stage need it too.
 - Replace hover-only interactions with tap-equivalent behavior on touch
   devices. Use `@media (hover: hover)` to gate hover effects.
+- An effect that follows the pointer or appears on hover also works from the
+  keyboard: focus shows it and the arrow keys move it. An effect that starts on
+  a press also starts on Enter or Space, from the control's center. A script
+  never moves focus into the stage.
 - Scroll-driven demos must work with touch scroll, not just mouse wheel.
 - Drag interactions must use Pointer Events (`pointerdown` / `pointermove`
   / `pointerup`), not mouse events, so they work on touch.
@@ -301,6 +319,7 @@ Before finishing any animation, mentally walk through:
 - [ ] Does the layout reflow cleanly at 375px width (iPhone SE)?
 - [ ] Are all touch targets ≥ 44px?
 - [ ] Does it work with touch scroll / drag, not just mouse?
+- [ ] Does a pointer, hover or press effect work from the keyboard too?
 - [ ] Does text remain readable (no overlap, no overflow) at every size?
 - [ ] Is text at least 4.5:1 against its background?
 - [ ] Is the player bar right below the stage, with Try it under it and nothing beside the stage on mobile?
