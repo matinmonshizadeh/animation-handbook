@@ -1,6 +1,6 @@
 # Scroll-Based Animations
 
-Techniques driven by scroll position.
+Animations driven by scroll position — parallax, sticky, scrub, snap, and storytelling.
 
 ## Entries
 
