@@ -92,8 +92,14 @@ match "bounce" (a typed word drops the first of the endings "ies", "ing", "ed", 
 letters with a vowel, but not the last "s" of "ss"; after "ing" or "ed", a doubled last letter other than l, s, f or z
 loses one letter while three remain: "snapping" finds "snap", "ring" stays whole). An animation matches when at least
 one word matches; results are ordered by how well they match (a word in the name counts 3, in a place name 2, in the
-description 1), ties in home order. "a button that bounces when clicked" therefore puts Click / Tap Ripple, Bounce In
-and the other button animations at the top.
+description 1).
+A short list of everyday words that mean the same here lets a word find a card that uses another word for it: bounce,
+spring, elastic; click, press, tap; parallax, depth; mouse, pointer; shake, wobble, wiggle, jiggle; loader, loading;
+popup, modal, dialog. A card that does not have the typed word but has another word of its group gets a third of what
+the typed word would count, once, in the best place it is found, so for a single word it comes after every card that
+has the word itself. Ties go to the animation with more of the typed words themselves, then to home order. "a button
+that bounces when clicked" therefore puts Button Press Scale first (it "springs back" as you "press" it), then Magnetic
+Button, Click / Tap Ripple and the other button animations, with Bounce In on the first page of results.
 The "/" key focuses the search and Escape clears it, as today.
 
 ## Cards

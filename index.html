@@ -2380,20 +2380,30 @@ function stem(w){
   return w;
 }
 function queryWords(text){return [...new Set(keyWords(text).map(stem))];}
+// Everyday words that mean the same here, each written as the start of its words (bounc: bounce, bouncy, bouncing). A typed
+// word that starts with one of them also finds the cards that use another word of its group, so "a button that bounces when
+// clicked" finds Button Press Scale, which "springs back" as you "press" it.
+const SAME=[['bounc','spring','elastic'],['click','press','tap'],['parallax','depth'],['mouse','pointer'],
+  ['shak','wobbl','wiggl','jiggl'],['loader','loading'],['popup','modal','dialog']];
 // A word counts 3 in the name, 2 in a place name, 1 in the description or category; each is matched by the start of a word.
+// A card without the typed word but with another word of its group gets a third of that, once, where it counts most, so for
+// one word it never passes a card that has the word itself. The score is kept in thirds, so it stays a whole number; own is
+// the score of the typed words alone, and breaks ties.
 function score(e,words){
-  let s=0;
+  const lists=[[e.nameW,3],[e.placeW,2],[e.descW,1]];
+  let s=0,own=0;
   for(const w of words){
-    if(e.nameW.some(x=>x.startsWith(w)))s+=3;
-    if(e.placeW.some(x=>x.startsWith(w)))s+=2;
-    if(e.descW.some(x=>x.startsWith(w)))s+=1;
+    const word=lists.reduce((n,[list,k])=>n+(list.some(x=>x.startsWith(w))?k:0),0);
+    const group=SAME.filter(g=>g.some(start=>w.startsWith(start))).flat();
+    s+=word?3*word:Math.max(0,...lists.map(([list,k])=>list.some(x=>group.some(start=>x.startsWith(start)))?k:0));
+    own+=word;
   }
-  return s;
+  return {s,own};
 }
 function search(text){
   const words=queryWords(text);
   if(!words.length)return [];
-  return ALL.map(e=>({e,s:score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||a.e.order-b.e.order).map(x=>x.e);
+  return ALL.map(e=>({e,...score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.own-a.own||a.e.order-b.e.order).map(x=>x.e);
 }
 // All animations: a plain section per group, headed by an h3 (a section with no name adds no landmark). The card titles are
 // h3 too, so here they are set a level below the group headings; showCards() takes that away again.
