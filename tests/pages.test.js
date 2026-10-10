@@ -474,13 +474,26 @@ test('the counts written in the root README match the cards', () => {
   }
 });
 
-test('the counts written in the issue template and the sitemap match the cards', () => {
+test('the counts written in the issue template, the 404 page and the sitemap match the cards', () => {
   const cards = totalCards();
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
   assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
+  assert.equal(numberIn(read(path.join(ROOT, '404.html')), />Browse all (\d+) animations</), cards, '404.html: the Browse all link');
   // The sitemap lists one URL more than the total: the home page.
   const urls = count(read(path.join(ROOT, 'sitemap.xml')), '<url>');
   assert.equal(urls, cards + 1, 'sitemap.xml lists the home page and every animation');
+});
+
+// GitHub Pages serves 404.html at every address it has no file for, at any depth, so a relative address in it would
+// point somewhere else from every one: each link, icon, font and the search form use an absolute one.
+test('the 404 page stays out of search results and every address in it works at any depth', () => {
+  const file = path.join(ROOT, '404.html');
+  assert.ok(fs.existsSync(file), '404.html is at the root');
+  const html = read(file);
+  assert.ok(html.includes('<meta name="robots" content="noindex">'), 'noindex');
+  const addresses = [...html.matchAll(/\s(?:href|src|action)="([^"]*)"/g), ...html.matchAll(/url\(\s*['"]?([^'")\s]+)/g)].map(m => m[1]);
+  assert.ok(addresses.length > 0, 'the page has addresses to check');
+  for (const address of addresses) assert.match(address, /^(?:\/animation-handbook\/|https:\/\/|#)/, address);
 });
 
 // Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket
