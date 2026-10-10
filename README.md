@@ -32,15 +32,15 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 
 ## Categories
 
-| # | Category | Count | What's in it |
-|:--:|----------|:-----:|--------------|
-| 01 | [Scroll-Based](#01) | 27 | Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling. |
-| 02 | [Entrance & Exit](#02) | 14 | Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. |
-| 03 | [Page Transitions](#03) | 16 | Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API. |
-| 04 | [Micro-Interactions](#04) | 41 | Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. |
-| 05 | [Text & Typography](#05) | 19 | Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations. |
-| 06 | [3D & Advanced](#06) | 26 | WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits. |
-| 07 | [Ambient & Background](#07) | 23 | Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. |
+| # | Category | Count |
+|:--:|----------|:-----:|
+| 01 | [Scroll-Based](#01) | 27 |
+| 02 | [Entrance & Exit](#02) | 14 |
+| 03 | [Page Transitions](#03) | 16 |
+| 04 | [Micro-Interactions](#04) | 41 |
+| 05 | [Text & Typography](#05) | 19 |
+| 06 | [3D & Advanced](#06) | 26 |
+| 07 | [Ambient & Background](#07) | 23 |
 
 ## Full catalog
 
