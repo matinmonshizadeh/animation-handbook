@@ -30,7 +30,7 @@ The same 166 animations, easier to reach and to work on.
 
 - Every demo page has the same three steps: Watch it, Try it with a few plain settings, and Copy the prompt to paste
   into an AI assistant. The pages share one stylesheet and one script, and the site font is Schibsted Grotesk.
-- Tests for every page and its README, and a browser check that loads each page on six screen sizes.
+- Tests for every page and its README, and a browser check that loads each page at several screen sizes.
 
 ## 2026-08-21 — 129 animations
 

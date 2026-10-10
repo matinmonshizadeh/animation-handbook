@@ -24,4 +24,4 @@ Please do not open a public issue, pull request or discussion for a security pro
 - by writing to [CONTACT].
 
 Say which page or file it is, what can happen and how to make it happen. You will get an answer as soon as possible,
-and word again when it is fixed.
+and another when it is fixed.
