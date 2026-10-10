@@ -54,7 +54,7 @@ function sweep(now) {                       // start = performance.now() when Sh
 
 The demo also blends in the camera's starting position, so a second press, or a run that a real pointer stopped, carries on from where the camera is instead of jumping. Reset puts the camera back in the middle.
 
-The scene also takes keyboard focus, and the keys stand in for the pointer: each press of an arrow key moves the camera 6% of the way across the stage (a key held down repeats) and shows the ring where a pointer would be. Escape or moving focus away hides the ring and leaves the camera where it is, as the pointer leaving does.
+The scene also takes keyboard focus, and the keys stand in for the pointer: keyboard focus shows the ring where the camera is, and each press of an arrow key moves the camera 6% of the way across the stage (a key held down repeats). Escape or moving focus away hides the ring and leaves the camera where it is, as the pointer leaving does.
 
 ## Key parameters
 | Parameter | Default | Effect |
