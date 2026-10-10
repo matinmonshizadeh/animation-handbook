@@ -1,5 +1,7 @@
 # Enter/Exit Typography
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/enter-exit-typography/)
+
 ## What it is
 Enter/exit typography shows short phrases one at a time in the same place. Each phrase comes in, holds still long enough to be read, then leaves before the next one arrives. Every phrase has its own way in and out, such as sliding, growing, blurring or wiping, and the last one stays on screen when the sequence ends.
 

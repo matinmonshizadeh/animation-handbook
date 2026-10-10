@@ -1,5 +1,7 @@
 # Cursor Follower
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/cursor-follower/)
+
 ## What it is
 A cursor follower is a small shape that trails the mouse pointer with a slight delay, so it glides after it and eases in as it catches up instead of sticking to it. When it flips the colors of whatever is under it, it stays visible on any background, light over dark areas and dark over light ones, without choosing a color for each.
 

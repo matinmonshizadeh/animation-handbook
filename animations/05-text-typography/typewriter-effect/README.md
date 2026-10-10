@@ -1,5 +1,7 @@
 # Typewriter Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/typewriter-effect/)
+
 ## What it is
 The typewriter effect shows text one character at a time, as if someone is typing it, with a blinking cursor just after the last character. Small random differences in the time between keystrokes make it feel typed by a person rather than a machine, because real typing is never perfectly even.
 
@@ -10,58 +12,59 @@ The typewriter effect shows text one character at a time, as if someone is typin
 - Chat interfaces, AI demos, and streaming text UI
 
 ## How it works
-The core loop increments a counter and slices the full string to that length. A `<span>` cursor is appended after the text node:
+The core loop counts up and shows the text cut to that length. Setting `textContent` replaces everything in the element, the cursor `<span>` too, so each step appends the cursor again and it always sits after the last character. `later` is `setTimeout` that also keeps the timer's id, so Replay can cancel the keystrokes still waiting:
 
 ```js
-function type(text, speed = 50) {
-  let i = 0;
-  const el = document.querySelector('.output');
-  const cursor = document.createElement('span');
-  cursor.className = 'cursor';
-  el.appendChild(cursor);
-
-  function tick() {
-    el.firstChild?.remove();                               // remove old text node
-    el.insertBefore(document.createTextNode(text.slice(0, i)), null); // prepend new
-    el.appendChild(cursor);                                // cursor stays last
-    if (++i <= text.length) setTimeout(tick, jitter(speed));
-  }
-  tick();
+function render(shown) {
+  typeOut.textContent = shown;
+  typeOut.appendChild(cursor);
 }
 
-// Natural variance: ±20ms random offset
+function typeChars(text, done) {
+  let i = 0;
+  (function tick() {
+    render(text.slice(0, i));
+    if (i < text.length) { i++; later(tick, jitter(spd)); }
+    else done();
+  })();
+}
+
+// Types like a person: up to 20ms earlier or later; Slow motion (mul() = 3) stretches every delay
 function jitter(base) {
-  return base + Math.round((Math.random() - 0.5) * 40);
+  const varied = jitterTog.checked ? base + Math.round((Math.random() - 0.5) * 40) : base;
+  return varied * mul();
 }
 ```
 
-The cursor blinks via a CSS animation:
+The cursor blinks via a CSS animation; the Line shape is a 2px bar in the cursor color:
 
 ```css
 .cursor {
   display: inline-block;
-  width: 2px;
+  width: 3px;
   height: 1.1em;
-  background: var(--accent);
+  vertical-align: text-bottom;
+  margin-left: 2px;
   animation: blink 1s step-end infinite;
 }
+.cursor.pipe { width: 2px; background: var(--cursor-color); }
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  50%      { opacity: 0; }
 }
 ```
 
-For the backspace-and-retype variant, decrement the substring index instead of incrementing, then redirect to a new target string:
+For the backspace-and-retype variant, the index counts down instead, over the last word and the space before it (never more than the last 40% of the text). Then `retypeChars` types the deleted word again with " — always." after it:
 
 ```js
-function deleteBack(from, to, callback) {
-  let i = from.length;
-  function del() {
-    el.firstChild.textContent = from.slice(0, --i);
-    if (i > 0) setTimeout(del, 30);
-    else callback(to);
-  }
-  del();
+function deleteChars(text) {
+  const words = text.trim().split(' ');
+  const deleteFrom = Math.max(text.length - words[words.length - 1].length - 1, Math.floor(text.length * 0.6));
+  let i = text.length;
+  (function del() {
+    if (i > deleteFrom) { i--; render(text.slice(0, i)); later(del, jitter(30)); }
+    else retypeChars(text, deleteFrom);
+  })();
 }
 ```
 

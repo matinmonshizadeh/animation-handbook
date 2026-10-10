@@ -1,5 +1,7 @@
 # Notification Badge Pulse
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/badge-pulse/)
+
 ## What it is
 A notification badge is a small colored dot or number on an icon that marks something new, such as unread messages. A gentle pulse, growing a little and settling back or sending out a soft ring, catches the eye at the edge of your vision without interrupting what you are doing.
 

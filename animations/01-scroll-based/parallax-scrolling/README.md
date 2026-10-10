@@ -1,6 +1,6 @@
 # Parallax Scrolling
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-scrolling/)
 
 ## What it is
 
@@ -20,7 +20,7 @@ the scene feels.
 ## How it works
 
 Each layer has a speed multiplier `s` between 0 and 1.5, set by the Depth
-setting. On scroll, a single `requestAnimationFrame` callback normalises
+setting. On scroll, a single `requestAnimationFrame` callback normalizes
 `scrollTop` to a 0–1 progress value and scales the travel, a quarter of the
 box's height, by the layer's speed:
 
@@ -30,7 +30,7 @@ const offset   = progress * MAX_PARALLAX * speed;           // MAX_PARALLAX = a 
 layer.el.style.transform = `translate3d(0, ${offset}px, 0)`;
 ```
 
-Normalising first makes the movement the same whatever the length of the
+Normalizing first makes the movement the same whatever the length of the
 scroll, and clamps it at both ends for free.
 
 Layers with low speed (sky: 10%) barely move — they appear far away. Layers

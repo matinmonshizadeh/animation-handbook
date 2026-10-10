@@ -1,7 +1,9 @@
 # Grid / Dot Pattern Parallax
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/grid-dot-pattern-parallax/)
+
 ## What it is
-A grid or dot pattern parallax places a faint repeating pattern of dots or lines behind the content and shifts it slightly in the opposite direction to the pointer. The shift is tiny, a few percent of the pointer's movement, so the pattern seems to sit a little deeper than the content: depth you feel more than see. When no pointer is over it, the grid drifts slowly by itself. Linear, Vercel and many developer tools use it.
+A grid or dot pattern parallax, common on the sites of developer tools such as Linear and Vercel, places a faint repeating pattern of dots or lines behind the content and shifts it slightly in the opposite direction to the pointer. The shift is tiny, a few percent of the pointer's movement, so the pattern seems to sit a little deeper than the content: depth you feel more than see. When no pointer is over it, the grid drifts slowly by itself.
 
 ## When to use it
 - Technical and developer-tool landing pages where grid patterns signal "structured and precise"
@@ -82,6 +84,7 @@ function autoLoop(now) {
 - **`will-change: transform`** on the pattern layer: useful when the layer is large and translation is frequent (every `mousemove` event). Add/remove dynamically on `mouseenter`/`mouseleave`.
 - **`transform: translate()` not `background-position`**: `translate` uses the compositor thread; `background-position` triggers paint. Always use `transform` for the parallax offset.
 - **SVG pattern alternative**: `<svg><pattern>` can define more complex repeating patterns (hexagons, triangles, etc.) as background images via `background-image: url("data:image/svg+xml,...")`. This keeps the pattern as pure CSS/SVG with no canvas overhead.
+- **Libraries**: Parallax.js moves layers against the pointer, or against a phone's tilt where there is a gyroscope, by each layer's `data-depth`; with GSAP, `quickTo()` lets the pattern ease toward each new pointer position.
 
 ## See also
 - [Floating Elements](../floating-elements/) — shapes that drift on their own instead

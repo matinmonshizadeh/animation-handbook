@@ -1,5 +1,7 @@
 # Breathing / Pulsing Glow
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/breathing-glow/)
+
 ## What it is
 A breathing glow is a soft, round glow of color that slowly grows and brightens, then shrinks and dims, over and over, like someone breathing calmly. A cycle of four to six seconds matches a relaxed breath. It sits behind things that are alive but at rest, such as a paused music player, an idle voice assistant or a meditation timer.
 

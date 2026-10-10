@@ -1,5 +1,7 @@
 # Magnetic Button
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnetic-button/)
+
 ## What it is
 A magnetic button seems to be drawn to the pointer. When the pointer comes close, the button moves part of the way toward it and its label moves a little further, so the label seems to float above the button. When the pointer leaves, the button springs back; it never leaves its place in the layout.
 

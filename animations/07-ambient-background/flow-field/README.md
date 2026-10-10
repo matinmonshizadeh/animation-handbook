@@ -1,5 +1,7 @@
 # Flow Field
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/flow-field/)
+
 ## What it is
 A flow field moves thousands of particles across a canvas, each one steering by the direction of an invisible current under it. The directions change smoothly from one spot to the next, so particles near each other curve together, and the whole surface shows gentle, river-like currents. The canvas is dimmed a little each frame instead of cleared, so every particle leaves a fading trail that traces the flow.
 
@@ -53,7 +55,7 @@ The step grows with the time since the last drawn frame, and so does the fade, i
 - **Mobile cap**: particle count is limited to 500 on phone-sized screens (up to 600px wide, or up to 500px tall for a phone held sideways). Each particle is a stroked line segment, so fill rate — not math — is the bottleneck on phones.
 - **Deterministic noise**: the `hash` uses `sin(x*127.1 + y*311.7)*43758.5453`, a classic GLSL trick. It is not cryptographic and not true Perlin noise, but it is cheap, dependency-free, and smooth enough for a field.
 - **Reduced motion**: the demo starts paused, showing about 40 frames drawn at once as a still, settled picture, until the visitor presses Play. The same 40 frames are drawn whenever the page opens, so the stage never starts empty.
-- **Library equivalents**: production flow fields usually run on the GPU — [three.js](https://threejs.org) with a fragment/compute shader, or curl-noise in a particle system. [tsParticles](https://github.com/matteobruni/tsparticles) does not do true flow fields, but its path plugins approximate directed motion.
+- **Library equivalents**: production flow fields usually run on the GPU — [three.js](https://threejs.org) with a fragment/compute shader, or curl-noise in a particle system. [tsParticles](https://github.com/tsparticles/tsparticles) does not do true flow fields, but its path plugins approximate directed motion.
 
 ## See also
 - [Particle Constellation](../particle-constellation/) — particles that link up instead of flowing

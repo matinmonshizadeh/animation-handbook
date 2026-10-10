@@ -1,5 +1,7 @@
 # Button Loading States
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/button-loading-states/)
+
 ## What it is
 Button loading states show, inside the button itself, that a press is being worked on. The label gives way to a spinner, the button cannot be pressed twice, and when the answer comes a tick or a cross says how it went before the label comes back. The button can also shrink into a circle around the spinner, drawn with a clip so that nothing around it moves.
 

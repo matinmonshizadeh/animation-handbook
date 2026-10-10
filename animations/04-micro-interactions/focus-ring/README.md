@@ -1,5 +1,7 @@
 # Focus Ring Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/focus-ring/)
+
 ## What it is
 A focus ring is the outline that shows which item the keyboard is on. Animating it, so the ring closes in around each item as you press Tab, makes every move easier to follow. It shows when the keyboard is used (and when you click into a text field, since you type there next), so people who click buttons and links with a mouse do not see rings appear.
 

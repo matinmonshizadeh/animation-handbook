@@ -1,5 +1,7 @@
 # Button Press Scale
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/button-press-scale/)
+
 ## What it is
 Button press scale makes a button shrink slightly while it is pressed and spring back when it is let go. A screen has no real button travel, so this small shrink stands in for the feel of pushing a physical button, and it confirms that the press registered.
 

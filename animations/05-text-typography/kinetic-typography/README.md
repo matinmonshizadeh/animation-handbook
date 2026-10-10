@@ -1,5 +1,7 @@
 # Kinetic Typography
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/kinetic-typography/)
+
 ## What it is
 Kinetic typography is text in motion, where the way each word moves matches what it means. A short sequence shows one phrase at a time, and each phrase gets its own way in and out: a heavy word can drop in large, a soft word can simply fade. It comes from film titles and motion graphics, where moving words tell a story on their own.
 

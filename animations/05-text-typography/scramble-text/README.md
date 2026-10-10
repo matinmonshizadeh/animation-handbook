@@ -1,5 +1,7 @@
 # Scramble / Glitch Text
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/scramble-text/)
+
 ## What it is
 Scramble text shows every letter as a random character that keeps changing, then locks each one into the real letter. The letters lock one after another from left to right, so the text becomes readable bit by bit, as if a hidden message is being decoded. The random characters can be symbols, letters of the alphabet, numbers, Japanese characters or a mix.
 

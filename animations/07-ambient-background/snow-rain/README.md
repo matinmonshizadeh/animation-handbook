@@ -1,5 +1,7 @@
 # Snow / Rain
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/snow-rain/)
+
 ## What it is
 A snow or rain effect draws falling particles on a see-through canvas laid over a dark scene. Snowflakes fall slowly and sway from side to side, while raindrops fall fast and are drawn as short streaks that lean with the wind. Every particle has a depth, so near ones are bigger, brighter and faster than far ones, which turns a flat sprinkle of dots into weather you look through.
 

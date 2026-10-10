@@ -1,5 +1,7 @@
 # Wave Layers
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/wave-layers/)
+
 ## What it is
 Wave layers stack a few strips of water, one in front of the other, each with a wavy top edge. Every strip slides sideways on its own endless loop, and the near strips sit lower, move faster and have bigger waves than the far ones, so a handful of flat shapes reads as deep water. The browser moves it all with no script.
 

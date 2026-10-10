@@ -1,7 +1,9 @@
 # Swipe to Dismiss
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/swipe-to-dismiss/)
+
 ## What it is
-Swipe to dismiss removes a list item when you drag it sideways. While you drag, the card follows your finger exactly; when you let go, it either flies off the edge while its row closes up, or springs back into place. A long drag or a quick flick removes it. It is the gesture behind swipe-to-delete in mail and message apps.
+Swipe to dismiss removes a list item when you drag it sideways, the gesture behind swipe-to-delete in mail and message apps. While you drag, the card follows your finger exactly; when you let go, it either flies off the edge while its row closes up, or springs back into place. A long drag or a quick flick removes it.
 
 ## When to use it
 - Mail, chat, and notification lists where "delete" or "archive" is the dominant action

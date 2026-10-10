@@ -1,6 +1,6 @@
 # Parallax Depth-of-Field
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/parallax-depth-of-field/)
 
 ## What it is
 

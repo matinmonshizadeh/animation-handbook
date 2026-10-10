@@ -1,5 +1,7 @@
 # Ambient Ripple Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ambient-ripple/)
+
 ## What it is
 An ambient ripple sends rings out from a few spots, over and over, like drops falling on a still pond or the ping of a sonar screen. Each ring grows from nothing and fades as it spreads, and the next one starts before it is gone, so the rings overlap into a gentle, steady pulse. It runs on its own rather than answering a click, and hints that something is alive there.
 
@@ -82,6 +84,7 @@ function updateSource(source) {
 - **Canvas vs SVG vs CSS**: canvas is best here because the ring count is variable and positions are dynamic. SVG animation for 15+ simultaneous animated elements creates expensive SMIL calculations. CSS `@keyframes` cannot easily spawn elements dynamically.
 - **IntersectionObserver pause**: these loops run continuously — always pause them when the element is off-screen to avoid draining battery on long pages.
 - **Accessibility**: the animation is purely decorative. Pause on `prefers-reduced-motion` and remove the canvas entirely if needed — no content is lost.
+- **No library needed**: the rings are a few arcs a frame on a 2D canvas; for ripples that bend a picture like water, PixiJS's `DisplacementFilter` or a shader, as in the GPGPU water example of three.js, are the usual tools.
 
 ## See also
 - [Click / Tap Ripple](../../04-micro-interactions/click-ripple/) — a ripple that answers a click instead

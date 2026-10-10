@@ -1,5 +1,7 @@
 # Game of Life
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/game-of-life/)
+
 ## What it is
 Conway's Game of Life is a grid of square cells, each alive or dead, that changes one generation at a time by three rules about each cell's eight neighbors: a dead cell with exactly three live neighbors is born, a live cell with two or three lives on, and every other cell dies. Nobody steers it, yet out of these rules come still shapes, shapes that blink, gliders that crawl across the grid and guns that fire gliders forever. The mathematician John Conway devised it in 1970.
 
@@ -43,6 +45,7 @@ A random world usually settles into still shapes and blinkers within a few hundr
 - **Pattern files**: patterns are shared as run-length code (RLE), as in the demo; LifeWiki and the Golly pattern collection hold thousands.
 - **Reduced motion**: the demo starts paused, showing the world a few generations in, until the visitor presses Play. Drawing still works while paused.
 - **It is decorative**: keep the canvas `aria-hidden`, dim the cells or use large ones behind text, and stop the loop when the section is off-screen.
+- **Libraries**: none is needed for the rules; for the GPU version above, the examples of regl, a WebGL library, include a Game of Life that swaps two framebuffers each step.
 
 ## See also
 - [Matrix Rain](../matrix-rain/) — another canvas grid that changes step by step

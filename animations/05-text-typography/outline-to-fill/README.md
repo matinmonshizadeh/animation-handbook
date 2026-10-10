@@ -1,5 +1,7 @@
 # Outline to Fill
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/outline-to-fill/)
+
 ## What it is
 Outline to fill starts text as hollow letters, with only the outline of each letter showing, then fills them with color, so the text looks as if it is being inked in. There are two ways to do it, and the demo shows both: a wipe that fills the letters from one side, like paint, and a fade that fills them everywhere at once, like ink soaking in.
 

@@ -1,5 +1,7 @@
 # SVG Path Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/svg-path-animation/)
+
 ## What it is
 An SVG path animation makes a line drawing appear as if drawn by hand. Each line is hidden behind a dash exactly as long as the line, and sliding that dash away uncovers the line from one end to the other. The whole drawing is in the page from the start, with a label, so screen readers can always find it.
 
@@ -27,31 +29,33 @@ path.style.transition = 'stroke-dashoffset 1500ms ease-out';
 path.style.strokeDashoffset = 0;         // fully revealed
 ```
 
-For multiple paths in sequence, stagger the transitions with a delay per path:
+For multiple paths in sequence, the demo starts each line `gap` after the one before: 30% of the drawing time `ms`, so a line begins while the one before it is still drawing. `ms` is the Speed setting (1500ms at Normal, three times longer in Slow motion), `ease` the Feel setting and `rev` the Starts from the other end switch; `later` is `setTimeout` that also keeps the timer's id, so Replay can cancel what is still waiting:
 
 ```js
-paths.forEach((path, i) => {
+const paths = buildPaths(), ms = speed(), gap = ms * 0.3, rev = revTog.checked;
+paths.forEach(path => {
   const len = path.getTotalLength();
   path.style.strokeDasharray  = len;
-  path.style.strokeDashoffset = len;
+  path.style.strokeDashoffset = rev ? -len : len;   // hidden either way
   path.style.transition = 'none';
-
-  setTimeout(() => {
-    path.getBoundingClientRect();       // apply the hidden state first
-    path.style.transition = 'stroke-dashoffset 700ms ease-out';
-    path.style.strokeDashoffset = 0;
-  }, i * 300);
 });
+paths.forEach((path, i) => later(() => {
+  path.getBoundingClientRect();       // apply the hidden state first
+  path.style.transition = `stroke-dashoffset ${ms}ms ${ease}`;
+  path.style.strokeDashoffset = 0;
+}, 20 + i * gap));
 ```
 
-**Fill at end** — trigger a fill reveal after the stroke draw completes. The path has to start with `fill: transparent`, not `fill: none`: a fill can only fade from a color, and from `none` it would snap on.
+**Fill at end** — once the last line is drawn (`20 + (paths.length - 1) * gap + ms + 50` milliseconds in), a class fades the fill in. The path has to start with `fill: transparent`, not `fill: none`: a fill can only fade from a color, and from `none` it would snap on.
+
+```css
+.draw-path { fill: transparent; fill-opacity: .15; stroke: var(--stroke-color); }
+.draw-path.fill-done { fill: var(--stroke-color); transition: fill var(--fill-dur) ease; }
+```
 
 ```js
-path.style.fill = 'transparent';        // not 'none'
-path.addEventListener('transitionend', () => {
-  path.style.transition = 'fill 400ms ease';
-  path.style.fill = 'rgba(88, 166, 255, 0.15)';
-});
+// clearing the inline transition lets the class's fill transition apply
+if (fillTog.checked) paths.forEach(path => { path.style.transition = ''; path.classList.add('fill-done'); });
 ```
 
 ## Key parameters

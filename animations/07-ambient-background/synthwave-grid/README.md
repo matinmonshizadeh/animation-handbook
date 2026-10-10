@@ -1,5 +1,7 @@
 # Synthwave Grid
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/synthwave-grid/)
+
 ## What it is
 A synthwave grid is a glowing neon floor that stretches to the horizon and rolls steadily toward the viewer, under a purple sky with a striped, glowing sun. It is the retro look of 1980s album covers and arcade games, the 1980s idea of the future, drawn as a loop that never visibly restarts.
 
@@ -30,7 +32,7 @@ last = now;
 offset += speed * 0.02 * dt / (1000 / 60) * (slow ? 1 / 3 : 1);
 ```
 
-The glow is a canvas `shadowBlur` set to the grid colour; the sun is a clipped semicircle filled with a vertical gradient and striped with background-coloured gaps.
+The glow is a canvas `shadowBlur` set to the grid color; the sun is a clipped semicircle filled with a vertical gradient and striped with background-colored gaps.
 
 ## Key parameters
 | Parameter | Default | Effect |
@@ -44,7 +46,7 @@ The glow is a canvas `shadowBlur` set to the grid colour; the sun is a clipped s
 - **The modulo seam**: fading lines in as `p` approaches 0 hides the pop where a new line spawns at the horizon. Without the alpha ramp you would see it flicker into existence.
 - **Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene.
 - **CSS alternative**: this can also be built with a `transform: perspective()` plane and a repeating linear-gradient scrolled toward the viewer. Scrolling it with `background-position` repaints every frame; sliding an oversized plane one grid square with `transform: translateY()` and jumping back lets the compositor run it. The canvas version wins on control over per-line fade and glow.
-- **Library equivalents**: for a true 3D floor with camera moves and bloom, use [three.js](https://threejs.org) — a `PlaneGeometry` with a wireframe material and an `UnrealBloomPass` gives the authentic glow. [tsParticles](https://github.com/matteobruni/tsparticles) is not suited to structured grids.
+- **Library equivalents**: for a true 3D floor with camera moves and bloom, use [three.js](https://threejs.org) — a `PlaneGeometry` with a wireframe material and an `UnrealBloomPass` gives the authentic glow. [tsParticles](https://github.com/tsparticles/tsparticles) is not suited to structured grids.
 
 ## See also
 - [Starfield / Space Particles](../starfield/) — another way of flying forward through space

@@ -1,5 +1,7 @@
 # Shatter Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/shatter-effect/)
+
 ## What it is
 
 A shatter effect breaks an element into sharp pieces that fly apart and fade, as if it were a pane of glass hit at one point. Each piece is a copy of the whole card trimmed to its own shape, so together the pieces look exactly like the card until they move. Here the next card fades in behind them, so the break doubles as the change from one card to the next.

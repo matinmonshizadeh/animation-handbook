@@ -1,5 +1,7 @@
 # Handwriting Draw
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/handwriting-draw/)
+
 ## What it is
 Handwriting draw makes a word look as if someone is writing it while you watch. The word is made of pen lines rather than a font, and each line is uncovered from where the pen touches down to where it lifts, at a steady pen speed and in the order a person writes: the joined letters first, then the dots and crosses.
 

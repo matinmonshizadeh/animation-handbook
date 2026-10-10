@@ -1,5 +1,7 @@
 # Scrollspy Navigation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/scrollspy-nav/)
+
 ## What it is
 
 Scrollspy is the menu beside a long page that always highlights the section you are reading. As a section's heading scrolls up past a line near the top, its link lights up and a marker slides to it; clicking a link scrolls to that section. The menu and the page stay in step both ways.
@@ -55,9 +57,10 @@ The menu sits inside the scroller, in a row that is zero tall and `position: sti
 - **Suppress spy updates during programmatic scroll.** A smooth scroll from section 1 to section 5 passes through 2, 3, and 4; without a lock the indicator rapid-fires across every link in between. Activate the target immediately, ignore spy results until the scroll settles, then resume.
 - **IntersectionObserver is not a drop-in replacement.** It tells you which sections intersect a band, but scrollspy needs *exactly one* active section at all times — sections taller than the viewport report no intersection with a thin band unless you observe carefully-tuned `rootMargin` bands, and ties between two intersecting sections still need a scroll-position tiebreak. For "one active link" semantics, the cached-tops comparison is simpler and deterministic.
 - **Using native anchors instead?** If you link with `href="#section"` and let the browser jump, set `scroll-margin-top` on the targets so a fixed header does not cover the section heading, and use `scroll-behavior: smooth` on the scroller.
+- **Libraries**: Bootstrap's Scrollspy highlights the link of the section in view once `data-bs-spy="scroll"` is on the scroll container, and Gumshoe is a small standalone script that does the same.
 
 ## See also
 
-- [ScrollTrigger Animation](../scroll-trigger/) — things start, scrub and pin as parts of the page scroll past
+- [Scroll-Triggered Animation](../scroll-trigger/) — things start, scrub and pin as parts of the page scroll past
 - [Progress Bar](../progress-bar/) — a bar shows how far you have read
 - [Snap Scrolling](../snap-scrolling/) — scrolling stops on one whole section at a time

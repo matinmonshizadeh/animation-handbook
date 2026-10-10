@@ -1,5 +1,7 @@
 # Word-by-Word Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/word-by-word-reveal/)
+
 ## What it is
 
 A word-by-word reveal animates each word of a passage in turn, rather than all at once or letter by letter. Words are how people read, so a delay of roughly 80 to 120 milliseconds per word follows the eye through a sentence: slow enough to feel intentional, fast enough that nobody waits.

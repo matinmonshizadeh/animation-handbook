@@ -1,5 +1,7 @@
 # Tooltip Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/tooltip-reveal/)
+
 ## What it is
 A tooltip is a small label that appears next to an item when you point at it or reach it with the keyboard, giving a short explanation that does not fit on the page. It fades in and grows very slightly, and it waits a moment before it shows, so tooltips do not flash while the pointer is only passing over things. When the pointer leaves, it stays for a moment before it fades, so it does not vanish the instant the pointer slips off the item.
 

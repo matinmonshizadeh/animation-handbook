@@ -1,5 +1,7 @@
 # View Transitions API
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/view-transitions-api/)
+
 ## What it is
 The View Transitions API is a browser feature that animates a change of page for you. You tell the browser when the page is about to change; it takes a picture of the page before and after, then animates from one picture to the other. CSS decides how the pictures move, so the same click can fade, slide, zoom or tilt.
 

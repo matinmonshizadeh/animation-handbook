@@ -1,5 +1,7 @@
 # Split-Flap Board
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/split-flap-board/)
+
 ## What it is
 A split-flap board shows each letter on a tile that is cut across the middle, like the departure boards of old airports and train stations. To change a letter, the tile flips through the alphabet: the top half of the old letter falls forward over the hinge and the bottom half of the next letter lands under it, again and again, until the tile shows its new letter. Tiles whose letters come later in the alphabet keep flipping longer, so the word settles tile by tile.
 

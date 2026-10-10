@@ -1,5 +1,7 @@
 # Split Text Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/split-text-reveal/)
+
 ## What it is
 
 A split-text reveal breaks text into pieces (characters, words or lines) and animates them one after another with a short delay between each. That delay turns a flat fade into a cascade that flows across the text. It is the basis of most animated headline entrances.

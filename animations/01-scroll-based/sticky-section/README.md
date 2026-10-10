@@ -1,5 +1,7 @@
 # Sticky Section
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/sticky-section/)
+
 ## What it is
 A sticky section holds a whole section still while you scroll, and uses that scrolling to step its content through a sequence instead of moving the page. The section sits inside a tall wrapper, and how far you have scrolled through the wrapper decides which step shows, so scrolling back steps backwards. In the demo, a text column and a picture change together through four steps, then the section scrolls away.
 

@@ -1,5 +1,7 @@
 # Floating Elements
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/floating-elements/)
+
 ## What it is
 Floating elements are small, see-through shapes, such as circles, squares or rings, that drift slowly around a background. Each shape follows its own smooth, looping path, with its own speed, distance and starting point, so no two ever move in step. That independence is what makes it look like a living background rather than a screensaver.
 

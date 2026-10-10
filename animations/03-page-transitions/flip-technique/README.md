@@ -1,5 +1,7 @@
 # FLIP Technique
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/flip-technique/)
+
 ## What it is
 FLIP, short for First, Last, Invert, Play, animates layout changes that CSS cannot animate by itself, such as sorting a grid or switching from columns to a list. The browser moves every item to its new place at once; each item is then shifted back to where it was and slides from there to its new place. It looks as if the items glide into the new layout, but only their position on screen is animated.
 

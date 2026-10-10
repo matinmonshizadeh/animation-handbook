@@ -1,5 +1,7 @@
 # Scale In / Zoom In
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/scale-in/)
+
 ## What it is
 
 A scale-in grows an element from a little smaller than its final size up to full size, usually while it fades in. The anchor point decides where it grows from: its own center, an edge or a corner. With a springy curve the slight overshoot makes the arrival feel physical, as if the element lands in place.

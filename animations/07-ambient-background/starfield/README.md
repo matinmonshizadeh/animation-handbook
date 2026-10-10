@@ -1,5 +1,7 @@
 # Starfield / Space Particles
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/starfield/)
+
 ## What it is
 A starfield fills a dark background with small stars that stream out from the center, like the view from a spaceship flying through space. Each star's size, brightness and speed depend on how far it is from the middle: near the center stars are small, dim and slow, and they grow, brighten and speed up toward the edge, which is what makes it feel deep. A sideways version drifts stars past, the nearer ones faster, like the view from a window.
 

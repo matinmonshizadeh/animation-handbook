@@ -1,5 +1,7 @@
 # Wavy Text
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/wavy-text/)
+
 ## What it is
 Wavy text sends a wave rolling across a word. Every letter bobs up and down with the same motion, but each one starts a moment after the letter before it, so the highest point travels from the first letter to the last, like a flag rippling or a row of buoys lifted by a passing swell.
 

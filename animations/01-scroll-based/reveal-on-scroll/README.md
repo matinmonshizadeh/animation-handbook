@@ -1,5 +1,7 @@
 # Reveal on Scroll
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/reveal-on-scroll/)
+
 ## What it is
 A reveal on scroll keeps an element hidden, such as faded, shifted, shrunk, blurred or clipped, until it rises past a line in the view, then lets it settle into place. The browser reports when each element crosses the line, so nothing has to run on every scroll. The demo shows seven reveal styles behind one dashed line.
 
@@ -48,6 +50,6 @@ The pre-states live entirely in CSS — for example `[data-fx="blur"]{opacity:0;
 
 ## See also
 - [Stagger Reveal](../stagger-reveal/) — items in a group appear one after another
-- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Scroll-Triggered Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
 - [Fly-in Fly-out Contact List](../fly-in-fly-out-contact-list/) — rows fade and slide as they near the edges
 - [Scrollytelling](../scrollytelling/) — a picture beside the story changes as you read

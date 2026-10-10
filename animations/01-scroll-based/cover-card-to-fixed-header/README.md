@@ -1,6 +1,6 @@
 # Cover Card to Fixed Header
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/cover-card-to-fixed-header/)
 
 ## What it is
 

@@ -1,5 +1,7 @@
 # Copy to Clipboard
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/copy-to-clipboard/)
+
 ## What it is
 Copy feedback is the short confirmation a Copy button gives after it copies something. The clipboard icon turns into a tick, the label changes from Copy to Copied! and a brief flash of color marks the moment. After a second or two the button changes back, ready to use again.
 
@@ -48,6 +50,7 @@ The two labels are stacked in the same grid cell so they crossfade in place with
 - **Announce for screen readers**: sighted users see the label change, but assistive tech needs an `aria-live="polite"` (or `role="status"`) region that receives the "Copied to clipboard" string on success. Clear it on revert so it does not re-announce stale state.
 - **Revert timing and rapid clicks**: clear any pending timer before starting a new one, otherwise a second copy can revert early. Keep the button interactive during the confirmation so repeated copies work.
 - **Reduced motion**: under `prefers-reduced-motion: reduce`, drop the morph, pulse, and stroke draw — swap the icon and label instantly. The confirmation still lands, just without movement.
+- **Libraries**: clipboard.js copies from a `data-clipboard-text` attribute and fires `success` and `error` events to start this feedback from, but it relies on the older `execCommand` route rather than the Clipboard API.
 
 ## See also
 - [Checkmark Draw](../checkmark-draw/) — a tick that draws itself

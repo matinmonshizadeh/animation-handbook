@@ -1,5 +1,7 @@
 # Animated Gradient Background
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/animated-gradient-background/)
+
 ## What it is
 An animated gradient background slowly shifts its colors behind the content, over a long cycle (typically 15 to 30 seconds), so the page feels alive without anything catching the eye. The gradient is painted much larger than the area it fills and slides slowly back and forth, or its colors turn around the color wheel. It is the lightest ambient effect: the browser animates it with no script at all.
 
@@ -54,6 +56,7 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 - **Seamless loop**: repeat the first color stop at the end of the gradient to ensure the transition back to the start is smooth. Without this, there's a visible "snap" when the animation restarts.
 - **`@property` for smooth hue stop animation**: native CSS custom property interpolation (`@property` with `syntax: '<color>'`) allows animating individual color stops within a gradient — a newer approach that doesn't require the `background-size` hack.
 - **Performance**: on low-end devices a large repainting gradient can cost frames; `will-change: background-position` does not stop the repaint, the `transform` version does.
+- **Libraries**: Granim.js draws gradients on a `<canvas>` and moves between named gradient states, for when a CSS loop is not enough.
 
 ## See also
 - [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend

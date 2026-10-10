@@ -1,5 +1,7 @@
 # Form Field Morph
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/)
+
 ## What it is
 Form field morph, also called a floating label, starts with each field's label inside the field, like a placeholder. When you click into the field or type in it, the label moves up and shrinks, so it stays visible above your text instead of disappearing the way a placeholder does.
 

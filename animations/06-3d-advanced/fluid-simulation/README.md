@@ -1,5 +1,7 @@
 # Fluid / Liquid Simulation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/fluid-simulation/)
+
 ## What it is
 This fluid effect looks like liquid but is not a real fluid simulation. A WebGL shader works out, for every pixel, how far it is from a few moving circles, and blends those distances so circles that come close melt into one smooth shape, like drops of mercury or a lava lamp. Circles that drift apart separate cleanly again.
 

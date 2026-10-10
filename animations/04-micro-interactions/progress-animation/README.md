@@ -1,5 +1,7 @@
 # Progress Animation
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/progress-animation/)
+
 ## What it is
 A progress animation shows how much of a task is done by filling a shape: a bar, a ring or a row of steps. Unlike a spinner, it tells people how much is left, which makes a long wait easier. In the demo, all three are driven by the same percentage.
 

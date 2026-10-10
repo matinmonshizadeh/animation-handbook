@@ -1,6 +1,6 @@
 # Pin Animation
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/pin-animation/)
 
 ## What it is
 
@@ -61,5 +61,5 @@ const featureIndex = Math.min(3, Math.floor(p * 4));
 ## See also
 
 - [Scrub Animation](../scrub-animation/) — scroll plays an animation forward and back
-- [ScrollTrigger Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
+- [Scroll-Triggered Animation](../scroll-trigger/) — animations start, follow and pin at set scroll points
 - [Sticky Section](../sticky-section/) — a whole section holds still while its content changes

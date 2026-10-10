@@ -1,5 +1,7 @@
 # Drawer / Panel Slide
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/drawer-slide/)
+
 ## What it is
 A drawer is a panel that waits just beyond one edge of the screen and slides in over the page when you press its button, usually holding a menu, filters or settings. The page behind it usually dims so the drawer stands out. It slows down as it arrives, like a panel sliding to a stop, and speeds up as it leaves, which makes closing feel quicker than opening.
 

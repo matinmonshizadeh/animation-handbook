@@ -1,5 +1,7 @@
 # Accordion Open/Close
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/accordion/)
+
 ## What it is
 An accordion is a stack of headings that each open to show more content below them, and close again. The hard part is the movement: the content's box has to grow from nothing to its natural height, which browsers cannot animate on their own. The demo shows two ways to do it: measure the content's height first, or let a grid row grow from nothing to its full size.
 

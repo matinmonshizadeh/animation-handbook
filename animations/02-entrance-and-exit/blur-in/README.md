@@ -1,5 +1,7 @@
 # Blur In
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/blur-in/)
+
 ## What it is
 
 Blur In fades an element into view while it sharpens from a heavy blur to crisp focus, like a camera pulling focus onto a subject. The rising opacity and falling blur feel cinematic because they echo how a real lens resolves an image, unlike the flat look of a plain fade.

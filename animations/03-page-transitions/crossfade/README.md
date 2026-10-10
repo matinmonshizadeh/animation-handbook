@@ -1,5 +1,7 @@
 # Crossfade Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/crossfade/)
+
 ## What it is
 A crossfade switches pages by fading the old page out while the new one fades in, so for a moment both are half visible and blend into each other. That overlap is what makes it a crossfade: fading the old page out first and the new one in afterwards leaves a short blank moment instead. The demo can do both, so you can compare them.
 

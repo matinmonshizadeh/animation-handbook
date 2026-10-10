@@ -1,5 +1,7 @@
 # Shared Element Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/)
+
 ## What it is
 A shared element transition keeps one piece of content in view while the page changes around it: a thumbnail in a grid grows and moves into the large picture at the top of its detail page, instead of the two pages simply swapping. It feels as if you travel with the content rather than jump to a new screen. The demo measures where the picture starts and where it ends, then moves a copy of it from one to the other.
 
@@ -43,7 +45,7 @@ The real grid fades out while the copy travels, and the detail body fades in sli
 
 ## Production notes
 - **Read then write** — batch all `getBoundingClientRect()` reads before you touch styles. Interleaving reads and writes causes layout thrashing that stutters the animation.
-- **The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It moves with `transform` alone (a shift and a scale), so the browser lays nothing out while it travels; only its corners are repainted. A scaled copy stretches what is inside it, which suits a picture or a colour but not text.
+- **The clone is `position:fixed`**, so it moves in viewport coordinates and ignores the scroll and layout of the pages underneath it. It moves with `transform` alone (a shift and a scale), so the browser lays nothing out while it travels; only its corners are repainted. A scaled copy stretches what is inside it, which suits a picture or a color but not text.
 - **Fixed positioning uses viewport coordinates**, which is why the demo reads `getBoundingClientRect()` directly. If your clone lives inside a transformed or scrolled ancestor, offsets must be adjusted.
 - **Reduced motion** skips the clone entirely and snaps the detail view in.
 - **Library equivalents**: the View Transitions API does this natively by giving both elements the same `view-transition-name`. Framer Motion's `layoutId` and shared `<motion.*>` elements automate FLIP; GSAP's Flip plugin offers the same measure-invert-play primitive.

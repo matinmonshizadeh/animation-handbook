@@ -1,5 +1,7 @@
 # Overlay Wipe
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/overlay-wipe/)
+
 ## What it is
 An overlay wipe hides a page change behind a solid colored panel. The panel sweeps in from one side until it covers the whole page, the page is swapped while nobody can see it, and the panel sweeps on out of the opposite side to uncover the new page. A second, lighter panel can run just ahead of it on the way in and just behind it on the way out, so the edge shows two bands of color.
 

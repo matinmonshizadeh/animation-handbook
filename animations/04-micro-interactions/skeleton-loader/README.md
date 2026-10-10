@@ -1,5 +1,7 @@
 # Skeleton Loader
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/skeleton-loader/)
+
 ## What it is
 A skeleton loader shows gray placeholder shapes in the layout of the content that is on its way. The blocks pulse gently to show that loading is going on, and the real content fades in over them when it arrives. Because people see the shape of what is coming, the wait feels shorter than it does with a blank area or a spinner.
 

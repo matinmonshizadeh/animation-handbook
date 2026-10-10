@@ -1,5 +1,7 @@
 # Canvas Particle Effect
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/canvas-particle-effect/)
+
 ## What it is
 A canvas particle effect draws hundreds of small dots on one canvas and moves them every frame. Each dot drifts in its own direction and bounces off the edges, thin lines join dots that come close, and the pointer pushes nearby dots away or pulls them in. It is the connected-dots background seen on many tech sites.
 

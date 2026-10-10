@@ -1,5 +1,7 @@
 # Blur Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/blur-transition/)
+
 ## What it is
 A blur transition takes the old page out of focus until it disappears, then brings the new page in from a blur to sharp. It looks like a camera pulling focus from one subject to another, so the change reads as a shift of attention rather than a hard cut.
 

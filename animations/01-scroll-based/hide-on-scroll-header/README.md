@@ -1,5 +1,7 @@
 # Hide-on-Scroll Header
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/hide-on-scroll-header/)
+
 ## What it is
 
 A hide-on-scroll header is a top bar that gets out of the way while you read. Scrolling down slides it up out of view, so the content gets the whole screen; scrolling back up brings it back, so the menu is always one small move away. Near the top of the page it always shows.

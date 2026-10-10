@@ -1,5 +1,7 @@
 # Toggle / Switch Slide
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/toggle-switch/)
+
 ## What it is
 A toggle switch is an on/off control whose round knob slides across a track, and the track fills with color when it is on. The slide shows the change instead of just flipping it, and its speed and curve decide whether the switch feels mechanical, weighty or springy.
 

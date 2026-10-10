@@ -1,5 +1,7 @@
 # Rotate Word Carousel
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/rotate-word-carousel/)
+
 ## What it is
 A rotating word keeps a sentence still while one word in it keeps changing: "We craft for Designers" becomes "We craft for Developers", then "We craft for Humans". The current word slides out of sight and the next one slides in from the other side, so each change is easy to notice while the rest of the line stays readable. It is a common headline on the home pages of studios and software products.
 

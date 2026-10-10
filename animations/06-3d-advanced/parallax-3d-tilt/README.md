@@ -1,5 +1,7 @@
 # Parallax 3D Tilt
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/parallax-3d-tilt/)
+
 ## What it is
 A 3D tilt makes a flat card lean toward the pointer, as if you were looking at a real card from different angles. The card's container gives the scene depth, and a soft light slides across the card with the pointer, which completes the illusion. The browser's own 3D transforms do it, with no 3D library.
 
@@ -10,7 +12,7 @@ A 3D tilt makes a flat card lean toward the pointer, as if you were looking at a
 - NFT and gaming UIs where the tactile metaphor matches the product
 
 ## How it works
-`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's centre, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges.
+`perspective` must be set on the **parent**, not the card. The card's `rotateX`/`rotateY` are computed from the cursor's position relative to the card's center, normalized to ±0.5, then scaled by MAX, so the card leans MAX/2 at its edges.
 
 Bind **pointer** events, not mouse events — the same handler then covers mouse, pen and touch:
 

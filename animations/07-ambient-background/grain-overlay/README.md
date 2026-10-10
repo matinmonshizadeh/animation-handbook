@@ -1,5 +1,7 @@
 # Grain / Film Noise Overlay
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/grain-overlay/)
+
 ## What it is
 Film grain lays a see-through layer of random dots over a design and draws it again and again, so the texture flickers like the grain of photographic film. At a low strength, around 5 to 10 percent, it is barely visible, yet flat digital colors feel warmer and deeper; much stronger, and it looks like a damaged screen. The trick is subtlety: people should not notice the grain, only miss it when it is gone.
 

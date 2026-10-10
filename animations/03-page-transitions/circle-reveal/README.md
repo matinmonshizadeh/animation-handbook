@@ -1,5 +1,7 @@
 # Circle Reveal
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/circle-reveal/)
+
 ## What it is
 A circle reveal shows the next page through a circle that starts as a dot and grows until the new page fills the view. The dot sits where the visitor clicked or tapped, so the new page seems to spread out from their finger. Going back can run it the other way: the old page shrinks into the spot and uncovers the earlier one.
 

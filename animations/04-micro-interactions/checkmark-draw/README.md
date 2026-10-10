@@ -1,5 +1,7 @@
 # Checkmark Draw
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/checkmark-draw/)
+
 ## What it is
 A check mark that draws itself, as if by hand, to confirm that something worked. The circle and the tick are there from the start but hidden, and they are revealed along their length, so the line seems to be drawn. The same trick can draw a red X when something fails.
 

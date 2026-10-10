@@ -1,5 +1,7 @@
 # Slide Transition
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/slide-transition/)
+
 ## What it is
 A slide transition moves the old page out of one side while the new page comes in from the other, like panels on a track. When the direction follows the navigation — forward slides to the left, back slides to the right — it gives visitors a sense of where they are, as phone apps do. The demo can also always slide the same way, or slide down.
 

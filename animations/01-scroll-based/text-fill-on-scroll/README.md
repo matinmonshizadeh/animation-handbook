@@ -1,6 +1,6 @@
 # Text Fill on Scroll
 
-[Live demo](index.html)
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/text-fill-on-scroll/)
 
 ## What it is
 

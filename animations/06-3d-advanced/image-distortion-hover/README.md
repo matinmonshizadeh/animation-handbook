@@ -1,5 +1,7 @@
 # Image Distortion on Hover
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/image-distortion-hover/)
+
 ## What it is
 Image distortion on hover bends a picture around the pointer. A WebGL shader draws the image, and near the pointer each pixel is read from a slightly shifted spot, so the picture seems to ripple, bulge, swirl or break into squares there, while the image itself never changes. The bending fades away after the pointer leaves.
 
@@ -64,7 +66,7 @@ In the demo the pattern stands still, as a real image would: its time value stay
 ## Production notes
 - **Real images**: replace the procedural `pattern()` function with `texture2D(uTexture, distortedUV)`. Load images into WebGL via `gl.texImage2D()` from an `<img>` or `ImageBitmap`. Same-origin policy applies — external image URLs need CORS headers.
 - **`CLAMP_TO_EDGE`**: set the texture's wrap mode to `gl.CLAMP_TO_EDGE` (both `TEXTURE_WRAP_S` and `TEXTURE_WRAP_T`) so UV values outside [0,1] don't tile or mirror at the image border when distortion pushes UVs out of range.
-- **Pointer, not mouse**: bind `pointermove`/`pointerdown` rather than `mousemove`, or the effect never fires on a phone. The cursor position must be converted to backing-store pixels (multiply by the device pixel ratio used for the canvas) before it reaches the shader, or the distortion centre drifts away from the finger on high-DPI screens.
+- **Pointer, not mouse**: bind `pointermove`/`pointerdown` rather than `mousemove`, or the effect never fires on a phone. The cursor position must be converted to backing-store pixels (multiply by the device pixel ratio used for the canvas) before it reaches the shader, or the distortion center drifts away from the finger on high-DPI screens.
 - **Backing store and DPR**: size the canvas to `clientWidth * dpr` and call `gl.viewport()` after every resize. Uncapped DPR is expensive for a fullscreen fragment shader — this demo caps it at 2, and at 1.5 on phones. Resizing clears the drawing buffer, so a demo that is not drawing every frame (this one stops at rest) has to repaint after a resize or it goes black.
 - **Context loss**: a GPU reset or a restored tab fires `webglcontextlost`. Without a listener (and a `preventDefault()` so `webglcontextrestored` follows) the canvas dies permanently. Shaders, buffers and uniform locations all have to be rebuilt on restore.
 - **CSS-only alternative**: CSS `filter: blur()` and `transform: translate()` on pseudo-elements can approximate push distortion for a single element at low intensity. WebGL is needed for per-pixel wave and liquid effects.

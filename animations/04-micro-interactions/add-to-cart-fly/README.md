@@ -1,5 +1,7 @@
 # Add-to-Cart Fly
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/add-to-cart-fly/)
+
 ## What it is
 An add-to-cart fly sends a small copy of a product's picture into the cart icon when the visitor presses Add to cart. The copy shrinks as it travels, the cart gives a little bump as it lands, and the number on the cart goes up, so the visitor sees where the item went.
 

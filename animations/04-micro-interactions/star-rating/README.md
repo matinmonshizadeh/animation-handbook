@@ -1,5 +1,7 @@
 # Star Rating
 
+[Live demo](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/star-rating/)
+
 ## What it is
 A star rating lets someone give a score by choosing a star. As the pointer moves along the row, the stars fill up to the one under it, so the choice shows before it is made; clicking or tapping a star chooses it and makes it pop. The arrow keys change the rating too, and a setting lets each star count in halves.
 
