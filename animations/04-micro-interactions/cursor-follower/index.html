@@ -32,6 +32,8 @@
     .zone-accent{background:#0d1a2e;color:#58a6ff}
     /* Hover targets */
     .hover-target{display:flex;align-items:center;min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--ui-border);cursor:none;font-size:11px;background:rgba(255,255,255,.05)}
+    /* The keyboard's way in: a layer over the stage that Tab focuses (the pointer passes through it); its ring follows the stage's corners */
+    .keys{position:absolute;inset:0;border-radius:11px;pointer-events:none}
     /* Cursor follower: a wrapper that only moves (by transform), holding a .shape that carries the size, fill and corners and is the part that grows */
     #follower{position:absolute;left:0;top:0;pointer-events:none;z-index:100;opacity:0;will-change:transform;mix-blend-mode:difference}
     #follower.no-blend{mix-blend-mode:normal}
@@ -74,6 +76,7 @@
       <div class="zone zone-accent"><div class="hover-target" data-hover>Button</div></div>
       <div class="zone zone-light"><div class="hover-target" data-hover>Button</div></div>
       <div class="zone zone-mid">Pass over these words</div>
+      <div class="keys" id="keys" tabindex="0" role="group" aria-label="Dot follower: use the arrow keys to move it"></div>
       <div id="follower" class="circle" aria-hidden="true"><div class="shape"><svg aria-hidden="true"><circle cx="50%" cy="50%" r="50%"/></svg></div></div>
     </div>
     <div class="hb-player">
@@ -255,6 +258,26 @@
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the dot follows the visitor.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
+
+  // The keyboard: Tab focuses the layer over the stage, which stops a run and puts an invisible pointer in the middle of the stage,
+  // or where the keys last left it; the arrow keys move it a step (6% of the stage's shorter side, three with Shift). It goes
+  // through aim() as the pointer does, so the dot glides after it and grows over a button. Escape, or focus leaving, hides the dot
+  // as the pointer leaving does, unless a pointer on the stage or a tap has taken it since.
+  const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kx=null,ky=null;
+  function keyAim(dx,dy,big){
+    const W=stage.clientWidth,H=stage.clientHeight,s=Math.min(W,H)*(big?.18:.06);
+    if(kx===null){kx=W/2;ky=H/2}
+    kx=Math.min(W,Math.max(0,kx+dx*s));ky=Math.min(H,Math.max(0,ky+dy*s));
+    aim(kx,ky,buttons.some(b=>{const r=b.getBoundingClientRect(),[l,t]=spot(r.left,r.top);return kx>=l&&kx<=l+r.width&&ky>=t&&ky<=t+r.height}));
+  }
+  function keyRest(){if(inside&&(mx===kx&&my===ky||!stage.matches(':hover')))hide()}
+  keys.addEventListener('focus',()=>{if(running())stopRun();keyAim(0,0)});
+  keys.addEventListener('blur',keyRest);
+  keys.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key==='Escape')keyRest();
+    else if(ARROWS[e.key]){e.preventDefault();keyAim(...ARROWS[e.key],e.shiftKey)}
+  });
 
   function choices(id,pick){
     const btns=document.querySelectorAll('#'+id+' button');

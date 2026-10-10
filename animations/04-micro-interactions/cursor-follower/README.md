@@ -66,6 +66,8 @@ stage.addEventListener('pointermove', e => {
 });
 ```
 
+The keyboard drives it too: Tab focuses a see-through layer over the stage, which puts an invisible pointer in its middle (or where the keys last left it), and the arrow keys move that pointer a step at a time (6% of the stage's shorter side, three steps with Shift) through the same code as the mouse, so the dot glides after it and grows over a button. Escape, or a Tab out of the stage, hides the dot as the pointer leaving does.
+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
