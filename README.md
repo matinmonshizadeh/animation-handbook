@@ -52,7 +52,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 ### 01 · Scroll-Based · 27 techniques
 
-<sub>Animations driven by scroll position — parallax, sticky, scrub, snap, and narrative storytelling.</sub>
+<sub>Animations driven by scroll position — parallax, sticky, scrub, snap, and storytelling.</sub>
 
 <details><summary>Browse the 27 Scroll-Based techniques</summary>
 
@@ -115,7 +115,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 ### 03 · Page Transitions · 16 techniques
 
-<sub>Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the browser-native API.</sub>
+<sub>Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the View Transitions API.</sub>
 
 <details><summary>Browse the 16 Page Transitions techniques</summary>
 
@@ -224,7 +224,7 @@ Each technique's code and README are in its folder under [animations/](animation
 
 ### 06 · 3D & Advanced · 26 techniques
 
-<sub>WebGL, shaders, particles, 3D transforms, and the performance-sensitive effects that push the browser's limits.</sub>
+<sub>WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects.</sub>
 
 <details><summary>Browse the 26 3D & Advanced techniques</summary>
 
