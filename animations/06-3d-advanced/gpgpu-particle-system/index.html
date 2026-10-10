@@ -76,7 +76,7 @@
       <div class="hb-setting">
         <p class="hb-setting-name" id="count-lbl">Number of particles</p>
         <div class="seg" id="count-seg" role="group" aria-labelledby="count-lbl">
-          <button type="button" data-n="128" aria-pressed="false">16,000</button>
+          <button type="button" data-n="128" data-hb-phone aria-pressed="false">16,000</button>
           <button type="button" data-n="256" class="on" aria-pressed="true">65,000</button>
           <button type="button" data-n="320" aria-pressed="false">100,000</button>
         </div>
@@ -223,11 +223,12 @@ void main(){fragColor=vec4(.024,.039,.063,.12);}`;
 const stage=document.getElementById('stage'),cvs=document.getElementById('cvs'),noWgl2=document.getElementById('no-wgl2');
 const slowTog=document.getElementById('slow-tog');
 const NO_WGL2_MSG='This demo needs WebGL 2, which this browser does not offer. Try a recent Chrome, Firefox or Safari.';
-// Phones are screens up to 600px wide, or up to 500px tall when held sideways. They start with the 16k texture:
-// 65k points is too much fill for a phone, and the visitor can still pick more.
-const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
+// Phones are screens up to 600px wide, or up to 500px tall when held sideways. They start with the 16k texture: 65k points
+// is too much fill for a phone, and the visitor can still pick more. 16k is the count marked data-hb-phone, which the home
+// page's Copy prompt reads on phones too.
+const PHONE=matchMedia('(max-width:600px),(max-height:500px)'),PHONE_N=+document.querySelector('#count-seg [data-hb-phone]').dataset.n;
 let W=0,H=0,DPR=1,gl,physicsProg,renderProg,fadeProg,qBuf,fbo0,fbo1,tex0,tex1,raf=null;
-let paused=false,last=null,simT=0,TEX_N=PHONE.matches?128:256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
+let paused=false,last=null,simT=0,TEX_N=PHONE.matches?PHONE_N:256,BEHAVIOR=0,SPD=0.6,COLOR_MODE=0,TRAILS=false;
 let idxBuf=null,particleCount=0,PT=1.5,shaderErr='';
 
 // The pressed count follows the start (this runs before the shared script reads the settings for "Your settings")

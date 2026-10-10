@@ -157,7 +157,9 @@
     return setting ? text(setting.querySelector('.hb-setting-name')) : '';
   }
 
-  function valueFor(control) {
+  // The value a control gives. A choice group gives its pressed choice or, with phone (see phoneDefaults), the choice it marks
+  // data-hb-phone where it marks one.
+  function valueFor(control, phone) {
     if (control.matches('input[type=range]')) {
       var setting = control.closest('.hb-setting');
       var shown = setting && setting.querySelector('.hb-value');
@@ -166,8 +168,22 @@
     if (control.matches('input[type=text], textarea')) return quoteText(control.value, 40);
     if (control.matches('input[type=checkbox]')) return control.checked ? 'on' : 'off';
     if (control.matches('select')) return control.selectedOptions[0] ? text(control.selectedOptions[0]) : control.value;
-    var active = control.querySelector('.on, [aria-pressed="true"]');
+    var active = (phone && control.querySelector('[data-hb-phone]')) || control.querySelector('.on, [aria-pressed="true"]');
     return active ? (active.getAttribute('aria-label') || text(active)) : '';
+  }
+
+  // Phones, as the pages that start a setting lower there see them: up to 600px wide, or up to 500px tall (held sideways).
+  var PHONE = '(max-width:600px),(max-height:500px)';
+
+  // Whether the phone defaults count. A page that starts a setting lower on phones marks that choice data-hb-phone, and its own
+  // script presses it there. A page the home page has fetched and parsed (any document but the window's own) ran no script, so
+  // on a phone its marked choices count in place of the pressed ones: the home page then copies what the page itself copies on
+  // the same screen. The home page's stand-in window only answers getComputedStyle; the window this script runs in then answers
+  // the media query.
+  function phoneDefaults(doc, win) {
+    if (doc === win.document) return false;
+    var query = typeof win.matchMedia === 'function' ? win.matchMedia(PHONE) : typeof matchMedia === 'function' ? matchMedia(PHONE) : null;
+    return !!(query && query.matches);
   }
 
   // A control counts unless it, or anything between it and the scope, is hidden, skipped or
@@ -182,15 +198,16 @@
 
   // The demo's current settings in page order, as [{ label, value }].
   function readSettings(doc, scope, win) {
+    var phone = phoneDefaults(doc, win);
     return Array.prototype.filter.call(scope.querySelectorAll(CONTROLS), function (control) {
       return isShown(control, scope, win);
     }).map(function (control) {
-      return { label: labelFor(doc, control), value: valueFor(control), control: control };
+      return { label: labelFor(doc, control), value: valueFor(control, phone), control: control };
     });
   }
 
   // What Copy prompt copies on a page, with its settings as they are now. The home page runs it on a page it has
-  // fetched and parsed, where every setting is at its default.
+  // fetched and parsed, where every setting is at its default: on a phone, the phone default where the page marks one.
   function pageCopyText(doc, win) {
     var page = doc.querySelector('.hb-page');
     var promptEl = page && page.querySelector('.hb-prompt');

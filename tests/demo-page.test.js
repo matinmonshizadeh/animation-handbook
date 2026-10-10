@@ -157,6 +157,7 @@ function standInPage(kind, reduced, bodyAttributes, copy, links) {
   const doc = { body, querySelector: selector => (selector === '.hb-page' ? page : null), createElement: node, dispatchEvent: event => sent.push(event),
     querySelectorAll: selector => (selector === 'a[href]' ? anchors : []) };
   const win = {
+    document: doc, // the page's own document, as in a browser
     matchMedia: () => ({ matches: !!reduced, addEventListener() {} }),
     setTimeout: (fn, ms) => timers.push({ fn, ms }),
     clearTimeout() {}, location: { protocol: (links && links.protocol) || 'http:' }, console,
@@ -292,6 +293,75 @@ test('pageCopyText reads the prompt and the Try it settings of a page', () => {
   const noSettings = { querySelector: s => (s === '.hb-prompt' ? prompt : null) };
   assert.equal(DP.pageCopyText({ querySelector: s => (s === '.hb-page' ? noSettings : null) }, win), 'Add a fade to [the card].');
   assert.equal(DP.pageCopyText({ querySelector: () => null }, win), '');
+});
+
+// A choice group labelled `label`, of choices [{ text, pressed, phone }], as the shared script reads one: it asks for the choice
+// marked data-hb-phone and for the pressed one.
+function choiceGroup(label, choices) {
+  const button = choice => ({ textContent: choice.text, getAttribute: () => null });
+  return { hidden: false, parentElement: null, hasAttribute: () => false, matches: () => false,
+    getAttribute: name => (name === 'data-hb-label' ? label : null),
+    querySelector: selector => {
+      const found = choices.find(choice => (selector === '[data-hb-phone]' ? choice.phone : choice.pressed));
+      return found ? button(found) : null;
+    } };
+}
+// A page as the home page has it once fetched and parsed: its prompt, and a Try it step holding `controls`.
+function parsedPage(prompt, controls) {
+  const page = { querySelector: s => ({ '.hb-prompt': { textContent: prompt }, '.hb-try': { querySelectorAll: () => controls } })[s] || null };
+  return { querySelector: s => (s === '.hb-page' ? page : null), getElementById: () => null };
+}
+// A window of width × height whose own document is another one, answering the media queries the script asks (a list of
+// max-width and max-height features, as on the pages that start a setting lower on phones).
+function windowOf(width, height) {
+  return { document: {}, getComputedStyle: () => ({ display: '' }),
+    matchMedia: query => ({ matches: query.split(',').some(part => {
+      const m = /^\s*\(\s*max-(width|height)\s*:\s*(\d+)px\s*\)\s*$/.exec(part);
+      if (!m) throw new Error(`unexpected media query: ${query}`);
+      return (m[1] === 'width' ? width : height) <= Number(m[2]);
+    }) }) };
+}
+
+// GPGPU Particle System and Cloth Simulation start a setting lower on phones: their own script presses the choice marked
+// data-hb-phone there. The home page reads a page it fetched, where no script ran, so it must count that mark on a phone.
+test('a fetched page read on a phone gives the choices marked data-hb-phone and on larger screens the pressed ones; a page in its own window gives what is pressed', () => {
+  const prompt = 'Add a cloth to [the banner].';
+  // Detail: Medium is pressed in the markup and Low is the phone default; Wind has no phone default.
+  const wind = choiceGroup('Wind', [{ text: 'Light' }, { text: 'Medium', pressed: true }]);
+  const fetched = parsedPage(prompt, [choiceGroup('Detail', [{ text: 'Low', phone: true }, { text: 'Medium', pressed: true }, { text: 'High' }]), wind]);
+  const phone = prompt + '\n\nSettings from the demo: Detail: Low, Wind: Medium.';
+  const larger = prompt + '\n\nSettings from the demo: Detail: Medium, Wind: Medium.';
+  for (const [width, height, expected, screen] of [[375, 812, phone, 'a phone'], [320, 640, phone, 'a small phone'],
+    [812, 375, phone, 'a phone held sideways'], [1280, 800, larger, 'a desktop'], [1366, 657, larger, 'a laptop'], [768, 1024, larger, 'a tablet']]) {
+    assert.equal(DP.pageCopyText(fetched, windowOf(width, height)), expected, screen);
+  }
+  // The page in its own window ran its script, which pressed what counts there, so the pressed choice is read on any screen.
+  const own = parsedPage(prompt, [choiceGroup('Detail', [{ text: 'Low', phone: true }, { text: 'Medium' }, { text: 'High', pressed: true }]), wind]);
+  for (const [width, height] of [[375, 812], [1280, 800]]) {
+    const win = Object.assign(windowOf(width, height), { document: own });
+    assert.equal(DP.pageCopyText(own, win), prompt + '\n\nSettings from the demo: Detail: High, Wind: Medium.', `its own window, ${width}px wide`);
+  }
+});
+
+// The home page passes a stand-in window that only answers getComputedStyle (NO_STYLE in index.html): the window the script
+// runs in answers the media query then.
+test("on the home page's stand-in window, the window the script runs in says whether the screen is a phone", () => {
+  const prompt = 'Add particles to [the hero].';
+  const fetched = parsedPage(prompt, [choiceGroup('Number of particles', [{ text: '16,000', phone: true }, { text: '65,000', pressed: true }])]);
+  const NO_STYLE = { getComputedStyle: () => ({ display: '' }) };
+  const copied = value => `${prompt}\n\nSettings from the demo: Number of particles: ${value}.`;
+  const before = Object.getOwnPropertyDescriptor(globalThis, 'matchMedia');
+  try {
+    globalThis.matchMedia = windowOf(375, 812).matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('16,000'), 'a phone');
+    globalThis.matchMedia = windowOf(1280, 800).matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('65,000'), 'a desktop');
+    delete globalThis.matchMedia;
+    assert.equal(DP.pageCopyText(fetched, NO_STYLE), copied('65,000'), 'where nothing answers media queries');
+  } finally {
+    if (before) Object.defineProperty(globalThis, 'matchMedia', before);
+    else delete globalThis.matchMedia;
+  }
 });
 
 // The home page copies a card's prompt with pageCopyText, so the button on the page itself has to copy exactly what that gives.
