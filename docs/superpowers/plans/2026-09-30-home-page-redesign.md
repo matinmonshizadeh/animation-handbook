@@ -8,7 +8,7 @@
 
 **Tech Stack:** Plain HTML, CSS and vanilla JavaScript (no build step, no packages); Node's built-in test runner; `tools/check-pages.mjs` (Node 22+ and the local Chrome over the DevTools protocol); git worktrees.
 
-**Spec:** `docs/superpowers/specs/2026-09-30-home-page-redesign-design.md`. **Approved design:** https://claude.ai/artifact/KHpLZm8wNVyB8TqUpPPMDC, row "A · Friendly guide" (desktop, phone, phone after tapping Buttons). The canvas files are also on disk for a side-by-side look: `C:\Users\matin\AppData\Local\Temp\claude\C--Users-matin-OneDrive-Desktop-Projects-animation-handbook\30d5309a-3a1d-4776-940d-fa01fd09a7b5\scratchpad\home-design-2\project\` (`Main.dc.html`, `APhone.dc.html`, `APhoneButtons.dc.html`); they are a reference, not code to copy.
+**Spec:** `docs/superpowers/specs/2026-09-30-home-page-redesign-design.md`. **Approved design:** (a private design canvas, not published), row "A · Friendly guide" (desktop, phone, phone after tapping Buttons). The canvas files are also on disk for a side-by-side look: `<scratchpad>\home-design-2\project\` (`Main.dc.html`, `APhone.dc.html`, `APhoneButtons.dc.html`); they are a reference, not code to copy.
 
 ## Global Constraints
 
