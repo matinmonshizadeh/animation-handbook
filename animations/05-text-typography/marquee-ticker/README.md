@@ -76,7 +76,7 @@ Reverse direction by animating from `-50%` to `0`:
 | Your text | Animation Handbook | The text that scrolls |
 
 ## Production notes
-- **Duplicate once, not more**: duplicating twice is enough for any viewport width as long as one copy is wider than the viewport. More duplicates waste DOM. If your text is very short, add more repetitions within each copy rather than more copies.
+- **Two copies, not more**: two copies are enough for any viewport width as long as one copy is wider than the viewport. More copies waste DOM. If your text is very short, add more repetitions within each copy rather than more copies.
 - **`width: max-content`** on the track prevents line wrapping. Without it, text wraps at the container width, breaking the layout.
 - **`will-change: transform`** on the track element promotes it to a GPU compositing layer. Measure performance before adding — it reserves GPU memory and can cause issues on low-end mobile.
 - **Pause on hover is UX-critical**: users who want to read specific content need to be able to pause. The `:hover` CSS approach is zero JavaScript.
