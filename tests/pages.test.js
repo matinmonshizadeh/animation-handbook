@@ -474,21 +474,13 @@ test('the counts written in the root README match the cards', () => {
   }
 });
 
-test('the counts written in the issue template and the launch kit match the cards', () => {
-  const cats = homeConst('CATS'), cards = totalCards();
+test('the counts written in the issue template and the sitemap match the cards', () => {
+  const cards = totalCards();
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
   assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
-  // The launch kit says the total in many sentences: every "N techniques" or "N web animation techniques" is the total, every
-  // "N categories" the number of categories, and the sitemap's URL count is one more than the total (the home page), as many
-  // as sitemap.xml lists.
-  const kit = read(path.join(ROOT, 'docs/launch-kit.md'));
-  const said = [...kit.matchAll(/(\d+) (?:web animation )?techniques\b/g)];
-  assert.ok(said.length > 0, 'the launch kit says how many techniques');
-  for (const [text, n] of said) assert.equal(Number(n), cards, `launch kit: "${text}"`);
-  for (const [text, n] of kit.matchAll(/(\d+) categories\b/g)) assert.equal(Number(n), cats.length, `launch kit: "${text}"`);
+  // The sitemap lists one URL more than the total: the home page.
   const urls = count(read(path.join(ROOT, 'sitemap.xml')), '<url>');
   assert.equal(urls, cards + 1, 'sitemap.xml lists the home page and every animation');
-  assert.equal(numberIn(kit, /should list (\d+) URLs/), urls, 'launch kit: the sitemap URL count');
 });
 
 // Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket

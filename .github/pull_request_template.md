@@ -15,7 +15,7 @@
 - [ ] Registered in the root `index.html` `CATS` array (with the page's one-line description) and in `sitemap.xml`
 - [ ] Listed in the category `README.md` and the root `README.md` with the same name and description
 - [ ] Linked from its neighbors (Next / Previous, each replacing the old link), and the `NN.MM` category line of later pages renumbered
-- [ ] Technique count updated where it is written (root `README.md`, home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`, `docs/launch-kit.md`)
+- [ ] Technique count updated where it is written (root `README.md`, home page, `tests/pages.test.js`, `.github/ISSUE_TEMPLATE/config.yml`)
 - [ ] Responsive: reflows at 375px, touch targets ≥ 44px, works with touch
 - [ ] Respects `prefers-reduced-motion`
 - [ ] Animates only `transform` / `opacity`
