@@ -77,6 +77,7 @@ Heavy blur is the costly part on phones, so the demo halves it on small screens:
 - **Native CSS mesh gradients**: the CSS Working Group has a `mesh()` function specification in progress that would render true mesh gradients in CSS without the blur trick. It is not yet shipped in any browser.
 - **Figma / Sketch "mesh gradient" tools**: design tools generate mesh gradients as images. For web, the blur-div approach produces a similar aesthetic with full animation capability.
 - **Keep the blobs out of step**: if every blob shares one duration and starts with the others, they all turn around at the same moment and the same mix comes back every cycle. The demo gives each blob its own path and its own duration instead. A negative `animation-delay` (e.g., `-10s`) is another way: it starts an animation mid-cycle, so blobs that share a duration still never line up.
+- **Libraries**: Paper Shaders has a `MeshGradient` that draws the colors in a shader instead of with blurred circles, animated by a speed setting, in plain JavaScript or as a React component.
 
 ## See also
 - [Animated Gradient Background](../animated-gradient-background/) — one gradient that slowly shifts

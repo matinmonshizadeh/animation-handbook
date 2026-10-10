@@ -73,6 +73,9 @@ math.
   in the DOM above it.
 - For the real thing, move the sum-of-sines into a WebGL fragment shader. The GPU
   runs it per pixel at full resolution for free, and you drop the upscale entirely.
+- No library is needed for this canvas version. For the shader version, glslCanvas
+  runs a fragment shader in a `<canvas>` from one `data-fragment-url` attribute,
+  and three.js does the same with a `ShaderMaterial` on a full-screen plane.
 
 ## See also
 

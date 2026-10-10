@@ -97,6 +97,7 @@ Three CSS properties create the glass effect:
 - **Dark mode**: glassmorphism requires a dark-enough background to read as glass rather than a white haze. The effect works better on dark themes.
 - **Changing the length of a running animation**: a new `animation-duration` puts a running CSS animation at a different point of its cycle, so it jumps. The demo makes its negative delays fractions of the duration and multiplies each blob's `currentTime` by the new length divided by the old one, so a change of Speed keeps every blob where it is.
 - **Compare with the blur off**: the demo's Frost setting has an Off choice. If the page is noticeably faster without the blur, reconsider the design.
+- **No library needed**: `backdrop-filter` is plain CSS, and so are the drifting blobs behind the glass; Framer Motion or GSAP only help when the glass has to move in step with the rest of the page.
 
 ## See also
 - [Mesh Gradient Animation](../../07-ambient-background/mesh-gradient/) — soft color blobs drifting as a background

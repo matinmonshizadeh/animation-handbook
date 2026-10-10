@@ -88,6 +88,7 @@ travel without JavaScript measuring the stage.
 - **Phosphor glow**: real CRT phosphors emit light that spreads slightly, creating a soft "halo" around bright text. CSS `text-shadow: 0 0 8px currentColor` approximates this. Keep it subtle — heavy glow degrades legibility.
 - **Accessibility**: scanlines reduce contrast. Ensure all text meets WCAG contrast ratios *with* the scanline overlay applied. Test with the overlay at your intended darkness value.
 - **Retrowave aesthetic**: combines well with [Grain Overlay](../grain-overlay/) (for texture), [Chromatic Aberration](../../06-3d-advanced/chromatic-aberration/) (for color fringing), and dark neon color palettes.
+- **Libraries**: none is needed for the CSS version; over a WebGL scene, the postprocessing library for three.js has a `ScanlineEffect` with density and scroll speed settings.
 
 ## See also
 - [Grain / Film Noise Overlay](../grain-overlay/) — a flickering texture of fine grain

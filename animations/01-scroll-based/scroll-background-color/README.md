@@ -54,6 +54,7 @@ The scroll handler is rAF-coalesced and performs no layout reads; `maxScroll` is
 - A CSS-only version is possible with `animation-timeline: scroll()` driving a keyframe animation over `background-color`; add `steps()` to reproduce the snap variant. Support is not yet universal, so treat it as progressive enhancement over the JS approach.
 - If the site has a dark mode, the palettes need dark-mode counterparts and the luminance threshold may shift — a "light" background in dark mode is more jarring than the same color in light mode.
 - Color change is not vestibular motion, so this demo deliberately keeps the blend running under `prefers-reduced-motion: reduce`. The preference targets movement — parallax, zoom, skew — not paint. Any transform-based decorations layered on top should still be disabled.
+- GSAP's ScrollTrigger with `scrub: true` ties a `backgroundColor` tween to the scroll position and can replace the blending code here; picking the text color for each blend stays your own code.
 
 ## See also
 

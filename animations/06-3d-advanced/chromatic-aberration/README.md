@@ -60,6 +60,7 @@ function applyOffset(amount, angleDeg) {
 - **WebGL shader approach**: for radial chromatic aberration (stronger at edges, matching real lens behavior), a fragment shader samples the texture at three different UV offsets per pixel. The CSS approach only supports uniform directional offset.
 - **Text legibility**: at intensities above ~6px, text becomes hard to read. Use at high intensities only for short headlines or decorative elements, never for body copy.
 - **Performance**: CSS stacked elements with `mix-blend-mode` trigger compositing on the GPU. Three `screen`-blended layers is inexpensive. Avoid applying it to large image areas on mobile.
+- **Libraries**: for images and 3D scenes, the postprocessing library for three.js has a `ChromaticAberrationEffect` (with an optional radial falloff), and pixi-filters has an `RGBSplitFilter` for PixiJS.
 
 ## See also
 - [Glitch Text](../../05-text-typography/glitch-text/) — red and cyan strips tear across a word

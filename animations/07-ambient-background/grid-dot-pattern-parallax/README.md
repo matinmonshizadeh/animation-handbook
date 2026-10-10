@@ -84,6 +84,7 @@ function autoLoop(now) {
 - **`will-change: transform`** on the pattern layer: useful when the layer is large and translation is frequent (every `mousemove` event). Add/remove dynamically on `mouseenter`/`mouseleave`.
 - **`transform: translate()` not `background-position`**: `translate` uses the compositor thread; `background-position` triggers paint. Always use `transform` for the parallax offset.
 - **SVG pattern alternative**: `<svg><pattern>` can define more complex repeating patterns (hexagons, triangles, etc.) as background images via `background-image: url("data:image/svg+xml,...")`. This keeps the pattern as pure CSS/SVG with no canvas overhead.
+- **Libraries**: Parallax.js moves layers against the pointer, or against a phone's tilt where there is a gyroscope, by each layer's `data-depth`; with GSAP, `quickTo()` lets the pattern ease toward each new pointer position.
 
 ## See also
 - [Floating Elements](../floating-elements/) — shapes that drift on their own instead

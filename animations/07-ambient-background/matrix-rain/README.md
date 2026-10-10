@@ -46,6 +46,7 @@ Because the canvas is never fully cleared, the length of the tail is entirely co
 - **Pause on hidden tab**: the `requestAnimationFrame` loop is cancelled on `visibilitychange` when `document.hidden` is true and restarted when the tab returns, so a background tab burns no CPU or battery.
 - **Reduced motion**: the demo starts paused, showing a screen of rain drawn at once, until the visitor presses Play. In production, show these visitors a still frame.
 - **It is decorative**: real usage should sit behind content with `aria-hidden="true"`, `pointer-events: none`, and enough contrast on the foreground text that the rain does not reduce readability. Treat it as texture, not information.
+- **No library needed**: a 2D canvas, `fillText` and a translucent `fillRect` are the whole effect.
 
 ## See also
 - [Starfield / Space Particles](../starfield/) — another canvas background of moving points

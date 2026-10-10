@@ -73,6 +73,7 @@ setInterval(() => { apply(...Object.values(PRESETS[i++ % PRESETS.length])); }, 1
 - **Transition performance**: variable font interpolation is handled by the GPU text rendering pipeline in modern browsers. It is not as fast as `transform`/`opacity` animations, but it is generally smooth on mid-range devices for single display elements.
 - **Font loading**: the demo uses the site's own font, Schibsted Grotesk, which every page already loads and which is variable in weight from 400 to 900, so the weight morphs smoothly offline. It has no slant axis, so the lean is a `skewX()` tilt. A font with more axes gives you more to morph: Recursive, for example, adds Casual and slant axes. Self-host it with `@font-face` and `font-display: swap`.
 - **Recommended variable fonts**: Recursive (CASL, MONO, slnt, wght), Inter (wght), Fraunces (opsz, SOFT, WONK, wght), Bricolage Grotesque (opsz, wdth, wght).
+- **Libraries**: GSAP tweens `fontVariationSettings` and `fontWeight` like any other value, which helps when the morph has to keep time with other animations; on its own, a CSS transition is enough, as here.
 
 ## See also
 - [Text Gradient Animation](../text-gradient-animation/) — colors flow through the letters instead

@@ -56,6 +56,7 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 - **Seamless loop**: repeat the first color stop at the end of the gradient to ensure the transition back to the start is smooth. Without this, there's a visible "snap" when the animation restarts.
 - **`@property` for smooth hue stop animation**: native CSS custom property interpolation (`@property` with `syntax: '<color>'`) allows animating individual color stops within a gradient — a newer approach that doesn't require the `background-size` hack.
 - **Performance**: on low-end devices a large repainting gradient can cost frames; `will-change: background-position` does not stop the repaint, the `transform` version does.
+- **Libraries**: Granim.js draws gradients on a `<canvas>` and moves between named gradient states, for when a CSS loop is not enough.
 
 ## See also
 - [Mesh Gradient Animation](../mesh-gradient/) — soft blobs of color drift and blend

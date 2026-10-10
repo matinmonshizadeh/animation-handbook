@@ -69,6 +69,7 @@ el.style.backgroundImage = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
 - **Performance**: `background-position` animation does not use the CSS compositor and triggers paint on each frame. For long-running animations on large text, test performance on mid-range devices. `@keyframes` (vs. JS `requestAnimationFrame`) avoids the main thread.
 - **Fallback**: set a solid `color` on the element before the gradient properties. Browsers that don't support `background-clip: text` will show solid-color text rather than invisible text.
 - **Selection color**: selected text with `color: transparent` may render without a visible selection highlight in some browsers. Test selection behavior and add `::selection { color: white; background: blue; }` if needed.
+- **No library needed**: `background-clip: text` and a keyframe animation are plain CSS; GSAP can tween `backgroundPosition` instead when the sweep has to keep time with other animations.
 
 ## See also
 - [Variable Font Morph](../variable-font-morph/) — the letters themselves change weight and lean
