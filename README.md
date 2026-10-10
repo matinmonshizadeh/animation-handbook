@@ -307,9 +307,9 @@ Each technique's code and README are in its folder under [animations/](animation
 
 ## Design principles
 
-**One technique, one file.** No build step, no frameworks, no external dependencies. Open the HTML and it runs.
+**One technique, one folder.** One HTML file holds the demo's markup, CSS, and JavaScript, and a README explains it. The page around the demo comes from two shared files, `assets/css/demo-page.css` and `assets/js/demo-page.js`. No build step, no frameworks, no external dependencies.
 
-**Show, then explain.** The demo is the main artifact. The README supports it.
+**Show, then explain.** The demo is the main artifact. Each technique's README supports it.
 
 **Technique over tool.** GSAP, Framer Motion, and Three.js are mentioned in production notes — they are never the subject of an entry.
 
