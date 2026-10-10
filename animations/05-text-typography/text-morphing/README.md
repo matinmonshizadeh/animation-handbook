@@ -12,56 +12,55 @@ Text morphing changes one word into the next, letter by letter. The letters of t
 - Any UI element where a text value changes and the change should feel connected rather than abrupt
 
 ## How it works
-Each character occupies its own `<span>`. When transitioning from word A to word B, the outgoing spans receive an exit class, and after a delay equal to the exit duration, the incoming spans are built and their enter class is removed to trigger the CSS transition:
+Each character occupies its own `<span>`. When transitioning from word A to word B, the outgoing spans receive an exit class; once the last one has left, the incoming spans are built with an enter class that places them on the opposite side, and removing it starts the CSS transition to their resting place.
+
+`stepDur` (the Speed setting) and `stepStag` (the Delay between letters) are read once at the start of each change, both three times longer in Slow motion. The delay is 0 by default, so every letter moves together; 30 or 60ms sends the change across the word like a wave. `wait` is `setTimeout` that Pause can hold:
 
 ```js
-function morphTo(container, toWord, dir = 'up') {
-  const duration = 400;
-  const fromChars = [...container.querySelectorAll('.char')];
+// in startMorph(): the current letters leave
+fromChars.forEach((c, i) => {
+  c.style.transitionDelay = (stepStag * i) + 'ms';
+  c.classList.add('out-' + curDir);
+});
+wait(afterExit, stepDur + stepStag * (fromChars.length - 1) + 60);
 
-  // Exit current characters
-  fromChars.forEach((c, i) => {
-    c.style.transitionDelay = i * 30 + 'ms';   // stagger
-    c.classList.add('out-' + dir);
+function afterExit() {
+  wordEl.innerHTML = '';
+  const enterDir = { up: 'enter-from-below', down: 'enter-from-above',
+                     left: 'enter-from-right', right: 'enter-from-left' }[curDir];
+  const toChars = [];
+  nextWordVal.split('').forEach((c, i) => {
+    const span = document.createElement('span');
+    span.className = 'morph-char ' + enterDir;
+    if (stepStag > 0) span.style.transitionDelay = (stepStag * i) + 'ms';
+    span.textContent = c;
+    wordEl.appendChild(span);
+    toChars.push(span);
   });
-
-  setTimeout(() => {
-    container.innerHTML = '';
-
-    // Build incoming characters in off-screen position
-    const enterClass = { up:'enter-below', down:'enter-above',
-                         left:'enter-right', right:'enter-left' }[dir];
-    const spans = [...toWord].map(c => {
-      const s = document.createElement('span');
-      s.className = 'char ' + enterClass;
-      s.textContent = c;
-      container.appendChild(s);
-      return s;
-    });
-
-    // Double rAF ensures browser painted the off-screen position before transitioning
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      spans.forEach((s, i) => {
-        s.style.transitionDelay = i * 30 + 'ms';
-        s.classList.remove(enterClass);   // transition to normal position
-      });
-    }));
-  }, duration + fromChars.length * 30 + 60);
+  void wordEl.offsetWidth;   // reading the layout makes the browser apply the start position first
+  toChars.forEach(c => c.classList.remove(enterDir));
+  wait(afterEnter, stepDur + stepStag * (toChars.length - 1) + 50);
 }
 ```
 
 ```css
-.char {
+.morph-char {
   display: inline-block;
-  transition: transform 400ms cubic-bezier(.4,0,.2,1), opacity 400ms ease;
+  transition: transform var(--morph-dur) cubic-bezier(.4,0,.2,1), opacity var(--morph-dur) ease;
 }
 
-.out-up   { transform: translateY(-110%); opacity: 0; }
-.out-down { transform: translateY( 110%); opacity: 0; }
+.morph-char.out-up    { transform: translateY(-100%); opacity: 0; }
+.morph-char.out-down  { transform: translateY(100%);  opacity: 0; }
+.morph-char.out-left  { transform: translateX(-80%);  opacity: 0; }
+.morph-char.out-right { transform: translateX(80%);   opacity: 0; }
 
-.enter-below { transform: translateY( 110%); opacity: 0; }
-.enter-above { transform: translateY(-110%); opacity: 0; }
+.morph-char.enter-from-below { transform: translateY(100%);  opacity: 0; }
+.morph-char.enter-from-above { transform: translateY(-100%); opacity: 0; }
+.morph-char.enter-from-left  { transform: translateX(-80%);  opacity: 0; }
+.morph-char.enter-from-right { transform: translateX(80%);   opacity: 0; }
 ```
+
+`--morph-dur` is set from `stepDur` at the start of each change (400ms at Normal).
 
 ## Key parameters
 | Parameter | Default | Effect |
