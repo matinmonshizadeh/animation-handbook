@@ -2303,6 +2303,11 @@ const ICON_COPY='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="
 const ICON_DONE='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ICON_OPEN='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
 const ICON_ARROW='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+// Opened from disk, a link to a folder shows the browser's list of its files, so there every link to a page names its
+// index.html: the cards (built once, shown again by every view) and the logo links to the start.
+const FROM_DISK=location.protocol==='file:';
+const pageHref=url=>FROM_DISK?url+'index.html':url;
+if(FROM_DISK)document.querySelectorAll('a.brand').forEach(a=>a.setAttribute('href','index.html'));
 
 // A preview plays while its card is on screen (on phones, while the card is in the middle of the screen).
 const hoverCap=matchMedia('(hover:hover)').matches;
@@ -2315,7 +2320,7 @@ function buildCard(e){
   card.dataset.slug=e.slug;card.dataset.pv=pv;
   card.innerHTML=`<div class="stage"><div class="pv pv-${pv}" aria-hidden="true">${pvMarkup(pv)}</div>`+
     `<span class="tag">${esc(e.places.length?PLACE[e.places[0]].name:e.cat.name)}</span></div>`+
-    `<div class="meta"><h3 class="title"><a href="${esc(e.url)}">${esc(e.name)}</a></h3><p class="desc">${esc(e.desc)}</p>`+
+    `<div class="meta"><h3 class="title"><a href="${esc(pageHref(e.url))}">${esc(e.name)}</a></h3><p class="desc">${esc(e.desc)}</p>`+
     `<div class="acts"><button type="button" class="copy" aria-label="${esc('Copy prompt for '+e.name)}">${ICON_COPY}<span class="copy-l" aria-live="polite">Copy prompt</span></button>`+
     `<span class="try" aria-hidden="true">Try it${ICON_ARROW}</span></div></div>`;
   if(reduce)card.querySelectorAll('animate').forEach(a=>a.remove());
@@ -2560,7 +2565,6 @@ if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 // The text is the page's own: the home page reads the page's HTML and builds the text with the shared page script
 // (DemoPage), every setting at its default. Nothing on a fetched page is laid out, so no control counts as hidden by style.
 // Opened from disk every read fails and Chrome logs a CORS error for each one, so there nothing is fetched and the read fails at once.
-const FROM_DISK=location.protocol==='file:';
 const pageTexts=new Map(),failedPages=new Set(),NO_STYLE={getComputedStyle:()=>({display:''})};
 function promptFor(url){
   let text=pageTexts.get(url);
@@ -2614,12 +2618,13 @@ function copyState(btn,kind){
   btn.setAttribute('aria-label',kind==='done'?'Prompt copied for '+name:kind==='fail'?'Open to copy the prompt for '+name:'Copy prompt for '+name);
   if(kind==='done')btn._timer=setTimeout(()=>copyState(btn,''),1800);
 }
-const urlOf=card=>card.querySelector('.title a').getAttribute('href');
+// The address of a card's page as it is read: its folder (the card's link names index.html when the home page is opened from disk).
+const urlOf=card=>BY_SLUG[card.dataset.slug].url;
 cardsBox.addEventListener('click',e=>{
   const btn=e.target.closest('.copy');
   if(!btn)return;
   const url=urlOf(btn.closest('.card'));
-  if(btn.classList.contains('fail')){location.href=(FROM_DISK?url+'index.html':url)+'#hb-prompt-title';return;}
+  if(btn.classList.contains('fail')){location.href=pageHref(url)+'#hb-prompt-title';return;}
   writeClipboard(promptFor(url)).then(()=>{copyState(btn,'done');toast('Prompt copied. Paste it into your AI assistant.');},()=>copyState(btn,'fail'));
 });
 // Reading the page starts when a mouse pointer rests on a card or the keyboard brings focus to it, so the copy is quick. A
