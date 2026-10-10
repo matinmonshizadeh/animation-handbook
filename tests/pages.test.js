@@ -286,6 +286,33 @@ for (const d of steps) {
   });
 }
 
+// The do-it pages played with the pointer, where Show me was once the only thing a keyboard could do, can be played from the
+// keyboard too: the stage holds something that takes keyboard focus (a button, a link or an element with tabindex="0"), and
+// the page answers keys (its own script listens for keydown, or its own style has a :focus-visible rule). Every page that
+// misses one is listed at once.
+const KEYBOARD_PAGES = {
+  '04-micro-interactions': ['cursor-follower', 'hover-state', 'image-trail', 'spotlight-hover', 'magnetic-button', 'click-ripple'],
+  '05-text-typography': ['text-particles'],
+  '06-3d-advanced': ['2-5d-pseudo-3d', 'depth-map-photo', 'holographic-card', 'image-distortion-hover', 'parallax-3d-tilt']
+};
+test('the do-it pages played with the pointer can be played from the keyboard', () => {
+  const problems = [];
+  for (const [cat, slugs] of Object.entries(KEYBOARD_PAGES)) {
+    for (const slug of slugs) {
+      const html = read(path.join(ANIM, cat, slug, 'index.html'));
+      const stage = between(html, '<div class="stage', '<div class="hb-player">');
+      const style = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+      const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+      if (!stage) problems.push(`${cat}/${slug}: no stage found`);
+      else if (!/<button\b|<a\b[^>]*\shref=|\stabindex="0"/.test(stage)) problems.push(`${cat}/${slug}: nothing in the stage takes keyboard focus`);
+      if (!/['"]keydown['"]|\bonkeydown\b/.test(script) && !cssRules(style).some(rule => rule.selector.includes(':focus-visible'))) {
+        problems.push(`${cat}/${slug}: the page has no keydown listener and no :focus-visible rule`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
+});
+
 // The Show me and Reset rules run on the player bar of every page above. These cases run them on made-up player bars, so
 // each kind is covered before a page of that kind exists.
 test('Show me belongs to do-it pages and Reset to do-it and loop pages, each exactly as in the template', () => {
