@@ -46,7 +46,7 @@ The glow is a canvas `shadowBlur` set to the grid color; the sun is a clipped se
 - **The modulo seam**: fading lines in as `p` approaches 0 hides the pop where a new line spawns at the horizon. Without the alpha ramp you would see it flicker into existence.
 - **Reduced motion**: the demo starts paused, showing the grid, sky and sun still, until the visitor presses Play. In production, show these visitors the still scene.
 - **CSS alternative**: this can also be built with a `transform: perspective()` plane and a repeating linear-gradient scrolled toward the viewer. Scrolling it with `background-position` repaints every frame; sliding an oversized plane one grid square with `transform: translateY()` and jumping back lets the compositor run it. The canvas version wins on control over per-line fade and glow.
-- **Library equivalents**: for a true 3D floor with camera moves and bloom, use [three.js](https://threejs.org) — a `PlaneGeometry` with a wireframe material and an `UnrealBloomPass` gives the authentic glow. [tsParticles](https://github.com/matteobruni/tsparticles) is not suited to structured grids.
+- **Library equivalents**: for a true 3D floor with camera moves and bloom, use [three.js](https://threejs.org) — a `PlaneGeometry` with a wireframe material and an `UnrealBloomPass` gives the authentic glow. [tsParticles](https://github.com/tsparticles/tsparticles) is not suited to structured grids.
 
 ## See also
 - [Starfield / Space Particles](../starfield/) — another way of flying forward through space

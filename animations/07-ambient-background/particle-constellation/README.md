@@ -60,7 +60,7 @@ node.vx += (node.cvx - node.vx) * 0.01 * k;                // ease back to the c
 - **Velocity easing**: for every 60th of a second, a node's velocity eases 1% of the way back to the velocity it started with. That keeps pulls from the pointer from building into runaway speeds, and unlike multiplying the velocity by 0.99 every 60th of a second, which slows every node to a stop within seconds, it never lets the drift die out. Scaling the 1% by `k` is a linear shortcut that differs from the exact `1 - 0.99^k` by about 1% at most, on a 50 ms frame.
 - **Reduced motion**: the demo starts paused, showing one still frame, until the visitor presses Play. In production, show these visitors the still frame.
 - **Retina**: for crisp lines on high-DPI screens, scale the canvas backing store by `devicePixelRatio` and the context by the same factor. Omitted here to keep fill rate low on mobile.
-- **Library equivalents**: [tsParticles](https://github.com/matteobruni/tsparticles) ships this exact effect (`links` mode) with presets; [three.js](https://threejs.org) can push the same idea to tens of thousands of GPU points with `LineSegments`.
+- **Library equivalents**: [tsParticles](https://github.com/tsparticles/tsparticles) ships this exact effect (`links` mode) with presets; [three.js](https://threejs.org) can push the same idea to tens of thousands of GPU points with `LineSegments`.
 
 ## See also
 - [Starfield / Space Particles](../starfield/) — particles that show depth instead of links
