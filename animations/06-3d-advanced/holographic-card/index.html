@@ -29,6 +29,8 @@
     /* Four layers in one 5:7 box (picture, foil, glare, text panels), moved only by transform and opacity; flat but in Shows the layers */
     .card{position:relative;height:min(84%,380px);aspect-ratio:5/7;border-radius:12px;touch-action:none;will-change:transform;
       box-shadow:0 0 0 1px rgba(var(--hc-light),.1),0 24px 50px -14px rgba(var(--hc-shade),.8)}
+    /* Keyboard focus: the ring goes around the card, on the dark stage (drawn inward, the card's own layers would cover it) */
+    .hb-page .stage .card:focus-visible{outline-offset:4px}
     .ly{position:absolute;inset:0;border-radius:inherit;overflow:hidden;overflow:clip}
     .art svg{display:block;width:100%;height:100%}
     /* The foil: rainbow streaks twice the card's size, slid by the script; color dodge brightens the picture under each streak. Glitter
@@ -81,7 +83,7 @@
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the card, drag a finger across it, or press Show me.</p></div>
     </div>
     <div class="stage" id="stage">
-      <div class="card" id="card" data-foil="smooth" role="img" aria-label="A holographic trading card named Aurora Prism: a glowing crystal over dark mountains under a night sky. As the card tilts toward the pointer, rainbow foil slides across it and a glare follows the pointer.">
+      <div class="card" id="card" data-foil="smooth" role="img" tabindex="0" aria-label="A holographic trading card named Aurora Prism: a glowing crystal over dark mountains under a night sky. As the card tilts toward the pointer, rainbow foil slides across it and a glare follows the pointer. Press the arrow keys to tilt it.">
         <div class="ly art"><svg viewBox="0 0 100 140" aria-hidden="true">
           <defs>
             <linearGradient id="hc-frame" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efeaff"/><stop offset=".3" stop-color="#a191ee"/><stop offset=".55" stop-color="#4a3aa8"/><stop offset=".8" stop-color="#b8aaf5"/><stop offset="1" stop-color="#ece6ff"/></linearGradient>
@@ -281,6 +283,17 @@ stage.addEventListener('pointermove',e=>{if(e.isTrusted&&(run||holdTimer)){stopH
 ['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,rest));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')rest();});
 reduce.addEventListener('change',()=>{stopHold();run=null;sx=sy=sh=ax=ay=ah=0;sp=split;draw();});
+// The keyboard is a pretend pointer through the same aim: focus by keyboard ends a run and lights the card where it aims (the
+// middle at rest), each arrow key moves the aim 6% of the card (held, it repeats), and Escape or leaving the card lets it settle
+const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+let keys=false;
+card.addEventListener('focus',()=>{if(card.matches(':focus-visible')){stopHold();run=null;keys=true;ah=1;wake();}});
+card.addEventListener('keydown',e=>{
+  const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
+  if(d){e.preventDefault();keys=true;ax=clamp(ax+.06*d[0]);ay=clamp(ay+.06*d[1]);ah=1;wake();}
+  else if(e.key==='Escape'&&keys){keys=false;rest();}
+});
+card.addEventListener('blur',()=>{if(keys){keys=false;rest();}});
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
