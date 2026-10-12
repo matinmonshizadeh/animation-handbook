@@ -834,3 +834,13 @@ test('every place has one tile, one phone-bar chip and one count, and the markup
     assert.equal(counted.filter(tag => attr(tag, 'data-count') === key).length, 1, `one ${key} count`);
   }
 });
+
+test('the home page keeps its GitHub button on phones as a round star, and leaves it out only below 360px', () => {
+  assert.equal(count(HOME, '</svg><span class="gh-t">GitHub</span> <span class="gh-c" id="gh-star-count"></span></a>'), 1,
+    'the word GitHub has a span of its own, so small screens can hide it from sight and still read it out');
+  const css = [...HOME.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const hiding = cssRules(css).filter(rule => rule.selector.split(',').some(part => part.trim() === '.gh') &&
+    /(^|;)\s*display:\s*none/.test(rule.body));
+  assert.equal(hiding.length, 1, 'one rule hides the GitHub button');
+  assert.equal(count(HOME, '@media(max-width:359px){.gh{display:none}}'), 1, 'and it is for screens under 360px');
+});
