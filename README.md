@@ -8,6 +8,8 @@
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
+Add it to your AI coding assistant (run in your project folder; needs Node.js):
+
 ```bash
 npx skills add matinmonshizadeh/animation-handbook
 ```

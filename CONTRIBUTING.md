@@ -103,9 +103,10 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    every page you edited. Run the home page check (`home`) too: the new card's Copy prompt is
    compared there.
 
-Changing any page's prompt, settings, description or Good for and Avoid on tags also means
-running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails until
-then.
+Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind,
+prompt, settings or Good for and Avoid on tags, or a card's name, places or order in `CATS`)
+also means running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`)
+fails until then.
 
 ## The demo page
 
