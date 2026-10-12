@@ -208,7 +208,7 @@ Add a letter-by-letter entrance to [a short phrase or headline]. In the cascade 
 - Delay between letters: Short · **Medium** · Long
 - How each letter appears: **Fade up** · Fade · Grow · Flip
 - Speed: Slow · **Normal** · Fast
-- Blinking cursor: **on** · off (only with some choices of another setting)
+- Blinking cursor: **on** · off (the page shows it only for some choices of another setting, and copies it only then)
 - Your text: text field, starts as "Hello, world."
 
 Copied from the site with the defaults, the prompt ends with this line:

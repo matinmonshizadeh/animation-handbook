@@ -19,9 +19,9 @@
 //   writes nothing.
 // Exit code 1 when a card has no page, a page lacks a part the skill needs, or the skill folder holds a file this tool
 // does not write.
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
@@ -204,8 +204,9 @@ function readPage(root, folder, slug, DemoPage) {
   const settings = items.map(({ label, value, control }, i) => {
     if (!label) throw new Error(`${where}: a setting in Try it has no label (the page leaves it out of Copy prompt)`);
     let text = describe(control, value, phoneItems[i].value);
+    if (!text) throw new Error(`${where}: the setting "${label}" has no choices`);
     for (let n = control; n !== tryStep; n = n.parentElement) {
-      if (n.hasAttribute('hidden')) { text += ' (only with some choices of another setting)'; break; }
+      if (n.hasAttribute('hidden')) { text += ' (the page shows it only for some choices of another setting, and copies it only then)'; break; }
     }
     return { label, text };
   });
@@ -221,7 +222,9 @@ function readPage(root, folder, slug, DemoPage) {
 // A setting's choices in plain words: the default in bold, the phone default named where a page starts lower there.
 function describe(control, value, phoneValue) {
   const phone = phoneValue !== value ? ` (phones start with ${phoneValue})` : '';
-  const choice = el => el.getAttribute('aria-label') || squeeze(el.textContent); // as the page script names a choice
+  // A name that holds the separator itself (the choice "Dot ·") is quoted, so the list stays readable.
+  const named = name => (name.includes('·') ? `"${name}"` : name);
+  const choice = el => named(el.getAttribute('aria-label') || squeeze(el.textContent)); // as the page script names a choice
   if (control.matches('.seg, .swatches')) {
     const pressed = control.querySelector('.on, [aria-pressed="true"]');
     return control.querySelectorAll('button').map(b => (b === pressed ? `**${choice(b)}**` : choice(b))).join(' · ') + phone;
@@ -238,7 +241,7 @@ function describe(control, value, phoneValue) {
   }
   if (control.matches('select')) {
     const chosen = control.selectedOptions[0];
-    return control.querySelectorAll('option').map(o => (o === chosen ? `**${squeeze(o.textContent)}**` : squeeze(o.textContent))).join(' · ') + phone;
+    return control.querySelectorAll('option').map(o => (o === chosen ? `**${named(squeeze(o.textContent))}**` : named(squeeze(o.textContent)))).join(' · ') + phone;
   }
   return `slider, starts at ${value}` + phone;
 }
@@ -264,21 +267,23 @@ const SKILL_BODY = ({ total, base, cats }) => `# Animation Handbook
 
 ## How to use it
 
-1. **Find the technique** in [references/catalog.md](references/catalog.md): one line per animation, with what it does, what it is best for and its places, the parts of a page it suits (${cats.places}). Match both what the user describes and where it goes. When two fit equally well, build one and mention the other.
-2. **Read its entry** in the category file the catalog line names: the prompt, the settings with their defaults, how it runs, what it is good for and what to avoid it on. If the user's place is on its Avoid on list, say so and suggest a better fit from the catalog.
-3. **Choose the settings** from the user's words: "a panel that slides in slowly from the left" picks the slow speed and the left side. Keep the default (in bold) for anything they did not mention, and ask only when a choice changes the result a lot and nothing they said points either way. The choices are named, not numbered, so turn each into values that fit its name and the project.
+1. **Find the technique** in [references/catalog.md](references/catalog.md): one line per animation, with what it does, what it is best for and its places, the parts of a page it suits (${cats.places}). Match both what the user describes and where it goes. When two fit equally well, build one and mention the other. If nothing fits, say so and build what the user asked for with the rules below.
+2. **Read its entry** in the category file the catalog line names. The files are long, so find the heading with the technique's name and read down to the next heading: the prompt, the settings with their defaults, how it runs, what it is good for and what to avoid it on. If the user's place is on its Avoid on list, say so and suggest a better fit from the catalog.
+3. **Choose the settings** from the user's words: "a panel that slides in slowly from the left" picks the slow speed and the left side. Keep the default (in bold) for anything they did not mention, and ask only when a choice changes the result a lot and nothing they said points either way. The choices are named, not numbered: the technique's README gives the demo's own values for many of them (see the end of this file); otherwise choose values that fit the name and the project.
 4. **Build it** in the user's own stack, from plain HTML, CSS and JavaScript to React, Vue, Svelte or whatever the project already uses. Follow the prompt as the specification, with the user's own element in place of each [part in square brackets]. "Match the settings listed below" means the settings from step 3; the line at the end of each entry shows how the site lists them.
 5. **Check it** against the rules below, then tell the user which technique you built, with its live demo address, and which settings you chose.
+
+When the user only asks which animation to use, suggest one or two from the catalog with their live demo addresses, and build once they choose. To improve an animation the project already has, find its closest technique the same way and change only what falls short of that prompt and the rules below.
 
 ## The rules every animation follows
 
 The handbook's demos follow these rules and the prompts take them for granted, so keep them even where a prompt does not repeat them.
 
-- **Animate transform and opacity only.** Move, scale, rotate and fade; never animate width, height, top, left or box-shadow, which make the browser lay out or repaint the page on every frame.
+- **Move with transform and fade with opacity.** Never animate width, height, top, left or box-shadow, which make the browser lay out or repaint the page on every frame. Where a prompt asks for something else, such as a blur, a clip, a line that draws itself, a color change or a font weight, follow the prompt: it says how to keep that smooth.
 - **Move a JavaScript frame loop by elapsed time.** Each frame moves by the time since the last one, capped at about 50 ms, never by a fixed step per frame, so it runs at the same speed on a 30 Hz, 60 Hz or 120 Hz screen.
 - **Follow reduced motion.** When the device asks for reduced motion, show the end state or a short fade instead of the movement, and start loops paused.
 - **Give a hover or a drag a touch equivalent.** A hover effect also works with a tap, and a drag uses pointer events so that touch works too.
-- **Make it work from the keyboard.** An effect that follows the pointer or shows on hover also shows on keyboard focus, and the arrow keys move what follows the pointer. An effect that starts on a press also starts on Enter or Space, from the middle of the control.
+- **Make it work from the keyboard.** An effect that shows on hover also shows on keyboard focus. An effect that follows the pointer inside its own area, such as a card or a button, works from the keyboard when that area has focus: focus shows it and the arrow keys move it. A page-wide effect, such as a custom cursor or an image trail, never takes over the arrow keys, which scroll the page. An effect that starts on a press also starts on Enter or Space, from the middle of the control.
 - **Keep controls at least 44×44 px on phones**, buttons and handles drawn inside the animation included.
 - **Keep text at least 4.5:1 against its background.**
 - **Give heavy effects a lighter phone version.** A big blur, many particles or a shader gets a lighter version on phones, which are up to 600 px wide, or up to 500 px tall when held sideways.
@@ -289,7 +294,7 @@ The handbook's demos follow these rules and the prompts take them for granted, s
 - [references/catalog.md](references/catalog.md): all ${total} in one list, grouped by category, with an index by place.
 ${cats.lines}
 
-The end of each live demo address (animations/02-entrance-and-exit/rotate-in/, for example) is also the technique's folder in the repository, ${REPO}: it holds the demo's own code and a README on how it works, the values that matter and production notes.
+Each live demo address is also the technique's folder in the repository, ${REPO}. Add README.md to the address (${base}animations/02-entrance-and-exit/rotate-in/README.md, for example) to read its README as plain text: how it works, the values behind each setting's choices and production notes. The address itself is the demo, with all of its code in the page.
 `;
 
 export function buildSkill(root) {
@@ -320,7 +325,7 @@ export function buildSkill(root) {
   files[`${SKILL}/SKILL.md`] = [
     '---',
     'name: animation-handbook',
-    `description: Builds web animations from Animation Handbook, a set of ${total} tested techniques with plain-words build prompts and settings (scroll effects, entrances and exits, page transitions, micro-interactions for buttons and forms, text effects, 3D and WebGL, ambient backgrounds). Use when the user asks to add, pick or improve an animation, transition, hover or click effect, loading state, scroll effect or background motion in a web page or app, in any framework or plain HTML, CSS and JavaScript.`,
+    `description: Builds web animations from Animation Handbook, a set of ${total} tested techniques with plain-words build prompts and settings (scroll effects, entrances and exits, page transitions, micro-interactions for buttons and forms, text effects, 3D and WebGL, ambient backgrounds). Use when the user asks to add, pick or improve an animation, transition, hover or click effect, loading state, scroll effect or background motion in a web page or web app, in any framework or plain HTML, CSS and JavaScript.`,
     'license: MIT',
     '---',
     '',
@@ -361,6 +366,11 @@ export function buildSkill(root) {
     `Each page plays one technique live and gives a ready-made prompt that describes it in plain words, with no code. Most pages also have a few plain settings, such as speed or direction, and the prompt you copy lists your choices. Each technique's folder on GitHub has a README on how it works, the values that matter and production notes. To give an AI coding assistant all ${total} prompts and settings at once, install the Agent Skill: \`npx skills add matinmonshizadeh/animation-handbook\`.`, '',
     ...CATS.flatMap(cat => [`## ${cat.name}`, '',
       ...cat.entries.map(([slug, name, desc]) => `- [${name}](${base}${cat.folder.replace(/\/$/, '')}/${slug}/): ${desc}`), '']),
+    // The skill's own files, which the site serves as they are: every prompt and setting, as Markdown.
+    '## Skill files', '',
+    `- [SKILL.md](${base}${SKILL}/SKILL.md): how to find a technique, choose its settings and build it, with the rules every animation follows`,
+    `- [references/catalog.md](${base}${SKILL}/references/catalog.md): all ${total} in one list, with what each does and where it goes, and an index by place`,
+    ...cats.map(cat => `- [references/${cat.file}](${base}${SKILL}/references/${cat.file}): the ${cat.pages.length} ${cat.name} entries, each with its prompt and settings`), '',
     '## Optional', '',
     `- [Source on GitHub](${REPO}): every demo's code, each technique's README and the Agent Skill`, ''
   ].join('\n');
@@ -368,7 +378,9 @@ export function buildSkill(root) {
 }
 
 // Run as a command, not imported by the test: write the files that changed and print them all.
-if (process.argv[1] && resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()) {
+// The command's path is compared with its real path, so a run through a junction or a link counts too.
+const self = (() => { try { return realpathSync(process.argv[1]); } catch { return ''; } })();
+if (self.toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()) {
   const ROOT = fileURLToPath(new URL('..', import.meta.url));
   try {
     const files = buildSkill(ROOT);

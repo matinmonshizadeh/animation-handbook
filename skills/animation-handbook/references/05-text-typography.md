@@ -161,7 +161,7 @@ Add a marquee to [the text or items you want to scroll]. The text should scroll 
 - Speed: Slow · **Normal** · Fast
 - Text size: Small · **Medium** · Large
 - Space between items: Tight · **Medium** · Wide
-- Separator: Dot · · Star ★ · Dash — · **Sparkle ✦**
+- Separator: "Dot ·" · Star ★ · Dash — · **Sparkle ✦**
 - Your text: text field, starts as "Animation Handbook"
 
 Copied from the site with the defaults, the prompt ends with this line:
@@ -210,8 +210,8 @@ Add a flowing color gradient to [your headline or logo text]. Fill the letters w
 
 - Gradient: **Flowing** · Spinning · Diagonal · Two colors
 - Speed: Slow · **Normal** · Fast
-- First color: Pink · White · **Blue** · Purple · Green · Orange (only with some choices of another setting)
-- Second color: Pink · White · Blue · **Purple** · Green · Orange (only with some choices of another setting)
+- First color: Pink · White · **Blue** · Purple · Green · Orange (the page shows it only for some choices of another setting, and copies it only then)
+- Second color: Pink · White · Blue · **Purple** · Green · Orange (the page shows it only for some choices of another setting, and copies it only then)
 - Your text: text field, starts as "Flow"
 
 Copied from the site with the defaults, the prompt ends with this line:

@@ -57,19 +57,27 @@ function homeConst(name) {
   return vm.runInNewContext('(' + HOME.slice(from, blockEnd(from) + 1) + ')');
 }
 
-// The labels of a page's settings: the name of each setting in Try it (the p or label with class hb-setting-name, or the
-// words beside a switch), or the label its control sets with data-hb-label. A setting marked data-hb-skip only compares the
-// demo with something else and is never copied, so it is left out; one marked hidden shows (and is copied) with some choices
-// of another setting, so it counts.
-function settingLabels(html) {
+// The settings of a page as { label, chosen }: the name of each setting in Try it (the p or label with class
+// hb-setting-name, or the words beside a switch), or the label its control sets with data-hb-label, and the choice it
+// starts with where it has one: the name of its button marked aria-pressed="true" (its aria-label, else its words), or on
+// or off for a switch, by whether it is checked. A setting marked data-hb-skip only compares the demo with something else
+// and is never copied, so it is left out; one marked hidden shows (and is copied) with some choices of another setting,
+// so it counts.
+function settingsOf(html) {
   const tryIt = between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
+  const words = s => decode(s.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim();
   return tryIt.split('<div class="hb-setting"').slice(1)
     .filter(part => !/^[^>]*\sdata-hb-skip(?=[\s=>])/.test(part))
     .flatMap(part => {
       const own = part.match(/\sdata-hb-label="([^"]+)"/);
-      if (own) return [decode(own[1])];
-      return [...part.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
+      const labels = own ? [decode(own[1])] : [...part.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
         .map(m => decode((m[2] ?? m[3]).trim()));
+      const group = part.match(/<div\b(?=[^>]*\sclass="(?:[^"]*\s)?(?:seg|swatches)(?:\s[^"]*)?")[^>]*>([\s\S]*?)<\/div>/);
+      const pressed = group && [...group[1].matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].find(b => /\saria-pressed="true"/.test(b[1]));
+      const toggle = part.match(/<input\b[^>]*\stype="checkbox"[^>]*>/);
+      const chosen = pressed ? decode((pressed[1].match(/\saria-label="([^"]*)"/) || [])[1] || '') || words(pressed[2])
+        : toggle ? (/\schecked(?=[\s>])/.test(toggle[0]) ? 'on' : 'off') : undefined;
+      return labels.map(label => ({ label, chosen }));
     });
 }
 
@@ -119,7 +127,7 @@ test('SKILL.md has only a name, a description and a license, and a short body th
   for (const file of files) assert.ok(parts[2].includes(`](references/${file})`), `SKILL.md links references/${file}`);
 });
 
-test('every page has one entry in its category file and one line in the catalog, holding its prompt and every setting', () => {
+test('every page has one entry in its category file and one line in the catalog, holding its prompt and every setting with its default', () => {
   assert.ok(pages.length > 0, 'there are guided-steps pages');
   const catalog = read(path.join(REFS, 'catalog.md'));
   const problems = [];
@@ -134,14 +142,19 @@ test('every page has one entry in its category file and one line in the catalog,
     const html = read(d.file);
     const prompt = decode(html.match(/<p class="hb-prompt">([^<]*)<\/p>/)[1]).replace(/\s+/g, ' ').trim();
     if (!entries[0].includes(`\n${prompt}\n`)) problems.push(`${where}: its entry does not hold the page's prompt word for word`);
-    for (const label of settingLabels(html)) {
-      if (!entries[0].includes(`\n- ${label}: `)) problems.push(`${where}: its entry has no line for the setting "${label}"`);
+    for (const { label, chosen } of settingsOf(html)) {
+      const line = entries[0].split('\n').find(l => l.startsWith(`- ${label}: `));
+      if (!line) { problems.push(`${where}: its entry has no line for the setting "${label}"`); continue; }
+      if (chosen === undefined) continue; // a text field starts with its text, not a choice
+      // The one choice in bold is the one the page starts with (a name holding "·" is quoted).
+      const bold = `**${chosen.includes('·') ? `"${chosen}"` : chosen}**`;
+      if (!line.includes(bold) || line.split('**').length !== 3) problems.push(`${where}: "${label}" does not show ${bold} as its only default: ${line}`);
     }
   }
   assert.deepEqual(problems, [], `run ${TOOL} after changing a page`);
 });
 
-test('llms.txt lists every card once, in the order of CATS, with its live address and its description', () => {
+test('llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files', () => {
   const text = read(path.join(ROOT, 'llms.txt'));
   const cards = homeConst('CATS').flatMap(cat => cat.entries.map(([slug, , desc]) => ({ address: `${LIVE}${cat.folder}/${slug}/`, desc })));
   assert.ok(text.startsWith('# Animation Handbook\n'), 'llms.txt starts with the title');
@@ -152,6 +165,11 @@ test('llms.txt lists every card once, in the order of CATS, with its live addres
     assert.ok(lines[i].includes(`](${card.address}): `), `line ${i + 1} links ${card.address}: ${lines[i]}`);
     assert.ok(lines[i].endsWith(`: ${card.desc}`), `line ${i + 1} ends with the card's description: ${lines[i]}`);
   });
+  // The skill's files too, at their addresses on the live site, each with a few words on what it holds.
+  for (const file of ['SKILL.md', 'references/catalog.md', ...categories.map(cat => `references/${cat}.md`)]) {
+    const address = `${LIVE}skills/animation-handbook/${file}`;
+    assert.ok(text.split('\n').some(line => /^- \[[^\]]+\]\(/.test(line) && line.includes(`](${address}): `)), `llms.txt links ${address}`);
+  }
 });
 
 test('the plugin marketplace parses and its one plugin installs the skill folder', () => {
