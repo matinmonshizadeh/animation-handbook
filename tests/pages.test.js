@@ -455,6 +455,33 @@ test('every guided-steps page has the same footer, with a link to the source on 
     'pages without exactly this footer');
 });
 
+// The Star link at the end of every page's top bar and the star row under its prompt card, the same on every page
+// (docs/superpowers/specs/2026-10-12-star-button-design.md).
+const STAR_ICON = '<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"';
+const BAR_STAR = `<a class="hb-star" ${STAR_HREF} aria-label="Star on GitHub">${STAR_ICON}<span>Star<span class="hb-star-more"> on GitHub</span></span></a>`;
+const STAR_ROW = `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" ${STAR_HREF}>${STAR_ICON}Star on GitHub</a></div>`;
+test('every guided-steps page asks for a star at the end of its top bar and under its prompt card', () => {
+  const lastAfter = (part, piece, before) => part.trimEnd().endsWith(piece) &&
+    part.slice(0, part.lastIndexOf(piece)).trimEnd().endsWith(before);
+  const wrong = steps.filter(d => {
+    const html = pageOf(d);
+    const bar = between(html, '<nav class="hb-bar"', '</nav>');
+    const promptStep = between(html, '<section class="hb-step hb-prompt-step"', '</section>');
+    return count(html, BAR_STAR) !== 1 || !lastAfter(bar, BAR_STAR, '</span>') ||
+      count(html, STAR_ROW) !== 1 || !lastAfter(promptStep, STAR_ROW, '</div>');
+  }).map(d => `${d.cat}/${d.slug}`);
+  assert.deepEqual(wrong, [], 'pages without the Star link right after the pager, or without the star row right after the prompt card');
+});
+
+test('the shared stylesheet shortens the Star link to "Star" on tablets and leaves it to the star row on phones', () => {
+  const css = read(path.join(ROOT, 'assets/css/demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const hides = (media, selector) => cssRules(between(css, `@media(${media}){`, '\n}'))
+    .some(rule => rule.selector.split(',').some(part => part.trim() === selector) && /(^|;)\s*display:\s*none\s*(;|$)/.test(rule.body));
+  assert.ok(hides('max-width:1024px', '.hb-bar .hb-star-more'), 'tablets read "Star"');
+  assert.ok(hides('max-width:600px', '.hb-bar .hb-star'), 'phones leave the Star link out of the top bar');
+});
+
 const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));
 const rulesFor = selector => sharedRules.filter(rule => rule.selector.split(',').some(part => part.trim() === selector));
 

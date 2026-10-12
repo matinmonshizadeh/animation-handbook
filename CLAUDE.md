@@ -50,8 +50,8 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
 ```
 
 **The page** (one centered column at every size; each part appears once):
-1. **Top bar** (`nav.hb-bar`): the home link and Previous / Next links to the neighbors in the category
-   (`rel="prev"`, `rel="next"`; the first and last page have one).
+1. **Top bar** (`nav.hb-bar`): the home link, Previous / Next links to the neighbors in the category
+   (`rel="prev"`, `rel="next"`; the first and last page have one) and, last, the **Star on GitHub** link (`a.hb-star`).
 2. **Header** (`header.hb-head`): the category line `NN.MM · Category` (its place in the home page's
    All animations list), the `<h1>` and the one-line description (`p.hb-lede`) in plain words, ending
    "Best for …". That sentence is also the meta, Open Graph, Twitter and JSON-LD description, its card in the
@@ -60,7 +60,8 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
    step title and help line are written per page.
 4. **2 · Try it** (`section.hb-try`): one to three settings, the rest under **More options**
    (`details.hb-options`). No settings: leave it out and number the steps 1 and 2.
-5. **3 · Copy the prompt** (`section.hb-prompt-step`): prompt (`p.hb-prompt`), "Your settings" chips, **Copy prompt**.
+5. **3 · Copy the prompt** (`section.hb-prompt-step`): prompt (`p.hb-prompt`), "Your settings" chips, **Copy prompt**;
+   under the card, the star row (`div.hb-star-row`: a sentence and a **Star on GitHub** button).
 6. **About** (`section.hb-about`): **What it is** (from the README) beside **Good for** (3–5 tags) and
    **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`) and the footer, the same on every
    page (copy it from a neighbor):
@@ -68,6 +69,8 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
 ```html
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 ```
+
+The Star link and the star row are the same on every page too: copy them from a neighbor (a test compares them).
 
 The page owns the stage's width, border, corners and height (`--hb-stage-h` and `--hb-stage-h-phone` set
 another one); the demo owns overflow, background, alignment and perspective. `hb-dots` adds a dotted
