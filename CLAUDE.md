@@ -67,7 +67,7 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
    page (copy it from a neighbor):
 
 ```html
-<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 ```
 
 The Star link and the star row are the same on every page too: copy them from a neighbor (a test compares them).

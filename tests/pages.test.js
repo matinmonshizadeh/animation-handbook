@@ -449,7 +449,7 @@ test('a setting that starts lower on phones marks that choice data-hb-phone, and
 
 // The footer of every page: the site's name, a link to the source on GitHub (in a new tab) and Back to top.
 test('every guided-steps page has the same footer, with a link to the source on GitHub', () => {
-  const FOOTER = '<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>';
+  const FOOTER = '<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>';
   assert.ok(steps.length > 0, 'there are guided-steps pages');
   assert.deepEqual(steps.filter(d => count(pageOf(d), FOOTER) !== 1 || count(pageOf(d), '<footer') !== 1).map(d => `${d.cat}/${d.slug}`), [],
     'pages without exactly this footer');
@@ -458,7 +458,7 @@ test('every guided-steps page has the same footer, with a link to the source on 
 // The Star link at the end of every page's top bar and the star row under its prompt card, the same on every page
 // (docs/superpowers/specs/2026-10-12-star-button-design.md).
 const STAR_ICON = '<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
-const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"';
+const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"';
 const BAR_STAR = `<a class="hb-star" ${STAR_HREF} aria-label="Star on GitHub">${STAR_ICON}<span>Star on GitHub</span></a>`;
 const STAR_ROW = `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" ${STAR_HREF}>${STAR_ICON}Star on GitHub</a></div>`;
 test('every guided-steps page asks for a star at the end of its top bar and under its prompt card', () => {

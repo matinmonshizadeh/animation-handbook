@@ -23,9 +23,9 @@ Spec: `docs/superpowers/specs/2026-10-12-star-button-design.md`.
 - `demo-page.css` changes, so `demo-page.css?v=7` and `demo-page.js?v=7` become `?v=8` on all 166 pages, and the home
   page's `demo-page.js?v=7` becomes `?v=8`, in the same commit (a test fails when versions differ).
 - The star icon, everywhere: `<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>`
-- The repository link, everywhere: `href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"`
-- Top-bar Star link (exact): `<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>`
-- Star row (exact): `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>`
+- The repository link, everywhere: `href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"`
+- Top-bar Star link (exact): `<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>`
+- Star row (exact): `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>`
 - Phones (600px and less): every control at least 44×44px, no horizontal overflow down to 320px.
 - A static server for the repo is running at `http://127.0.0.1:8731` (it serves this checkout). Check with
   `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8731/` (expect `200`). If it is down, ask the controller to
@@ -62,7 +62,7 @@ In `tests/pages.test.js`, right after the test `'every guided-steps page has the
 // The Star link at the end of every page's top bar and the star row under its prompt card, the same on every page
 // (docs/superpowers/specs/2026-10-12-star-button-design.md).
 const STAR_ICON = '<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
-const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"';
+const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"';
 const BAR_STAR = `<a class="hb-star" ${STAR_HREF} aria-label="Star on GitHub">${STAR_ICON}<span>Star<span class="hb-star-more"> on GitHub</span></span></a>`;
 const STAR_ROW = `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" ${STAR_HREF}>${STAR_ICON}Star on GitHub</a></div>`;
 test('every guided-steps page asks for a star at the end of its top bar and under its prompt card', () => {
@@ -159,7 +159,7 @@ import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const ICON = '<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
-const GH = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"';
+const GH = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"';
 const BAR_STAR = `<a class="hb-star" ${GH} aria-label="Star on GitHub">${ICON}<span>Star<span class="hb-star-more"> on GitHub</span></span></a>`;
 const ROW = `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" ${GH}>${ICON}Star on GitHub</a></div>`;
 const dirs = d => readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => join(d, e.name));

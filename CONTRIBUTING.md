@@ -115,7 +115,7 @@ Then **What it is** (from the README), **Good for** (3–5 short tags) and **Avo
 every page (copy it from a neighbor):
 
 ```html
-<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 ```
 
 Above it all sit a top bar (Previous and Next links, then a Star on GitHub link) and a header: the category line, the

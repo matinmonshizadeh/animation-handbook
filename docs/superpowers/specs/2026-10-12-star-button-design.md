@@ -9,7 +9,7 @@ button on phones. The owner picked all three placements below from mockups (`.su
 A pill at the right end of `nav.hb-bar`, after `span.hb-pager`, the same on every page:
 
 ```html
-<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
 ```
 
 - `demo-page.css`: the pager gets `margin-left:auto`, so the pager and the pill sit together at the right. The pill has a
@@ -29,7 +29,7 @@ A pill at the right end of `nav.hb-bar`, after `span.hb-pager`, the same on ever
 A row inside `section.hb-prompt-step`, right after `div.hb-card`, the same on every page (pages without Try it too):
 
 ```html
-<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
 ```
 
 - `demo-page.css`: a wrapping flex row (gap 12px 20px); the sentence is 15px `--hb-dim` and takes the free space; the
@@ -61,6 +61,8 @@ Computers keep today's button ("GitHub ★ 8") unchanged, so `og-image.png` does
 - `tools/check-pages.mjs`: the star row's link joins the phone touch-target check (today it measures `.hb-bar a` but not
   links inside the page).
 - `CHANGELOG.md`: a line under a new "Unreleased" heading.
+- The links to the repository use `rel="noopener"` with no `noreferrer` (the owner's choice after the final review):
+  GitHub's Referring sites can then count the site; only the site's origin is sent.
 - Done when the tests pass, the page check gives six `ok` lines for every page, and the home check gives six `ok` lines.
 
 ## Not in this change
