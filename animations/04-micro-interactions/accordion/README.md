@@ -75,7 +75,7 @@ trigger.addEventListener('click', () => {
 |-----------|---------|--------|
 | Speed | Normal | How long an answer takes to open or close: slow is 500ms, normal 300ms and fast 180ms |
 | Feel | Gentle | Gentle eases in and out, which suits opening and closing alike; Smooth slows at the end; Even keeps one steady speed |
-| Several open at once | off | Off closes the open answer when another opens, which keeps the list short but moves a question up when a longer answer above it closes; on keeps each answer open until its question is pressed again, so only the answer being opened moves |
+| Several open at once | off | Off closes the open answer when another opens, which keeps the list short but moves the pressed question up when the answer that closes is above it; on keeps each answer open until its question is pressed again, so only the answer being opened moves |
 | Built with | Measured height | Measured height measures the answer before growing to it; Grid rows lets a grid row grow from nothing to its full size, with no measuring; both look the same |
 | Arrow flips | on | The arrow beside each question turns to point up while its answer is open |
 | Text fades in | off | The answer's text fades in and rises slightly while its box opens, each paragraph a moment after the one before |
