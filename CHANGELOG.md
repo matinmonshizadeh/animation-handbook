@@ -2,6 +2,11 @@
 
 The main steps of Animation Handbook, newest first, with the number of animations at each one.
 
+## Unreleased
+
+- A Star on GitHub button at the end of every animation page's top bar and under its Copy prompt, and a round star on the
+  home page for phones.
+
 ## 1.0.0 — 2026-10-10
 
 The same 166 animations, easier to reach and to work on.
