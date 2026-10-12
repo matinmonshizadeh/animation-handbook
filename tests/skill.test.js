@@ -1,5 +1,5 @@
 // Checks the AI skill (skills/animation-handbook/) and llms.txt, which tools/make-skill.mjs writes from the pages and the
-// home page's cards.
+// home page's cards, and the Claude Code plugin marketplace that installs the skill (.claude-plugin/marketplace.json).
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -152,6 +152,22 @@ test('llms.txt lists every card once, in the order of CATS, with its live addres
     assert.ok(lines[i].includes(`](${card.address}): `), `line ${i + 1} links ${card.address}: ${lines[i]}`);
     assert.ok(lines[i].endsWith(`: ${card.desc}`), `line ${i + 1} ends with the card's description: ${lines[i]}`);
   });
+});
+
+test('the plugin marketplace parses and its one plugin installs the skill folder', () => {
+  const market = JSON.parse(read(path.join(ROOT, '.claude-plugin', 'marketplace.json')));
+  assert.equal(market.name, 'animation-handbook');
+  assert.ok(market.owner && market.owner.name, 'the marketplace names its owner');
+  assert.equal(market.plugins.length, 1, 'one plugin');
+  const [plugin] = market.plugins;
+  assert.equal(plugin.name, 'animation-handbook');
+  // Without a version, an install follows the commits on main instead of staying on one version.
+  assert.equal(plugin.version, undefined, 'the plugin has no version');
+  assert.equal(market.version, undefined, 'the marketplace has no version');
+  assert.ok(Array.isArray(plugin.skills) && plugin.skills.length === 1, 'the plugin lists one skill folder');
+  for (const dir of plugin.skills) {
+    assert.ok(fs.existsSync(path.join(ROOT, plugin.source, dir, 'SKILL.md')), `${plugin.source} + ${dir} holds SKILL.md`);
+  }
 });
 
 test('every reference file over 100 lines starts with a contents list that links each of its sections', () => {
