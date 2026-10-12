@@ -55,7 +55,7 @@ Each piece waits until the break (`start`, the time the cracks take), then a lit
 |-----------|---------|--------|
 | Number of pieces | Medium | How finely the card breaks: few is about 15 pieces in two rings, medium about 30 in three and many 60 in four (about 46 on phones) |
 | Breaks from | Center | Where the impact is: near the middle (moved a little at random each time) or near the top-left corner; the pieces there are the smallest and fly first |
-| Gravity | Normal | None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view |
+| Gravity | Normal | None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view. In card heights over one flight, the pieces burst out about 1.1, 0.75 and 0.55 (further near the impact, and varied at random); normal first lifts them about 0.15, then gravity pulls them to about 0.6 below where the burst alone would take them, and heavy pulls them about 2 below |
 | Speed | Normal | How long each piece's flight takes: slow is 1700ms, normal 1100ms and fast 700ms; the cracks take about a third of that before the break |
 | Shows the cracks | on | Draws the cracks across the card, ring by ring from the impact, before it breaks; off, it breaks at once |
 | Tumbles in 3D | on | The pieces flip over and fly toward the viewer; off, they spin flat |

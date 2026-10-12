@@ -50,8 +50,8 @@ A frame adds the time since the last one to `acc`, never more than 50ms, which k
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | How it bounces | Planned path | A planned path plays a bounce decided in advance, which is cheap; a live spring works out the movement in small fixed time steps, which feels physical and can react to interruptions |
-| Bounce size | Medium | How far the page goes past its place before settling; with a live spring, a bigger bounce means less damping, so it swings for longer |
-| Speed | Normal | How quickly it settles: on the planned path slow is 1400ms, normal 900ms and fast 550ms; with a live spring, a faster speed is a stiffer spring |
+| Bounce size | Medium | How far the page goes past its place before settling: small is 3.6% of the page's width, medium 7.2% and large 12% on the planned path, and about as far with a live spring, where a bigger bounce means less damping, so it swings for longer |
+| Speed | Normal | How quickly it settles: on the planned path slow is 1400ms, normal 900ms and fast 550ms; with a live spring, a faster speed is a stiffer spring, which settles in about 1 to 1.3 s when slow, 0.6 to 0.8 s at normal and 0.3 to 0.45 s when fast |
 
 ## Production notes
 - **Stiffness and damping interact.** Below critical damping (`damping < 2√stiffness`) the spring oscillates; at or above it, it eases in without bounce. Tune the pair together — raising stiffness usually needs more damping to stay tasteful.

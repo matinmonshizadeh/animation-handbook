@@ -41,7 +41,7 @@ The Pauses between sentences switch adds `si × 200ms` to the delay for each sen
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Delay between words | Medium | The reading-speed control: short is 40ms, medium 80ms and long 150ms; below about 40ms the words blur into one reveal |
-| How each word appears | Fade up | The entrance each word plays: fade up, fade, grow, blur or flip |
+| How each word appears | Fade up | The entrance each word plays as it fades in: fade up rises by 0.4 of the font size, fade only fades, grow starts at 60% of its size, blur starts 8px blurred and flip turns in from 90°, edge-on, around a horizontal line |
 | Speed | Normal | How long each word takes to settle: slow is 700ms, normal 450ms and fast 270ms |
 | Feel | Smooth | Smooth slows each word into place; Springy adds a bounce; Even feels mechanical |
 | Pauses between sentences | off | Adds an extra pause between sentences |

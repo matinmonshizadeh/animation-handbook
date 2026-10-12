@@ -45,7 +45,7 @@ Switching the `data-vt` attribute swaps in a different keyframe set (slide, zoom
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Transition style | Fade | Fade blends the two pictures; Slide pushes the old one out to the left as the new one comes in from the right; Zoom shrinks the old one away as the new one settles from slightly larger; Tilt turns both slightly as they fade |
+| Transition style | Fade | Fade blends the two pictures; Slide pushes the old one out to the left as the new one comes in from the right, each moving a full width; Zoom shrinks the old one away to 80% as it fades while the new one fades in and settles from slightly larger, 115%; Tilt turns both slightly as they fade: the old one shrinks to 90% and turns 2° counterclockwise, and the new one starts at 90%, turned 2° clockwise |
 | Speed | Normal | How long the change takes: slow is 800ms, normal 500ms and fast 300ms; under about 150ms it reads as an instant swap |
 | Feel | Gentle | Gentle eases in and out; Smooth slows to a stop; Even keeps one steady pace |
 

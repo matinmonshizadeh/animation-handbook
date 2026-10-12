@@ -44,7 +44,7 @@ The scroll handler is rAF-coalesced and performs no layout reads; `maxScroll` is
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Colors | Dusk | The palette, one color per section: Dusk stays dark; Daylight passes through pale colors and Forest through a light green, and the text turns dark on those |
-| Blend | Gradual | Gradual changes the color the whole way between sections; Quick holds each color and changes it near the boundary; Hard cut switches at the boundary with no blend, to show why the blend matters |
+| Blend | Gradual | Gradual changes the color the whole way between sections; Quick holds each color and changes it near the boundary, over the middle 30% of the scroll from one section to the next; Hard cut switches at the boundary with no blend, to show why the blend matters |
 
 ## Production notes
 

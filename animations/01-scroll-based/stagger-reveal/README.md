@@ -38,7 +38,7 @@ The order array holds a *rank* per item, not a target — item `i` waits `order[
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Delay between items | Medium | The wait before each next item: short is 30ms, medium 50ms and long 80ms; 40 to 60ms reads as a sweep, and under 30ms the items seem to arrive together |
+| Delay between items | Medium | The wait before each next item: short is 30ms, medium 50ms and long 80ms; 40 to 60ms reads as a sweep, and under 30ms the items seem to arrive together. These values suit the demo's grid of 12 small items; a few large cards need a longer wait, about 100 to 150ms, to come in visibly one after another |
 | Order | First to last | Which item goes first: first to last, last to first, from the middle outward, or a random order each time |
 
 ## Production notes

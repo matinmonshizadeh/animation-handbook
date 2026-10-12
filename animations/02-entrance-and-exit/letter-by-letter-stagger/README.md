@@ -42,7 +42,7 @@ Adding the `.done` class flips every letter to its resting state simultaneously;
 |-----------|---------|--------|
 | Style | Cascade | Cascade animates every letter in turn; Typewriter types them out |
 | Delay between letters | Medium | The gap between letters: short is 20ms, medium 35ms and long 80ms; higher is slower and more theatrical |
-| How each letter appears | Fade up | In Cascade, the entrance each letter plays: fade up, fade, grow or flip |
+| How each letter appears | Fade up | In Cascade, the entrance each letter plays as it fades in: fade up rises by 0.4 of the font size, fade only fades, grow starts at 30% of its size and flip turns in from 90°, edge-on, around a vertical line |
 | Speed | Normal | In Cascade, how long each letter takes to settle: slow is 650ms, normal 400ms and fast 250ms |
 | Blinking cursor | on | In Typewriter, a blinking cursor leads the letters |
 | Your text | Hello, world. | The phrase that is animated, up to 60 characters |

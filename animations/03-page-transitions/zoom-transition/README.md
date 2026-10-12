@@ -35,7 +35,7 @@ Because the incoming and outgoing scales differ per variant, the same code path 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Zoom style | Zoom in | Zoom in grows the new page from 75% as the old one shrinks to 90%; Zoom out grows the old page past the frame as it fades; Pull through shrinks the old page to 70% while the new one settles from 130% |
+| Zoom style | Zoom in | Zoom in grows the new page from 75% as the old one shrinks to 90%; Zoom out grows the old page past the frame, to 120%, as it fades, while the new one fades in at full size; Pull through shrinks the old page to 70% while the new one settles from 130% |
 | Speed | Normal | How long the zoom and the fade take: slow is 900ms, normal 550ms and fast 330ms |
 | Feel | Smooth | Smooth slows to a stop; Springy grows a little past full size and settles; Gentle eases in and out |
 

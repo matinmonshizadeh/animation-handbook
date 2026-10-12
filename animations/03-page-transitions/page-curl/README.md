@@ -31,7 +31,7 @@ The flap is a box the color of the back of the sheet. Its shading is a `linear-g
 |-----------|---------|--------|
 | Turn speed | Normal | How long one page takes to turn over: slow is 1500ms, normal 1000ms and fast 650ms |
 | Which way it turns | Forward and back | Forward and back turns the page away for a later page and lays an earlier page back down; the other two always turn one way |
-| Paper shading | Soft | How strongly the fold is shaded and how dark the shadow on the page below is; off leaves a flat paper back |
+| Paper shading | Soft | How strongly the fold is shaded and how dark the shadow on the page below is: soft darkens the shadow to 42% black at mid-turn and the turned-over paper to 30% black along the fold, strong to 70% and 50%; off leaves a flat paper back |
 
 ## Production notes
 - **A straight fold is a good fake.** Real paper bends in a curve, which needs a mesh in WebGL or many thin strips. A straight fold with a gradient across the flap reads as a curl at a fraction of the cost.

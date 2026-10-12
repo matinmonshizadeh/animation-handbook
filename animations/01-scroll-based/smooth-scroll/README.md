@@ -53,7 +53,7 @@ The share moved each frame depends on how long the frame took. A fixed lerp fact
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Glide | Medium | How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling |
+| Glide | Medium | How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%, so 95% of a scroll has landed after about 1 s, 0.5 s and 0.3 s; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling |
 | Normal scrolling | off | Turns the glide off so the box scrolls the browser's own way, to compare the two |
 
 ## Production notes

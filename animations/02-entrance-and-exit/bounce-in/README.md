@@ -37,7 +37,7 @@ The generated CSS is injected into a live `<style>` tag, so changing Bounce stre
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Bounce strength | Medium | How far past full size it grows: soft about 5%, medium 9% and strong 15%, with smaller dips back under |
+| Bounce strength | Medium | How far past full size it grows: soft about 5%, medium 9% and strong 15%, with smaller dips back under, to about 2%, 4% and 7% below full size |
 | Number of bounces | One | How many times it overshoots; almost always one, since more looks cartoonish |
 | Speed | Normal | How long it takes: slow is 1800ms, normal 1100ms and fast 650ms; too short and the spring reads as a jitter |
 | Fades in | on | Whether it fades in while it bounces or is visible from the start |

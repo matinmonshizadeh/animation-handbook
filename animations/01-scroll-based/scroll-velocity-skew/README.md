@@ -38,7 +38,7 @@ The smoothing is what makes the effect feel physical. Raw deltas would snap the 
 |-----------|---------|--------|
 | Strength | Normal | How far the rows lean for a given scroll speed: subtle is 0.2°, normal 0.35° and strong 0.6° for each pixel scrolled in a sixtieth of a second |
 | Lean | Tilt | Tilt tips each row like a slope, the classic look; Slant leans it sideways like italic text |
-| Spring back | Normal | How quickly the lean follows the scroll speed and fades after you stop; slow feels heavy, quick feels twitchy |
+| Spring back | Normal | How quickly the lean follows the scroll speed and fades after you stop: in each sixtieth of a second the lean closes 7% of the gap to the lean the scroll speed calls for when slow, 12% at normal and 20% when quick, so 95% of it is gone about 0.7 s, 0.4 s and 0.2 s after you stop; slow feels heavy, quick feels twitchy |
 | Most it leans | Medium | The largest angle allowed: 6°, 12° or 20°, so a fast flick cannot fold the rows over |
 
 ## Production notes
