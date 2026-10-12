@@ -108,7 +108,7 @@ Every demo is one column with three steps, then a short explanation:
 1. **Watch it** — the stage, with the player bar right below it.
 2. **Try it** — one to three plain settings, each with a hint, and the rest under
    **More options**. A demo with no settings leaves this step out.
-3. **Copy the prompt** — the prompt, the "Your settings" chips and a **Copy prompt** button.
+3. **Copy the prompt** — the prompt, the "Your settings" chips and a **Copy prompt** button; under them, a short line and a **Star on GitHub** button.
 
 Then **What it is** (from the README), **Good for** (3–5 short tags) and **Avoid on**
 (1–3 tags), **Similar animations** (from the README's *See also*) and the footer, the same on
@@ -118,7 +118,7 @@ every page (copy it from a neighbor):
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 ```
 
-Above it all sit a top bar with Previous and Next links and a header: the category line, the
+Above it all sit a top bar (Previous and Next links, then a Star on GitHub link) and a header: the category line, the
 title and a one-line description in plain words that ends "Best for …". That one sentence is
 also the page's meta, Open Graph, Twitter and JSON-LD description, its card on the home page
 and its line in both READMEs. The `<head>` holds the title `Name — Animation Handbook`, the

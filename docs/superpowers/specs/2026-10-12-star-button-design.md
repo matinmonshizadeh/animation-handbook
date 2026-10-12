@@ -9,15 +9,17 @@ button on phones. The owner picked all three placements below from mockups (`.su
 A pill at the right end of `nav.hb-bar`, after `span.hb-pager`, the same on every page:
 
 ```html
-<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star<span class="hb-star-more"> on GitHub</span></span></a>
+<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
 ```
 
 - `demo-page.css`: the pager gets `margin-left:auto`, so the pager and the pill sit together at the right. The pill has a
   1px `--hb-edge` border, fully round corners, 14px side padding and `--hb-soft` text; on hover (`@media(hover:hover)`)
   the border turns `--hb-edge-2` and the text `--hb-ink`. It keeps the bar's 44px link height.
-- Computers (from 1025px) read "Star on GitHub". Tablets (601–1024px) read "Star", because `.hb-star-more` is hidden
-  there, as the "Previous: " and "Next: " words are, so the page names keep their room. Phones (600px and less) hide
-  the pill: B covers them.
+- Computers (from 1061px) read "Star on GitHub". From 601px to 1060px (tablets, phones held sideways, small laptop
+  windows) it is a round 44px star with no words, like the home page's on phones, so the page names keep their room;
+  its `aria-label` still names it. Phones (600px and less) hide it: B covers them. (Changed after the task review: the
+  word "Star" alone still cut page names on tablets, and the full label cut them at 1025–1060px; the owner chose the
+  round star.)
 - The star is the same outline star as the home page's GitHub button.
 
 ## B · Under Copy prompt on every animation page

@@ -459,27 +459,36 @@ test('every guided-steps page has the same footer, with a link to the source on 
 // (docs/superpowers/specs/2026-10-12-star-button-design.md).
 const STAR_ICON = '<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
 const STAR_HREF = 'href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"';
-const BAR_STAR = `<a class="hb-star" ${STAR_HREF} aria-label="Star on GitHub">${STAR_ICON}<span>Star<span class="hb-star-more"> on GitHub</span></span></a>`;
+const BAR_STAR = `<a class="hb-star" ${STAR_HREF} aria-label="Star on GitHub">${STAR_ICON}<span>Star on GitHub</span></a>`;
 const STAR_ROW = `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" ${STAR_HREF}>${STAR_ICON}Star on GitHub</a></div>`;
 test('every guided-steps page asks for a star at the end of its top bar and under its prompt card', () => {
   const lastAfter = (part, piece, before) => part.trimEnd().endsWith(piece) &&
     part.slice(0, part.lastIndexOf(piece)).trimEnd().endsWith(before);
+  // The star row comes after the card has closed: every div opened from the card's start is closed again before it.
+  const afterCard = promptStep => {
+    const before = promptStep.slice(promptStep.indexOf('<div class="hb-card">'), promptStep.lastIndexOf(STAR_ROW));
+    return before.startsWith('<div class="hb-card">') && count(before, '<div') === count(before, '</div>');
+  };
   const wrong = steps.filter(d => {
     const html = pageOf(d);
     const bar = between(html, '<nav class="hb-bar"', '</nav>');
     const promptStep = between(html, '<section class="hb-step hb-prompt-step"', '</section>');
     return count(html, BAR_STAR) !== 1 || !lastAfter(bar, BAR_STAR, '</span>') ||
-      count(html, STAR_ROW) !== 1 || !lastAfter(promptStep, STAR_ROW, '</div>');
+      count(html, STAR_ROW) !== 1 || !lastAfter(promptStep, STAR_ROW, '</div>') || !afterCard(promptStep);
   }).map(d => `${d.cat}/${d.slug}`);
   assert.deepEqual(wrong, [], 'pages without the Star link right after the pager, or without the star row right after the prompt card');
 });
 
-test('the shared stylesheet shortens the Star link to "Star" on tablets and leaves it to the star row on phones', () => {
+test('the shared stylesheet makes the Star link a round star below 1061px and leaves it to the star row on phones', () => {
   const css = read(path.join(ROOT, 'assets/css/demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
-  const hides = (media, selector) => cssRules(between(css, `@media(${media}){`, '\n}'))
-    .some(rule => rule.selector.split(',').some(part => part.trim() === selector) && /(^|;)\s*display:\s*none\s*(;|$)/.test(rule.body));
-  assert.ok(hides('max-width:1024px', '.hb-bar .hb-star-more'), 'tablets read "Star"');
-  assert.ok(hides('max-width:600px', '.hb-bar .hb-star'), 'phones leave the Star link out of the top bar');
+  const sets = (rules, selector, declaration) => rules.some(rule => rule.selector.split(',').some(part => part.trim() === selector) &&
+    rule.body.split(';').some(d => d.replace(/\s+/g, '') === declaration));
+  const within = media => cssRules(between(css, `@media(${media}){`, '\n}'));
+  assert.ok(sets(cssRules(css), '.hb-bar .hb-pager', 'margin-left:auto'), 'the pager sits beside the Star link, at the right end');
+  assert.ok(sets(cssRules(css), '.hb-bar .hb-star', 'box-sizing:border-box'), 'the Star link is 44px high whatever the demo sets');
+  assert.ok(sets(within('max-width:1060px'), '.hb-bar .hb-star', 'width:44px'), 'below 1061px the Star link is a 44px round star');
+  assert.ok(sets(within('max-width:1060px'), '.hb-bar .hb-star>span', 'display:none'), 'with no words');
+  assert.ok(sets(within('max-width:600px'), '.hb-bar .hb-star', 'display:none'), 'phones leave the Star link out of the top bar');
 });
 
 const sharedRules = cssRules(read(path.join(ROOT, 'assets/css/demo-page.css')));

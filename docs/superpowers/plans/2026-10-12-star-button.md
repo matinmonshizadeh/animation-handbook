@@ -24,7 +24,7 @@ Spec: `docs/superpowers/specs/2026-10-12-star-button-design.md`.
   page's `demo-page.js?v=7` becomes `?v=8`, in the same commit (a test fails when versions differ).
 - The star icon, everywhere: `<svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>`
 - The repository link, everywhere: `href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"`
-- Top-bar Star link (exact): `<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star<span class="hb-star-more"> on GitHub</span></span></a>`
+- Top-bar Star link (exact): `<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>`
 - Star row (exact): `<div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener noreferrer"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>`
 - Phones (600px and less): every control at least 44×44px, no horizontal overflow down to 320px.
 - A static server for the repo is running at `http://127.0.0.1:8731` (it serves this checkout). Check with
@@ -36,6 +36,8 @@ Spec: `docs/superpowers/specs/2026-10-12-star-button-design.md`.
 ---
 
 ### Task 1: Star link and star row on every animation page
+
+> Changed after the task review (owner's choice, 2026-10-12): below 1061px the Star link is a round star with no words, and its `hb-star-more` span is gone. The steps below are as they were first run; the spec holds the change.
 
 **Files:**
 - Modify: `assets/css/demo-page.css` (top bar rules near line 39, prompt step rules near line 156, the hover block at
