@@ -226,8 +226,13 @@ inside an entry's "Production notes" section, never as their own entry.
    pill: with the repo served, run `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it
    again from the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the last commit to its
-   folder (today for a folder with changes not yet committed). Run the tests and the page check on the new folder
-   and on every page you edited. Run the home page check (`home`) too: the new card's Copy prompt is compared there.
+   folder (today for a folder with changes not yet committed). Run `node tools/make-skill.mjs` too: it writes every
+   page's prompt and settings into the AI skill (`skills/animation-handbook/`) and every card into `llms.txt`. Run the
+   tests and the page check on the new folder and on every page you edited. Run the home page check (`home`) too: the
+   new card's Copy prompt is compared there.
+
+Changing any page's prompt, settings, description or Good for and Avoid on tags also means running
+`node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails until then.
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than
