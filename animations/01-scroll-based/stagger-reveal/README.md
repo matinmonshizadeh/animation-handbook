@@ -44,7 +44,7 @@ The order array holds a *rank* per item, not a target — item `i` waits `order[
 ## Production notes
 - **Delay vs. duration**: the stagger delay is the gap between items; each item's own transition duration is separate. Both matter — a 50ms stagger with a 400ms transition means the group overlaps heavily, which usually looks best.
 - **Cap the total**: on long lists, `delay × count` grows without bound and the tail feels sluggish. Clamp the effective delay so the whole cascade lands in ~600ms regardless of item count.
-- **Below 30ms reads as simultaneous**: if the eye can't separate the items, you've paid for stagger and gotten none of its benefit. Above ~100ms it starts to drag.
+- **Below 30ms reads as simultaneous**: if the eye can't separate the items, you've paid for stagger and gotten none of its benefit. Above ~100ms a long list starts to drag, though a few large cards need about that much to read as one after another.
 - **`setTimeout` vs. CSS `transition-delay`**: this demo uses timers so direction can change at runtime; a static cascade can instead set `transition-delay: calc(var(--i) * 50ms)` per item and avoid JS entirely.
 - **Reduced motion**: transitions are disabled under `prefers-reduced-motion`, so each item simply appears at its turn, without moving — the stagger is decorative, never load-bearing.
 - **Library equivalents**: GSAP's `stagger` property (including `from: "center"` and `"random"`) is the direct analog; Framer Motion uses `staggerChildren` on a parent variant; Motion One exposes a `stagger()` helper.

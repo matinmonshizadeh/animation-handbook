@@ -81,7 +81,7 @@ Add a ripple to [the buttons or list items you want to respond to presses]. When
 
 - Starts from: **Where you press** · The middle. Where you press shows exactly where the press landed; the middle is simpler but less exact.
 - Speed: Slow · **Normal** · Fast. How long the ripple takes to spread and fade: slow is 1000ms, normal 600ms and fast 350ms; a little longer than a hover change, because the click is already made.
-- Ripple size: Small · **Medium** · Large. How far the circle grows before it fades: small, medium or large; even small reaches every corner of the button.
+- Ripple size: Small · **Medium** · Large. How far the circle grows before it fades: small, medium and large end 3, 5 and 8 times the button's longer side across; even small reaches every corner of the button.
 - Ripple strength: Faint · **Medium** · Strong. How visible the ripple is at the start: faint is 20%, medium 40% and strong 60%.
 - Ripple color: **White** · Orange · Black. White suits colored buttons, orange matches the accent, black suits light buttons.
 
@@ -100,8 +100,8 @@ Add an animated focus ring to [the links, buttons and form fields on your page].
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Ring style: **Solid** · Dashed · Glow · Wide. Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo; Wide fills the gap between the item and the ring, making one thick band.
-- Speed: Slow · **Normal** · Fast. How long the ring takes to close in: slow is 220ms, normal 140ms and fast 80ms; fast enough not to feel delayed, slow enough to see.
+- Ring style: **Solid** · Dashed · Glow · Wide. Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo, a band of the ring's color at 18% opacity reaching 5px out from the item; Wide fills the gap between the item and the ring, making one thick band.
+- Speed: Slow · **Normal** · Fast. How long the ring takes to close in from 8px further out: slow is 220ms, normal 140ms and fast 80ms; fast enough not to feel delayed, slow enough to see.
 - Ring thickness: Thin · **Medium** · Thick. Thin is 1px, medium 2px and thick 4px; 2px or more is easy to see.
 - Ring gap: None · **Small** · Large. The space between the ring and the item: none, 3px or 6px; 2 to 4px looks natural.
 
@@ -140,7 +140,7 @@ Add a magnetic effect to [the one button you want to stand out]. When the pointe
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Pull strength: Gentle · **Medium** · Strong. How far the button moves toward the pointer: gentle is 20%, medium 35% and strong 50% of the distance; past about half it feels loose.
+- Pull strength: Gentle · **Medium** · Strong. How far the button moves toward the pointer: gentle is 20%, medium 35% and strong 50% of the distance when the pointer is close, a smaller share the farther it is, down to none at the edge of Reach; past about half it feels loose.
 - Reach: Short · **Medium** · Long. How close the pointer must come before the pull starts: short is 100px, medium 160px and long 240px; too far and the button reacts to unrelated movement.
 
 ## Toggle / Switch Slide
@@ -179,7 +179,7 @@ Add a like button with a burst to [the heart or favorite button you want to rewa
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Number of hearts: Few · **Some** · Many. How many pieces burst out: few is 10, some 18 and many 32; above about 40 it gets busy and costs frames.
-- How far they fly: Short · **Medium** · Far. How far the pieces travel before they fade: short, medium or far.
+- How far they fly: Short · **Medium** · Far. How far the pieces travel before they fade: short, medium and far launch them at up to 300, 450 or 700px a second (at least half that), and they slow, fall and fade out over about three quarters of a second, the fastest ending about 150, 225 or 350px to the side of the heart.
 
 ## Success Confetti
 
@@ -198,7 +198,7 @@ Add a confetti burst to [the action that completes something important, such as 
 
 - Amount of confetti: Some · **Medium** · Lots. How many pieces fly: some is 60, medium 120 and lots 200; above about 200 costs frames on slower phones for little gain.
 - Spread: Narrow · **Medium** · Wide. How wide the fan is: narrow is 60°, medium 110° and wide 170°; narrow looks like a fountain, wide like a dome.
-- Fall speed: Floaty · **Normal** · Heavy. How strongly the pieces are pulled down: floaty, normal or heavy; heavy falls fast, floaty drifts.
+- Fall speed: Floaty · **Normal** · Heavy. How strongly the pieces are pulled down: floaty, normal and heavy speed their fall by about 540, 1,000 and 1,600px a second every second, against launch speeds of 360 to 780px a second, so the fastest pieces climb about 560, 300 or 180px before they fall; heavy falls fast, floaty drifts.
 
 ## Skeleton Loader
 
@@ -216,7 +216,7 @@ Add a skeleton loading state to [the card, list or panel whose content loads]. W
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pulse speed: Slow · **Normal** · Fast. How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; one to two seconds feels calm, faster feels anxious.
-- Pulse strength: Soft · **Medium** · Strong. How far the blocks fade between pulses: soft, medium or strong; a soft pulse is enough.
+- Pulse strength: Soft · **Medium** · Strong. How far the blocks fade between pulses: soft, medium and strong fade them to 70%, 50% and 30% opacity and back to full; a soft pulse is enough.
 - Loading time: Short · **Medium** · Long. How long the placeholders show before the content fades in: short is 1s, medium 2s and long 3.5s.
 
 ## Shimmer Effect
@@ -235,8 +235,8 @@ Add a shimmer to [the skeleton placeholders on your loading screen]. Lay a band 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Speed: Slow · **Normal** · Fast. How often the light crosses: slow every 1.2s, normal every 0.75s and fast every 0.45s; more often than about every 0.4s it feels frantic.
-- Brightness: Soft · **Medium** · Bright. How strong the band of light is: soft, medium or bright; soft is subtle, bright suits a branded screen.
-- Highlight angle: **Upright** · Slanted · Diagonal. Upright sweeps a straight band; Slanted and Diagonal tilt it; keep one angle across the whole page.
+- Brightness: Soft · **Medium** · Bright. How strong the band of light is: soft, medium and bright are 12%, 25% and 45% opacity at its center; soft is subtle, bright suits a branded screen.
+- Highlight angle: **Upright** · Slanted · Diagonal. Upright sweeps a straight band; Slanted tilts it 25° and Diagonal 45°; keep one angle across the whole page.
 - Highlight color: **White** · Blue · Gold. White works on any placeholder; blue or gold suit branded screens.
 
 ## Loading Spinner
@@ -294,9 +294,9 @@ Add a success check mark that draws itself to [the form or action that just fini
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Result: **Success** · Error. Success draws a circle and a tick and turns the button green; Error draws a red X, shakes it and turns the button red.
-- Speed: Slow · **Normal** · Fast. How long each line takes to draw: slow is 800ms, normal 500ms and fast 300ms; 200 to 800ms is easy to follow.
-- Line thickness: Thin · **Medium** · Thick. Thin is 2, medium 4 and thick 7 units wide; thick reads as confident, thin as precise.
+- Result: **Success** · Error. Success draws a circle and a tick and turns the button green; Error draws a red X, shakes it (6, 6, 4 and 4px to alternate sides over 0.4 seconds) and turns the button red.
+- Speed: Slow · **Normal** · Fast. How long each line takes to draw: slow is 800ms, normal 500ms and fast 300ms, the tick starting 40% of that time after the circle (the X's second line 30% after its first); 200 to 800ms is easy to follow.
+- Line thickness: Thin · **Medium** · Thick. Thin is 2px, medium 4px and thick 7px wide, on an icon 80px across whose circle is 60px wide; thick reads as confident, thin as precise.
 - Feel: **Smooth** · Gentle · Even. Smooth slows at the end like a pen lifting off; Gentle eases in and out; Even draws at one steady pace.
 - Tick color: Pink · White · Blue · Purple · **Green** · Orange. The color of the circle and the tick; the X stays red.
 
@@ -335,7 +335,7 @@ Add a pulsing notification badge to [the icon that has something new, such as a 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Pulse style: **Grow** · Ring · Both. Grow scales the badge up and back; Ring sends a soft halo outward; Both does the two together.
+- Pulse style: **Grow** · Ring · Both. Grow scales the badge up and back; Ring sends a soft halo outward from just around the badge, growing to 2.2 times that size as it fades from half opacity to nothing; Both does the two together.
 - Speed: Slow · **Normal** · Fast. How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; fast feels urgent, slow is easy to miss.
 - How much it grows: Slightly · **Medium** · A lot. How big the badge gets at the top of each pulse: slightly is 115%, medium 130% and a lot 150% of its size.
 - Stops after three pulses: on · **off**. The badges pulse three times and then rest; the online dot keeps going.
@@ -357,7 +357,7 @@ Add tooltips to [the icon buttons, shortened text or fields that need a short ex
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Delay before showing: None · Short · **Medium** · Long. How long the pointer must rest before the tooltip shows: none, short (150ms), medium (300ms) or long (600ms); 300ms keeps tooltips from flashing as the pointer passes, and 200ms can work for very small ones.
-- Speed: Slow · **Normal** · Fast. How long the fade and the slight grow take: slow is 250ms, normal 150ms and fast 90ms.
+- Speed: Slow · **Normal** · Fast. How long the fade and the slight grow (from 95% of its size) take: slow is 250ms, normal 150ms and fast 90ms.
 - Delay before hiding: None · **Short** · Long. How long the tooltip stays after the pointer leaves: none, short (100ms) or long (300ms); a short pause stops it vanishing the instant the pointer slips off its item.
 - Shows an arrow: on · **off**. Adds a small point that aims the tooltip at its item.
 
@@ -418,7 +418,7 @@ Add an accordion to [the questions or sections you want to fold away]. Show only
 
 - Speed: Slow · **Normal** · Fast. How long an answer takes to open or close: slow is 500ms, normal 300ms and fast 180ms.
 - Feel: **Gentle** · Smooth · Even. Gentle eases in and out, which suits opening and closing alike; Smooth slows at the end; Even keeps one steady speed.
-- Several open at once: on · **off**. Off closes the open answer when another opens, which keeps the list short; on suits settings pages.
+- Several open at once: on · **off**. Off closes the open answer when another opens, which keeps the list short but moves the pressed question up when the answer that closes is above it; on keeps each answer open until its question is pressed again, so only the answer being opened moves.
 - Built with: **Measured height** · Grid rows. Measured height measures the answer before growing to it; Grid rows lets a grid row grow from nothing to its full size, with no measuring; both look the same.
 - Arrow flips: **on** · off. The arrow beside each question turns to point up while its answer is open.
 - Text fades in: on · **off**. The answer's text fades in and rises slightly while its box opens, each paragraph a moment after the one before.
@@ -459,7 +459,7 @@ Add an error shake to [the form field that can be rejected, such as a password].
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Shake distance: Small · **Medium** · Large. How far the field swings: small is 4px, medium 8px and large 14px; under 4px barely shows and over about 16px feels violent.
+- Shake distance: Small · **Medium** · Large. How far the field swings: small is 4px, medium 8px and large 14px, the first swing most of that way and each one after it shorter, down to nothing; under 4px barely shows and over about 16px feels violent.
 - Number of swings: Few · **Medium** · Many. How many times it swings: few is 4, medium 6 and many 8; four to six reads as a head shake, more feels frantic.
 - Speed: Slow · **Normal** · Fast. How long the whole shake lasts: slow is 650ms, normal 400ms and fast 250ms; under 250ms feels twitchy and over 600ms drags.
 
@@ -478,7 +478,7 @@ Add swipe to dismiss to [the list items people should be able to remove]. While 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Distance to delete: Short · **Medium** · Long. How far a card must be dragged before letting go deletes it: short is 20%, medium 35% and long 50% of its width; a quick flick deletes it from a shorter drag.
+- Distance to delete: Short · **Medium** · Long. How far a card must be dragged before letting go deletes it: short is 20%, medium 35% and long 50% of its width; a quick flick (faster than 600px a second, after at least 24px) deletes it from a shorter drag.
 - Shows a Delete label: **on** · off. A red strip with the word Delete shows behind the card while it is dragged.
 
 ## Hamburger Menu Toggle
@@ -573,7 +573,7 @@ Add toast notifications to [the actions in your app that should be confirmed qui
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Corner: Top left · **Top right** · Bottom left · Bottom right. Where toasts appear and stack; in the bottom corners the newest sits nearest the corner.
-- How it comes in: **Slides** · Fades · Grows. Slides in from its corner's side, fades in, or grows from slightly smaller; it leaves the same way.
+- How it comes in: **Slides** · Fades · Grows. Slides in from its corner's side, starting just over its own width away, fades in, or grows from 85% of its size, each fading in over 0.34 seconds; it leaves the same way in 0.3 seconds.
 - Time on screen: Short · **Medium** · Long. How long each toast stays: short is 2.5 seconds, medium 4 and long 6.5; its bar counts down this time.
 - Most at once: Two · Three · **Four**. Two, three or four; when one more arrives, the oldest leaves.
 
@@ -594,7 +594,7 @@ Add a segmented control to [the row of options people switch between, such as Da
 
 - Speed: Slow · **Normal** · Fast. How long the highlight takes to slide: slow is 550ms, normal 340ms and fast 200ms.
 - Feel: **Springy** · Smooth · Even. Springy runs a little past the option, then settles; Smooth slows to a stop; Even keeps one steady speed.
-- Highlight: **Pill** · Underline. A filled pill behind the chosen option, or a thin line under it.
+- Highlight: **Pill** · Underline. A filled pill behind the chosen option, or a thin 2px line under it.
 - Number of options: Two · Three · **Four** · Five. Two to five options; more, or long labels, do not fit on one line.
 
 ## Pull to Refresh
@@ -613,7 +613,7 @@ Add pull to refresh to [the scrolling list or feed that should reload]. When the
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pull distance: Short · **Medium** · Long. How far the list must be pulled before letting go refreshes: short is 48px, medium 64px and long 80px, measured after the resistance.
-- Resistance: Low · **Medium** · High. How hard the list fights back as it is pulled: low, medium or high; with a long pull distance and high resistance, it takes a long drag.
+- Resistance: Low · **Medium** · High. How hard the list fights back as it is pulled: it follows the finger at first and stiffens, so reaching the pull distance takes a drag of about 1.4 times it (low), 1.8 times (medium) or 2.25 times (high), and the list never goes past 3.4, 2.2 or 1.8 times it; with a long pull distance and high resistance, it takes a long drag.
 - Spinner: **Ring** · Dots · Bars. A turning ring, three blinking dots or four stretching bars.
 - Refresh time: Short · **Medium** · Long. How long the spinner turns before the new item arrives: short is 700ms, medium 1200ms and long 2000ms.
 
@@ -635,7 +635,7 @@ Add an animated gradient border to [the card or button you want to stand out]. G
 - Colors: **Rainbow** · Sunset · Ocean. The four colors of the band: Rainbow, Sunset (yellow to purple) or Ocean (teal to indigo).
 - Speed: Slow · **Normal** · Fast. How long one trip around the edge takes: slow is 7s, normal 4s and fast 2s; much faster and it looks busy.
 - Soft glow: **on** · off. A blurred copy of the band behind the element, so its colors spill softly onto the page.
-- Band length: Short · **Long** · All around. How much of the edge the colors cover at once: a short band, a long one, or colors all around.
+- Band length: Short · **Long** · All around. How much of the edge the colors cover at once: a short band about a third of the way around, a long one about three fifths, each fading in from a faint tail to a bright front, or colors all around.
 - Border width: Thin · **Medium** · Thick. How thick the colored edge is: thin is 1px, medium 2px and thick 4px.
 
 ## Spotlight Hover Glow
@@ -656,7 +656,7 @@ Add a spotlight glow to [the grid of dark cards you want to light up]. As the po
 - Glow size: Small · **Medium** · Large. How far the light reaches: small, medium and large are 0.7, 1.15 and 1.7 times the grid's shorter side across.
 - Color: White · Orange · Pink · **Purple** · Blue · Green. The color of the light and of the lit edges; white looks the most natural on gray cards.
 - Lights the edges: **on** · off. The card edges near the pointer glow brightly; off, only the faces brighten.
-- Lag: None · **Short** · Long. How far the light trails a moving pointer: none follows it exactly, short closes 30% of the gap per 60 Hz frame and long 10%.
+- Lag: None · **Short** · Long. How far the light trails a moving pointer: none follows it exactly, short closes 30% of the gap per 60 Hz frame and long 10% (other screens close the share that fits their frame time), so the light gets 95% of the way in about 0.15 or 0.5 seconds.
 
 ## Add-to-Cart Fly
 
@@ -674,7 +674,7 @@ Add an add-to-cart animation to [the Add to cart buttons of your product list]. 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Flight speed: Slow · **Normal** · Fast. How long the copy takes to reach the cart: slow is 1.1s, normal 0.7s and fast 0.45s.
-- Path: **Arc** · Straight. Arc rises and drops into the cart like a toss; Straight goes in a line, easing in and out.
+- Path: **Arc** · Straight. Arc moves sideways at an even pace while it rises and drops into the cart like a toss, peaking a twentieth of the sideways distance (10 to 28px) above the cart; Straight goes in a line, easing in and out.
 - Cart bumps: **on** · off. The cart tips and grows for a moment and its badge pops as the copy lands; off, only the number changes.
 
 ## Drag to Reorder
@@ -693,7 +693,7 @@ Add drag to reorder to [the list whose order people can change]. Lift the picked
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Slide speed: Slow · **Normal** · Fast. How fast the passed items slide aside and the dropped one settles: slow is 420ms, normal 220ms and fast 120ms.
-- How much it lifts: **Subtle** · Strong. Subtle grows the held item by 2% with a soft shadow; strong grows it by 6%, tilts it a little and deepens the shadow.
+- How much it lifts: **Subtle** · Strong. Subtle grows the held item by 2% with a soft shadow 8px below it; strong grows it by 6%, tilts it 1.5° and deepens the shadow to 18px below it.
 - Drags by the handle only: on · **off**. Only the grip starts a drag; when off, the whole row does, after a short press on touch screens.
 
 ## Rolling Numbers
@@ -730,8 +730,8 @@ Add a typing indicator to [the chat or comment thread where replies arrive]. Whi
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- How the dots move: **Bounce** · Fade · Wave. Bounce hops each dot 7px up and rests between rounds; fade brightens each dot and grows it from 70% to full size; wave raises and lowers the dots without a rest.
-- Speed: Slow · **Normal** · Fast. How long one round of the three dots takes: slow is 1.8 seconds, normal 1.2 seconds and fast 0.8 seconds.
+- How the dots move: **Bounce** · Fade · Wave. Bounce hops each dot 7px up and rests between rounds; fade brightens each dot and grows it from 70% to full size; wave raises and lowers the dots between 2.5px below and 5px above their place, without a rest.
+- Speed: Slow · **Normal** · Fast. How long one round of the three dots takes: slow is 1.8 seconds, normal 1.2 seconds and fast 0.8 seconds, each dot starting 15% of a round after the one before.
 - Bubble color: **Gray** · Blue · Green · Purple. The color of the other person's bubbles: gray, blue, green or purple; the dots turn light gray or white to stay clear on it.
 
 ## Hold to Confirm
@@ -788,10 +788,10 @@ Add loading states to [the button that sends a form or saves something]. When it
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Result: **Success** · Error. Success shows a tick on green; Error shows a cross on red and gives the button a small shake.
+- Result: **Success** · Error. Success shows a tick on green; Error shows a cross on red and gives the button a small shake, swinging 7, 6, 4 and 2px to alternate sides over 0.4 seconds.
 - Speed: Slow · **Normal** · Fast. How long the shape, the color and the icon take to change: slow is 500ms, normal 300ms and fast 180ms.
 - Shrinks to a circle: **on** · off. On clips the button's color into a circle around the spinner; off keeps its full shape and changes only what is inside.
-- How long it loads: Short · **Medium** · Long. How long the spinner turns before the answer: short is 0.7 seconds, medium 1.2 and long 2.2; in a real form this is the server's time.
+- How long it loads: Short · **Medium** · Long. How long the spinner turns once the button has changed shape, before the answer comes: short is 0.7 seconds, medium 1.2 and long 2.2; in a real form this is the server's time.
 
 ## Image Trail
 
@@ -829,8 +829,8 @@ Add a gooey menu to [the round action button on your page]. Pressing it lets sma
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Layout: Row · **Arc** · Column. Row puts the small buttons in a line beside the round one; Arc fans them out above it; Column stacks them above it.
-- How gooey: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened: low is 5, medium 9 and high 13 (times the menu's scale, and a fifth less on phones); higher keeps the drops joined for longer.
+- Layout: Row · **Arc** · Column. Row puts the small buttons in a line beside the round one and Column stacks them above it, with 20px gaps; Arc fans them out above it, 84px from its center and 60° apart; the round button is 64px across and the small ones 50px.
+- How gooey: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened: low is a 5px blur, medium 9px and high 13px for a round button 64px across (scaled with the menu, and a fifth less on phones); higher keeps the drops joined for longer.
 - Speed: Slow · **Normal** · Fast. How long a small button takes to pop out: slow is 950ms, normal 600ms and fast 380ms, each starting 90, 60 or 40ms after the one before.
 - Button color: **Orange** · Pink · Purple · Blue · Green. The color of the circles; the icons stay dark.
 
@@ -849,6 +849,6 @@ Add a Dynamic Island style notification to [the top of your app or page]. At res
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Notification: **Call** · Timer · Music. What the pill grows into: a call card, a timer in a wide capsule, or a taller music card with controls; picking another while it is open changes the shape straight into the new one.
+- Notification: **Call** · Timer · Music. What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall, each about four fifths as wide as the screen; picking another while it is open changes the shape straight into the new one.
 - Speed: Slow · **Normal** · Fast. How long it takes to grow or shrink: slow is 1100ms, normal 700ms and fast 450ms; a spring needs a little longer than a plain ease, because it settles at the end.
-- Bounce: None · **Soft** · Springy. None eases out without going past the size; Soft goes about 5% past it and Springy about 16%, and then each settles.
+- Bounce: None · **Soft** · Springy. None eases out without going past the size; Soft goes past it by about 5% of the change in size and Springy by about 16%, and each settles by the end of its time.

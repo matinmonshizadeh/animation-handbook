@@ -36,7 +36,7 @@ Add page transitions to [your site's pages or views] with the browser's View Tra
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Transition style: **Fade** · Slide · Zoom · Tilt. Fade blends the two pictures; Slide pushes the old one out to the left as the new one comes in from the right; Zoom shrinks the old one away as the new one settles from slightly larger; Tilt turns both slightly as they fade.
+- Transition style: **Fade** · Slide · Zoom · Tilt. Fade blends the two pictures; Slide pushes the old one out to the left as the new one comes in from the right, each moving a full width; Zoom shrinks the old one away to 80% as it fades while the new one fades in and settles from slightly larger, 115%; Tilt turns both slightly as they fade: the old one shrinks to 90% and turns 2° counterclockwise, and the new one starts at 90%, turned 2° clockwise.
 - Speed: Slow · **Normal** · Fast. How long the change takes: slow is 800ms, normal 500ms and fast 300ms; under about 150ms it reads as an instant swap.
 - Feel: Smooth · **Gentle** · Even. Gentle eases in and out; Smooth slows to a stop; Even keeps one steady pace.
 
@@ -130,7 +130,7 @@ Add a zoom transition to [the pages or views you want to move between]. When the
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Zoom style: **Zoom in** · Zoom out · Pull through. Zoom in grows the new page from 75% as the old one shrinks to 90%; Zoom out grows the old page past the frame as it fades; Pull through shrinks the old page to 70% while the new one settles from 130%.
+- Zoom style: **Zoom in** · Zoom out · Pull through. Zoom in grows the new page from 75% as the old one shrinks to 90%; Zoom out grows the old page past the frame, to 120%, as it fades, while the new one fades in at full size; Pull through shrinks the old page to 70% while the new one settles from 130%.
 - Speed: Slow · **Normal** · Fast. How long the zoom and the fade take: slow is 900ms, normal 550ms and fast 330ms.
 - Feel: **Smooth** · Springy · Gentle. Smooth slows to a stop; Springy grows a little past full size and settles; Gentle eases in and out.
 
@@ -191,8 +191,8 @@ Add an elastic transition to [the pages or panels you want to move between]. The
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - How it bounces: **Planned path** · Live spring. A planned path plays a bounce decided in advance, which is cheap; a live spring works out the movement in small fixed time steps, which feels physical and can react to interruptions.
-- Bounce size: Small · **Medium** · Large. How far the page goes past its place before settling; with a live spring, a bigger bounce means less damping, so it swings for longer.
-- Speed: Slow · **Normal** · Fast. How quickly it settles: on the planned path slow is 1400ms, normal 900ms and fast 550ms; with a live spring, a faster speed is a stiffer spring.
+- Bounce size: Small · **Medium** · Large. How far the page goes past its place before settling: small is 3.6% of the page's width, medium 7.2% and large 12% on the planned path, and about as far with a live spring, where a bigger bounce means less damping, so it swings for longer.
+- Speed: Slow · **Normal** · Fast. How quickly it settles: on the planned path slow is 1400ms, normal 900ms and fast 550ms; with a live spring, a faster speed is a stiffer spring, which settles in about 1 to 1.3 s when slow, 0.6 to 0.8 s at normal and 0.3 to 0.45 s when fast.
 
 ## Portal / Tunnel Zoom
 
@@ -307,7 +307,7 @@ Add a page curl to [the pages you want to turn, such as a magazine]. A forward t
 
 - Turn speed: Slow · **Normal** · Fast. How long one page takes to turn over: slow is 1500ms, normal 1000ms and fast 650ms.
 - Which way it turns: **Forward and back** · Always forward · Always back. Forward and back turns the page away for a later page and lays an earlier page back down; the other two always turn one way.
-- Paper shading: Off · **Soft** · Strong. How strongly the fold is shaded and how dark the shadow on the page below is; off leaves a flat paper back.
+- Paper shading: Off · **Soft** · Strong. How strongly the fold is shaded and how dark the shadow on the page below is: soft darkens the shadow to 42% black at mid-turn and the turned-over paper to 30% black along the fold, strong to 70% and 50%; off leaves a flat paper back.
 
 ## Cube Transition
 

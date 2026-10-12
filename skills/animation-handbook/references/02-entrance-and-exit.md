@@ -155,7 +155,7 @@ Add a split-text reveal to [your headline]. Break the text into pieces (characte
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Split into: Letters · **Words** · Lines. Letters give the finest cascade, words a readable rhythm, lines a block reveal.
-- How each piece appears: **Fade up** · Fade · Grow · Flip. The small entrance each piece plays: fade up, fade, grow or flip.
+- How each piece appears: **Fade up** · Fade · Grow · Flip. The small entrance each piece plays: fade up rises by half the font size, fade only fades, grow starts at half its size and flip turns in from 90°, edge-on, around a vertical line.
 - Delay between pieces: Short · **Medium** · Long. The wait between pieces: short is 10ms, medium 30ms and long 100ms; small values ripple, large values feel deliberate.
 - Speed: Slow · **Normal** · Fast. How long each piece takes: slow is 800ms, normal 500ms and fast 300ms.
 - Feel: **Smooth** · Springy · Even. The curve each piece uses; Springy adds a small settle, Even keeps one steady pace.
@@ -178,7 +178,7 @@ Add a letter-by-letter entrance to [a short phrase or headline]. In the cascade 
 
 - Style: **Cascade** · Typewriter. Cascade animates every letter in turn; Typewriter types them out.
 - Delay between letters: Short · **Medium** · Long. The gap between letters: short is 20ms, medium 35ms and long 80ms; higher is slower and more theatrical.
-- How each letter appears: **Fade up** · Fade · Grow · Flip. In Cascade, the entrance each letter plays: fade up, fade, grow or flip.
+- How each letter appears: **Fade up** · Fade · Grow · Flip. In Cascade, the entrance each letter plays as it fades in: fade up rises by 0.4 of the font size, fade only fades, grow starts at 30% of its size and flip turns in from 90°, edge-on, around a vertical line.
 - Speed: Slow · **Normal** · Fast. In Cascade, how long each letter takes to settle: slow is 650ms, normal 400ms and fast 250ms.
 - Blinking cursor: **on** · off (the page shows it only for some choices of another setting). In Typewriter, a blinking cursor leads the letters.
 - Your text: text field, starts as "Hello, world.". The phrase that is animated, up to 60 characters.
@@ -199,7 +199,7 @@ Add a word-by-word reveal to [the paragraph or quote you want to reveal]. Each w
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Delay between words: Short · **Medium** · Long. The reading-speed control: short is 40ms, medium 80ms and long 150ms; below about 40ms the words blur into one reveal.
-- How each word appears: **Fade up** · Fade · Grow · Blur · Flip. The entrance each word plays: fade up, fade, grow, blur or flip.
+- How each word appears: **Fade up** · Fade · Grow · Blur · Flip. The entrance each word plays as it fades in: fade up rises by 0.4 of the font size, fade only fades, grow starts at 60% of its size, blur starts 8px blurred and flip turns in from 90°, edge-on, around a horizontal line.
 - Speed: Slow · **Normal** · Fast. How long each word takes to settle: slow is 700ms, normal 450ms and fast 270ms.
 - Feel: **Smooth** · Springy · Even. Smooth slows each word into place; Springy adds a bounce; Even feels mechanical.
 - Pauses between sentences: on · **off**. Adds an extra pause between sentences.
@@ -264,7 +264,7 @@ Add a bounce-in entrance to [the element you want to animate]. When it appears, 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Bounce strength: Soft · **Medium** · Strong. How far past full size it grows: soft about 5%, medium 9% and strong 15%, with smaller dips back under.
+- Bounce strength: Soft · **Medium** · Strong. How far past full size it grows: soft about 5%, medium 9% and strong 15%, with smaller dips back under, to about 2%, 4% and 7% below full size.
 - Number of bounces: **One** · Two · Three. How many times it overshoots; almost always one, since more looks cartoonish.
 - Speed: Slow · **Normal** · Fast. How long it takes: slow is 1800ms, normal 1100ms and fast 650ms; too short and the spring reads as a jitter.
 - Fades in: **on** · off. Whether it fades in while it bounces or is visible from the start.
@@ -308,7 +308,7 @@ Add a shatter effect to [the card or picture you want to break]. When it plays, 
 
 - Number of pieces: Few · **Medium** · Many. How finely the card breaks: few is about 15 pieces in two rings, medium about 30 in three and many 60 in four (about 46 on phones).
 - Breaks from: **Center** · Corner. Where the impact is: near the middle (moved a little at random each time) or near the top-left corner; the pieces there are the smallest and fly first.
-- Gravity: None · **Normal** · Heavy. None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view.
+- Gravity: None · **Normal** · Heavy. None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view. Over one flight the burst carries the pieces about 1.1, 0.75 or 0.55 card heights outward (none, normal, heavy; further near the impact), and gravity pulls them a further 0.6 card heights down with normal and 2 with heavy.
 - Speed: Slow · **Normal** · Fast. How long each piece's flight takes: slow is 1700ms, normal 1100ms and fast 700ms; the cracks take about a third of that before the break.
 - Shows the cracks: **on** · off. Draws the cracks across the card, ring by ring from the impact, before it breaks; off, it breaks at once.
 - Tumbles in 3D: **on** · off. The pieces flip over and fly toward the viewer; off, they spin flat.

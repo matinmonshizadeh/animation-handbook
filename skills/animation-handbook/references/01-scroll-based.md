@@ -271,7 +271,7 @@ Add a stagger reveal to [your grid, list or group of items]. When the group scro
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Delay between items: Short · **Medium** · Long. The wait before each next item: short is 30ms, medium 50ms and long 80ms; 40 to 60ms reads as a sweep, and under 30ms the items seem to arrive together.
+- Delay between items: Short · **Medium** · Long. The wait before each next item: short is 30ms, medium 50ms and long 80ms; 40 to 60ms reads as a sweep, and under 30ms the items seem to arrive together. These values suit the demo's grid of 12 small items; a few large cards need a longer wait, about 100 to 150ms, to come in visibly one after another.
 - Order: **First to last** · Last to first · From the middle · Random. Which item goes first: first to last, last to first, from the middle outward, or a random order each time.
 
 ## Horizontal Scroll
@@ -421,7 +421,7 @@ Add smooth scrolling to [the scrolling area or page you want to glide]. Catch th
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Glide: Long · **Medium** · Short. How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling.
+- Glide: Long · **Medium** · Short. How much of the remaining distance the content covers in a sixtieth of a second: long is 5%, medium 9% and short 16%, so 95% of a scroll has landed after about 1 s, 0.5 s and 0.3 s; a longer frame covers more, so the glide takes as long on every screen; long feels heavy and floaty, short is closer to normal scrolling.
 
 ## Text Fill on Scroll
 
@@ -459,7 +459,7 @@ Add a velocity skew to [the rows or cards in your list or gallery]. Measure how 
 
 - Strength: Subtle · **Normal** · Strong. How far the rows lean for a given scroll speed: subtle is 0.2°, normal 0.35° and strong 0.6° for each pixel scrolled in a sixtieth of a second.
 - Lean: **Tilt** · Slant. Tilt tips each row like a slope, the classic look; Slant leans it sideways like italic text.
-- Spring back: Slow · **Normal** · Quick. How quickly the lean follows the scroll speed and fades after you stop; slow feels heavy, quick feels twitchy.
+- Spring back: Slow · **Normal** · Quick. How quickly the lean follows the scroll speed and fades after you stop: in each sixtieth of a second the lean closes 7% of the gap to the lean the scroll speed calls for when slow, 12% at normal and 20% when quick, so 95% of it is gone about 0.7 s, 0.4 s and 0.2 s after you stop; slow feels heavy, quick feels twitchy.
 - Most it leans: Small · **Medium** · Large. The largest angle allowed: 6°, 12° or 20°, so a fast flick cannot fold the rows over.
 
 ## SVG Line Draw on Scroll
@@ -515,7 +515,7 @@ Add a scroll-driven background color to [the sections of your page]. Give each s
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Colors: **Dusk** · Daylight · Forest. The palette, one color per section: Dusk stays dark; Daylight passes through pale colors and Forest through a light green, and the text turns dark on those.
-- Blend: **Gradual** · Quick · Hard cut. Gradual changes the color the whole way between sections; Quick holds each color and changes it near the boundary; Hard cut switches at the boundary with no blend, to show why the blend matters.
+- Blend: **Gradual** · Quick · Hard cut. Gradual changes the color the whole way between sections; Quick holds each color and changes it near the boundary, over the middle 30% of the scroll from one section to the next; Hard cut switches at the boundary with no blend, to show why the blend matters.
 
 ## Hide-on-Scroll Header
 
