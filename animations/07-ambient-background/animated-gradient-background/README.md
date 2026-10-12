@@ -45,7 +45,7 @@ Note: `filter` on the gradient element also affects any children — wrap conten
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Gradient | Sliding | Sliding moves a large, soft gradient back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends, one and a half times as slowly |
+| Gradient | Sliding | Sliding moves a large, soft gradient (four times the box's width and height) back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends (three times the box's width and height), one and a half times as slowly |
 | Speed | Normal | How long one cycle takes: slow is 32s, normal 20s and fast 12s; under 8s it becomes distracting |
 | Colors | Cool | The colors the gradient moves through: cool blues and purples, sunset oranges, ocean blues and greens, or grays |
 | Muted colors | off | Takes most of the color out (30% saturation) for a quieter background |

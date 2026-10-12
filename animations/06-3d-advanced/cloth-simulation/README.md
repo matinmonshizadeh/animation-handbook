@@ -85,10 +85,10 @@ for (let r = 0; r < ROWS; r++) {
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Hangs from | Two corners | Pins the top two corners, the whole top edge, one corner, or nothing, in which case the cloth falls to the floor |
-| Wind | Medium | How hard the wind blows; it rises and falls on its own: light is 0.2, medium 0.5 and strong 1.2 |
+| Wind | Medium | How hard the wind blows; it rises and falls on its own over a 12.6-second cycle: at its peak it speeds points up sideways by about 30px a second every second at light, 75px at medium and 180px at strong, and part of the time it blows back at up to about half that |
 | Stiffness | Medium | How many times each step, sixty a second, the links are pulled back to length: stretchy is 2, medium 4 and stiff 8 |
-| Gravity | Normal | How heavy the cloth is: light is 0.06, normal 0.12 and heavy 0.2 |
-| Detail | Medium | How many points the cloth has: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low |
+| Gravity | Normal | How heavy the cloth is: gravity speeds a falling point up by about 17px a second every second at light, 35px at normal and 58px at heavy |
+| Detail | Medium | How many squares the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low |
 | Shows the points | off | Marks every point of the grid, with the pinned ones in red |
 
 ## Production notes

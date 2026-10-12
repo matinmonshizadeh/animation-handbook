@@ -65,11 +65,11 @@ rx += SPEED_X * 0.01 * step * (Math.sin(clock * 0.0003) * 0.5 + 0.5);  // the fo
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Shape | Cube | The object that is drawn: a cube, a sphere, a ring or a four-sided pyramid |
-| Movement | Spins | Spins turns it by itself; Follows the pointer turns it to face your pointer or finger |
-| Speed | Normal | How fast it spins: slow is about 17°, normal 27° and fast 45° a second, on any screen |
+| Shape | Cube | The object that is drawn: a cube, a sphere, a ring or a pyramid of four triangles |
+| Movement | Spins | Spins turns it by itself; Follows the pointer turns it to face your pointer or finger, up to 86° to either side and 69° up or down with the pointer at the stage's edges |
+| Speed | Normal | How fast it spins: slow is about 17°, normal 27° and fast 45° a second, on any screen; while it tumbles, the forward roll swings between still and a quarter of that over about 21 seconds |
 | Tumbles as it spins | on | Also rolls it forward, at a speed that rises and falls, so the top and bottom come into view |
-| Distance | Medium | How far away the camera is: close looks bigger, far looks smaller; the lens stays the same |
+| Distance | Medium | How far away the camera is, from the shape's center: close is about 2.3 times the shape's width, medium 2.7 times and far 3.8 times, so close looks bigger; the lens stays the same, a 45° view from top to bottom |
 | Color | Blue | The object's color; the lighting adds the shading and the highlight |
 | Edges only | off | Draws the edges of the triangles the shape is made of, instead of its lit surface |
 

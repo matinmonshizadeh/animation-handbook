@@ -77,7 +77,7 @@ The 2% scale on the center element is intentionally subtle — the eye should no
 | How much it grows | Medium | How far the glow shrinks and grows: a little is 80% to 120% of its size, medium 60% to 150% and a lot 45% to 180% |
 | Glow color | Blue | The color of the glow: pink, blue, purple, green or orange (white would hide the white title at the breath's peak) |
 | Glow size | Medium | The glow's size before it grows: small is 180px, medium 260px and large 340px |
-| Second glow | off | A larger, fainter glow behind the first breathes the other way over a longer cycle, so the two never line up |
+| Second glow | off | A larger, fainter glow behind the first, 1.5 times its size, breathes over a cycle 1.3 times as long, so the two drift in and out of step |
 | Icon and title breathe too | on | The icon and the title under it swell by 2% with each breath, too little to notice consciously |
 
 ## Production notes

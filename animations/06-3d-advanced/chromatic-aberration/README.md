@@ -49,7 +49,7 @@ function applyOffset(amount, angleDeg) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Movement | Pulse | Pulse widens and narrows the split every 2 seconds; Glitch jumps it briefly every 4 seconds; None keeps it still |
+| Movement | Pulse | Pulse widens the split to 1.8 times and back every 2 seconds; Glitch jumps it twice near the end of every 4 seconds, for 80ms each, to about 3 times the split and then 2 times on the other side; None keeps it still |
 | Color split | Medium | How far the red and blue copies sit from the word: small is 2px, medium 4px and large 8px; above about 6px the word gets hard to read |
 | Direction | Slanted | Sideways splits the colors left and right; Slanted splits them at 30°; Up and down splits them vertically |
 | Soft color edges | off | Blurs the red and blue copies by 2px, which looks more like a lens than a digital shift |

@@ -65,11 +65,11 @@ Wherever `src` has faded to almost nothing the function returns before the noise
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Thickness | Medium | How dense the smoke is: thin is 0.4, medium 0.7 and thick 1.2; thin looks wispy, thick hides what is behind |
-| Speed | Normal | How fast the smoke rises: slow is 0.35, normal 0.6 and fast 1 |
+| Thickness | Medium | How dense the smoke is: thin is 0.6 times as dense as medium and thick 1.7 times, so the thickest wisps hide about a third of what is behind at thin, half at medium and three quarters at thick; thin looks wispy |
+| Speed | Normal | How fast the smoke rises: its pattern moves about 3% of the box's height a second at slow, 5% at normal and 9% at fast |
 | Detail | Medium | How many steps each ray takes: low is 16, medium 32 and high 64 (48 on phones); fewer steps leave visible stripes |
 | Smoke color | Gray blue | The color of the lit smoke; the shadowed parts are darker shades of it |
-| Wind | on | The whole plume drifts slowly to one side |
+| Wind | on | The smoke drifts slowly to one side, about 2% of the box's height a second, while the plume stays in place |
 | Fine grain | on | Starts each ray at a slightly random point, which turns the stripes that few steps leave into fine grain |
 
 ## Production notes

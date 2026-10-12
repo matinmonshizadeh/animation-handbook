@@ -90,7 +90,7 @@ void main() {
 |-----------|---------|--------|
 | Movement | Flow | Flow follows a shifting field of currents; Swirl circles the middle; Attract pulls everything toward the middle; Orbit sweeps the particles round in rings |
 | Number of particles | 65,000 | 16,000, 65,000 or 100,000 particles, one pixel each of a texture 128, 256 or 320 pixels square; phones start with 16,000 |
-| Speed | Normal | How hard the rule pushes for every sixtieth of a second: slow is 0.35, normal 0.6 and fast 1 |
+| Speed | Normal | How hard the rule pushes for every sixtieth of a second: slow pushes 0.35 times as hard as fast and normal 0.6 times; under Flow a typical particle then crosses about 11%, 16% or 22% of the stage a second |
 | Color | One color | One blue, a color from each particle's speed, or colors that slowly shift |
 | Trails | off | Fades the last picture instead of clearing it, so each particle leaves a streak |
 

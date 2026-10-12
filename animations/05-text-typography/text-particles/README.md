@@ -43,7 +43,7 @@ The keyboard pushes the dots too: Tab focuses a see-through layer over the stage
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Dot size | Medium | How far apart the dots sit: small is 3 px, medium 4.2 and large 6, scaled with the word between 0.75 and 1.25 times; each dot is narrower than that step, so neighbors never touch. The dots are counted at the small size: past 2,000 on a phone or 6,000 on a larger screen, every size is spread out by the same factor, so the three stay apart |
+| Dot size | Medium | How far apart the dots sit: small is 3 px, medium 4.2 and large 6 for a 180 px font, scaled with the word between 0.75 and 1.25 times; each dot is about three quarters of that step wide, so neighbors never touch. The dots are counted at the small size: past 2,000 on a phone or 6,000 on a larger screen, every size is spread out by the same factor, so the three stay apart |
 | How far they scatter | Medium | The pointer's reach: short is 0.28 of the font size, medium 0.42 and far 0.65, counting the font as at least 120 px; a still pointer opens a gap whose radius is about 0.7 of the reach |
 | Colors | Sunset | The colors across the word, in 32 steps: Sunset runs from pink to gold, Cool from teal to purple, Rainbow through seven colors and White from white to pale gray; the glow behind the word matches |
 | How fast they come back | Normal | The spring and the share of its speed a dot keeps each step: slow is 0.022 and 0.87, normal 0.045 and 0.82, fast 0.09 and 0.76. A dot pushed 100 px away is home in about 1.4, 1 or 0.8 seconds, after swinging about a sixth of the way past it |

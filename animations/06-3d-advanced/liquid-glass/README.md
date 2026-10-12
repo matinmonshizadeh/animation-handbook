@@ -64,10 +64,10 @@ Show me glides along three legs (to the left end, across to the right end and ba
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| How much it bends | Medium | The deepest shift, at the very edge, as a share of the rim's width: subtle 25%, medium 42% and strong 60%. Past half the rim folds into a thin mirrored band, as the edge of thick glass does |
+| How much it bends | Medium | The rim's deepest shift, at the very edge, as a share of the rim's width (35% of the panel's height): subtle 25%, medium 42% and strong 60%, and a slight pull toward the middle, which magnifies the whole panel a little, adds 15% to it. Past half the rim folds into a thin mirrored band, as the edge of thick glass does. Other browsers show a faint white glow inside the rim instead, blurred over 12, 23 or 36px |
 | Frost | Clear | How much the backdrop is blurred: clear none, light 1.5 and frosted 4 pixels where the glass bends; 3, 8 and 16 pixels for the frosted glass of other browsers |
 | Tint | White | The color the glass adds, mixed in at 9% for white and 20% for the other colors |
-| Shape | Card | Card: 1.6 times as wide as tall, corners a third of its height; pill: 2.7 times as wide as tall with round ends; circle: a round lens. The card is 30% of the stage's width, from 150 to 280 pixels |
+| Shape | Card | Card: 1.6 times as wide as tall, corners a third of its height; pill: 2.7 times as wide as tall with round ends; circle: a round lens. The card is 30% of the stage's width, from 150 to 280 pixels (the pill 1.12 times as wide and the circle 0.68 times), and no shape is taller than 55% of the stage |
 | Shows the bend map | off | Lays the displacement map over the glass: red is the sideways shift, green the shift up or down, gray none |
 
 ## Production notes

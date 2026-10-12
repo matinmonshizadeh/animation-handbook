@@ -58,7 +58,7 @@ el.style.backgroundImage = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Gradient | Flowing | Flowing slides the colors sideways, Spinning turns them like a color wheel, Diagonal slides slanted bands, Two colors flows between two colors of your choice |
-| Speed | Normal | How long one full pass takes: slow is 6.4s, normal 4s and fast 2.4s; slower feels calm, faster feels lively |
+| Speed | Normal | How long one loop takes: slow is 6.4s, normal 4s and fast 2.4s; in each loop the gradient, three times as wide as the text, slides left by twice its own width, and a spinning one turns once; slower feels calm, faster feels lively |
 | First color | Blue | With Two colors, the color the gradient starts and ends with |
 | Second color | Purple | With Two colors, the color in the middle |
 | Your text | Flow | The text the colors flow through |

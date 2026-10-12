@@ -92,9 +92,9 @@ One stronger cover, `1 - 0.15 ** n`, would fade the same amount in theory, but a
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Direction | Outward | Outward streams the stars from the center; sideways drifts them past, the nearer ones faster |
-| Speed | Normal | How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65, about the pixels a star covers in a 60th of a second out at the edge (16, 25 and 41 pixels a second), and about a third of that near the center; keep it slow for a calm background |
+| Speed | Normal | How fast the stars move: outward, a star near the edge covers 16, 25 and 41 pixels a second at slow, normal and fast, and a little under a third of that near the center; sideways, the nearest stars cover 30, 48 and 78 pixels a second and the farthest a fifth of that; keep it slow for a calm background |
 | Number of stars | Medium | Few is 150, medium 300 and many 600; phones show at most 300 |
-| Star color | White | White, a warm white, or a different pale color for each star |
+| Star color | White | White, a warm white, or a different pale tint for each star, from pink to yellow |
 | Twinkling | on | Each star gently brightens and dims on its own rhythm |
 | Nebula haze | off | A faint purple and blue haze behind the stars adds depth |
 

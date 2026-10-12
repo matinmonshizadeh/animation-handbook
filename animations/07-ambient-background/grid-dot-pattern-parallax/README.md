@@ -72,7 +72,7 @@ function autoLoop(now) {
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pattern | Dots | A grid of dots, of lines, or both |
-| Strength | Medium | How far the grid shifts: subtle is 3% of the pointer's movement, medium 5% and strong 10%; under 10% it is felt more than seen |
+| Strength | Medium | How far the grid shifts: subtle is 3% of the pointer's movement, medium 5% and strong 10%, and its drift with no pointer scales the same way (up to 2% of the stage's width and 1.5% of its height at medium); under 10% it is felt more than seen |
 | Spacing | Medium | The distance between dots or lines: tight is 20px, medium 28px and wide 44px |
 | Pattern color | Blue | The color of the dots and lines, shown at 25% so they stay faint |
 | Second layer | off | A sparser layer of larger dots shifts half as far, adding real depth between the two |

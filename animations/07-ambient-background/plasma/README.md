@@ -47,8 +47,8 @@ math.
 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | Normal | How fast the field flows: slow is 0.6 times the base speed, normal 1 and fast 1.6 |
-| Pattern size | Medium | How big the color shapes are: small packs more waves into the field, large makes broad, soft blobs |
+| Speed | Normal | How fast the field flows: slow is 0.6 times the base speed, normal 1 and fast 1.6; at normal each of the four waves rises and falls at any one spot every 5 to 9 seconds |
+| Pattern size | Medium | How big the color shapes are: small packs more waves into the field, large makes broad, soft blobs; at medium detail one full wave spans about 31% of the width at small, 50% at medium and 83% at large |
 | Colors | Neon | The palette: neon, sunset, ocean or rose |
 | Detail | Medium | How wide the small picture is before it is scaled up: low is 96 pixels, medium 140 and high 200; phones use at most 140 |
 

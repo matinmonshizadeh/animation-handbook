@@ -54,7 +54,7 @@ At Rarely and Sometimes the sky between bursts ends up clean. At Often, where bu
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| How often | Sometimes | The time between launches, on average: rarely about 2.2 seconds, sometimes 1.2 and often half a second |
+| How often | Sometimes | The time between launches, on average: rarely about 2.2 seconds, sometimes 1.2 and often half a second, each gap a random half to one and a half times that |
 | Colors | Many colors | Each burst picks one color: from eight hues, from three golds, or from blues and violets |
 | Trails | Long | How much of the picture each 60th of a second's cover takes away: none 100%, short 30% and long 13% |
 | Burst shape | Round | A ball of sparks, a ring of sparks that all fly at nearly the same speed, or a willow whose sparks droop like branches |

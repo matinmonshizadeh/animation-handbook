@@ -40,7 +40,7 @@ Only `transform` animates, so the effect stays on the compositor and runs at 60f
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Wave height | Medium | How far each letter travels: low is 8px, medium 16px and high 28px; larger makes a taller wave |
+| Wave height | Medium | How high each letter rises above its resting place: low is 8px, medium 16px and high 28px, and it sinks 0.6 times as far below it; larger makes a taller wave |
 | Speed | Normal | How long one rise and fall takes: slow is 2.6s, normal 1.6s and fast 1s |
 | Delay between letters | Medium | The gap between neighboring letters: short is 30ms, medium 60ms and long 120ms; longer delays stretch the wave |
 | Your text | Wavy | The word that waves, up to 14 letters |

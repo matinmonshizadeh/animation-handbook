@@ -60,7 +60,7 @@ function scramble(el, targetText) {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Random characters | Symbols | What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked |
+| Random characters | Symbols | What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked; mixed draws from letters, numbers and symbols together |
 | Delay between letters | Medium | The wait between one letter locking and the next: short is 40ms, medium 70ms and long 120ms; it sets how fast the decoding travels |
 | Flicker speed | Normal | How often the random characters change: slow every 65ms, normal every 40ms and fast every 25ms; faster looks more chaotic |
 | Your text | DECODE THE MESSAGE | The text that is decoded, shown in capitals |

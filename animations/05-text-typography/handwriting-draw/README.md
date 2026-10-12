@@ -43,7 +43,7 @@ function frame(ts) {
 | Word | hello | Which word is written: hello is one stroke, thanks is two (the word, then the cross on the t) and hi there is four (hi, the dot, there, the cross) |
 | Pen speed | Normal | How far the pen travels in a second: slow is 200 units, normal 400 and fast 800, where a small letter is 28 units tall; a word takes about 1 to 5 seconds |
 | Ink color | Blue | The color of the ink, and of the pen |
-| Pen size | Medium | How wide the line is: fine is 1.1 units, medium 1.8 and bold 2.8 |
+| Pen size | Medium | How wide the line is: fine is 1.1 units, medium 1.8 and bold 2.8, where a small letter is 28 units tall |
 | Shows the pen | on | A small pen rides on the tip of the line and lifts between strokes |
 
 ## Production notes

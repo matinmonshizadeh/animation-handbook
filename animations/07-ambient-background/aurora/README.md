@@ -55,7 +55,7 @@ On phones the demo halves the blur, `@media (max-width: 600px) { .band { filter:
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Number of bands | 2 | How many bands of light: two look clear, five make a richer, layered sky |
-| Speed | Normal | How long each band takes to sway through its cycle: slow is 48s, normal 30s and fast 18s |
+| Speed | Normal | How long the bands take to sway through their cycle: slow is 48s, normal 30s and fast 18s for the green band; blue takes 1.15 times as long, purple 0.85, pink 1.25 and red 1.1, so the bands drift in and out of step |
 | Colors | Green | Which colors come first: green and blue (the most common aurora), purple and pink, or red and pink (rare); more bands add the other colors |
 | Brightness | Medium | How strongly the bands glow: dim is 50%, medium 75% and bright 100% |
 | Stars in the sky | off | Adds 120 twinkling stars behind the bands |

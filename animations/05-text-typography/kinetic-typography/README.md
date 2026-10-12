@@ -56,7 +56,7 @@ The Speed setting is a CSS custom property used in every `calc()`; the timers di
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | Normal | The pace of the whole sequence: slow plays it at 0.6× speed, normal at 1× and fast at 1.7×; entrances, holds and exits all scale together |
+| Speed | Normal | The pace of the whole sequence: slow plays it at 0.6× speed, normal at 1× and fast at 1.7×; entrances, holds and exits all scale together, and at normal entrances take 400 to 700ms, holds 0.9 to 2.2 seconds and exits 300 to 500ms |
 
 ## Production notes
 - **Copy-first choreography**: the motion should be chosen for the words, not the other way around. Soft/gentle words dissolve; heavy words slam in; fragile words flutter. Generic enters and exits applied uniformly undermine the whole technique.

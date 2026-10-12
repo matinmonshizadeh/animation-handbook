@@ -62,9 +62,9 @@ The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Shape | Field of dots | A field of dots that sway, or one blob whose outline ripples |
-| Pattern size | Medium | How big the noise's patterns are: large moves big areas together, small looks busy and fine |
-| Speed | Normal | How fast the noise moves along: slow is 0.3, normal 0.5 and fast 0.8. Every sixtieth of a second the noise moves on by 0.01 times this, so the speed is the same on every screen |
-| Wobble | Medium | How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px |
+| Pattern size | Medium | How big the noise's patterns are: one swirl of the noise is about 250px across at large, 125px at medium and 60px at small, and the blob's edge has about two, three or five ripples; large moves big areas together, small looks busy and fine |
+| Speed | Normal | How fast the noise moves along: the pattern drifts one swirl's width in about 5.6 seconds at slow, 3.3 at normal and 2.1 at fast, which with medium patterns is about 22px, 38px and 60px a second |
+| Wobble | Medium | How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px from each dot's place, and the blob's edge moves in and out by up to twice that |
 | Space between dots | Medium | The distance between dots in the field: wide is 64px, medium 48px and tight 32px; smaller stages draw fewer dots |
 | Color | Blue | The color of the dots or the blob |
 

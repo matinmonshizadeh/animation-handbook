@@ -57,7 +57,7 @@ vec2 ballPosition(int i, float t) {
 |-----------|---------|--------|
 | Melting | Medium | How far apart two blobs start to melt together: a little is 0.03, medium 0.08 and a lot 0.15 of the stage height; a lot gives thick, soft necks |
 | Number of blobs | Medium | Few is 3, medium 5 and many 8 blobs; each one adds work for every pixel |
-| Speed | Normal | How fast the blobs move on their paths: slow is 0.5, normal 0.8 and fast 1.3 |
+| Speed | Normal | How fast the blobs move on their paths: at slow each blob swings from side to side and back every 3 to 10 seconds, at normal every 2 to 6 seconds and at fast every 1.2 to 3.7 seconds, each at its own pace |
 | Blob size | Medium | Each blob's radius: small is 9%, medium 14% and large 20% of the stage height |
 | Color | Blue | The color of the liquid |
 | Glow | on | Adds a soft halo that fades out around the liquid |

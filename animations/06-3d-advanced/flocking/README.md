@@ -68,12 +68,12 @@ function advance(k) { const n = Math.max(1, Math.ceil(k - 0.05)); for (let i = 0
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Flock size | Medium | How many birds fly: small is 70, medium 150 and large 280; phones fly 35, 70 and 130 |
-| How close they fly | Normal | The room each bird keeps around it and how hard it follows its neighbors: loose keeps 32px and follows gently, normal keeps 22px, tight keeps 15px and follows hard |
+| How close they fly | Normal | The room each bird keeps around it and how hard it follows its neighbors: loose keeps 32px and follows gently, normal keeps 22px, tight keeps 15px and follows hard. The pulls toward their heading and their middle weigh 0.7 and 0.3 at loose, 1 and 0.5 at normal and 1.2 and 0.9 at tight, against 2 for keeping apart; the room shrinks in proportion on a stage under 380px tall or wide, to 65% at the least |
 | Flees the pointer | on | Birds within 90px of the pointer or a finger steer straight away from it |
-| Speed | Normal | The top speed, in pixels per 60th of a second: slow is 1.3, normal 2 and fast 3; no bird flies slower than 55% of it |
+| Speed | Normal | The top speed, in pixels per 60th of a second: slow is 1.3, normal 2 and fast 3 (78, 120 and 180px a second); no bird flies slower than 55% of it. It shrinks in proportion on a stage under 380px tall or wide, to 65% at the least |
 | Shows one bird's view | off | Rings one bird with the 50px radius it looks within and the dashed room it keeps, and links it to every neighbor it follows |
 
-All distances and speeds shrink by up to a third on small stages, such as on phones.
+All distances and speeds shrink by up to 35% on small stages, such as on phones.
 
 ## Production notes
 - **Every bird checks every other bird**, so the work grows with the square of the flock: 280 birds is about 78,000 checks a move, still under 2 ms. For thousands of birds, put them in a grid of cells the size of the view radius and check only the nine cells around each bird, or move the flock on the graphics chip (three.js has a well-known GPU birds example).

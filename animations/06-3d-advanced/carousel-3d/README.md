@@ -46,7 +46,7 @@ Because the throw is the pointer's speed times the easing's time constant, the e
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Number of cards | 8 | How many cards stand in the ring: 6, 8 or 12. More cards make a wider ring, so each card is drawn smaller to fit the box |
+| Number of cards | 8 | How many cards stand in the ring: 6, 8 or 12, with a gap of 12% of a card between neighbors. More cards make a wider ring; where it would not fit, as with 12 cards on a phone, the cards are drawn smaller to keep it within 94% of the box's width |
 | Seen from above | on | Tilts the ring back 14 degrees, so the cards behind show above the front ones; off shows the ring straight on |
 | Spins by itself | off | The ring turns 12 degrees a second, waits while you drag and starts again a moment after it settles; under reduced motion it steps one card every three seconds instead |
 

@@ -37,7 +37,7 @@ The glow is a canvas `shadowBlur` set to the grid color; the sun is a clipped se
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Speed | Normal | How fast the floor rolls toward the viewer: slow is 0.6, normal 1 and fast 1.6 |
+| Speed | Normal | How fast the floor rolls toward the viewer: slow is 0.6 times normal and fast 1.6 times; at normal a new line leaves the horizon 1.2 times a second, and with medium lines each takes about 13 seconds to reach the bottom edge |
 | Number of lines | Medium | How many lines the floor has: few is 10 across and 15 toward the horizon, medium 16 and 23, many 24 and 35; more lines make a finer grid |
 | Grid color | Pink | The color of the glowing lines: pink, cyan, purple or orange |
 

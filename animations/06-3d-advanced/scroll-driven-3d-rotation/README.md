@@ -67,8 +67,8 @@ The demo asks for another frame only while the cube is still catching up, and st
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Turn amount | Normal | How far every pose turns the cube: less is 0.6, normal 1 and more 1.6 times the planned angles; at normal the last pose shows the cube's back |
-| Smooth follow | on | The cube closes a tenth of the gap to its pose for every sixtieth of a second, so it glides after the scroll and catches up in the same time on every screen; off, it follows the scroll exactly |
+| Turn amount | Normal | How far every pose turns the cube: less is 0.6, normal 1 and more 1.6 times the planned angles (a 90° turn to the side, a 30° forward tilt, and 180° the other way at the end); at normal the last pose shows the cube's back |
+| Smooth follow | on | The cube closes a tenth of the gap to its pose for every sixtieth of a second (95% of it in about half a second), so it glides after the scroll and catches up in the same time on every screen; off, it follows the scroll exactly |
 
 ## Production notes
 - **CSS Scroll-Driven Animations API** (Chrome 115+): `animation-timeline: scroll()` and `animation-range` can drive CSS transforms directly without JavaScript. The spec covers this natively, but browser support is still catching up for complex choreography.

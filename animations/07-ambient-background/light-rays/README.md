@@ -41,7 +41,7 @@ Each speck of dust drifts up and sideways with a gentle wobble. Its brightness i
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Light color | Warm | Warm late sunshine over a brown-black room, or cool moonlight over a blue-black one |
-| Speed | Normal | How fast the beams sway and the dust drifts: slow is half the normal pace and fast twice it; at normal a beam sways back and forth every 12 to 22 seconds |
+| Speed | Normal | How fast the beams sway and the dust drifts: slow is half the normal pace and fast twice it; at normal a beam sways back and forth every 12 to 22 seconds and a speck of dust rises 2 to 7px a second |
 | Floating dust | on | Specks of dust drift slowly upward and glint where a beam crosses them; phones show 40, other screens 80 |
 | Number of rays | Some | Few is 5 beams, some 8 and many 12; more beams overlap into a fuller, brighter light |
 | Light comes from | Top left | Where the beams start: just above the top left corner, the middle of the top edge or the top right corner |

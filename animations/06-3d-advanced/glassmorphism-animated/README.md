@@ -82,7 +82,7 @@ Three CSS properties create the glass effect:
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Frost | Medium | How strongly the glass blurs what is behind it: light is 6px, medium 12px and heavy 20px; off shows the cards with no blur, to compare |
-| Tint strength | Medium | How much color the glass adds: faint is 6%, medium 12% and strong 25% |
+| Tint strength | Medium | How much color the glass adds: faint fills it with the tint color at 6% strength, medium at 12% and strong at 25% |
 | Speed | Normal | How long the colors behind take to drift through one path: slow is 13s, normal 8s and fast 5s |
 | Tint color | Blue | The color of the glass |
 | Breathing frost | on | The middle card's blur grows from 8px to 20px and back every 4 seconds |

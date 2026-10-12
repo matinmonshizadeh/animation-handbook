@@ -59,7 +59,7 @@ All resolve to `inset(0 0% 0 0)` when revealed — a single `.revealed` class ha
 | Starts from | Left | The side each line's wipe begins on: left follows the reading order, right suits right-to-left scripts, top works for display headings |
 | Speed | Normal | How long each line takes to uncover: slow is 1100ms, normal 700ms and fast 400ms |
 | Delay between lines | Medium | The wait before each next line starts: short is 100ms, medium 180ms and long 300ms; 100 to 200ms reads as a natural cascade |
-| Feel | Smooth | Smooth slows to a stop, which feels physical; Gentle eases in and out; Even feels mechanical |
+| Feel | Smooth | Smooth slows to a stop, which feels physical; Gentle eases in and out; Even keeps one steady pace, which feels mechanical |
 | Your lines | Good design / Is honest / Always. | The headline, one line per row |
 
 ## Production notes

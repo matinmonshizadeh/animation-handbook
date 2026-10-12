@@ -63,7 +63,7 @@ if (fillTog.checked) paths.forEach(path => { path.style.transition = ''; path.cl
 |-----------|---------|--------|
 | Drawing | Icon | What is drawn: a house with a star, a flowing signature, or a circle logo |
 | Speed | Normal | How long each line takes to draw: slow is 2400ms, normal 1500ms and fast 900ms; each next line starts after 30% of that |
-| Line thickness | Medium | Thin is 1px, medium 2px and thick 4px; thin looks precise, thick looks bold |
+| Line thickness | Medium | Thin is 1px, medium 2px and thick 4px with the drawing at its full 400px width, thinner when it shrinks to fit a smaller box; thin looks precise, thick looks bold |
 | Feel | Smooth | Smooth slows at the end, like a hand finishing a stroke; Gentle eases in and out; Even keeps one pace |
 | Line color | Blue | The color of the lines, and of the fill |
 | Starts from the other end | off | Draws each line from its end back to its start |

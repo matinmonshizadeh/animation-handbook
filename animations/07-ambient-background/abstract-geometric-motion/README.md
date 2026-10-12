@@ -72,7 +72,7 @@ ctx.setLineDash([]);
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pattern | Polygons | Turning polygons, rings spreading from the center, sliding bars, or wavy lines with flowing color |
-| Speed | Normal | How fast everything moves: slow is 0.35, normal 0.6 and fast 1; keep it below 1 behind content |
+| Speed | Normal | How fast everything moves: the innermost polygon turns once in about 150 seconds at slow, 87 at normal and 52 at fast (the outer ones faster), the rings spread 42, 72 or 120px a second and the bars slide 3, 9 or 24px a second; avoid fast behind content |
 | Number of shapes | Medium | How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many); on Rings it sets how many colors the rings use |
 | Colors | Cool | Cool blues, warm ambers, bright neon or grays |
 | Thicker lines | off | Draws the lines 1.5px wide instead of 0.8px, so the shapes stand out more |

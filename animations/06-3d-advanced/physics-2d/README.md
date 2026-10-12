@@ -67,7 +67,7 @@ function settle() { awake = true; calm = 0; for (let i = 0; i < 900 && awake; i+
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Gravity | Earth | How hard the balls are pulled down. Earth adds the box's height divided by 1,000 to a ball's downward speed every 60th of a second, so a ball falls the whole box in about three quarters of a second; the Moon is a fifth of that and Heavy twice as much |
+| Gravity | Earth | How hard the balls are pulled down. Earth adds the box's height divided by 1,000 to a ball's downward speed every 60th of a second, so a ball falls the whole box in about three quarters of a second; the Moon pulls a fifth as hard, a fall of about 1.6 seconds, and Heavy twice as hard, about half a second |
 | Bounciness | Medium | The share of its closing speed a ball keeps after a hit: low is 0.2, medium 0.5 and high 0.8; a hit slower than 1 pixel per 60th of a second does not bounce |
 | Ball sizes | All the same | One radius for every ball (5.5% of the box's shorter side, between 12 and 22 pixels), or a mix from 0.6 to 1.4 times it, heavier by area |
 | Shows the speed | off | An arrow on each moving ball, 6 pixels long for every pixel it moves in a 60th of a second, at most three radii |

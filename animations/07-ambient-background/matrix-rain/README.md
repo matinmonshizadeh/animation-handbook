@@ -35,9 +35,9 @@ Because the canvas is never fully cleared, the length of the tail is entirely co
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Speed | Normal | How often the rain moves down a row: slow is about 18 times a second, normal 28 and fast about 46 |
-| Characters | Japanese | Japanese katakana (the film's look), binary 0 and 1, or hexadecimal 0 to F |
+| Characters | Japanese | Japanese katakana with the digits 0 to 9 (the film's look), binary 0 and 1, or hexadecimal 0 to F |
 | Trail length | Medium | How long characters linger: short fades 12% a step, medium 7% and long 4% |
-| Character size | Medium | Small is 12px, medium 16px and large 22px; larger characters make fewer columns |
+| Character size | Medium | Small is 12px, medium 16px and large 22px; the columns are spaced one character size apart, at least 14px on phones, so larger characters make fewer columns |
 | Glowing leaders | on | A soft glow around each column's leading character |
 
 ## Production notes

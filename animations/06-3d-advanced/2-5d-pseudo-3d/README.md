@@ -59,7 +59,7 @@ The scene also takes keyboard focus, and the keys stand in for the pointer: keyb
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Camera movement | Medium | How far the nearest layer travels as the pointer crosses the scene from one side to the other: small is 20px, medium 40px and large 70px (half that each way from the middle); the farthest layer moves 5% of that |
+| Camera movement | Medium | How far the nearest layer travels as the pointer crosses the scene from one side to the other: small is 20px, medium 40px and large 70px (half that each way from the middle), and 40% as far from top to bottom; the farthest layer moves 5% of that |
 | Layer labels | off | Labels each layer with the share of the camera movement it follows, from 5% for the sky to 100% for the ground |
 
 ## Production notes

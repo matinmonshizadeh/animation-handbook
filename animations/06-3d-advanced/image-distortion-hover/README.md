@@ -60,8 +60,8 @@ The picture also takes keyboard focus, and the keys stand in for the pointer: ke
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Effect | Ripple | Ripple sends rings out from the pointer; Push bulges the picture outward; Liquid swirls it; Pixels breaks it into squares |
-| Strength | Medium | How far the picture bends: gentle is 4, medium 8 and strong 14; stronger looks more dramatic but harder to read |
-| Size | Medium | How wide an area bends: small is 15%, medium 25% and large 40% of the picture's height |
+| Strength | Medium | How far the picture bends: Ripple shifts it by up to 2% of its width and height at gentle, 4% at medium and 7% at strong; Push shifts it 1.6 times as far and Liquid 0.6 times, and Pixels makes blocks up to 1%, 1.7% or 2.9% of the picture's width and height. Stronger looks more dramatic but harder to read |
+| Size | Medium | How wide an area bends: a circle around the pointer whose radius is 15% of the picture's height at small, 25% at medium and 40% at large; the bending fades from full at the pointer to none at its edge |
 | Fade-out speed | Normal | How fast the bending fades after the pointer leaves: each second it loses about three fifths of its strength at slow, about four fifths at normal and nine tenths at fast |
 | Moving ripples | on | With Ripple, the rings keep moving outward while the pointer rests; off, they stand still |
 

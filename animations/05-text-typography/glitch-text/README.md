@@ -33,9 +33,9 @@ A small JS loop re-triggers the animation and nudges the element's `translateX` 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Color split | Medium | How far the red and cyan copies sit from the word: small is 2px, medium 4px and large 8px |
+| Color split | Medium | How far the red and cyan copies sit from the word: small is 2px, medium 4px and large 8px, and each copy casts a shadow in its own color as far again beyond it |
 | Speed | Normal | How long the strips take to run through their pattern: slow is 3.8s, normal 2.4s and fast 1.4s; shorter looks more frantic |
-| Glitch strength | Medium | How hard the word shakes and how often the strips reshuffle: mild, medium or strong |
+| Glitch strength | Medium | How hard the word shakes and how often the strips reshuffle: about every quarter second the word jumps up to 1.8px to either side at mild, 3.6px at medium and 5.4px at strong, and the strips jump to a random point in their pattern about 1.5, 2.5 or 3 times a second |
 | Glitches only on hover | off | Holds the word still until you point at it; on touch screens a tap starts and stops it |
 | Your text | GLITCH | The word that glitches, up to 12 letters, shown in capitals |
 

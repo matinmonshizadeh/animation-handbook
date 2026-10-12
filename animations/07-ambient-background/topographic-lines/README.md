@@ -36,8 +36,8 @@ The field has its own clock, which grows by the time since the last frame times 
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Line spacing | Medium | How much the height changes between two lines: tight puts about 1.7 times as many lines on the same ground, wide about 0.6 times |
-| Speed | Normal | How fast the hills swell and drift: slow is half the normal pace and fast twice it; at normal the broad hills slide about 7px a second |
+| Line spacing | Medium | How much the height changes between two lines: tight puts about 1.7 times as many lines on the same ground, wide about 0.6 times; with medium hills the lines are on average about 8px apart at tight, 14px at medium and 22px at wide |
+| Speed | Normal | How fast the hills swell and drift: slow is half the normal pace and fast twice it; at normal the broad hills slide about 7px a second with medium hills, 4px with small and 12px with large |
 | Color | Sand | Sand, mint, sky blue or white lines on a dark ground |
 | Hill size | Medium | How wide one hill is: about 130px (small), 220px (medium) or 360px (large) |
 | Bold every fifth line | on | Every fifth line is drawn thicker and brighter, like the index contours of a printed map |

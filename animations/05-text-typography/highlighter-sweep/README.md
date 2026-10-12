@@ -49,7 +49,7 @@ Replay first drops every band back to nothing with transitions switched off for 
 |-----------|---------|--------|
 | Marker color | Yellow | The color of the bands: yellow, pink, green, blue or orange, all light enough for the dark words to stay easy to read |
 | Speed | Normal | How long the marker takes to cross one phrase: slow is 1300ms, normal 700ms and fast 400ms, with a 250ms pause between phrases |
-| How much it covers | Whole words | Whole words covers the letters from just under their tops; Lower half covers only the bottom of the letters, like a thick underline |
+| How much it covers | Whole words | Whole words covers the letters from just under their tops, with the band starting 12% of the font size below the top of the text; Lower half starts it 62% down, so it covers only the bottom of the letters, like a thick underline |
 
 ## Production notes
 - **The background-size version**: a single `<mark>` with `background: linear-gradient(var(--marker), var(--marker)) no-repeat; background-size: 0% 100%`, `box-decoration-break: clone` and a transition on `background-size` handles line wraps with no splitting at all. It is the shortest code, but `background-size` is repainted on every frame; the transform version here stays on the compositor.

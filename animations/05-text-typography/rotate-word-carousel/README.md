@@ -75,8 +75,8 @@ setInterval(() => {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Slide direction | Up | Up and down move the word like a slot machine; left and right slide it sideways |
-| Speed | Normal | How long each slide takes: slow is 650ms, normal 400ms and fast 250ms |
+| Slide direction | Up | Up and down move the word like a slot machine; left and right slide it sideways; each slide moves the word 110% of its own height or width while it fades out or in |
+| Speed | Normal | How long each slide takes, once for the word going out and again for the next one coming in: slow is 650ms, normal 400ms and fast 250ms |
 | Time on each word | Medium | How long each word stays: short is 1200ms, medium 2000ms and long 3200ms; 1.5 to 3 seconds is the readable range |
 | Different color per word | on | A new color for each word draws attention to the change; one color is calmer |
 | Your sentence | We craft for | The part of the headline that stays still |

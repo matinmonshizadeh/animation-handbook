@@ -73,11 +73,11 @@ travel without JavaScript measuring the stage.
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Line spacing | Medium | The distance between lines: tight is 2px, medium 4px and wide 8px; 4px looks like a standard old screen |
-| Line darkness | Medium | How dark the lines are: light is 8%, medium 15% and dark 30%; darker looks more retro but lowers contrast |
+| Line spacing | Medium | The distance between lines: tight is 2px, medium 4px and wide 8px, each line 1px thick; 4px looks like a standard old screen |
+| Line darkness | Medium | How dark the lines are: light is 8% black, medium 15% and dark 30%; darker looks more retro but lowers contrast |
 | Moving beam | on | A soft band of light sweeps down the screen, again and again |
 | Beam speed | Normal | How long the beam takes to cross the screen: slow is 6.4s, normal 4s and fast 2.4s |
-| Beam brightness | Medium | How bright the beam is: faint is 6%, medium 12% and bright 24%; it should be felt more than seen |
+| Beam brightness | Medium | How bright the beam is: faint is 6% white, medium 12% and bright 24% along the middle of the 120px band, fading to nothing at its top and bottom; it should be felt more than seen |
 | Dark corners | off | A soft vignette darkens the corners, like the curved glass of an old screen |
 | Glowing text | off | A soft glow around the letters, like light spreading on an old screen |
 

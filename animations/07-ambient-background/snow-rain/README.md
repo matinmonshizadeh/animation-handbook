@@ -51,9 +51,9 @@ The number of particles follows the area they share, so a phone draws about a qu
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Weather | Snow | Snow drifts down slowly and sways; rain falls more than ten times as fast, drawn as streaks |
+| Weather | Snow | Snow drifts down slowly, about 30 to 80px a second from far to near, and sways 4 to 13px to each side; rain falls more than ten times as fast, about 540 to 1,080px a second, drawn as streaks 11 to 22px long |
 | Amount | Medium | How many particles per 100,000 square pixels: light, medium and heavy are 28, 62 and 125 flakes, or 35, 80 and 170 drops; phones draw 80% of that |
-| Wind | Gentle | None, gentle or strong: the wind carries snow sideways and tilts the rain, near particles more than far ones |
+| Wind | Gentle | None, gentle or strong: the wind carries snow sideways and tilts the rain, near particles more than far ones; gentle slants the snow's path about 30° from straight down and the rain about 8°, strong about 55° and 20° |
 | Depth | on | Three layers in which near flakes and drops are bigger, brighter and faster than far ones; off, every particle is the size and speed of the middle layer |
 
 ## Production notes

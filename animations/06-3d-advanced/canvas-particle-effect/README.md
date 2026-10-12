@@ -85,10 +85,10 @@ Stroking each link on its own costs one draw call per line, thousands a frame; g
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Pointer effect | Push | What the pointer or a finger does to dots within 120px: pushes them away, pulls them in, or nothing |
+| Pointer effect | Push | What the pointer or a finger does to dots within 120px: pushes them away, pulls them in, or nothing, more strongly the closer they are (a dot 40px away speeds up by about 36px a second every second), up to twice the fastest drift speed; a dot keeps the speed it gains |
 | Number of particles | Medium | Few is 250, medium 500 and many 800 dots on computers; tablets draw 60, 90 and 120, and phones 30, 45 and 60, which keeps them smooth |
 | Link distance | Medium | How close two dots must be to join with a line: short is 70px, medium 100px and long 150px; none draws no lines |
-| Speed | Normal | How fast the dots drift: slow is 0.5, normal 0.8 and fast 1.3 (the fastest dots' pixels for every sixtieth of a second, on any screen); slow feels calm, fast looks busy |
+| Speed | Normal | How fast the dots drift: slow is 30px, normal 48px and fast 78px a second for the fastest dots, and the slowest go a fifth of that, on any screen; slow feels calm, fast looks busy |
 | Color | Blue | The color of the dots and lines |
 | Trails | off | Each dot leaves a fading streak, because the canvas is only partly cleared between frames |
 

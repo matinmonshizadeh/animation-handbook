@@ -43,9 +43,9 @@ The sign is two copies of the same letters stacked in one grid cell. The bottom 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Color | Pink | The color of the tubes, their glow and the wash on the wall |
-| How often it flickers | Normal | Calm: two short bursts in a 9 second cycle. Normal: four bursts in 7 seconds. Busy: seven bursts in 6 seconds, one of them a longer drop out |
+| How often it flickers | Normal | Calm: two short bursts in a 9 second cycle. Normal: four bursts in 7 seconds. Busy: six bursts in 6 seconds, one of them a longer drop out of about 0.4 seconds |
 | Broken letter | on | One letter a little past the middle of the word buzzes and drops out on its own cycle |
-| Glow size | Medium | How far the light spreads: small, medium or large sets of glow layers |
+| Glow size | Medium | How far the light spreads: small, medium or large sets of glow layers, whose widest blur is 0.12 times the font size at small, 0.42 at medium and 1.1 at large |
 | Frame around the word | on | Adds a rounded tube border that glows and flickers with the letters |
 | Your text | OPEN | The word on the sign, up to 10 letters, with spaces at its ends dropped; it shrinks to fit the stage, and an emptied field goes back to OPEN |
 

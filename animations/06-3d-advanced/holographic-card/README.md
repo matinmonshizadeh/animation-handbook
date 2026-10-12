@@ -83,7 +83,7 @@ The card also takes keyboard focus, and the keys stand in for the pointer. Keybo
 |-----------|---------|--------|
 | Foil pattern | Smooth | Smooth shows the rainbow as soft bands; Glitter lets it through scattered dots and Lines through fine diagonal lines, like the sparkle and etched foils of real cards |
 | How far it tilts | Medium | How far the card leans at its edges: gentle is 6°, medium 12° and strong 20°; much more and the text on the card gets hard to read mid-tilt |
-| Glare | Soft | The spot of light under the pointer: off, soft (a little over half strength) or bright; a copy at a quarter of that strength lights the text panels |
+| Glare | Soft | The spot of light under the pointer: off, soft (55% strength, a little over half) or bright (full strength); a copy at a quarter of that strength lights the text panels |
 | Shows the layers | off | Turns the card to one side and spreads its four layers apart, so the picture, the foil, the glare and the text panels show one above the other |
 
 ## Production notes

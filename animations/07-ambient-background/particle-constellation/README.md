@@ -51,7 +51,7 @@ node.vx += (node.cvx - node.vx) * 0.01 * k;                // ease back to the c
 |-----------|---------|--------|
 | Number of dots | Medium | Few is 50, medium 90 and many 140; phones show at most 60, because every pair of dots is checked each frame |
 | Link distance | Medium | How close two dots must be to be linked: short is 90px, medium 130px and long 180px; too long and everything links to everything |
-| Speed | Normal | How fast the dots drift: slow is 0.35, normal 0.6 and fast 1; faster looks agitated |
+| Speed | Normal | How fast the dots drift: slow is about 8px a second, normal 14px and fast 23px on average, each dot at its own random speed and direction; faster looks agitated |
 | Color | Cyan | The color of the dots and lines: cyan, violet, mint or gray |
 | Dots follow the pointer | on | Dots near the pointer, or a finger, drift toward it and gather there |
 

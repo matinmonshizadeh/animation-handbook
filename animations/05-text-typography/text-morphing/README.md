@@ -65,7 +65,7 @@ function afterExit() {
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Slide direction | Up | Up and down look like a slot machine; left and right slide sideways |
+| Slide direction | Up | Up and down look like a slot machine, each letter sliding its own height; left and right slide sideways, 80% of a letter's width; the letters fade out and in as they slide |
 | Delay between letters | None | The gap between one letter moving and the next: none, short (30ms) or long (60ms); none moves every letter together, a delay makes a wave |
 | Speed | Normal | How long each letter takes to slide: slow is 650ms, normal 400ms and fast 250ms |
 | Time on each word | Medium | How long each word stays: short is 900ms, medium 1500ms and long 2400ms; it must be long enough to read |

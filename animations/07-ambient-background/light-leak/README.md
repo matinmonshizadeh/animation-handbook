@@ -65,9 +65,9 @@ The demo opens on a leak at its peak rather than a dark stage: it lights the glo
 | Comes from | Top left | The corner the glow spills in from, or a band of light down the middle |
 | Time between leaks | Medium | The random dark gap between one leak and the next: short is 0.5–1.5s, medium 1–3s and long 3–8s |
 | Speed | Normal | How long each leak takes to fade in, and again to fade out: slow is 2s, normal 1.2s and fast 0.7s |
-| Brightness | Medium | How strong the glow gets: dim is 30%, medium 55% and bright 80%; each leak peaks a little below this, at random |
+| Brightness | Medium | How strong the glow gets: dim is 30%, medium 55% and bright 80%; each leak peaks at a random 75% to 100% of this |
 | Color | Amber | Amber is the classic leak; gold, rose and magenta are warm too, and cyan looks like a cooler film stock |
-| Floating light spots | off | Soft spots of light drift up and fade after each leak |
+| Floating light spots | off | Three soft spots of light drift up from the bottom and fade with each leak |
 
 ## Production notes
 - **Irregularity is the entire effect**: a light leak that fires every 8 seconds at 0.5 opacity reads as a CSS animation loop, not a film defect. Randomizing both the delay and intensity per occurrence is what creates the analog feel.

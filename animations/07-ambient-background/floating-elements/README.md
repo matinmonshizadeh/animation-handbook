@@ -94,7 +94,7 @@ The pointer's position is taken from `pointerdown` as well as `pointermove`, so 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Number of shapes | Medium | Few is 5, medium 8 and many 14; 5 to 12 feels calm, more gets busy |
-| Speed | Normal | How fast the shapes drift: slow is 0.3, normal 0.5 and fast 0.8 |
+| Speed | Normal | How fast the shapes drift: each one sways from side to side and back in 87 to 233 seconds at slow, 52 to 140 at normal and 33 to 87 at fast, and takes 1.4 times as long up and down |
 | How far they drift | Medium | How far each shape wanders from its place: short is up to 30px, medium 50px and long 90px |
 | Shapes | Mixed | Circles, squares, rings or a mix |
 | Colors | Cool | Cool blues and purples, warm oranges and reds, grays, or bright neon |

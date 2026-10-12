@@ -69,7 +69,7 @@ The characters are drawn with the site font. Its glyphs are not all the same wid
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Drawn with | Letters | Letters gives each cell one of ten characters, from a space to a hash sign, by its brightness; dots gives it one of twelve dot sizes, from none to one that fills the cell |
+| Drawn with | Letters | Letters gives each cell one of ten characters, from a space to a hash sign, by its brightness; dots gives it one of twelve dot sizes, from none to one that fills the cell, in even steps of area |
 | Cell size | Medium | The height of a cell: small is 8px, medium 11px and large 16px, and phones use 10, 14 and 20px; letter cells are 0.7 as wide as they are tall, dot cells are square |
 | Colors | One color | One color paints every mark mint green, or near-black on paper; full color gives each mark the color of its spot in the picture |
 | Shows the original picture | off | Draws the moving picture at 40% under the marks, so you can see what each mark stands for |

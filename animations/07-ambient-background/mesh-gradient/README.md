@@ -65,7 +65,7 @@ Heavy blur is the costly part on phones, so the demo halves it on small screens:
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Blur | Medium | How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Phones use half |
+| Blur | Medium | How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Screens up to 600px wide use half |
 | Speed | Normal | How long a blob takes to drift one way: slow is 64s, normal 40s and fast 24s, and each blob takes 0.8 to 1.2 times that |
 | Colors | Cool | The blob colors: cool, warm, sunset, synthwave or earth tones |
 | Number of blobs | 4 | Three, four or five blobs; more make a richer mix |
