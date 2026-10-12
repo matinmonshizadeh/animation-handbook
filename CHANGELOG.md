@@ -4,8 +4,10 @@ The main steps of Animation Handbook, newest first, with the number of animation
 
 ## Unreleased
 
-- A Star on GitHub button at the end of every animation page's top bar and under its Copy prompt, and a round star on the
-  home page for phones.
+- A Star on GitHub button under every animation page's Copy prompt and, on screens 820px and wider, at the end of its
+  top bar; a round star on the home page for phones.
+- An AI skill: `npx skills add matinmonshizadeh/animation-handbook` adds every page's prompt and settings to Claude
+  Code, Cursor, Codex and other assistants. Also a Claude Code plugin and `llms.txt`.
 
 ## 1.0.0 — 2026-10-10
 
