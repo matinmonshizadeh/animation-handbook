@@ -240,7 +240,7 @@ function readPage(root, folder, slug, DemoPage) {
     let text = describe(control, value, phoneItems[i].value);
     if (!text) throw new Error(`${where}: the setting "${label}" has no choices`);
     for (let n = control; n !== tryStep; n = n.parentElement) {
-      if (n.hasAttribute('hidden')) { text += ' (the page shows it only for some choices of another setting, and copies it only then)'; break; }
+      if (n.hasAttribute('hidden')) { text += ' (the page shows it only for some choices of another setting)'; break; }
     }
     const name = shownName(control);
     if (!name) throw new Error(`${where}: the setting "${label}" shows no name of its own (a .hb-setting-name in its .hb-setting, or the words beside a switch)`);

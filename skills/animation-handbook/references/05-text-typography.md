@@ -182,8 +182,8 @@ Add a flowing color gradient to [your headline or logo text]. Fill the letters w
 
 - Gradient: **Flowing** · Spinning · Diagonal · Two colors. Flowing slides the colors sideways, Spinning turns them like a color wheel, Diagonal slides slanted bands, Two colors flows between two colors of your choice.
 - Speed: Slow · **Normal** · Fast. How long one full pass takes: slow is 6.4s, normal 4s and fast 2.4s; slower feels calm, faster feels lively.
-- First color: Pink · White · **Blue** · Purple · Green · Orange (the page shows it only for some choices of another setting, and copies it only then). With Two colors, the color the gradient starts and ends with.
-- Second color: Pink · White · Blue · **Purple** · Green · Orange (the page shows it only for some choices of another setting, and copies it only then). With Two colors, the color in the middle.
+- First color: Pink · White · **Blue** · Purple · Green · Orange (the page shows it only for some choices of another setting). With Two colors, the color the gradient starts and ends with.
+- Second color: Pink · White · Blue · **Purple** · Green · Orange (the page shows it only for some choices of another setting). With Two colors, the color in the middle.
 - Your text: text field, starts as "Flow". The text the colors flow through.
 
 ## Outline to Fill

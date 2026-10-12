@@ -180,7 +180,7 @@ Add a letter-by-letter entrance to [a short phrase or headline]. In the cascade 
 - Delay between letters: Short · **Medium** · Long. The gap between letters: short is 20ms, medium 35ms and long 80ms; higher is slower and more theatrical.
 - How each letter appears: **Fade up** · Fade · Grow · Flip. In Cascade, the entrance each letter plays: fade up, fade, grow or flip.
 - Speed: Slow · **Normal** · Fast. In Cascade, how long each letter takes to settle: slow is 650ms, normal 400ms and fast 250ms.
-- Blinking cursor: **on** · off (the page shows it only for some choices of another setting, and copies it only then). In Typewriter, a blinking cursor leads the letters.
+- Blinking cursor: **on** · off (the page shows it only for some choices of another setting). In Typewriter, a blinking cursor leads the letters.
 - Your text: text field, starts as "Hello, world.". The phrase that is animated, up to 60 characters.
 
 ## Word-by-Word Reveal

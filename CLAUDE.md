@@ -232,8 +232,8 @@ inside an entry's "Production notes" section, never as their own entry.
    new card's Copy prompt is compared there.
 
 Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind, prompt, settings or
-Good for and Avoid on tags, or a card's name, places or order in `CATS`) also means running `node tools/make-skill.mjs`
-again: the skill test (`tests/skill.test.js`) fails until then.
+Good for and Avoid on tags, a README's Key parameters, or a card's name, places or order in `CATS`) also means running
+`node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails until then.
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than
