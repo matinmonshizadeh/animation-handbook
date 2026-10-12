@@ -39,7 +39,7 @@ Add a kinetic typography sequence to [the short phrases you want to show]. Show 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast. The pace of the whole sequence: slow plays it at 0.6× speed, normal at 1× and fast at 1.7×; entrances, holds and exits all scale together.
+- Speed: Slow · **Normal** · Fast. The pace of the whole sequence: slow plays it at 0.6× speed, normal at 1× and fast at 1.7×; entrances, holds and exits all scale together, and at normal entrances take 400 to 700ms, holds 0.9 to 2.2 seconds and exits 300 to 500ms.
 
 ## Typewriter Effect
 
@@ -78,7 +78,7 @@ Add a scramble effect to [your headline or short phrase]. Each letter should sta
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Random characters: Alphabet · **Symbols** · Numbers · Japanese · Mixed. What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked.
+- Random characters: Alphabet · **Symbols** · Numbers · Japanese · Mixed. What the letters flicker through: symbols look like hacking, Japanese characters look like the falling code in science-fiction films, and the alphabet or numbers look like a password being cracked; mixed draws from letters, numbers and symbols together.
 - Delay between letters: Short · **Medium** · Long. The wait between one letter locking and the next: short is 40ms, medium 70ms and long 120ms; it sets how fast the decoding travels.
 - Flicker speed: Slow · **Normal** · Fast. How often the random characters change: slow every 65ms, normal every 40ms and fast every 25ms; faster looks more chaotic.
 - Your text: text field, starts as "DECODE THE MESSAGE". The text that is decoded, shown in capitals.
@@ -120,7 +120,7 @@ Add a line-by-line reveal to [your multi-line headline]. Lay out every line in i
 - Starts from: **Left** · Right · Top. The side each line's wipe begins on: left follows the reading order, right suits right-to-left scripts, top works for display headings.
 - Speed: Slow · **Normal** · Fast. How long each line takes to uncover: slow is 1100ms, normal 700ms and fast 400ms.
 - Delay between lines: Short · **Medium** · Long. The wait before each next line starts: short is 100ms, medium 180ms and long 300ms; 100 to 200ms reads as a natural cascade.
-- Feel: **Smooth** · Gentle · Even. Smooth slows to a stop, which feels physical; Gentle eases in and out; Even feels mechanical.
+- Feel: **Smooth** · Gentle · Even. Smooth slows to a stop, which feels physical; Gentle eases in and out; Even keeps one steady pace, which feels mechanical.
 - Your lines: text box, starts with the lines "Good design", "Is honest" and "Always.". The headline, one line per row.
 
 ## Marquee / Ticker
@@ -159,7 +159,7 @@ Add a letter-by-letter morph to [the word that should change, and the words it c
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Slide direction: **Up** · Down · Left · Right. Up and down look like a slot machine; left and right slide sideways.
+- Slide direction: **Up** · Down · Left · Right. Up and down look like a slot machine, each letter sliding its own height; left and right slide sideways, 80% of a letter's width; the letters fade out and in as they slide.
 - Delay between letters: **None** · Short · Long. The gap between one letter moving and the next: none, short (30ms) or long (60ms); none moves every letter together, a delay makes a wave.
 - Speed: Slow · **Normal** · Fast. How long each letter takes to slide: slow is 650ms, normal 400ms and fast 250ms.
 - Time on each word: Short · **Medium** · Long. How long each word stays: short is 900ms, medium 1500ms and long 2400ms; it must be long enough to read.
@@ -181,7 +181,7 @@ Add a flowing color gradient to [your headline or logo text]. Fill the letters w
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Gradient: **Flowing** · Spinning · Diagonal · Two colors. Flowing slides the colors sideways, Spinning turns them like a color wheel, Diagonal slides slanted bands, Two colors flows between two colors of your choice.
-- Speed: Slow · **Normal** · Fast. How long one full pass takes: slow is 6.4s, normal 4s and fast 2.4s; slower feels calm, faster feels lively.
+- Speed: Slow · **Normal** · Fast. How long one loop takes: slow is 6.4s, normal 4s and fast 2.4s; in each loop the gradient, three times as wide as the text, slides left by twice its own width, and a spinning one turns once; slower feels calm, faster feels lively.
 - First color: Pink · White · **Blue** · Purple · Green · Orange (the page shows it only for some choices of another setting). With Two colors, the color the gradient starts and ends with.
 - Second color: Pink · White · Blue · **Purple** · Green · Orange (the page shows it only for some choices of another setting). With Two colors, the color in the middle.
 - Your text: text field, starts as "Flow". The text the colors flow through.
@@ -243,8 +243,8 @@ Add a rotating word to [your headline, with the word that should change]. Keep t
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Slide direction: **Up** · Down · Left · Right. Up and down move the word like a slot machine; left and right slide it sideways.
-- Speed: Slow · **Normal** · Fast. How long each slide takes: slow is 650ms, normal 400ms and fast 250ms.
+- Slide direction: **Up** · Down · Left · Right. Up and down move the word like a slot machine; left and right slide it sideways; each slide moves the word 110% of its own height or width while it fades out or in.
+- Speed: Slow · **Normal** · Fast. How long each slide takes, once for the word going out and again for the next one coming in: slow is 650ms, normal 400ms and fast 250ms.
 - Time on each word: Short · **Medium** · Long. How long each word stays: short is 1200ms, medium 2000ms and long 3200ms; 1.5 to 3 seconds is the readable range.
 - Different color per word: **on** · off. A new color for each word draws attention to the change; one color is calmer.
 - Your sentence: text field, starts as "We craft for". The part of the headline that stays still.
@@ -265,9 +265,9 @@ Add a glitch effect to [your headline or short word]. Place two copies of the te
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Color split: Small · **Medium** · Large. How far the red and cyan copies sit from the word: small is 2px, medium 4px and large 8px.
+- Color split: Small · **Medium** · Large. How far the red and cyan copies sit from the word: small is 2px, medium 4px and large 8px, and each copy casts a shadow in its own color as far again beyond it.
 - Speed: Slow · **Normal** · Fast. How long the strips take to run through their pattern: slow is 3.8s, normal 2.4s and fast 1.4s; shorter looks more frantic.
-- Glitch strength: Mild · **Medium** · Strong. How hard the word shakes and how often the strips reshuffle: mild, medium or strong.
+- Glitch strength: Mild · **Medium** · Strong. How hard the word shakes and how often the strips reshuffle: about every quarter second the word jumps up to 1.8px to either side at mild, 3.6px at medium and 5.4px at strong, and the strips jump to a random point in their pattern about 1.5, 2.5 or 3 times a second.
 - Glitches only on hover: on · **off**. Holds the word still until you point at it; on touch screens a tap starts and stops it.
 - Your text: text field, starts as "GLITCH". The word that glitches, up to 12 letters, shown in capitals.
 
@@ -306,7 +306,7 @@ Add a wavy text effect to [your word or short title]. Split the text into letter
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Wave height: Low · **Medium** · High. How far each letter travels: low is 8px, medium 16px and high 28px; larger makes a taller wave.
+- Wave height: Low · **Medium** · High. How high each letter rises above its resting place: low is 8px, medium 16px and high 28px, and it sinks 0.6 times as far below it; larger makes a taller wave.
 - Speed: Slow · **Normal** · Fast. How long one rise and fall takes: slow is 2.6s, normal 1.6s and fast 1s.
 - Delay between letters: Short · **Medium** · Long. The gap between neighboring letters: short is 30ms, medium 60ms and long 120ms; longer delays stretch the wave.
 - Your text: text field, starts as "Wavy". The word that waves, up to 14 letters.
@@ -328,7 +328,7 @@ Add a highlighter sweep to [the key words in your paragraph or quote]. Behind ea
 
 - Marker color: **Yellow** · Pink · Green · Blue · Orange. The color of the bands: yellow, pink, green, blue or orange, all light enough for the dark words to stay easy to read.
 - Speed: Slow · **Normal** · Fast. How long the marker takes to cross one phrase: slow is 1300ms, normal 700ms and fast 400ms, with a 250ms pause between phrases.
-- How much it covers: **Whole words** · Lower half. Whole words covers the letters from just under their tops; Lower half covers only the bottom of the letters, like a thick underline.
+- How much it covers: **Whole words** · Lower half. Whole words covers the letters from just under their tops, with the band starting 12% of the font size below the top of the text; Lower half starts it 62% down, so it covers only the bottom of the letters, like a thick underline.
 
 ## Split-Flap Board
 
@@ -365,9 +365,9 @@ Add a neon sign effect to [your sign word or short title]. Draw the letters as b
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Color: **Pink** · Blue · Green · Amber · Purple. The color of the tubes, their glow and the wash on the wall.
-- How often it flickers: Calm · **Normal** · Busy. Calm: two short bursts in a 9 second cycle. Normal: four bursts in 7 seconds. Busy: seven bursts in 6 seconds, one of them a longer drop out.
+- How often it flickers: Calm · **Normal** · Busy. Calm: two short bursts in a 9 second cycle. Normal: four bursts in 7 seconds. Busy: six bursts in 6 seconds, one of them a longer drop out of about 0.4 seconds.
 - Broken letter: **on** · off. One letter a little past the middle of the word buzzes and drops out on its own cycle.
-- Glow size: Small · **Medium** · Large. How far the light spreads: small, medium or large sets of glow layers.
+- Glow size: Small · **Medium** · Large. How far the light spreads: small, medium or large sets of glow layers, whose widest blur is 0.12 times the font size at small, 0.42 at medium and 1.1 at large.
 - Frame around the word: **on** · off. Adds a rounded tube border that glows and flickers with the letters.
 - Your text: text field, starts as "OPEN". The word on the sign, up to 10 letters, with spaces at its ends dropped; it shrinks to fit the stage, and an emptied field goes back to OPEN.
 
@@ -389,7 +389,7 @@ Add a handwriting animation to [your word or signature, drawn as single SVG line
 - Word: **hello** · thanks · hi there. Which word is written: hello is one stroke, thanks is two (the word, then the cross on the t) and hi there is four (hi, the dot, there, the cross).
 - Pen speed: Slow · **Normal** · Fast. How far the pen travels in a second: slow is 200 units, normal 400 and fast 800, where a small letter is 28 units tall; a word takes about 1 to 5 seconds.
 - Ink color: **Blue** · Black · Red · Green. The color of the ink, and of the pen.
-- Pen size: Fine · **Medium** · Bold. How wide the line is: fine is 1.1 units, medium 1.8 and bold 2.8.
+- Pen size: Fine · **Medium** · Bold. How wide the line is: fine is 1.1 units, medium 1.8 and bold 2.8, where a small letter is 28 units tall.
 - Shows the pen: **on** · off. A small pen rides on the tip of the line and lifts between strokes.
 
 ## Text Particles
@@ -407,7 +407,7 @@ Add a text particle effect to [the word or short title you want to animate]. Sam
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Dot size: Small · **Medium** · Large. How far apart the dots sit: small is 3 px, medium 4.2 and large 6, scaled with the word between 0.75 and 1.25 times; each dot is narrower than that step, so neighbors never touch. The dots are counted at the small size: past 2,000 on a phone or 6,000 on a larger screen, every size is spread out by the same factor, so the three stay apart.
+- Dot size: Small · **Medium** · Large. How far apart the dots sit: small is 3 px, medium 4.2 and large 6 for a 180 px font, scaled with the word between 0.75 and 1.25 times; each dot is about three quarters of that step wide, so neighbors never touch. The dots are counted at the small size: past 2,000 on a phone or 6,000 on a larger screen, every size is spread out by the same factor, so the three stay apart.
 - How far they scatter: Short · **Medium** · Far. The pointer's reach: short is 0.28 of the font size, medium 0.42 and far 0.65, counting the font as at least 120 px; a still pointer opens a gap whose radius is about 0.7 of the reach.
 - Colors: **Sunset** · Cool · Rainbow · White. The colors across the word, in 32 steps: Sunset runs from pink to gold, Cool from teal to purple, Rainbow through seven colors and White from white to pale gray; the glow behind the word matches.
 - How fast they come back: Slow · **Normal** · Fast. The spring and the share of its speed a dot keeps each step: slow is 0.022 and 0.87, normal 0.045 and 0.82, fast 0.09 and 0.76. A dot pushed 100 px away is home in about 1.4, 1 or 0.8 seconds, after swinging about a sixth of the way past it.

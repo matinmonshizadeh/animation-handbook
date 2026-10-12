@@ -46,11 +46,11 @@ Add a spinning 3D object to [the product or shape you want to show]. Draw it wit
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Shape: **Cube** · Sphere · Ring · Pyramid. The object that is drawn: a cube, a sphere, a ring or a four-sided pyramid.
-- Movement: **Spins** · Follows the pointer. Spins turns it by itself; Follows the pointer turns it to face your pointer or finger.
-- Speed: Slow · **Normal** · Fast. How fast it spins: slow is about 17°, normal 27° and fast 45° a second, on any screen.
+- Shape: **Cube** · Sphere · Ring · Pyramid. The object that is drawn: a cube, a sphere, a ring or a pyramid of four triangles.
+- Movement: **Spins** · Follows the pointer. Spins turns it by itself; Follows the pointer turns it to face your pointer or finger, up to 86° to either side and 69° up or down with the pointer at the stage's edges.
+- Speed: Slow · **Normal** · Fast. How fast it spins: slow is about 17°, normal 27° and fast 45° a second, on any screen; while it tumbles, the forward roll swings between still and a quarter of that over about 21 seconds.
 - Tumbles as it spins: **on** · off. Also rolls it forward, at a speed that rises and falls, so the top and bottom come into view.
-- Distance: Close · **Medium** · Far. How far away the camera is: close looks bigger, far looks smaller; the lens stays the same.
+- Distance: Close · **Medium** · Far. How far away the camera is, from the shape's center: close is about 2.3 times the shape's width, medium 2.7 times and far 3.8 times, so close looks bigger; the lens stays the same, a 45° view from top to bottom.
 - Color: Pink · White · **Blue** · Purple · Green · Orange. The object's color; the lighting adds the shading and the highlight.
 - Edges only: on · **off**. Draws the edges of the triangles the shape is made of, instead of its lit surface.
 
@@ -69,8 +69,8 @@ Add a scroll-driven 3D rotation to [the product or object you want to show]. Pin
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Turn amount: Less · **Normal** · More. How far every pose turns the cube: less is 0.6, normal 1 and more 1.6 times the planned angles; at normal the last pose shows the cube's back.
-- Smooth follow: **on** · off. The cube closes a tenth of the gap to its pose for every sixtieth of a second, so it glides after the scroll and catches up in the same time on every screen; off, it follows the scroll exactly.
+- Turn amount: Less · **Normal** · More. How far every pose turns the cube: less is 0.6, normal 1 and more 1.6 times the planned angles (a 90° turn to the side, a 30° forward tilt, and 180° the other way at the end); at normal the last pose shows the cube's back.
+- Smooth follow: **on** · off. The cube closes a tenth of the gap to its pose for every sixtieth of a second (95% of it in about half a second), so it glides after the scroll and catches up in the same time on every screen; off, it follows the scroll exactly.
 
 ## Parallax 3D Tilt
 
@@ -109,10 +109,10 @@ Add a particle background to [the section you want it behind]. Draw small dots o
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Pointer effect: **Push** · Pull · None. What the pointer or a finger does to dots within 120px: pushes them away, pulls them in, or nothing.
+- Pointer effect: **Push** · Pull · None. What the pointer or a finger does to dots within 120px: pushes them away, pulls them in, or nothing, more strongly the closer they are (a dot 40px away speeds up by about 36px a second every second), up to twice the fastest drift speed; a dot keeps the speed it gains.
 - Number of particles: Few · **Medium** · Many. Few is 250, medium 500 and many 800 dots on computers; tablets draw 60, 90 and 120, and phones 30, 45 and 60, which keeps them smooth.
 - Link distance: None · Short · **Medium** · Long. How close two dots must be to join with a line: short is 70px, medium 100px and long 150px; none draws no lines.
-- Speed: Slow · **Normal** · Fast. How fast the dots drift: slow is 0.5, normal 0.8 and fast 1.3 (the fastest dots' pixels for every sixtieth of a second, on any screen); slow feels calm, fast looks busy.
+- Speed: Slow · **Normal** · Fast. How fast the dots drift: slow is 30px, normal 48px and fast 78px a second for the fastest dots, and the slowest go a fifth of that, on any screen; slow feels calm, fast looks busy.
 - Color: Pink · White · **Blue** · Purple · Green · Orange. The color of the dots and lines.
 - Trails: on · **off**. Each dot leaves a fading streak, because the canvas is only partly cleared between frames.
 
@@ -133,7 +133,7 @@ Add liquid blobs to [the section you want them in]. In a WebGL fragment shader, 
 
 - Melting: A little · **Medium** · A lot. How far apart two blobs start to melt together: a little is 0.03, medium 0.08 and a lot 0.15 of the stage height; a lot gives thick, soft necks.
 - Number of blobs: Few · **Medium** · Many. Few is 3, medium 5 and many 8 blobs; each one adds work for every pixel.
-- Speed: Slow · **Normal** · Fast. How fast the blobs move on their paths: slow is 0.5, normal 0.8 and fast 1.3.
+- Speed: Slow · **Normal** · Fast. How fast the blobs move on their paths: at slow each blob swings from side to side and back every 3 to 10 seconds, at normal every 2 to 6 seconds and at fast every 1.2 to 3.7 seconds, each at its own pace.
 - Blob size: Small · **Medium** · Large. Each blob's radius: small is 9%, medium 14% and large 20% of the stage height.
 - Color: Pink · White · **Blue** · Purple · Green · Orange. The color of the liquid.
 - Glow: **on** · off. Adds a soft halo that fades out around the liquid.
@@ -155,7 +155,7 @@ Add frosted glass to [the cards or panels you want to style]. Give each card a s
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Frost: Off · Light · **Medium** · Heavy. How strongly the glass blurs what is behind it: light is 6px, medium 12px and heavy 20px; off shows the cards with no blur, to compare.
-- Tint strength: Faint · **Medium** · Strong. How much color the glass adds: faint is 6%, medium 12% and strong 25%.
+- Tint strength: Faint · **Medium** · Strong. How much color the glass adds: faint fills it with the tint color at 6% strength, medium at 12% and strong at 25%.
 - Speed: Slow · **Normal** · Fast. How long the colors behind take to drift through one path: slow is 13s, normal 8s and fast 5s.
 - Tint color: Pink · White · **Blue** · Purple · Green · Orange. The color of the glass.
 - Breathing frost: **on** · off. The middle card's blur grows from 8px to 20px and back every 4 seconds.
@@ -177,7 +177,7 @@ Add a moving shader pattern to [the background or section you want it in]. Cover
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pattern: **Plasma** · Waves · Cells · Kaleidoscope. Plasma adds up sine waves into flowing color; Waves bends striped color; Cells splits the plane into cells around moving points; Kaleidoscope mirrors one slice around the middle.
-- Speed: Slow · **Normal** · Fast. How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times.
+- Speed: Slow · **Normal** · Fast. How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times real time, so the plasma's colors drift once round the rainbow in about 33 seconds at slow, 20 at normal and 12.5 at fast.
 - Reacts to the pointer: on · **off**. Each pattern bends around the pointer or a finger in its own way; in Kaleidoscope the pointer sets the number of slices.
 
 ## Noise-Based Motion
@@ -196,9 +196,9 @@ Add noise-based motion to [the background or shape you want to bring to life]. U
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Shape: **Field of dots** · Blob. A field of dots that sway, or one blob whose outline ripples.
-- Pattern size: Large · **Medium** · Small. How big the noise's patterns are: large moves big areas together, small looks busy and fine.
-- Speed: Slow · **Normal** · Fast. How fast the noise moves along: slow is 0.3, normal 0.5 and fast 0.8. Every sixtieth of a second the noise moves on by 0.01 times this, so the speed is the same on every screen.
-- Wobble: Small · **Medium** · Large. How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px.
+- Pattern size: Large · **Medium** · Small. How big the noise's patterns are: one swirl of the noise is about 250px across at large, 125px at medium and 60px at small, and the blob's edge has about two, three or five ripples; large moves big areas together, small looks busy and fine.
+- Speed: Slow · **Normal** · Fast. How fast the noise moves along: the pattern drifts one swirl's width in about 5.6 seconds at slow, 3.3 at normal and 2.1 at fast, which with medium patterns is about 22px, 38px and 60px a second.
+- Wobble: Small · **Medium** · Large. How far each dot, or the blob's edge, moves: small is 6px, medium 12px and large 20px from each dot's place, and the blob's edge moves in and out by up to twice that.
 - Space between dots: Wide · **Medium** · Tight. The distance between dots in the field: wide is 64px, medium 48px and tight 32px; smaller stages draw fewer dots.
 - Color: Pink · White · **Blue** · Purple · Green · Orange. The color of the dots or the blob.
 
@@ -219,7 +219,7 @@ Add a self-drawing line to [your icon, logo or signature, drawn as SVG lines]. M
 
 - Drawing: **Icon** · Signature · Logo. What is drawn: a house with a star, a flowing signature, or a circle logo.
 - Speed: Slow · **Normal** · Fast. How long each line takes to draw: slow is 2400ms, normal 1500ms and fast 900ms; each next line starts after 30% of that.
-- Line thickness: Thin · **Medium** · Thick. Thin is 1px, medium 2px and thick 4px; thin looks precise, thick looks bold.
+- Line thickness: Thin · **Medium** · Thick. Thin is 1px, medium 2px and thick 4px with the drawing at its full 400px width, thinner when it shrinks to fit a smaller box; thin looks precise, thick looks bold.
 - Feel: **Smooth** · Gentle · Even. Smooth slows at the end, like a hand finishing a stroke; Gentle eases in and out; Even keeps one pace.
 - Line color: Pink · White · **Blue** · Purple · Green · Orange. The color of the lines, and of the fill.
 - Starts from the other end: on · **off**. Draws each line from its end back to its start.
@@ -240,7 +240,7 @@ Add a chromatic aberration effect to [your headline or short word]. Stack three 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Movement: **Pulse** · Glitch · None. Pulse widens and narrows the split every 2 seconds; Glitch jumps it briefly every 4 seconds; None keeps it still.
+- Movement: **Pulse** · Glitch · None. Pulse widens the split to 1.8 times and back every 2 seconds; Glitch jumps it twice near the end of every 4 seconds, for 80ms each, to about 3 times the split and then 2 times on the other side; None keeps it still.
 - Color split: Small · **Medium** · Large. How far the red and blue copies sit from the word: small is 2px, medium 4px and large 8px; above about 6px the word gets hard to read.
 - Direction: Sideways · **Slanted** · Up and down. Sideways splits the colors left and right; Slanted splits them at 30°; Up and down splits them vertically.
 - Soft color edges: on · **off**. Blurs the red and blue copies by 2px, which looks more like a lens than a digital shift.
@@ -261,7 +261,7 @@ Add a 2.5D parallax scene to [the illustration or hero you want to give depth]. 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Camera movement: Small · **Medium** · Large. How far the nearest layer travels as the pointer crosses the scene from one side to the other: small is 20px, medium 40px and large 70px (half that each way from the middle); the farthest layer moves 5% of that.
+- Camera movement: Small · **Medium** · Large. How far the nearest layer travels as the pointer crosses the scene from one side to the other: small is 20px, medium 40px and large 70px (half that each way from the middle), and 40% as far from top to bottom; the farthest layer moves 5% of that.
 - Layer labels: on · **off**. Labels each layer with the share of the camera movement it follows, from 5% for the sky to 100% for the ground.
 
 ## Ray Marching / SDF Scene
@@ -303,7 +303,7 @@ Add a GPU particle system to [the section you want it in]. Keep every particle's
 
 - Movement: **Flow** · Swirl · Attract · Orbit. Flow follows a shifting field of currents; Swirl circles the middle; Attract pulls everything toward the middle; Orbit sweeps the particles round in rings.
 - Number of particles: 16,000 · **65,000** · 100,000 (phones start with 16,000). 16,000, 65,000 or 100,000 particles, one pixel each of a texture 128, 256 or 320 pixels square; phones start with 16,000.
-- Speed: Slow · **Normal** · Fast. How hard the rule pushes for every sixtieth of a second: slow is 0.35, normal 0.6 and fast 1.
+- Speed: Slow · **Normal** · Fast. How hard the rule pushes for every sixtieth of a second: slow pushes 0.35 times as hard as fast and normal 0.6 times; under Flow a typical particle then crosses about 11%, 16% or 22% of the stage a second.
 - Color: **One color** · By speed · Shifting. One blue, a color from each particle's speed, or colors that slowly shift.
 - Trails: on · **off**. Fades the last picture instead of clearing it, so each particle leaves a streak.
 
@@ -323,8 +323,8 @@ Add a hover distortion to [the image you want to react]. Draw the image with a W
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Effect: **Ripple** · Push · Liquid · Pixels. Ripple sends rings out from the pointer; Push bulges the picture outward; Liquid swirls it; Pixels breaks it into squares.
-- Strength: Gentle · **Medium** · Strong. How far the picture bends: gentle is 4, medium 8 and strong 14; stronger looks more dramatic but harder to read.
-- Size: Small · **Medium** · Large. How wide an area bends: small is 15%, medium 25% and large 40% of the picture's height.
+- Strength: Gentle · **Medium** · Strong. How far the picture bends: Ripple shifts it by up to 2% of its width and height at gentle, 4% at medium and 7% at strong; Push shifts it 1.6 times as far and Liquid 0.6 times, and Pixels makes blocks up to 1%, 1.7% or 2.9% of the picture's width and height. Stronger looks more dramatic but harder to read.
+- Size: Small · **Medium** · Large. How wide an area bends: a circle around the pointer whose radius is 15% of the picture's height at small, 25% at medium and 40% at large; the bending fades from full at the pointer to none at its edge.
 - Fade-out speed: Slow · **Normal** · Fast. How fast the bending fades after the pointer leaves: each second it loses about three fifths of its strength at slow, about four fifths at normal and nine tenths at fast.
 - Moving ripples: **on** · off. With Ripple, the rings keep moving outward while the pointer rests; off, they stand still.
 
@@ -344,10 +344,10 @@ Add a cloth simulation to [the flag, banner or fabric you want to show]. Model t
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Hangs from: **Two corners** · Top edge · One corner · Nothing. Pins the top two corners, the whole top edge, one corner, or nothing, in which case the cloth falls to the floor.
-- Wind: Light · **Medium** · Strong. How hard the wind blows; it rises and falls on its own: light is 0.2, medium 0.5 and strong 1.2.
+- Wind: Light · **Medium** · Strong. How hard the wind blows; it rises and falls on its own over a 12.6-second cycle: at its peak it speeds points up sideways by about 30px a second every second at light, 75px at medium and 180px at strong, and part of the time it blows back at up to about half that.
 - Stiffness: Stretchy · **Medium** · Stiff. How many times each step, sixty a second, the links are pulled back to length: stretchy is 2, medium 4 and stiff 8.
-- Gravity: Light · **Normal** · Heavy. How heavy the cloth is: light is 0.06, normal 0.12 and heavy 0.2.
-- Detail: Low · **Medium** · High (phones start with Low). How many points the cloth has: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low.
+- Gravity: Light · **Normal** · Heavy. How heavy the cloth is: gravity speeds a falling point up by about 17px a second every second at light, 35px at normal and 58px at heavy.
+- Detail: Low · **Medium** · High (phones start with Low). How many squares the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low.
 - Shows the points: on · **off**. Marks every point of the grid, with the pinned ones in red.
 
 ## Volumetric Smoke / 3D Noise
@@ -365,11 +365,11 @@ Add volumetric smoke to [the section you want it in]. In a fragment shader, send
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Thickness: Thin · **Medium** · Thick. How dense the smoke is: thin is 0.4, medium 0.7 and thick 1.2; thin looks wispy, thick hides what is behind.
-- Speed: Slow · **Normal** · Fast. How fast the smoke rises: slow is 0.35, normal 0.6 and fast 1.
+- Thickness: Thin · **Medium** · Thick. How dense the smoke is: thin is 0.6 times as dense as medium and thick 1.7 times, so the thickest wisps hide about a third of what is behind at thin, half at medium and three quarters at thick; thin looks wispy.
+- Speed: Slow · **Normal** · Fast. How fast the smoke rises: its pattern moves about 3% of the box's height a second at slow, 5% at normal and 9% at fast.
 - Detail: Low · **Medium** · High. How many steps each ray takes: low is 16, medium 32 and high 64 (48 on phones); fewer steps leave visible stripes.
 - Smoke color: **Gray blue** · White · Purple · Orange. The color of the lit smoke; the shadowed parts are darker shades of it.
-- Wind: **on** · off. The whole plume drifts slowly to one side.
+- Wind: **on** · off. The smoke drifts slowly to one side, about 2% of the box's height a second, while the plume stays in place.
 - Fine grain: **on** · off. Starts each ray at a slightly random point, which turns the stripes that few steps leave into fine grain.
 
 ## Morphing Blob
@@ -387,9 +387,9 @@ Add a gooey blob to [the section you want it in]. Draw several plain circles tha
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Gooeyness: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened again: low is 6, medium 10 and high 16; higher melts circles from farther apart.
+- Gooeyness: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened again: low is 6, medium 10 and high 16, measured in a drawing 360 units across whose circles are 26 to 52 units in radius; higher melts circles from farther apart.
 - Number of blobs: Few · **Medium** · Many. Few is 4, medium 6 and many 9 circles, counting the drop that follows the pointer.
-- Speed: Slow · **Normal** · Fast. How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times.
+- Speed: Slow · **Normal** · Fast. How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times; at normal each circle swings back and forth along its path once every 6 to 16 seconds, each at its own rate.
 
 ## 3D Flip Card
 
@@ -427,7 +427,7 @@ Add a 3D carousel to [the cards or pictures you want to show]. Stand the cards i
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Number of cards: 6 · **8** · 12. How many cards stand in the ring: 6, 8 or 12. More cards make a wider ring, so each card is drawn smaller to fit the box.
+- Number of cards: 6 · **8** · 12. How many cards stand in the ring: 6, 8 or 12, with a gap of 12% of a card between neighbors. More cards make a wider ring; where it would not fit, as with 12 cards on a phone, the cards are drawn smaller to keep it within 94% of the box's width.
 - Seen from above: **on** · off. Tilts the ring back 14 degrees, so the cards behind show above the front ones; off shows the ring straight on.
 - Spins by itself: on · **off**. The ring turns 12 degrees a second, waits while you drag and starts again a moment after it settles; under reduced motion it steps one card every three seconds instead.
 
@@ -465,9 +465,9 @@ Add a flock of birds to [the section you want it behind]. Draw each bird as a sm
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Flock size: Small · **Medium** · Large. How many birds fly: small is 70, medium 150 and large 280; phones fly 35, 70 and 130.
-- How close they fly: Loose · **Normal** · Tight. The room each bird keeps around it and how hard it follows its neighbors: loose keeps 32px and follows gently, normal keeps 22px, tight keeps 15px and follows hard.
+- How close they fly: Loose · **Normal** · Tight. The room each bird keeps around it and how hard it follows its neighbors: loose keeps 32px and follows gently, normal keeps 22px, tight keeps 15px and follows hard. The pulls toward their heading and their middle weigh 0.7 and 0.3 at loose, 1 and 0.5 at normal and 1.2 and 0.9 at tight, against 2 for keeping apart; the room shrinks in proportion on a stage under 380px tall or wide, to 65% at the least.
 - Flees the pointer: **on** · off. Birds within 90px of the pointer or a finger steer straight away from it.
-- Speed: Slow · **Normal** · Fast. The top speed, in pixels per 60th of a second: slow is 1.3, normal 2 and fast 3; no bird flies slower than 55% of it.
+- Speed: Slow · **Normal** · Fast. The top speed, in pixels per 60th of a second: slow is 1.3, normal 2 and fast 3 (78, 120 and 180px a second); no bird flies slower than 55% of it. It shrinks in proportion on a stage under 380px tall or wide, to 65% at the least.
 - Shows one bird's view: on · **off**. Rings one bird with the 50px radius it looks within and the dashed room it keeps, and links it to every neighbor it follows.
 
 ## ASCII / Halftone
@@ -485,7 +485,7 @@ Add an ASCII and halftone effect to [the picture or video you want to restyle]. 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Drawn with: **Letters** · Dots. Letters gives each cell one of ten characters, from a space to a hash sign, by its brightness; dots gives it one of twelve dot sizes, from none to one that fills the cell.
+- Drawn with: **Letters** · Dots. Letters gives each cell one of ten characters, from a space to a hash sign, by its brightness; dots gives it one of twelve dot sizes, from none to one that fills the cell, in even steps of area.
 - Cell size: Small · **Medium** · Large. The height of a cell: small is 8px, medium 11px and large 16px, and phones use 10, 14 and 20px; letter cells are 0.7 as wide as they are tall, dot cells are square.
 - Colors: **One color** · Full color. One color paints every mark mint green, or near-black on paper; full color gives each mark the color of its spot in the picture.
 - Shows the original picture: on · **off**. Draws the moving picture at 40% under the marks, so you can see what each mark stands for.
@@ -506,7 +506,7 @@ Add a box of bouncing balls to [the hero or empty area you want to liven up]. A 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Gravity: Moon · **Earth** · Heavy. How hard the balls are pulled down. Earth adds the box's height divided by 1,000 to a ball's downward speed every 60th of a second, so a ball falls the whole box in about three quarters of a second; the Moon is a fifth of that and Heavy twice as much.
+- Gravity: Moon · **Earth** · Heavy. How hard the balls are pulled down. Earth adds the box's height divided by 1,000 to a ball's downward speed every 60th of a second, so a ball falls the whole box in about three quarters of a second; the Moon pulls a fifth as hard, a fall of about 1.6 seconds, and Heavy twice as hard, about half a second.
 - Bounciness: Low · **Medium** · High. The share of its closing speed a ball keeps after a hit: low is 0.2, medium 0.5 and high 0.8; a hit slower than 1 pixel per 60th of a second does not bounce.
 - Ball sizes: **All the same** · Mixed. One radius for every ball (5.5% of the box's shorter side, between 12 and 22 pixels), or a mix from 0.6 to 1.4 times it, heavier by area.
 - Shows the speed: on · **off**. An arrow on each moving ball, 6 pixels long for every pixel it moves in a 60th of a second, at most three radii.
@@ -526,10 +526,10 @@ Add a liquid glass panel to [the card or menu you want to float over a picture].
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- How much it bends: Subtle · **Medium** · Strong. The deepest shift, at the very edge, as a share of the rim's width: subtle 25%, medium 42% and strong 60%. Past half the rim folds into a thin mirrored band, as the edge of thick glass does.
+- How much it bends: Subtle · **Medium** · Strong. The rim's deepest shift, at the very edge, as a share of the rim's width (35% of the panel's height): subtle 25%, medium 42% and strong 60%, and a slight pull toward the middle, which magnifies the whole panel a little, adds 15% to it. Past half the rim folds into a thin mirrored band, as the edge of thick glass does. Other browsers show a faint white glow inside the rim instead, blurred over 12, 23 or 36px.
 - Frost: **Clear** · Light · Frosted. How much the backdrop is blurred: clear none, light 1.5 and frosted 4 pixels where the glass bends; 3, 8 and 16 pixels for the frosted glass of other browsers.
 - Tint: Pink · **White** · Blue · Purple · Green · Orange. The color the glass adds, mixed in at 9% for white and 20% for the other colors.
-- Shape: **Card** · Pill · Circle. Card: 1.6 times as wide as tall, corners a third of its height; pill: 2.7 times as wide as tall with round ends; circle: a round lens. The card is 30% of the stage's width, from 150 to 280 pixels.
+- Shape: **Card** · Pill · Circle. Card: 1.6 times as wide as tall, corners a third of its height; pill: 2.7 times as wide as tall with round ends; circle: a round lens. The card is 30% of the stage's width, from 150 to 280 pixels (the pill 1.12 times as wide and the circle 0.68 times), and no shape is taller than 55% of the stage.
 - Shows the bend map: on · **off**. Lays the displacement map over the glass: red is the sideways shift, green the shift up or down, gray none.
 
 ## Holographic Card
@@ -549,7 +549,7 @@ Add a holographic foil to [the card you want to make shine]. Build the card from
 
 - Foil pattern: **Smooth** · Glitter · Lines. Smooth shows the rainbow as soft bands; Glitter lets it through scattered dots and Lines through fine diagonal lines, like the sparkle and etched foils of real cards.
 - How far it tilts: Gentle · **Medium** · Strong. How far the card leans at its edges: gentle is 6°, medium 12° and strong 20°; much more and the text on the card gets hard to read mid-tilt.
-- Glare: Off · **Soft** · Bright. The spot of light under the pointer: off, soft (a little over half strength) or bright; a copy at a quarter of that strength lights the text panels.
+- Glare: Off · **Soft** · Bright. The spot of light under the pointer: off, soft (55% strength, a little over half) or bright (full strength); a copy at a quarter of that strength lights the text panels.
 - Shows the layers: on · **off**. Turns the card to one side and spreads its four layers apart, so the picture, the foil, the glare and the text panels show one above the other.
 
 ## Infinite Zoom

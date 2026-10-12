@@ -43,7 +43,7 @@ Add an animated gradient background to [the section you want behind your content
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Gradient: **Sliding** · Color wheel · Bright bands. Sliding moves a large, soft gradient back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends, one and a half times as slowly.
+- Gradient: **Sliding** · Color wheel · Bright bands. Sliding moves a large, soft gradient (four times the box's width and height) back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends (three times the box's width and height), one and a half times as slowly.
 - Speed: Slow · **Normal** · Fast. How long one cycle takes: slow is 32s, normal 20s and fast 12s; under 8s it becomes distracting.
 - Colors: **Cool** · Sunset · Ocean · Gray. The colors the gradient moves through: cool blues and purples, sunset oranges, ocean blues and greens, or grays.
 - Muted colors: on · **off**. Takes most of the color out (30% saturation) for a quieter background.
@@ -63,7 +63,7 @@ Add a mesh gradient background to [the section you want behind your content]. Pl
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Blur: Light · **Medium** · Heavy. How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Phones use half.
+- Blur: Light · **Medium** · Heavy. How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Screens up to 600px wide use half.
 - Speed: Slow · **Normal** · Fast. How long a blob takes to drift one way: slow is 64s, normal 40s and fast 24s, and each blob takes 0.8 to 1.2 times that.
 - Colors: **Cool** · Warm · Sunset · Synthwave · Earth. The blob colors: cool, warm, sunset, synthwave or earth tones.
 - Number of blobs: 3 · **4** · 5. Three, four or five blobs; more make a richer mix.
@@ -85,7 +85,7 @@ Add an aurora background to [the dark section you want it behind]. Stack a few t
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Number of bands: **2** · 3 · 4 · 5. How many bands of light: two look clear, five make a richer, layered sky.
-- Speed: Slow · **Normal** · Fast. How long each band takes to sway through its cycle: slow is 48s, normal 30s and fast 18s.
+- Speed: Slow · **Normal** · Fast. How long the bands take to sway through their cycle: slow is 48s, normal 30s and fast 18s for the green band; blue takes 1.15 times as long, purple 0.85, pink 1.25 and red 1.1, so the bands drift in and out of step.
 - Colors: **Green** · Purple · Red. Which colors come first: green and blue (the most common aurora), purple and pink, or red and pink (rare); more bands add the other colors.
 - Brightness: Dim · **Medium** · Bright. How strongly the bands glow: dim is 50%, medium 75% and bright 100%.
 - Stars in the sky: on · **off**. Adds 120 twinkling stars behind the bands.
@@ -127,11 +127,11 @@ Add a scanline effect to [the screen, panel or section you want to look like an 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Line spacing: Tight · **Medium** · Wide. The distance between lines: tight is 2px, medium 4px and wide 8px; 4px looks like a standard old screen.
-- Line darkness: Light · **Medium** · Dark. How dark the lines are: light is 8%, medium 15% and dark 30%; darker looks more retro but lowers contrast.
+- Line spacing: Tight · **Medium** · Wide. The distance between lines: tight is 2px, medium 4px and wide 8px, each line 1px thick; 4px looks like a standard old screen.
+- Line darkness: Light · **Medium** · Dark. How dark the lines are: light is 8% black, medium 15% and dark 30%; darker looks more retro but lowers contrast.
 - Moving beam: **on** · off. A soft band of light sweeps down the screen, again and again.
 - Beam speed: Slow · **Normal** · Fast. How long the beam takes to cross the screen: slow is 6.4s, normal 4s and fast 2.4s.
-- Beam brightness: Faint · **Medium** · Bright. How bright the beam is: faint is 6%, medium 12% and bright 24%; it should be felt more than seen.
+- Beam brightness: Faint · **Medium** · Bright. How bright the beam is: faint is 6% white, medium 12% and bright 24% along the middle of the 120px band, fading to nothing at its top and bottom; it should be felt more than seen.
 - Dark corners: on · **off**. A soft vignette darkens the corners, like the curved glass of an old screen.
 - Glowing text: on · **off**. A soft glow around the letters, like light spreading on an old screen.
 
@@ -153,9 +153,9 @@ Add a light leak effect to [the photo, video or section you want it over]. Place
 - Comes from: **Top left** · Top right · Bottom left · Bottom right · Down the middle. The corner the glow spills in from, or a band of light down the middle.
 - Time between leaks: Short · **Medium** · Long. The random dark gap between one leak and the next: short is 0.5–1.5s, medium 1–3s and long 3–8s.
 - Speed: Slow · **Normal** · Fast. How long each leak takes to fade in, and again to fade out: slow is 2s, normal 1.2s and fast 0.7s.
-- Brightness: Dim · **Medium** · Bright. How strong the glow gets: dim is 30%, medium 55% and bright 80%; each leak peaks a little below this, at random.
+- Brightness: Dim · **Medium** · Bright. How strong the glow gets: dim is 30%, medium 55% and bright 80%; each leak peaks at a random 75% to 100% of this.
 - Color: **Amber** · Gold · Rose · Magenta · Cyan. Amber is the classic leak; gold, rose and magenta are warm too, and cyan looks like a cooler film stock.
-- Floating light spots: on · **off**. Soft spots of light drift up and fade after each leak.
+- Floating light spots: on · **off**. Three soft spots of light drift up from the bottom and fade with each leak.
 
 ## Starfield / Space Particles
 
@@ -173,9 +173,9 @@ Add a starfield background to [the dark section you want it behind]. Draw many s
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Direction: **Outward** · Sideways. Outward streams the stars from the center; sideways drifts them past, the nearer ones faster.
-- Speed: Slow · **Normal** · Fast. How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65, about the pixels a star covers in a 60th of a second out at the edge (16, 25 and 41 pixels a second), and about a third of that near the center; keep it slow for a calm background.
+- Speed: Slow · **Normal** · Fast. How fast the stars move: outward, a star near the edge covers 16, 25 and 41 pixels a second at slow, normal and fast, and a little under a third of that near the center; sideways, the nearest stars cover 30, 48 and 78 pixels a second and the farthest a fifth of that; keep it slow for a calm background.
 - Number of stars: Few · **Medium** · Many. Few is 150, medium 300 and many 600; phones show at most 300.
-- Star color: **White** · Warm white · Many colors. White, a warm white, or a different pale color for each star.
+- Star color: **White** · Warm white · Many colors. White, a warm white, or a different pale tint for each star, from pink to yellow.
 - Twinkling: **on** · off. Each star gently brightens and dims on its own rhythm.
 - Nebula haze: on · **off**. A faint purple and blue haze behind the stars adds depth.
 
@@ -198,7 +198,7 @@ Add a breathing glow behind [the icon or element that should look alive but at r
 - How much it grows: A little · **Medium** · A lot. How far the glow shrinks and grows: a little is 80% to 120% of its size, medium 60% to 150% and a lot 45% to 180%.
 - Glow color: Pink · **Blue** · Purple · Green · Orange. The color of the glow: pink, blue, purple, green or orange (white would hide the white title at the breath's peak).
 - Glow size: Small · **Medium** · Large. The glow's size before it grows: small is 180px, medium 260px and large 340px.
-- Second glow: on · **off**. A larger, fainter glow behind the first breathes the other way over a longer cycle, so the two never line up.
+- Second glow: on · **off**. A larger, fainter glow behind the first, 1.5 times its size, breathes over a cycle 1.3 times as long, so the two drift in and out of step.
 - Icon and title breathe too: **on** · off. The icon and the title under it swell by 2% with each breath, too little to notice consciously.
 
 ## Ambient Ripple Effect
@@ -241,7 +241,7 @@ Add floating shapes to [the section you want a gentle moving background behind].
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Number of shapes: Few · **Medium** · Many. Few is 5, medium 8 and many 14; 5 to 12 feels calm, more gets busy.
-- Speed: Slow · **Normal** · Fast. How fast the shapes drift: slow is 0.3, normal 0.5 and fast 0.8.
+- Speed: Slow · **Normal** · Fast. How fast the shapes drift: each one sways from side to side and back in 87 to 233 seconds at slow, 52 to 140 at normal and 33 to 87 at fast, and takes 1.4 times as long up and down.
 - How far they drift: Short · **Medium** · Long. How far each shape wanders from its place: short is up to 30px, medium 50px and long 90px.
 - Shapes: Circles · Squares · Rings · **Mixed**. Circles, squares, rings or a mix.
 - Colors: **Cool** · Warm · Gray · Neon. Cool blues and purples, warm oranges and reds, grays, or bright neon.
@@ -265,7 +265,7 @@ Add a dot grid parallax background to [the section you want a subtle sense of de
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pattern: **Dots** · Lines · Dots and lines. A grid of dots, of lines, or both.
-- Strength: Subtle · **Medium** · Strong. How far the grid shifts: subtle is 3% of the pointer's movement, medium 5% and strong 10%; under 10% it is felt more than seen.
+- Strength: Subtle · **Medium** · Strong. How far the grid shifts: subtle is 3% of the pointer's movement, medium 5% and strong 10%, and its drift with no pointer scales the same way (up to 2% of the stage's width and 1.5% of its height at medium); under 10% it is felt more than seen.
 - Spacing: Tight · **Medium** · Wide. The distance between dots or lines: tight is 20px, medium 28px and wide 44px.
 - Pattern color: Pink · White · **Blue** · Purple · Green · Orange. The color of the dots and lines, shown at 25% so they stay faint.
 - Second layer: on · **off**. A sparser layer of larger dots shifts half as far, adding real depth between the two.
@@ -287,7 +287,7 @@ Add an abstract geometric animation to [the section or screen you want a calm mo
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pattern: **Polygons** · Rings · Bars · Lines. Turning polygons, rings spreading from the center, sliding bars, or wavy lines with flowing color.
-- Speed: Slow · **Normal** · Fast. How fast everything moves: slow is 0.35, normal 0.6 and fast 1; keep it below 1 behind content.
+- Speed: Slow · **Normal** · Fast. How fast everything moves: the innermost polygon turns once in about 150 seconds at slow, 87 at normal and 52 at fast (the outer ones faster), the rings spread 42, 72 or 120px a second and the bars slide 3, 9 or 24px a second; avoid fast behind content.
 - Number of shapes: Few · **Medium** · Many. How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many); on Rings it sets how many colors the rings use.
 - Colors: **Cool** · Warm · Neon · Gray. Cool blues, warm ambers, bright neon or grays.
 - Thicker lines: on · **off**. Draws the lines 1.5px wide instead of 0.8px, so the shapes stand out more.
@@ -309,7 +309,7 @@ Add a particle constellation background to [the section you want it behind]. Sca
 
 - Number of dots: Few · **Medium** · Many. Few is 50, medium 90 and many 140; phones show at most 60, because every pair of dots is checked each frame.
 - Link distance: Short · **Medium** · Long. How close two dots must be to be linked: short is 90px, medium 130px and long 180px; too long and everything links to everything.
-- Speed: Slow · **Normal** · Fast. How fast the dots drift: slow is 0.35, normal 0.6 and fast 1; faster looks agitated.
+- Speed: Slow · **Normal** · Fast. How fast the dots drift: slow is about 8px a second, normal 14px and fast 23px on average, each dot at its own random speed and direction; faster looks agitated.
 - Color: **Cyan** · Violet · Mint · Gray. The color of the dots and lines: cyan, violet, mint or gray.
 - Dots follow the pointer: **on** · off. Dots near the pointer, or a finger, drift toward it and gather there.
 
@@ -349,7 +349,7 @@ Add a synthwave grid to [the section you want a retro scene in]. Draw a purple s
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast. How fast the floor rolls toward the viewer: slow is 0.6, normal 1 and fast 1.6.
+- Speed: Slow · **Normal** · Fast. How fast the floor rolls toward the viewer: slow is 0.6 times normal and fast 1.6 times; at normal a new line leaves the horizon 1.2 times a second, and with medium lines each takes about 13 seconds to reach the bottom edge.
 - Number of lines: Few · **Medium** · Many. How many lines the floor has: few is 10 across and 15 toward the horizon, medium 16 and 23, many 24 and 35; more lines make a finer grid.
 - Grid color: **Pink** · Cyan · Purple · Orange. The color of the glowing lines: pink, cyan, purple or orange.
 
@@ -369,9 +369,9 @@ Add a matrix rain background to [the section you want it behind]. Split a dark c
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Speed: Slow · **Normal** · Fast. How often the rain moves down a row: slow is about 18 times a second, normal 28 and fast about 46.
-- Characters: **Japanese** · Binary · Hexadecimal. Japanese katakana (the film's look), binary 0 and 1, or hexadecimal 0 to F.
+- Characters: **Japanese** · Binary · Hexadecimal. Japanese katakana with the digits 0 to 9 (the film's look), binary 0 and 1, or hexadecimal 0 to F.
 - Trail length: Short · **Medium** · Long. How long characters linger: short fades 12% a step, medium 7% and long 4%.
-- Character size: Small · **Medium** · Large. Small is 12px, medium 16px and large 22px; larger characters make fewer columns.
+- Character size: Small · **Medium** · Large. Small is 12px, medium 16px and large 22px; the columns are spaced one character size apart, at least 14px on phones, so larger characters make fewer columns.
 - Glowing leaders: **on** · off. A soft glow around each column's leading character.
 
 ## Plasma Field
@@ -389,8 +389,8 @@ Add a plasma background to [the section you want it behind]. For every point, ad
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast. How fast the field flows: slow is 0.6 times the base speed, normal 1 and fast 1.6.
-- Pattern size: Small · **Medium** · Large. How big the color shapes are: small packs more waves into the field, large makes broad, soft blobs.
+- Speed: Slow · **Normal** · Fast. How fast the field flows: slow is 0.6 times the base speed, normal 1 and fast 1.6; at normal each of the four waves rises and falls at any one spot every 5 to 9 seconds.
+- Pattern size: Small · **Medium** · Large. How big the color shapes are: small packs more waves into the field, large makes broad, soft blobs; at medium detail one full wave spans about 31% of the width at small, 50% at medium and 83% at large.
 - Colors: **Neon** · Sunset · Ocean · Rose. The palette: neon, sunset, ocean or rose.
 - Detail: Low · **Medium** · High. How wide the small picture is before it is scaled up: low is 96 pixels, medium 140 and high 200; phones use at most 140.
 
@@ -429,9 +429,9 @@ Add falling snow or rain to [the dark section you want it over]. Lay a see-throu
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Weather: **Snow** · Rain. Snow drifts down slowly and sways; rain falls more than ten times as fast, drawn as streaks.
+- Weather: **Snow** · Rain. Snow drifts down slowly, about 30 to 80px a second from far to near, and sways 4 to 13px to each side; rain falls more than ten times as fast, about 540 to 1,080px a second, drawn as streaks 11 to 22px long.
 - Amount: Light · **Medium** · Heavy. How many particles per 100,000 square pixels: light, medium and heavy are 28, 62 and 125 flakes, or 35, 80 and 170 drops; phones draw 80% of that.
-- Wind: None · **Gentle** · Strong. None, gentle or strong: the wind carries snow sideways and tilts the rain, near particles more than far ones.
+- Wind: None · **Gentle** · Strong. None, gentle or strong: the wind carries snow sideways and tilts the rain, near particles more than far ones; gentle slants the snow's path about 30° from straight down and the rain about 8°, strong about 55° and 20°.
 - Depth: **on** · off. Three layers in which near flakes and drops are bigger, brighter and faster than far ones; off, every particle is the size and speed of the middle layer.
 
 ## Fireworks
@@ -449,7 +449,7 @@ Add fireworks to [the dark section you want them over]. On a see-through canvas 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- How often: Rarely · **Sometimes** · Often. The time between launches, on average: rarely about 2.2 seconds, sometimes 1.2 and often half a second.
+- How often: Rarely · **Sometimes** · Often. The time between launches, on average: rarely about 2.2 seconds, sometimes 1.2 and often half a second, each gap a random half to one and a half times that.
 - Colors: **Many colors** · Gold · Blue. Each burst picks one color: from eight hues, from three golds, or from blues and violets.
 - Trails: None · Short · **Long**. How much of the picture each 60th of a second's cover takes away: none 100%, short 30% and long 13%.
 - Burst shape: **Round** · Ring · Willow. A ball of sparks, a ring of sparks that all fly at nearly the same speed, or a willow whose sparks droop like branches.
@@ -469,8 +469,8 @@ Add a topographic lines background to [the section you want it behind]. Build a 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Line spacing: Tight · **Medium** · Wide. How much the height changes between two lines: tight puts about 1.7 times as many lines on the same ground, wide about 0.6 times.
-- Speed: Slow · **Normal** · Fast. How fast the hills swell and drift: slow is half the normal pace and fast twice it; at normal the broad hills slide about 7px a second.
+- Line spacing: Tight · **Medium** · Wide. How much the height changes between two lines: tight puts about 1.7 times as many lines on the same ground, wide about 0.6 times; with medium hills the lines are on average about 8px apart at tight, 14px at medium and 22px at wide.
+- Speed: Slow · **Normal** · Fast. How fast the hills swell and drift: slow is half the normal pace and fast twice it; at normal the broad hills slide about 7px a second with medium hills, 4px with small and 12px with large.
 - Color: **Sand** · Mint · Sky blue · White. Sand, mint, sky blue or white lines on a dark ground.
 - Hill size: Small · **Medium** · Large. How wide one hill is: about 130px (small), 220px (medium) or 360px (large).
 - Bold every fifth line: **on** · off. Every fifth line is drawn thicker and brighter, like the index contours of a printed map.
@@ -491,7 +491,7 @@ Add soft light rays to [the dark section you want them in]. From one point just 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Light color: **Warm** · Cool. Warm late sunshine over a brown-black room, or cool moonlight over a blue-black one.
-- Speed: Slow · **Normal** · Fast. How fast the beams sway and the dust drifts: slow is half the normal pace and fast twice it; at normal a beam sways back and forth every 12 to 22 seconds.
+- Speed: Slow · **Normal** · Fast. How fast the beams sway and the dust drifts: slow is half the normal pace and fast twice it; at normal a beam sways back and forth every 12 to 22 seconds and a speck of dust rises 2 to 7px a second.
 - Floating dust: **on** · off. Specks of dust drift slowly upward and glint where a beam crosses them; phones show 40, other screens 80.
 - Number of rays: Few · **Some** · Many. Few is 5 beams, some 8 and many 12; more beams overlap into a fuller, brighter light.
 - Light comes from: **Top left** · Top · Top right. Where the beams start: just above the top left corner, the middle of the top edge or the top right corner.
