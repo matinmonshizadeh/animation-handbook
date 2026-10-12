@@ -96,10 +96,17 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it again from
    the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 7. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the
-   last commit to its folder (today for a folder with changes not yet committed). Then run the
-   tests and the page check (see [Tests and the page check](#tests-and-the-page-check)) on the
-   new page and on every page you edited. Run the home page check (`home`) too: the new card's
-   Copy prompt is compared there.
+   last commit to its folder (today for a folder with changes not yet committed). Run
+   `node tools/make-skill.mjs` too: it writes every page's prompt and settings into the AI skill
+   (`skills/animation-handbook/`) and every card into `llms.txt`. Then run the tests and the
+   page check (see [Tests and the page check](#tests-and-the-page-check)) on the new page and on
+   every page you edited. Run the home page check (`home`) too: the new card's Copy prompt is
+   compared there.
+
+Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind,
+prompt, settings or Good for and Avoid on tags, or a card's name, places or order in `CATS`)
+also means running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`)
+fails until then.
 
 ## The demo page
 
