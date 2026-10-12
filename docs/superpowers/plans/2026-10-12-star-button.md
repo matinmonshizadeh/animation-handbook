@@ -17,7 +17,7 @@ Spec: `docs/superpowers/specs/2026-10-12-star-button-design.md`.
 ## Global Constraints
 
 - No build step, no frameworks, no npm packages. Do not edit anything under `.claude/worktrees/` (old copies of the site).
-- Work on the branch `feat/star-button` in the main checkout (`C:\Users\matin\OneDrive\Desktop\Projects\animation-handbook`). Never push.
+- Work on the branch `feat/star-button` in the main checkout. Never push.
 - Commits: plain sentence messages in the repo's style (`feat: …`, `docs: …`), no Co-Authored-By or other trailers.
 - Files in this checkout have CRLF line endings (`core.autocrlf=true`). Scripts keep each file's own line endings.
 - `demo-page.css` changes, so `demo-page.css?v=7` and `demo-page.js?v=7` become `?v=8` on all 166 pages, and the home
@@ -37,7 +37,7 @@ Spec: `docs/superpowers/specs/2026-10-12-star-button-design.md`.
 
 ### Task 1: Star link and star row on every animation page
 
-> Changed after the task review (owner's choice, 2026-10-12): below 1061px the Star link is a round star with no words, and its `hb-star-more` span is gone. The steps below are as they were first run; the spec holds the change.
+> Changed after the task review (owner's choice, 2026-10-12): below 1061px the Star link is a round star with no words, and its `hb-star-more` span is gone; after the final review, below 820px it is left out of the top bar (the `max-width:819px` block, not the phone block, hides it). The steps below are as they were first run; the spec holds the change.
 
 **Files:**
 - Modify: `assets/css/demo-page.css` (top bar rules near line 39, prompt step rules near line 156, the hover block at
@@ -279,6 +279,8 @@ deleted); the commit succeeds.
 ---
 
 ### Task 2: Round star on the home page for phones
+
+> Run in a worktree of its own (branch `feat/star-home`, merged into `feat/star-button`): its test went at the end of `tests/pages.test.js`, not after Task 1's tests, whose titles changed in Task 1's fix round. After the final review the test also pins how the round star fits (44px wide, the word hidden from sight, the count gone).
 
 **Files:**
 - Modify: `index.html` (the GitHub button's markup near line 1449; the phone rule near line 273; the rule near line 324)

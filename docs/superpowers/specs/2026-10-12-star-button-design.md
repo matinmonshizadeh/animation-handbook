@@ -13,13 +13,15 @@ A pill at the right end of `nav.hb-bar`, after `span.hb-pager`, the same on ever
 ```
 
 - `demo-page.css`: the pager gets `margin-left:auto`, so the pager and the pill sit together at the right. The pill has a
-  1px `--hb-edge` border, fully round corners, 14px side padding and `--hb-soft` text; on hover (`@media(hover:hover)`)
-  the border turns `--hb-edge-2` and the text `--hb-ink`. It keeps the bar's 44px link height.
-- Computers (from 1061px) read "Star on GitHub". From 601px to 1060px (tablets, phones held sideways, small laptop
-  windows) it is a round 44px star with no words, like the home page's on phones, so the page names keep their room;
-  its `aria-label` still names it. Phones (600px and less) hide it: B covers them. (Changed after the task review: the
-  word "Star" alone still cut page names on tablets, and the full label cut them at 1025–1060px; the owner chose the
-  round star.)
+  1px `--hb-edge` border, fully round corners, 14px side padding (none on the round star) and `--hb-soft` text; on hover
+  (`@media(hover:hover)`) the border turns `--hb-edge-2` and the text `--hb-ink`. It keeps the bar's 44px link height.
+- Computers (from 1061px) read "Star on GitHub". From 820px to 1060px (tablets, larger phones held sideways, small
+  laptop windows) it is a round 44px star with no words, like the home page's on phones; its `aria-label` still names
+  it. Below 820px (phones, small tablets in portrait, narrow windows) the top bar leaves it out, so the page names keep
+  their room: B covers those screens. (Changed after the task review: the word "Star" alone still cut page names on
+  tablets, and the full label cut them at 1025–1060px, so the owner chose the round star. Changed again after the final
+  review: from 601px to 819px even the round star cut page names on up to 60 of the 166 pages, so the owner moved the
+  cut-off from 601px to 820px.)
 - The star is the same outline star as the home page's GitHub button.
 
 ## B · Under Copy prompt on every animation page
