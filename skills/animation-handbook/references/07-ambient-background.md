@@ -1,6 +1,6 @@
 # 07 · Ambient & Background
 
-Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 23 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings.
+Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 23 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -41,16 +41,12 @@ Colors slowly drift across a soft gradient background. Best for hero sections.
 
 Add an animated gradient background to [the section you want behind your content]. Paint a soft gradient much larger than the section and slowly slide it back and forth, or turn all its colors around the color wheel, so the colors keep shifting behind the content. End the gradient on the color it starts with, so the loop never shows a seam. A long, slow cycle feels calm; a fast one pulls attention away from the content. If the visitor has reduced motion turned on, show the gradient still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Gradient: **Sliding** · Color wheel · Bright bands
-- Speed: Slow · **Normal** · Fast
-- Colors: **Cool** · Sunset · Ocean · Gray
-- Muted colors: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Gradient: Sliding, Speed: Normal, Colors: Cool, Muted colors: off.
+- Gradient: **Sliding** · Color wheel · Bright bands. Sliding moves a large, soft gradient back and forth; Color wheel turns every color around the color wheel; Bright bands slides brighter colors between dark ends, one and a half times as slowly.
+- Speed: Slow · **Normal** · Fast. How long one cycle takes: slow is 32s, normal 20s and fast 12s; under 8s it becomes distracting.
+- Colors: **Cool** · Sunset · Ocean · Gray. The colors the gradient moves through: cool blues and purples, sunset oranges, ocean blues and greens, or grays.
+- Muted colors: on · **off**. Takes most of the color out (30% saturation) for a quieter background.
 
 ## Mesh Gradient Animation
 
@@ -65,17 +61,13 @@ Blurred blobs of color drift and melt together. Best for landing pages.
 
 Add a mesh gradient background to [the section you want behind your content]. Place a few large circles of color behind the content and blur them, so their edges soften and the colors run into one another. Let each circle drift and grow or shrink slowly on its own path, so the colors keep blending in new ways, and clip them to the section so they never spill out. Blur is costly on phones, so blur less on small screens. If the visitor has reduced motion turned on, keep the circles still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Blur: Light · **Medium** · Heavy
-- Speed: Slow · **Normal** · Fast
-- Colors: **Cool** · Warm · Sunset · Synthwave · Earth
-- Number of blobs: 3 · **4** · 5
-- Blend: **Plain** · Lighter · Deeper
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Blur: Medium, Speed: Normal, Colors: Cool, Number of blobs: 4, Blend: Plain.
+- Blur: Light · **Medium** · Heavy. How much the blobs are blurred: light is 50px, medium 80px and heavy 130px; below about 80px the circles show, above it they become a wash. Phones use half.
+- Speed: Slow · **Normal** · Fast. How long a blob takes to drift one way: slow is 64s, normal 40s and fast 24s, and each blob takes 0.8 to 1.2 times that.
+- Colors: **Cool** · Warm · Sunset · Synthwave · Earth. The blob colors: cool, warm, sunset, synthwave or earth tones.
+- Number of blobs: 3 · **4** · 5. Three, four or five blobs; more make a richer mix.
+- Blend: **Plain** · Lighter · Deeper. How overlapping blobs mix: plain stacks them (normal blending), lighter brightens the overlap (screen), deeper darkens it and deepens the colors (overlay).
 
 ## Aurora / Northern Lights
 
@@ -90,17 +82,13 @@ Blurred bands of light sway like the northern lights. Best for dark backgrounds.
 
 Add an aurora background to [the dark section you want it behind]. Stack a few tall, wide bands of color that fade to transparent at the top and bottom, blur them softly, and let each one sway sideways and lean a little on its own slow cycle, so they drift apart and together like curtains of light. Make the bands wider than the section and clip them, so their ends never show. Blur less on phones to keep it smooth. If the visitor has reduced motion turned on, keep the bands still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Number of bands: **2** · 3 · 4 · 5
-- Speed: Slow · **Normal** · Fast
-- Colors: **Green** · Purple · Red
-- Brightness: Dim · **Medium** · Bright
-- Stars in the sky: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Number of bands: 2, Speed: Normal, Colors: Green, Brightness: Medium, Stars in the sky: off.
+- Number of bands: **2** · 3 · 4 · 5. How many bands of light: two look clear, five make a richer, layered sky.
+- Speed: Slow · **Normal** · Fast. How long each band takes to sway through its cycle: slow is 48s, normal 30s and fast 18s.
+- Colors: **Green** · Purple · Red. Which colors come first: green and blue (the most common aurora), purple and pink, or red and pink (rare); more bands add the other colors.
+- Brightness: Dim · **Medium** · Bright. How strongly the bands glow: dim is 50%, medium 75% and bright 100%.
+- Stars in the sky: on · **off**. Adds 120 twinkling stars behind the bands.
 
 ## Grain / Film Noise Overlay
 
@@ -115,18 +103,14 @@ Fine grain flickers over the page, like old film. Best for editorial sites.
 
 Add a film grain overlay to [the section or page you want to texture]. Cover it with a see-through layer of random light and dark dots, and draw a new set of dots again and again so the grain flickers like old film; grain works best when it is felt more than seen. Blend the layer into the picture beneath it instead of laying gray on top, and let clicks pass through it. Redraw less often on phones, where drawing every dot is the costly part. If the visitor has reduced motion turned on, show the grain still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Strength: Faint · **Light** · Strong
-- Grain size: Fine · **Medium** · Coarse
-- How often it changes: Every frame · **Like film** · Choppy · Slow
-- Blend: **Film** · Lighter · Softer
-- Colored grain: on · **off**
-- Grain source: **Random dots** · Noise filter
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Strength: Light, Grain size: Medium, How often it changes: Like film, Blend: Film, Colored grain: off, Grain source: Random dots.
+- Strength: Faint · **Light** · Strong. How visible the grain is: faint is 4%, light 8% and strong 16%; 5–10% is felt more than seen, above 20% it looks like a damaged screen.
+- Grain size: Fine · **Medium** · Coarse. The size of each dot: fine is 1px, medium 2px and coarse 3px; coarse looks like old film stock.
+- How often it changes: Every frame · **Like film** · Choppy · Slow. New grain every frame (60 times a second), like film (24), choppy (12) or slow (4); phones change it at most 24 times a second.
+- Blend: **Film** · Lighter · Softer. How the grain mixes with the picture: film darkens dark areas and lightens light ones, like real grain (overlay blending); lighter only lightens (screen); softer is a gentler film (soft light).
+- Colored grain: on · **off**. Randomly colored dots instead of gray ones.
+- Grain source: **Random dots** · Noise filter. Dots drawn by a script, or the browser's own noise filter; grain size and colored grain apply to the dots only.
 
 ## Scanline Effect
 
@@ -141,19 +125,15 @@ Dark lines and a sweeping beam imitate an old TV screen. Best for retro sites.
 
 Add a scanline effect to [the screen, panel or section you want to look like an old monitor]. Lay thin, dark horizontal lines over the content with a repeating stripe pattern, in a layer that clicks pass through, so it looks like the rows of an old tube screen. When the settings include them, sweep a soft band of light slowly down the screen again and again, darken the corners like curved glass, and give the text a soft glow. Make sure the text stays readable through the lines. If the visitor has reduced motion turned on, keep the beam still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Line spacing: Tight · **Medium** · Wide
-- Line darkness: Light · **Medium** · Dark
-- Moving beam: **on** · off
-- Beam speed: Slow · **Normal** · Fast
-- Beam brightness: Faint · **Medium** · Bright
-- Dark corners: on · **off**
-- Glowing text: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Line spacing: Medium, Line darkness: Medium, Moving beam: on, Beam speed: Normal, Beam brightness: Medium, Dark corners: off, Glowing text: off.
+- Line spacing: Tight · **Medium** · Wide. The distance between lines: tight is 2px, medium 4px and wide 8px; 4px looks like a standard old screen.
+- Line darkness: Light · **Medium** · Dark. How dark the lines are: light is 8%, medium 15% and dark 30%; darker looks more retro but lowers contrast.
+- Moving beam: **on** · off. A soft band of light sweeps down the screen, again and again.
+- Beam speed: Slow · **Normal** · Fast. How long the beam takes to cross the screen: slow is 6.4s, normal 4s and fast 2.4s.
+- Beam brightness: Faint · **Medium** · Bright. How bright the beam is: faint is 6%, medium 12% and bright 24%; it should be felt more than seen.
+- Dark corners: on · **off**. A soft vignette darkens the corners, like the curved glass of an old screen.
+- Glowing text: on · **off**. A soft glow around the letters, like light spreading on an old screen.
 
 ## Light Leak
 
@@ -168,18 +148,14 @@ Warm light washes in from a corner at random times. Best for photo sites.
 
 Add a light leak effect to [the photo, video or section you want it over]. Place a soft glow of light, classically warm amber, spilling in from one corner or down the middle, in a see-through layer that clicks pass through, and fade it in and out every so often, like stray light reaching the film in an old camera. Make the gaps between leaks random and vary each leak's strength a little, because evenly timed leaks look fake. Keep each leak soft, so it never looks like a flash. If the visitor has reduced motion turned on, keep the glow still and faint. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Comes from: **Top left** · Top right · Bottom left · Bottom right · Down the middle
-- Time between leaks: Short · **Medium** · Long
-- Speed: Slow · **Normal** · Fast
-- Brightness: Dim · **Medium** · Bright
-- Color: **Amber** · Gold · Rose · Magenta · Cyan
-- Floating light spots: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Comes from: Top left, Time between leaks: Medium, Speed: Normal, Brightness: Medium, Color: Amber, Floating light spots: off.
+- Comes from: **Top left** · Top right · Bottom left · Bottom right · Down the middle. The corner the glow spills in from, or a band of light down the middle.
+- Time between leaks: Short · **Medium** · Long. The random dark gap between one leak and the next: short is 0.5–1.5s, medium 1–3s and long 3–8s.
+- Speed: Slow · **Normal** · Fast. How long each leak takes to fade in, and again to fade out: slow is 2s, normal 1.2s and fast 0.7s.
+- Brightness: Dim · **Medium** · Bright. How strong the glow gets: dim is 30%, medium 55% and bright 80%; each leak peaks a little below this, at random.
+- Color: **Amber** · Gold · Rose · Magenta · Cyan. Amber is the classic leak; gold, rose and magenta are warm too, and cyan looks like a cooler film stock.
+- Floating light spots: on · **off**. Soft spots of light drift up and fade after each leak.
 
 ## Starfield / Space Particles
 
@@ -194,18 +170,14 @@ Stars stream toward you out of the dark. Best for space themes.
 
 Add a starfield background to [the dark section you want it behind]. Draw many small stars on a canvas and move them out from the center, or sideways past the viewer, so it feels like flying through space. Tie each star's size, brightness and speed to its distance from the center: small, dim and slow near the middle, bigger, brighter and faster toward the edge, which is what creates the depth. A slow speed keeps it calm. Draw fewer stars on phones. If the visitor has reduced motion turned on, show the stars still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Direction: **Outward** · Sideways
-- Speed: Slow · **Normal** · Fast
-- Number of stars: Few · **Medium** · Many
-- Star color: **White** · Warm white · Many colors
-- Twinkling: **on** · off
-- Nebula haze: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Direction: Outward, Speed: Normal, Number of stars: Medium, Star color: White, Twinkling: on, Nebula haze: off.
+- Direction: **Outward** · Sideways. Outward streams the stars from the center; sideways drifts them past, the nearer ones faster.
+- Speed: Slow · **Normal** · Fast. How fast the stars move: slow is 0.25, normal 0.4 and fast 0.65, about the pixels a star covers in a 60th of a second out at the edge (16, 25 and 41 pixels a second), and about a third of that near the center; keep it slow for a calm background.
+- Number of stars: Few · **Medium** · Many. Few is 150, medium 300 and many 600; phones show at most 300.
+- Star color: **White** · Warm white · Many colors. White, a warm white, or a different pale color for each star.
+- Twinkling: **on** · off. Each star gently brightens and dims on its own rhythm.
+- Nebula haze: on · **off**. A faint purple and blue haze behind the stars adds depth.
 
 ## Breathing / Pulsing Glow
 
@@ -220,18 +192,14 @@ A soft glow slowly grows and shrinks, like calm breathing. Best for idle states.
 
 Add a breathing glow behind [the icon or element that should look alive but at rest]. Place a soft, round, blurred glow of color behind it, and make it slowly grow and brighten, then shrink and dim, over and over, easing gently at both ends like a calm breath. Four to six seconds a breath feels relaxed; much faster feels anxious. When the settings include it, let the element itself swell very slightly with the glow. If the visitor has reduced motion turned on, keep the glow still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- How much it grows: A little · **Medium** · A lot
-- Glow color: Pink · **Blue** · Purple · Green · Orange
-- Glow size: Small · **Medium** · Large
-- Second glow: on · **off**
-- Icon and title breathe too: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, How much it grows: Medium, Glow color: Blue, Glow size: Medium, Second glow: off, Icon and title breathe too: on.
+- Speed: Slow · **Normal** · Fast. How long one breath takes: slow is 8s, normal 5s and fast 3s; 4 to 6 seconds feels relaxed, 2 seconds anxious.
+- How much it grows: A little · **Medium** · A lot. How far the glow shrinks and grows: a little is 80% to 120% of its size, medium 60% to 150% and a lot 45% to 180%.
+- Glow color: Pink · **Blue** · Purple · Green · Orange. The color of the glow: pink, blue, purple, green or orange (white would hide the white title at the breath's peak).
+- Glow size: Small · **Medium** · Large. The glow's size before it grows: small is 180px, medium 260px and large 340px.
+- Second glow: on · **off**. A larger, fainter glow behind the first breathes the other way over a longer cycle, so the two never line up.
+- Icon and title breathe too: **on** · off. The icon and the title under it swell by 2% with each breath, too little to notice consciously.
 
 ## Ambient Ripple Effect
 
@@ -246,20 +214,16 @@ Rings spread from a few spots, like drops on a still pond. Best for hero areas.
 
 Add an ambient ripple background to [the section or status you want to feel alive]. Pick a few spots and let each one send out a ring every so often that grows from nothing and gets fainter as it spreads until it disappears, so several rings overlap like drops on a still pond. It runs by itself, never on clicks. When the settings ask for uneven timing, vary the gaps slightly, because perfectly regular rings feel like a clock. If the visitor has reduced motion turned on, show a few still rings. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Time between ripples: Short · **Medium** · Long
-- Ripple size: Small · **Medium** · Large
-- Number of sources: 1 · **3** · 5
-- Ring thickness: Thin · **Medium** · Thick
-- Ring color: Pink · White · **Blue** · Purple · Green · Orange
-- Uneven timing: **on** · off
-- Sources drift: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Time between ripples: Medium, Ripple size: Medium, Number of sources: 3, Ring thickness: Medium, Ring color: Blue, Uneven timing: on, Sources drift: off.
+- Speed: Slow · **Normal** · Fast. How long each ring takes to spread and fade: slow is 4s, normal 2.5s and fast 1.5s.
+- Time between ripples: Short · **Medium** · Long. How often each spot sends out a ring: short is every 1.8s, medium 3s and long 5s.
+- Ripple size: Small · **Medium** · Large. How far each ring spreads: small is 100px, medium 160px and large 250px; big rings look calmer with a slow speed.
+- Number of sources: 1 · **3** · 5. One spot feels focused; three spread across the stage; five feel like rain on water.
+- Ring thickness: Thin · **Medium** · Thick. The width of each ring: thin is 1px, medium 1.5px and thick 3px.
+- Ring color: Pink · White · **Blue** · Purple · Green · Orange. The color of the rings.
+- Uneven timing: **on** · off. Each gap is up to 40% longer or shorter, at random, so the rings never tick like a clock.
+- Sources drift: on · **off**. The spots slowly wander around the stage.
 
 ## Floating Elements
 
@@ -274,20 +238,16 @@ Small shapes drift slowly, each on its own path. Best for hero backgrounds.
 
 Add floating shapes to [the section you want a gentle moving background behind]. Scatter a handful of small, see-through circles, squares or rings, and move each one slowly around its own starting point on a smooth, looping path, giving every shape its own speed, distance and starting point so no two ever move in step. Keep them behind the content and let clicks pass through. When the settings include it, shapes slide away from the pointer, or from a finger on touch screens. If the visitor has reduced motion turned on, keep the shapes still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Number of shapes: Few · **Medium** · Many
-- Speed: Slow · **Normal** · Fast
-- How far they drift: Short · **Medium** · Long
-- Shapes: Circles · Squares · Rings · **Mixed**
-- Colors: **Cool** · Warm · Gray · Neon
-- Shapes turn: **on** · off
-- Fades in and out: **on** · off
-- Shapes avoid the pointer: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Number of shapes: Medium, Speed: Normal, How far they drift: Medium, Shapes: Mixed, Colors: Cool, Shapes turn: on, Fades in and out: on, Shapes avoid the pointer: off.
+- Number of shapes: Few · **Medium** · Many. Few is 5, medium 8 and many 14; 5 to 12 feels calm, more gets busy.
+- Speed: Slow · **Normal** · Fast. How fast the shapes drift: slow is 0.3, normal 0.5 and fast 0.8.
+- How far they drift: Short · **Medium** · Long. How far each shape wanders from its place: short is up to 30px, medium 50px and long 90px.
+- Shapes: Circles · Squares · Rings · **Mixed**. Circles, squares, rings or a mix.
+- Colors: **Cool** · Warm · Gray · Neon. Cool blues and purples, warm oranges and reds, grays, or bright neon.
+- Shapes turn: **on** · off. Each shape slowly spins at its own rate as it drifts.
+- Fades in and out: **on** · off. Each shape slowly brightens and dims, adding depth.
+- Shapes avoid the pointer: on · **off**. Shapes within 120px of the pointer, or of a finger, slide aside.
 
 ## Grid / Dot Pattern Parallax
 
@@ -302,18 +262,14 @@ A dot grid shifts gently against your pointer for depth. Best for tech sites.
 
 Add a dot grid parallax background to [the section you want a subtle sense of depth behind]. Tile a faint grid of dots or lines behind the content, a little larger than the section, and shift it slightly in the opposite direction to the pointer, so it seems to sit deeper than the content. Keep the shift to a few percent of the pointer's movement, so it is felt more than seen. On touch screens, let it follow a dragging finger the same way, and when nothing is over it, let it drift slowly by itself. If the visitor has reduced motion turned on, keep the grid still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Pattern: **Dots** · Lines · Dots and lines
-- Strength: Subtle · **Medium** · Strong
-- Spacing: Tight · **Medium** · Wide
-- Pattern color: Pink · White · **Blue** · Purple · Green · Orange
-- Second layer: on · **off**
-- Light under the pointer: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Pattern: Dots, Strength: Medium, Spacing: Medium, Pattern color: Blue, Second layer: off, Light under the pointer: on.
+- Pattern: **Dots** · Lines · Dots and lines. A grid of dots, of lines, or both.
+- Strength: Subtle · **Medium** · Strong. How far the grid shifts: subtle is 3% of the pointer's movement, medium 5% and strong 10%; under 10% it is felt more than seen.
+- Spacing: Tight · **Medium** · Wide. The distance between dots or lines: tight is 20px, medium 28px and wide 44px.
+- Pattern color: Pink · White · **Blue** · Purple · Green · Orange. The color of the dots and lines, shown at 25% so they stay faint.
+- Second layer: on · **off**. A sparser layer of larger dots shifts half as far, adding real depth between the two.
+- Light under the pointer: **on** · off. A faint round glow follows the pointer.
 
 ## Abstract Geometric Motion
 
@@ -328,17 +284,13 @@ Shapes turn, spread and flow in a calm, endless pattern. Best for music players.
 
 Add an abstract geometric animation to [the section or screen you want a calm moving background in]. Draw simple shapes on a canvas and keep them moving in an endless loop: polygons slowly turning around the center, rings spreading out and fading, slanted bars sliding across, or wavy lines with color flowing along them. Drive everything from one steadily growing time value, so the loop never restarts or jumps. Colors from one family keep it calm. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Pattern: **Polygons** · Rings · Bars · Lines
-- Speed: Slow · **Normal** · Fast
-- Number of shapes: Few · **Medium** · Many
-- Colors: **Cool** · Warm · Neon · Gray
-- Thicker lines: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Pattern: Polygons, Speed: Normal, Number of shapes: Medium, Colors: Cool, Thicker lines: off.
+- Pattern: **Polygons** · Rings · Bars · Lines. Turning polygons, rings spreading from the center, sliding bars, or wavy lines with flowing color.
+- Speed: Slow · **Normal** · Fast. How fast everything moves: slow is 0.35, normal 0.6 and fast 1; keep it below 1 behind content.
+- Number of shapes: Few · **Medium** · Many. How many polygons, bars or lines: few is 3, medium 6 and many 10 (the Lines pattern draws twice as many); on Rings it sets how many colors the rings use.
+- Colors: **Cool** · Warm · Neon · Gray. Cool blues, warm ambers, bright neon or grays.
+- Thicker lines: on · **off**. Draws the lines 1.5px wide instead of 0.8px, so the shapes stand out more.
 
 ## Particle Constellation
 
@@ -353,17 +305,13 @@ Drifting dots link up with lines whenever they come close. Best for tech sites.
 
 Add a particle constellation background to [the section you want it behind]. Scatter dots on a canvas, let each drift slowly in its own direction and bounce off the edges, and on every frame join any two dots that are close with a thin line that fades as they move apart, so a network keeps forming and breaking. When the settings include it, let the dots drift toward the pointer, or toward a finger on touch screens. Checking every pair of dots gets slow fast, so use fewer dots on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Number of dots: Few · **Medium** · Many
-- Link distance: Short · **Medium** · Long
-- Speed: Slow · **Normal** · Fast
-- Color: **Cyan** · Violet · Mint · Gray
-- Dots follow the pointer: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Number of dots: Medium, Link distance: Medium, Speed: Normal, Color: Cyan, Dots follow the pointer: on.
+- Number of dots: Few · **Medium** · Many. Few is 50, medium 90 and many 140; phones show at most 60, because every pair of dots is checked each frame.
+- Link distance: Short · **Medium** · Long. How close two dots must be to be linked: short is 90px, medium 130px and long 180px; too long and everything links to everything.
+- Speed: Slow · **Normal** · Fast. How fast the dots drift: slow is 0.35, normal 0.6 and fast 1; faster looks agitated.
+- Color: **Cyan** · Violet · Mint · Gray. The color of the dots and lines: cyan, violet, mint or gray.
+- Dots follow the pointer: **on** · off. Dots near the pointer, or a finger, drift toward it and gather there.
 
 ## Flow Field
 
@@ -378,17 +326,13 @@ Particles ride invisible currents, leaving fading trails. Best for art pages.
 
 Add a flow field background to [the section you want it behind]. Fill a canvas with many particles and give every point a direction that changes smoothly from spot to spot (smooth random noise does this). Each frame, move each particle a small step along the direction under it, scaled by the time since the last frame so it runs at the same speed on every screen. Instead of clearing the canvas, cover it with a see-through dark layer once for every 60th of a second that passes, so each particle leaves a fading trail. Let the directions change slowly over time, and use fewer particles on phones. If the visitor has reduced motion turned on, show one still frame of trails. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Swirl size: Small · **Medium** · Large
-- Trail length: Short · **Medium** · Long
-- Speed: Slow · **Normal** · Fast
-- Number of particles: Few · **Medium** · Many
-- Color: **Mint** · Ember · Ice · Rainbow
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Swirl size: Medium, Trail length: Medium, Speed: Normal, Number of particles: Medium, Color: Mint.
+- Swirl size: Small · **Medium** · Large. How large the currents are: the direction turns over about 20px (small), 34px (medium) or 60px (large); larger looks calm, smaller turbulent.
+- Trail length: Short · **Medium** · Long. How long trails linger: short fades 12% every 60th of a second, medium 6% and long 4%; below about 4% trails can leave faint marks that never fade.
+- Speed: Slow · **Normal** · Fast. How far each particle moves in a 60th of a second: slow is 0.6px, normal 1px and fast 1.6px (36, 60 and 96px a second).
+- Number of particles: Few · **Medium** · Many. Few is 400, medium 900 and many 1,500; phones show at most 500.
+- Color: **Mint** · Ember · Ice · Rainbow. Mint, ember or ice, or rainbow, where the color changes across the stage and over time.
 
 ## Synthwave Grid
 
@@ -403,15 +347,11 @@ A glowing grid rolls toward you under a striped sun. Best for music and games.
 
 Add a synthwave grid to [the section you want a retro scene in]. Draw a purple sky with a striped, glowing sun on the horizon and, below it, a glowing grid floor in perspective: lines that meet at one point on the horizon, crossed by lines that bunch up near the horizon and spread out toward the viewer. Move the cross lines steadily toward the viewer and wrap them around, fading each one in at the horizon, so the floor rolls forward forever with no visible jump. If the visitor has reduced motion turned on, show the scene still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Number of lines: Few · **Medium** · Many
-- Grid color: **Pink** · Cyan · Purple · Orange
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Number of lines: Medium, Grid color: Pink.
+- Speed: Slow · **Normal** · Fast. How fast the floor rolls toward the viewer: slow is 0.6, normal 1 and fast 1.6.
+- Number of lines: Few · **Medium** · Many. How many lines the floor has: few is 10 across and 15 toward the horizon, medium 16 and 23, many 24 and 35; more lines make a finer grid.
+- Grid color: **Pink** · Cyan · Purple · Orange. The color of the glowing lines: pink, cyan, purple or orange.
 
 ## Matrix Rain
 
@@ -426,17 +366,13 @@ Columns of glowing characters rain down a dark screen. Best for tech themes.
 
 Add a matrix rain background to [the section you want it behind]. Split a dark canvas into columns and, at a steady pace, draw a bright character at the head of each column and move it down one row, sending each column back to the top at random once it passes the bottom. Instead of clearing the canvas, cover it with a see-through black layer before each step, so older characters fade into a trail behind each bright leader. Space the columns wider on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Characters: **Japanese** · Binary · Hexadecimal
-- Trail length: Short · **Medium** · Long
-- Character size: Small · **Medium** · Large
-- Glowing leaders: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Characters: Japanese, Trail length: Medium, Character size: Medium, Glowing leaders: on.
+- Speed: Slow · **Normal** · Fast. How often the rain moves down a row: slow is about 18 times a second, normal 28 and fast about 46.
+- Characters: **Japanese** · Binary · Hexadecimal. Japanese katakana (the film's look), binary 0 and 1, or hexadecimal 0 to F.
+- Trail length: Short · **Medium** · Long. How long characters linger: short fades 12% a step, medium 7% and long 4%.
+- Character size: Small · **Medium** · Large. Small is 12px, medium 16px and large 22px; larger characters make fewer columns.
+- Glowing leaders: **on** · off. A soft glow around each column's leading character.
 
 ## Plasma Field
 
@@ -451,16 +387,12 @@ Smooth waves of color flow endlessly, made from math. Best for creative sites.
 
 Add a plasma background to [the section you want it behind]. For every point, add up a few waves based on its position and on time (across, down, diagonally and outward from the center) and use the sum to pick a color from a smooth palette, so the whole field flows like liquid color. To keep it fast, draw the field into a small image and scale it up smoothly to fill the section, using a smaller image on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Pattern size: Small · **Medium** · Large
-- Colors: **Neon** · Sunset · Ocean · Rose
-- Detail: Low · **Medium** · High
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Pattern size: Medium, Colors: Neon, Detail: Medium.
+- Speed: Slow · **Normal** · Fast. How fast the field flows: slow is 0.6 times the base speed, normal 1 and fast 1.6.
+- Pattern size: Small · **Medium** · Large. How big the color shapes are: small packs more waves into the field, large makes broad, soft blobs.
+- Colors: **Neon** · Sunset · Ocean · Rose. The palette: neon, sunset, ocean or rose.
+- Detail: Low · **Medium** · High. How wide the small picture is before it is scaled up: low is 96 pixels, medium 140 and high 200; phones use at most 140.
 
 ## Wave Layers
 
@@ -475,16 +407,12 @@ Layers of waves drift sideways, each at its own speed. Best for hero sections.
 
 Add layered waves to [the bottom of the section you want them in]. Stack a few strips of water, each one twice as wide as the section with the same wave shape repeated along its top edge: far strips sit higher, paler and with smaller waves, near strips lower, darker and with bigger ones. Slide every strip sideways by half its width, over and over, so the repeated shape hides the restart, and give near strips a quicker pace than far ones so the water feels deep. Move the strips only by shifting them, which keeps it smooth on phones. If the visitor has reduced motion turned on, keep the waves still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Colors: **Ocean** · Sunset · Night
-- Wave height: Low · **Medium** · High
-- Number of layers: 2 · 3 · **4**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Colors: Ocean, Wave height: Medium, Number of layers: 4.
+- Speed: Slow · **Normal** · Fast. The base cycle: slow is 40 seconds, normal 24 and fast 14; the layers take 1.7, 1.35, 1.1 and 0.9 times that, far to near, to slide one stage width.
+- Colors: **Ocean** · Sunset · Night. Ocean blues, Sunset pinks and purples under an orange glow, or Night indigo; far layers are the palest, near ones the darkest.
+- Wave height: Low · **Medium** · High. How tall the nearest waves are: low is 6%, medium 11% and high 17% of the stage's height; the farther layers get a half to four fifths of that.
+- Number of layers: 2 · 3 · **4**. Two, three or four layers; with fewer, the far layers go first and the near waves always stay.
 
 ## Snow / Rain
 
@@ -499,16 +427,12 @@ Snow drifts down, or rain falls in streaks, over a dark town. Best for seasonal 
 
 Add falling snow or rain to [the dark section you want it over]. Lay a see-through canvas over the section and draw small particles on it, moving each one down on every frame by the time that has passed, and start it again at the top once it leaves the bottom. Snowflakes fall slowly and sway from side to side; raindrops fall fast and are drawn as short streaks that lean with the wind. When depth is on, make near particles bigger, brighter and faster than far ones. Draw fewer particles on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Weather: **Snow** · Rain
-- Amount: Light · **Medium** · Heavy
-- Wind: None · **Gentle** · Strong
-- Depth: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Weather: Snow, Amount: Medium, Wind: Gentle, Depth: on.
+- Weather: **Snow** · Rain. Snow drifts down slowly and sways; rain falls more than ten times as fast, drawn as streaks.
+- Amount: Light · **Medium** · Heavy. How many particles per 100,000 square pixels: light, medium and heavy are 28, 62 and 125 flakes, or 35, 80 and 170 drops; phones draw 80% of that.
+- Wind: None · **Gentle** · Strong. None, gentle or strong: the wind carries snow sideways and tilts the rain, near particles more than far ones.
+- Depth: **on** · off. Three layers in which near flakes and drops are bigger, brighter and faster than far ones; off, every particle is the size and speed of the middle layer.
 
 ## Fireworks
 
@@ -523,16 +447,12 @@ Rockets rise and burst into glowing sparks that fall and fade. Best for celebrat
 
 Add fireworks to [the dark section you want them over]. On a see-through canvas laid over the section, launch a rocket from the bottom every so often; it slows as it climbs and, at the top of its climb, bursts into many sparks that fly out in all directions. Slow the sparks a little on every frame, pull them gently down and fade them out, so each burst blooms, droops and dies away. For trails, cover the canvas with a faint see-through layer instead of clearing it, the same number of times per second on every screen. Use fewer sparks on phones. If the visitor has reduced motion turned on, show a still picture of the bursts. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- How often: Rarely · **Sometimes** · Often
-- Colors: **Many colors** · Gold · Blue
-- Trails: None · Short · **Long**
-- Burst shape: **Round** · Ring · Willow
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: How often: Sometimes, Colors: Many colors, Trails: Long, Burst shape: Round.
+- How often: Rarely · **Sometimes** · Often. The time between launches, on average: rarely about 2.2 seconds, sometimes 1.2 and often half a second.
+- Colors: **Many colors** · Gold · Blue. Each burst picks one color: from eight hues, from three golds, or from blues and violets.
+- Trails: None · Short · **Long**. How much of the picture each 60th of a second's cover takes away: none 100%, short 30% and long 13%.
+- Burst shape: **Round** · Ring · Willow. A ball of sparks, a ring of sparks that all fly at nearly the same speed, or a willow whose sparks droop like branches.
 
 ## Topographic Lines
 
@@ -547,17 +467,13 @@ Lines like those on a hiking map slowly bend and drift. Best for outdoor brands.
 
 Add a topographic lines background to [the section you want it behind]. Build a smooth, hilly height map from layered noise and draw its contour lines on a canvas: sample the height on a grid, and in each grid square join the points where the height crosses each level, so every line follows one height, as on a hiking map. Make every fifth line bolder when the settings include it. Shift the noise slowly by elapsed time so the hills swell, shrink and drift, and redraw each frame. Sample a coarser grid on phones. If the visitor has reduced motion turned on, show the lines still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Line spacing: Tight · **Medium** · Wide
-- Speed: Slow · **Normal** · Fast
-- Color: **Sand** · Mint · Sky blue · White
-- Hill size: Small · **Medium** · Large
-- Bold every fifth line: **on** · off
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Line spacing: Medium, Speed: Normal, Color: Sand, Hill size: Medium, Bold every fifth line: on.
+- Line spacing: Tight · **Medium** · Wide. How much the height changes between two lines: tight puts about 1.7 times as many lines on the same ground, wide about 0.6 times.
+- Speed: Slow · **Normal** · Fast. How fast the hills swell and drift: slow is half the normal pace and fast twice it; at normal the broad hills slide about 7px a second.
+- Color: **Sand** · Mint · Sky blue · White. Sand, mint, sky blue or white lines on a dark ground.
+- Hill size: Small · **Medium** · Large. How wide one hill is: about 130px (small), 220px (medium) or 360px (large).
+- Bold every fifth line: **on** · off. Every fifth line is drawn thicker and brighter, like the index contours of a printed map.
 
 ## Light Rays
 
@@ -572,17 +488,13 @@ Soft beams of light fall from above and slowly sweep across. Best for hero intro
 
 Add soft light rays to [the dark section you want them in]. From one point just above the top edge, draw a fan of long, narrow beams on a canvas, made soft by gradients rather than blur filters: clear at the edges, brightest near the source and fading out farther away. Let each beam sway and brighten and dim on its own slow cycle, paced by elapsed time, so the light seems to sweep across the scene, and add overlapping beams together. When the settings include dust, float tiny specks that glint only where a beam crosses them, with fewer specks on phones. Keep the content above the light. If the visitor has reduced motion turned on, show the rays still. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Light color: **Warm** · Cool
-- Speed: Slow · **Normal** · Fast
-- Floating dust: **on** · off
-- Number of rays: Few · **Some** · Many
-- Light comes from: **Top left** · Top · Top right
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Light color: Warm, Speed: Normal, Floating dust: on, Number of rays: Some, Light comes from: Top left.
+- Light color: **Warm** · Cool. Warm late sunshine over a brown-black room, or cool moonlight over a blue-black one.
+- Speed: Slow · **Normal** · Fast. How fast the beams sway and the dust drifts: slow is half the normal pace and fast twice it; at normal a beam sways back and forth every 12 to 22 seconds.
+- Floating dust: **on** · off. Specks of dust drift slowly upward and glint where a beam crosses them; phones show 40, other screens 80.
+- Number of rays: Few · **Some** · Many. Few is 5 beams, some 8 and many 12; more beams overlap into a fuller, brighter light.
+- Light comes from: **Top left** · Top · Top right. Where the beams start: just above the top left corner, the middle of the top edge or the top right corner.
 
 ## Game of Life
 
@@ -597,15 +509,11 @@ Cells live and die by their neighbors, and patterns grow. Best for tech sites.
 
 Add a Game of Life background to [the section you want it behind]. Split a canvas into a grid of square cells, each alive or dead, and at a steady pace work out the next generation from each cell's eight neighbors: a dead cell with exactly three live neighbors is born, a live cell with two or three stays alive, and every other cell dies. Time the generations by elapsed time, not by frames, and when the settings include trails, let dying cells fade out. Let the visitor click, drag or touch to draw cells, and start again when the world settles. Keep the cells from getting too small on phones. If the visitor has reduced motion turned on, show one still frame. Match the settings listed below.
 
-**Settings** (the defaults in bold):
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Speed: Slow · **Normal** · Fast
-- Cell size: Small · **Medium** · Large
-- Start pattern: **Random** · Glider gun · Acorn
-- Color: **Mint** · Amber · Sky blue · Pink
-- Fading trails: **on** · off
-- Grid lines: on · **off**
-
-Copied from the site with the defaults, the prompt ends with this line:
-
-Settings from the demo: Speed: Normal, Cell size: Medium, Start pattern: Random, Color: Mint, Fading trails: on, Grid lines: off.
+- Speed: Slow · **Normal** · Fast. How many generations pass each second: slow is 4, normal 10 and fast 20.
+- Cell size: Small · **Medium** · Large. Small cells are 6px, medium 9px and large 14px; phones draw small cells 8px wide, so the world has fewer cells to work out and draw.
+- Start pattern: **Random** · Glider gun · Acorn. Random fills about 30% of the cells; the glider gun (Gosper's) fires a glider every 30 generations; the acorn is seven cells that grow for over 5,000 generations on an open grid.
+- Color: **Mint** · Amber · Sky blue · Pink. Mint, amber, sky blue or pink cells.
+- Fading trails: **on** · off. A cell that dies fades out over about half a second instead of vanishing at once.
+- Grid lines: on · **off**. Faint lines show the squares the cells live in.

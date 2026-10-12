@@ -1,5 +1,6 @@
-// Checks the AI skill (skills/animation-handbook/) and llms.txt, which tools/make-skill.mjs writes from the pages and the
-// home page's cards, and the Claude Code plugin marketplace that installs the skill (.claude-plugin/marketplace.json).
+// Checks the AI skill (skills/animation-handbook/) and llms.txt, which tools/make-skill.mjs writes from the pages, their
+// READMEs and the home page's cards, and the Claude Code plugin marketplace that installs the skill
+// (.claude-plugin/marketplace.json).
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,6 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const vm = require('node:vm');
+const { sections, table } = require('./helpers/markdown.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -57,29 +59,37 @@ function homeConst(name) {
   return vm.runInNewContext('(' + HOME.slice(from, blockEnd(from) + 1) + ')');
 }
 
-// The settings of a page as { label, chosen }: the name of each setting in Try it (the p or label with class
-// hb-setting-name, or the words beside a switch), or the label its control sets with data-hb-label, and the choice it
-// starts with where it has one: the name of its button marked aria-pressed="true" (its aria-label, else its words), or on
-// or off for a switch, by whether it is checked. A setting marked data-hb-skip only compares the demo with something else
-// and is never copied, so it is left out; one marked hidden shows (and is copied) with some choices of another setting,
-// so it counts.
+// The settings of a page as { label, name, chosen }: the name of each setting in Try it (the p or label with class
+// hb-setting-name, or the words beside a switch), which also names its row in the README's Key parameters; the label the
+// page copies, which is that name or the one its control sets with data-hb-label; and the choice it starts with where it
+// has one: the name of its button marked aria-pressed="true" (its aria-label, else its words), or on or off for a switch,
+// by whether it is checked. A setting marked data-hb-skip only compares the demo with something else and is never copied,
+// so it is left out; one marked hidden shows (and is copied) with some choices of another setting, so it counts.
 function settingsOf(html) {
   const tryIt = between(html, '<section class="hb-step hb-try"', '<section class="hb-step hb-prompt-step"');
   const words = s => decode(s.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim();
   return tryIt.split('<div class="hb-setting"').slice(1)
     .filter(part => !/^[^>]*\sdata-hb-skip(?=[\s=>])/.test(part))
     .flatMap(part => {
-      const own = part.match(/\sdata-hb-label="([^"]+)"/);
-      const labels = own ? [decode(own[1])] : [...part.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
+      const names = [...part.matchAll(/<(p|label) class="hb-setting-name"[^>]*>([^<]*)<\/\1>|<label class="hb-switch-row"><span>([^<]*)<\/span>/g)]
         .map(m => decode((m[2] ?? m[3]).trim()));
+      const own = part.match(/\sdata-hb-label="([^"]+)"/);
       const group = part.match(/<div\b(?=[^>]*\sclass="(?:[^"]*\s)?(?:seg|swatches)(?:\s[^"]*)?")[^>]*>([\s\S]*?)<\/div>/);
       const pressed = group && [...group[1].matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)].find(b => /\saria-pressed="true"/.test(b[1]));
       const toggle = part.match(/<input\b[^>]*\stype="checkbox"[^>]*>/);
       const chosen = pressed ? decode((pressed[1].match(/\saria-label="([^"]*)"/) || [])[1] || '') || words(pressed[2])
         : toggle ? (/\schecked(?=[\s>])/.test(toggle[0]) ? 'on' : 'off') : undefined;
-      return labels.map(label => ({ label, chosen }));
+      return (own ? [decode(own[1])] : names).map((label, i) => ({ label, name: names[i], chosen }));
     });
 }
+
+// The rows of a page's README Key parameters table as { name, start, effect } (name | default | effect), read with the
+// helpers pages.test.js uses, with the white space in each cell squeezed.
+const keyParametersOf = d => table(sections(read(path.join(path.dirname(d.file), 'README.md')))['Key parameters'])
+  .map(cells => cells.map(c => c.replace(/\s+/g, ' ')))
+  .map(([name = '', start = '', effect = '']) => ({ name, start, effect }));
+// A Key parameters cell as the skill ends a line with it: its end punctuation dropped, since the line ends with one period.
+const clause = s => s.replace(/[\s.,;:]+$/, '');
 
 // The anchors GitHub gives the headings of a file, in order: each heading lowercased, every character but letters, digits,
 // spaces, "-" and "_" dropped and each space made a "-", with -1, -2… added to one already used in the file.
@@ -127,7 +137,7 @@ test('SKILL.md has only a name, a description and a license, and a short body th
   for (const file of files) assert.ok(parts[2].includes(`](references/${file})`), `SKILL.md links references/${file}`);
 });
 
-test('every page has one entry in its category file and one line in the catalog, holding its prompt and every setting with its default', () => {
+test('every page has one entry in its category file and one line in the catalog, holding its prompt and every setting with its default and what it does', () => {
   assert.ok(pages.length > 0, 'there are guided-steps pages');
   const catalog = read(path.join(REFS, 'catalog.md'));
   const problems = [];
@@ -142,16 +152,27 @@ test('every page has one entry in its category file and one line in the catalog,
     const html = read(d.file);
     const prompt = decode(html.match(/<p class="hb-prompt">([^<]*)<\/p>/)[1]).replace(/\s+/g, ' ').trim();
     if (!entries[0].includes(`\n${prompt}\n`)) problems.push(`${where}: its entry does not hold the page's prompt word for word`);
-    for (const { label, chosen } of settingsOf(html)) {
-      const line = entries[0].split('\n').find(l => l.startsWith(`- ${label}: `));
+    const params = keyParametersOf(d), entryLines = entries[0].split('\n');
+    for (const { label, name, chosen } of settingsOf(html)) {
+      const line = entryLines.find(l => l.startsWith(`- ${label}: `));
       if (!line) { problems.push(`${where}: its entry has no line for the setting "${label}"`); continue; }
+      // The line says what the setting does: the effect in the README's Key parameters row named like the setting on the page.
+      const row = params.find(p => p.name === name);
+      if (!row) problems.push(`${where}: the setting "${name}" has no row in its README's Key parameters`);
+      else if (!line.includes(clause(row.effect))) problems.push(`${where}: the line for "${label}" does not hold its README Key parameters effect: ${line}`);
       if (chosen === undefined) continue; // a text field starts with its text, not a choice
       // The one choice in bold is the one the page starts with (a name holding "·" is quoted).
       const bold = `**${chosen.includes('·') ? `"${chosen}"` : chosen}**`;
       if (!line.includes(bold) || line.split('**').length !== 3) problems.push(`${where}: "${label}" does not show ${bold} as its only default: ${line}`);
     }
+    // A page without Try it lists the demo's own values instead: every Key parameters row, with its default and effect.
+    if (!html.includes('<section class="hb-step hb-try"')) {
+      for (const p of params) {
+        if (!entryLines.some(l => l.startsWith(`- ${p.name}: ${clause(p.start)}. `) && l.includes(clause(p.effect)))) problems.push(`${where}: its entry has no line for the Key parameter "${p.name}" with its default and effect`);
+      }
+    }
   }
-  assert.deepEqual(problems, [], `run ${TOOL} after changing a page`);
+  assert.deepEqual(problems, [], `run ${TOOL} after changing a page or its README's Key parameters`);
 });
 
 test('llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files', () => {

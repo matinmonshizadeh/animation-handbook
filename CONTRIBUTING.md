@@ -104,9 +104,9 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    compared there.
 
 Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind,
-prompt, settings or Good for and Avoid on tags, or a card's name, places or order in `CATS`)
-also means running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`)
-fails until then.
+prompt, settings or Good for and Avoid on tags, a README's Key parameters, or a card's name,
+places or order in `CATS`) also means running `node tools/make-skill.mjs` again: the skill test
+(`tests/skill.test.js`) fails until then.
 
 ## The demo page
 

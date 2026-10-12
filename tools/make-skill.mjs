@@ -1,24 +1,26 @@
 #!/usr/bin/env node
-// Writes the AI skill and llms.txt from the pages and the home page's cards: a development tool, not part of the site.
+// Writes the AI skill and llms.txt from the pages, their READMEs and the home page's cards: a development tool, not part
+// of the site.
 // Run it from the repo root after adding a page, and after changing any page's prompt, settings, description or Good for
-// and Avoid on tags (tests/skill.test.js fails until then).
+// and Avoid on tags, or a README's Key parameters (tests/skill.test.js fails until then).
 // Usage: node tools/make-skill.mjs
 //   It reads CATS, PLACES and PLACE_LIST from the script of index.html (the categories and cards in the home page's order,
 //   each card's places and the places' names) and every card's page, animations/<category>/<slug>/index.html: its <h1>, its
 //   one-line description, its kind, its prompt (the words on the page, entities decoded and white space squeezed), its
-//   Good for and Avoid on tags and its Try it settings. The settings are read by the page script's own readSettings and
-//   pageCopyText (assets/js/demo-page.js), run on a small stand-in for the browser's DOM built from the page's prompt and
-//   Try it step, the way the home page reads a page for its cards' Copy prompt: the same controls in the same order, the
-//   same labels and values, and the same "Settings from the demo: …" line the page copies with its defaults. A setting
-//   the page shows only for some choices of another one (marked hidden) is listed too, with a note, but is not in that
-//   line, as on the page.
+//   Good for and Avoid on tags and its Try it settings. The settings are read by the page script's own readSettings
+//   (assets/js/demo-page.js), run on a small stand-in for the browser's DOM built from the page's prompt and Try it step,
+//   the way the home page reads a page for its cards' Copy prompt: the same controls in the same order, with the same
+//   labels and values. A setting the page shows only for some choices of another one (marked hidden) is listed too, with
+//   a note. From the page's README.md it reads the Key parameters table (name | default | effect): each setting's line
+//   ends with the effect of the row named like the setting on the page, and a page without settings lists every row, the
+//   demo's own values.
 //   It writes skills/animation-handbook/SKILL.md, skills/animation-handbook/references/catalog.md, one
 //   skills/animation-handbook/references/<category folder>.md per category, and llms.txt at the root. Each is written with
 //   LF line endings, and only when its text changed; it prints every file with its size. Running it twice changes
 //   nothing. buildSkill(root), exported for the test, returns the same files as { 'path from the root': 'text' } and
 //   writes nothing.
-// Exit code 1 when a card has no page, a page lacks a part the skill needs, or the skill folder holds a file this tool
-// does not write.
+// Exit code 1 when a card has no page, a page lacks a part the skill needs, a setting has no row in its README's Key
+// parameters, or the skill folder holds a file this tool does not write.
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
@@ -35,6 +37,8 @@ const NO_STYLE = { getComputedStyle: () => ({ display: '' }) };
 const PHONE = { getComputedStyle: () => ({ display: '' }), matchMedia: () => ({ matches: true }) };
 
 const squeeze = s => s.replace(/\s+/g, ' ').trim();
+// A Key parameters cell as a line ends it: its end punctuation dropped, so the line can end with exactly one period.
+const clause = s => s.replace(/[\s.,;:]+$/, '');
 const lineCount = text => text.split('\n').length - 1;
 const wordCount = text => text.split(/\s+/).filter(Boolean).length;
 
@@ -167,9 +171,40 @@ function anchor(heading, seen) {
   return n ? `${slug}-${n}` : slug;
 }
 
-// One page as the skill tells it: { title, lede, kind, prompt, good, avoid, settings, line } where settings holds one
-// { label, text } per setting in Try it (but one marked data-hb-skip, which the page never copies), and line is what
-// Copy prompt adds to the prompt with the defaults ('' on a page without settings).
+// The rows of the README's Key parameters table as { name, start, effect }: the rows after its header and divider (as
+// tests/pages.test.js reads the names), each name | default | effect with its white space squeezed. The section is found
+// by the page script's own sections, which the page uses to read the README too.
+function keyParameters(root, folder, slug, DemoPage) {
+  const where = `${folder}/${slug}`, file = join(root, folder, slug, 'README.md');
+  if (!existsSync(file)) throw new Error(`${where}: the page has no README.md`);
+  const table = DemoPage.sections(readFileSync(file, 'utf8'))['Key parameters'];
+  if (!table) throw new Error(`${where}: README.md has no Key parameters`);
+  const rows = table.split('\n').filter(line => /^\s*\|/.test(line)).slice(2).map(line => {
+    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(squeeze);
+    if (cells.length !== 3 || !cells.every(Boolean)) throw new Error(`${where}: a row of README.md's Key parameters is not name | default | effect: ${line.trim()}`);
+    return { name: cells[0], start: cells[1], effect: cells[2] };
+  });
+  if (!rows.length) throw new Error(`${where}: README.md's Key parameters has no rows`);
+  return rows;
+}
+
+// A setting's name as the page shows it, which names its row in the README's Key parameters (tests/pages.test.js compares
+// the two): the words beside a switch, or else the one .hb-setting-name of its setting ('' when there is none, or several).
+// A data-hb-label changes only what the page copies, so it is not read here.
+function shownName(control) {
+  const row = control.closest('.hb-switch-row');
+  if (row) {
+    const words = row.childNodes.find(n => typeof n !== 'string' && n.tagName === 'span');
+    return words ? squeeze(words.textContent) : '';
+  }
+  const setting = control.closest('.hb-setting');
+  const names = setting ? setting.querySelectorAll('.hb-setting-name') : [];
+  return names.length === 1 ? squeeze(names[0].textContent) : '';
+}
+
+// One page as the skill tells it: { title, lede, kind, prompt, good, avoid, settings, params } where settings holds one
+// { label, text, effect } per setting in Try it (but one marked data-hb-skip, which the page never copies), effect being
+// what its README's Key parameters says it does, and params holds every row of that table (see keyParameters).
 function readPage(root, folder, slug, DemoPage) {
   const where = `${folder}/${slug}`, file = join(root, folder, slug, 'index.html');
   if (!existsSync(file)) throw new Error(`${where}: the card has no page (index.html)`);
@@ -191,16 +226,15 @@ function readPage(root, folder, slug, DemoPage) {
   const tryHtml = tryAt < 0 ? '' : html.slice(tryAt, tryEnd + '</section>'.length);
   const doc = standIn(`<main class="hb-page">${promptHtml}${tryHtml}</main>`, where);
   const prompt = squeeze(doc.querySelector('.hb-prompt').textContent);
-  const copied = DemoPage.pageCopyText(doc, NO_STYLE);
-  if (!copied.startsWith(prompt)) throw new Error(`${where}: Copy prompt does not start with the prompt`);
-  // The settings, read once more with the ones marked hidden counted as shown: a page shows such a setting only for some
-  // choices of another one (First color and Second color with Two colors, say), and copies it then. The entry lists it
-  // too, so that the prompt's words about it have a setting to match; with the defaults it is not copied.
+  // The settings, read with the ones marked hidden counted as shown: a page shows such a setting only for some choices of
+  // another one (First color and Second color with Two colors, say), and copies it then. The entry lists it too, so that
+  // the prompt's words about it have a setting to match.
   const tryStep = doc.querySelector('.hb-try');
   doc.showHidden = true;
   const items = tryStep ? DemoPage.readSettings(doc, tryStep, NO_STYLE) : [];
   const phoneItems = tryStep ? DemoPage.readSettings(doc, tryStep, PHONE) : [];
   doc.showHidden = false;
+  const params = keyParameters(root, folder, slug, DemoPage);
   const settings = items.map(({ label, value, control }, i) => {
     if (!label) throw new Error(`${where}: a setting in Try it has no label (the page leaves it out of Copy prompt)`);
     let text = describe(control, value, phoneItems[i].value);
@@ -208,14 +242,17 @@ function readPage(root, folder, slug, DemoPage) {
     for (let n = control; n !== tryStep; n = n.parentElement) {
       if (n.hasAttribute('hidden')) { text += ' (the page shows it only for some choices of another setting, and copies it only then)'; break; }
     }
-    return { label, text };
+    const name = shownName(control);
+    if (!name) throw new Error(`${where}: the setting "${label}" shows no name of its own (a .hb-setting-name in its .hb-setting, or the words beside a switch)`);
+    const row = params.find(p => p.name === name);
+    if (!row) throw new Error(`${where}: the setting "${name}" has no row in README.md's Key parameters`);
+    return { label, text, effect: row.effect };
   });
   return {
     title: words(/<h1>([^<]*)<\/h1>/, '<h1>'),
     lede: words(/<p class="hb-lede">([^<]*)<\/p>/, 'one-line description (<p class="hb-lede">)'),
     kind: one(/<body class="hb" data-hb-kind="(once|loop|do|scroll)"/, 'page kind (data-hb-kind on the body)')[1],
-    prompt, good: tags('hb-good'), avoid: tags('hb-avoid'), settings,
-    line: copied.slice(prompt.length).replace(/^\n\n/, '')
+    prompt, good: tags('hb-good'), avoid: tags('hb-avoid'), settings, params
   };
 }
 
@@ -253,40 +290,45 @@ function entry(page) {
     `- Good for: ${page.good.join(' · ')}`,
     `- Avoid on: ${page.avoid.join(' · ')}`,
     '', '**Prompt**', '', page.prompt, ''];
-  if (!page.settings.length) lines.push('**Settings**: none. The page has no settings, so the prompt is complete as it is.', '');
-  else {
-    lines.push('**Settings** (the defaults in bold):', '', ...page.settings.map(s => `- ${s.label}: ${s.text}`), '');
-    if (page.line) lines.push('Copied from the site with the defaults, the prompt ends with this line:', '', page.line, '');
+  // Without settings, the README's Key parameters gives the values the demo is built with.
+  if (!page.settings.length) {
+    lines.push("**Settings**: none, so the prompt is complete as it is. The demo's own values:", '',
+      ...page.params.map(p => `- ${p.name}: ${clause(p.start)}. ${clause(p.effect)}.`), '');
+  } else {
+    lines.push("**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):", '',
+      ...page.settings.map(s => `- ${s.label}: ${s.text}. ${clause(s.effect)}.`), '');
   }
   return lines;
 }
 
 const SKILL_BODY = ({ total, base, cats }) => `# Animation Handbook
 
-[Animation Handbook](${base}) is a free reference of ${total} web animation techniques. On the site, each one has a page where it plays live, a few plain settings for most of them (speed, direction, color and the like) and a prompt that says in plain words how to build it, with no code. This skill holds all of those prompts and settings, so you can build any of the techniques in the user's own project.
+[Animation Handbook](${base}) is a free reference of ${total} web animation techniques. Each one has a page where it plays live, a few plain settings for most of them (speed, direction, color and the like) and a prompt that says in plain words how to build it. This skill holds every prompt and every setting with the demo's values, so you can pick the right technique and build it into the user's own project.
 
 ## How to use it
 
-1. **Find the technique** in [references/catalog.md](references/catalog.md): one line per animation, with what it does, what it is best for and its places, the parts of a page it suits (${cats.places}). Match both what the user describes and where it goes. When two fit equally well, build one and mention the other. If nothing fits, say so and build what the user asked for with the rules below.
-2. **Read its entry** in the category file the catalog line names. The files are long, so find the heading with the technique's name and read down to the next heading: the prompt, the settings with their defaults, how it runs, what it is good for and what to avoid it on. If the user's place is on its Avoid on list, say so and suggest a better fit from the catalog.
-3. **Choose the settings** from the user's words: "a panel that slides in slowly from the left" picks the slow speed and the left side. Keep the default (in bold) for anything they did not mention, and ask only when a choice changes the result a lot and nothing they said points either way. The choices are named, not numbered: the technique's README gives the demo's own values for many of them (see the end of this file); otherwise choose values that fit the name and the project.
-4. **Build it** in the user's own stack, from plain HTML, CSS and JavaScript to React, Vue, Svelte or whatever the project already uses. Follow the prompt as the specification, with the user's own element in place of each [part in square brackets]. "Match the settings listed below" means the settings from step 3; the line at the end of each entry shows how the site lists them.
-5. **Check it** against the rules below, then tell the user which technique you built, with its live demo address, and which settings you chose.
+1. **Find the technique.** Search [references/catalog.md](references/catalog.md) for the effect the user describes and a synonym or two, rather than reading the whole file. Each line holds one technique: its name and live demo address, what it does and what it is best for, and its places, the parts of a page it suits (${cats.places}). Match both what the user describes and where it goes. Read the whole catalog, or its By place index at the end, only when the user wants ideas or a search finds nothing that fits. When two fit equally well, build one and mention the other; when none fits, say so and build what the user asked for with the rules below.
+2. **Read its entry.** It is in the category file named after the folder in its address (references/04-micro-interactions.md for an address under animations/04-micro-interactions/), from the heading with the technique's name to the next heading: what it is good for and what to avoid it on, how it runs, its prompt and its settings. If the user's place is on its Avoid on list, say so and suggest a better fit.
+3. **Choose the settings.** Each setting lists its choices and what they do, with the demo's values. The choice in bold is where the demo starts, set to show the effect off in a small box: a starting point, not advice for every page. Take what the user asked for first ("a panel that slides in slowly from the left" picks the slow speed and the left side), then choose the rest for their page: its size, how many things move and what the effect is for. A speed that suits a small demo can feel rushed across a full-width hero, and a delay that reads well between many small tiles can vanish between a few large cards. Ask only when a choice changes the result a lot and nothing points either way.
+4. **Build the smallest version that does what the user asked**, in their own stack (plain HTML, CSS and JavaScript, React, Vue, Svelte or whatever the project uses), with their element in place of each [part in square brackets]. The prompt describes the whole technique as its demo shows it. Keep everything it says about looking right, staying smooth, accessibility and reduced motion, but build only the features the request needs: one confirmation message does not need a stack of them, and a hover effect does not need a touch-drag version when touch users miss nothing without it. "Match the settings listed below" means your choices from step 3.
+5. **Check it** against the rules below. Then tell the user which technique you built, with its live demo address; the settings you chose, and why where they differ from the demo's; and the features of the prompt you left out, as options they can ask for.
 
 When the user only asks which animation to use, suggest one or two from the catalog with their live demo addresses, and build once they choose. To improve an animation the project already has, find its closest technique the same way and change only what falls short of that prompt and the rules below.
 
-## The rules every animation follows
+## The rules for the user's page
 
-The handbook's demos follow these rules and the prompts take them for granted, so keep them even where a prompt does not repeat them.
+Keep these even where a prompt does not say them. Each prompt describes its technique as the demo shows it, in a box on a page about animation; where a prompt and a rule differ, follow the rule, which is about real pages.
 
-- **Move with transform and fade with opacity.** Never animate width, height, top, left or box-shadow, which make the browser lay out or repaint the page on every frame. Where a prompt asks for something else, such as a blur, a clip, a line that draws itself, a color change or a font weight, follow the prompt: it says how to keep that smooth.
-- **Move a JavaScript frame loop by elapsed time.** Each frame moves by the time since the last one, capped at about 50 ms, never by a fixed step per frame, so it runs at the same speed on a 30 Hz, 60 Hz or 120 Hz screen.
+- **Keep the page whole without the animation.** Nothing on screen when the page loads waits for a scroll to appear: it shows at once or plays its entrance right away, and only what starts below the first screen waits for the scroll. Hide content for an entrance only from the script that will reveal it, and create controls that work only with a script, such as an accordion's buttons, from that script, so the page still shows everything if the script fails.
+- **Give keyboard users what mouse users get on what they can reach.** On a link, button or form control, an effect that shows on hover also shows on focus, and one that starts on a press also starts on Enter or Space, from the middle of the control. Do not make other content focusable for a decorative effect, and leave the arrow keys alone unless the element is a control that uses them, such as a slider or a carousel: extra tab stops and captured keys cost keyboard users more than the effect gives them.
+- **Give touch what it needs.** When a hover reveals something people need, such as a menu, a tooltip or a hidden button, a tap reveals it too, and a drag uses pointer events so that touch works. A purely decorative hover effect, such as a tilt or a glow, can stay still on touch screens.
 - **Follow reduced motion.** When the device asks for reduced motion, show the end state or a short fade instead of the movement, and start loops paused.
-- **Give a hover or a drag a touch equivalent.** A hover effect also works with a tap, and a drag uses pointer events so that touch works too.
-- **Make it work from the keyboard.** An effect that shows on hover also shows on keyboard focus. An effect that follows the pointer inside its own area, such as a card or a button, works from the keyboard when that area has focus: focus shows it and the arrow keys move it. A page-wide effect, such as a custom cursor or an image trail, never takes over the arrow keys, which scroll the page. An effect that starts on a press also starts on Enter or Space, from the middle of the control.
-- **Keep controls at least 44×44 px on phones**, buttons and handles drawn inside the animation included.
-- **Keep text at least 4.5:1 against its background.**
-- **Give heavy effects a lighter phone version.** A big blur, many particles or a shader gets a lighter version on phones, which are up to 600 px wide, or up to 500 px tall when held sideways.
+- **Move with transform and fade with opacity.** Never animate width, height, top, left or box-shadow, which make the browser lay out or repaint the page on every frame. Where the effect is something else, such as a clip, a line that draws itself, a color change or a blur-in, the prompt says how to keep it smooth.
+- **Make soft shapes from gradients.** A glow or a blob of color that only needs soft edges gets them from a gradient that fades to transparent, not from a large blur filter, which costs the browser a lot on every frame while the shape moves; a gradient is drawn once and then only moved. Keep the blur where it is the effect, as in a blur-in, frosted glass or a gooey merge.
+- **Stop what nobody can see.** A loop that keeps running, such as an ambient background, a canvas or a frame loop, pauses while it is scrolled out of view; a frame loop or timer also stops while the tab is hidden.
+- **Time a frame loop by the clock.** Each frame moves by the time since the last one, capped at about 50 ms, never by a fixed step, so it runs at the same speed on 30, 60 and 120 Hz screens.
+- **Lighten heavy effects on phones**, up to 600 px wide or 500 px tall when held sideways: less blur, fewer particles, a simpler shader.
+- **Keep touch targets at least 44×44 px on phones**, buttons and handles drawn inside the animation included, and **text at least 4.5:1 against its background.**
 - **Add no library the project does not already use.** Every prompt works with plain code; use GSAP, Framer Motion, Three.js or the like only where the project has it.
 
 ## Where to look
@@ -294,7 +336,7 @@ The handbook's demos follow these rules and the prompts take them for granted, s
 - [references/catalog.md](references/catalog.md): all ${total} in one list, grouped by category, with an index by place.
 ${cats.lines}
 
-Each live demo address is also the technique's folder in the repository, ${REPO}. Add README.md to the address (${base}animations/02-entrance-and-exit/rotate-in/README.md, for example) to read its README as plain text: how it works, the values behind each setting's choices and production notes. The address itself is the demo, with all of its code in the page.
+Each live demo address is also the technique's folder in the repository, ${REPO}: the page holds the demo's code, and its README (the address followed by README.md) explains how it works, with production notes. The entries hold what you need to build a technique; read a README only when the user asks how one works.
 `;
 
 export function buildSkill(root) {
@@ -344,17 +386,17 @@ export function buildSkill(root) {
   });
   files[`${SKILL}/references/catalog.md`] = [
     '# Catalog', '',
-    `All ${total} animations of Animation Handbook, in the home page's order and grouped by category. Each line gives the name (linked to its live demo), what it does and what it is best for, its places (the parts of a page it suits, the main one first), and the file that holds its full entry with the prompt and the settings.`, '',
+    `All ${total} animations of Animation Handbook, in the home page's order and grouped by category. Each line gives the name linked to its live demo, what it does and what it is best for, and its places (the parts of a page it suits, the main one first). The category folder in the address names the file that holds its full entry, with the prompt and the settings.`, '',
     `Contents: ${sections.map(s => `[${s.heading}](#${s.anchor})`).join(' · ')}`, '',
     ...cats.flatMap(cat => [`## ${cat.n} · ${cat.name}`, '', `${cat.desc} ${cat.pages.length} animations, in [${cat.file}](${cat.file}).`, '',
-      ...cat.pages.map(p => `- [${p.title}](${p.address}): ${p.lede} Places: ${p.places.join(', ')}. Entry in [${cat.file}](${cat.file}#${p.anchor}).`), '']),
+      ...cat.pages.map(p => `- [${p.title}](${p.address}): ${p.lede} Places: ${p.places.join(', ')}.`), '']),
     '## By place', '', "The home page's places, each with the animations that suit it.", '', ...byPlace, ''
   ].join('\n');
 
   for (const cat of cats) {
     files[`${SKILL}/references/${cat.file}`] = [
       `# ${cat.n} · ${cat.name}`, '',
-      `${cat.desc} ${cat.pages.length} animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings.`, '',
+      `${cat.desc} ${cat.pages.length} animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.`, '',
       '## Contents', '', ...cat.pages.map(p => `- [${p.title}](#${p.anchor})`), '',
       ...cat.pages.flatMap(entry)
     ].join('\n');
@@ -368,9 +410,9 @@ export function buildSkill(root) {
       ...cat.entries.map(([slug, name, desc]) => `- [${name}](${base}${cat.folder.replace(/\/$/, '')}/${slug}/): ${desc}`), '']),
     // The skill's own files, which the site serves as they are: every prompt and setting, as Markdown.
     '## Skill files', '',
-    `- [SKILL.md](${base}${SKILL}/SKILL.md): how to find a technique, choose its settings and build it, with the rules every animation follows`,
+    `- [SKILL.md](${base}${SKILL}/SKILL.md): how to find a technique, choose its settings for the user's page and build it, with the rules for real pages`,
     `- [references/catalog.md](${base}${SKILL}/references/catalog.md): all ${total} in one list, with what each does and where it goes, and an index by place`,
-    ...cats.map(cat => `- [references/${cat.file}](${base}${SKILL}/references/${cat.file}): the ${cat.pages.length} ${cat.name} entries, each with its prompt and settings`), '',
+    ...cats.map(cat => `- [references/${cat.file}](${base}${SKILL}/references/${cat.file}): the ${cat.pages.length} ${cat.name} entries, each with its prompt and its settings, with the demo's values`), '',
     '## Optional', '',
     `- [Source on GitHub](${REPO}): every demo's code, each technique's README and the Agent Skill`, ''
   ].join('\n');
