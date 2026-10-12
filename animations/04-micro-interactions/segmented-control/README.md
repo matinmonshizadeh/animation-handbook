@@ -63,7 +63,7 @@ A curve that runs a little past its end (Springy) gives the highlight a sense of
 |-----------|---------|--------|
 | Speed | Normal | How long the highlight takes to slide: slow is 550ms, normal 340ms and fast 200ms |
 | Feel | Springy | Springy runs a little past the option, then settles; Smooth slows to a stop; Even keeps one steady speed |
-| Highlight | Pill | A filled pill behind the chosen option, or a thin line under it |
+| Highlight | Pill | A filled pill behind the chosen option, or a thin 2px line under it |
 | Number of options | Four | Two to five options; more, or long labels, do not fit on one line |
 
 ## Production notes

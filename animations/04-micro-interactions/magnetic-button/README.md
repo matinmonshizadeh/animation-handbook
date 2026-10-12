@@ -60,7 +60,7 @@ The keyboard drives the same `pull()`: with the button focused, a pretend pointe
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Pull strength | Medium | How far the button moves toward the pointer: gentle is 20%, medium 35% and strong 50% of the distance; past about half it feels loose |
+| Pull strength | Medium | How far the button moves toward the pointer: gentle is 20%, medium 35% and strong 50% of the distance when the pointer is close, a smaller share the farther it is, down to none at the edge of Reach; past about half it feels loose |
 | Reach | Medium | How close the pointer must come before the pull starts: short is 100px, medium 160px and long 240px; too far and the button reacts to unrelated movement |
 
 ## Production notes

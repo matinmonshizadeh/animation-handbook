@@ -49,7 +49,7 @@ The content element needs `opacity: 0; transition: opacity 400ms ease` to fade i
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pulse speed | Normal | How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; one to two seconds feels calm, faster feels anxious |
-| Pulse strength | Medium | How far the blocks fade between pulses: soft, medium or strong; a soft pulse is enough |
+| Pulse strength | Medium | How far the blocks fade between pulses: soft, medium and strong fade them to 70%, 50% and 30% opacity and back to full; a soft pulse is enough |
 | Loading time | Medium | How long the placeholders show before the content fades in: short is 1s, medium 2s and long 3.5s |
 
 ## Production notes

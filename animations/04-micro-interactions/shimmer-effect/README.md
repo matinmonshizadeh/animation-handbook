@@ -50,8 +50,8 @@ The `background-size: 200% 100%` and position animation gives more control over 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Speed | Normal | How often the light crosses: slow every 1.2s, normal every 0.75s and fast every 0.45s; more often than about every 0.4s it feels frantic |
-| Brightness | Medium | How strong the band of light is: soft, medium or bright; soft is subtle, bright suits a branded screen |
-| Highlight angle | Upright | Upright sweeps a straight band; Slanted and Diagonal tilt it; keep one angle across the whole page |
+| Brightness | Medium | How strong the band of light is: soft, medium and bright are 12%, 25% and 45% opacity at its center; soft is subtle, bright suits a branded screen |
+| Highlight angle | Upright | Upright sweeps a straight band; Slanted tilts it 25° and Diagonal 45°; keep one angle across the whole page |
 | Highlight color | White | White works on any placeholder; blue or gold suit branded screens |
 
 ## Production notes

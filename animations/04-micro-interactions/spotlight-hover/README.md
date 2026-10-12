@@ -40,7 +40,7 @@ The grid also takes keyboard focus (`tabindex="0"`), and the light then appears 
 | Glow size | Medium | How far the light reaches: small, medium and large are 0.7, 1.15 and 1.7 times the grid's shorter side across |
 | Color | Purple | The color of the light and of the lit edges; white looks the most natural on gray cards |
 | Lights the edges | On | The card edges near the pointer glow brightly; off, only the faces brighten |
-| Lag | Short | How far the light trails a moving pointer: none follows it exactly, short closes 30% of the gap per 60 Hz frame and long 10% |
+| Lag | Short | How far the light trails a moving pointer: none follows it exactly, short closes 30% of the gap per 60 Hz frame and long 10% (other screens close the share that fits their frame time), so the light gets 95% of the way in about 0.15 or 0.5 seconds |
 
 ## Production notes
 - **Move layers, do not repaint them**: the common shortcut writes the pointer position into CSS variables used by a `radial-gradient(circle at var(--x) var(--y), …)`, which repaints every card on every pointer move. Moving finished layers with `transform` leaves the work to the compositor.

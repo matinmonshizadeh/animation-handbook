@@ -48,7 +48,7 @@ Pointer Events cover mouse, pen and touch with one code path, and `setPointerCap
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Slide speed | Normal | How fast the passed items slide aside and the dropped one settles: slow is 420ms, normal 220ms and fast 120ms |
-| How much it lifts | Subtle | Subtle grows the held item by 2% with a soft shadow; strong grows it by 6%, tilts it a little and deepens the shadow |
+| How much it lifts | Subtle | Subtle grows the held item by 2% with a soft shadow 8px below it; strong grows it by 6%, tilts it 1.5° and deepens the shadow to 18px below it |
 | Drags by the handle only | off | Only the grip starts a drag; when off, the whole row does, after a short press on touch screens |
 
 ## Production notes

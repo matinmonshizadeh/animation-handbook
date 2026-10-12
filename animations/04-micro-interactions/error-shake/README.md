@@ -46,7 +46,7 @@ A decaying shake reads as "no" universally because it *returns to origin*. Motio
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Shake distance | Medium | How far the field swings: small is 4px, medium 8px and large 14px; under 4px barely shows and over about 16px feels violent |
+| Shake distance | Medium | How far the field swings: small is 4px, medium 8px and large 14px, the first swing most of that way and each one after it shorter, down to nothing; under 4px barely shows and over about 16px feels violent |
 | Number of swings | Medium | How many times it swings: few is 4, medium 6 and many 8; four to six reads as a head shake, more feels frantic |
 | Speed | Normal | How long the whole shake lasts: slow is 650ms, normal 400ms and fast 250ms; under 250ms feels twitchy and over 600ms drags |
 

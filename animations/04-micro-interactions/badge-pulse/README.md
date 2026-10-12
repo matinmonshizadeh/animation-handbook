@@ -69,7 +69,7 @@ Stopping after three pulses takes two more declarations on the animated parts, `
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Pulse style | Grow | Grow scales the badge up and back; Ring sends a soft halo outward; Both does the two together |
+| Pulse style | Grow | Grow scales the badge up and back; Ring sends a soft halo outward from just around the badge, growing to 2.2 times that size as it fades from half opacity to nothing; Both does the two together |
 | Speed | Normal | How long one pulse takes: slow is 2.4s, normal 1.5s and fast 0.9s; fast feels urgent, slow is easy to miss |
 | How much it grows | Medium | How big the badge gets at the top of each pulse: slightly is 115%, medium 130% and a lot 150% of its size |
 | Stops after three pulses | off | The badges pulse three times and then rest; the online dot keeps going |

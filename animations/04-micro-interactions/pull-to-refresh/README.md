@@ -39,7 +39,7 @@ On `pointerup`, if `pull >= threshold` the view enters the refreshing state: the
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pull distance | Medium | How far the list must be pulled before letting go refreshes: short is 48px, medium 64px and long 80px, measured after the resistance |
-| Resistance | Medium | How hard the list fights back as it is pulled: low, medium or high; with a long pull distance and high resistance, it takes a long drag |
+| Resistance | Medium | How hard the list fights back as it is pulled: it follows the finger at first and stiffens, so reaching the pull distance takes a drag of about 1.4 times it (low), 1.8 times (medium) or 2.25 times (high), and the list never goes past 3.4, 2.2 or 1.8 times it; with a long pull distance and high resistance, it takes a long drag |
 | Spinner | Ring | A turning ring, three blinking dots or four stretching bars |
 | Refresh time | Medium | How long the spinner turns before the new item arrives: short is 700ms, medium 1200ms and long 2000ms |
 

@@ -58,7 +58,7 @@ Because the loop reads live `pCount`, `spreadDeg`, and `gravity` values, changin
 |-----------|---------|--------|
 | Amount of confetti | Medium | How many pieces fly: some is 60, medium 120 and lots 200; above about 200 costs frames on slower phones for little gain |
 | Spread | Medium | How wide the fan is: narrow is 60°, medium 110° and wide 170°; narrow looks like a fountain, wide like a dome |
-| Fall speed | Normal | How strongly the pieces are pulled down: floaty, normal or heavy; heavy falls fast, floaty drifts |
+| Fall speed | Normal | How strongly the pieces are pulled down: floaty, normal and heavy speed their fall by about 540, 1,000 and 1,600px a second every second, against launch speeds of 360 to 780px a second, so the fastest pieces climb about 560, 300 or 180px before they fall; heavy falls fast, floaty drifts |
 
 ## Production notes
 - **Time, not frames**: scale every per-frame amount (gravity, spin, fade) by the time since the last frame, and raise the drag factor to the same power (`0.99 ** k`). Without it the burst runs twice as fast on a 120 Hz screen and half as fast on a 30 Hz phone, and anything timed around it, such as the demo's Show me, falls out of step.

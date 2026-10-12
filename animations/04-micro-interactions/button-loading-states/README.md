@@ -46,10 +46,10 @@ The label and the spinner crossfade in place, the tick and the cross draw themse
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Result | Success | Success shows a tick on green; Error shows a cross on red and gives the button a small shake |
+| Result | Success | Success shows a tick on green; Error shows a cross on red and gives the button a small shake, swinging 7, 6, 4 and 2px to alternate sides over 0.4 seconds |
 | Speed | Normal | How long the shape, the color and the icon take to change: slow is 500ms, normal 300ms and fast 180ms |
 | Shrinks to a circle | On | On clips the button's color into a circle around the spinner; off keeps its full shape and changes only what is inside |
-| How long it loads | Medium | How long the spinner turns before the answer: short is 0.7 seconds, medium 1.2 and long 2.2; in a real form this is the server's time |
+| How long it loads | Medium | How long the spinner turns once the button has changed shape, before the answer comes: short is 0.7 seconds, medium 1.2 and long 2.2; in a real form this is the server's time |
 
 ## Production notes
 - **`aria-disabled`, not `disabled`**: a button that becomes `disabled` while it has the focus drops the focus to the page, and keyboard users lose their place. Keep it focusable, mark it `aria-disabled="true"` and ignore presses in your handler.

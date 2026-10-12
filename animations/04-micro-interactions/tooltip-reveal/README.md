@@ -80,7 +80,7 @@ document.addEventListener('keydown', e => {
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Delay before showing | Medium | How long the pointer must rest before the tooltip shows: none, short (150ms), medium (300ms) or long (600ms); 300ms keeps tooltips from flashing as the pointer passes, and 200ms can work for very small ones |
-| Speed | Normal | How long the fade and the slight grow take: slow is 250ms, normal 150ms and fast 90ms |
+| Speed | Normal | How long the fade and the slight grow (from 95% of its size) take: slow is 250ms, normal 150ms and fast 90ms |
 | Delay before hiding | Short | How long the tooltip stays after the pointer leaves: none, short (100ms) or long (300ms); a short pause stops it vanishing the instant the pointer slips off its item |
 | Shows an arrow | off | Adds a small point that aims the tooltip at its item |
 

@@ -36,7 +36,7 @@ When the vertical animation's `finished` promise resolves, the copy is removed, 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Flight speed | Normal | How long the copy takes to reach the cart: slow is 1.1s, normal 0.7s and fast 0.45s |
-| Path | Arc | Arc rises and drops into the cart like a toss; Straight goes in a line, easing in and out |
+| Path | Arc | Arc moves sideways at an even pace while it rises and drops into the cart like a toss, peaking a twentieth of the sideways distance (10 to 28px) above the cart; Straight goes in a line, easing in and out |
 | Cart bumps | On | The cart tips and grows for a moment and its badge pops as the copy lands; off, only the number changes |
 
 ## Production notes

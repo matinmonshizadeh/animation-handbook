@@ -55,9 +55,9 @@ path.style.strokeDashoffset = 0;
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Result | Success | Success draws a circle and a tick and turns the button green; Error draws a red X, shakes it and turns the button red |
-| Speed | Normal | How long each line takes to draw: slow is 800ms, normal 500ms and fast 300ms; 200 to 800ms is easy to follow |
-| Line thickness | Medium | Thin is 2, medium 4 and thick 7 units wide; thick reads as confident, thin as precise |
+| Result | Success | Success draws a circle and a tick and turns the button green; Error draws a red X, shakes it (6, 6, 4 and 4px to alternate sides over 0.4 seconds) and turns the button red |
+| Speed | Normal | How long each line takes to draw: slow is 800ms, normal 500ms and fast 300ms, the tick starting 40% of that time after the circle (the X's second line 30% after its first); 200 to 800ms is easy to follow |
+| Line thickness | Medium | Thin is 2px, medium 4px and thick 7px wide, on an icon 80px across whose circle is 60px wide; thick reads as confident, thin as precise |
 | Feel | Smooth | Smooth slows at the end like a pen lifting off; Gentle eases in and out; Even draws at one steady pace |
 | Tick color | Green | The color of the circle and the tick; the X stays red |
 

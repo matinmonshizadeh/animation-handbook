@@ -52,7 +52,7 @@ A press from the keyboard has no position: Enter or Space fires a `click` whose 
 |-----------|---------|--------|
 | Starts from | Where you press | Where you press shows exactly where the press landed; the middle is simpler but less exact |
 | Speed | Normal | How long the ripple takes to spread and fade: slow is 1000ms, normal 600ms and fast 350ms; a little longer than a hover change, because the click is already made |
-| Ripple size | Medium | How far the circle grows before it fades: small, medium or large; even small reaches every corner of the button |
+| Ripple size | Medium | How far the circle grows before it fades: small, medium and large end 3, 5 and 8 times the button's longer side across; even small reaches every corner of the button |
 | Ripple strength | Medium | How visible the ripple is at the start: faint is 20%, medium 40% and strong 60% |
 | Ripple color | White | White suits colored buttons, orange matches the accent, black suits light buttons |
 

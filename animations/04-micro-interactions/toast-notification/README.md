@@ -33,7 +33,7 @@ The region is `role="status" aria-live="polite"` so each toast's text is announc
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Corner | Top right | Where toasts appear and stack; in the bottom corners the newest sits nearest the corner |
-| How it comes in | Slides | Slides in from its corner's side, fades in, or grows from slightly smaller; it leaves the same way |
+| How it comes in | Slides | Slides in from its corner's side, starting just over its own width away, fades in, or grows from 85% of its size, each fading in over 0.34 seconds; it leaves the same way in 0.3 seconds |
 | Time on screen | Medium | How long each toast stays: short is 2.5 seconds, medium 4 and long 6.5; its bar counts down this time |
 | Most at once | Four | Two, three or four; when one more arrives, the oldest leaves |
 

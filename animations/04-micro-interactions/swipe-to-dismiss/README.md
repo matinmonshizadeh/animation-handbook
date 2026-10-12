@@ -43,7 +43,7 @@ Commit is decided by distance **or** velocity — a fast flick counts even if th
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Distance to delete | Medium | How far a card must be dragged before letting go deletes it: short is 20%, medium 35% and long 50% of its width; a quick flick deletes it from a shorter drag |
+| Distance to delete | Medium | How far a card must be dragged before letting go deletes it: short is 20%, medium 35% and long 50% of its width; a quick flick (faster than 600px a second, after at least 24px) deletes it from a shorter drag |
 | Shows a Delete label | on | A red strip with the word Delete shows behind the card while it is dragged |
 
 ## Production notes

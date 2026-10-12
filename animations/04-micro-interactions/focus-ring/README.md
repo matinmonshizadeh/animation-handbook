@@ -57,8 +57,8 @@ The animation interpolates `outline-offset` from a larger value inward — the r
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Ring style | Solid | Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo; Wide fills the gap between the item and the ring, making one thick band |
-| Speed | Normal | How long the ring takes to close in: slow is 220ms, normal 140ms and fast 80ms; fast enough not to feel delayed, slow enough to see |
+| Ring style | Solid | Solid is a plain outline; Dashed draws it in dashes; Glow adds a soft halo, a band of the ring's color at 18% opacity reaching 5px out from the item; Wide fills the gap between the item and the ring, making one thick band |
+| Speed | Normal | How long the ring takes to close in from 8px further out: slow is 220ms, normal 140ms and fast 80ms; fast enough not to feel delayed, slow enough to see |
 | Ring thickness | Medium | Thin is 1px, medium 2px and thick 4px; 2px or more is easy to see |
 | Ring gap | Small | The space between the ring and the item: none, 3px or 6px; 2 to 4px looks natural |
 

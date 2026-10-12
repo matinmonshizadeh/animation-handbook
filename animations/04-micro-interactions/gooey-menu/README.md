@@ -60,8 +60,8 @@ Closed, the small buttons' group is `inert` at once (the buttons turn `visibilit
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Layout | Arc | Row puts the small buttons in a line beside the round one; Arc fans them out above it; Column stacks them above it |
-| How gooey | Medium | How much the circles are blurred before the edge is sharpened: low is 5, medium 9 and high 13 (times the menu's scale, and a fifth less on phones); higher keeps the drops joined for longer |
+| Layout | Arc | Row puts the small buttons in a line beside the round one and Column stacks them above it, with 20px gaps; Arc fans them out above it, 84px from its center and 60° apart; the round button is 64px across and the small ones 50px |
+| How gooey | Medium | How much the circles are blurred before the edge is sharpened: low is a 5px blur, medium 9px and high 13px for a round button 64px across (scaled with the menu, and a fifth less on phones); higher keeps the drops joined for longer |
 | Speed | Normal | How long a small button takes to pop out: slow is 950ms, normal 600ms and fast 380ms, each starting 90, 60 or 40ms after the one before |
 | Shows the plain circles | Off | Turns the filter off and draws each circle as a ring, to show what moves underneath; it is a way to look, so it is not added to the copied prompt |
 | Button color | Orange | The color of the circles; the icons stay dark |

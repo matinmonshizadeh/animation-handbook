@@ -28,8 +28,8 @@ The distances are custom properties (`--hop`, `--lift` and `--small`); under `pr
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| How the dots move | Bounce | Bounce hops each dot 7px up and rests between rounds; fade brightens each dot and grows it from 70% to full size; wave raises and lowers the dots without a rest |
-| Speed | Normal | How long one round of the three dots takes: slow is 1.8 seconds, normal 1.2 seconds and fast 0.8 seconds |
+| How the dots move | Bounce | Bounce hops each dot 7px up and rests between rounds; fade brightens each dot and grows it from 70% to full size; wave raises and lowers the dots between 2.5px below and 5px above their place, without a rest |
+| Speed | Normal | How long one round of the three dots takes: slow is 1.8 seconds, normal 1.2 seconds and fast 0.8 seconds, each dot starting 15% of a round after the one before |
 | Bubble color | Gray | The color of the other person's bubbles: gray, blue, green or purple; the dots turn light gray or white to stay clear on it |
 
 ## Production notes

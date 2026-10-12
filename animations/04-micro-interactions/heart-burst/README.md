@@ -52,7 +52,7 @@ The `-1` bias on initial `vy` makes the burst lean upward before gravity pulls i
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Number of hearts | Some | How many pieces burst out: few is 10, some 18 and many 32; above about 40 it gets busy and costs frames |
-| How far they fly | Medium | How far the pieces travel before they fade: short, medium or far |
+| How far they fly | Medium | How far the pieces travel before they fade: short, medium and far launch them at up to 300, 450 or 700px a second (at least half that), and they slow, fall and fade out over about three quarters of a second, the fastest ending about 150, 225 or 350px to the side of the heart |
 
 ## Production notes
 - **Canvas over DOM particles**: 18–40 short-lived DOM `<span>`s per tap creates layout/GC churn if the user spams the button. One canvas with an array of plain objects stays flat and cheap.

@@ -46,7 +46,7 @@ document.documentElement.style.setProperty('--dur', next + 's');
 | Colors | Rainbow | The four colors of the band: Rainbow, Sunset (yellow to purple) or Ocean (teal to indigo) |
 | Speed | Normal | How long one trip around the edge takes: slow is 7s, normal 4s and fast 2s; much faster and it looks busy |
 | Soft glow | On | A blurred copy of the band behind the element, so its colors spill softly onto the page |
-| Band length | Long | How much of the edge the colors cover at once: a short band, a long one, or colors all around |
+| Band length | Long | How much of the edge the colors cover at once: a short band about a third of the way around, a long one about three fifths, each fading in from a faint tail to a bright front, or colors all around |
 | Border width | Medium | How thick the colored edge is: thin is 1px, medium 2px and thick 4px |
 
 ## Production notes

@@ -67,9 +67,9 @@ The same transition runs whichever two shapes it goes between, so picking anothe
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Notification | Call | What the pill grows into: a call card, a timer in a wide capsule, or a taller music card with controls; picking another while it is open changes the shape straight into the new one |
+| Notification | Call | What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall, each about four fifths as wide as the screen; picking another while it is open changes the shape straight into the new one |
 | Speed | Normal | How long it takes to grow or shrink: slow is 1100ms, normal 700ms and fast 450ms; a spring needs a little longer than a plain ease, because it settles at the end |
-| Bounce | Soft | None eases out without going past the size; Soft goes about 5% past it and Springy about 16%, and then each settles |
+| Bounce | Soft | None eases out without going past the size; Soft goes past it by about 5% of the change in size and Springy by about 16%, and each settles by the end of its time |
 
 ## Production notes
 - **Never animate `width` or `height`**: every frame would lay out the card and its text again, and the words would wrap and jump while it grows. A clip, or a scale on a layer whose children are scaled back, changes only what is painted.
