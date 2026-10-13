@@ -936,6 +936,9 @@ async function homeMotionProblems() {
   return problems;
 }
 
+// Famous effects: every scroll the steps below make themselves is instant (behavior: 'instant'), so a page with CSS smooth
+// scrolling is never still moving when a position is read. Only the page's own jump is left to glide or not.
+
 // Famous effects: waits until the page holds still (scrollY the same over three checks 100 ms apart, for up to 3 s).
 const scrollSettled = () => evaluate(`new Promise(done => { let last = scrollY, same = 0, left = 30;
   const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3 || !--left) done(); else setTimeout(tick, 100); };
@@ -949,7 +952,7 @@ async function famousJumpProblems() {
   if (!hrefs.length) return ['no links in the jump row'];
   const problems = [];
   for (const href of hrefs) {
-    await evaluate(`(() => { scrollTo(0, 0); const a = document.querySelector('.fx-jump a[href="${href}"]'); a.focus(); a.click(); })()`);
+    await evaluate(`(() => { scrollTo({ top: 0, behavior: 'instant' }); const a = document.querySelector('.fx-jump a[href="${href}"]'); a.focus(); a.click(); })()`);
     await scrollSettled();
     const got = await evaluate(`(() => { const s = document.querySelector('${href}'), h = s && s.querySelector('h2');
       if (!h) return null;
@@ -979,7 +982,7 @@ async function famousPreviewProblems() {
   for (const id of ids) {
     const cards = await evaluate(`(async () => { const s = document.getElementById('${id}'), row = s.querySelector('.fx-cards');
       if (!row) return 0;
-      row.scrollIntoView({ block: 'center' });
+      row.scrollIntoView({ block: 'center', behavior: 'instant' });
       await new Promise(r => setTimeout(r, 400));
       return s.querySelectorAll('.card').length; })()`);
     if (!cards) { problems.push(`${id}: no cards`); continue; }
@@ -1006,7 +1009,7 @@ async function famousCopyProblems() {
   const problems = [];
   const press = async id => {
     const spot = await evaluate(`(() => { const btn = document.querySelector('#${id} .copy'); if (!btn) return null;
-      btn.scrollIntoView({ block: 'center' });
+      btn.scrollIntoView({ block: 'center', behavior: 'instant' });
       const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
       return { x, y, covered: btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
     if (!spot) return 'no Copy prompt button';
@@ -1018,7 +1021,8 @@ async function famousCopyProblems() {
   const prompt = id => `document.querySelector('#${id} .fx-prompt').textContent.replace(/\\s+/g, ' ').trim()`;
   await evaluate(`(() => { navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; })()`);
   for (const id of ids) {
-    await evaluate(`window.__clipboardGot = null`);
+    // The message of the entry before is put away first, so this press has to show its own.
+    await evaluate(`(() => { window.__clipboardGot = null; const t = document.getElementById('toast'); t.classList.remove('show'); t.querySelector('.toast-t').textContent = ''; })()`);
     const trouble = await press(id);
     if (trouble) { problems.push(`${id}: ${trouble}`); continue; }
     const got = await evaluate(`(async () => {
@@ -1078,7 +1082,7 @@ async function famousMotionProblems() {
   const empty = [];
   for (let i = 0; i < cards; i++) {
     const card = `document.querySelectorAll('section.fx .card')[${i}]`;
-    await evaluate(`(async () => { ${card}.querySelector('.stage').scrollIntoView({ block: 'center' }); await ${frames(2)}; })()`);
+    await evaluate(`(async () => { ${card}.querySelector('.stage').scrollIntoView({ block: 'center', behavior: 'instant' }); await ${frames(2)}; })()`);
     const drawn = await famousStageShot(card);
     await evaluate(`(async () => { for (const el of ${card}.querySelector('.pv').children) el.style.visibility = 'hidden'; await ${frames(2)}; })()`);
     const bare = await famousStageShot(card);
@@ -1090,12 +1094,15 @@ async function famousMotionProblems() {
   }
   if (empty.length) problems.push(`reduced motion: ${empty.length} previews show nothing: ${empty.join(', ')}`);
   await running('once every card has been on screen');
-  const jump = await evaluate(`(async () => { scrollTo(0, 0); const links = document.querySelectorAll('.fx-jump a'), a = links[links.length - 1];
+  const jump = await evaluate(`(async () => { scrollTo({ top: 0, behavior: 'instant' }); const links = document.querySelectorAll('.fx-jump a'), a = links[links.length - 1];
     if (!a) return null;
     a.focus(); a.click(); await ${frames(2)};
-    const h = document.querySelector(a.getAttribute('href') + ' h2'), b = h.getBoundingClientRect();
-    return { href: a.getAttribute('href'), shown: b.top >= 0 && b.bottom <= innerHeight, top: Math.round(b.top) }; })()`);
+    const href = a.getAttribute('href'), h = document.querySelector(href + ' h2');
+    if (!h) return { href, missing: true };
+    const b = h.getBoundingClientRect();
+    return { href, shown: b.top >= 0 && b.bottom <= innerHeight, top: Math.round(b.top) }; })()`);
   if (!jump) problems.push('reduced motion: no links in the jump row');
+  else if (jump.missing) problems.push(`reduced motion: the last link of the jump row (${jump.href}) has no entry with a heading`);
   else if (!jump.shown) problems.push(`reduced motion: the jump to ${jump.href} glides (two frames after the press its heading is at ${jump.top}px)`);
   return problems;
 }
