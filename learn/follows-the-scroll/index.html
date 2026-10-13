@@ -22,34 +22,41 @@
   <style>
     :root{--ui-accent:#c8f169}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#0b0b0d;overflow:hidden}
+    .stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#0b0b0d;overflow:hidden;--fs-vh:1vh}
     /* The line under the title takes two lines here, one more than on the animation pages, so from 601px wide (where the shared heights apply)
        the stage gives that line back, and the player bar stays on a laptop's first screen. --fs-vh: the small viewport height where known */
     @supports(height:1svh){.stage{--fs-vh:1svh}}
     @media(min-width:601px){.stage{--hb-stage-h:clamp(300px,calc(100 * var(--fs-vh) - 450px),440px)}}
     @media(min-width:601px) and (max-height:760px){.stage{--hb-stage-h:clamp(260px,calc(100 * var(--fs-vh) - 356px),440px)}}
     .panel{position:relative;min-width:0;background:#14151b}
-    .view{display:flex;flex-direction:column;justify-content:center;gap:14px;height:100%;padding:clamp(14px,3vw,28px)}
+    /* Both views start at the same height, about where a centered block would for the stage's height, so the two tracks line up
+       whatever the text under them does (the stage is 300px on phones) */
+    .view{display:flex;flex-direction:column;gap:14px;height:100%;padding:clamp(14px,3vw,28px);padding-top:clamp(24px,calc((var(--hb-stage-h,300px) - 190px) / 2),90px)}
     .name{font:700 clamp(15px,2vw,19px)/1.2 var(--hb-font);color:#f4f4f2}
+    @media(max-width:349px){.name{min-height:2.4em}}  /* "Follows the scroll" takes two lines here, so both titles keep two and the tracks stay level */
     .says{font:400 clamp(13px,1.6vw,15px)/1.45 var(--hb-font);color:#c4c4cb}
     .track{position:relative;height:28px;border-bottom:2px dashed rgba(255,255,255,.24)}
     .runner{position:absolute;inset:0;will-change:transform}
     .ball{width:28px;height:28px;border-radius:50%;background:var(--ui-accent)}
-    /* Plays by itself: the ball crosses its track on a timer, whatever the visitor does */
+    /* Plays by itself: the ball crosses its track on a timer, whatever the visitor does. Its button pauses and plays it. */
     .clock .runner{animation:cross 2.4s ease-in-out infinite alternate}
+    .clock[data-ball="paused"] .runner{animation-play-state:paused}
     @keyframes cross{to{transform:translateX(calc(100% - 28px))}}
+    .toggle{align-self:flex-start;min-width:44px;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:none;color:#f4f4f2;font:500 14px/1.2 var(--hb-font);text-align:left;cursor:pointer}
+    @media(hover:hover){.toggle:hover{border-color:var(--hb-edge-2)}}
     /* Follows the scroll: this panel is the box that scrolls. Its view stays put while the ball sits wherever the scroll says. */
     .scroll{overflow-y:auto;scrollbar-width:none}
     .scroll::-webkit-scrollbar{display:none}
     .scroll .tall{height:300%}
     .scroll .view{position:sticky;top:0;height:calc(100% / 3)}
     .where{font:600 14px/1.3 var(--hb-font);color:var(--ui-accent)}
-    @media(prefers-reduced-motion:reduce){.clock .runner{animation:none}}
+    /* Reduced motion: the left ball starts paused (this holds it before the script has run), and its button can still play it */
+    @media(prefers-reduced-motion:reduce){.clock:not([data-ball]) .runner{animation-play-state:paused}}
   </style>
   <link rel="stylesheet" href="../../assets/css/demo-page.css?v=8">
   <script src="../../assets/js/demo-page.js?v=8" defer></script>
 </head>
-<body class="hb hb-learn" data-hb-kind="scroll" data-hb-autoplay data-hb-motion-note="The ball that plays by itself stays still">
+<body class="hb hb-learn" data-hb-kind="scroll" data-hb-autoplay data-hb-motion-note="The ball that plays by itself starts paused">
 <nav class="hb-bar" aria-label="Animation Handbook">
   <a class="hb-home" href="../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
   <span class="hb-pager"><a href="../../animations/04-micro-interactions/loading-spinner/" rel="prev" aria-label="Previous lesson: Loading Spinner"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Loading Spinner</span></a><a href="../../animations/01-scroll-based/reveal-on-scroll/" rel="next" aria-label="Next lesson: Reveal on Scroll"><span><span class="hb-dir">Next: </span>Reveal on Scroll</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
@@ -68,11 +75,12 @@
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll the right box, or press Play and it scrolls for you. The left ball keeps its own time.</p></div>
     </div>
     <div class="stage" id="stage" role="region" aria-label="Two boxes side by side: a ball that plays by itself, and a ball that follows the scroll of its box">
-      <div class="panel clock">
+      <div class="panel clock" id="clock">
         <div class="view">
           <p class="name">Plays by itself</p>
           <div class="track"><div class="runner"><div class="ball"></div></div></div>
           <p class="says">Moves on a timer, whatever you do.</p>
+          <button class="toggle" type="button" id="btn-ball">Pause the ball</button>
         </div>
       </div>
       <div class="panel scroll" id="scroll-box" data-hb-scroller tabindex="0" role="group" aria-label="A box to scroll: its ball follows the scroll">
@@ -134,6 +142,20 @@
   // A resize changes how far the box can scroll, so the ball and the readout are read again
   addEventListener('resize', follow);
   follow();
+
+  // The left ball plays by itself until the visitor pauses it. Under reduced motion it starts paused.
+  const clock  = document.getElementById('clock');
+  const toggle = document.getElementById('btn-ball');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  function setBall(paused) {
+    clock.dataset.ball = paused ? 'paused' : 'playing';
+    toggle.textContent = paused ? 'Play the ball' : 'Pause the ball';
+  }
+  toggle.addEventListener('click', () => setBall(clock.dataset.ball !== 'paused'));
+  function holdBall(e) { if (e.matches) setBall(true); }
+  if (reduce.addEventListener) reduce.addEventListener('change', holdBall);
+  else if (reduce.addListener) reduce.addListener(holdBall);
+  setBall(reduce.matches);
 </script>
 </body>
 </html>
