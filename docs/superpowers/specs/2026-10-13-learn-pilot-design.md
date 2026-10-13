@@ -200,8 +200,8 @@ with no console errors.
 
 ### Lesson 21 · Far things move slower (`learn/far-things-move-slower/`)
 
-- Lede: "Look out of a moving train: the fence rushes by, the hills crawl and the moon seems to stay put. Your eyes use
-  that difference to judge distance."
+- Lede: "Look out of a moving train: the fence rushes by, the mountains crawl and the moon seems to stay put. Your eyes
+  use that difference to judge distance."
 - Watch it: a train-window scene sliding sideways in a loop (sky and moon still, far mountains slow, hills faster, fence
   fastest). Kind: loop (Pause).
 - Try it: a switch "Same speed for everything": the layers move as one and the scene looks like a flat picture sliding.
