@@ -94,3 +94,150 @@ test('make-famous: the blocks go between their marker lines, a second run change
   assert.throws(() => replaceBetween('no markers here', CSS_START, CSS_END, 'x'), /must each be there once/);
   assert.throws(() => replaceBetween(CSS_START + CSS_END + CSS_START, CSS_START, CSS_END, 'x'), /must each be there once/);
 });
+
+// ---------- The page: its frame ----------
+const FILE = path.join(ROOT, 'famous', 'index.html');
+// A file's text with Windows line endings read as plain ones: a checkout may hold either.
+const read = f => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
+const PAGE = read(FILE);
+const HOME = read(path.join(ROOT, 'index.html'));
+const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
+const REPO = 'https://github.com/matinmonshizadeh/animation-handbook';
+const TEMPLATE = `${REPO}/issues/new?template=famous_effect.yml`;
+const TITLE = 'Famous effects — Animation Handbook';
+const LEDE = 'Effects people admire on well-known websites, the handbook animations that make something similar, and a prompt to build your own.';
+const LEGAL = "The Animation Handbook is not connected to any of these sites or their owners, and none of them has reviewed or approved this page. Each effect is described in our own words and shown only with the handbook's own demos.";
+// The sites the page may name (the twelve entries and the reserves): none belongs in its title or description.
+const SITE_NAMES = ['Stripe', 'Apple', 'Lando Norris', 'Linear', 'Wikipedia', 'ChatGPT', 'OpenAI', 'x.com', 'Spotify', 'YouTube', 'Pudding', 'Medium', 'Rockstar', 'Cursor'];
+const count = (s, sub) => s.split(sub).length - 1;
+// The part of s from the first `from` up to the next `to` after it ('' when `from` is missing).
+const between = (s, from, to) => {
+  const start = s.indexOf(from);
+  if (start < 0) return '';
+  const end = s.indexOf(to, start + from.length);
+  return s.slice(start, end < 0 ? undefined : end);
+};
+const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+// The words a piece of markup shows: tags dropped, entities decoded, white space squeezed (as the page's Copy prompt reads it).
+const textOf = html => decode(html.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim();
+const meta = attr => { const m = PAGE.match(new RegExp(`<meta ${attr} content="([^"]*)">`)); return m && decode(m[1]); };
+// What a visitor reads: the page without its scripts and styles.
+const MARKUP = PAGE.replace(/<script\b[\s\S]*?<\/script>/g, '').replace(/<style\b[\s\S]*?<\/style>/g, '');
+const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Whether a link or source of famous/index.html names a file of the repository (a folder stands for its index.html).
+const isRepoFile = ref => {
+  const bare = ref.replace(/[?#].*$/, '');
+  if (/^[a-z][a-z0-9+.-]*:/i.test(bare) || bare.startsWith('/')) return false;
+  const file = path.resolve(ROOT, 'famous', bare || '.');
+  return fs.existsSync(bare === '' || bare.endsWith('/') ? path.join(file, 'index.html') : file);
+};
+
+test('famous/index.html: one title and one description for search and social sites, with no company name in them', () => {
+  assert.equal(count(PAGE, '<title>'), 1, 'one title');
+  assert.ok(PAGE.includes(`<title>${TITLE}</title>`), 'the title');
+  for (const attr of ['property="og:title"', 'name="twitter:title"']) assert.equal(meta(attr), TITLE, attr);
+  for (const attr of ['name="description"', 'property="og:description"', 'name="twitter:description"']) assert.equal(meta(attr), LEDE, attr);
+  assert.ok(PAGE.includes('<h1 class="h1">Famous effects</h1>'), 'the heading');
+  assert.ok(PAGE.includes(`<p class="fx-lede">${LEDE}</p>`), 'the lede under it');
+  assert.match(PAGE, /<p class="pill">\d+ effects from well-known websites<\/p>/, 'the pill');
+  for (const name of SITE_NAMES) assert.ok(!new RegExp(`\\b${escapeRe(name)}\\b`, 'i').test(`${TITLE} ${LEDE}`), `no "${name}" in the title or description`);
+});
+
+test('famous/index.html: canonical and og:url are its live address, and it shares the site\'s picture', () => {
+  assert.ok(PAGE.includes(`<link rel="canonical" href="${LIVE}famous/">`), 'canonical');
+  assert.equal(meta('property="og:url"'), `${LIVE}famous/`);
+  for (const attr of ['property="og:image"', 'name="twitter:image"']) assert.equal(meta(attr), `${LIVE}og-image.png`, attr);
+});
+
+test('the top bar is the home page\'s, with Famous effects marked as this page', () => {
+  const bar = between(PAGE, '<header class="wrap top" id="top">', '</header>');
+  for (const part of ['<a class="brand" href="../">', '<a class="lnk" href="../?view=all">Browse all</a>', '<a class="lnk" href="./" aria-current="page">Famous effects</a>',
+    '<button type="button" class="icon-btn theme-btn" id="theme-toggle" aria-label="Switch between light and dark">',
+    `<a class="gh" id="gh-stars" href="${REPO}" target="_blank" rel="noopener">`]) assert.ok(bar.includes(part), part);
+  assert.equal(count(MARKUP, 'aria-current='), 1, 'one current page');
+});
+
+test('the light and dark colors and the theme switch are the home page\'s', () => {
+  const block = (html, selector) => {
+    const css = between(html, '<style>', '</style>'), at = css.indexOf(`${selector}{`);
+    assert.ok(at >= 0, selector);
+    return css.slice(at, css.indexOf('}', at) + 1).replace(/\s+/g, '');
+  };
+  for (const selector of [':root', ':root[data-theme="dark"]']) assert.equal(block(PAGE, selector), block(HOME, selector), selector);
+  assert.ok(PAGE.includes(HOME.match(/function setTheme\(t\)\{[^\n]*\}/)[0]), 'the same setTheme as the home page');
+});
+
+test('the not-connected line is on the page once, word for word, above the jump row and every entry', () => {
+  assert.equal(count(PAGE, LEGAL), 1, 'once');
+  assert.ok(PAGE.includes(`<p class="fx-legal">${LEGAL}</p>`), 'in its own paragraph');
+  const at = PAGE.indexOf(LEGAL);
+  assert.ok(at < PAGE.indexOf('<nav class="fx-jump"'), 'above the jump row');
+  assert.ok(PAGE.indexOf('<section class="fx"') < 0 || at < PAGE.indexOf('<section class="fx"'), 'above the first entry');
+});
+
+test('the page loads nothing from elsewhere, uses only the site\'s font in its own style and shows no code', async () => {
+  const { CSS_START, CSS_END } = await tool();
+  for (const bad of ['<img', '<video', '<iframe', '<picture', '<object', '<embed', '@import', 'url(http']) assert.ok(!PAGE.includes(bad), bad);
+  assert.ok(!/demo-page\.(css|js)/.test(PAGE), 'it links neither shared file');
+  for (const [, src] of PAGE.matchAll(/\ssrc="([^"]*)"/g)) assert.ok(isRepoFile(src), `src ${src}`);
+  for (const [tag] of PAGE.matchAll(/<link\b[^>]*>/g)) {
+    if (!/\srel="(stylesheet|icon|apple-touch-icon)"/.test(tag)) continue;
+    const href = tag.match(/\shref="([^"]*)"/)[1];
+    assert.ok(isRepoFile(href), `link ${href}`);
+  }
+  const css = between(PAGE, '<style>', '</style>').replace(/url\(\s*(["'])data:[\s\S]*?\1\s*\)/g, '');
+  for (const [, ref] of css.matchAll(/url\(\s*['"]?([^'")\s]+)/g)) assert.ok(isRepoFile(ref), `url(${ref})`);
+  const own = css.slice(0, css.indexOf(CSS_START)) + css.slice(css.indexOf(CSS_END));
+  for (const [, family] of own.matchAll(/font-family:([^;}]+)/g)) assert.match(family.trim(), /^(var\(--disp\)|var\(--text\)|'Schibsted Grotesk')$/, `font-family:${family}`);
+  assert.ok(!/`|<code|<pre/.test(MARKUP), 'no backtick, <code> or <pre> outside <script> and <style>');
+});
+
+test('the only links that leave the site are the entries\' sites, the GitHub repository and its issue template, each in a new tab', () => {
+  const sites = new Set([...PAGE.matchAll(/<p class="fx-seen">Seen on <a href="([^"]+)"/g)].map(m => m[1]));
+  for (const [tag, href] of PAGE.matchAll(/<a\b[^>]*\shref="(https?:[^"]*)"[^>]*>/g)) {
+    assert.ok(href === REPO || href === TEMPLATE || sites.has(href), `a link that leaves the site: ${href}`);
+    assert.match(tag, /\starget="_blank" rel="noopener"/, `${href} opens in a new tab`);
+  }
+});
+
+test('every link inside the site opens a file of the repository, and from disk a folder link opens its index.html', () => {
+  for (const [, href] of PAGE.matchAll(/<a\b[^>]*\shref="([^"]*)"/g)) {
+    if (/^https?:/.test(href) || href.startsWith('#')) continue;
+    assert.ok(isRepoFile(href), href);
+  }
+  assert.ok(PAGE.includes("if(location.protocol==='file:')document.querySelectorAll('a[href]').forEach(a=>{"), 'opened from disk, folder links name index.html');
+});
+
+test('the footer is the home page\'s, without the count', () => {
+  const foot = between(PAGE, '<footer class="wrap foot">', '</footer>');
+  assert.ok(foot.includes('<p class="foot-t">Web animations with live demos and copyable prompts.</p>'), 'its line, with no number');
+  assert.ok(foot.includes(`<a class="lnk" href="${REPO}" target="_blank" rel="noopener">GitHub</a><a class="lnk" href="#top">Back to top</a>`), 'its links');
+  assert.ok(!/\d/.test(textOf(foot)), 'no number in the footer');
+});
+
+test('the page script copies, falls back to the copy keys, shortens prompts on phones and shows the message, in the words of the animation pages and the home page', () => {
+  const script = [...PAGE.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+  const shared = read(path.join(ROOT, 'assets', 'js', 'demo-page.js'));
+  for (const words of ['Show the full prompt', 'Show less', 'Press ⌘C to copy', 'Press Ctrl+C to copy']) {
+    assert.ok(script.includes(`'${words}'`), `the page says "${words}"`);
+    assert.ok(shared.includes(`'${words}'`), `as the animation pages do: "${words}"`);
+  }
+  assert.ok(script.includes("toast('Prompt copied. Paste it into your AI assistant.')") && HOME.includes("toast('Prompt copied. Paste it into your AI assistant.')"), 'the home page\'s message');
+  for (const words of ["'Copy prompt'", "'Copied'"]) assert.ok(script.includes(words), words);
+  assert.ok(PAGE.includes('<div class="toast" id="toast" role="status" aria-live="polite">'), 'the message box');
+});
+
+test('Seen one we should add? opens the Famous effect issue template, which asks for the site and what you see in your own words, with no screenshots or code', () => {
+  assert.ok(PAGE.includes(`<a class="fx-suggest" href="${TEMPLATE}" target="_blank" rel="noopener">Suggest it on GitHub<span class="sr"> (opens in a new tab)</span></a>`), 'the Suggest link');
+  assert.ok(PAGE.includes('<p class="fx-note">Each entry was checked by hand on the date shown; a site may have changed since.</p>'), 'the note on dates');
+  const yml = read(path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'famous_effect.yml'));
+  assert.match(yml, /^name: Famous effect$/m, 'its name');
+  const field = id => yml.split('\n  - type: ').find(part => part.includes(`\n    id: ${id}\n`)) || '';
+  for (const id of ['address', 'what']) assert.match(field(id), /\n {4}validations:\n {6}required: true/, `${id} is required`);
+  assert.match(yml, /no screenshots, videos or code from the site/i, 'no screenshots or code from the site');
+});
+
+test('the two preview blocks are what tools/make-famous.mjs writes from the home page now', async () => {
+  const { buildFamous } = await tool();
+  assert.ok(buildFamous(ROOT)['famous/index.html'] === PAGE, `famous/index.html is out of date: run ${TOOL}`);
+});
