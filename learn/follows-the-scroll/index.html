@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Follows the Scroll — Animation Handbook</title>
+  <meta name="description" content="Some animations play on their own, like a video. Others follow your scroll: they move when you scroll and stop when you stop.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/learn/follows-the-scroll/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Follows the Scroll — Animation Handbook">
+  <meta property="og:description" content="Some animations play on their own, like a video. Others follow your scroll: they move when you scroll and stop when you stop.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/learn/follows-the-scroll/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Follows the Scroll — Animation Handbook">
+  <meta name="twitter:description" content="Some animations play on their own, like a video. Others follow your scroll: they move when you scroll and stop when you stop.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <style>
+    :root{--ui-accent:#c8f169}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#0b0b0d;overflow:hidden}
+    .panel{position:relative;min-width:0;background:#14151b}
+    .view{display:flex;flex-direction:column;justify-content:center;gap:14px;height:100%;padding:clamp(14px,3vw,28px)}
+    .name{font:700 clamp(15px,2vw,19px)/1.2 var(--hb-font);color:#f4f4f2}
+    .says{font:400 clamp(13px,1.6vw,15px)/1.45 var(--hb-font);color:#c4c4cb}
+    .track{position:relative;height:28px;border-bottom:2px dashed rgba(255,255,255,.24)}
+    .runner{position:absolute;inset:0;will-change:transform}
+    .ball{width:28px;height:28px;border-radius:50%;background:var(--ui-accent)}
+    /* Plays by itself: the ball crosses its track on a timer, whatever the visitor does */
+    .clock .runner{animation:cross 2.4s ease-in-out infinite alternate}
+    @keyframes cross{to{transform:translateX(calc(100% - 28px))}}
+    /* Follows the scroll: this panel is the box that scrolls. Its view stays put while the ball sits wherever the scroll says. */
+    .scroll{overflow-y:auto;scrollbar-width:none}
+    .scroll::-webkit-scrollbar{display:none}
+    .scroll .tall{height:300%}
+    .scroll .view{position:sticky;top:0;height:calc(100% / 3)}
+    .where{font:600 14px/1.3 var(--hb-font);color:var(--ui-accent)}
+    @media(prefers-reduced-motion:reduce){.clock .runner{animation:none}}
+  </style>
+  <link rel="stylesheet" href="../../assets/css/demo-page.css?v=8">
+  <script src="../../assets/js/demo-page.js?v=8" defer></script>
+</head>
+<body class="hb hb-learn" data-hb-kind="scroll" data-hb-autoplay data-hb-motion-note="The ball that plays by itself stays still">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../../animations/04-micro-interactions/loading-spinner/" rel="prev" aria-label="Previous lesson: Loading Spinner"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Loading Spinner</span></a><a href="../../animations/01-scroll-based/reveal-on-scroll/" rel="next" aria-label="Next lesson: Reveal on Scroll"><span><span class="hb-dir">Next: </span>Reveal on Scroll</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">Lesson 11 of 25 · Idea</p>
+    <h1>Follows the scroll</h1>
+    <p class="hb-lede">Some animations play on their own, like a video. Others follow your scroll: they move when you scroll and stop when you stop.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll the right box, or press Play and it scrolls for you. The left ball keeps its own time.</p></div>
+    </div>
+    <div class="stage" id="stage" role="region" aria-label="Two boxes side by side: a ball that plays by itself, and a ball that follows the scroll of its box">
+      <div class="panel clock">
+        <div class="view">
+          <p class="name">Plays by itself</p>
+          <div class="track"><div class="runner"><div class="ball"></div></div></div>
+          <p class="says">Moves on a timer, whatever you do.</p>
+        </div>
+      </div>
+      <div class="panel scroll" id="scroll-box" data-hb-scroller tabindex="0" aria-label="A box to scroll: its ball follows the scroll">
+        <div class="tall">
+          <div class="view">
+            <p class="name">Follows the scroll</p>
+            <div class="track"><div class="runner" id="scroll-runner"><div class="ball"></div></div></div>
+            <p class="says">Goes where the scroll goes. <span class="where" id="where">0% scrolled</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
+      <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+  </section>
+
+  <section class="hb-why" aria-labelledby="hb-why-title">
+    <h2 id="hb-why-title">Why it works</h2>
+    <p>When an animation follows the scroll, the visitor controls it: scroll slowly and it moves slowly, scroll back and it plays backward, stop and it stops. That ties the movement to reading the page, so it feels like part of it. An animation that plays by itself runs on a clock instead, whatever the visitor does.</p>
+  </section>
+
+  <section class="hb-seen" aria-labelledby="hb-seen-title">
+    <h2 id="hb-seen-title">Where you'll see it</h2>
+    <div class="hb-rel-list">
+      <a class="hb-rel" href="../../animations/01-scroll-based/parallax-scrolling/"><b>Parallax Scrolling</b><span>Far layers move slower than near ones as you scroll.</span></a>
+      <a class="hb-rel" href="../../animations/01-scroll-based/scrub-animation/"><b>Scrub Animation</b><span>Scroll plays it forward and back, like dragging a video.</span></a>
+      <a class="hb-rel" href="../../animations/01-scroll-based/progress-bar/"><b>Progress Bar</b><span>A bar fills as you read down the page.</span></a>
+      <a class="hb-rel" href="../../animations/01-scroll-based/text-fill-on-scroll/"><b>Text Fill on Scroll</b><span>Words light up one by one as you scroll.</span></a>
+      <a class="hb-rel" href="../../animations/06-3d-advanced/scroll-driven-3d-rotation/"><b>Scroll-Driven 3D Rotation</b><span>Scrolling turns a 3D cube from pose to pose.</span></a>
+    </div>
+  </section>
+
+  <nav class="hb-lesson-nav" aria-label="Learning path">
+    <p class="hb-lesson-title">Learning path</p>
+    <a class="hb-lesson-prev" href="../../animations/04-micro-interactions/loading-spinner/"><span>← Lesson 10</span><b>Loading Spinner</b></a>
+    <a class="hb-lesson-next" href="../../animations/01-scroll-based/reveal-on-scroll/"><span>Lesson 12 →</span><b>Reveal on Scroll</b></a>
+    <a class="hb-lesson-all" href="../">All 25 lessons</a>
+  </nav>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  // The right ball sits as far along its track as the box is scrolled, read once per frame while the box scrolls.
+  const box    = document.getElementById('scroll-box');
+  const runner = document.getElementById('scroll-runner');
+  const where  = document.getElementById('where');
+  let ticking  = false;
+  function follow() {
+    const max = box.scrollHeight - box.clientHeight;
+    const p   = max > 0 ? box.scrollTop / max : 0;
+    runner.style.transform = `translateX(calc(${p.toFixed(4)} * (100% - 28px)))`;
+    where.textContent = `${Math.round(p * 100)}% scrolled`;
+    ticking = false;
+  }
+  box.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(follow); ticking = true; }
+  }, { passive: true });
+  follow();
+</script>
+</body>
+</html>
