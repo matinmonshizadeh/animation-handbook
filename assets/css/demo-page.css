@@ -106,9 +106,12 @@ body.hb [hidden]{display:none!important}
    right end of the Watch step's heading row (below), so the stage keeps its place on a laptop's first screen. The switch is a
    .seg too, and the .seg rules come later in the file: the rules here that must win name .seg.hb-modes. */
 .hb-page .seg.hb-modes{gap:6px}
-.hb-mode-notes:not(:has(> p:not([hidden]))){display:none}
+/* The empty box is the live region that makes a screen reader read each note out loud, so it stays on the page: display:none would
+   take it out of the accessibility tree, and the first note might not be announced. It is hidden to the eye and taken out of the
+   flow instead, so it takes no room and adds no gap. */
+.hb-mode-notes:not(:has(> p:not([hidden]))){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .hb-mode-notes p{margin:0;max-width:72ch;font:400 15px/1.55 var(--hb-font);color:var(--hb-dim)}
-.hb-mode-notes a{color:var(--hb-ink);text-underline-offset:3px}
+.hb-mode-notes a{color:var(--hb-ink);text-decoration:underline;text-underline-offset:3px}
 
 /* Switches: a checkbox drawn as a track and knob (gradients, so no pseudo-elements on the input) */
 .hb-switch{appearance:none;-webkit-appearance:none;flex:none;width:32px;height:20px;margin:0;border-radius:999px;cursor:pointer;

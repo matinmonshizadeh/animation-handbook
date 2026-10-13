@@ -535,8 +535,16 @@ test('the shared stylesheet draws the mode switch beside the Watch heading from 
   const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
   for (const sel of ['.hb-page .seg.hb-modes', '.hb-mode-notes p', '.hb-lesson', '.hb-lesson a', '.hb-lesson-nav', '.hb-lesson-prev',
     '.hb-lesson-next', '.hb-lesson-all', '.hb-why p', '.hb-seen']) assert.ok(has(sel), sel);
-  assert.ok(rules.some(r => r.selector === '.hb-mode-notes:not(:has(> p:not([hidden])))' && /display:none/.test(r.body)),
-    'an empty notes box takes no room');
+  // The empty box is the aria-live region that makes a screen reader read each note out, so it must stay rendered: display:none
+  // would take it out of the accessibility tree, and the first note shown might not be announced. It is hidden to the eye and taken
+  // out of the flow instead, which takes no room and adds no gap.
+  const emptyNotes = rules.filter(r => r.selector === '.hb-mode-notes:not(:has(> p:not([hidden])))');
+  assert.ok(emptyNotes.some(r => /(^|;)\s*position:\s*absolute\s*(;|$)/.test(r.body) && /(^|;)\s*clip-path:\s*inset\(50%\)\s*(;|$)/.test(r.body)),
+    'an empty notes box takes no room: it is taken out of the flow and clipped away');
+  assert.ok(!emptyNotes.some(r => /(^|;)\s*display:\s*none\s*(;|$)/.test(r.body)),
+    'an empty notes box stays rendered, so the first note shown is announced by the live region');
+  assert.ok(rules.some(r => r.selector === '.hb-mode-notes a' && /(^|;)\s*text-decoration:\s*underline\s*(;|$)/.test(r.body)),
+    'a link in a note is underlined');
   // The switch is also a .seg, and the .seg rules (the gap, and the phone rule for .seg buttons) come later in the file: the
   // switch's own rules name .seg.hb-modes so that they outrank them and the three buttons are equal on phones.
   assert.ok(rules.some(r => r.selector === '.hb-page .seg.hb-modes button' && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(r.body)),
