@@ -20,7 +20,7 @@
   <meta name="twitter:description" content="Some animations play on their own, like a video. Others follow your scroll: they move when you scroll and stop when you stop.">
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <style>
-    :root{--ui-accent:#c8f169}
+    :root{--ui-accent:#c8f169;--ball:28px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#0b0b0d;overflow:hidden;--fs-vh:1vh}
     /* The line under the title takes two lines here, one more than on the animation pages, so from 601px wide (where the shared heights apply)
@@ -35,21 +35,26 @@
     .name{font:700 clamp(15px,2vw,19px)/1.2 var(--hb-font);color:#f4f4f2}
     @media(max-width:349px){.name{min-height:2.4em}}  /* "Follows the scroll" takes two lines here, so both titles keep two and the tracks stay level */
     .says{font:400 clamp(13px,1.6vw,15px)/1.45 var(--hb-font);color:#c4c4cb}
-    .track{position:relative;height:28px;border-bottom:2px dashed rgba(255,255,255,.24)}
+    .track{position:relative;height:var(--ball);border-bottom:2px dashed rgba(255,255,255,.4)}
     .runner{position:absolute;inset:0;will-change:transform}
-    .ball{width:28px;height:28px;border-radius:50%;background:var(--ui-accent)}
+    .ball{width:var(--ball);height:var(--ball);border-radius:50%;background:var(--ui-accent)}
     /* Plays by itself: the ball crosses its track on a timer, whatever the visitor does. Its button pauses and plays it. */
     .clock .runner{animation:cross 2.4s ease-in-out infinite alternate}
     .clock[data-ball="paused"] .runner{animation-play-state:paused}
-    @keyframes cross{to{transform:translateX(calc(100% - 28px))}}
+    @keyframes cross{to{transform:translateX(calc(100% - var(--ball)))}}
     .toggle{align-self:flex-start;min-width:44px;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:none;color:#f4f4f2;font:500 14px/1.2 var(--hb-font);text-align:left;cursor:pointer}
     @media(hover:hover){.toggle:hover{border-color:var(--hb-edge-2)}}
-    /* Follows the scroll: this panel is the box that scrolls. Its view stays put while the ball sits wherever the scroll says. */
+    /* Follows the scroll: this panel is the box that scrolls. Its view stays put. The script writes how far the box is scrolled
+       (0 to 1) into --p, and the ball and the thin cue on the box's right edge are placed from it here. The box shows a third of
+       what it holds, so the thumb of the cue is a third of its rail. */
     .scroll{overflow-y:auto;scrollbar-width:none}
     .scroll::-webkit-scrollbar{display:none}
     .scroll .tall{height:300%}
     .scroll .view{position:sticky;top:0;height:calc(100% / 3)}
-    .where{font:600 14px/1.3 var(--hb-font);color:var(--ui-accent)}
+    .scroll .runner{transform:translateX(calc(var(--p,0) * (100% - var(--ball))))}
+    .cue{position:absolute;top:12px;right:5px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.12);pointer-events:none}
+    .thumb{height:calc(100% / 3);border-radius:inherit;background:rgba(255,255,255,.4);will-change:transform;transform:translateY(calc(var(--p,0) * 200%))}
+    .where{display:block;margin-top:4px;font:600 14px/1.3 var(--hb-font);color:var(--ui-accent);white-space:nowrap;font-variant-numeric:tabular-nums}
     /* Reduced motion: the left ball starts paused (this holds it before the script has run), and its button can still play it */
     @media(prefers-reduced-motion:reduce){.clock:not([data-ball]) .runner{animation-play-state:paused}}
   </style>
@@ -87,8 +92,9 @@
         <div class="tall">
           <div class="view">
             <p class="name">Follows the scroll</p>
-            <div class="track"><div class="runner" id="scroll-runner"><div class="ball"></div></div></div>
+            <div class="track"><div class="runner"><div class="ball"></div></div></div>
             <p class="says">Goes where the scroll goes. <span class="where" id="where">0% scrolled</span></p>
+            <div class="cue" aria-hidden="true"><div class="thumb"></div></div>
           </div>
         </div>
       </div>
@@ -124,16 +130,17 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
-  // The right ball sits as far along its track as the box is scrolled, read once per frame while the box scrolls.
-  const box    = document.getElementById('scroll-box');
-  const runner = document.getElementById('scroll-runner');
-  const where  = document.getElementById('where');
-  let ticking  = false;
+  // The right ball and the cue sit as far along as the box is scrolled, read once per frame while the box scrolls.
+  const box   = document.getElementById('scroll-box');
+  const where = document.getElementById('where');
+  let ticking = false;
+  let said    = where.textContent;
   function follow() {
     const max = box.scrollHeight - box.clientHeight;
     const p   = max > 0 ? box.scrollTop / max : 0;
-    runner.style.transform = `translateX(calc(${p.toFixed(4)} * (100% - 28px)))`;
-    where.textContent = `${Math.round(p * 100)}% scrolled`;
+    box.style.setProperty('--p', p.toFixed(4));       // the style sheet places the ball and the cue from this
+    const now = `${Math.round(p * 100)}% scrolled`;
+    if (now !== said) { where.textContent = now; said = now; }
     ticking = false;
   }
   box.addEventListener('scroll', () => {
