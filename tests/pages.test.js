@@ -20,6 +20,17 @@ const between = (s, from, to) => {
   const end = s.indexOf(to, start + from.length);
   return s.slice(start, end < 0 ? undefined : end);
 };
+// The text inside the braces of the first block that starts with `header` (which ends with the block's opening brace), the braces
+// matched, so a rule after the block's closing brace is not part of it ('' when there is no such block).
+const blockOf = (s, header) => {
+  const start = s.indexOf(header);
+  if (start < 0) return '';
+  for (let i = start + header.length, depth = 1; i < s.length; i++) {
+    if (s[i] === '{') depth++;
+    else if (s[i] === '}' && --depth === 0) return s.slice(start + header.length, i);
+  }
+  return '';
+};
 const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 // The rules of a stylesheet as { selector, body }: comments removed, rules inside @media and @supports included.
 const cssRules = css => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -572,11 +583,14 @@ test('the shared stylesheet draws the mode switch beside the Watch heading and t
   // From 761px a player bar with one or two controls leaves room beside it, so the note for the mode in view sits next to the bar,
   // under the switch, and is on a laptop's first screen: three columns (the player bar's own width, the room left over, the switch's
   // width); the heading spans the first two, the player bar keeps the start of its row (a note taller than the bar grows the row,
-  // not the bar, so the bar does not move) and the note spans the other two. A bar with a third control (or the note that reduced
-  // motion adds) keeps the two columns, the full row and the note under it. Up to 760px the note stays under the player bar: no
-  // other rule places it.
-  const wide = between(css, '@media(min-width:761px){', '@media(max-width:760px)');
-  const SHORT = '.hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3)))';
+  // not the bar, so the bar does not move) and the note spans the other two. A bar with a third control, or with the note that
+  // reduced motion adds (looked for itself: a bar with one control and that note has only two children), keeps the two columns,
+  // the full row and the note under it. Up to 760px the note stays under the player bar: no other rule places it. The blocks
+  // are taken with their braces matched, so a rule after a block's closing brace is not counted as inside it.
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const wide = blockOf(bare, '@media(min-width:761px){');
+  const phones = blockOf(bare, '@media(max-width:760px){');
+  const SHORT = '.hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note))';
   for (const [what, text] of [
     ['three columns: the player bar, the room left over, the switch', `${SHORT}{grid-template-columns:auto minmax(0,1fr) auto}`],
     ['the heading spans the first two columns', `${SHORT} > .hb-step-head{grid-column:1/3}`],
@@ -585,7 +599,11 @@ test('the shared stylesheet draws the mode switch beside the Watch heading and t
     ['the note spans the other two columns', `${SHORT} > .hb-mode-notes{grid-column:2/-1;`],
     ['a bar with a third control keeps the two columns (the switch beside the heading, the rest on the full row)', '.hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;']
   ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
-  assert.equal(count(css, '> .hb-mode-notes{'), 1, 'one rule places the note beside the player bar, and it is in the 761px block (phones keep the note under the bar)');
+  assert.ok(wide.includes('.hb-watch:has(> .hb-modes) > .hb-modes{grid-column:2;flex-wrap:nowrap}'), 'the 761px block is the one that has the switch beside the heading');
+  assert.equal(count(wide, '> .hb-mode-notes{'), 1, 'one rule places the note beside the player bar, and it is in the 761px block');
+  assert.equal(count(css, '> .hb-mode-notes{'), 1, 'no other rule places the note, so phones keep it under the player bar');
+  assert.ok(phones.includes('.hb-page .seg.hb-modes button{flex:1 1 0'), 'the block up to 760px is found (it holds the equal mode buttons)');
+  assert.ok(!/\.hb-watch|\.hb-mode-notes|\.hb-player/.test(phones), 'up to 760px nothing makes the Watch step a grid or places the note or the player bar');
   assert.match(css, /@media\(min-width:601px\)\{\s*\.hb-head:has\(> \.hb-lesson\)\{display:grid/, 'from 601px the lesson line shares the category row');
 });
 

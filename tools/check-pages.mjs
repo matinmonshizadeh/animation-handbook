@@ -25,13 +25,20 @@
 // takes screenshots and, on a page with the mode switch, tries the modes (below), and nothing more.
 // A page with the mode switch (Normal, See inside, Compare): at every setup each mode marks the stage, shows its own note
 // (one that is on show: rendered, not clipped away) and no other (Normal shows none) and overflows nothing, a mode change
-// moves neither the page nor the keyboard focus (the pressed button itself may take it), and the Watch step, from its
-// switch down to its note, is saved as a screenshot of See inside and of Compare (Normal's is the setup's own screenshot);
-// a mode button the page lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page
-// with its box at the middle of its range, a loop paused, a plays-once page with Loop off and its replay over), the box does
-// not scroll either, See inside and Compare must each change the stage and differ from each other, Normal must bring the
-// first picture back, and on a scroll page Play must keep scrolling through a mode change. A stage that never comes to rest
-// is a problem of its own, and nothing is compared with a frame taken in mid-movement.
+// moves neither the page nor the keyboard focus (the pressed button itself may take it), and the whole Watch step (its
+// heading, the switch, the stage, the player bar and the notes) is saved as a screenshot of See inside and of Compare
+// (Normal's is the setup's own screenshot); a mode button the page lacks is named. At the desktop and reduced-motion
+// setups, with the stage at rest (a scroll page with its box at the middle of its range, a loop paused, a plays-once page
+// with Loop off and its replay over), the box does not scroll either, See inside and Compare must each change the stage and
+// differ from each other, Normal must bring the first picture back, and on a scroll page Play must keep scrolling through a
+// mode change. Each mode's screenshot is taken after that mode's own picture checks, by scrolling the page until the step shows
+// and taking it with plain clips (in parts, joined, where it is taller than the window), so the window is not resized and no
+// scroll box moves: the Normal check that follows sees the page as it was. Chrome's capture beyond the viewport, which resizes the
+// window for a moment and sends every scroll box to the top (a page can redraw itself for that), is only the last resort for a
+// step that cannot be made to show. Either way each of those two screenshots must show the stage as it was seen at rest in that
+// mode (the stage is cut out of it and compared, and the screenshot taken again, after putting the box back, up to three more
+// times if it differs). A stage that never comes to rest is a problem of its own, and nothing is compared with a frame taken in
+// mid-movement.
 // "learn" stands for the Learn page and every idea lesson in learn/: the page checks run there too, without the prompt parts
 // (chips, What it is), and each lesson's kind is worked like any other page's. "learn/index.html" is the Learn page alone.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
@@ -247,8 +254,13 @@ const pending = new Map();
 const listeners = new Set();
 // The console errors and warnings of the setup being checked, and the loads that failed: each one fails the setup.
 const errors = [];
+// Whether a mouse event has been sent since the page was loaded. Until one has, the page has no pointer in it, and in headless Chrome
+// it does not count as focused either (a focus ring a script gives an element stays hidden).
+let pointerSent = false;
 function send(method, params = {}) {
   if (aborting) return new Promise(() => {});
+  if (method === 'Page.navigate') pointerSent = false;
+  if (method === 'Input.dispatchMouseEvent') pointerSent = true;
   return new Promise((resolve, reject) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) { reject(new Error(`${method}: Chrome is not connected`)); return; }
     const id = ++nextId;
@@ -337,11 +349,85 @@ async function stillShot() {
 // What a scroll page moves: its own scroller where it has one, else the stage.
 const BOX = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
 
+// The Watch step (its heading, the switch, the stage, the player bar and the notes) as one PNG (base64), with where the stage sits
+// in it (CSS pixels from its top left corner) and the device pixel ratio. The page is scrolled until the step shows below the
+// pinned top bar, and it is taken with plain clips, as the stage's own pictures are: the window is not resized and no scroll box
+// moves, so the page is not redrawn. A step taller than the window is taken in parts that never cut the stage, and the parts are
+// joined. The page is scrolled back afterwards. Chrome's capture beyond the viewport is only the last resort, for a step that
+// cannot be made to show: it resizes the window for a moment and sends every scroll box back to the top, and the page can
+// redraw itself for that, so the stage in the picture is not always the stage that was checked.
+async function watchStepShot() {
+  const g = await evaluate(`(() => {
+    const step = document.querySelector('.hb-watch') || document.querySelector('.hb-page .stage'), stage = document.querySelector('.hb-page .stage');
+    const bar = document.querySelector('.hb-bar'), s = step.getBoundingClientRect(), t = stage.getBoundingClientRect();
+    return { x: s.left + scrollX, y: s.top + scrollY, width: s.width, height: s.height, at: { x: t.left - s.left, y: t.top - s.top }, stageHeight: t.height,
+      bar: bar && ['sticky', 'fixed'].includes(getComputedStyle(bar).position) ? Math.ceil(bar.getBoundingClientRect().height) : 0,
+      scroll: { x: scrollX, y: scrollY }, ratio: devicePixelRatio, view: innerHeight };
+  })()`);
+  // A clip starts at the device pixel nearest its origin and is cut down to whole CSS pixels in size. So the step is cut from a
+  // top edge on the device pixel grid, in whole CSS pixels, and the parts join with no gap and no overlap.
+  const left = Math.floor(g.x * g.ratio) / g.ratio, top = Math.floor(g.y * g.ratio) / g.ratio;
+  const width = Math.ceil(g.x + g.width - left), height = Math.ceil(g.y + g.height - top);
+  // The parts: the step cut above and below the stage, each cut piece no taller than what shows below the bar, and neighbors
+  // joined while they still fit.
+  const room = g.view - g.bar - 1;
+  const above = Math.max(0, Math.floor(g.y + g.at.y - top));
+  const below = Math.min(height, Math.ceil(g.y + g.at.y + g.stageHeight - top));
+  const cuts = [0, above, below, height], parts = [];
+  for (let i = 1; i < cuts.length; i++) {
+    const n = Math.ceil((cuts[i] - cuts[i - 1]) / room);
+    for (let k = 0; k < n; k++) {
+      const edge = j => Math.round(cuts[i - 1] + (cuts[i] - cuts[i - 1]) * j / n);
+      const last = parts[parts.length - 1];
+      if (last && edge(k + 1) - last[0] <= room) last[1] = edge(k + 1); else parts.push([edge(k), edge(k + 1)]);
+    }
+  }
+  const settle = `new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))`;
+  const taken = [];
+  if (below - above <= room) {
+    for (const [a, b] of parts) {
+      const at = await evaluate(`(async () => {
+        scrollTo({ top: ${Math.max(0, Math.floor(top + a - g.bar))}, behavior: 'instant' });
+        await ${settle};
+        return scrollY;
+      })()`);
+      if (top + a - at < g.bar - 0.01 || top + b - at > g.view + 0.01) { taken.length = 0; break; }
+      const data = (await send('Page.captureScreenshot', { format: 'png', clip: { x: left, y: top + a, width, height: b - a, scale: 1 } })).data;
+      taken.push({ data, row: Math.round(a * g.ratio) });
+    }
+    await evaluate(`(async () => { scrollTo({ left: ${g.scroll.x}, top: ${g.scroll.y}, behavior: 'instant' }); await ${settle}; })()`);
+  }
+  if (!taken.length) {
+    const beyond = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true,
+      clip: { x: g.x, y: g.y, width: g.width, height: g.height, scale: 1 } });
+    return { png: beyond.data, stage: g.at, ratio: g.ratio };
+  }
+  const stage = { x: g.x + g.at.x - left, y: g.y + g.at.y - top };
+  if (taken.length === 1) return { png: taken[0].data, stage, ratio: g.ratio };
+  const png = await evaluate(`new Promise(done => {
+    const parts = ${JSON.stringify(taken)};
+    const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+    Promise.all(parts.map(p => load(p.data))).then(images => {
+      const c = document.createElement('canvas');
+      c.width = images[0].width;
+      c.height = Math.max(...images.map((img, i) => parts[i].row + img.height));
+      const g = c.getContext('2d');
+      images.forEach((img, i) => g.drawImage(img, 0, parts[i].row));
+      done(c.toDataURL('image/png').split(',')[1]);
+    });
+  })`);
+  return { png, stage, ratio: g.ratio };
+}
+
 // Pages with the mode switch: see the header comment. name and setup name the screenshots; kind is the page kind. The page is
 // left in Normal; at the desktop and reduced-motion setups a loop is also left paused, a plays-once page with Loop off and a
 // scroll page with Play stopped and the box at the top.
 async function modeProblems(name, setup, kind) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-modes]')`))) return [];
+  // An earlier check may have left the pointer over the stage, and the page is scrolled to take the screenshots, which would end
+  // a hover in the middle of the checks. So where one was sent, the pointer goes to the corner first, and every picture is of the
+  // stage without a hover. (Where none was sent the page has no pointer in it, and sending one would also make it focused.)
+  if (pointerSent) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
   const problems = [];
   const labels = { normal: 'Normal', inside: 'See inside', compare: 'Compare' };
   const missing = new Set();
@@ -376,16 +462,29 @@ async function modeProblems(name, setup, kind) {
       focus: was && a && a !== was.focus && a !== was.button ? name(a) : ''
     };
   })()`);
-  // The Watch step, from its switch down to its note, saved as the screenshot of a mode; beyond the viewport where it does not
-  // fit, as the full-page capture does. Chrome takes the picture where the box is and then sends the box back to the top (any
-  // capture beyond the viewport does), so the box is put back where it was, and the next mode is seen from the same place.
-  const capture = async mode => {
-    const area = await evaluate(`(() => { const s = document.querySelector('.hb-watch') || document.querySelector('.hb-page .stage'), b = s.getBoundingClientRect(), box = ${BOX};
-      return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height, top: box ? box.scrollTop : 0 }; })()`);
-    const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true,
-      clip: { x: area.x, y: area.y, width: area.width, height: area.height, scale: 1 } });
-    writeFileSync(join(OUT, `${name}-${setup.name}-${mode}.png`), Buffer.from(shot.data, 'base64'));
-    await evaluate(`(() => { const box = ${BOX}; if (box && box.scrollTop !== ${area.top}) box.scrollTo({ top: ${area.top}, behavior: 'instant' }); })()`);
+  // Where the box was when the stage was seen at rest (null until then, and where the box is not at rest). settleBox() puts it
+  // back when something has moved it, and gives the page a moment to redraw for it.
+  let restTop = null;
+  const settleBox = async () => {
+    if (restTop === null) return;
+    const moved = await evaluate(`(() => { const b = ${BOX}; if (!b || Math.abs(b.scrollTop - ${restTop}) < 1) return false; b.scrollTo({ top: ${restTop}, behavior: 'instant' }); return true; })()`);
+    if (moved) await sleep(300);
+  };
+  // The whole Watch step saved as the screenshot of a mode (see watchStepShot). expected is the stage's picture seen at rest in
+  // this mode (none at the lighter setups, where the stage may be moving): the stage cut out of the screenshot must be that
+  // picture. If it is not, the box is put back, the page given a moment, and the screenshot taken again, up to three more times;
+  // a screenshot that never shows the stage as it was seen is a problem of its own.
+  const capture = async (mode, expected) => {
+    let png = '', shows = !expected;
+    for (let attempt = 0; attempt === 0 || (!shows && attempt < 4); attempt++) {
+      if (attempt) await sleep(300);
+      await settleBox();
+      const got = await watchStepShot();
+      png = got.png;
+      if (expected) shows = await stageInShot(png, expected, got.stage, got.ratio);
+    }
+    writeFileSync(join(OUT, `${name}-${setup.name}-${mode}.png`), Buffer.from(png, 'base64'));
+    if (!shows) problems.push(`the ${labels[mode]} screenshot does not show the stage as checked`);
   };
   const deep = !!(setup.moves || setup.reduce);
   // The pictures are compared at the deep setups, except for a scroll page with no Back to top button: its box cannot be
@@ -413,10 +512,12 @@ async function modeProblems(name, setup, kind) {
     const rest = await stillShot();
     if (rest.still) first = rest.shot;
     else problems.push('the stage does not come to rest before the modes are tried');
+    restTop = await evaluate(`(() => { const b = ${BOX}; return b ? b.scrollTop : 0; })()`);
   }
   const shots = {};
   for (const mode of ['inside', 'compare']) {
     const label = labels[mode];
+    await settleBox();
     if (!(await press(mode))) continue;
     await sleep(700);
     const now = await look();
@@ -433,9 +534,10 @@ async function modeProblems(name, setup, kind) {
         if (first && await samePicture(rest.shot, first)) problems.push(`${label} does not change the stage`);
       }
     }
-    await capture(mode);
+    await capture(mode, shots[mode]);
   }
   if (shots.inside && shots.compare && await samePicture(shots.inside, shots.compare)) problems.push('See inside and Compare show the same picture');
+  await settleBox();
   if (await press('normal')) {
     // Only the pictures need the wait; the marks, the notes and the overflow are there at once.
     if (pictures) await sleep(700);
@@ -527,6 +629,28 @@ async function samePicture(a, b) {
       let visible = 0;
       for (let i = 0; i < p.length; i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 64) visible++;
       done(visible <= Math.max(8, Math.round(x.width * x.height / 10000)));
+    });
+  })`);
+}
+
+// True when the stage, as it shows inside a capture of a bigger area, is the picture of the stage seen on its own. shot is the
+// capture (base64 PNG), stage the picture of the stage alone, at where the stage sits in the capture (CSS pixels from its top
+// left corner) and ratio the device pixel ratio. The picture is looked for there and a pixel off in each direction (the two
+// captures can round the stage's edges differently), and counts as found when no more pixels differ than samePicture allows.
+async function stageInShot(shot, stage, at, ratio) {
+  return evaluate(`new Promise(done => {
+    const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+    Promise.all([load(${JSON.stringify(stage)}), load(${JSON.stringify(shot)})]).then(([a, b]) => {
+      const w = a.width, h = a.height, limit = Math.max(8, Math.round(w * h / 10000));
+      const read = (img, x, y) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.drawImage(img, x, y, w, h, 0, 0, w, h); return g.getImageData(0, 0, w, h).data; };
+      const p = read(a, 0, 0), ox = Math.round(${at.x} * ${ratio}), oy = Math.round(${at.y} * ${ratio});
+      for (const [dx, dy] of [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const q = read(b, ox + dx, oy + dy);
+        let visible = 0;
+        for (let i = 0; i < p.length; i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > 64) visible++;
+        if (visible <= limit) { done(true); return; }
+      }
+      done(false);
     });
   })`);
 }
