@@ -328,7 +328,7 @@ Add a highlighter sweep to [the key words in your paragraph or quote]. Behind ea
 
 - Marker color: **Yellow** · Pink · Green · Blue · Orange. The color of the bands: yellow, pink, green, blue or orange, all light enough for the dark words to stay easy to read.
 - Speed: Slow · **Normal** · Fast. How long the marker takes to cross one phrase: slow is 1300ms, normal 700ms and fast 400ms, with a 250ms pause between phrases.
-- How much it covers: **Whole words** · Lower half. Whole words covers the letters from just under their tops, with the band starting 12% of the font size below the top of the text; Lower half starts it 62% down, so it covers only the bottom of the letters, like a thick underline.
+- How much it covers: **Whole words** · Lower half. Whole words covers the letters completely: the band starts 12% of the font size below the top of the word's box, which is still about an eighth of the font size above the tallest letters, and ends a little below the tails of letters such as g and p; Lower half starts it 62% down, about halfway up the capitals, so it covers only the bottom of the letters, like a thick underline.
 
 ## Split-Flap Board
 

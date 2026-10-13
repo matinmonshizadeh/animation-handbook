@@ -177,7 +177,7 @@ Add a moving shader pattern to [the background or section you want it in]. Cover
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Pattern: **Plasma** · Waves · Cells · Kaleidoscope. Plasma adds up sine waves into flowing color; Waves bends striped color; Cells splits the plane into cells around moving points; Kaleidoscope mirrors one slice around the middle.
-- Speed: Slow · **Normal** · Fast. How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times real time, so the plasma's colors drift once round the rainbow in about 33 seconds at slow, 20 at normal and 12.5 at fast.
+- Speed: Slow · **Normal** · Fast. How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times real time, so the plasma's colors drift once around the rainbow in about 33 seconds at slow, 20 at normal and 12.5 at fast.
 - Reacts to the pointer: on · **off**. Each pattern bends around the pointer or a finger in its own way; in Kaleidoscope the pointer sets the number of slices.
 
 ## Noise-Based Motion
@@ -240,7 +240,7 @@ Add a chromatic aberration effect to [your headline or short word]. Stack three 
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Movement: **Pulse** · Glitch · None. Pulse widens the split to 1.8 times and back every 2 seconds; Glitch jumps it twice near the end of every 4 seconds, for 80ms each, to about 3 times the split and then 2 times on the other side; None keeps it still.
+- Movement: **Pulse** · Glitch · None. Pulse widens the split to 1.8 times and back every 2 seconds; Glitch makes the red and blue copies jump twice near the end of every 4 seconds, for 80ms each, always the same way whatever the Direction: red goes right by 3 times the split and up by the split, then left by 2 times the split and down by the split, and blue goes the opposite way; None keeps it still.
 - Color split: Small · **Medium** · Large. How far the red and blue copies sit from the word: small is 2px, medium 4px and large 8px; above about 6px the word gets hard to read.
 - Direction: Sideways · **Slanted** · Up and down. Sideways splits the colors left and right; Slanted splits them at 30°; Up and down splits them vertically.
 - Soft color edges: on · **off**. Blurs the red and blue copies by 2px, which looks more like a lens than a digital shift.
@@ -347,7 +347,7 @@ Add a cloth simulation to [the flag, banner or fabric you want to show]. Model t
 - Wind: Light · **Medium** · Strong. How hard the wind blows; it rises and falls on its own over a 12.6-second cycle: at its peak it speeds points up sideways by about 30px a second every second at light, 75px at medium and 180px at strong, and part of the time it blows back at up to about half that.
 - Stiffness: Stretchy · **Medium** · Stiff. How many times each step, sixty a second, the links are pulled back to length: stretchy is 2, medium 4 and stiff 8.
 - Gravity: Light · **Normal** · Heavy. How heavy the cloth is: gravity speeds a falling point up by about 17px a second every second at light, 35px at normal and 58px at heavy.
-- Detail: Low · **Medium** · High (phones start with Low). How many squares the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low.
+- Detail: Low · **Medium** · High (phones start with Low). How many cells the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; the cloth is cut 80% as wide as the stage and 65% as tall, so the cells take their shape from the stage: about square on a phone, but two to three times as wide as tall on a laptop; phones start at low.
 - Shows the points: on · **off**. Marks every point of the grid, with the pinned ones in red.
 
 ## Volumetric Smoke / 3D Noise
@@ -365,7 +365,7 @@ Add volumetric smoke to [the section you want it in]. In a fragment shader, send
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Thickness: Thin · **Medium** · Thick. How dense the smoke is: thin is 0.6 times as dense as medium and thick 1.7 times, so the thickest wisps hide about a third of what is behind at thin, half at medium and three quarters at thick; thin looks wispy.
+- Thickness: Thin · **Medium** · Thick. How dense the smoke is: thin is 0.6 times as dense as medium and thick 1.7 times, so the thickest wisps hide about a third of what is behind at thin, half at medium and 70% at thick; thin looks wispy.
 - Speed: Slow · **Normal** · Fast. How fast the smoke rises: its pattern moves about 3% of the box's height a second at slow, 5% at normal and 9% at fast.
 - Detail: Low · **Medium** · High. How many steps each ray takes: low is 16, medium 32 and high 64 (48 on phones); fewer steps leave visible stripes.
 - Smoke color: **Gray blue** · White · Purple · Orange. The color of the lit smoke; the shadowed parts are darker shades of it.
@@ -389,7 +389,7 @@ Add a gooey blob to [the section you want it in]. Draw several plain circles tha
 
 - Gooeyness: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened again: low is 6, medium 10 and high 16, measured in a drawing 360 units across whose circles are 26 to 52 units in radius; higher melts circles from farther apart.
 - Number of blobs: Few · **Medium** · Many. Few is 4, medium 6 and many 9 circles, counting the drop that follows the pointer.
-- Speed: Slow · **Normal** · Fast. How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times; at normal each circle swings back and forth along its path once every 6 to 16 seconds, each at its own rate.
+- Speed: Slow · **Normal** · Fast. How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times; each circle sways side to side and up and down at the same time, each sway at its own rate (at normal, one sway takes 6 to 16 seconds), so it wanders in loops that never quite repeat rather than back and forth along one line.
 
 ## 3D Flip Card
 

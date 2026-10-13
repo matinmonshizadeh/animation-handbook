@@ -155,7 +155,7 @@ Add a split-text reveal to [your headline]. Break the text into pieces (characte
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Split into: Letters · **Words** · Lines. Letters give the finest cascade, words a readable rhythm, lines a block reveal.
-- How each piece appears: **Fade up** · Fade · Grow · Flip. The small entrance each piece plays: fade up rises by half the font size, fade only fades, grow starts at half its size and flip turns in from 90°, edge-on, around a vertical line.
+- How each piece appears: **Fade up** · Fade · Grow · Flip. The small entrance each piece plays: fade up rises by half the font size, fade only fades, grow starts at half its size and flip turns in from 90°, edge-on, around a vertical line; in Lines mode nothing fades: each line slides up into view from behind an invisible edge, so fade shows only that slide, and fade up, grow and flip add their own movement to it.
 - Delay between pieces: Short · **Medium** · Long. The wait between pieces: short is 10ms, medium 30ms and long 100ms; small values ripple, large values feel deliberate.
 - Speed: Slow · **Normal** · Fast. How long each piece takes: slow is 800ms, normal 500ms and fast 300ms.
 - Feel: **Smooth** · Springy · Even. The curve each piece uses; Springy adds a small settle, Even keeps one steady pace.
@@ -308,7 +308,7 @@ Add a shatter effect to [the card or picture you want to break]. When it plays, 
 
 - Number of pieces: Few · **Medium** · Many. How finely the card breaks: few is about 15 pieces in two rings, medium about 30 in three and many 60 in four (about 46 on phones).
 - Breaks from: **Center** · Corner. Where the impact is: near the middle (moved a little at random each time) or near the top-left corner; the pieces there are the smallest and fly first.
-- Gravity: None · **Normal** · Heavy. None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view. Over one flight the burst carries the pieces about 1.1, 0.75 or 0.55 card heights outward (none, normal, heavy; further near the impact), and gravity pulls them a further 0.6 card heights down with normal and 2 with heavy.
+- Gravity: None · **Normal** · Heavy. None lets the pieces drift straight outward; normal throws them up a little before they fall; heavy drops them out of view. Over one flight the burst carries the pieces about 1.1, 0.75 or 0.55 card heights outward (none, normal, heavy; further near the impact), and by the end they sit a further 0.6 card heights lower with normal and 2 with heavy. Those drops are what is left once the upward throw is taken off: gravity alone pulls about 1.15 and 2.2 card heights, and the throw takes back about half a card height with normal and a quarter with heavy.
 - Speed: Slow · **Normal** · Fast. How long each piece's flight takes: slow is 1700ms, normal 1100ms and fast 700ms; the cracks take about a third of that before the break.
 - Shows the cracks: **on** · off. Draws the cracks across the card, ring by ring from the impact, before it breaks; off, it breaks at once.
 - Tumbles in 3D: **on** · off. The pieces flip over and fly toward the viewer; off, they spin flat.

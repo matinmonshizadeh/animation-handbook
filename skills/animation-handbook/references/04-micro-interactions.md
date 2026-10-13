@@ -418,7 +418,7 @@ Add an accordion to [the questions or sections you want to fold away]. Show only
 
 - Speed: Slow · **Normal** · Fast. How long an answer takes to open or close: slow is 500ms, normal 300ms and fast 180ms.
 - Feel: **Gentle** · Smooth · Even. Gentle eases in and out, which suits opening and closing alike; Smooth slows at the end; Even keeps one steady speed.
-- Several open at once: on · **off**. Off closes the open answer when another opens, which keeps the list short but moves the pressed question up when the answer that closes is above it; on keeps each answer open until its question is pressed again, so only the answer being opened moves.
+- Several open at once: on · **off**. Off closes the open answer when another opens, which keeps the list short but moves the pressed question up when the answer that closes is above it; on keeps each answer open until its question is pressed again, so nothing jumps up: the pressed question stays where it is and the questions below it only slide down to make room.
 - Built with: **Measured height** · Grid rows. Measured height measures the answer before growing to it; Grid rows lets a grid row grow from nothing to its full size, with no measuring; both look the same.
 - Arrow flips: **on** · off. The arrow beside each question turns to point up while its answer is open.
 - Text fades in: on · **off**. The answer's text fades in and rises slightly while its box opens, each paragraph a moment after the one before.
@@ -829,7 +829,7 @@ Add a gooey menu to [the round action button on your page]. Pressing it lets sma
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Layout: Row · **Arc** · Column. Row puts the small buttons in a line beside the round one and Column stacks them above it, with 20px gaps; Arc fans them out above it, 84px from its center and 60° apart; the round button is 64px across and the small ones 50px.
+- Layout: Row · **Arc** · Column. Row puts the small buttons in a line beside the round one and Column stacks them above it, with 20px gaps; Arc fans them out above it, 84px from its center and 60° apart; the round button is 64px across and the small ones 50px. All of these are at the base scale: the whole menu is scaled 0.88 to 1.2 times with the stage, so the round button is about 56px across at the smallest and 77px at the largest.
 - How gooey: Low · **Medium** · High. How much the circles are blurred before the edge is sharpened: low is a 5px blur, medium 9px and high 13px for a round button 64px across (scaled with the menu, and a fifth less on phones); higher keeps the drops joined for longer.
 - Speed: Slow · **Normal** · Fast. How long a small button takes to pop out: slow is 950ms, normal 600ms and fast 380ms, each starting 90, 60 or 40ms after the one before.
 - Button color: **Orange** · Pink · Purple · Blue · Green. The color of the circles; the icons stay dark.
@@ -849,6 +849,6 @@ Add a Dynamic Island style notification to [the top of your app or page]. At res
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
-- Notification: **Call** · Timer · Music. What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall, each about four fifths as wide as the screen; picking another while it is open changes the shape straight into the new one.
+- Notification: **Call** · Timer · Music. What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall; the call and music cards are about 85% as wide as the screen and the timer about 77%; picking another while it is open changes the shape straight into the new one.
 - Speed: Slow · **Normal** · Fast. How long it takes to grow or shrink: slow is 1100ms, normal 700ms and fast 450ms; a spring needs a little longer than a plain ease, because it settles at the end.
 - Bounce: None · **Soft** · Springy. None eases out without going past the size; Soft goes past it by about 5% of the change in size and Springy by about 16%, and each settles by the end of its time.
