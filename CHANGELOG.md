@@ -8,6 +8,9 @@ The main steps of Animation Handbook, newest first, with the number of animation
   top bar; a round star on the home page for phones.
 - An AI skill: `npx skills add matinmonshizadeh/animation-handbook` adds every page's prompt and settings to Claude
   Code, Cursor, Codex and other assistants. Also a Claude Code plugin and `llms.txt`.
+- The AI skill builds what the user asks for on their own page: each setting comes with the demo's values as a starting
+  point, the catalog is searched rather than read whole, and the rules cover what a real page needs (nothing on the
+  first screen waits for a scroll, decorations stay out of the keyboard order, loops pause out of view).
 
 ## 1.0.0 — 2026-10-10
 
