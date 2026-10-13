@@ -183,7 +183,9 @@ test('every How answer has a moving picture, its keyframes are named fd- and mov
     assert.match(STYLE, new RegExp(`\\.${a.pic}[\\s.:{,]`), `a rule draws ${a.pic}`);
     assert.ok(names.some(name => name === a.pic || name.startsWith(a.pic + '-')), `${a.pic} moves: @keyframes ${a.pic}`);
   }
-  for (const [, name, body] of STYLE.matchAll(/@keyframes\s+(fd-[\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)) {
+  const bodies = [...STYLE.matchAll(/@keyframes\s+(fd-[\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)];
+  assert.equal(bodies.length, names.filter(name => name.startsWith('fd-')).length, 'every fd- @keyframes body is read');
+  for (const [, name, body] of bodies) {
     for (const [, property] of body.matchAll(/([a-z-]+)\s*:/g)) {
       assert.ok(['transform', 'opacity', 'animation-timing-function'].includes(property), `${name} animates ${property}`);
     }
@@ -192,6 +194,8 @@ test('every How answer has a moving picture, its keyframes are named fd- and mov
 
 test('with reduced motion the How pictures hold still', () => {
   assert.match(STYLE, /@media\(prefers-reduced-motion:reduce\)\{\s*\.fd-pic \*,\.fd-pic \*::before,\.fd-pic \*::after\{animation:none!important\}/);
+  const still = (STYLE.match(/@media\(prefers-reduced-motion:reduce\)\{\s*\.fd-pic \*,[\s\S]*?\n\}/) || [''])[0];
+  assert.ok(still.includes('.fd-pic::after{content:""'), 'the reduced-motion block draws the small arrow');
 });
 
 // ── The finder view, its ways in and Not here? ──
