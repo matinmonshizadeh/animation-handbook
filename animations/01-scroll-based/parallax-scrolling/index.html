@@ -39,13 +39,21 @@
     .twin,.tag,.side{display:none}
     /* See inside: the four layers fanned out from the far sky at the top left to the near grass at the bottom right, each
        outlined and labeled with how far it moves. Each step down is taller than a label, so no layer hides the label of the
-       one behind it, even on a phone. The labels are drawn at 31px and shrink with their layer to about 13px. */
+       one behind it, even on a phone. The labels are drawn at 31px and the outline at 3.5px, and they shrink with their layer
+       to about 13px and 1.4px. */
     .stage[data-hb-mode="inside"] .layers{overflow:visible;background:none}
-    .stage[data-hb-mode="inside"] .layer{outline:2px solid rgba(244,244,242,.6);outline-offset:-2px;scale:.41}
+    .stage[data-hb-mode="inside"] .layer{outline:3.5px solid rgba(244,244,242,.6);outline-offset:-3.5px;scale:.41;
+      background:rgba(255,255,255,.08)}
     .stage[data-hb-mode="inside"] #l1{translate:-22% -27.75%}
     .stage[data-hb-mode="inside"] #l2{translate:-7.33% -9.25%}
     .stage[data-hb-mode="inside"] #l3{translate:7.33% 9.25%}
     .stage[data-hb-mode="inside"] #l4{translate:22% 27.75%}
+    /* Each layer reads as a sheet: a faint fill behind its drawing, and the hills, trees and grass brighter than in the night
+       scene, so they show against it */
+    .stage[data-hb-mode="inside"] #l2 polygon{fill:#1f4d6b}
+    .stage[data-hb-mode="inside"] #l3 polygon{fill:#183f57}
+    .stage[data-hb-mode="inside"] #l4 polygon{fill:#22492a}
+    .stage[data-hb-mode="inside"] #l4 ellipse{fill:#1b3d22}
     .stage[data-hb-mode="inside"] .tag{display:flex}
     .tag{position:absolute;top:6%;left:5%;flex-direction:column;gap:.15em;padding:.3em .5em;border-radius:.4em;white-space:nowrap;
       background:rgba(11,11,13,.86);color:#f4f4f2;font-family:var(--hb-font);font-weight:600;font-size:31px;line-height:1.1}
@@ -160,8 +168,8 @@
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
     </div>
     <div class="hb-mode-notes" aria-live="polite">
-      <p data-hb-for="inside" hidden><span class="say">Inside, the picture is four flat layers. As the box scrolls, the far layers move least and the near grass moves most.</span> <a href="../../../learn/far-things-move-slower/">The idea: far things move slower</a></p>
-      <p data-hb-for="compare" hidden>On the left every layer moves the same, so the picture looks flat. On the right each layer moves its own amount, so it looks deep.</p>
+      <p data-hb-for="inside" hidden><span class="say">Inside, the picture is four flat layers. As the box scrolls, the far layers move least and the near grass moves most. Scroll the box or press Play to watch.</span> <a href="../../../learn/far-things-move-slower/">The idea: far things move slower</a></p>
+      <p data-hb-for="compare" hidden>On the left every layer moves the same, so the picture looks flat. On the right each layer moves its own amount, so it looks deep. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -282,8 +290,29 @@
     ticking = false;
   }
 
+  // The notes under the box, with Depth set to Flat or not. Under reduced motion the picture stands still, so they say what
+  // the still picture shows instead of asking the visitor to watch.
+  const NOTES = {
+    moving: {
+      inside:  'Inside, the picture is four flat layers. As the box scrolls, the far layers move least and the near grass moves most. Scroll the box or press Play to watch.',
+      compare: 'On the left every layer moves the same, so the picture looks flat. On the right each layer moves its own amount, so it looks deep. Scroll the box or press Play to watch.',
+    },
+    movingFlat: {
+      inside:  'Inside, the picture is four flat layers. Depth is set to Flat, so they all move the same and the picture looks flat. Scroll the box or press Play to watch.',
+      compare: 'Depth is set to Flat, so both sides move the same. Pick another Depth in Try it, then scroll the box or press Play to watch.',
+    },
+    still: {
+      inside:  'Inside, the picture is four flat layers, shown still. Each bar shows how far that layer would move: least for the far sky, most for the near grass.',
+      compare: 'Both sides are shown still, as they stand halfway down the box: on the left every layer has moved the same, on the right each its own amount.',
+    },
+    stillFlat: {
+      inside:  'Inside, the picture is four flat layers, shown still. Depth is set to Flat, so every bar is the same: the layers would all move together and the picture would look flat.',
+      compare: 'Both sides are shown still, as they stand halfway down the box. Depth is set to Flat, so they match. Pick another Depth in Try it to see the difference.',
+    },
+  };
+
   // Each label says how far its layer moves next to the others, in words and as a bar (a share of the longest one); the
-  // notes say what Flat does.
+  // notes say what Flat does, and what the still picture shows under reduced motion.
   function describe() {
     const speeds = LAYERS.map(L => L.speed), most = Math.max(...speeds);
     const flat   = speeds.every(s => s === speeds[0]);
@@ -293,12 +322,9 @@
         : s <= most * 0.2 ? 'barely moves' : s <= most * 0.5 ? 'moves a little' : 'moves more';
       L.tag.style.setProperty('--far', most ? s / most : 1);
     });
-    insideSay.textContent = flat
-      ? 'Inside, the picture is four flat layers. Depth is set to Flat, so they all move the same and the picture looks flat.'
-      : 'Inside, the picture is four flat layers. As the box scrolls, the far layers move least and the near grass moves most.';
-    compareNote.textContent = flat
-      ? 'Depth is set to Flat, so both sides move the same. Pick another Depth in Try it to see the difference.'
-      : 'On the left every layer moves the same, so the picture looks flat. On the right each layer moves its own amount, so it looks deep.';
+    const notes = NOTES[(motionMQ.matches ? 'still' : 'moving') + (flat ? 'Flat' : '')];
+    insideSay.textContent   = notes.inside;
+    compareNote.textContent = notes.compare;
   }
 
   document.addEventListener('hb:mode', e => {
@@ -309,8 +335,8 @@
   stage.addEventListener('scroll', () => {
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
-  // Reduced motion turned on or off while the page is open
-  motionMQ.addEventListener('change', update);
+  // Reduced motion turned on or off while the page is open: the picture and the notes follow
+  motionMQ.addEventListener('change', () => { describe(); update(); });
 
   function choices(id, pick) {
     const buttons = document.querySelectorAll('#' + id + ' button');
