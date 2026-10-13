@@ -39,24 +39,28 @@
     .twin,.tag,.side{display:none}
     /* See inside: the four layers fanned out from the far sky at the top left to the near grass at the bottom right, each
        outlined and labeled with how far it moves. Each step down is taller than a label, so no layer hides the label of the
-       one behind it, even on a phone. The labels are drawn at 31px and the outline at 3.5px, and they shrink with their layer
-       to about 13px and 1.4px. */
+       one behind it, even on a phone, and the fan sits high enough that the near grass, which moves most, stays inside the
+       box to the end of the scroll (the script moves the layers half as far here). The labels are drawn at 34px and the
+       outline at 4px, and they shrink with their layer to about 13px and 1.5px. */
     .stage[data-hb-mode="inside"] .layers{overflow:visible;background:none}
-    .stage[data-hb-mode="inside"] .layer{outline:3.5px solid rgba(244,244,242,.6);outline-offset:-3.5px;scale:.41;
+    /* Each layer reads as a sheet: a faint fill behind its drawing */
+    .stage[data-hb-mode="inside"] .layer{outline:4px solid rgba(244,244,242,.6);outline-offset:-4px;scale:.375;
       background:rgba(255,255,255,.08)}
-    .stage[data-hb-mode="inside"] #l1{translate:-22% -27.75%}
-    .stage[data-hb-mode="inside"] #l2{translate:-7.33% -9.25%}
-    .stage[data-hb-mode="inside"] #l3{translate:7.33% 9.25%}
-    .stage[data-hb-mode="inside"] #l4{translate:22% 27.75%}
-    /* Each layer reads as a sheet: a faint fill behind its drawing, and the hills, trees and grass brighter than in the night
-       scene, so they show against it */
+    .stage[data-hb-mode="inside"] #l1{translate:-20% -29.6%}
+    .stage[data-hb-mode="inside"] #l2{translate:-6.67% -12.2%}
+    .stage[data-hb-mode="inside"] #l3{translate:6.67% 5.2%}
+    .stage[data-hb-mode="inside"] #l4{translate:20% 22.6%}
+    /* The drawings lighter than in the night scene, so they show against their sheets (the sky covers its sheet, so the sky
+       itself is lighter) */
+    .stage[data-hb-mode="inside"] #l1 stop:first-child{stop-color:#1d3a63}
+    .stage[data-hb-mode="inside"] #l1 stop:last-child{stop-color:#15243b}
     .stage[data-hb-mode="inside"] #l2 polygon{fill:#1f4d6b}
     .stage[data-hb-mode="inside"] #l3 polygon{fill:#183f57}
     .stage[data-hb-mode="inside"] #l4 polygon{fill:#22492a}
     .stage[data-hb-mode="inside"] #l4 ellipse{fill:#1b3d22}
     .stage[data-hb-mode="inside"] .tag{display:flex}
-    .tag{position:absolute;top:6%;left:5%;flex-direction:column;gap:.15em;padding:.3em .5em;border-radius:.4em;white-space:nowrap;
-      background:rgba(11,11,13,.86);color:#f4f4f2;font-family:var(--hb-font);font-weight:600;font-size:31px;line-height:1.1}
+    .tag{position:absolute;top:4%;left:5%;flex-direction:column;gap:.15em;padding:.3em .5em;border-radius:.4em;white-space:nowrap;
+      background:rgba(11,11,13,.86);color:#f4f4f2;font-family:var(--hb-font);font-weight:600;font-size:34px;line-height:1.1}
     .tag span{font-weight:400;color:#d6d6da}
     .tag i{display:block;height:.3em;width:calc(var(--far,1) * 5em);border-radius:.15em;background:var(--ui-accent)}
     /* Compare: the scene without parallax on the left and with it on the right, each named at its top */
@@ -283,8 +287,10 @@
     // the difference still shows without any movement.
     const still    = motionMQ.matches;
     const p        = still ? (mode === 'compare' ? 0.5 : 0) : progress;
+    // See inside moves every layer half as far, so the moves keep their proportions and the near grass stays in the box
+    const k        = mode === 'inside' ? 0.5 : 1;
     LAYERS.forEach(L => {
-      L.el.style.transform   = `translate3d(0,${Math.round(p * MAX_PARALLAX * L.speed)}px,0)`;
+      L.el.style.transform   = `translate3d(0,${Math.round(p * MAX_PARALLAX * L.speed * k)}px,0)`;
       L.copy.style.transform = `translate3d(0,${Math.round(p * MAX_PARALLAX)}px,0)`;
     });
     ticking = false;
