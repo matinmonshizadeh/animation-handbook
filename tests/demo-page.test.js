@@ -128,7 +128,10 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 // `copy` ({ prompt, controls, clipboard }) to add a Copy prompt button, text in the prompt, a Try it step holding `controls` (if
 // any) and the window's clipboard; no other test gets any of them. A link test passes `links` ({ protocol, hrefs }): the page is
 // served over that protocol (http: otherwise) and holds one link for each href.
-function standInPage(kind, reduced, bodyAttributes, copy, links) {
+// `extra` ({ modes, noPrompt }): modes adds the mode switch (Normal, See inside, Compare) and one note for See inside and one
+// for Compare; noPrompt leaves the prompt out, as on an idea lesson.
+function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
+  const opts = extra || {};
   const timers = [], sent = [];
   const node = () => ({
     attrs: {}, handlers: {}, children: [], clicks: 0, textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} },
@@ -142,13 +145,28 @@ function standInPage(kind, reduced, bodyAttributes, copy, links) {
     insertAdjacentElement() {}, contains(other) { return other === this; }, click() { this.clicks++; }
   });
   const stage = node(), player = node(), prompt = node(), demo = node(), play = node(), top = node();
+  const modeButtons = opts.modes ? ['normal', 'inside', 'compare'].map(mode => {
+    const b = node();
+    b.setAttribute('data-hb-mode', mode);
+    b.setAttribute('aria-pressed', String(mode === 'normal'));
+    return b;
+  }) : [];
+  const notes = opts.modes ? ['inside', 'compare'].map(mode => {
+    const p = node();
+    p.setAttribute('data-hb-for', mode);
+    p.hidden = true;
+    return p;
+  }) : [];
+  const modes = opts.modes && Object.assign(node(), { querySelectorAll: selector => (selector === '[data-hb-mode]' ? modeButtons : []) });
   // The button has no .hb-copy-label inside it, so its own text is the label.
   const button = copy && Object.assign(node(), { querySelector: () => null });
   if (copy) prompt.textContent = copy.prompt;
-  const wanted = { '.hb-prompt': prompt, '.stage': stage, '.hb-player': player, '[data-hb-demo]': kind === 'do' && demo,
+  const wanted = { '.hb-prompt': !opts.noPrompt && prompt, '.stage': stage, '.hb-player': player, '[data-hb-demo]': kind === 'do' && demo,
     '[data-hb-autoscroll]': kind === 'scroll' && play, '[data-hb-top]': kind === 'scroll' && top, '.hb-copy': button,
-    '.hb-try': copy && copy.controls && Object.assign(node(), { querySelectorAll: () => copy.controls }) };
-  const page = { querySelector: selector => wanted[selector] || null };
+    '.hb-try': copy && copy.controls && Object.assign(node(), { querySelectorAll: () => copy.controls }),
+    '[data-hb-modes]': modes };
+  const page = { querySelector: selector => wanted[selector] || null,
+    querySelectorAll: selector => (selector === '[data-hb-for]' ? notes : []) };
   const body = node();
   body.setAttribute('data-hb-kind', kind);
   body.setAttribute('data-hb-autoplay', '');
@@ -165,7 +183,8 @@ function standInPage(kind, reduced, bodyAttributes, copy, links) {
   };
   if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard }, getComputedStyle: () => ({ display: '' }) });
   DP.boot(doc, win);
-  return { doc, win, stage, player, demo, button, anchors, sent, runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
+  return { doc, win, stage, player, demo, play, button, anchors, sent, modeButtons, notes,
+    runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
 
@@ -254,6 +273,67 @@ test('a scroll page with an empty sentence of its own gets the usual note, and o
   assert.deepEqual(standInPage('scroll', true, { 'data-hb-motion-note': '' }).player.children.map(c => c.textContent), [usual]);
   assert.equal(standInPage('do', true, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
   assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
+});
+
+test('a page with no prompt, such as an idea lesson, still gets its player: a scroll page scrolls on arrival and notes reduced motion', () => {
+  const page = standInPage('scroll', false, {}, null, null, { noPrompt: true });
+  page.runTimers();
+  assert.equal(page.play.clicks, 1);
+  const reduced = standInPage('scroll', true, {}, null, null, { noPrompt: true });
+  assert.deepEqual(reduced.player.children.map(c => c.className), ['hb-player-note']);
+});
+
+test("the mode switch presses one mode at a time, marks the stage, shows only that mode's note and tells the page", () => {
+  const page = standInPage('scroll', false, {}, null, null, { modes: true });
+  assert.equal(page.stage.getAttribute('data-hb-mode'), 'normal');
+  const [normal, inside, compare] = page.modeButtons;
+  const pressed = () => page.modeButtons.map(b => b.getAttribute('aria-pressed'));
+  const shown = () => page.notes.map(n => !n.hidden);
+  const told = () => page.sent.filter(e => e.type === 'hb:mode').map(e => e.detail.mode);
+  assert.deepEqual(told(), [], 'nothing is sent at boot');
+  inside.emit('click', visitor);
+  assert.deepEqual(pressed(), ['false', 'true', 'false']);
+  assert.equal(page.stage.getAttribute('data-hb-mode'), 'inside');
+  assert.deepEqual(shown(), [true, false]);
+  compare.emit('click', visitor);
+  assert.deepEqual(pressed(), ['false', 'false', 'true']);
+  assert.deepEqual(shown(), [false, true]);
+  normal.emit('click', visitor);
+  assert.deepEqual(pressed(), ['true', 'false', 'false']);
+  assert.deepEqual(shown(), [false, false]);
+  assert.equal(page.stage.getAttribute('data-hb-mode'), 'normal');
+  assert.deepEqual(told(), ['inside', 'compare', 'normal']);
+});
+
+test('a page without the mode switch gets no data-hb-mode and sends no hb:mode', () => {
+  const page = standInPage('scroll', false);
+  page.runTimers();
+  assert.equal(page.stage.getAttribute('data-hb-mode'), null);
+  assert.equal(page.sent.filter(e => e.type === 'hb:mode').length, 0);
+});
+
+// The stand-in's class lists do nothing, so this test gives the three mode buttons lists that remember what was toggled.
+test('the mode switch gives the class on to the pressed mode only', () => {
+  const page = standInPage('scroll', false, {}, null, null, { modes: true });
+  const classes = page.modeButtons.map(b => {
+    const set = new Set();
+    b.classList = { toggle: (name, force) => (force ? set.add(name) : set.delete(name)) };
+    return set;
+  });
+  const [normal, inside, compare] = page.modeButtons;
+  const marked = () => classes.map(set => set.has('on'));
+  inside.emit('click', visitor);
+  assert.deepEqual(marked(), [false, true, false]);
+  compare.emit('click', visitor);
+  assert.deepEqual(marked(), [false, false, true]);
+  normal.emit('click', visitor);
+  assert.deepEqual(marked(), [true, false, false]);
+});
+
+// The home page loads the shared script too and has no .hb-page: boot() returns before it touches anything else.
+test('a document with no .hb-page, such as the home page, is skipped without touching anything else', () => {
+  const doc = { querySelector: () => null };
+  assert.doesNotThrow(() => DP.boot(doc, { document: doc }));
 });
 
 // Opened from disk, Chrome shows a folder's listing for a link to the folder, so the links of the page must name index.html there.

@@ -6,6 +6,8 @@
  * takes over ("hb:input"), and follows reduced motion (Loop and Slow motion greyed out,
  * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
+ * The mode switch (Normal, See inside, Compare) marks the stage with data-hb-mode, shows that mode's note and sends
+ * "hb:mode", so the page draws the mode. Pages without a prompt (the idea lessons) get everything but the prompt parts.
  * Opened from disk (file:), the page's links to folders open each folder's index.html instead of its listing.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
@@ -219,8 +221,8 @@
 
   function boot(doc, win) {
     var page = doc.querySelector('.hb-page');
-    var promptEl = page && page.querySelector('.hb-prompt');
-    if (!promptEl) return;
+    if (!page) return;
+    var promptEl = page.querySelector('.hb-prompt');
 
     var tryStep = page.querySelector('.hb-try');
     var chipsBox = page.querySelector('.hb-chips-box');
@@ -235,6 +237,7 @@
     var demoCtl = page.querySelector('[data-hb-demo]');
     var scrollCtl = page.querySelector('[data-hb-autoscroll]');
     var topCtl = page.querySelector('[data-hb-top]');
+    var modesCtl = page.querySelector('[data-hb-modes]');
     var scroller = page.querySelector('[data-hb-scroller]') || stage;
     var reduce = win.matchMedia ? win.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var promptText = text(promptEl);
@@ -482,6 +485,29 @@
       });
     }
 
+    // See inside and Compare: the mode switch above the stage. Pressing a mode presses its button (one at a time), marks the
+    // stage with data-hb-mode, shows the note for that mode (Normal has none) and sends "hb:mode", so the page draws the mode.
+    // Nothing scrolls and nothing takes focus, and a running Play goes on: the switch sits outside the stage, whose input
+    // stops Play.
+    function setUpModes() {
+      var buttons = Array.prototype.slice.call(modesCtl.querySelectorAll('[data-hb-mode]'));
+      var notes = Array.prototype.slice.call(page.querySelectorAll('[data-hb-for]'));
+      function choose(mode) {
+        buttons.forEach(function (b) {
+          var on = b.getAttribute('data-hb-mode') === mode;
+          b.classList.toggle('on', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+        notes.forEach(function (n) { n.hidden = n.getAttribute('data-hb-for') !== mode; });
+        if (stage) stage.setAttribute('data-hb-mode', mode);
+        doc.dispatchEvent(new win.CustomEvent('hb:mode', { detail: { mode: mode } }));
+      }
+      buttons.forEach(function (b) {
+        b.addEventListener('click', function () { choose(b.getAttribute('data-hb-mode')); });
+      });
+      if (stage) stage.setAttribute('data-hb-mode', 'normal');
+    }
+
     // While the device asks for reduced motion, Loop and Slow motion are switched off and cannot be switched on, a
     // loop starts paused, and a note in the player bar says why. Replay and Play still work. A scroll page has nothing to
     // switch off, and its note says that the effects follow the scroll without animating. A page where reduced motion turns
@@ -513,13 +539,14 @@
     }
 
     if (win.location.protocol === 'file:') openFoldersAsPages();
-    setUpPrompt();
+    if (promptEl) setUpPrompt();
     if (copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
     if (slowCtl) slowCtl.addEventListener('change', replay);
     if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
     if (demoCtl && stage) setUpVisitorInput();
     if (scrollCtl && scroller) setUpScroll();
+    if (modesCtl) setUpModes();
     if (slowCtl && stage && stage.getAnimations && slowCtl.getAttribute('data-hb-slowmo') === 'css') {
       slowCtl.addEventListener('change', function () { if (!slowing) slowStage(); });
       if (slowCtl.checked) slowStage();
