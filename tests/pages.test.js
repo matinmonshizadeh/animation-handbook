@@ -295,6 +295,24 @@ for (const d of steps) {
   });
 }
 
+// The mode switch (See inside and Compare), exactly as in the template, between the Watch step's heading and its stage, with
+// a note for See inside and one for Compare after the player bar, both hidden until their mode is pressed.
+const MODES = '<div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes><button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button><button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button><button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button></div>';
+for (const d of steps.filter(d => pageOf(d).includes('data-hb-modes'))) {
+  test(`${d.slug}: the mode switch is as in the template, before the stage, with a note for See inside and Compare`, () => {
+    const html = pageOf(d), flat = html.replace(/>\s+</g, '><');
+    assert.equal(count(html, 'data-hb-modes'), 1, 'one mode switch');
+    assert.ok(flat.includes(MODES), 'the mode switch is exactly as in the template');
+    const watch = between(flat, '<section class="hb-step hb-watch"', '</section>');
+    const at = watch.indexOf(MODES);
+    assert.ok(at > watch.indexOf('<div class="hb-step-head">') && at < watch.indexOf('<div class="stage"'), 'between the heading and the stage');
+    const notes = between(watch, '<div class="hb-mode-notes" aria-live="polite">', '</div>');
+    assert.ok(notes && watch.indexOf(notes) > watch.indexOf('<div class="hb-player">'), 'the notes come after the player bar');
+    for (const mode of ['inside', 'compare']) assert.equal(count(notes, `<p data-hb-for="${mode}" hidden>`), 1, `one ${mode} note, hidden at first`);
+    for (const [, href] of notes.matchAll(/<a href="([^"]+)"/g)) assert.ok(isDemoDir(path.resolve(d.dir, href)) || href.includes('/learn/'), `note link ${href}`);
+  });
+}
+
 // The do-it pages played with the pointer, where Show me was once the only thing a keyboard could do, can be played from the
 // keyboard too: the stage holds something that takes keyboard focus (a button, a link or an element with tabindex="0"), and
 // the page answers keys (its own script listens for keydown, or its own style has a :focus-visible rule). Every page that
