@@ -907,6 +907,255 @@ async function homeMotionProblems() {
   return problems;
 }
 
+// ── The finder (?view=find) ──
+// Every home setup also opens the finder (finderLayoutProblems). The desktop run works it (finderViewProblems) and the
+// reduced-motion run holds it still (finderMotionProblems). These are the finder's own steps; the home checks above are unchanged.
+
+// Opens an address of the site as a new visit does; a load that does not finish is a problem of its own.
+async function openHome(query, problems) {
+  let onLoad;
+  const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+  await send('Page.navigate', { url: `${BASE}/${query}` });
+  try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`finder: ${query || 'the home page'} did not load`); }
+  listeners.delete(onLoad);
+  await sleep(300);
+}
+
+// A real mouse click at the middle of the element the selector finds, once it is scrolled to the middle of the window. Returns
+// what covers that point when it is not the element or something inside it (covered), and where the page was scrolled to just
+// before the click (scrolled), so the caller can tell whether the click scrolled the page.
+async function clickAt(selector) {
+  const spot = await evaluate(`(() => {
+    const el = document.querySelector(${JSON.stringify(selector)});
+    if (!el) return { covered: 'nothing: the page has no such element' };
+    el.scrollIntoView({ block: 'center' });
+    const b = el.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
+    return { x, y, scrolled: Math.round(scrollY),
+      covered: el.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' };
+  })()`);
+  if (spot.covered) return { covered: spot.covered, scrolled: 0 };
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  return { covered: '', scrolled: spot.scrolled };
+}
+
+// The finder at every setup. On the start page the Find button sits under the Popular line (on a phone 44px tall or more and as
+// wide as the column). The finder, opened with three answers in the address: the hero and the place tiles give way to it, its
+// cards and the Not here? panel show, nothing overflows sideways, Finder is in the top bar above 600px and the bar's links fit
+// beside the brand, the phone bar stays away and, on phones, every answer, button and link of the finder and its results is at
+// least 44×44. Screenshots of the finder (the window and the whole page) are saved beside the others.
+async function finderLayoutProblems(name, setup) {
+  const problems = [];
+  await openHome('', problems);
+  const cta = await evaluate(`(() => {
+    const a = document.querySelector('.find-cta'), pop = document.querySelector('.home-hero .pop'), hero = document.querySelector('.home-hero');
+    if (!a || !a.getClientRects().length) return null;
+    const b = a.getBoundingClientRect();
+    return { width: Math.round(b.width), height: Math.round(b.height), under: !!pop && b.top >= pop.getBoundingClientRect().bottom - 1,
+      full: Math.abs(b.width - hero.getBoundingClientRect().width) <= 1 };
+  })()`);
+  if (!cta) problems.push('finder: no Find button on the start page');
+  else {
+    if (!cta.under) problems.push('finder: the Find button is not under the Popular line');
+    if (setup.width <= 600 && (cta.height < 44 || !cta.full)) problems.push(`finder: on a phone the Find button is ${cta.width}x${cta.height}${cta.full ? '' : ', not as wide as the column'}`);
+  }
+  await openHome('?view=find&what=text&when=load&how=stagger', problems);
+  await sleep(500);
+  const found = await evaluate(`(() => {
+    const r = el => el.getBoundingClientRect(), shown = el => !!el && !!el.getClientRects().length, out = [];
+    if (shown(document.querySelector('.home-hero')) || shown(document.getElementById('places'))) out.push('the hero or the place tiles show in the finder');
+    if (!shown(document.getElementById('finder'))) out.push('the finder does not show');
+    if (!document.querySelectorAll('#cards .card').length) out.push('no cards for Text or numbers · When the page opened · One after another');
+    if (!shown(document.getElementById('find-not'))) out.push('no Not here? panel');
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) out.push('horizontal overflow');
+    if (innerWidth > 600 && !shown(document.getElementById('nav-find'))) out.push('no Finder link in the top bar');
+    const brand = document.querySelector('.top .brand span'), first = [...document.querySelectorAll('.top .nav > *')].find(shown);
+    if (brand && first && r(brand).right > r(first).left - 8) out.push('the top bar links do not fit beside the brand');
+    if (getComputedStyle(document.getElementById('pinbar')).display !== 'none') out.push('the phone bar shows');
+    if (innerWidth <= 600) {
+      const small = [...document.querySelectorAll('#finder .fd-a, #finder button, #find-not a, #find-not button, #cards .card .copy, #more button')]
+        .filter(shown).filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
+        .map(el => (el.id || el.tagName.toLowerCase() + '.' + (el.getAttribute('class') || '').split(' ')[0]) + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+      if (small.length) out.push('small targets: ' + small.slice(0, 6).join(', ') + (small.length > 6 ? ' and ' + (small.length - 6) + ' more' : ''));
+    }
+    return out;
+  })()`);
+  problems.push(...found.map(p => `finder: ${p}`));
+  const shot = await send('Page.captureScreenshot', { format: 'png' });
+  writeFileSync(join(OUT, `${name}-${setup.name}-finder.png`), Buffer.from(shot.data, 'base64'));
+  const { cssContentSize } = await send('Page.getLayoutMetrics');
+  const full = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true,
+    clip: { x: 0, y: 0, width: setup.width, height: Math.ceil(cssContentSize.height), scale: 1 } });
+  writeFileSync(join(OUT, `${name}-${setup.name}-finder-full.png`), Buffer.from(full.data, 'base64'));
+  return problems;
+}
+
+// The finder, desktop run. ?view=find opens with three questions, nothing chosen, the heading "Your matches", the line asking for
+// an answer and no cards, the tab's title and the Finder link marked as the current page. Real clicks on answers change the cards,
+// replace the address (no history step) and never scroll the page; with A menu or form · When I scrolled · Slid, Hide-on-Scroll
+// Header is among the first six (case 22 of the finder's test set). The Not here? link is the form's address for those answers, in
+// a new tab. See N matches brings the results heading into view with keyboard focus; Start over clears the answers and the cards,
+// goes back to ?view=find and puts keyboard focus on the finder's heading. With more than twelve matches Show all shows the rest
+// and puts keyboard focus on the thirteenth card. An address opened directly shows the same answers and cards as the clicks. The
+// Find button and the Finder link each enter the finder with one history step and keyboard focus on its heading; after an answer,
+// Back returns to the start in one press. Describe it in words goes back to the start with keyboard focus in the search box.
+async function finderViewProblems() {
+  const problems = [];
+  const FIND_TITLE = 'Find an animation you saw — Animation Handbook', ASK = 'Answer a question above, and the animations that match show here.';
+  const look = () => evaluate(`(() => {
+    const $ = id => document.getElementById(id), shown = el => !!el && !!el.getClientRects().length;
+    const links = [...document.querySelectorAll('#cards .card .title a')], a = document.activeElement;
+    return { hero: shown(document.querySelector('.home-hero')), tiles: shown($('places')), finder: shown($('finder')),
+      questions: document.querySelectorAll('#finder fieldset').length,
+      checked: [...document.querySelectorAll('#finder .fd-r:checked')].map(r => r.name.slice(3) + '=' + r.value).join('&'),
+      title: $('results-title').textContent, sub: $('results-sub').textContent, names: links.map(l => l.textContent),
+      more: $('more').hidden ? '' : $('more-label').textContent, search: location.search, steps: history.length, tab: document.title,
+      current: $('nav-find') ? $('nav-find').getAttribute('aria-current') : 'no Finder link',
+      see: shown($('find-see')) ? $('find-see').textContent : '', notHere: shown($('find-not')),
+      focus: a.id || (links.includes(a) ? 'card link ' + (links.indexOf(a) + 1) : a.tagName.toLowerCase()) };
+  })()`);
+  const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (el) { el.focus(); el.click(); } return !!el; })()`);
+  const answer = (question, key) => `#finder .fd-a:has(.fd-r[name="fd-${question}"][value="${key}"])`;
+  const still = () => evaluate(`new Promise(done => { let last = scrollY, same = 0;
+    const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3) done(); else setTimeout(tick, 100); };
+    setTimeout(tick, 100); })`);
+  // A real click on an answer: then the line has been written (400 ms) and the page must not have scrolled.
+  const pick = async (question, key) => {
+    const spot = await clickAt(answer(question, key));
+    if (spot.covered) { problems.push(`finder: the answer ${question}=${key} is covered by ${spot.covered}`); return; }
+    await sleep(700);
+    const y = await evaluate('Math.round(scrollY)');
+    if (Math.abs(y - spot.scrolled) > 1) problems.push(`finder: picking ${question}=${key} scrolled the page from ${spot.scrolled}px to ${y}px`);
+  };
+
+  await openHome('?view=find', problems);
+  let s = await look();
+  if (s.hero || s.tiles || !s.finder || s.questions !== 3 || s.checked || s.names.length || s.title !== 'Your matches' || s.sub !== ASK ||
+    s.tab !== FIND_TITLE || s.current !== 'page' || s.see || s.notHere) problems.push(`finder, ?view=find: ${JSON.stringify(s)}`);
+  const steps = s.steps;
+  for (const [question, key] of [['what', 'menu'], ['when', 'scroll'], ['how', 'slide']]) await pick(question, key);
+  s = await look();
+  if (s.checked !== 'what=menu&when=scroll&how=slide' || s.search !== '?view=find&what=menu&when=scroll&how=slide' || s.steps !== steps) {
+    problems.push(`finder, three answers: chosen ${s.checked}, the address ${s.search}, ${s.steps - steps} history steps added`);
+  }
+  if (!s.names.slice(0, 6).includes('Hide-on-Scroll Header')) problems.push(`finder: A menu or form · When I scrolled · Slid shows ${s.names.slice(0, 6).join(', ') || 'no cards'} first, not Hide-on-Scroll Header`);
+  if (!/^See \d+ match(es)?$/.test(s.see) || !s.notHere) problems.push(`finder: See N matches reads "${s.see}", Not here? is ${s.notHere ? 'shown' : 'hidden'}`);
+  if (!/^\d+ best match(es)?( and \d+ close match(es)?)?\.$|^No animation fits all your answers\. These come close\.$/.test(s.sub)) problems.push(`finder: the results line "${s.sub}"`);
+  const link = await evaluate(`(() => { const a = document.getElementById('find-gh');
+    return a ? { href: new URL(a.href).href, want: new URL(findIssueURL({ what: 'menu', when: 'scroll', how: 'slide' })).href, target: a.target, rel: a.rel } : null; })()`);
+  if (!link || link.href !== link.want || !link.href.startsWith('https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml&') ||
+    link.target !== '_blank' || link.rel !== 'noopener') problems.push(`finder: the Not here? link ${JSON.stringify(link)}`);
+  const picked = s.names;
+  await press('#find-see');
+  await still();
+  const seen = await evaluate(`(() => { const t = document.getElementById('results-title'), top = Math.round(t.getBoundingClientRect().top);
+    return { top, shown: top >= 0 && top <= innerHeight * .6, focus: document.activeElement === t }; })()`);
+  if (!seen.shown || !seen.focus) problems.push(`finder: after See N matches the results heading is at ${seen.top}px${seen.focus ? '' : ', without keyboard focus'}`);
+  await press('#find-reset');
+  await still();
+  await sleep(500);
+  s = await look();
+  if (s.checked || s.names.length || s.search !== '?view=find' || s.sub !== ASK || s.focus !== 'find-title' || s.see || s.notHere || s.steps !== steps) {
+    problems.push(`finder, Start over: ${JSON.stringify(s)}`);
+  }
+  // More than twelve matches: twelve cards, then Show all shows every one and puts keyboard focus on the thirteenth.
+  await openHome('?view=find&what=background', problems);
+  s = await look();
+  const total = Number((s.more.match(/^Show all (\d+) matches$/) || [])[1]);
+  if (!(total > 12) || s.names.length !== 12) problems.push(`finder, The background: ${s.names.length} cards and the button "${s.more}" (twelve cards, then Show all for the rest)`);
+  else {
+    await press('#more-btn');
+    await sleep(400);
+    s = await look();
+    if (s.names.length !== total || s.search !== '?view=find&what=background&all=1' || s.focus !== 'card link 13' || s.more) {
+      problems.push(`finder, Show all: ${s.names.length} of ${total} cards, the address ${s.search}, keyboard focus on ${s.focus}`);
+    }
+  }
+  // An address opened directly shows the same answers and cards as the clicks did.
+  await openHome('?view=find&what=menu&when=scroll&how=slide', problems);
+  s = await look();
+  if (s.checked !== 'what=menu&when=scroll&how=slide' || s.names.join() !== picked.join()) problems.push(`finder, the address opened directly: chosen ${s.checked}, cards ${s.names.join(', ')}; after the clicks: ${picked.join(', ')}`);
+  // The ways in: one history step, keyboard focus on the finder's heading; after an answer, Back returns to the start in one press.
+  for (const [what, selector] of [['Find button', '.find-cta'], ['Finder link', '#nav-find']]) {
+    await openHome('', problems);
+    const before = await evaluate('history.length');
+    if (!(await press(selector))) { problems.push(`finder: no ${what}`); continue; }
+    await still();
+    s = await look();
+    if (s.search !== '?view=find' || s.steps !== before + 1 || s.focus !== 'find-title' || s.hero || !s.finder) problems.push(`finder, the ${what}: ${JSON.stringify(s)}`);
+    await pick('what', 'text');
+    await evaluate('history.back()');
+    await sleep(700);
+    s = await look();
+    if (s.search !== '' || !s.hero || s.finder || s.title !== 'Good places to start' || s.tab === FIND_TITLE || s.current !== null) {
+      problems.push(`finder, Back after the ${what} and an answer: ${JSON.stringify(s)}`);
+    }
+  }
+  // Describe it in words: back to the start, one history step, keyboard focus in the search box.
+  await openHome('?view=find&what=text', problems);
+  const before = await evaluate('history.length');
+  if (!(await press('#find-words'))) problems.push('finder: no Describe it in words');
+  else {
+    await still();
+    s = await look();
+    if (s.search !== '' || !s.hero || s.focus !== 'q' || s.steps !== before + 1) problems.push(`finder, Describe it in words: ${JSON.stringify(s)}`);
+  }
+  return problems;
+}
+
+// How much two captures of the same box differ: the share of pixels that differ by more than 48 (red, green and blue summed), and
+// the shares of the box's width and height that the rectangle around them takes, as in the home page's reduced-motion check.
+async function pictureChange(drawn, bare) {
+  return evaluate(`new Promise(done => {
+    const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+    Promise.all([load(${JSON.stringify(drawn)}), load(${JSON.stringify(bare)})]).then(([x, y]) => {
+      const read = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
+      const p = read(x), q = read(y), w = x.width, h = x.height;
+      let changed = 0, left = w, right = -1, top = h, bottom = -1;
+      for (let i = 0; i < p.length; i += 4) {
+        if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) <= 48) continue;
+        const px = (i / 4) % w, py = Math.floor(i / 4 / w);
+        changed++; left = Math.min(left, px); right = Math.max(right, px); top = Math.min(top, py); bottom = Math.max(bottom, py);
+      }
+      done({ share: changed / (w * h), wide: changed ? (right - left + 1) / w : 0, tall: changed ? (bottom - top + 1) / h : 0 });
+    });
+  })`);
+}
+
+// The finder under reduced motion: nothing runs in it, with or without cards (no animation in the page is running, on
+// pseudo-elements too), and every How picture holds a still that shows something: captured with its parts and again with them
+// hidden (its dark square stays), the pixels that change are at least 0.3% of the picture and the box around them at least 1%.
+async function finderMotionProblems() {
+  const problems = [];
+  for (const query of ['?view=find', '?view=find&what=background']) {
+    await openHome(query, problems);
+    await sleep(500);
+    const running = await evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
+      const t = a.effect && a.effect.target, cls = t && t.getAttribute && t.getAttribute('class');
+      return (a.animationName || a.transitionProperty || 'an animation') + ' on ' + (t ? t.tagName.toLowerCase() + (cls ? '.' + cls.split(' ').join('.') : '') : 'the page') + ((a.effect && a.effect.pseudoElement) || '');
+    })`);
+    if (running.length) problems.push(`finder, reduced motion, ${query}: ${running.length} animations run (${[...new Set(running)].slice(0, 6).join(', ')})`);
+  }
+  const pics = await evaluate(`typeof FIND_Q === 'undefined' ? [] : FIND_Q.find(q => q.key === 'how').answers.map(a => a.pic)`);
+  if (!pics.length) problems.push('finder, reduced motion: the page has no How answers');
+  const frames = 'new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))';
+  const empty = [];
+  for (const pic of pics) {
+    const box = await evaluate(`(async () => { const p = document.querySelector('#finder .${pic}'); if (!p || !p.getClientRects().length) return null;
+      p.scrollIntoView({ block: 'center' }); await ${frames};
+      const b = p.getBoundingClientRect(); return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height }; })()`);
+    if (!box || !box.width || !box.height) { empty.push(`${pic} (no picture)`); continue; }
+    const drawn = (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+    await evaluate(`(async () => { for (const el of document.querySelector('#finder .${pic}').children) el.style.visibility = 'hidden'; await ${frames}; })()`);
+    const bare = (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+    await evaluate(`{ for (const el of document.querySelector('#finder .${pic}').children) el.style.visibility = ''; }`);
+    const seen = await pictureChange(drawn, bare);
+    if (seen.share < .003 || seen.wide * seen.tall < .01) empty.push(`${pic} (${(seen.share * 100).toFixed(2)}% of the picture)`);
+  }
+  if (empty.length) problems.push(`finder, reduced motion: ${empty.length} How pictures show nothing: ${empty.join(', ')}`);
+  return problems;
+}
+
 // The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
 let cleaning = null;
 function cleanUp() {
@@ -1008,6 +1257,10 @@ try {
           if (setup.name === 'phone') problems.push(...await homePhoneProblems());
           if (setup.name === 'phone-reduced') problems.push(...await homeMotionProblems());
           if (setup.moves) problems.push(...await homeCopyProblems());
+          // The finder (?view=find): opened at every setup; the desktop run works it and the reduced-motion run holds it still.
+          problems.push(...await finderLayoutProblems(name, setup));
+          if (setup.moves) problems.push(...await finderViewProblems());
+          if (setup.reduce) problems.push(...await finderMotionProblems());
         }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
