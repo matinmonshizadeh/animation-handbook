@@ -179,3 +179,77 @@ test('the Not here? address opens the form animation_not_here.yml with its title
 
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
+
+test('FIND holds the reviewed answers, not the draft', () => {
+  assert.match(HOME, /\/\/ What moved, when and how: the finder's answers for each card, the main one first\.\r?\nconst FIND=\{/);
+});
+
+test('every answer of every question is given to at least one card', () => {
+  const find = Object.values(homeConst('FIND'));
+  homeConst('FIND_Q').forEach((q, i) => {
+    for (const a of q.answers) assert.ok(find.some(row => row[i].split(' ').includes(a.key)), `no card answers ${q.key} ${a.key}`);
+  });
+});
+
+test('the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll', () => {
+  const find = homeConst('FIND'), problems = [];
+  for (const cat of homeConst('CATS')) {
+    for (const [slug] of cat.entries) {
+      const kind = (read(path.join(ROOT, cat.folder, slug, 'index.html')).match(/data-hb-kind="(\w+)"/) || [])[1];
+      const when = find[slug][1].split(' ');
+      if (cat.n === '03' && !when.includes('newpage')) problems.push(`${slug}: a page transition without newpage`);
+      if (kind === 'loop' && !when.includes('loop')) problems.push(`${slug}: a loop page without loop`);
+      if ((cat.n === '01' || kind === 'scroll') && !when.includes('scroll')) problems.push(`${slug}: a scroll page without scroll`);
+    }
+  }
+  assert.deepEqual(problems, []);
+});
+
+// The finder spec's 28 described effects (section 9), frozen before any answers existed: the answers a visitor would pick ('' for
+// Not sure) and the animations that count as right. The right lists only grow; a miss is fixed by changing FIND, never a case.
+const CASES = [
+  [1, 'card', 'scroll', 'pieces', ['Shatter Effect', 'Dissolve Transition']],
+  [2, 'background', 'loop', 'color', ['Mesh Gradient Animation', 'Animated Gradient Background']],
+  [3, 'text', 'load', 'stagger', ['Letter-by-Letter Stagger', 'Split Text Reveal', 'Word-by-Word Reveal']],
+  [4, 'card', 'load', 'grow', ['Scale In / Zoom In']],
+  [5, 'card', 'hover', 'grow', ['Hover State Animation']],
+  [6, '', 'scroll', 'pin', ['Pin Animation', 'Sticky Section', 'Scrollytelling']],
+  [7, 'card', 'scroll', 'grow', ['Zoom Into Image']],
+  [8, '', 'scroll', 'layers', ['Parallax Scrolling', 'Parallax Depth-of-Field']],
+  [9, 'page', 'click', '', ['Circle Reveal', 'Overlay Wipe', 'Portal / Tunnel Zoom']],
+  [10, 'text', 'load', 'reveal', ['Curtain Reveal', 'Text Clip-Path Reveal']],
+  [11, 'page', 'scroll', 'slide', ['Smooth (Inertia) Scroll']],
+  [12, 'card', 'scroll', 'turn', ['Scroll Image Sequence', 'Scrub Animation', 'Scroll-Driven 3D Rotation']],
+  [13, 'text', 'scroll', 'color', ['Text Fill on Scroll']],
+  [14, 'card', 'hover', 'follow', ['Spotlight Hover Glow']],
+  [15, 'shape', 'loop', 'turn', ['3D Model Orbit']],
+  [16, 'button', 'click', 'morph', ['Hamburger Menu Toggle']],
+  [17, 'button', 'hover', 'follow', ['Magnetic Button']],
+  [18, 'card', 'hover', 'turn', ['Parallax 3D Tilt', 'Holographic Card']],
+  [19, 'loader', 'load', 'color', ['Skeleton Loader', 'Shimmer Effect']],
+  [20, 'text', 'scroll', '', ['Counter Animation', 'Rolling Numbers']],
+  [21, 'page', 'scroll', 'slide', ['Horizontal Scroll']],
+  [22, 'menu', 'scroll', 'slide', ['Hide-on-Scroll Header']],
+  [23, 'card', 'hover', 'follow', ['Image Trail']],
+  [24, 'particles', 'loop', 'drift', ['Particle Constellation', 'Canvas Particle Effect']],
+  [25, 'text', 'loop', 'glitch', ['Glitch Text', 'Chromatic Aberration']],
+  [26, 'particles', 'loop', 'drift', ['Snow / Rain']],
+  [27, 'page', 'newpage', 'slide', ['Overlay Wipe', 'Slide Transition']],
+  [28, 'particles', 'click', 'pieces', ['Success Confetti']]
+];
+
+test('the test set: a right animation among the first 6 for at least 24 of the 28 described effects, and among the first 12 for at least 27', t => {
+  const page = finder(), names = new Set(homeConst('CATS').flatMap(cat => cat.entries.map(e => e[1])));
+  let in6 = 0, in12 = 0;
+  for (const [n, what, when, how, right] of CASES) {
+    for (const name of right) assert.ok(names.has(name), `case ${n}: no card is named ${name}`);
+    const found = page.findMatches({ what, when, how }), list = [...found.best, ...found.close].map(e => e.name);
+    const position = list.findIndex(name => right.includes(name)) + 1; // 0: not found
+    if (position && position <= 6) in6++;
+    if (position && position <= 12) in12++;
+    t.diagnostic(`case ${n} (${[what, when, how].map(a => a || 'Not sure').join(' · ')}): ${position ? `${list[position - 1]} at ${position}` : 'not found'}` +
+      (!position || position > 6 ? `; first six: ${list.slice(0, 6).join(', ')}` : ''));
+  }
+  assert.ok(in6 >= 24, `${in6} of 28 cases have a right animation among the first 6 (at least 24)`);
+  assert.ok(in12 >= 27, `${in12} of 28 cases have a right animation among the first 12 (at least 27)`);
+});
