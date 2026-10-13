@@ -254,8 +254,13 @@ const pending = new Map();
 const listeners = new Set();
 // The console errors and warnings of the setup being checked, and the loads that failed: each one fails the setup.
 const errors = [];
+// Whether a mouse event has been sent since the page was loaded. Until one has, the page has no pointer in it, and in headless Chrome
+// it does not count as focused either (a focus ring a script gives an element stays hidden).
+let pointerSent = false;
 function send(method, params = {}) {
   if (aborting) return new Promise(() => {});
+  if (method === 'Page.navigate') pointerSent = false;
+  if (method === 'Input.dispatchMouseEvent') pointerSent = true;
   return new Promise((resolve, reject) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) { reject(new Error(`${method}: Chrome is not connected`)); return; }
     const id = ++nextId;
@@ -420,8 +425,9 @@ async function watchStepShot() {
 async function modeProblems(name, setup, kind) {
   if (!(await evaluate(`!!document.querySelector('[data-hb-modes]')`))) return [];
   // An earlier check may have left the pointer over the stage, and the page is scrolled to take the screenshots, which would end
-  // a hover in the middle of the checks. So the pointer goes to the corner first, and every picture is of the stage without one.
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
+  // a hover in the middle of the checks. So where one was sent, the pointer goes to the corner first, and every picture is of the
+  // stage without a hover. (Where none was sent the page has no pointer in it, and sending one would also make it focused.)
+  if (pointerSent) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
   const problems = [];
   const labels = { normal: 'Normal', inside: 'See inside', compare: 'Compare' };
   const missing = new Set();
