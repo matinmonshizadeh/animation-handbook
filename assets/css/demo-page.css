@@ -101,6 +101,18 @@ body.hb [hidden]{display:none!important}
    point. */
 [data-hb-autoscrolling]{scroll-snap-type:none!important}
 
+/* See inside and Compare: the mode switch (Normal · See inside · Compare) above the stage, and under the player bar the note
+   that says what the stage shows. Normal has no note, and the empty box then takes no room. From 761px the switch sits at the
+   right end of the Watch step's heading row (below), so the stage keeps its place on a laptop's first screen. The switch is a
+   .seg too, and the .seg rules come later in the file: the rules here that must win name .seg.hb-modes. */
+.hb-page .seg.hb-modes{gap:6px}
+/* The empty box is the live region that makes a screen reader read each note out loud, so it stays on the page: display:none would
+   take it out of the accessibility tree, and the first note might not be announced. It is hidden to the eye and taken out of the
+   flow instead, so it takes no room and adds no gap. */
+.hb-mode-notes:not(:has(> p:not([hidden]))){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hb-mode-notes p{margin:0;max-width:72ch;font:400 15px/1.55 var(--hb-font);color:var(--hb-dim)}
+.hb-mode-notes a{color:var(--hb-ink);text-decoration:underline;text-underline-offset:3px}
+
 /* Switches: a checkbox drawn as a track and knob (gradients, so no pseudo-elements on the input) */
 .hb-switch{appearance:none;-webkit-appearance:none;flex:none;width:32px;height:20px;margin:0;border-radius:999px;cursor:pointer;
   background:radial-gradient(circle at 10px 50%,var(--hb-ink) 6.5px,transparent 7px) rgba(255,255,255,.22)}
@@ -182,6 +194,24 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
 .hb-rel b{font:700 18px/1.25 var(--hb-font);color:var(--hb-ink)}
 .hb-rel span{font:400 14px/1.45 var(--hb-font);color:var(--hb-muted)}
 
+/* The learning path: the lesson line beside the category line (below it on phones), the previous and next lessons at the end
+   of a page of the path, and an idea lesson's Why it works and Where you'll see it */
+.hb-lesson{margin:0;font:600 14px/1.3 var(--hb-font);letter-spacing:.02em}
+.hb-lesson a{color:var(--hb-dim);text-decoration:underline;text-decoration-color:var(--hb-edge-2);text-underline-offset:4px}
+.hb-lesson-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:clamp(28px,4vw,36px);border-top:1px solid var(--hb-line)}
+.hb-lesson-title{grid-column:1/-1;margin:0;font:700 22px/1.2 var(--hb-font);letter-spacing:-.01em;color:var(--hb-ink)}
+.hb-lesson-prev,.hb-lesson-next{display:flex;flex-direction:column;gap:6px;padding:18px 20px;border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;text-decoration:none}
+.hb-lesson-next{grid-column:2;text-align:right}
+.hb-lesson-prev span,.hb-lesson-next span{font:600 14px/1.3 var(--hb-font);color:var(--hb-accent)}
+.hb-lesson-prev b,.hb-lesson-next b{font:700 18px/1.25 var(--hb-font);color:var(--hb-ink)}
+.hb-lesson-all{grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;min-height:44px;color:var(--hb-dim);
+  font:600 15px/1 var(--hb-font)}
+.hb-why,.hb-seen{padding-top:clamp(28px,4vw,36px);border-top:1px solid var(--hb-line)}
+.hb-why h2,.hb-seen h2{margin:0 0 12px;font:700 22px/1.2 var(--hb-font);letter-spacing:-.01em;color:var(--hb-ink)}
+.hb-why p{margin:0;max-width:68ch;font:400 17px/1.7 var(--hb-font);color:var(--hb-dim)}
+.hb-why p+p{margin-top:12px}
+
 /* Footer: the site's name on the left, and its two links (Source on GitHub, Back to top) on the right. On phones the name
    has a line of its own and the links share the line below it, one at each end. */
 .hb-foot{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:4px 24px;
@@ -200,6 +230,8 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-options>summary:hover,.hb-prompt-more:hover{color:color-mix(in srgb,var(--hb-accent) 70%,#fff)}
   .hb-copy:hover{background:#fff}
   .hb-rel:hover{border-color:color-mix(in srgb,var(--hb-accent) 55%,transparent)}
+  .hb-lesson-prev:hover,.hb-lesson-next:hover{border-color:color-mix(in srgb,var(--hb-accent) 55%,transparent)}
+  .hb-lesson a:hover,.hb-lesson-all:hover{color:var(--hb-ink)}
   .hb-foot a:hover{color:var(--hb-ink)}
 }
 
@@ -225,6 +257,25 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
 @media(max-width:359px){
   .hb-bar{gap:4px;padding:0 8px}
   .hb-bar .hb-home{font-size:15px}
+}
+/* From 601px the lesson line shares the category line's row, at its right end, so the header grows no taller */
+@media(min-width:601px){
+  .hb-head:has(> .hb-lesson){display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:16px}
+  .hb-head:has(> .hb-lesson) > *{grid-column:1/-1}
+  .hb-head:has(> .hb-lesson) > .hb-cat{grid-column:1}
+  .hb-head:has(> .hb-lesson) > .hb-lesson{grid-column:2;justify-self:end;align-self:center}
+}
+/* From 761px the mode switch sits at the right end of the Watch step's heading row */
+@media(min-width:761px){
+  .hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:end}
+  .hb-watch:has(> .hb-modes) > *{grid-column:1/-1}
+  .hb-watch:has(> .hb-modes) > .hb-step-head{grid-column:1}
+  .hb-watch:has(> .hb-modes) > .hb-modes{grid-column:2;flex-wrap:nowrap}
+}
+/* Up to 760px the switch has a row of its own above the stage, its three buttons sharing it equally (.seg.hb-modes outranks the
+   .seg button rule for phones further down) */
+@media(max-width:760px){
+  .hb-page .seg.hb-modes button{flex:1 1 0;padding:0 6px}
 }
 /* Short laptop screens (1366×768 leaves about 650px of page): a tighter header and a shorter stage
    keep the stage and the player bar on the first screen. */
@@ -263,6 +314,9 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-star-btn{width:100%}
   .hb-foot{justify-content:space-between}
   .hb-foot>span{flex-basis:100%}
+  .hb-lesson a{display:inline-flex;align-items:center;min-height:44px}
+  .hb-lesson-nav{grid-template-columns:minmax(0,1fr)}
+  .hb-lesson-next{grid-column:auto}
 }
 @media(prefers-reduced-motion:reduce){
   .hb-page .seg button,.hb-options>summary .hb-ic{transition:none}
