@@ -14,13 +14,15 @@
 //   a note. From the page's README.md it reads the Key parameters table (name | default | effect): each setting's line
 //   ends with the effect of the row named like the setting on the page, and a page without settings lists every row, the
 //   demo's own values.
+//   It also reads the Famous effects page's description (the meta description of famous/index.html): llms.txt lists that
+//   page after the categories.
 //   It writes skills/animation-handbook/SKILL.md, skills/animation-handbook/references/catalog.md, one
 //   skills/animation-handbook/references/<category folder>.md per category, and llms.txt at the root. Each is written with
 //   LF line endings, and only when its text changed; it prints every file with its size. Running it twice changes
 //   nothing. buildSkill(root), exported for the test, returns the same files as { 'path from the root': 'text' } and
 //   writes nothing.
 // Exit code 1 when a card has no page, a page lacks a part the skill needs, a setting has no row in its README's Key
-// parameters, or the skill folder holds a file this tool does not write.
+// parameters, famous/index.html is missing or has no description, or the skill folder holds a file this tool does not write.
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
@@ -348,6 +350,11 @@ export function buildSkill(root) {
   const CATS = homeConst(home, 'CATS'), PLACES = homeConst(home, 'PLACES');
   const placeName = Object.fromEntries(homeConst(home, 'PLACE_LIST').map(p => [p.key, p.name]));
   const total = CATS.reduce((n, cat) => n + cat.entries.length, 0);
+  // The Famous effects page, which llms.txt lists after the categories with its own description.
+  const famousFile = join(root, 'famous', 'index.html');
+  if (!existsSync(famousFile)) throw new Error('famous/index.html is missing: llms.txt lists the Famous effects page');
+  const famousLede = (readFileSync(famousFile, 'utf8').match(/<meta name="description" content="([^"]+)">/) || [])[1];
+  if (!famousLede) throw new Error('famous/index.html has no description (<meta name="description" content="…">)');
 
   // Every category with its pages, each page with its address, places and anchor in its category file.
   const cats = CATS.map(cat => {
@@ -409,6 +416,9 @@ export function buildSkill(root) {
     `Each page plays one technique live and gives a ready-made prompt that describes it in plain words, with no code. Most pages also have a few plain settings, such as speed or direction, and the prompt you copy lists your choices. Each technique's folder on GitHub has a README on how it works, the values that matter and production notes. To give an AI coding assistant all ${total} prompts and settings at once, install the Agent Skill: \`npx skills add matinmonshizadeh/animation-handbook\`.`, '',
     ...CATS.flatMap(cat => [`## ${cat.name}`, '',
       ...cat.entries.map(([slug, name, desc]) => `- [${name}](${base}${cat.folder.replace(/\/$/, '')}/${slug}/): ${desc}`), '']),
+    // The Famous effects page: effects seen on well-known websites, each with the animations that make something similar.
+    '## Famous effects', '',
+    `- [Famous effects](${base}famous/): ${decode(famousLede, 'famous/index.html')}`, '',
     // The skill's own files, which the site serves as they are: every prompt and setting, as Markdown.
     '## Skill files', '',
     `- [SKILL.md](${base}${SKILL}/SKILL.md): how to find a technique, choose its settings for the user's page and build it, with the rules for real pages`,

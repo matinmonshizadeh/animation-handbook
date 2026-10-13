@@ -642,9 +642,11 @@ test('the counts written in the issue template, the 404 page and the sitemap mat
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
   assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
   assert.equal(numberIn(read(path.join(ROOT, '404.html')), />Browse all (\d+) animations</), cards, '404.html: the Browse all link');
-  // The sitemap lists one URL more than the total: the home page.
-  const urls = count(read(path.join(ROOT, 'sitemap.xml')), '<url>');
-  assert.equal(urls, cards + 1, 'sitemap.xml lists the home page and every animation');
+  // The sitemap lists two URLs more than the total: the home page and the Famous effects page, first and in that order.
+  const sitemap = read(path.join(ROOT, 'sitemap.xml'));
+  assert.equal(count(sitemap, '<url>'), cards + 2, 'sitemap.xml lists the home page, the Famous effects page and every animation');
+  const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
+  assert.deepEqual([...sitemap.matchAll(/<loc>([^<]*)<\/loc>/g)].slice(0, 2).map(m => m[1]), [LIVE, `${LIVE}famous/`], 'the home page, then Famous effects');
 });
 
 // GitHub Pages serves 404.html at every address it has no file for, at any depth, so a relative address in it would
