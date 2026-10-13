@@ -20,6 +20,11 @@ sign-up.
 - Other gaps that fit the handbook: no good "what is this animation called?" finder; no free do/don't guide to choosing
   motion by UI moment for the web; nothing that switches one demo between a good and a bad version.
 - Not our race: component libraries (21st.dev has 12,000+ React items, Uiverse 7,400+) and code tutorials.
+- A warning for the learning goal: learners now ask AI. Stack Overflow questions tagged css-animations fell from 412
+  (2023, January to mid-October) to 7 (2026), and Josh Comeau's 2026 animation course sells about a third of a usual
+  launch. Learning on the handbook must be quick and visual, not a long course; the pilot tests whether it lands.
+- Visitors' side: motion fatigue ("Death to Scroll Fade", 412 points on Hacker News) and motion sickness come up
+  steadily, so every lesson keeps restraint and reduced motion in view.
 
 ## Who it serves
 
@@ -42,8 +47,10 @@ and want to know what to ask for. The owner's first priority (2026-10-13): **lea
    page. The owner approves from the real pages. Spec: `2026-10-13-learn-pilot-design.md`.
 2. **Learn rollout** (after approval): See inside and Compare on all 166 pages, all eight idea lessons, the full path, a
    way in from the home page, and the docs. It goes live as one finished piece.
-3. **Next jobs** (their order is decided after step 2 and the launch's feedback):
+3. **Next jobs** (their order is decided after step 2 and the launch's feedback; Name it is the recommended first):
    - **Name it:** a "what did you see?" finder: describe what moved and what started it, and get the technique's name.
+     It is the most frequent request found: about 110 "what is this animation called / how do I make the one on site X"
+     threads since 2025 in r/css, r/Frontend and r/web_design alone, most of them unanswered or removed.
    - **Choose it:** do/don't pages by UI moment (opening a menu, showing a message, changing pages, loading).
    - **Judge it:** good and bad versions of one demo side by side (too slow, too much, jumpy), so people learn to see the
      difference in what their AI built.

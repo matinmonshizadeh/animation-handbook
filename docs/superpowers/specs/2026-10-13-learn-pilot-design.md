@@ -158,7 +158,8 @@ listed as text, marked "Not built yet", with no link. The owner can change the o
 
 ### On a path page
 
-- Under the lede in `header.hb-head` (the `p.hb-cat` line keeps its exact form, which the tests pin):
+- Right after `p.hb-cat` in `header.hb-head`, sharing its row from 601px wide so the header grows no taller (the
+  `p.hb-cat` line keeps its exact form, which the tests pin):
   `<p class="hb-lesson"><a href="../../../learn/">Learning path · Lesson 22 of 25</a></p>` (from an idea lesson the
   Learn page is `../`).
 - At the end of `main.hb-page`, after Similar animations: `nav.hb-lesson-nav` (`aria-label="Learning path"`) with the
@@ -220,9 +221,11 @@ with no console errors.
   25 steps numbered in order, every link opens an existing page, unbuilt steps marked and unlinked; each page that shows
   a lesson line or lesson nav shows the number, total and neighbors the Learn page gives. Learn pages: the same footer,
   Star link and shared version as the others, and no code.
-- Page check (`tools/check-pages.mjs`): on a page with `data-hb-modes`, at every setup, See inside and Compare each
-  change the stage's picture, Normal brings back the Normal picture at the same scroll position, and touch targets,
-  overflow and console stay clean. A new target `learn` checks `learn/index.html` and every lesson at the six setups.
+- Page check (`tools/check-pages.mjs`): on a page with `data-hb-modes`, at every setup each mode shows its note and
+  nothing overflows, with a screenshot of each mode saved; at the desktop and reduced-motion setups, with the stage at
+  rest, See inside and Compare each change the stage's picture, Normal brings the first picture back, and on a scroll
+  page Play keeps scrolling through a mode change. A new target `learn` checks `learn/index.html` and every lesson at
+  the six setups.
 - Not changed in the pilot: `sitemap.xml`, `llms.txt`, the skill, the home page (apart from the version), the READMEs,
   `404.html`, CLAUDE.md and CONTRIBUTING.md. The rollout updates them once the owner approves.
 
