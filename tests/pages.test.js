@@ -855,3 +855,15 @@ test('the home page keeps its GitHub button on phones as a round star, and leave
   assert.ok(cssRules(between(css, '@media(min-width:601px) and (max-width:620px){', '}}') + '}').some(rule => rule.selector === '.top .nav .lnk'),
     'from 601px to 620px the two text links make room for it');
 });
+
+// The Famous effects page (famous/) is reached from the home page's footer until the tab pass adds it to the top bar
+// (docs/superpowers/specs/2026-10-13-famous-effects-design.md); opened from disk, the link names famous/index.html, as the
+// cards name their pages' index.html. With three links the footer's row wraps on the narrowest phones.
+test('the home page footer links the Famous effects page', () => {
+  const footer = between(HOME, '<footer class="wrap foot">', '</footer>');
+  assert.equal(count(footer, '<a class="lnk" href="famous/">Famous effects</a>'), 1, 'one Famous effects link in the footer');
+  assert.ok(HOME.includes(`if(FROM_DISK)document.querySelectorAll('a[href="famous/"]').forEach(a=>a.setAttribute('href','famous/index.html'));`),
+    'opened from disk, the link opens famous/index.html');
+  assert.ok(cssRules(between(HOME, '<style>', '</style>')).some(rule => rule.selector === '.foot .nav' && /(^|;)\s*flex-wrap:\s*wrap/.test(rule.body)),
+    'the footer links wrap on the narrowest phones');
+});
