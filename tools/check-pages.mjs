@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 // Browser check for guided-steps demo pages: a development tool, not part of the site.
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
-// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, or home>...
+// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, home or famous>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 //   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
 //   the search box and the place tiles on the first screen, the tile counts and the eight Start cards. The desktop run
 //   also tries the tiles, the search and Show all and compares Copy prompt with every page's own; the phone run tries a
 //   tile, the slim bar and long words; the reduced-motion run checks that nothing moves.
+//   node tools/check-pages.mjs famous   checks the Famous effects page (famous/) at the same six setups: overflow, small
+//   targets on phones (every link, chip, card and button), and the title, the lede and the not-connected line on the first
+//   screen. The desktop run also presses each jump link, watches each entry's previews move and presses each Copy prompt,
+//   once more with the clipboard refused; the reduced-motion run checks that nothing moves, that every preview holds a still
+//   frame that shows something and that a jump does not glide. Like home, it stores a star count first.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
@@ -63,7 +68,7 @@ const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^
     return inside.length ? inside : [p];
   });
 if (!pages.length) {
-  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, or home>...');
+  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, home or famous>...');
   process.exit(2);
 }
 mkdirSync(OUT, { recursive: true });
@@ -137,6 +142,30 @@ const homeCheck = firstScreen => `(() => {
   return { problems };
 })()`;
 
+// Runs inside the Famous effects page (famous/). Returns its problems: overflow, small targets on phones (every link, chip,
+// card and button, the site links and the link inside a sentence too), and the title, the lede and the not-connected line on
+// the first screen (the setups marked firstScreen: 1280×800 and 375×812). A page with no entries is a problem of its own, so
+// the desktop steps never pass on an empty page.
+const famousCheck = firstScreen => `(() => {
+  const r = el => el.getBoundingClientRect();
+  const phone = innerWidth <= 600;
+  const problems = [];
+  if (!document.querySelector('section.fx')) problems.push('no entries (section.fx): not the Famous effects page, or not built yet');
+  if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
+  if (phone) {
+    const small = [...document.querySelectorAll('.top a, .top button, .fx-jump a, .fx-seen a, .fx-what a, .fx .card, .fx .copy, .fx-toggle, .fx-suggest, .foot a')]
+      .filter(el => el.getClientRects().length)
+      .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
+      .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+    if (small.length) problems.push('small targets: ' + small.join(', '));
+  }
+  for (const [what, el] of [['title', document.querySelector('h1')], ['lede', document.querySelector('.fx-lede')], ['not-connected line', document.querySelector('.fx-legal')]]) {
+    if (!el) problems.push('no ' + what);
+    else if (${firstScreen} && r(el).bottom > innerHeight) problems.push('the ' + what + ' is below the first screen');
+  }
+  return { problems };
+})()`;
+
 // Runs at the start of every document, before the page's own scripts: records each press of a Show me button, whether it
 // came from the visitor or from the page script, so the press on arrival can be counted exactly whatever the run's length,
 // and the type of every hb:input the shared script sends, so a real click inside the stage can be seen to reach the page.
@@ -149,7 +178,7 @@ const RECORD = `(() => {
   document.addEventListener('hb:input', e => window.__hbInput.push(e.detail && e.detail.type));
 })()`;
 
-// Runs at the start of every document when the run checks the home page: stores a GitHub star count in the home page's own
+// Runs at the start of every document when the run checks the home page or the Famous effects page: stores a GitHub star count in the home page's own
 // format, with a fresh time, so the page shows it and never asks api.github.com. That request depends on the network and on
 // GitHub's limit (60 an hour per address, and every run starts with an empty profile), and Chrome logs a failed one as a
 // console error, which would fail every setup. The four digits give the button the width of a well-known repository's count.
@@ -907,6 +936,170 @@ async function homeMotionProblems() {
   return problems;
 }
 
+// Famous effects: waits until the page holds still (scrollY the same over three checks 100 ms apart, for up to 3 s).
+const scrollSettled = () => evaluate(`new Promise(done => { let last = scrollY, same = 0, left = 30;
+  const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3 || !--left) done(); else setTimeout(tick, 100); };
+  setTimeout(tick, 100); })`);
+
+// Famous effects, desktop run: each link of the jump row, pressed as the keyboard presses it (focus, then activate) from the
+// top of the page, brings its entry's heading fully into the window, gives that heading keyboard focus and names the entry in
+// the address.
+async function famousJumpProblems() {
+  const hrefs = await evaluate(`[...document.querySelectorAll('.fx-jump a')].map(a => a.getAttribute('href'))`);
+  if (!hrefs.length) return ['no links in the jump row'];
+  const problems = [];
+  for (const href of hrefs) {
+    await evaluate(`(() => { scrollTo(0, 0); const a = document.querySelector('.fx-jump a[href="${href}"]'); a.focus(); a.click(); })()`);
+    await scrollSettled();
+    const got = await evaluate(`(() => { const s = document.querySelector('${href}'), h = s && s.querySelector('h2');
+      if (!h) return null;
+      const b = h.getBoundingClientRect();
+      return { top: Math.round(b.top), shown: b.top >= 0 && b.bottom <= innerHeight, focus: document.activeElement === h, hash: location.hash }; })()`);
+    if (!got) problems.push(`jump to ${href}: no entry with that id, or no heading in it`);
+    else if (!got.shown || !got.focus || got.hash !== href) problems.push(`jump to ${href}: ${JSON.stringify(got)}`);
+  }
+  return problems;
+}
+
+// Famous effects: a PNG (base64) of the stage of a card (an expression that finds the card in the page), where the page is
+// scrolled now.
+async function famousStageShot(card) {
+  const box = await evaluate(`(() => { const b = ${card}.querySelector('.stage').getBoundingClientRect();
+    return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height }; })()`);
+  return (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
+}
+
+// Famous effects, desktop run: with an entry's cards in the middle of the window, each card's preview moves (its picture
+// changes within 3 s); once the last entry is in view, the first entry's previews have stopped, since a preview plays only
+// while it is on screen.
+async function famousPreviewProblems() {
+  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
+  if (!ids.length) return ['no entries to play'];
+  const problems = [];
+  for (const id of ids) {
+    const cards = await evaluate(`(async () => { const s = document.getElementById('${id}'), row = s.querySelector('.fx-cards');
+      if (!row) return 0;
+      row.scrollIntoView({ block: 'center' });
+      await new Promise(r => setTimeout(r, 400));
+      return s.querySelectorAll('.card').length; })()`);
+    if (!cards) { problems.push(`${id}: no cards`); continue; }
+    for (let i = 0; i < cards; i++) {
+      const card = `document.querySelectorAll('#${id} .card')[${i}]`;
+      const first = await famousStageShot(card);
+      let moved = false;
+      for (const end = Date.now() + 3000; !moved && Date.now() < end;) { await sleep(200); moved = (await famousStageShot(card)) !== first; }
+      if (!moved) problems.push(`${id}: the preview of ${await evaluate(`${card}.dataset.slug`)} does not move while on screen`);
+    }
+  }
+  const still = await evaluate(`document.querySelector('section.fx').querySelectorAll('.card.playing').length`);
+  if (ids.length > 1 && still) problems.push(`the first entry's previews keep playing while it is off screen (${still} cards)`);
+  return problems;
+}
+
+// Famous effects, desktop run: each entry's Copy prompt, pressed for real at its center (scrolled into view, the pointer moved
+// onto it, then a mouse press and release), puts exactly that entry's prompt on the clipboard (stubbed: a headless run cannot
+// grant it), reads "Copied", says so in its name and shows the message. Then the browser refuses the clipboard: the first
+// entry's press selects its prompt and the button asks for Ctrl+C.
+async function famousCopyProblems() {
+  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
+  if (!ids.length) return ['no entries to copy'];
+  const problems = [];
+  const press = async id => {
+    const spot = await evaluate(`(() => { const btn = document.querySelector('#${id} .copy'); if (!btn) return null;
+      btn.scrollIntoView({ block: 'center' });
+      const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
+      return { x, y, covered: btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
+    if (!spot) return 'no Copy prompt button';
+    if (spot.covered) return `Copy prompt is covered by ${spot.covered} at its center`;
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+    for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+    return '';
+  };
+  const prompt = id => `document.querySelector('#${id} .fx-prompt').textContent.replace(/\\s+/g, ' ').trim()`;
+  await evaluate(`(() => { navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; })()`);
+  for (const id of ids) {
+    await evaluate(`window.__clipboardGot = null`);
+    const trouble = await press(id);
+    if (trouble) { problems.push(`${id}: ${trouble}`); continue; }
+    const got = await evaluate(`(async () => {
+      for (let i = 0; i < 60 && window.__clipboardGot === null; i++) await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => setTimeout(r, 50));
+      const btn = document.querySelector('#${id} .copy'), title = document.querySelector('#${id} h2').textContent;
+      return { same: window.__clipboardGot === ${prompt(id)}, label: btn.textContent.trim(), named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + title,
+        toast: document.getElementById('toast').classList.contains('show') && document.querySelector('#toast .toast-t').textContent === 'Prompt copied. Paste it into your AI assistant.' };
+    })()`);
+    if (!got.same || got.label !== 'Copied' || !got.named || !got.toast) problems.push(`${id}: Copy prompt ${JSON.stringify(got)}`);
+  }
+  await evaluate(`(() => { navigator.clipboard.writeText = async () => { throw new DOMException('denied', 'NotAllowedError'); }; getSelection().removeAllRanges(); })()`);
+  const trouble = await press(ids[0]);
+  if (trouble) problems.push(`${ids[0]}, clipboard refused: ${trouble}`);
+  else {
+    const refused = await evaluate(`(async () => { const btn = document.querySelector('#${ids[0]} .copy');
+      for (let i = 0; i < 60 && !btn.textContent.includes('Ctrl+C'); i++) await new Promise(r => setTimeout(r, 50));
+      return { label: btn.textContent.trim(), selected: getSelection().toString().replace(/\\s+/g, ' ').trim() === ${prompt(ids[0])} }; })()`);
+    if (refused.label !== 'Press Ctrl+C to copy' || !refused.selected) problems.push(`${ids[0]}, clipboard refused: ${JSON.stringify(refused)} (expected "Press Ctrl+C to copy" and the prompt selected)`);
+  }
+  return problems;
+}
+
+// Famous effects: the pixels that differ by more than 48 (red, green and blue summed) between two captures of the same size
+// (base64 PNG), as their share of the picture and the shares of its width and of its height that the box around them takes.
+// homeMotionProblems does the same inline for the home page; this copy serves the Famous effects page, so that one stays as it is.
+const changedShare = (a, b) => evaluate(`new Promise(done => {
+  const load = src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = 'data:image/png;base64,' + src; });
+  Promise.all([load(${JSON.stringify(a)}), load(${JSON.stringify(b)})]).then(([x, y]) => {
+    const read = img => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, c.width, c.height).data; };
+    const p = read(x), q = read(y), w = x.width, h = x.height;
+    let changed = 0, left = w, right = -1, top = h, bottom = -1;
+    for (let i = 0; i < p.length; i += 4) {
+      if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) <= 48) continue;
+      const px = (i / 4) % w, py = Math.floor(i / 4 / w);
+      changed++; left = Math.min(left, px); right = Math.max(right, px); top = Math.min(top, py); bottom = Math.max(bottom, py);
+    }
+    done({ share: changed / (w * h), wide: changed ? (right - left + 1) / w : 0, tall: changed ? (bottom - top + 1) / h : 0 });
+  });
+})`);
+
+// Famous effects, reduced-motion phone run: nothing runs (every animation in the page is paused), neither at once nor once
+// every card has been on screen; every preview holds a still frame that shows something (the home check's pixel test: the
+// stage captured with the preview and again with the preview's contents hidden must differ in at least 0.3% of its pixels,
+// inside a box of at least 1% of it); and a jump does not glide: two frames after the press, the entry's heading is in the
+// window.
+async function famousMotionProblems() {
+  const problems = [];
+  const running = when => evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
+    const t = a.effect && a.effect.target, card = t && t.closest && t.closest('.card');
+    return (a.animationName || a.transitionProperty || 'an animation') + ' on ' + (card ? card.dataset.slug : t ? t.tagName.toLowerCase() : 'the page');
+  })`).then(found => { if (found.length) problems.push(`reduced motion: ${found.length} animations run ${when} (${[...new Set(found)].slice(0, 8).join(', ')})`); });
+  await running('at once');
+  const frames = n => `new Promise(done => { let left = ${n}; const tick = () => (--left ? requestAnimationFrame(tick) : done()); requestAnimationFrame(tick); })`;
+  const cards = await evaluate(`document.querySelectorAll('section.fx .card').length`);
+  if (!cards) return [...problems, 'reduced motion: no cards'];
+  const empty = [];
+  for (let i = 0; i < cards; i++) {
+    const card = `document.querySelectorAll('section.fx .card')[${i}]`;
+    await evaluate(`(async () => { ${card}.querySelector('.stage').scrollIntoView({ block: 'center' }); await ${frames(2)}; })()`);
+    const drawn = await famousStageShot(card);
+    await evaluate(`(async () => { for (const el of ${card}.querySelector('.pv').children) el.style.visibility = 'hidden'; await ${frames(2)}; })()`);
+    const bare = await famousStageShot(card);
+    await evaluate(`{ for (const el of ${card}.querySelector('.pv').children) el.style.visibility = ''; }`);
+    const seen = await changedShare(drawn, bare);
+    if (seen.share < .003 || seen.wide * seen.tall < .01) {
+      empty.push(`${await evaluate(`${card}.dataset.slug`)} (${(seen.share * 100).toFixed(2)}% of the stage, in a box of ${Math.round(seen.wide * 100)}% × ${Math.round(seen.tall * 100)}%)`);
+    }
+  }
+  if (empty.length) problems.push(`reduced motion: ${empty.length} previews show nothing: ${empty.join(', ')}`);
+  await running('once every card has been on screen');
+  const jump = await evaluate(`(async () => { scrollTo(0, 0); const links = document.querySelectorAll('.fx-jump a'), a = links[links.length - 1];
+    if (!a) return null;
+    a.focus(); a.click(); await ${frames(2)};
+    const h = document.querySelector(a.getAttribute('href') + ' h2'), b = h.getBoundingClientRect();
+    return { href: a.getAttribute('href'), shown: b.top >= 0 && b.bottom <= innerHeight, top: Math.round(b.top) }; })()`);
+  if (!jump) problems.push('reduced motion: no links in the jump row');
+  else if (!jump.shown) problems.push(`reduced motion: the jump to ${jump.href} glides (two frames after the press its heading is at ${jump.top}px)`);
+  return problems;
+}
+
 // The end of the run, done once: after the last page, after Ctrl+C and after an error outside the main flow.
 let cleaning = null;
 function cleanUp() {
@@ -954,11 +1147,12 @@ try {
   await send('Runtime.enable');
   await send('Log.enable');
   await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORD });
-  if (pages.includes('home')) await send('Page.addScriptToEvaluateOnNewDocument', { source: STARS });
+  if (pages.includes('home') || pages.includes('famous/')) await send('Page.addScriptToEvaluateOnNewDocument', { source: STARS });
 
   for (const page of pages) {
     const parts = page.replace(/\/$/, '').split('/');
     const home = page === 'home';
+    const famous = page === 'famous/';
     const name = home ? 'home' : parts.length > 1 ? `${parts[parts.length - 2].slice(0, 2)}-${parts[parts.length - 1]}` : parts[0];
     for (const setup of SETUPS) {
       errors.length = 0;
@@ -975,9 +1169,9 @@ try {
         try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`page did not finish loading within ${LOAD_TIMEOUT / 1000} s`); }
         listeners.delete(onLoad);
         await sleep(2000);
-        const result = await evaluate(home ? homeCheck(!!setup.firstScreen) : CHECK);
+        const result = await evaluate(home ? homeCheck(!!setup.firstScreen) : famous ? famousCheck(!!setup.firstScreen) : CHECK);
         problems.push(...result.problems);
-        if (!home) {
+        if (!home && !famous) {
           if (result.kind === 'once' && result.loop !== null && !setup.reduce && !result.loop) {
             problems.push('did not start playing on arrival (Loop is off)');
           }
@@ -997,7 +1191,7 @@ try {
             clip: { x: 0, y: 0, width: setup.width, height: Math.ceil(cssContentSize.height), scale: 1 } });
           writeFileSync(join(OUT, `${name}-${setup.name}-full.png`), Buffer.from(full.data, 'base64'));
         }
-        if (!home) {
+        if (!home && !famous) {
           if (setup.moves && !setup.reduce && result.kind === 'once') problems.push(...await movementProblems());
           if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
           if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
@@ -1008,6 +1202,14 @@ try {
           if (setup.name === 'phone') problems.push(...await homePhoneProblems());
           if (setup.name === 'phone-reduced') problems.push(...await homeMotionProblems());
           if (setup.moves) problems.push(...await homeCopyProblems());
+        }
+        if (famous) {
+          if (setup.moves) {
+            problems.push(...await famousJumpProblems());
+            problems.push(...await famousPreviewProblems());
+            problems.push(...await famousCopyProblems());
+          }
+          if (setup.name === 'phone-reduced') problems.push(...await famousMotionProblems());
         }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);
