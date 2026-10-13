@@ -1028,6 +1028,11 @@ async function finderViewProblems() {
     if (Math.abs(y - spot.scrolled) > 1) problems.push(`finder: picking ${question}=${key} scrolled the page from ${spot.scrolled}px to ${y}px`);
   };
 
+  // History steps are counted from a cleared history: Chrome keeps 50 entries at most (the run's own page loads have filled them, and a
+  // step then adds nothing to history.length), and a step taken after Back drops the entries ahead of the current one (so it adds nothing
+  // either). Page.resetNavigationHistory leaves the page being shown as the only entry.
+  const clearHistory = () => send('Page.resetNavigationHistory');
+  await clearHistory();
   await openHome('?view=find', problems);
   let s = await look();
   if (s.hero || s.tiles || !s.finder || s.questions !== 3 || s.checked || s.names.length || s.title !== 'Your matches' || s.sub !== ASK ||
@@ -1078,6 +1083,7 @@ async function finderViewProblems() {
   // The ways in: one history step, keyboard focus on the finder's heading; after an answer, Back returns to the start in one press.
   for (const [what, selector] of [['Find button', '.find-cta'], ['Finder link', '#nav-find']]) {
     await openHome('', problems);
+    await clearHistory();
     const before = await evaluate('history.length');
     if (!(await press(selector))) { problems.push(`finder: no ${what}`); continue; }
     await still();
@@ -1093,6 +1099,7 @@ async function finderViewProblems() {
   }
   // Describe it in words: back to the start, one history step, keyboard focus in the search box.
   await openHome('?view=find&what=text', problems);
+  await clearHistory();
   const before = await evaluate('history.length');
   if (!(await press('#find-words'))) problems.push('finder: no Describe it in words');
   else {
