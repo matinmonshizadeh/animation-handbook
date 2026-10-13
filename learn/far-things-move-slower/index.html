@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Far things move slower — Animation Handbook</title>
+  <meta name="description" content="Look out of a moving train: the fence rushes by, the hills crawl and the moon seems to stay put. Your eyes use that difference to judge distance.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/learn/far-things-move-slower/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Far things move slower — Animation Handbook">
+  <meta property="og:description" content="Look out of a moving train: the fence rushes by, the hills crawl and the moon seems to stay put. Your eyes use that difference to judge distance.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/learn/far-things-move-slower/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Far things move slower — Animation Handbook">
+  <meta name="twitter:description" content="Look out of a moving train: the fence rushes by, the hills crawl and the moon seems to stay put. Your eyes use that difference to judge distance.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <style>
+    :root{--ui-accent:#c8f169}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{--ft-vh:1vh;position:relative;overflow:hidden;background:#141b33}
+    /* Each layer is twice the window's width and repeats halfway, so it can slide forever without a seam */
+    .strip{position:absolute;top:0;left:0;width:200%;height:100%;will-change:transform}
+    .strip svg{position:absolute;inset:0;width:100%;height:100%}
+    .sky{background:linear-gradient(#141b33,#2e2a4a 70%,#3d3456)}
+    .moon{position:absolute;top:16%;height:18%;aspect-ratio:1;border-radius:50%;background:#f3e7c4}
+    .moon.a{left:14%} .moon.b{left:64%}
+    /* The stars are round dots placed by percent, not drawn in the stretched pictures, so they stay round. They fill one window;
+       the script adds a second copy one window along, so the loop has no seam */
+    .stars{position:absolute;top:0;bottom:0;left:0;width:50%}
+    .stars+.stars{left:50%}
+    .stars i{position:absolute;width:var(--s,2px);height:var(--s,2px);border-radius:50%;background:#fff;opacity:var(--o,.5)}
+    .speeds{position:absolute;inset:0;list-style:none;pointer-events:none}
+    .speed{position:absolute;left:clamp(10px,3vw,24px);display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;
+      background:rgba(11,11,13,.8);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
+    .speed span{font-weight:400;color:#d6d6da}
+    .speed i{display:block;height:6px;width:calc(var(--bar,0) * 72px);border-radius:3px;background:var(--ui-accent)}
+    .speed:nth-child(1){top:5%} .speed:nth-child(2){top:38%} .speed:nth-child(3){top:60%} .speed:nth-child(4){top:82%}
+    @media(prefers-reduced-motion:reduce){.strip{will-change:auto}}
+    /* The lede runs to two lines here, one more than on most pages: from 601px wide the stage gives that line back, so the stage and
+       the player bar stay on the first screen. --ft-vh: the small viewport height where known */
+    @supports(height:1svh){.stage{--ft-vh:1svh}}
+    @media(min-width:601px){.hb-page .stage{--hb-stage-h:clamp(300px,calc(100 * var(--ft-vh) - 450px),440px)}}
+    @media(min-width:601px) and (max-height:760px){.hb-page .stage{--hb-stage-h:clamp(260px,calc(100 * var(--ft-vh) - 356px),440px)}}
+  </style>
+  <link rel="stylesheet" href="../../assets/css/demo-page.css?v=8">
+  <script src="../../assets/js/demo-page.js?v=8" defer></script>
+</head>
+<body class="hb hb-learn" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../../animations/03-page-transitions/flip-technique/" rel="prev" aria-label="Previous lesson: FLIP Technique"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous lesson: </span>FLIP Technique</span></a><a href="../../animations/01-scroll-based/parallax-scrolling/" rel="next" aria-label="Next lesson: Parallax Scrolling"><span><span class="hb-dir">Next lesson: </span>Parallax Scrolling</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">Lesson 21 of 25 · Idea</p>
+    <h1>Far things move slower</h1>
+    <p class="hb-lede">Look out of a moving train: the fence rushes by, the hills crawl and the moon seems to stay put. Your eyes use that difference to judge distance.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>A view from a train window. Each layer slides past at its own speed.</p></div>
+    </div>
+    <div class="stage" id="stage" role="img" aria-label="A view from a train window: a moon that stays put, mountains that crawl, hills that go faster and a fence that rushes by">
+      <div class="strip sky">
+        <div class="stars" aria-hidden="true">
+          <i style="left:9%;top:30%"></i>
+          <i style="left:20%;top:18%;--s:3px;--o:.65"></i>
+          <i style="left:53%;top:28%"></i>
+          <i style="left:58%;top:11%;--s:3px;--o:.65"></i>
+          <i style="left:68%;top:24%"></i>
+          <i style="left:77%;top:8%;--o:.55"></i>
+          <i style="left:85%;top:21%;--s:3px;--o:.6"></i>
+          <i style="left:94%;top:31%;--o:.45"></i>
+        </div>
+        <div class="moon a"></div><div class="moon b"></div>
+      </div>
+      <div class="strip far">
+        <svg viewBox="0 0 1600 400" preserveAspectRatio="none" aria-hidden="true">
+          <polygon fill="#3b4270" points="0,250 70,190 140,230 230,150 320,215 400,175 480,225 560,160 650,220 730,185 800,250 870,190 940,230 1030,150 1120,215 1200,175 1280,225 1360,160 1450,220 1530,185 1600,250 1600,400 0,400"/>
+        </svg>
+      </div>
+      <div class="strip mid">
+        <svg viewBox="0 0 1600 400" preserveAspectRatio="none" aria-hidden="true">
+          <path fill="#2a5a52" d="M0 300 C 100 250, 200 250, 300 290 S 500 330, 600 280 S 750 270, 800 300 C 900 250, 1000 250, 1100 290 S 1300 330, 1400 280 S 1550 270, 1600 300 L 1600 400 L 0 400 Z"/>
+        </svg>
+      </div>
+      <div class="strip near">
+        <svg viewBox="0 0 1600 400" preserveAspectRatio="none" aria-hidden="true">
+          <defs><pattern id="posts" width="50" height="400" patternUnits="userSpaceOnUse"><rect x="10" y="300" width="8" height="62" fill="#e6d5ad"/></pattern></defs>
+          <rect y="355" width="1600" height="45" fill="#1b2a26"/>
+          <rect y="316" width="1600" height="5" fill="#d9c7a0"/>
+          <rect y="336" width="1600" height="5" fill="#d9c7a0"/>
+          <rect width="1600" height="400" fill="url(#posts)"/>
+        </svg>
+      </div>
+      <ul class="speeds" aria-hidden="true">
+        <li class="speed"><b>Moon</b><span></span><i></i></li>
+        <li class="speed"><b>Mountains</b><span></span><i></i></li>
+        <li class="speed"><b>Hills</b><span></span><i></i></li>
+        <li class="speed"><b>Fence</b><span></span><i></i></li>
+      </ul>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Give every layer the same speed and watch the depth disappear.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Same speed for everything</span><input class="hb-switch" type="checkbox" role="switch" id="same" autocomplete="off"></label>
+        <p class="hb-hint">On, the scene slides like one flat picture. Off, near things pass faster and it looks deep.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-why" aria-labelledby="hb-why-title">
+    <h2 id="hb-why-title">Why it works</h2>
+    <p>Near things cross your view quickly and far things slowly, so your eyes read the difference as distance. Give a picture's far layers small moves and its near layers big moves, and a flat picture looks deep. That is the whole idea behind parallax, and it works best with a few layers and gentle speeds.</p>
+  </section>
+
+  <section class="hb-seen" aria-labelledby="hb-seen-title">
+    <h2 id="hb-seen-title">Where you'll see it</h2>
+    <div class="hb-rel-list">
+      <a class="hb-rel" href="../../animations/01-scroll-based/parallax-scrolling/"><b>Parallax Scrolling</b><span>Far layers move slower than near ones as you scroll.</span></a>
+      <a class="hb-rel" href="../../animations/01-scroll-based/parallax-depth-of-field/"><b>Parallax Depth-of-Field</b><span>Layers move at their own speed as the focus shifts.</span></a>
+      <a class="hb-rel" href="../../animations/06-3d-advanced/2-5d-pseudo-3d/"><b>2.5D / Pseudo-3D</b><span>Flat layers slide by different amounts, faking depth.</span></a>
+      <a class="hb-rel" href="../../animations/06-3d-advanced/depth-map-photo/"><b>Depth-Map Photo</b><span>A flat photo turns 3D as you point: near parts shift more.</span></a>
+      <a class="hb-rel" href="../../animations/07-ambient-background/wave-layers/"><b>Wave Layers</b><span>Layers of waves drift sideways, each at its own speed.</span></a>
+      <a class="hb-rel" href="../../animations/07-ambient-background/grid-dot-pattern-parallax/"><b>Grid / Dot Pattern Parallax</b><span>A dot grid shifts gently against your pointer for depth.</span></a>
+    </div>
+  </section>
+
+  <nav class="hb-lesson-nav" aria-label="Learning path">
+    <p class="hb-lesson-title">Learning path</p>
+    <a class="hb-lesson-prev" href="../../animations/03-page-transitions/flip-technique/"><span>← Lesson 20</span><b>FLIP Technique</b></a>
+    <a class="hb-lesson-next" href="../../animations/01-scroll-based/parallax-scrolling/"><span>Lesson 22 →</span><b>Parallax Scrolling</b></a>
+    <a class="hb-lesson-all" href="../">All 25 lessons</a>
+  </nav>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const FRAME  = 1000 / 60;
+  // Window widths per second: the moon stays put, the mountains crawl, the hills go faster, the fence rushes by
+  const SPEEDS = [0, 0.02, 0.07, 0.4];
+  const SAME   = 0.1;
+  const WORDS  = ['stays put', 'slow', 'faster', 'fastest'];
+  const stage  = document.getElementById('stage');
+  const strips = [...stage.querySelectorAll('.strip')];
+  const tags   = [...stage.querySelectorAll('.speed')];
+  const same   = document.getElementById('same');
+  // The second copy of the stars, one window along
+  const field  = stage.querySelector('.stars');
+  field.after(field.cloneNode(true));
+  // How far each layer has slid, in window widths: 0 to 1, then it starts over. Not in pixels, so a window that is resized
+  // while the page is paused cannot leave a layer outside the stage
+  const pos    = strips.map(() => 0);
+  let lastT = null, raf = 0, paused = false;
+
+  function speedOf(i) { return same.checked ? SAME : SPEEDS[i]; }
+  function frame(ts) {
+    const dt = lastT === null ? 0 : Math.min(ts - lastT, 50);
+    lastT = ts;
+    strips.forEach((s, i) => {
+      pos[i] = (pos[i] + speedOf(i) / 60 * (dt / FRAME)) % 1;
+      // A layer is two windows wide, so half of its own width is one window: the whole loop
+      s.style.transform = `translate3d(${(-pos[i] * 50).toFixed(3)}%,0,0)`;
+    });
+    raf = requestAnimationFrame(frame);
+  }
+  function start() { if (!raf && !paused && !document.hidden) { lastT = null; raf = requestAnimationFrame(frame); } }
+  function stop() { cancelAnimationFrame(raf); raf = 0; }
+  // Pause and Play (and reduced motion, which starts the page paused) come from the shared script
+  document.addEventListener('hb:pause', e => { paused = e.detail.paused; if (paused) stop(); else start(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+
+  // Each label says how fast its layer goes, in words and as a bar a share of the fence's speed
+  function describe() {
+    tags.forEach((t, i) => {
+      t.querySelector('span').textContent = same.checked ? 'same speed' : WORDS[i];
+      t.style.setProperty('--bar', speedOf(i) / SPEEDS[3]);
+    });
+    stage.setAttribute('aria-label', same.checked
+      ? 'A view from a train window where every layer slides at the same speed, like one flat picture'
+      : 'A view from a train window: a moon that stays put, mountains that crawl, hills that go faster and a fence that rushes by');
+  }
+  same.addEventListener('change', describe);
+  describe();
+  // Under reduced motion the scene waits for Play (the shared script pauses it too, but only once it has loaded)
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) start();
+</script>
+</body>
+</html>
