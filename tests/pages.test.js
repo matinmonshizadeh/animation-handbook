@@ -309,7 +309,7 @@ for (const d of steps.filter(d => pageOf(d).includes('data-hb-modes'))) {
     const notes = between(watch, '<div class="hb-mode-notes" aria-live="polite">', '</div>');
     assert.ok(notes && watch.indexOf(notes) > watch.indexOf('<div class="hb-player">'), 'the notes come after the player bar');
     for (const mode of ['inside', 'compare']) assert.equal(count(notes, `<p data-hb-for="${mode}" hidden>`), 1, `one ${mode} note, hidden at first`);
-    for (const [, href] of notes.matchAll(/<a href="([^"]+)"/g)) assert.ok(isDemoDir(path.resolve(d.dir, href)) || href.includes('/learn/'), `note link ${href}`);
+    for (const [, href] of notes.matchAll(/<a href="([^"]+)"/g)) assert.ok(isDemoDir(path.resolve(d.dir, href)), `note link ${href}`);
   });
 }
 
