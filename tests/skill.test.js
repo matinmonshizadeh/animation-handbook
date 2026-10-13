@@ -159,7 +159,7 @@ test('every page has one entry in its category file and one line in the catalog,
       // The line says what the setting does: the effect in the README's Key parameters row named like the setting on the page.
       const row = params.find(p => p.name === name);
       if (!row) problems.push(`${where}: the setting "${name}" has no row in its README's Key parameters`);
-      else if (!line.includes(clause(row.effect))) problems.push(`${where}: the line for "${label}" does not hold its README Key parameters effect: ${line}`);
+      else if (!line.endsWith(`. ${clause(row.effect)}.`)) problems.push(`${where}: the line for "${label}" does not hold its README Key parameters effect: ${line}`);
       if (chosen === undefined) continue; // a text field starts with its text, not a choice
       // The one choice in bold is the one the page starts with (a name holding "·" is quoted).
       const bold = `**${chosen.includes('·') ? `"${chosen}"` : chosen}**`;
@@ -168,7 +168,7 @@ test('every page has one entry in its category file and one line in the catalog,
     // A page without Try it lists the demo's own values instead: every Key parameters row, with its default and effect.
     if (!html.includes('<section class="hb-step hb-try"')) {
       for (const p of params) {
-        if (!entryLines.some(l => l.startsWith(`- ${p.name}: ${clause(p.start)}. `) && l.includes(clause(p.effect)))) problems.push(`${where}: its entry has no line for the Key parameter "${p.name}" with its default and effect`);
+        if (!entryLines.includes(`- ${p.name}: ${clause(p.start)}. ${clause(p.effect)}.`)) problems.push(`${where}: its entry has no line for the Key parameter "${p.name}" with its default and effect`);
       }
     }
   }

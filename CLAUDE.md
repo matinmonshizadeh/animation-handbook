@@ -167,8 +167,9 @@ Every animation README has exactly these sections:
 The tests require What it is, When to use it, Key parameters and See also; the other two are required by
 convention. The page loads **What it is** and **See also** from the README; What it is and Key parameters
 contain no code. Each See also line is `- [Title](../slug/) — one plain phrase`, Title being the linked
-page's `<h1>`. Key parameters has one row per setting in Try it, named as on the page (a page without Try it
-lists the technique's own values). How it works matches the demo's code. Opened from disk (`file://`), the pages
+page's `<h1>`. Key parameters is a `| Parameter | Default | Effect |` table with one row per setting in Try it, named as
+on the page (a page without Try it lists the technique's own values), no empty cell, and each choice's demo value in
+plain words in Effect ("slow is 500ms, normal 300ms and fast 180ms"): the AI skill copies each Effect next to its setting. How it works matches the demo's code. Opened from disk (`file://`), the pages
 still link to each other (the shared script points folder links at `index.html`), but What it is and Similar
 animations need a server: a page shows a README link in place of What it is and hides Similar animations.
 
@@ -227,7 +228,8 @@ inside an entry's "Production notes" section, never as their own entry.
    again from the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the last commit to its
    folder (today for a folder with changes not yet committed). Run `node tools/make-skill.mjs` too: it writes every
-   page's prompt and settings into the AI skill (`skills/animation-handbook/`) and every card into `llms.txt`. Run the
+   page's prompt and settings, with its README's Key parameters, into the AI skill (`skills/animation-handbook/`) and
+   every card into `llms.txt`. Run the
    tests and the page check on the new folder and on every page you edited. Run the home page check (`home`) too: the
    new card's Copy prompt is compared there.
 

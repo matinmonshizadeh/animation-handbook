@@ -61,7 +61,10 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    other two are required by convention. The page loads *What it is* and *See also* from this
    file, so write *What it is* and *Key parameters* in plain words with no code. Each *See also*
    line is `- [Title](../slug/) — one plain phrase`, where Title is the linked page's `<h1>`.
-   *Key parameters* has one row per setting in Try it, named exactly as on the page. Opened
+   *Key parameters* is a `| Parameter | Default | Effect |` table with one row per setting in
+   Try it, named exactly as on the page, no empty cell, and each choice's demo value in plain
+   words in Effect ("slow is 500ms, normal 300ms and fast 180ms"): the AI skill copies each
+   Effect next to its setting. Opened
    from disk (`file://`), the pages still link to each other (the shared script points folder
    links at `index.html`), but *What it is* and *Similar animations* need a server: a page shows
    a README link in place of *What it is* and hides *Similar animations*.
@@ -97,7 +100,8 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 7. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the
    last commit to its folder (today for a folder with changes not yet committed). Run
-   `node tools/make-skill.mjs` too: it writes every page's prompt and settings into the AI skill
+   `node tools/make-skill.mjs` too: it writes every page's prompt and settings, with its README's
+   Key parameters, into the AI skill
    (`skills/animation-handbook/`) and every card into `llms.txt`. Then run the tests and the
    page check (see [Tests and the page check](#tests-and-the-page-check)) on the new page and on
    every page you edited. Run the home page check (`home`) too: the new card's Copy prompt is
