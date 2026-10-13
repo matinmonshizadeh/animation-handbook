@@ -154,6 +154,8 @@
   const strips = [...stage.querySelectorAll('.strip')];
   const tags   = [...stage.querySelectorAll('.speed')];
   const same   = document.getElementById('same');
+  // How far each layer has slid, in window widths: 0 to 1, then it starts over. Not in pixels, so a window that is resized
+  // while the page is paused cannot leave a layer outside the stage
   const pos    = strips.map(() => 0);
   let lastT = null, raf = 0, paused = false;
 
@@ -161,10 +163,10 @@
   function frame(ts) {
     const dt = lastT === null ? 0 : Math.min(ts - lastT, 50);
     lastT = ts;
-    const w = stage.clientWidth;
     strips.forEach((s, i) => {
-      pos[i] = (pos[i] + speedOf(i) * w / 60 * (dt / FRAME)) % w;
-      s.style.transform = `translate3d(${-pos[i].toFixed(2)}px,0,0)`;
+      pos[i] = (pos[i] + speedOf(i) / 60 * (dt / FRAME)) % 1;
+      // A layer is two windows wide, so half of its own width is one window: the whole loop
+      s.style.transform = `translate3d(${(-pos[i] * 50).toFixed(3)}%,0,0)`;
     });
     raf = requestAnimationFrame(frame);
   }
@@ -186,7 +188,8 @@
   }
   same.addEventListener('change', describe);
   describe();
-  start();
+  // Under reduced motion the scene waits for Play (the shared script pauses it too, but only once it has loaded)
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) start();
 </script>
 </body>
 </html>
