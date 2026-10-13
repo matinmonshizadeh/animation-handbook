@@ -14,23 +14,44 @@ const count = (s, sub) => s.split(sub).length - 1;
 const HUB = read(path.join(LEARN, 'index.html'));
 const HOME = read(path.join(ROOT, 'index.html'));
 
-// The steps of the path in page order: { n, kind, soon, href (null while not built), title, body }.
+// The steps of the path in page order: { n, kind, soon, href (null while not built), title, num, label, line, body }.
+// num, label and line are what the visitor reads on the step: its number, its kind and its one line.
+const spanOf = (body, cls) => (body.match(new RegExp(`<span class="${cls}">([^<]*)</span>`)) || [])[1];
 const STEPS = [...HUB.matchAll(/<li data-step="(\d+)" data-kind="(idea|animation)"( data-soon)?>([\s\S]*?)<\/li>/g)].map(m => {
   const link = m[4].match(/<a href="([^"]+)"/);
-  return { n: Number(m[1]), kind: m[2], soon: !!m[3], href: link ? link[1] : null, title: (m[4].match(/<b>([^<]+)<\/b>/) || [])[1], body: m[4] };
+  return { n: Number(m[1]), kind: m[2], soon: !!m[3], href: link ? link[1] : null, title: (m[4].match(/<b>([^<]+)<\/b>/) || [])[1],
+    num: spanOf(m[4], 'n'), label: spanOf(m[4], 'k'), line: spanOf(m[4], 'line'), body: m[4] };
 });
 const dirOf = href => path.resolve(LEARN, href);
 const h1Of = dir => ((read(path.join(dir, 'index.html')).match(/<h1>([^<]+)<\/h1>/) || [])[1] || '').replace(/&amp;/g, '&');
 const LESSONS = fs.readdirSync(LEARN, { withFileTypes: true })
   .filter(d => d.isDirectory() && fs.existsSync(path.join(LEARN, d.name, 'index.html'))).map(d => path.join(LEARN, d.name));
+// Every Learn page: the hub and each idea lesson.
+const PAGES = [path.join(LEARN, 'index.html'), ...LESSONS.map(d => path.join(d, 'index.html'))];
+const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const FOOTER = '<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>';
 const STAR = '<a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub">';
 const version = (html, file) => (html.match(new RegExp(`demo-page\\.${file}\\?v=(\\d+)`)) || [])[1];
 
 test('the path has 25 steps in five chapters of five, numbered in order', () => {
   assert.deepEqual(STEPS.map(s => s.n), Array.from({ length: 25 }, (_, i) => i + 1));
-  const chapters = [...HUB.matchAll(/<section class="hb-chapter"[\s\S]*?<\/section>/g)].map(m => count(m[0], '<li data-step='));
-  assert.deepEqual(chapters, [5, 5, 5, 5, 5]);
+  const chapters = [...HUB.matchAll(/<section class="hb-chapter"[\s\S]*?<\/section>/g)].map(m => m[0]);
+  assert.deepEqual(chapters.map(c => count(c, '<li data-step=')), [5, 5, 5, 5, 5]);
+  // Each chapter is one ordered list. VoiceOver drops the list role when the list has no bullets, so the role is written out.
+  for (const [i, c] of chapters.entries()) {
+    assert.equal(count(c, '<ol class="hb-path"'), 1, `chapter ${i + 1} is an ordered list`);
+    assert.equal(count(c, '<ol class="hb-path" role="list">'), 1, `chapter ${i + 1}'s list keeps its list role`);
+  }
+});
+
+test('every step shows its own number, its kind (Idea, Animation, or Idea · Not built yet) and a line', () => {
+  for (const s of STEPS) {
+    assert.equal(s.num, String(s.n), `step ${s.n} shows its own number`);
+    assert.ok(!s.soon || s.kind === 'idea', `step ${s.n}: only an idea can be not built yet`);
+    const label = s.soon ? 'Idea · Not built yet' : s.kind === 'idea' ? 'Idea' : 'Animation';
+    assert.equal(s.label, label, `step ${s.n} shows its kind`);
+    assert.ok(s.line && s.line.trim(), `step ${s.n} has its line`);
+  }
 });
 
 test('every built step links to an existing page and shows its title; a step not built yet has no link and says so', () => {
@@ -81,6 +102,7 @@ for (const { step, dir } of onPath) {
     if (step.kind === 'idea') {
       for (const [rel, other, word] of [['prev', prev, 'Previous'], ['next', next, 'Next']]) {
         const a = html.match(new RegExp(`<a href="([^"]+)" rel="${rel}" aria-label="${word} lesson: ([^"]+)">`));
+        if (!other) { assert.equal(a, null, `no top bar ${rel} link at the end of the path`); continue; }
         assert.ok(a, `top bar ${rel} link`);
         assert.equal(path.resolve(dir, a[1]), dirOf(other.href), `top bar ${rel} opens step ${other.n}`);
         assert.equal(a[2], other.title, `top bar ${rel} names step ${other.n}`);
@@ -89,7 +111,7 @@ for (const { step, dir } of onPath) {
   });
 }
 
-for (const file of [path.join(LEARN, 'index.html'), ...LESSONS.map(d => path.join(d, 'index.html'))]) {
+for (const file of PAGES) {
   const name = path.relative(ROOT, file).split(path.sep).join('/');
   test(`${name}: the shared frame (top bar with the Star link, footer, shared files at the home page's version) and no code`, () => {
     const html = read(file);
@@ -99,10 +121,36 @@ for (const file of [path.join(LEARN, 'index.html'), ...LESSONS.map(d => path.joi
     assert.equal(count(html, '<main class="hb-page">'), 1);
     assert.equal(count(html, '<header class="hb-head">'), 1);
     assert.ok(html.replace(/>\s+</g, '><').includes(FOOTER), 'the shared footer');
-    // The home page links only demo-page.js (it has its own styles), so its version N is the script's.
-    for (const f of ['css', 'js']) assert.equal(version(html, f), version(HOME, 'js'), `demo-page.${f} at the home page's version`);
+    // The home page links only demo-page.js (it has its own styles), so its version N is the script's. Without a version on the
+    // home page the comparison below could pass with nothing on either side.
+    const homeVersion = version(HOME, 'js');
+    assert.ok(homeVersion, 'the home page links demo-page.js with a version');
+    for (const f of ['css', 'js']) assert.equal(version(html, f), homeVersion, `demo-page.${f} at the home page's version`);
     assert.ok(!/`|<code|<pre/.test(html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '')), 'no code on the page');
     assert.ok(!html.includes('hb-view'), 'no old hb-view markup');
+  });
+}
+
+// What search engines, social sites and the browser tab show, as on every animation page: the tab title is the heading and the site
+// name, the descriptions are the lede, and the address is the page's own folder.
+for (const file of PAGES) {
+  const name = path.relative(ROOT, file).split(path.sep).join('/');
+  test(`${name}: the tab title, the descriptions and the address say what the page says`, () => {
+    const html = read(file);
+    const h1 = decode((html.match(/<h1>([^<]+)<\/h1>/) || [])[1] || '');
+    const lede = decode(((html.match(/<p class="hb-lede">([\s\S]*?)<\/p>/) || [])[1] || '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+    assert.ok(h1, 'the page has a heading');
+    assert.ok(lede, 'the page has a lede');
+    const meta = attr => { const m = html.match(new RegExp(`<meta ${attr} content="([^"]*)">`)); assert.ok(m, `<meta ${attr}> is there`); return decode(m[1]); };
+    const title = `${h1} — Animation Handbook`;
+    assert.equal(decode((html.match(/<title>([^<]*)<\/title>/) || [])[1] || ''), title, '<title> is the heading and the site name');
+    for (const attr of ['property="og:title"', 'name="twitter:title"']) assert.equal(meta(attr), title, attr);
+    for (const attr of ['name="description"', 'property="og:description"', 'name="twitter:description"']) assert.equal(meta(attr), lede, `${attr} is the lede`);
+    const address = `https://matinmonshizadeh.github.io/animation-handbook/${path.relative(ROOT, path.dirname(file)).split(path.sep).join('/')}/`;
+    const canonical = html.match(/<link rel="canonical" href="([^"]*)">/);
+    assert.ok(canonical, 'the canonical link is there');
+    assert.equal(canonical[1], address, 'the canonical address is the live address of the page\'s folder');
+    assert.equal(meta('property="og:url"'), address, 'og:url is the live address of the page\'s folder');
   });
 }
 
