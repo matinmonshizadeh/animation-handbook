@@ -29,6 +29,11 @@
     .sky{background:linear-gradient(#141b33,#2e2a4a 70%,#3d3456)}
     .moon{position:absolute;top:16%;height:18%;aspect-ratio:1;border-radius:50%;background:#f3e7c4}
     .moon.a{left:14%} .moon.b{left:64%}
+    /* The stars are round dots placed by percent, not drawn in the stretched pictures, so they stay round. They fill one window;
+       the script adds a second copy one window along, so the loop has no seam */
+    .stars{position:absolute;top:0;bottom:0;left:0;width:50%}
+    .stars+.stars{left:50%}
+    .stars i{position:absolute;width:var(--s,2px);height:var(--s,2px);border-radius:50%;background:#fff;opacity:var(--o,.5)}
     .speeds{position:absolute;inset:0;list-style:none;pointer-events:none}
     .speed{position:absolute;left:clamp(10px,3vw,24px);display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;
       background:rgba(11,11,13,.8);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
@@ -65,14 +70,16 @@
     </div>
     <div class="stage" id="stage" role="img" aria-label="A view from a train window: a moon that stays put, mountains that crawl, hills that go faster and a fence that rushes by">
       <div class="strip sky">
-        <svg viewBox="0 0 1600 400" preserveAspectRatio="none" aria-hidden="true">
-          <defs><pattern id="stars" width="800" height="400" patternUnits="userSpaceOnUse">
-            <circle cx="60" cy="40" r="1.5" fill="#fff" opacity=".6"/><circle cx="240" cy="90" r="1.2" fill="#fff" opacity=".5"/>
-            <circle cx="390" cy="30" r="1.4" fill="#fff" opacity=".7"/><circle cx="520" cy="110" r="1.1" fill="#fff" opacity=".4"/>
-            <circle cx="660" cy="55" r="1.5" fill="#fff" opacity=".6"/><circle cx="760" cy="130" r="1.2" fill="#fff" opacity=".5"/>
-          </pattern></defs>
-          <rect width="1600" height="400" fill="url(#stars)"/>
-        </svg>
+        <div class="stars" aria-hidden="true">
+          <i style="left:9%;top:30%"></i>
+          <i style="left:20%;top:18%;--s:3px;--o:.65"></i>
+          <i style="left:53%;top:28%"></i>
+          <i style="left:58%;top:11%;--s:3px;--o:.65"></i>
+          <i style="left:68%;top:24%"></i>
+          <i style="left:77%;top:8%;--o:.55"></i>
+          <i style="left:85%;top:21%;--s:3px;--o:.6"></i>
+          <i style="left:94%;top:31%;--o:.45"></i>
+        </div>
         <div class="moon a"></div><div class="moon b"></div>
       </div>
       <div class="strip far">
@@ -154,6 +161,9 @@
   const strips = [...stage.querySelectorAll('.strip')];
   const tags   = [...stage.querySelectorAll('.speed')];
   const same   = document.getElementById('same');
+  // The second copy of the stars, one window along
+  const field  = stage.querySelector('.stars');
+  field.after(field.cloneNode(true));
   // How far each layer has slid, in window widths: 0 to 1, then it starts over. Not in pixels, so a window that is resized
   // while the page is paused cannot leave a layer outside the stage
   const pos    = strips.map(() => 0);
