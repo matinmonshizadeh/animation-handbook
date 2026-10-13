@@ -87,7 +87,7 @@ for (const { step, dir } of onPath) {
     assert.ok(html.includes(line), `lesson line: ${line}`);
     const nav = html.match(/<nav class="hb-lesson-nav" aria-label="Learning path">([\s\S]*?)<\/nav>/);
     assert.ok(nav, 'lesson nav');
-    assert.ok(nav[1].includes('<p class="hb-lesson-title">Learning path</p>'), 'lesson nav title');
+    assert.ok(nav[1].includes('<h2 class="hb-lesson-title">Learning path</h2>'), 'lesson nav title');
     const prev = STEPS[step.n - 2], next = STEPS[step.n];
     for (const [cls, other, label] of [['hb-lesson-prev', prev, prev && `← Lesson ${prev.n}`], ['hb-lesson-next', next, next && `Lesson ${next.n} →`]]) {
       const a = nav[1].match(new RegExp(`<a class="${cls}" href="([^"]+)"><span>([^<]+)</span><b>([^<]+)</b></a>`));
