@@ -533,10 +533,14 @@ test('the shared stylesheet draws the mode switch beside the Watch heading from 
   const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css'));
   const rules = cssRules(css);
   const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
-  for (const sel of ['.hb-page .hb-modes', '.hb-mode-notes p', '.hb-lesson', '.hb-lesson a', '.hb-lesson-nav', '.hb-lesson-prev',
+  for (const sel of ['.hb-page .seg.hb-modes', '.hb-mode-notes p', '.hb-lesson', '.hb-lesson a', '.hb-lesson-nav', '.hb-lesson-prev',
     '.hb-lesson-next', '.hb-lesson-all', '.hb-why p', '.hb-seen']) assert.ok(has(sel), sel);
   assert.ok(rules.some(r => r.selector === '.hb-mode-notes:not(:has(> p:not([hidden])))' && /display:none/.test(r.body)),
     'an empty notes box takes no room');
+  // The switch is also a .seg, and the .seg rules (the gap, and the phone rule for .seg buttons) come later in the file: the
+  // switch's own rules name .seg.hb-modes so that they outrank them and the three buttons are equal on phones.
+  assert.ok(rules.some(r => r.selector === '.hb-page .seg.hb-modes button' && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(r.body)),
+    'up to 760px the three mode buttons share their row equally, outranking the phone rule for .seg buttons');
   assert.match(css, /@media\(min-width:761px\)\{\s*\.hb-watch:has\(> \.hb-modes\)\{display:grid/, 'from 761px the switch shares the heading row');
   assert.match(css, /@media\(min-width:601px\)\{\s*\.hb-head:has\(> \.hb-lesson\)\{display:grid/, 'from 601px the lesson line shares the category row');
 });
