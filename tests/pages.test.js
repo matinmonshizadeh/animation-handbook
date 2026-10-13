@@ -684,6 +684,26 @@ test('the 404 page sends a mistyped address where it belongs and never off the s
   for (const [where, rest, want] of cases) assert.deepEqual({ ...whereTo(where, rest) }, want, where + rest);
 });
 
+test('the 404 page sends /finder and /find to the finder, keeping only its answers, and offers it as a way back', () => {
+  const html = read(path.join(ROOT, '404.html'));
+  const start = html.indexOf('function whereTo(');
+  assert.ok(start >= 0, 'whereTo in 404.html');
+  let depth = 0, end = html.indexOf('{', start);
+  for (; end < html.length; end++) { if (html[end] === '{') depth++; else if (html[end] === '}' && --depth === 0) break; }
+  const whereTo = vm.runInNewContext('(' + html.slice(start, end + 1) + ')');
+  const cases = [
+    ['/animation-handbook/finder', '', { go: '/animation-handbook/?view=find' }],
+    ['/animation-handbook/find/', '', { go: '/animation-handbook/?view=find' }],
+    ['/animation-handbook/Finder/', '?what=text&when=scroll&how=draw#top', { go: '/animation-handbook/?view=find&what=text&when=scroll&how=draw' }],
+    ['/animation-handbook/FIND', '?q=fade&how=fade&utm_source=x', { go: '/animation-handbook/?view=find&how=fade' }],
+    ['/animation-handbook/finder', '?what=%3Cb%3E', { go: '/animation-handbook/?view=find' }],
+    ['/animation-handbook/finders', '', { words: 'finders' }],
+    ['/animation-handbook/animations/finder/', '', { words: 'finder' }]
+  ];
+  for (const [where, rest, want] of cases) assert.deepEqual({ ...whereTo(where, rest) }, want, where + rest);
+  assert.ok(html.includes('<a class="way" href="/animation-handbook/?view=find">Find an animation by what you saw</a>'), 'the third way back');
+});
+
 // Where the bracket that opens at HOME[from] ('[' or '{') is closed. It steps over strings and // comments, so a quote or bracket
 // inside either does not count.
 function blockEnd(from) {
