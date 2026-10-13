@@ -55,6 +55,24 @@ and want to know what to ask for. The owner's first priority (2026-10-13): **lea
    - **Judge it:** good and bad versions of one demo side by side (too slow, too much, jumpy), so people learn to see the
      difference in what their AI built.
 
+## Next projects (status 2026-10-13)
+
+The pilot is built on `feat/see-inside-compare` (not live). Having seen it, the owner narrowed step 2 to See inside and
+Compare, paused the learning path and Motion basics (kept on `feat/learn-pilot`) and moved Name it forward. The order,
+branches, shared files and releases are in `2026-10-13-next-projects-coordination.md`.
+
+1. **See inside and Compare on all 166 pages** (`2026-10-13-see-inside-compare-rollout-design.md`): one page per category
+   first for the owner's approval, then the rest; live in one piece on the owner's word.
+2. **Beside it:** the **Animation finder** (Name it; `2026-10-13-animation-finder-design.md`) and **Famous effects**
+   (`2026-10-13-famous-effects-design.md`). Each goes live as soon as it is ready and the owner approves it, reached from
+   the home page.
+3. **Ten new animations** with both views from the start (`2026-10-13-ten-new-animations-design.md`).
+4. **Finder and Famous effects tabs** in every page's top bar: a short spec written after step 3.
+
+Launch posts stay as planned (Reddit on 2026-10-17, Show HN on 2026-10-25); the finder and Famous effects may be live by
+then, on the owner's word, and nothing merges into main from 2026-10-23 to 2026-10-26 without the owner's explicit word.
+Choose it and Judge it wait; Compare's common-mistake halves (about 35 pages) are a first step toward Judge it.
+
 ## Ideas to discuss later (not decided)
 
 - GitHub Sponsors and, at most, one or two sponsors that make animation tools; never a paywall.
