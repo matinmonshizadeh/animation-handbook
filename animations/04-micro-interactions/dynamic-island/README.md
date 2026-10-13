@@ -67,7 +67,7 @@ The same transition runs whichever two shapes it goes between, so picking anothe
 ## Key parameters
 | Parameter | Default | Effect |
 |-----------|---------|--------|
-| Notification | Call | What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall, each about four fifths as wide as the screen; picking another while it is open changes the shape straight into the new one |
+| Notification | Call | What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall; the call and music cards are about 85% as wide as the screen and the timer about 77%; picking another while it is open changes the shape straight into the new one |
 | Speed | Normal | How long it takes to grow or shrink: slow is 1100ms, normal 700ms and fast 450ms; a spring needs a little longer than a plain ease, because it settles at the end |
 | Bounce | Soft | None eases out without going past the size; Soft goes past it by about 5% of the change in size and Springy by about 16%, and each settles by the end of its time |
 

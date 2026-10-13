@@ -51,7 +51,7 @@ Per-unit animation is swappable via `data-anim` (fade-up, fade, scale, rotate); 
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Split into | Words | Letters give the finest cascade, words a readable rhythm, lines a block reveal |
-| How each piece appears | Fade up | The small entrance each piece plays: fade up rises by half the font size, fade only fades, grow starts at half its size and flip turns in from 90°, edge-on, around a vertical line |
+| How each piece appears | Fade up | The small entrance each piece plays: fade up rises by half the font size, fade only fades, grow starts at half its size and flip turns in from 90°, edge-on, around a vertical line; in Lines mode nothing fades: each line slides up into view from behind an invisible edge, so fade shows only that slide, and fade up, grow and flip add their own movement to it |
 | Delay between pieces | Medium | The wait between pieces: short is 10ms, medium 30ms and long 100ms; small values ripple, large values feel deliberate |
 | Speed | Normal | How long each piece takes: slow is 800ms, normal 500ms and fast 300ms |
 | Feel | Smooth | The curve each piece uses; Springy adds a small settle, Even keeps one steady pace |

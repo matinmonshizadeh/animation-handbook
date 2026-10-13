@@ -88,7 +88,7 @@ for (let r = 0; r < ROWS; r++) {
 | Wind | Medium | How hard the wind blows; it rises and falls on its own over a 12.6-second cycle: at its peak it speeds points up sideways by about 30px a second every second at light, 75px at medium and 180px at strong, and part of the time it blows back at up to about half that |
 | Stiffness | Medium | How many times each step, sixty a second, the links are pulled back to length: stretchy is 2, medium 4 and stiff 8 |
 | Gravity | Normal | How heavy the cloth is: gravity speeds a falling point up by about 17px a second every second at light, 35px at normal and 58px at heavy |
-| Detail | Medium | How many squares the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; phones start at low |
+| Detail | Medium | How many cells the cloth's grid has, with a point at every corner: low is 16 × 12, medium 24 × 18 and high 40 × 30; the cloth is cut 80% as wide as the stage and 65% as tall, so the cells take their shape from the stage: about square on a phone, but two to three times as wide as tall on a laptop; phones start at low |
 | Shows the points | off | Marks every point of the grid, with the pinned ones in red |
 
 ## Production notes

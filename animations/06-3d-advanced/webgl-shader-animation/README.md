@@ -71,7 +71,7 @@ float voronoi(vec2 p) {
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Pattern | Plasma | Plasma adds up sine waves into flowing color; Waves bends striped color; Cells splits the plane into cells around moving points; Kaleidoscope mirrors one slice around the middle |
-| Speed | Normal | How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times real time, so the plasma's colors drift once round the rainbow in about 33 seconds at slow, 20 at normal and 12.5 at fast |
+| Speed | Normal | How fast time runs in the pattern: slow is 0.6, normal 1 and fast 1.6 times real time, so the plasma's colors drift once around the rainbow in about 33 seconds at slow, 20 at normal and 12.5 at fast |
 | Reacts to the pointer | off | Each pattern bends around the pointer or a finger in its own way; in Kaleidoscope the pointer sets the number of slices |
 
 ## Production notes

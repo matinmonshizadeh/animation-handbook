@@ -56,7 +56,7 @@ for (let i = 0; i <= vertices; i++) {
 ctx.closePath();
 ```
 
-The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see almost one value, so the whole edge would only swell and shrink together; this one spans about two bumps of noise at the default size, so the edge ripples.
+The noise is read along a circle of radius `48 * SCALE`. A tiny circle would see almost one value, so the whole edge would only swell and shrink together; this one spans about three bumps of noise at the default size, so the edge ripples.
 
 ## Key parameters
 | Parameter | Default | Effect |

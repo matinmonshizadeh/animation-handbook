@@ -77,7 +77,7 @@ shape of the stage.
 |-----------|---------|--------|
 | Gooeyness | Medium | How much the circles are blurred before the edge is sharpened again: low is 6, medium 10 and high 16, measured in a drawing 360 units across whose circles are 26 to 52 units in radius; higher melts circles from farther apart |
 | Number of blobs | Medium | Few is 4, medium 6 and many 9 circles, counting the drop that follows the pointer |
-| Speed | Normal | How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times; at normal each circle swings back and forth along its path once every 6 to 16 seconds, each at its own rate |
+| Speed | Normal | How fast the circles drift: slow is 0.6, normal 1 and fast 1.6 times; each circle sways side to side and up and down at the same time, each sway at its own rate (at normal, one sway takes 6 to 16 seconds), so it wanders in loops that never quite repeat rather than back and forth along one line |
 
 ## Production notes
 - **Filter performance is the gotcha.** SVG filters rasterize the filter region every frame on the CPU/GPU compositor; a large blurred area over a big viewport can drop frames on mobile. Keep the filtered `<g>` region as small as the design allows, cap `stdDeviation`, and reduce blob count on small screens. Test on a mid-range phone, not just desktop.
