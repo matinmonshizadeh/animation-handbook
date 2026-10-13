@@ -529,7 +529,7 @@ test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
 
-test('the shared stylesheet draws the mode switch beside the Watch heading from 761px, hides an empty notes box, and styles the lesson line, the lesson nav and the idea lessons\' sections', () => {
+test('the shared stylesheet draws the mode switch beside the Watch heading and the note beside a short player bar from 761px, hides an empty notes box, and styles the lesson line, the lesson nav and the idea lessons\' sections', () => {
   const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css'));
   const rules = cssRules(css);
   const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
@@ -551,6 +551,23 @@ test('the shared stylesheet draws the mode switch beside the Watch heading from 
   assert.ok(rules.some(r => r.selector === '.hb-page .seg.hb-modes button' && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(r.body)),
     'up to 760px the three mode buttons share their row equally, outranking the phone rule for .seg buttons');
   assert.match(css, /@media\(min-width:761px\)\{\s*\.hb-watch:has\(> \.hb-modes\)\{display:grid/, 'from 761px the switch shares the heading row');
+  // From 761px a player bar with one or two controls leaves room beside it, so the note for the mode in view sits next to the bar,
+  // under the switch, and is on a laptop's first screen: three columns (the player bar's own width, the room left over, the switch's
+  // width); the heading spans the first two, the player bar keeps the start of its row (a note taller than the bar grows the row,
+  // not the bar, so the bar does not move) and the note spans the other two. A bar with a third control (or the note that reduced
+  // motion adds) keeps the two columns, the full row and the note under it. Up to 760px the note stays under the player bar: no
+  // other rule places it.
+  const wide = between(css, '@media(min-width:761px){', '@media(max-width:760px)');
+  const SHORT = '.hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3)))';
+  for (const [what, text] of [
+    ['three columns: the player bar, the room left over, the switch', `${SHORT}{grid-template-columns:auto minmax(0,1fr) auto}`],
+    ['the heading spans the first two columns', `${SHORT} > .hb-step-head{grid-column:1/3}`],
+    ['the switch is in the third column', `${SHORT} > .hb-modes{grid-column:3}`],
+    ['the player bar starts its row and stays at the start of it when the row grows', `${SHORT} > .hb-player{grid-column:1;align-self:start}`],
+    ['the note spans the other two columns', `${SHORT} > .hb-mode-notes{grid-column:2/-1;`],
+    ['a bar with a third control keeps the two columns (the switch beside the heading, the rest on the full row)', '.hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;']
+  ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
+  assert.equal(count(css, '> .hb-mode-notes{'), 1, 'one rule places the note beside the player bar, and it is in the 761px block (phones keep the note under the bar)');
   assert.match(css, /@media\(min-width:601px\)\{\s*\.hb-head:has\(> \.hb-lesson\)\{display:grid/, 'from 601px the lesson line shares the category row');
 });
 
