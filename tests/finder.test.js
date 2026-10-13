@@ -253,3 +253,13 @@ test('the test set: a right animation among the first 6 for at least 24 of the 2
   assert.ok(in6 >= 24, `${in6} of 28 cases have a right animation among the first 6 (at least 24)`);
   assert.ok(in12 >= 27, `${in12} of 28 cases have a right animation among the first 12 (at least 27)`);
 });
+
+// A slug written twice in FIND keeps its first place with the second row's answers, so the value homeConst reads looks right:
+// count the rows in the page's text instead.
+test('FIND writes one row per card, no slug twice', () => {
+  const start = at('const FIND={'), block = HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1);
+  const rows = Array.from(block.matchAll(/^\s+'([^']+)':\[/gm), m => m[1]), cards = homeConst('CATS').flatMap(cat => cat.entries).length;
+  const twice = [...new Set(rows.filter((slug, i) => rows.indexOf(slug) !== i))];
+  assert.deepEqual([rows.length, new Set(rows).size], [cards, cards],
+    `${rows.length} rows and ${new Set(rows).size} slugs in FIND for ${cards} cards; written twice: ${twice.join(', ') || 'none'}`);
+});
