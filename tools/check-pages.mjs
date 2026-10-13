@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Browser check for guided-steps demo pages: a development tool, not part of the site.
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
-// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, or home>...
+// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, home or learn>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 //   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
 //   the search box and the place tiles on the first screen, the tile counts and the eight Start cards. The desktop run
@@ -23,6 +23,14 @@
 // stopped, and that a real wheel turn stops Play (over the stage beside an inner scroller, where there is room there,
 // so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README)
 // and takes screenshots, and nothing more.
+// A page with the mode switch (Normal, See inside, Compare): at every setup each mode marks the stage, shows its own note
+// and no other (Normal shows none) and overflows nothing, and a screenshot of each mode is saved; a mode button the page
+// lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page at the top, a loop paused,
+// a plays-once page with Loop off and its replay over), See inside and Compare must each change the stage and differ from
+// each other, Normal must bring the first picture back, and on a scroll page Play must keep scrolling through a mode change.
+// A stage that never comes to rest is a problem of its own, and nothing is compared with a frame taken in mid-movement.
+// "learn" stands for the Learn page and every idea lesson in learn/: the page checks run there too, without the prompt parts
+// (chips, What it is), and each lesson's kind is worked like any other page's.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
 // other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
@@ -57,13 +65,19 @@ const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
 // in shells that do not expand wildcards, such as PowerShell.
 const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/')))
   .flatMap(p => {
+    // "learn" stands for the Learn page and every idea lesson in its folder.
+    if (p === 'learn/') {
+      const lessons = existsSync(join(ROOT, 'learn')) ? readdirSync(join(ROOT, 'learn'), { withFileTypes: true })
+        .filter(d => d.isDirectory() && isPage(`learn/${d.name}`)).map(d => `learn/${d.name}/`).sort() : [];
+      return ['learn/', ...lessons];
+    }
     if (p === 'home' || isPage(p) || !existsSync(join(ROOT, p))) return [p];
     const inside = readdirSync(join(ROOT, p), { withFileTypes: true })
       .filter(d => d.isDirectory() && isPage(p + d.name)).map(d => `${p}${d.name}/`).sort();
     return inside.length ? inside : [p];
   });
 if (!pages.length) {
-  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, or home>...');
+  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, home or learn>...');
   process.exit(2);
 }
 mkdirSync(OUT, { recursive: true });
@@ -83,11 +97,12 @@ const CHECK = `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
   const problems = [];
+  const learn = document.body.classList.contains('hb-learn');
   if (!document.querySelector('.hb-page')) problems.push('not a guided-steps page');
   // Measured against clientWidth: under mobile emulation the browser widens innerWidth to fit overflowing content.
   if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
   if (phone) {
-    const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-star-row a, .hb-rel')]
+    const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-star-row a, .hb-rel, .hb-lesson a, .hb-lesson-nav a, .hb-path a')]
       .filter(el => el.getClientRects().length && !el.closest('.stage'))
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
       .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
@@ -99,10 +114,11 @@ const CHECK = `(() => {
   const shown = el => { for (let n = el; n && n !== tryIt; n = n.parentElement) { if (n.hidden || n.hasAttribute('data-hb-skip') || getComputedStyle(n).display === 'none') return false; } return true; };
   const controls = tryIt ? [...tryIt.querySelectorAll('input[type=range], input[type=checkbox], input[type=text], textarea, select, .seg, .swatches')].filter(shown).length : 0;
   const chips = document.querySelectorAll('.hb-chips li').length;
-  if (chips !== controls) problems.push('chips ' + chips + ' vs settings ' + controls);
+  // Learn pages have no prompt, so no chips, and no README
+  if (!learn && chips !== controls) problems.push('chips ' + chips + ' vs settings ' + controls);
   const what = document.querySelector('.hb-what-text');
-  if (!what || !what.querySelector('p')) problems.push('What it is is missing');
-  else if (what.querySelector('a[href="README.md"]')) problems.push('What it is did not load from the README');
+  if (!learn && (!what || !what.querySelector('p'))) problems.push('What it is is missing');
+  else if (!learn && what.querySelector('a[href="README.md"]')) problems.push('What it is did not load from the README');
   const loop = document.querySelector('[data-hb-loop]');
   const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
     ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));
@@ -297,6 +313,111 @@ async function stageChanges(ms) {
     if (await stageShot() !== first) return true;
   }
   return false;
+}
+
+// The stage once it has stopped changing: captures 250 ms apart until two in a row match (up to 4 s). still says whether it
+// did; when it did not, shot is only the last frame of a movement that goes on and is not worth comparing with anything.
+async function stillShot() {
+  let shot = await stageShot();
+  for (let i = 0; i < 16; i++) {
+    await sleep(250);
+    const next = await stageShot();
+    if (next === shot) return { shot, still: true };
+    shot = next;
+  }
+  return { shot, still: false };
+}
+
+// Pages with the mode switch: see the header comment. name and setup name the screenshots; kind is the page kind. The page is
+// left in Normal; at the desktop and reduced-motion setups a loop is also left paused, a plays-once page with Loop off and a
+// scroll page with Play stopped and the box at the top.
+async function modeProblems(name, setup, kind) {
+  if (!(await evaluate(`!!document.querySelector('[data-hb-modes]')`))) return [];
+  const problems = [];
+  const labels = { normal: 'Normal', inside: 'See inside', compare: 'Compare' };
+  const missing = new Set();
+  // Presses a mode's button and says whether the page has it. A page without it gets a problem of its own, said once, in place
+  // of a later check that fails for no clear reason.
+  const press = async mode => {
+    const found = await evaluate(`(() => { const b = document.querySelector('.hb-modes [data-hb-mode="${mode}"]'); if (b) b.click(); return !!b; })()`);
+    if (!found && !missing.has(mode)) { missing.add(mode); problems.push(`no ${labels[mode]} button`); }
+    return found;
+  };
+  // What the page shows now: the mark on the stage, the notes in view (the mode each belongs to) and any sideways overflow.
+  const look = () => evaluate(`(() => ({ mode: document.querySelector('.hb-page .stage').getAttribute('data-hb-mode'),
+    overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    notes: [...document.querySelectorAll('.hb-mode-notes [data-hb-for]:not([hidden])')].map(n => n.getAttribute('data-hb-for')) }))()`);
+  const deep = !!(setup.moves || setup.reduce);
+  // The pictures are compared at the deep setups, except for a scroll page with no Back to top button: its box cannot be
+  // brought to the top, so nothing is compared there (the Play check below names the missing button).
+  let pictures = deep;
+  if (deep) {
+    if (kind === 'scroll') pictures = await evaluate(`(() => { const t = document.querySelector('[data-hb-top]'); if (t) t.click(); return !!t; })()`);
+    if (kind === 'loop') await evaluate(`(() => { const p = document.querySelector('[data-hb-pause]'); if (p && p.getAttribute('data-state') !== 'paused') p.click(); })()`);
+    if (kind === 'once') await evaluate(`(() => { const l = document.querySelector('[data-hb-loop]'); if (l && l.checked) l.click(); })()`);
+  }
+  // The first picture is the stage at rest. A plays-once page can still be replaying after the Replay and setting checks, so
+  // it waits for that to end first. A stage that never comes to rest is said so, and then no picture is compared with it.
+  let first = null;
+  if (pictures) {
+    if (kind === 'once') await settledShot();
+    const rest = await stillShot();
+    if (rest.still) first = rest.shot;
+    else problems.push('the stage does not come to rest before the modes are tried');
+  }
+  const shots = {};
+  for (const mode of ['inside', 'compare']) {
+    const label = labels[mode];
+    if (!(await press(mode))) continue;
+    await sleep(700);
+    const now = await look();
+    if (now.mode !== mode) problems.push(`${label}: the stage is not marked data-hb-mode="${mode}"`);
+    if (now.overflow) problems.push(`${label}: horizontal overflow`);
+    if (!now.notes.includes(mode)) problems.push(`${label}: its note is not shown`);
+    if (now.notes.some(n => n !== mode)) problems.push(`${label}: the other note is still shown`);
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(join(OUT, `${name}-${setup.name}-${mode}.png`), Buffer.from(shot.data, 'base64'));
+    if (pictures) {
+      const rest = await stillShot();
+      if (!rest.still) problems.push(`the stage does not come to rest in ${label}`);
+      else {
+        shots[mode] = rest.shot;
+        if (first && await samePicture(rest.shot, first)) problems.push(`${label} does not change the stage`);
+      }
+    }
+  }
+  if (shots.inside && shots.compare && await samePicture(shots.inside, shots.compare)) problems.push('See inside and Compare show the same picture');
+  if (await press('normal')) {
+    await sleep(700);
+    const now = await look();
+    if (now.mode !== 'normal') problems.push('Normal: the stage is not marked data-hb-mode="normal"');
+    if (now.overflow) problems.push('Normal: horizontal overflow');
+    if (now.notes.length) problems.push('Normal: a note is still shown');
+    if (pictures) {
+      const rest = await stillShot();
+      if (!rest.still) problems.push('the stage does not come to rest in Normal');
+      else if (first && !(await samePicture(rest.shot, first))) problems.push('Normal does not bring the first picture back');
+    }
+  }
+  // Play keeps scrolling when the mode changes (Play still works under reduced motion, so this runs there too).
+  if (deep && kind === 'scroll') {
+    const have = await evaluate(`({ play: !!document.querySelector('[data-hb-autoscroll]'), top: !!document.querySelector('[data-hb-top]') })`);
+    if (!have.play) problems.push('no Play button');
+    if (!have.top) problems.push('no Back to top button');
+    if (have.play && have.top) {
+      const box = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
+      await evaluate(`document.querySelector('[data-hb-autoscroll]').click()`);
+      await sleep(400);
+      if (await press('inside')) {
+        const before = await evaluate(`${box}.scrollTop`);
+        await sleep(500);
+        if (await evaluate(`${box}.scrollTop`) <= before) problems.push('changing the mode stops Play');
+      }
+      await evaluate(`document.querySelector('[data-hb-top]').click()`);
+      await press('normal');
+    }
+  }
+  return problems;
 }
 
 // Loop pages: the stage keeps changing, holds still at once after Pause and moves again after Play. Under reduced
@@ -1002,6 +1123,7 @@ try {
           if (result.kind === 'loop' && (setup.moves || setup.reduce)) problems.push(...await loopProblems(!!setup.reduce));
           if (result.kind === 'do' && (setup.moves || setup.reduce)) problems.push(...await demoProblems(!!setup.reduce));
           if (result.kind === 'scroll' && (setup.moves || setup.reduce)) problems.push(...await scrollProblems(!!setup.reduce));
+          problems.push(...await modeProblems(name, setup, result.kind));
         }
         if (home) {
           if (setup.moves) problems.push(...await homeViewProblems());
