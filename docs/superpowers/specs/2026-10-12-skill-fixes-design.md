@@ -38,7 +38,7 @@ differ, the rule wins: the prompts describe each technique as its demo shows it,
   get those values in plain words, checked against the demo's code, in the style of the rows that have them ("small is
   4°, medium 7.5° and large 12.5°"). Switches, counts already in words and purely descriptive choices stay as they are.
 - Accordion, "Several open at once": says that with it off the pressed question moves up when the answer that closes
-  is above it, and with it on only the answer being opened moves.
+  is above it, and with it on the questions below the pressed one only slide down to make room.
 - Stagger Reveal, "Delay between items": says the demo's values suit its grid of small items, and that a few large
   cards need a longer wait to come in visibly one after another.
 
