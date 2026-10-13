@@ -537,8 +537,9 @@ test('the shared stylesheet draws the mode switch beside the Watch heading from 
     '.hb-lesson-next', '.hb-lesson-all', '.hb-why p', '.hb-seen']) assert.ok(has(sel), sel);
   // The empty box is the aria-live region that makes a screen reader read each note out, so it must stay rendered: display:none
   // would take it out of the accessibility tree, and the first note shown might not be announced. It is hidden to the eye and taken
-  // out of the flow instead, which takes no room and adds no gap.
-  const emptyNotes = rules.filter(r => r.selector === '.hb-mode-notes:not(:has(> p:not([hidden])))');
+  // out of the flow instead, which takes no room and adds no gap. The box counts as empty until a note is un-hidden, and a note is
+  // whatever element has data-hb-for (the script un-hides those), wherever it sits in the box.
+  const emptyNotes = rules.filter(r => r.selector === '.hb-mode-notes:not(:has([data-hb-for]:not([hidden])))');
   assert.ok(emptyNotes.some(r => /(^|;)\s*position:\s*absolute\s*(;|$)/.test(r.body) && /(^|;)\s*clip-path:\s*inset\(50%\)\s*(;|$)/.test(r.body)),
     'an empty notes box takes no room: it is taken out of the flow and clipped away');
   assert.ok(!emptyNotes.some(r => /(^|;)\s*display:\s*none\s*(;|$)/.test(r.body)),
