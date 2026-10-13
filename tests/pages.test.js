@@ -529,6 +529,18 @@ test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
 
+test('the shared stylesheet draws the mode switch beside the Watch heading from 761px, hides an empty notes box, and styles the lesson line, the lesson nav and the idea lessons\' sections', () => {
+  const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css'));
+  const rules = cssRules(css);
+  const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
+  for (const sel of ['.hb-page .hb-modes', '.hb-mode-notes p', '.hb-lesson', '.hb-lesson a', '.hb-lesson-nav', '.hb-lesson-prev',
+    '.hb-lesson-next', '.hb-lesson-all', '.hb-why p', '.hb-seen']) assert.ok(has(sel), sel);
+  assert.ok(rules.some(r => r.selector === '.hb-mode-notes:not(:has(> p:not([hidden])))' && /display:none/.test(r.body)),
+    'an empty notes box takes no room');
+  assert.match(css, /@media\(min-width:761px\)\{\s*\.hb-watch:has\(> \.hb-modes\)\{display:grid/, 'from 761px the switch shares the heading row');
+  assert.match(css, /@media\(min-width:601px\)\{\s*\.hb-head:has\(> \.hb-lesson\)\{display:grid/, 'from 601px the lesson line shares the category row');
+});
+
 test('the home page uses Schibsted Grotesk and asks what to animate', () => {
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin.woff2')"), 'Latin font file');
   assert.ok(HOME.includes("url('assets/fonts/schibsted-latin-ext.woff2')"), 'Latin Extended font file');
