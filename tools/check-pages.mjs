@@ -21,16 +21,19 @@
 // on arrival (not under reduced motion), that Play scrolls it, that Back to top, pressed while Play runs, returns it to the top and
 // stops it, that on a scroller with CSS scroll snapping the snapping is off while Play runs and back once the run is
 // stopped, and that a real wheel turn stops Play (over the stage beside an inner scroller, where there is room there,
-// so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README)
-// and takes screenshots, and nothing more.
+// so the stage-wide stop is tried too). The 320px phone runs the page checks (overflow, small targets, chips, README),
+// takes screenshots and, on a page with the mode switch, tries the modes (below), and nothing more.
 // A page with the mode switch (Normal, See inside, Compare): at every setup each mode marks the stage, shows its own note
-// and no other (Normal shows none) and overflows nothing, and a screenshot of each mode is saved; a mode button the page
-// lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page at the top, a loop paused,
-// a plays-once page with Loop off and its replay over), See inside and Compare must each change the stage and differ from
-// each other, Normal must bring the first picture back, and on a scroll page Play must keep scrolling through a mode change.
-// A stage that never comes to rest is a problem of its own, and nothing is compared with a frame taken in mid-movement.
+// (one that is on show: rendered, not clipped away) and no other (Normal shows none) and overflows nothing, a mode change
+// moves neither the page nor the keyboard focus (the pressed button itself may take it), and the Watch step, from its
+// switch down to its note, is saved as a screenshot of See inside and of Compare (Normal's is the setup's own screenshot);
+// a mode button the page lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page
+// with its box at the middle of its range, a loop paused, a plays-once page with Loop off and its replay over), the box does
+// not scroll either, See inside and Compare must each change the stage and differ from each other, Normal must bring the
+// first picture back, and on a scroll page Play must keep scrolling through a mode change. A stage that never comes to rest
+// is a problem of its own, and nothing is compared with a frame taken in mid-movement.
 // "learn" stands for the Learn page and every idea lesson in learn/: the page checks run there too, without the prompt parts
-// (chips, What it is), and each lesson's kind is worked like any other page's.
+// (chips, What it is), and each lesson's kind is worked like any other page's. "learn/index.html" is the Learn page alone.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
 // other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
@@ -63,9 +66,12 @@ const OUT = givenOut || join(tmpdir(), `hb-check-${stamp}-${process.pid}`);
 const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
 // A category folder (no index.html, but page folders inside) is expanded to its pages, so the call works
 // in shells that do not expand wildcards, such as PowerShell.
-const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/')))
+const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '')))
   .flatMap(p => {
-    // "learn" stands for the Learn page and every idea lesson in its folder.
+    // "learn/index.html" is the Learn page alone.
+    if (p === 'learn/index.html') return ['learn/'];
+    if (p !== 'home') p = p.replace(/\/?(index\.html)?$/, '/');
+    // "learn" and "learn/" stand for the Learn page and every idea lesson in its folder.
     if (p === 'learn/') {
       const lessons = existsSync(join(ROOT, 'learn')) ? readdirSync(join(ROOT, 'learn'), { withFileTypes: true })
         .filter(d => d.isDirectory() && isPage(`learn/${d.name}`)).map(d => `learn/${d.name}/`).sort() : [];
@@ -328,6 +334,9 @@ async function stillShot() {
   return { shot, still: false };
 }
 
+// What a scroll page moves: its own scroller where it has one, else the stage.
+const BOX = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
+
 // Pages with the mode switch: see the header comment. name and setup name the screenshots; kind is the page kind. The page is
 // left in Normal; at the desktop and reduced-motion setups a loop is also left paused, a plays-once page with Loop off and a
 // scroll page with Play stopped and the box at the top.
@@ -337,16 +346,47 @@ async function modeProblems(name, setup, kind) {
   const labels = { normal: 'Normal', inside: 'See inside', compare: 'Compare' };
   const missing = new Set();
   // Presses a mode's button and says whether the page has it. A page without it gets a problem of its own, said once, in place
-  // of a later check that fails for no clear reason.
+  // of a later check that fails for no clear reason. Just before the press it notes where the page and the box are scrolled and
+  // what has keyboard focus, for look() to compare with.
   const press = async mode => {
-    const found = await evaluate(`(() => { const b = document.querySelector('.hb-modes [data-hb-mode="${mode}"]'); if (b) b.click(); return !!b; })()`);
+    const found = await evaluate(`(() => {
+      const b = document.querySelector('.hb-modes [data-hb-mode="${mode}"]');
+      if (!b) return false;
+      const box = ${BOX};
+      window.__hbBefore = { button: b, focus: document.activeElement, x: scrollX, y: scrollY, top: box ? box.scrollTop : 0 };
+      b.click();
+      return true;
+    })()`);
     if (!found && !missing.has(mode)) { missing.add(mode); problems.push(`no ${labels[mode]} button`); }
     return found;
   };
-  // What the page shows now: the mark on the stage, the notes in view (the mode each belongs to) and any sideways overflow.
-  const look = () => evaluate(`(() => ({ mode: document.querySelector('.hb-page .stage').getAttribute('data-hb-mode'),
-    overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-    notes: [...document.querySelectorAll('.hb-mode-notes [data-hb-for]:not([hidden])')].map(n => n.getAttribute('data-hb-for')) }))()`);
+  // What the page shows now: the mark on the stage, the notes on show (by the mode each belongs to; a note counts only when the
+  // box around the notes is rendered, taller than 1px, not clipped away), any sideways overflow, and what the last press
+  // changed: the page's scroll, the box's scroll, and keyboard focus (named when it went anywhere but to the pressed button).
+  const look = () => evaluate(`(() => {
+    const was = window.__hbBefore, a = document.activeElement, wrap = document.querySelector('.hb-mode-notes'), box = ${BOX};
+    const name = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '');
+    const rendered = !!wrap && wrap.getBoundingClientRect().height > 1;
+    return {
+      mode: document.querySelector('.hb-page .stage').getAttribute('data-hb-mode'),
+      overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      notes: rendered ? [...wrap.querySelectorAll('[data-hb-for]:not([hidden])')].map(n => n.getAttribute('data-hb-for')) : [],
+      page: !!was && (scrollX !== was.x || scrollY !== was.y),
+      box: !!was && !!box && Math.abs(box.scrollTop - was.top) >= 1,
+      focus: was && a && a !== was.focus && a !== was.button ? name(a) : ''
+    };
+  })()`);
+  // The Watch step, from its switch down to its note, saved as the screenshot of a mode; beyond the viewport where it does not
+  // fit, as the full-page capture does. Chrome takes the picture where the box is and then sends the box back to the top (any
+  // capture beyond the viewport does), so the box is put back where it was, and the next mode is seen from the same place.
+  const capture = async mode => {
+    const area = await evaluate(`(() => { const s = document.querySelector('.hb-watch') || document.querySelector('.hb-page .stage'), b = s.getBoundingClientRect(), box = ${BOX};
+      return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height, top: box ? box.scrollTop : 0 }; })()`);
+    const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true,
+      clip: { x: area.x, y: area.y, width: area.width, height: area.height, scale: 1 } });
+    writeFileSync(join(OUT, `${name}-${setup.name}-${mode}.png`), Buffer.from(shot.data, 'base64'));
+    await evaluate(`(() => { const box = ${BOX}; if (box && box.scrollTop !== ${area.top}) box.scrollTo({ top: ${area.top}, behavior: 'instant' }); })()`);
+  };
   const deep = !!(setup.moves || setup.reduce);
   // The pictures are compared at the deep setups, except for a scroll page with no Back to top button: its box cannot be
   // brought to the top, so nothing is compared there (the Play check below names the missing button).
@@ -356,6 +396,15 @@ async function modeProblems(name, setup, kind) {
     if (kind === 'loop') await evaluate(`(() => { const p = document.querySelector('[data-hb-pause]'); if (p && p.getAttribute('data-state') !== 'paused') p.click(); })()`);
     if (kind === 'once') await evaluate(`(() => { const l = document.querySelector('[data-hb-loop]'); if (l && l.checked) l.click(); })()`);
   }
+  // A scroll page is tried with its box at the middle of its range: there a scroll-driven effect shows something, a mode change
+  // that sends the box back to the top or draws for the top is seen, and Compare shows its difference in the screenshot.
+  if (pictures && kind === 'scroll') await evaluate(`(() => { const b = ${BOX}; b.scrollTo({ top: (b.scrollHeight - b.clientHeight) / 2, behavior: 'instant' }); })()`);
+  // A press must not scroll the page or the box, or move keyboard focus (the box is only watched where it is at rest).
+  const unmoved = (label, now) => {
+    if (now.page) problems.push(`${label}: the page scrolled`);
+    if (pictures && now.box) problems.push(`${label}: the box scrolled`);
+    if (now.focus) problems.push(`${label}: keyboard focus moved to ${now.focus}`);
+  };
   // The first picture is the stage at rest. A plays-once page can still be replaying after the Replay and setting checks, so
   // it waits for that to end first. A stage that never comes to rest is said so, and then no picture is compared with it.
   let first = null;
@@ -375,8 +424,7 @@ async function modeProblems(name, setup, kind) {
     if (now.overflow) problems.push(`${label}: horizontal overflow`);
     if (!now.notes.includes(mode)) problems.push(`${label}: its note is not shown`);
     if (now.notes.some(n => n !== mode)) problems.push(`${label}: the other note is still shown`);
-    const shot = await send('Page.captureScreenshot', { format: 'png' });
-    writeFileSync(join(OUT, `${name}-${setup.name}-${mode}.png`), Buffer.from(shot.data, 'base64'));
+    unmoved(label, now);
     if (pictures) {
       const rest = await stillShot();
       if (!rest.still) problems.push(`the stage does not come to rest in ${label}`);
@@ -385,14 +433,17 @@ async function modeProblems(name, setup, kind) {
         if (first && await samePicture(rest.shot, first)) problems.push(`${label} does not change the stage`);
       }
     }
+    await capture(mode);
   }
   if (shots.inside && shots.compare && await samePicture(shots.inside, shots.compare)) problems.push('See inside and Compare show the same picture');
   if (await press('normal')) {
-    await sleep(700);
+    // Only the pictures need the wait; the marks, the notes and the overflow are there at once.
+    if (pictures) await sleep(700);
     const now = await look();
     if (now.mode !== 'normal') problems.push('Normal: the stage is not marked data-hb-mode="normal"');
     if (now.overflow) problems.push('Normal: horizontal overflow');
     if (now.notes.length) problems.push('Normal: a note is still shown');
+    unmoved('Normal', now);
     if (pictures) {
       const rest = await stillShot();
       if (!rest.still) problems.push('the stage does not come to rest in Normal');
@@ -405,13 +456,14 @@ async function modeProblems(name, setup, kind) {
     if (!have.play) problems.push('no Play button');
     if (!have.top) problems.push('no Back to top button');
     if (have.play && have.top) {
-      const box = `(document.querySelector('[data-hb-scroller]') || document.querySelector('.hb-page .stage'))`;
+      // From the top, so that Play has its whole run ahead of it while the mode changes.
+      await evaluate(`document.querySelector('[data-hb-top]').click()`);
       await evaluate(`document.querySelector('[data-hb-autoscroll]').click()`);
       await sleep(400);
       if (await press('inside')) {
-        const before = await evaluate(`${box}.scrollTop`);
+        const before = await evaluate(`${BOX}.scrollTop`);
         await sleep(500);
-        if (await evaluate(`${box}.scrollTop`) <= before) problems.push('changing the mode stops Play');
+        if (await evaluate(`${BOX}.scrollTop`) <= before) problems.push('changing the mode stops Play');
       }
       await evaluate(`document.querySelector('[data-hb-top]').click()`);
       await press('normal');

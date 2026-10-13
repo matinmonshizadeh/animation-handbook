@@ -108,8 +108,9 @@ body.hb [hidden]{display:none!important}
 .hb-page .seg.hb-modes{gap:6px}
 /* The empty box is the live region that makes a screen reader read each note out loud, so it stays on the page: display:none would
    take it out of the accessibility tree, and the first note might not be announced. It is hidden to the eye and taken out of the
-   flow instead, so it takes no room and adds no gap. */
-.hb-mode-notes:not(:has(> p:not([hidden]))){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+   flow instead, so it takes no room and adds no gap. It counts as empty until a note is un-hidden: any element with data-hb-for,
+   wherever it sits in the box, because that is what the script toggles. */
+.hb-mode-notes:not(:has([data-hb-for]:not([hidden]))){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .hb-mode-notes p{margin:0;max-width:72ch;font:400 15px/1.55 var(--hb-font);color:var(--hb-dim)}
 .hb-mode-notes a{color:var(--hb-ink);text-decoration:underline;text-underline-offset:3px}
 
@@ -265,12 +266,24 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-head:has(> .hb-lesson) > .hb-cat{grid-column:1}
   .hb-head:has(> .hb-lesson) > .hb-lesson{grid-column:2;justify-self:end;align-self:center}
 }
-/* From 761px the mode switch sits at the right end of the Watch step's heading row */
+/* From 761px the mode switch sits at the right end of the Watch step's heading row (two columns: the heading, the switch). A player
+   bar with one or two controls leaves room beside it, so there the note for the mode in view sits next to the bar, under the switch,
+   and is on a laptop's first screen too. Three columns then: the player bar's own width, the room left over and the switch's width.
+   The heading spans the first two (the room it had before), the stage spans all three, the player bar keeps the start of its row (a
+   note taller than the bar grows the row, not the bar, so the bar does not move) and the note spans the other two. A bar with a
+   third control, or with the note that reduced motion adds, has no room to spare: it keeps the full row and the note stays under
+   it. An empty notes box is taken out of the flow (above), so it takes no room here either. Up to 760px the note stays under the
+   player bar. */
 @media(min-width:761px){
   .hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:end}
   .hb-watch:has(> .hb-modes) > *{grid-column:1/-1}
   .hb-watch:has(> .hb-modes) > .hb-step-head{grid-column:1}
   .hb-watch:has(> .hb-modes) > .hb-modes{grid-column:2;flex-wrap:nowrap}
+  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3))){grid-template-columns:auto minmax(0,1fr) auto}
+  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3))) > .hb-step-head{grid-column:1/3}
+  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3))) > .hb-modes{grid-column:3}
+  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3))) > .hb-player{grid-column:1;align-self:start}
+  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3))) > .hb-mode-notes{grid-column:2/-1;align-self:center}
 }
 /* Up to 760px the switch has a row of its own above the stage, its three buttons sharing it equally (.seg.hb-modes outranks the
    .seg button rule for phones further down) */
