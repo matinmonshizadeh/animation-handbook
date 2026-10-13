@@ -992,13 +992,15 @@ async function finderLayoutProblems(name, setup) {
 
 // The finder, desktop run. ?view=find opens with three questions, nothing chosen, the heading "Your matches", the line asking for
 // an answer and no cards, the tab's title and the Finder link marked as the current page. Real clicks on answers change the cards,
-// replace the address (no history step) and never scroll the page; with A menu or form · When I scrolled · Slid, Hide-on-Scroll
-// Header is among the first six (case 22 of the finder's test set). The Not here? link is the form's address for those answers, in
-// a new tab. See N matches brings the results heading into view with keyboard focus; Start over clears the answers and the cards,
-// goes back to ?view=find and puts keyboard focus on the finder's heading. With more than twelve matches Show all shows the rest
-// and puts keyboard focus on the thirteenth card. An address opened directly shows the same answers and cards as the clicks. The
-// Find button and the Finder link each enter the finder with one history step and keyboard focus on its heading; after an answer,
-// Back returns to the start in one press. Describe it in words goes back to the start with keyboard focus in the search box.
+// replace the address (no history step), never scroll the page and leave keyboard focus on the answer; with A menu or form · When I
+// scrolled · Slid, Hide-on-Scroll Header is among the first six (case 22 of the finder's test set). The Not here? link is the form's
+// address for those answers, in a new tab. See N matches brings the results heading into view with keyboard focus; Start over
+// clears the answers and the cards, goes back to ?view=find, scrolls to the top and puts keyboard focus on the finder's heading.
+// With more than twelve matches Show all shows the rest, only replacing the address, and puts keyboard focus on the thirteenth card.
+// An address opened directly shows the same answers and cards as the clicks. The Find button and the Finder link each enter the
+// finder with one history step and keyboard focus on its heading; after an answer, Back returns to the start in one press, and as
+// the answer that had keyboard focus is hidden there, focus goes to the results heading. Describe it in words goes back to the start
+// with keyboard focus in the search box.
 async function finderViewProblems() {
   const problems = [];
   const FIND_TITLE = 'Find an animation you saw — Animation Handbook', ASK = 'Answer a question above, and the animations that match show here.';
@@ -1012,20 +1014,23 @@ async function finderViewProblems() {
       more: $('more').hidden ? '' : $('more-label').textContent, search: location.search, steps: history.length, tab: document.title,
       current: $('nav-find') ? $('nav-find').getAttribute('aria-current') : 'no Finder link',
       see: shown($('find-see')) ? $('find-see').textContent : '', notHere: shown($('find-not')),
-      focus: a.id || (links.includes(a) ? 'card link ' + (links.indexOf(a) + 1) : a.tagName.toLowerCase()) };
+      focus: a.id || (links.includes(a) ? 'card link ' + (links.indexOf(a) + 1) : a.tagName.toLowerCase()), scrolled: Math.round(scrollY) };
   })()`);
   const press = selector => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (el) { el.focus(); el.click(); } return !!el; })()`);
   const answer = (question, key) => `#finder .fd-a:has(.fd-r[name="fd-${question}"][value="${key}"])`;
   const still = () => evaluate(`new Promise(done => { let last = scrollY, same = 0;
     const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3) done(); else setTimeout(tick, 100); };
     setTimeout(tick, 100); })`);
-  // A real click on an answer: then the line has been written (400 ms) and the page must not have scrolled.
+  // A real click on an answer: then the line has been written (400 ms), the page must not have scrolled and keyboard focus must be
+  // where the click put it, on the answer.
   const pick = async (question, key) => {
     const spot = await clickAt(answer(question, key));
     if (spot.covered) { problems.push(`finder: the answer ${question}=${key} is covered by ${spot.covered}`); return; }
     await sleep(700);
     const y = await evaluate('Math.round(scrollY)');
     if (Math.abs(y - spot.scrolled) > 1) problems.push(`finder: picking ${question}=${key} scrolled the page from ${spot.scrolled}px to ${y}px`);
+    const on = await evaluate(`(() => { const a = document.activeElement; return a.matches('.fd-r') ? a.name.slice(3) + '=' + a.value : a.id || a.tagName.toLowerCase(); })()`);
+    if (on !== `${question}=${key}`) problems.push(`finder: picking ${question}=${key} moved keyboard focus away from the answer, to ${on}`);
   };
 
   // History steps are counted from a cleared history: Chrome keeps 50 entries at most (the run's own page loads have filled them, and a
@@ -1060,8 +1065,8 @@ async function finderViewProblems() {
   await still();
   await sleep(500);
   s = await look();
-  if (s.checked || s.names.length || s.search !== '?view=find' || s.sub !== ASK || s.focus !== 'find-title' || s.see || s.notHere || s.steps !== steps) {
-    problems.push(`finder, Start over: ${JSON.stringify(s)}`);
+  if (s.checked || s.names.length || s.search !== '?view=find' || s.sub !== ASK || s.focus !== 'find-title' || s.see || s.notHere || s.steps !== steps || s.scrolled > 1) {
+    problems.push(`finder, Start over: ${JSON.stringify(s)}${s.scrolled > 1 ? ` (the page is ${s.scrolled}px down, not at the top)` : ''}`);
   }
   // More than twelve matches: twelve cards, then Show all shows every one and puts keyboard focus on the thirteenth.
   await openHome('?view=find&what=background', problems);
@@ -1069,11 +1074,12 @@ async function finderViewProblems() {
   const total = Number((s.more.match(/^Show all (\d+) matches$/) || [])[1]);
   if (!(total > 12) || s.names.length !== 12) problems.push(`finder, The background: ${s.names.length} cards and the button "${s.more}" (twelve cards, then Show all for the rest)`);
   else {
+    const opened = s.steps;
     await press('#more-btn');
     await sleep(400);
     s = await look();
-    if (s.names.length !== total || s.search !== '?view=find&what=background&all=1' || s.focus !== 'card link 13' || s.more) {
-      problems.push(`finder, Show all: ${s.names.length} of ${total} cards, the address ${s.search}, keyboard focus on ${s.focus}`);
+    if (s.names.length !== total || s.search !== '?view=find&what=background&all=1' || s.focus !== 'card link 13' || s.more || s.steps !== opened) {
+      problems.push(`finder, Show all: ${s.names.length} of ${total} cards, the address ${s.search}, keyboard focus on ${s.focus}, ${s.steps - opened} history steps added (it only replaces the address), ${s.more ? `the button still reads "${s.more}"` : 'the button is gone'}`);
     }
   }
   // An address opened directly shows the same answers and cards as the clicks did.
@@ -1093,8 +1099,8 @@ async function finderViewProblems() {
     await evaluate('history.back()');
     await sleep(700);
     s = await look();
-    if (s.search !== '' || !s.hero || s.finder || s.title !== 'Good places to start' || s.tab === FIND_TITLE || s.current !== null) {
-      problems.push(`finder, Back after the ${what} and an answer: ${JSON.stringify(s)}`);
+    if (s.search !== '' || !s.hero || s.finder || s.title !== 'Good places to start' || s.tab === FIND_TITLE || s.current !== null || s.focus !== 'results-title') {
+      problems.push(`finder, Back after the ${what} and an answer: ${JSON.stringify(s)}${s.focus !== 'results-title' ? ` (keyboard focus is on ${s.focus}, not on the results heading)` : ''}`);
     }
   }
   // Describe it in words: back to the start, one history step, keyboard focus in the search box.
