@@ -361,7 +361,7 @@ button,input{font:inherit;color:inherit}
 .fd-unsure,.fd-how .fd-unsure{justify-content:center;border-style:dashed;background:none;color:var(--ink-2);font-weight:500}
 .fd-go{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:clamp(24px,4vw,40px)}
 .fd-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
-.finder .pillbtn{min-height:52px;padding:0 24px;font-size:16px}
+.finder .pillbtn{min-height:52px;padding:0 24px;font-size:16px;justify-content:center} /* Start over keeps its words in the middle when a phone stretches it */
 .fd-gline{margin:-12px 0 18px;font-size:15px;color:var(--muted)}
 @media(hover:hover){.fd-a:hover{border-color:var(--ink)}}
 @media(max-width:1024px){.fd-as{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -2983,12 +2983,13 @@ $('more-btn').addEventListener('click',()=>{
 });
 // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
 $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-// Back and Forward over a fragment only (the skip link, How it works, Back to top) leave the view and keyboard focus as they
-// are. A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets
-// it, the finder's heading in the finder.
+// A step that changes only the fragment (the skip link, How it works, Back to top), and Back and Forward over one, leave the
+// view, the finder's answers and keyboard focus as they are: Not sure, which the address never holds, counts as no answer there.
+// A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it,
+// the finder's heading in the finder.
 addEventListener('popstate',()=>{
   const {next}=fromURL();
-  if(Object.keys(next).every(k=>next[k]===state[k]))return;
+  if(Object.keys(next).every(k=>next[k]===state[k]||next[k]===''&&state[k]==='unsure'))return;
   readURL();render();const a=document.activeElement;
   if(!a||a===document.body||gone(a)){if(state.view==='find')findTitle.focus({preventScroll:true});else toTitle();}
 });

@@ -235,6 +235,26 @@ test('the address keeps the finder and its answers: ?view=find, then what, when 
   assert.deepEqual(calls.pop(), ['replace', '?view=find&what=text&when=scroll&how=draw&all=1'], 'answers and Show all only replace the address');
 });
 
+test("a step that changes only the fragment (How it works, Back to top, the skip link) leaves the finder's answers as they are, Not sure included; a step to another address reads it", () => {
+  const calls = [];
+  const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' }, q: { value: '' }, q2: { value: '' },
+    document: { body: {}, activeElement: {} }, gone: () => false, render: () => calls.push('render'), toTitle: () => calls.push('toTitle'),
+    findTitle: { focus: () => calls.push('findTitle') }, addEventListener: (type, fn) => { if (type === 'popstate') page.popstate = fn; } });
+  for (const name of ['fromURL', 'readURL']) vm.runInContext(source(name), page);
+  const start = at("addEventListener('popstate',");
+  vm.runInContext(HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1) + ')', page);
+  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  page.state = { ...none, view: 'find', what: 'text', when: 'unsure' };
+  page.location.search = '?view=find&what=text';
+  page.popstate();
+  assert.deepEqual(plain(page.state), { ...none, view: 'find', what: 'text', when: 'unsure' }, 'the answers stay, Not sure included');
+  assert.deepEqual(calls, [], 'nothing is drawn again and keyboard focus stays');
+  page.location.search = '?view=find&what=button';
+  page.popstate();
+  assert.deepEqual(plain(page.state), { ...none, view: 'find', what: 'button' }, "another address's answers, without Not sure, which no address holds");
+  assert.deepEqual(calls, ['render'], 'the view is drawn again');
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 
