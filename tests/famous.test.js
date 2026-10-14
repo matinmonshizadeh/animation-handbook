@@ -382,3 +382,8 @@ test(`each entry the live check covered is dated ${CHECKED_DAY}, the day it was 
   assert.ok(present.length > 0, 'the page holds some of the checked entries');
   for (const e of present) assert.ok(e.body.includes(`<time datetime="${CHECKED_DAY}">`), `${e.id}: not dated ${CHECKED_DAY}`);
 });
+
+test('the page holds 10 to 12 entries, and its pill counts them', () => {
+  assert.ok(ENTRIES.length >= 10 && ENTRIES.length <= 12, `${ENTRIES.length} entries, not 10 to 12`);
+  assert.ok(PAGE.includes(`<p class="pill">${ENTRIES.length} effects from well-known websites</p>`), 'the pill gives the number of entries');
+});
