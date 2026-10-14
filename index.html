@@ -373,6 +373,14 @@ button,input{font:inherit;color:inherit}
   .fd-how .fd-a{padding:8px 4px 10px;font-size:13px}
   .fd-go{flex-direction:column;align-self:stretch}
 }
+/* The ways into the finder: a pill under the Popular line (as wide as the column on phones) and Finder in the top bar, marked as
+   the current page in the finder. Below 870px (measured) Finder, Browse all and How it works no longer all fit beside the brand,
+   so How it works leaves the bar; its band stays on the page. Phones show no top-bar links: there the pill is the way in. */
+.find-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:10px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;font-weight:700;text-decoration:none}
+.lnk[aria-current="page"]{color:var(--ink);background:var(--line-2)}
+@media(hover:hover){.find-cta:hover{border-color:var(--ink)}}
+@media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}
+@media(max-width:600px){.find-cta{display:flex;align-self:stretch;margin-top:8px}}
 
 /* ── preview library ── */
 /* The hint names the transform only: opacity in will-change flattens CSS 3D in Chrome (a cube draws as one flat face) */
@@ -1604,6 +1612,7 @@ button,input{font:inherit;color:inherit}
 <header class="wrap top" id="top">
   <a class="brand" href="./"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="ring" cx="11.16" cy="20.84" r="6.1"/><circle class="ring" cx="15.12" cy="16.88" r="6.1"/><circle class="ring" cx="18.51" cy="13.49" r="6.1"/><circle class="ball" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
   <nav class="nav" aria-label="Site">
+    <a class="lnk" id="nav-find" href="?view=find">Finder</a>
     <a class="lnk" id="nav-all" href="?view=all">Browse all</a>
     <a class="lnk" href="#how">How it works</a>
     <button type="button" class="icon-btn theme-btn" id="theme-toggle" aria-label="Switch between light and dark">
@@ -1629,6 +1638,7 @@ button,input{font:inherit;color:inherit}
       <button type="submit" class="go"><span class="go-l">Search</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <p class="pop"><span>Popular:</span><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
+    <a class="find-cta" href="?view=find">Don't know the name? Find it</a>
   </section>
 
   <section class="wrap" aria-labelledby="places-title">
@@ -3026,6 +3036,7 @@ const HOME_TITLE=document.title,FIND_TITLE='Find an animation you saw — Animat
 function showFinder(finding,found){
   heroEl.hidden=placesSec.hidden=finding;finderEl.hidden=!finding;
   document.title=finding?FIND_TITLE:HOME_TITLE;
+  if(finding)navFind.setAttribute('aria-current','page');else navFind.removeAttribute('aria-current');
   FIND_Q.forEach(qu=>finderEl.querySelectorAll('.fd-r[name="fd-'+qu.key+'"]').forEach(r=>{r.checked=r.value===state[qu.key];}));
   const matched=found?found.best.length+found.close.length:0;
   findSee.hidden=!matched;findSee.textContent='See '+matched+(matched===1?' match':' matches');
@@ -3055,6 +3066,17 @@ finderEl.addEventListener('change',e=>{
 });
 findSee.addEventListener('click',()=>{toResults();toTitle();});
 $('find-reset').addEventListener('click',()=>{go({view:'find'},false);scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});});
+// The ways in: the Find button under the search and Finder in the top bar open the finder with one history step, at the top of
+// the page with keyboard focus on its heading (the Find button goes away with the hero). A click with Ctrl, Cmd, Shift or Alt,
+// or with another button, is left to the browser, as for Browse all.
+const navFind=$('nav-find');
+function enterFind(e){
+  if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+  e.preventDefault();
+  if(state.view!=='find')go({view:'find'},true);
+  scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});
+}
+document.querySelectorAll('.find-cta,#nav-find').forEach(a=>a.addEventListener('click',enterFind));
 const startCat=readURL();
 render();
 if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
