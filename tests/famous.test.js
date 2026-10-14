@@ -241,3 +241,144 @@ test('the two preview blocks are what tools/make-famous.mjs writes from the home
   const { buildFamous } = await tool();
   assert.ok(buildFamous(ROOT)['famous/index.html'] === PAGE, `famous/index.html is out of date: run ${TOOL}`);
 });
+
+// ---------- The page: entries, cards and prompts ----------
+const STARTS = ['loop', 'load', 'scroll', 'hover', 'press'];
+const words = s => s.split(/\s+/).filter(Boolean).length;
+// Each entry as { id, site, start, body }, in page order.
+const ENTRIES = [...PAGE.matchAll(/<section class="fx" id="([a-z0-9-]+)" aria-labelledby="\1-t" data-fx-site="([^"]+)" data-fx-start="([a-z]+)">([\s\S]*?)<\/section>/g)]
+  .map(m => ({ id: m[1], site: decode(m[2]), start: m[3], body: m[4] }));
+// A card exactly as the template writes it: its accent, slug, label, link, name and line.
+const CARD = /<article class="card (c[1-7])" data-slug="([a-z0-9-]+)"><div class="stage"><div class="pv" aria-hidden="true"><\/div><span class="tag">([^<]+)<\/span><\/div><div class="meta"><h4 class="title"><a href="([^"]+)">([^<]+)<\/a><\/h4><p class="desc">([^<]+)<\/p><\/div><\/article>/g;
+// The words that would name an entry's site in a prompt: its name (without a leading "The"), its address and the name in that
+// address. A single letter, as X, is too short to count ("an X" is a shape); its address still counts.
+const siteWords = e => {
+  const href = e.body.match(/<p class="fx-seen">Seen on <a href="([^"]+)"/)[1], host = new URL(href).hostname.replace(/^www\./, '');
+  return [e.site.replace(/^The /, ''), host, host.split('.').slice(-2)[0]].filter(w => w.length > 1);
+};
+// Whether text holds word as a word of its own (not inside a longer one), ignoring case.
+const names = (text, word) => new RegExp('(^|[^a-z0-9])' + escapeRe(word.toLowerCase()) + '([^a-z0-9]|$)', 'i').test(text);
+
+test('every entry is written as the template says, so the tests below see it', () => {
+  assert.ok(ENTRIES.length > 0, 'the page has entries');
+  assert.equal(ENTRIES.length, count(PAGE, '<section class="fx"'), 'each <section class="fx"> has its id, aria-labelledby, data-fx-site and data-fx-start in that order');
+  assert.equal(new Set(ENTRIES.map(e => e.id)).size, ENTRIES.length, 'every id is unique');
+  assert.ok(PAGE.indexOf('<nav class="fx-jump"') < PAGE.indexOf('<section class="fx"'), 'the entries come after the jump row');
+});
+
+for (const e of ENTRIES) {
+  test(`${e.id}: seen on its site in the year it was checked, a heading, what you see in 25 to 70 words and what starts it`, () => {
+    const seen = e.body.match(/<p class="fx-seen">Seen on <a href="(https:\/\/[^"]+)" target="_blank" rel="noopener">([^<]+)<span class="sr"> \(opens in a new tab\)<\/span><\/a> in <time datetime="((\d{4})-\d{2}-\d{2})">(\d{4})<\/time><\/p>/);
+    assert.ok(seen, 'Seen on: the site\'s address as a link that opens a new tab, then the year in a <time>');
+    const [, href, label, day, year, shown] = seen;
+    assert.equal(label, href.replace(/^https:\/\//, '').replace(/^www\./, '').replace(/\/$/, ''), 'the link shows the address without https:// or www.');
+    assert.equal(shown, year, 'the year shown is the year of the day checked');
+    assert.ok(!Number.isNaN(Date.parse(day)) && Date.parse(day) <= Date.now(), `${day} is a day that has come`);
+    assert.equal(count(e.body, '<p class="fx-seen">'), 1, 'one Seen on line');
+    assert.equal(count(e.body, '<h2 '), 1, 'one heading');
+    assert.ok(e.body.includes(`<h2 id="${e.id}-t" tabindex="-1">`), 'the heading the entry is named by, which a jump focuses');
+    const what = e.body.match(/<p class="fx-what">([\s\S]*?)<\/p>/);
+    assert.ok(what, 'what you see');
+    const n = words(textOf(what[1]));
+    assert.ok(n >= 25 && n <= 70, `what you see has ${n} words, not 25 to 70`);
+    assert.ok(STARTS.includes(e.start), `data-fx-start "${e.start}" is one of ${STARTS.join(', ')}`);
+    assert.ok(e.site.trim(), 'data-fx-site names the site');
+    assert.ok(e.body.includes('<h3 class="fx-sub">Made with these animations</h3>') && e.body.includes('<h3 class="fx-sub">A prompt to build something similar</h3>'), 'its two parts');
+  });
+
+  test(`${e.id}: one to three cards, each an animation of the home page with its name, line and page, and a short label`, async () => {
+    const { homeConst } = await tool();
+    const CATS = homeConst(HOME, 'CATS');
+    const cards = [...e.body.matchAll(CARD)];
+    assert.equal(cards.length, count(e.body, '<article'), 'every card is written as the template says');
+    assert.ok(cards.length >= 1 && cards.length <= 3, `${cards.length} cards, not 1 to 3`);
+    for (const [, accent, slug, label, href, name, desc] of cards) {
+      const cat = CATS.find(c => c.entries.some(x => x[0] === slug));
+      assert.ok(cat, `${slug} is a card on the home page`);
+      const [, cardName, line] = cat.entries.find(x => x[0] === slug);
+      assert.equal(accent, cat.cat.replace('-cat', ''), `${slug}: its category's accent`);
+      assert.equal(href, `../${cat.folder}/${slug}/`, `${slug}: its page's link`);
+      assert.ok(fs.existsSync(path.join(ROOT, cat.folder, slug, 'index.html')), `${slug}: its page exists`);
+      assert.equal(decode(name), cardName, `${slug}: the home page's name`);
+      assert.equal(decode(desc), line, `${slug}: the home page's line`);
+      const n = words(decode(label));
+      assert.ok(n >= 1 && n <= 3, `${slug}: the label "${label}" has ${n} words, not 1 to 3`);
+    }
+  });
+
+  test(`${e.id}: its prompt follows the rules for prompts and names no site of the page, and Copy prompt names the entry`, () => {
+    const box = e.body.match(/<div class="fx-pbox"><p class="fx-prompt">([\s\S]*?)<\/p><\/div>/);
+    assert.ok(box, 'the prompt in its box');
+    const prompt = textOf(box[1]), n = words(prompt);
+    assert.ok(n >= 60 && n <= 130, `${n} words, not 60 to 130`);
+    assert.ok(prompt.startsWith('Add '), 'starts with "Add "');
+    const parts = prompt.match(/\[[^\]]+\]/g) || [];
+    assert.ok(parts.length >= 1, 'at least one [part to fill in]');
+    assert.equal(count(box[1], '<mark>['), parts.length, 'each [part] is marked');
+    assert.ok(!/`|<code|<pre/.test(box[1]), 'no code');
+    assert.ok(!prompt.includes('Match the settings listed below.'), 'the page has no settings to match');
+    assert.match(prompt, /reduced motion/i, 'says what happens under reduced motion');
+    if (e.start === 'hover' || e.start === 'press') assert.match(prompt, /\b(touch|tap|finger)/i, 'names touch, a tap or a finger');
+    for (const other of ENTRIES) for (const w of siteWords(other)) assert.ok(!names(prompt, w), `names "${w}"`);
+    const title = e.body.match(/<h2 [^>]*>([^<]+)<\/h2>/)[1];
+    assert.ok(e.body.includes(`<button type="button" class="copy" aria-label="Copy prompt for ${title}">`), 'Copy prompt names its entry');
+  });
+}
+
+test('the jump row links each entry once, in page order, each chip starting with its site, and the skip link leads to the first entry', () => {
+  const nav = between(PAGE, '<nav class="fx-jump" aria-label="Effects on this page">', '</nav>');
+  const links = [...nav.matchAll(/<a href="#([a-z0-9-]+)">([^<]+)<\/a>/g)];
+  assert.deepEqual(links.map(m => m[1]), ENTRIES.map(e => e.id), 'one chip per entry, in order');
+  for (const [, id, label] of links) assert.ok(decode(label).startsWith(`${ENTRIES.find(e => e.id === id).site} · `), `${id}: "${label}" starts with its site`);
+  assert.ok(PAGE.includes(`<a class="skip" href="#${ENTRIES[0].id}">Skip to the first effect</a>`), 'the skip link');
+});
+
+test('two different animations on the page never share a preview', async () => {
+  const { homeConst } = await tool();
+  const CATS = homeConst(HOME, 'CATS'), PV = homeConst(HOME, 'PV');
+  const byPreview = new Map();
+  for (const slug of new Set([...PAGE.matchAll(CARD)].map(m => m[2]))) {
+    const cat = CATS.find(c => c.entries.some(x => x[0] === slug));
+    const key = PV[slug] || 'sig' + parseInt(cat.n, 10);
+    byPreview.set(key, [...(byPreview.get(key) || []), slug]);
+  }
+  assert.deepEqual([...byPreview].filter(([, slugs]) => slugs.length > 1).map(([key, slugs]) => `${key}: ${slugs.join(', ')}`), []);
+});
+
+test('no company name in the page\'s title, description or social card, and no word that implies approval', () => {
+  const head = [TITLE, LEDE, meta('property="og:title"'), meta('property="og:description"'), meta('name="twitter:title"'), meta('name="twitter:description"')].join(' ');
+  for (const w of ENTRIES.flatMap(siteWords)) assert.ok(!names(head, w), `"${w}" in the title, description or social card`);
+  const shown = textOf(MARKUP.replace(`<p class="fx-legal">${LEGAL}</p>`, ''));
+  assert.ok(!/\b(official|officially|approved|endorsed|sponsored|partner|partners|as used by)\b/i.test(shown), 'no word that implies approval');
+});
+
+// ---------- What the live check settled ----------
+// The names and slogans the live check saw on the sites (its record is in the run folder, not in the repository). The page
+// describes each effect in its own words, so none of them is on it. Whole phrases, in any case.
+const SITE_PHRASES = [
+  'Financial infrastructure to grow your revenue', 'Global GDP running on Stripe', 'Innovation you can see, hear, and feel',
+  'Pushing boundaries from the inside out', 'More pixels than a 4K TV', 'Spatial Audio', 'spatial computing', 'micro-OLED', 'McLaren',
+  'Redefining limits', 'Defining a legacy', 'The product development system for teams and agents', 'Purpose-built for planning',
+  'Designed for the AI era', 'New · Loops', 'HomeView', 'Designed for life at home', 'Shop Special Stores', 'Page Previews',
+  'Music for everyone', 'Preview of Spotify', 'Your YouTube history is off', 'In pursuit of democracy', 'Each dot represents',
+  'Bright dots are ones', 'Keep scrolling or Skip to next', 'To make Medium work', 'Welcome to the mother chip', 'Pro further', 'A20 Pro'
+];
+// The entries the live check covered, and the day it checked them (entries 7 and 8 get their day at the owner's review).
+const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
+const CHECKED_DAY = '2026-10-13';
+
+// The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
+// slogan at the end of a card label would run into the card's name and go unseen).
+const spaced = html => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+
+test('no visible text of the page holds a name or slogan the live check saw on a site', () => {
+  const shown = spaced(MARKUP);
+  assert.ok(shown.includes('Famous effects') && shown.length > 1000, 'the visible text of the whole page');
+  for (const phrase of SITE_PHRASES) assert.ok(!names(shown, phrase), `"${phrase}" is in the text of the page`);
+});
+
+test(`each entry the live check covered is dated ${CHECKED_DAY}, the day it was checked`, () => {
+  const present = ENTRIES.filter(e => CHECKED_IDS.includes(e.id));
+  assert.ok(present.length > 0, 'the page holds some of the checked entries');
+  for (const e of present) assert.ok(e.body.includes(`<time datetime="${CHECKED_DAY}">`), `${e.id}: not dated ${CHECKED_DAY}`);
+});
