@@ -177,6 +177,40 @@ test('the Not here? address opens the form animation_not_here.yml with its title
 // ── The finder view, its ways in and Not here? ──
 // The finder's markup and address, the Find button and the Finder link, and the Not here? panel with its GitHub form.
 
+test('the finder takes the place of the hero and the tiles: its section, heading, line, questions box and buttons', () => {
+  const section = between(HOME, '<section class="wrap finder" id="finder"', '</section>');
+  assert.ok(section.startsWith('<section class="wrap finder" id="finder" aria-labelledby="find-title" hidden>'), 'section.finder, hidden until its view opens');
+  for (const part of ['<h1 class="h1 fd-h" id="find-title" tabindex="-1">Find an animation you saw</h1>',
+    "<p class=\"sub\">Saw an animation on a website and don't know its name? Answer three short questions. The animations that match play below, with their names.</p>",
+    '<div class="fd-qs" id="find-qs"></div>',
+    '<button type="button" class="fd-btn" id="find-see" hidden>See 0 matches</button>',
+    '<button type="button" class="pillbtn" id="find-reset">Start over</button>']) assert.ok(section.includes(part), part);
+  const order = ['id="places"', 'id="finder"', 'id="results"'].map(at);
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'the finder comes after the place tiles and before the results');
+  assert.ok(HOME.includes("FIND_TITLE='Find an animation you saw — Animation Handbook'"), "the finder's tab title");
+});
+
+test('the address keeps the finder and its answers: ?view=find, then what, when and how; an unknown value is Not sure; ?q= still wins', () => {
+  const calls = [];
+  const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' },
+    history: { pushState: (s, t, url) => calls.push(['push', url]), replaceState: (s, t, url) => calls.push(['replace', url]) } });
+  for (const name of ['fromURL', 'writeURL']) vm.runInContext(source(name), page);
+  const open = search => { page.location.search = search; return plain(page.fromURL().next); };
+  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  assert.deepEqual(open('?view=find&what=text&when=scroll&how=draw'), { ...none, view: 'find', what: 'text', when: 'scroll', how: 'draw' });
+  assert.deepEqual(open('?view=find&what=zebra&how=fade&all=1'), { ...none, view: 'find', all: true, how: 'fade' });
+  assert.deepEqual(open('?q=fade&view=find&what=text'), { ...none, q: 'fade' });
+  assert.deepEqual(open('?view=all&what=text'), { ...none, view: 'all' });
+  page.location.search = '';
+  page.state = { ...none, view: 'find', what: 'text', when: 'unsure', how: 'draw' };
+  page.writeURL(true);
+  assert.deepEqual(calls.pop(), ['push', '?view=find&what=text&how=draw'], 'entering adds a history step, Not sure stays out');
+  page.location.search = '?view=find&what=text&how=draw';
+  page.state = { ...none, view: 'find', what: 'text', when: 'scroll', how: 'draw', all: true };
+  page.writeURL(false);
+  assert.deepEqual(calls.pop(), ['replace', '?view=find&what=text&when=scroll&how=draw&all=1'], 'answers and Show all only replace the address');
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 
