@@ -174,6 +174,30 @@ test('the Not here? address opens the form animation_not_here.yml with its title
 // ── The pictures of the How answers ──
 // Each How answer moves in a small picture of its own, and reduced motion holds every picture still.
 
+const STYLE = [...HOME.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+
+test('every How answer has a moving picture, its keyframes are named fd- and move only transform and opacity, and no keyframes name is used twice', () => {
+  const names = [...STYLE.matchAll(/@keyframes\s+([\w-]+)/g)].map(m => m[1]);
+  assert.deepEqual(names.filter((name, i) => names.indexOf(name) !== i), [], 'no @keyframes name twice in index.html');
+  for (const a of homeConst('FIND_Q')[2].answers) {
+    assert.match(STYLE, new RegExp(`\\.${a.pic}[\\s.:{,]`), `a rule draws ${a.pic}`);
+    assert.ok(names.some(name => name === a.pic || name.startsWith(a.pic + '-')), `${a.pic} moves: @keyframes ${a.pic}`);
+  }
+  const bodies = [...STYLE.matchAll(/@keyframes\s+(fd-[\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)];
+  assert.equal(bodies.length, names.filter(name => name.startsWith('fd-')).length, 'every fd- @keyframes body is read');
+  for (const [, name, body] of bodies) {
+    for (const [, property] of body.matchAll(/([a-z-]+)\s*:/g)) {
+      assert.ok(['transform', 'opacity', 'animation-timing-function'].includes(property), `${name} animates ${property}`);
+    }
+  }
+});
+
+test('with reduced motion the How pictures hold still', () => {
+  assert.match(STYLE, /@media\(prefers-reduced-motion:reduce\)\{\s*\.fd-pic \*,\.fd-pic \*::before,\.fd-pic \*::after\{animation:none!important\}/);
+  const still = (STYLE.match(/@media\(prefers-reduced-motion:reduce\)\{\s*\.fd-pic \*,[\s\S]*?\n\}/) || [''])[0];
+  assert.ok(still.includes('.fd-pic::after{content:""'), 'the reduced-motion block draws the small arrow');
+});
+
 // ── The finder view, its ways in and Not here? ──
 // The finder's markup and address, the Find button and the Finder link, and the Not here? panel with its GitHub form.
 
