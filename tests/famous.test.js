@@ -351,3 +351,34 @@ test('no company name in the page\'s title, description or social card, and no w
   const shown = textOf(MARKUP.replace(`<p class="fx-legal">${LEGAL}</p>`, ''));
   assert.ok(!/\b(official|officially|approved|endorsed|sponsored|partner|partners|as used by)\b/i.test(shown), 'no word that implies approval');
 });
+
+// ---------- What the live check settled ----------
+// The names and slogans the live check saw on the sites (its record is in the run folder, not in the repository). The page
+// describes each effect in its own words, so none of them is on it. Whole phrases, in any case.
+const SITE_PHRASES = [
+  'Financial infrastructure to grow your revenue', 'Global GDP running on Stripe', 'Innovation you can see, hear, and feel',
+  'Pushing boundaries from the inside out', 'More pixels than a 4K TV', 'Spatial Audio', 'spatial computing', 'micro-OLED', 'McLaren',
+  'Redefining limits', 'Defining a legacy', 'The product development system for teams and agents', 'Purpose-built for planning',
+  'Designed for the AI era', 'New · Loops', 'HomeView', 'Designed for life at home', 'Shop Special Stores', 'Page Previews',
+  'Music for everyone', 'Preview of Spotify', 'Your YouTube history is off', 'In pursuit of democracy', 'Each dot represents',
+  'Bright dots are ones', 'Keep scrolling or Skip to next', 'To make Medium work', 'Welcome to the mother chip', 'Pro further', 'A20 Pro'
+];
+// The entries the live check covered, and the day it checked them (entries 7 and 8 get their day at the owner's review).
+const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
+const CHECKED_DAY = '2026-10-13';
+
+// The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
+// slogan at the end of a card label would run into the card's name and go unseen).
+const spaced = html => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+
+test('no visible text of the page holds a name or slogan the live check saw on a site', () => {
+  const shown = spaced(MARKUP);
+  assert.ok(shown.includes('Famous effects') && shown.length > 1000, 'the visible text of the whole page');
+  for (const phrase of SITE_PHRASES) assert.ok(!names(shown, phrase), `"${phrase}" is in the text of the page`);
+});
+
+test(`each entry the live check covered is dated ${CHECKED_DAY}, the day it was checked`, () => {
+  const present = ENTRIES.filter(e => CHECKED_IDS.includes(e.id));
+  assert.ok(present.length > 0, 'the page holds some of the checked entries');
+  for (const e of present) assert.ok(e.body.includes(`<time datetime="${CHECKED_DAY}">`), `${e.id}: not dated ${CHECKED_DAY}`);
+});
