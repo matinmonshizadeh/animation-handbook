@@ -351,3 +351,8 @@ test('no company name in the page\'s title, description or social card, and no w
   const shown = textOf(MARKUP.replace(`<p class="fx-legal">${LEGAL}</p>`, ''));
   assert.ok(!/\b(official|officially|approved|endorsed|sponsored|partner|partners|as used by)\b/i.test(shown), 'no word that implies approval');
 });
+
+test('the page holds 10 to 12 entries, and its pill counts them', () => {
+  assert.ok(ENTRIES.length >= 10 && ENTRIES.length <= 12, `${ENTRIES.length} entries, not 10 to 12`);
+  assert.ok(PAGE.includes(`<p class="pill">${ENTRIES.length} effects from well-known websites</p>`), 'the pill gives the number of entries');
+});
