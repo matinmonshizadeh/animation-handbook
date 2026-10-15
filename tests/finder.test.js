@@ -201,6 +201,71 @@ test('with reduced motion the How pictures hold still', () => {
 // ── The finder view, its ways in and Not here? ──
 // The finder's markup and address, the Find button and the Finder link, and the Not here? panel with its GitHub form.
 
+test('the finder takes the place of the hero and the tiles: its section, heading, line, questions box and buttons', () => {
+  const section = between(HOME, '<section class="wrap finder" id="finder"', '</section>');
+  assert.ok(section.startsWith('<section class="wrap finder" id="finder" aria-labelledby="find-title" hidden>'), 'section.finder, hidden until its view opens');
+  for (const part of ['<h1 class="h1 fd-h" id="find-title" tabindex="-1">Find an animation you saw</h1>',
+    "<p class=\"sub\">Saw an animation on a website and don't know its name? Answer three short questions. The animations that match play below, with their names.</p>",
+    '<div class="fd-qs" id="find-qs"></div>',
+    '<button type="button" class="fd-btn" id="find-see" hidden>See 0 matches</button>',
+    '<button type="button" class="pillbtn" id="find-reset">Start over</button>']) assert.ok(section.includes(part), part);
+  const order = ['id="places"', 'id="finder"', 'id="results"'].map(at);
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'the finder comes after the place tiles and before the results');
+  assert.ok(HOME.includes("FIND_TITLE='Find an animation you saw — Animation Handbook'"), "the finder's tab title");
+});
+
+test('the address keeps the finder and its answers: ?view=find, then what, when and how; an unknown value is Not sure; ?q= still wins', () => {
+  const calls = [];
+  const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' },
+    history: { pushState: (s, t, url) => calls.push(['push', url]), replaceState: (s, t, url) => calls.push(['replace', url]) } });
+  for (const name of ['fromURL', 'writeURL']) vm.runInContext(source(name), page);
+  const open = search => { page.location.search = search; return plain(page.fromURL().next); };
+  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  assert.deepEqual(open('?view=find&what=text&when=scroll&how=draw'), { ...none, view: 'find', what: 'text', when: 'scroll', how: 'draw' });
+  assert.deepEqual(open('?view=find&what=zebra&how=fade&all=1'), { ...none, view: 'find', all: true, how: 'fade' });
+  assert.deepEqual(open('?q=fade&view=find&what=text'), { ...none, q: 'fade' });
+  assert.deepEqual(open('?view=all&what=text'), { ...none, view: 'all' });
+  page.location.search = '';
+  page.state = { ...none, view: 'find', what: 'text', when: 'unsure', how: 'draw' };
+  page.writeURL(true);
+  assert.deepEqual(calls.pop(), ['push', '?view=find&what=text&how=draw'], 'entering adds a history step, Not sure stays out');
+  page.location.search = '?view=find&what=text&how=draw';
+  page.state = { ...none, view: 'find', what: 'text', when: 'scroll', how: 'draw', all: true };
+  page.writeURL(false);
+  assert.deepEqual(calls.pop(), ['replace', '?view=find&what=text&when=scroll&how=draw&all=1'], 'answers and Show all only replace the address');
+});
+
+test("a step that changes only the fragment (How it works, Back to top, the skip link) leaves the finder's answers as they are, Not sure included; a step to another address reads it", () => {
+  const calls = [];
+  const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' }, q: { value: '' }, q2: { value: '' },
+    document: { body: {}, activeElement: {} }, gone: () => false, render: () => calls.push('render'), toTitle: () => calls.push('toTitle'),
+    findTitle: { focus: () => calls.push('findTitle') }, addEventListener: (type, fn) => { if (type === 'popstate') page.popstate = fn; } });
+  for (const name of ['fromURL', 'readURL']) vm.runInContext(source(name), page);
+  const start = at("addEventListener('popstate',");
+  vm.runInContext(HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1) + ')', page);
+  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  page.state = { ...none, view: 'find', what: 'text', when: 'unsure' };
+  page.location.search = '?view=find&what=text';
+  page.popstate();
+  assert.deepEqual(plain(page.state), { ...none, view: 'find', what: 'text', when: 'unsure' }, 'the answers stay, Not sure included');
+  assert.deepEqual(calls, [], 'nothing is drawn again and keyboard focus stays');
+  page.location.search = '?view=find&what=button';
+  page.popstate();
+  assert.deepEqual(plain(page.state), { ...none, view: 'find', what: 'button' }, "another address's answers, without Not sure, which no address holds");
+  assert.deepEqual(calls, ['render'], 'the view is drawn again');
+});
+
+test('the ways into the finder: the Find button under the Popular line, Finder right before Browse all, both left out of the social picture', () => {
+  assert.equal(count(HOME, `<a class="find-cta" href="?view=find">Don't know the name? Find it</a>`), 1, 'one Find button');
+  assert.match(between(HOME, '<section class="wrap home-hero"', '</section>'),
+    /<p class="pop"><span>Popular:<\/span>.*<\/p>\s*<a class="find-cta" href="\?view=find">Don't know the name\? Find it<\/a>\s*$/, 'the Find button ends the hero, right under the Popular line');
+  assert.match(between(HOME, '<nav class="nav" aria-label="Site">', '</nav>'),
+    /<a class="lnk" id="nav-find" href="\?view=find">Finder<\/a>\s*<a class="lnk" id="nav-all" href="\?view=all">Browse all<\/a>/, 'Finder right before Browse all');
+  const css = [...HOME.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  assert.ok(css.includes('@media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}'), 'How it works leaves the bar where the three links no longer fit');
+  assert.ok(read(path.join(ROOT, 'tools', 'make-social-image.mjs')).includes('.find-cta, #nav-find { display: none }'), 'the social picture leaves both out');
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 

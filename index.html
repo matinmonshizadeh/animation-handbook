@@ -335,6 +335,53 @@ button,input{font:inherit;color:inherit}
   .tag{left:5px;top:5px;max-width:calc(100% - 10px);padding:3px 6px;font-size:10px}
 }
 
+/* ── finder ── */
+/* The finder (?view=find) takes the place of the hero and the place tiles: its heading and line, three questions of answers and,
+   under them, See N matches and Start over; its matches show in the results below, as Best matches and Close matches. Each answer
+   is a label around a radio hidden from sight but keeping keyboard focus: the label shows the site's focus ring, and a chosen
+   answer a dark ring and a tick. What and When answers have a still icon beside their words, How answers a small moving picture
+   above them (drawn at the end of this stylesheet). */
+.finder{display:flex;flex-direction:column;align-items:center;padding-top:clamp(16px,4vw,56px);text-align:center}
+.fd-h{margin-top:0}
+.fd-qs{display:flex;flex-direction:column;gap:clamp(28px,4vw,44px);width:min(1080px,100%);margin-top:clamp(24px,4vw,44px);text-align:left}
+.fd-q{min-width:0;border:0}
+.fd-q legend{display:flex;align-items:center;gap:12px;padding:0;font-size:clamp(20px,2.2vw,26px);font-weight:800;letter-spacing:-.015em;line-height:1.2}
+.fd-n{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:50%;background:var(--ink);color:var(--bg);font-size:17px;font-weight:800}
+.fd-hint{margin-top:6px;font-size:16px;color:var(--ink-2)}
+.fd-as{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:16px}
+.fd-how .fd-as{grid-template-columns:repeat(6,minmax(0,1fr))}
+.fd-a{position:relative;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-weight:600;line-height:1.25;cursor:pointer}
+.fd-how .fd-a{flex-direction:column;justify-content:flex-start;gap:8px;padding:10px 8px 12px;text-align:center}
+.fd-icon{width:24px;height:24px;color:var(--ink-2)}
+.fd-r{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.fd-a:has(.fd-r:focus-visible){outline:3px solid var(--brand);outline-offset:3px}
+.fd-a:has(.fd-r:checked){border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.fd-a:has(.fd-r:checked)::before{content:"";position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;background:var(--ink)}
+.fd-a:has(.fd-r:checked)::after{content:"";position:absolute;top:-5px;right:-1px;width:6px;height:11px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.fd-unsure,.fd-how .fd-unsure{justify-content:center;border-style:dashed;background:none;color:var(--ink-2);font-weight:500}
+.fd-go{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:clamp(24px,4vw,40px)}
+.fd-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
+.finder .pillbtn{min-height:52px;padding:0 24px;font-size:16px;justify-content:center} /* Start over keeps its words in the middle when a phone stretches it */
+.fd-gline{margin:-12px 0 18px;font-size:15px;color:var(--muted)}
+@media(hover:hover){.fd-a:hover{border-color:var(--ink)}}
+@media(max-width:1024px){.fd-as{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){.fd-as{grid-template-columns:repeat(3,minmax(0,1fr))}.fd-how .fd-as{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){
+  .fd-as{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .fd-how .fd-as{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fd-a{min-height:52px;padding:8px 10px;font-size:14px}
+  .fd-how .fd-a{padding:8px 4px 10px;font-size:13px}
+  .fd-go{flex-direction:column;align-self:stretch}
+}
+/* The ways into the finder: a pill under the Popular line (as wide as the column on phones) and Finder in the top bar, marked as
+   the current page in the finder. Below 870px (measured) Finder, Browse all and How it works no longer all fit beside the brand,
+   so How it works leaves the bar; its band stays on the page. Phones show no top-bar links: there the pill is the way in. */
+.find-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:10px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;font-weight:700;text-decoration:none}
+.lnk[aria-current="page"]{color:var(--ink);background:var(--line-2)}
+@media(hover:hover){.find-cta:hover{border-color:var(--ink)}}
+@media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}
+@media(max-width:600px){.find-cta{display:flex;align-self:stretch;margin-top:8px}}
+
 /* ── preview library ── */
 /* The hint names the transform only: opacity in will-change flattens CSS 3D in Chrome (a cube draws as one flat face) */
 .pv *{will-change:transform}
@@ -1565,6 +1612,7 @@ button,input{font:inherit;color:inherit}
 <header class="wrap top" id="top">
   <a class="brand" href="./"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="ring" cx="11.16" cy="20.84" r="6.1"/><circle class="ring" cx="15.12" cy="16.88" r="6.1"/><circle class="ring" cx="18.51" cy="13.49" r="6.1"/><circle class="ball" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
   <nav class="nav" aria-label="Site">
+    <a class="lnk" id="nav-find" href="?view=find">Finder</a>
     <a class="lnk" id="nav-all" href="?view=all">Browse all</a>
     <a class="lnk" href="#how">How it works</a>
     <button type="button" class="icon-btn theme-btn" id="theme-toggle" aria-label="Switch between light and dark">
@@ -1590,6 +1638,7 @@ button,input{font:inherit;color:inherit}
       <button type="submit" class="go"><span class="go-l">Search</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <p class="pop"><span>Popular:</span><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
+    <a class="find-cta" href="?view=find">Don't know the name? Find it</a>
   </section>
 
   <section class="wrap" aria-labelledby="places-title">
@@ -1605,6 +1654,13 @@ button,input{font:inherit;color:inherit}
       <button type="button" class="place p-scroll" data-place="scroll" aria-pressed="false"><span class="art" aria-hidden="true"><span class="as"><span class="as-in"></span><span class="as-bar"></span></span></span><span class="pl-name">Scrolling</span><span class="pl-count" data-count="scroll"></span></button>
       <button type="button" class="place p-page" data-place="page" aria-pressed="false"><span class="art" aria-hidden="true"><span class="ax"><span class="pa"></span><span class="pb"></span></span></span><span class="pl-name">Page changes</span><span class="pl-count" data-count="page"></span></button>
     </div>
+  </section>
+
+  <section class="wrap finder" id="finder" aria-labelledby="find-title" hidden>
+    <h1 class="h1 fd-h" id="find-title" tabindex="-1">Find an animation you saw</h1>
+    <p class="sub">Saw an animation on a website and don't know its name? Answer three short questions. The animations that match play below, with their names.</p>
+    <div class="fd-qs" id="find-qs"></div>
+    <div class="fd-go"><button type="button" class="fd-btn" id="find-see" hidden>See 0 matches</button><button type="button" class="pillbtn" id="find-reset">Start over</button></div>
   </section>
 
   <section class="wrap results" id="results" aria-labelledby="results-title">
@@ -2719,6 +2775,7 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 });
 // ---------- Views, search and the address ----------
 const PAGE=8;
+const FIND_PAGE=12; // the finder shows twelve cards before Show all
 // A typed word drops the first of these endings that leaves at least three letters with a vowel ("ring" stays whole), never
 // the s of "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while at least three stay
 // (snapping → snap, added → add).
@@ -2814,39 +2871,44 @@ function showGroups(){
   cardsBox.replaceChildren(...boxes);
   place(cards);
 }
-const state={q:'',place:'',view:'',all:false};
+const state={q:'',place:'',view:'',all:false,what:'',when:'',how:''};
 const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
 let moreAction='all';
 const pinbar=$('pinbar');
-// The phone bar is there while a view other than Start is open and while its own search box has focus, so emptying the box does not take the box away.
-const syncBar=()=>resultsEl.classList.toggle('filtered',isFiltered()||document.activeElement===q2);
+// The phone bar is there while a view other than Start or the finder is open and while its own search box has focus, so emptying the box does not take the box away.
+const syncBar=()=>resultsEl.classList.toggle('filtered',(isFiltered()&&state.view!=='find')||document.activeElement===q2);
 // A pressed button that goes away with the view hands keyboard focus to the results heading. No scrolling: the callers that move the page scroll it themselves.
 const toTitle=()=>titleEl.focus({preventScroll:true});
 const gone=el=>!el.getClientRects().length;
-function render(){
-  const filtered=isFiltered();
-  let list=null,title,sub,tags=true;
+// answered: the render follows an answer in the finder, so the results line waits (say).
+function render(answered){
+  const filtered=isFiltered(),finding=state.view==='find';
+  let list=null,title,sub,tags=true,found=null;
   if(state.q){
     list=search(state.q);title='Results for “'+state.q+'”';
     sub=list.length===1?'1 animation matches.':list.length+' animations match.';
   }else if(state.place){
     list=ALL.filter(e=>e.places.includes(state.place));title=PLACE[state.place].name;sub=list.length+' animations';tags=false;
+  }else if(finding){
+    found=findMatches(state);title='Your matches';sub=findLine(found);
   }else if(state.view==='all'){
     title='All animations';sub=ALL.length+' animations in '+CATS.length+' groups.';
   }else{
     list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different places. Pick a place above to see more.';
   }
-  titleEl.textContent=title;subEl.textContent=sub;
+  titleEl.textContent=title;say(sub,finding&&answered);
+  showFinder(finding,found);
   syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
-  clearBtn.hidden=!filtered;
-  if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
-  const empty=!!list&&!list.length;
+  clearBtn.hidden=!filtered||finding;
+  if(found)showFound(found);else if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
+  const empty=!!list&&!list.length,matched=found?found.best.length+found.close.length:0;
   emptyEl.hidden=!empty;
   if(empty)emptyTitle.textContent='Nothing matches “'+state.q+'” yet';
-  if(!filtered||empty){moreAction='all';moreLabel.textContent='Browse all '+ALL.length+' animations';moreBox.hidden=false;}
+  if(finding){moreAction='expand';moreLabel.textContent='Show all '+matched+' matches';moreBox.hidden=state.all||matched<=FIND_PAGE;}
+  else if(!filtered||empty){moreAction='all';moreLabel.textContent='Browse all '+ALL.length+' animations';moreBox.hidden=false;}
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}
   else moreBox.hidden=true;
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
@@ -2867,8 +2929,9 @@ function writeURL(push){
   const p=[];
   if(state.q)p.push('q='+encodeURIComponent(state.q));
   else if(state.place)p.push('place='+PLACE[state.place].url);
+  else if(state.view==='find')p.push(findQuery(state).slice(1));
   else if(state.view)p.push('view=all');
-  if(state.all&&(state.q||state.place))p.push('all=1');
+  if(state.all&&(state.q||state.place||state.view==='find'))p.push('all=1');
   const query=p.length?'?'+p.join('&'):'';
   const moved=String(new URLSearchParams(query))!==String(new URLSearchParams(location.search));
   try{history[push&&moved?'pushState':'replaceState'](null,'',query||location.pathname);}catch(e){}
@@ -2876,15 +2939,16 @@ function writeURL(push){
 // The view the address shows, and the category of an old ?cat= link (to scroll to).
 function fromURL(){
   const p=new URLSearchParams(location.search),found=PLACE_LIST.find(x=>x.url===p.get('place')),cat=p.get('cat')||'';
-  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'};
+  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1',what:'',when:'',how:''};
   if(!next.q&&found)next.place=found.key;
+  else if(!next.q&&p.get('view')==='find'){next.view='find';FIND_Q.forEach(qu=>{if(qu.answers.some(a=>a.key===p.get(qu.key)))next[qu.key]=p.get(qu.key);});}
   else if(!next.q&&(p.get('view')==='all'||cat))next.view='all';
   return {next,cat};
 }
 // Takes the view from the address. Returns the category of an old ?cat= link, to scroll to.
 function readURL(){const {next,cat}=fromURL();Object.assign(state,next);q.value=q2.value=state.q;return cat;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
-function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
+function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false,what:'',when:'',how:''},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 // A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
 // of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
@@ -2907,7 +2971,7 @@ document.addEventListener('click',e=>{
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
-  Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false});
+  Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false,what:'',when:'',how:''});
   render();writeURL(false);
 }
 q.addEventListener('input',()=>typed(q));
@@ -2925,22 +2989,94 @@ clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
 $('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});$('places').querySelector('.place').focus({preventScroll:true});});
 $('more-btn').addEventListener('click',()=>{
   if(moreAction==='all'){go({view:'all'},true);toResults();toTitle();}
-  else{state.all=true;render();writeURL(false);(cardsBox.querySelectorAll('.card .title a')[PAGE]||titleEl).focus();} // the first new card
+  else{state.all=true;render();writeURL(false);(cardsBox.querySelectorAll('.card .title a')[state.view==='find'?FIND_PAGE:PAGE]||titleEl).focus();} // the first new card
 });
 // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
 $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-// Back and Forward over a fragment only (the skip link, How it works, Back to top) leave the view and keyboard focus as they
-// are. A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
+// A step that changes only the fragment (the skip link, How it works, Back to top), and Back and Forward over one, leave the
+// view, the finder's answers and keyboard focus as they are: Not sure, which the address never holds, counts as no answer there.
+// A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it,
+// the finder's heading in the finder.
 addEventListener('popstate',()=>{
   const {next}=fromURL();
-  if(Object.keys(next).every(k=>next[k]===state[k]))return;
-  readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();
+  if(Object.keys(next).every(k=>next[k]===state[k]||next[k]===''&&state[k]==='unsure'))return;
+  readURL();render();const a=document.activeElement;
+  if(!a||a===document.body||gone(a)){if(state.view==='find')findTitle.focus({preventScroll:true});else toTitle();}
 });
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
   if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
   else if(e.key==='Escape'&&(el===q||el===q2)){if(el.value){el.value='';typed(el);}el.blur();} // an empty box is only left: a picked place stays
 });
+// ---------- The finder (?view=find) ----------
+// The three questions, built from FIND_Q: a fieldset each, its answers as radios (one Tab stop per question; the arrow keys
+// choose), each in a label with its picture (hidden from screen readers) and its words, which name it. Not sure ends each one.
+const finderEl=$('finder'),findTitle=$('find-title'),findSee=$('find-see'),heroEl=document.querySelector('.home-hero'),
+  placesSec=$('places').closest('section');
+$('find-qs').innerHTML=FIND_Q.map((qu,n)=>`<fieldset class="fd-q fd-${qu.key}"><legend><span class="fd-n" aria-hidden="true">${n+1}</span><span>${esc(qu.title)}</span></legend>`+
+  (qu.hint?`<p class="fd-hint">${esc(qu.hint)}</p>`:'')+'<div class="fd-as">'+
+  [...qu.answers,{key:'unsure',words:'Not sure'}].map(a=>`<label class="fd-a${a.key==='unsure'?' fd-unsure':''}"><input class="fd-r" type="radio" name="fd-${qu.key}" value="${a.key}" autocomplete="off">`+
+    (a.pic?`<span class="fd-pic ${a.pic}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`:a.icon?`<svg class="i fd-icon" viewBox="0 0 24 24" aria-hidden="true">${a.icon}</svg>`:'')+
+    `<span class="fd-w">${esc(a.words)}</span></label>`).join('')+'</div></fieldset>').join('');
+// The results line is a polite live region. In the finder an answer writes it 400 ms after the last change, so arrowing through
+// the answers announces only the final count; every other change writes it at once.
+let sayTimer=0;
+function say(text,later){clearTimeout(sayTimer);if(later)sayTimer=setTimeout(()=>{subEl.textContent=text;},400);else subEl.textContent=text;}
+const answeredAny=()=>FIND_Q.some(qu=>qu.answers.some(a=>a.key===state[qu.key]));
+// The finder's results line: how many fit, or why none do.
+function findLine(found){
+  const b=found.best.length,c=found.close.length,n=(k,one)=>k+' '+one+(k===1?'':'es');
+  if(!answeredAny())return 'Answer a question above, and the animations that match show here.';
+  if(b)return n(b,'best match')+(c?' and '+n(c,'close match'):'')+'.';
+  return c?'No animation fits all your answers. These come close.':'No animation fits these answers yet.';
+}
+// The finder in place of the hero and the place tiles, with the tab's own title, the radios as the state says (after an address,
+// Back, Forward or Start over) and See N matches (hidden while nothing matches).
+const HOME_TITLE=document.title,FIND_TITLE='Find an animation you saw — Animation Handbook';
+function showFinder(finding,found){
+  heroEl.hidden=placesSec.hidden=finding;finderEl.hidden=!finding;
+  document.title=finding?FIND_TITLE:HOME_TITLE;
+  if(finding)navFind.setAttribute('aria-current','page');else navFind.removeAttribute('aria-current');
+  FIND_Q.forEach(qu=>finderEl.querySelectorAll('.fd-r[name="fd-'+qu.key+'"]').forEach(r=>{r.checked=r.value===state[qu.key];}));
+  const matched=found?found.best.length+found.close.length:0;
+  findSee.hidden=!matched;findSee.textContent='See '+matched+(matched===1?' match':' matches');
+}
+// The finder's matches: Best matches, then Close matches, each a group headed like those of All animations (an h3 with its count,
+// the card titles a level below), the first twelve cards until Show all.
+function showFound(found){
+  const boxes=[],cards=[];let left=state.all?Infinity:FIND_PAGE;
+  [['Best matches',found.best,''],['Close matches',found.close,'They fit all but one of your answers.']].forEach(([name,list,line])=>{
+    if(!list.length||left<=0)return;
+    const box=document.createElement('section');box.className='group fd-group';
+    box.innerHTML=`<h3 class="ghead"><span class="gname">${name}</span><span class="gcount">${list.length===1?'1 animation':list.length+' animations'}</span></h3>`+(line?`<p class="fd-gline">${line}</p>`:'');
+    const grid=document.createElement('div');grid.className='grid';
+    list.slice(0,left).forEach(e=>{const c=CARD[e.slug];c.querySelector('.title').setAttribute('aria-level','4');grid.appendChild(c);cards.push(c);});
+    left-=list.length;box.appendChild(grid);boxes.push(box);
+  });
+  cardsBox.replaceChildren(...boxes);
+  place(cards);
+}
+// An answer changes the cards at once and only replaces the address; nothing scrolls. See N matches brings the results heading
+// into view with keyboard focus, as Search does. Start over clears the answers and the cards (the address goes back to
+// ?view=find) and puts keyboard focus on the finder's heading, at the top of the page.
+finderEl.addEventListener('change',e=>{
+  const r=e.target;if(!r.classList.contains('fd-r'))return;
+  state[r.name.slice(3)]=r.value;state.all=false;
+  render(true);writeURL(false);
+});
+findSee.addEventListener('click',()=>{toResults();toTitle();});
+$('find-reset').addEventListener('click',()=>{go({view:'find'},false);scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});});
+// The ways in: the Find button under the search and Finder in the top bar open the finder with one history step, at the top of
+// the page with keyboard focus on its heading (the Find button goes away with the hero). A click with Ctrl, Cmd, Shift or Alt,
+// or with another button, is left to the browser, as for Browse all.
+const navFind=$('nav-find');
+function enterFind(e){
+  if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+  e.preventDefault();
+  if(state.view!=='find')go({view:'find'},true);
+  scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});
+}
+document.querySelectorAll('.find-cta,#nav-find').forEach(a=>a.addEventListener('click',enterFind));
 const startCat=readURL();
 render();
 if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
