@@ -675,17 +675,89 @@ test('the shared stylesheet draws the mode switch beside the Watch heading and t
   const SHORT = '.hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note))';
   for (const [what, text] of [
     ['three columns: the player bar, the room left over, the switch', `${SHORT}{grid-template-columns:auto minmax(0,1fr) auto}`],
-    ['the heading spans the first two columns', `${SHORT} > .hb-step-head{grid-column:1/3}`],
+    ['the heading runs up to the switch\'s column (the first two of three)', '.hb-watch:has(> .hb-modes) > .hb-step-head > div > h2{grid-row:1;grid-column:1/-2;'],
     ['the switch is in the third column', `${SHORT} > .hb-modes{grid-column:3}`],
     ['the player bar starts its row and stays at the start of it when the row grows', `${SHORT} > .hb-player{grid-column:1;align-self:start}`],
     ['the note spans the other two columns', `${SHORT} > .hb-mode-notes{grid-column:2/-1;`],
     ['a bar with a third control keeps the two columns (the switch beside the heading, the rest on the full row)', '.hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;']
   ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
-  assert.ok(wide.includes('.hb-watch:has(> .hb-modes) > .hb-modes{grid-column:2;flex-wrap:nowrap}'), 'the 761px block is the one that has the switch beside the heading');
+  assert.ok(wide.includes('.hb-watch:has(> .hb-modes) > .hb-modes{grid-row:1;grid-column:2;flex-wrap:nowrap;'), 'the 761px block is the one that has the switch beside the heading');
   assert.equal(count(wide, '> .hb-mode-notes{'), 1, 'one rule places the note beside the player bar, and it is in the 761px block');
   assert.equal(count(css, '> .hb-mode-notes{'), 1, 'no other rule places the note, so phones keep it under the player bar');
   assert.ok(phones.includes('.hb-page .seg.hb-modes button{flex:1 1 0'), 'the block up to 760px is found (it holds the equal mode buttons)');
   assert.ok(!/\.hb-watch|\.hb-mode-notes|\.hb-player/.test(phones), 'up to 760px nothing makes the Watch step a grid or places the note or the player bar');
+});
+
+test('from 761px the help line runs under the heading and the switch, as wide as without the switch, and the heading row is no taller than the heading line', () => {
+  // The Watch step's heading box and the box around its heading and help line give way (display: contents), so the number, the
+  // heading and the help line take places on the step's grid: the heading in the first row up to the switch's column, the help line
+  // in the second row across every column, as wide as on a page without the switch, both as far in as the number and the heading
+  // box's gap put them there. Only those two plain boxes give way: no heading, paragraph or section loses its box, so nothing loses
+  // its meaning for screen readers. The heading row is no taller than the heading line, so the stage and the player bar stay where
+  // they are on a page without the switch: the switch is stretched to that line (from 761px its buttons drop the 44px minimum they
+  // keep up to 760px), the number spans both rows (it reaches into the help line's row there too), and the help line is pulled up
+  // by the gap between the step's rows less its own 4px. That gap is set in one place, the custom property --hb-watch-gap (12px on
+  // short laptop screens), and the pull reads it, so the two cannot drift apart. With a coarse pointer (a phone held sideways, a
+  // tablet) each mode button's tap area reaches 10px above and below it, an empty ::after that moves nothing, so even with the
+  // smallest heading line a finger gets 44px. The values are read from the rules they follow, so a change to one of those fails
+  // here. Every rule from 761px is for a Watch step that has the switch, so a page without it is drawn as before.
+  const bare = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const wide = blockOf(bare, '@media(min-width:761px){');
+  const coarse = blockOf(bare, '@media(min-width:761px) and (pointer:coarse){');
+  const shortLaptop = blockOf(bare, '@media(min-width:601px) and (max-height:760px){');
+  const outside = bare.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, ''); // the rules outside every @media block
+  // The first px value of a property in the one rule written for exactly this selector
+  const px = (css, selector, prop) => {
+    const found = cssRules(css).filter(r => r.selector === selector && new RegExp(`(^|;)\\s*${prop}:`).test(r.body));
+    assert.equal(found.length, 1, `one ${selector} rule sets ${prop}`);
+    return Number(found[0].body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*(-?[\\d.]+)px`))[1]);
+  };
+  // The selectors of a selector list (commas inside brackets, as in :has(a, b), do not split it)
+  const selectorsOf = list => {
+    const out = [];
+    let depth = 0, from = 0;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] === '(') depth++;
+      else if (list[i] === ')') depth--;
+      else if (list[i] === ',' && depth === 0) { out.push(list.slice(from, i).trim()); from = i + 1; }
+    }
+    return [...out, list.slice(from).trim()];
+  };
+  const indent = px(outside, '.hb-num', 'width') + px(outside, '.hb-step-head', 'gap');
+  const own = px(outside, '.hb-step-head p', 'margin');
+  const W = '.hb-watch:has(> .hb-modes)';
+  assert.ok(outside.includes('.hb-watch{--hb-watch-gap:16px;gap:var(--hb-watch-gap)}'), 'the Watch step\'s gap is --hb-watch-gap, 16px');
+  assert.ok(shortLaptop.includes('.hb-watch{--hb-watch-gap:12px}'), 'on a short laptop screen --hb-watch-gap is 12px');
+  for (const rule of cssRules(bare).filter(r => selectorsOf(r.selector).includes('.hb-watch'))) {
+    assert.ok(!/(^|;)\s*(row-)?gap:\s*(?!var\(--hb-watch-gap\))/.test(rule.body), `the Watch step's gap is set only through --hb-watch-gap: .hb-watch{${rule.body}}`);
+  }
+  for (const [what, text] of [
+    ['the heading box and the box inside it give way', `${W} > .hb-step-head,${W} > .hb-step-head > div{display:contents}`],
+    ['the number is in the first column over the heading row and the help line row, at the top', `${W} > .hb-step-head > .hb-num{grid-row:1/span 2;grid-column:1;align-self:start}`],
+    [`the heading is in the first row up to the switch's column, ${indent}px in`, `${W} > .hb-step-head > div > h2{grid-row:1;grid-column:1/-2;margin-left:${indent}px}`],
+    [`the help line is in the second row across every column, ${indent}px in, pulled up by the step's gap less its own ${own}px`,
+      `${W} > .hb-step-head > div > p{grid-row:2;grid-column:1/-1;margin:calc(${own}px - var(--hb-watch-gap)) 0 0 ${indent}px}`],
+    ['the switch is in the heading row, stretched to the heading line', `${W} > .hb-modes{grid-row:1;grid-column:2;flex-wrap:nowrap;align-self:stretch}`],
+    ['its buttons drop the 44px minimum', `${W} > .hb-modes button{min-height:0}`]
+  ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
+  assert.ok(!bare.includes('@media(min-width:761px) and (max-height:760px)'), 'short laptop screens need no pull of their own: --hb-watch-gap carries their gap');
+  for (const [what, text] of [
+    ['a mode button holds its tap area', `${W} > .hb-modes button{position:relative}`],
+    ['the tap area reaches 10px above and below the button, and no wider', `${W} > .hb-modes button::after{content:"";position:absolute;inset:-10px 0}`]
+  ]) assert.ok(coarse.includes(text), `from 761px with a coarse pointer: ${what}`);
+  // The tap area counts from inside the button's border: the smallest heading line (the heading's smallest font size, everywhere or
+  // on a short laptop screen, times its line height) less the two borders, plus 10px above and 10px below.
+  const [, least, lineHeight] = cssRules(outside).find(r => r.selector === '.hb-step-head h2').body.match(/font:\s*\d+\s+clamp\(([\d.]+)px,[^)]*\)\/([\d.]+)/);
+  const line = Math.min(Number(least), px(shortLaptop, '.hb-step-head h2', 'font-size')) * Number(lineHeight);
+  const tap = line - 2 * px(outside, '.hb-page .seg button', 'border') + 2 * 10;
+  assert.ok(tap >= 44, `with the smallest heading line (${line}px) a mode button's tap area is ${tap}px, under 44px`);
+  const contents = cssRules(bare).filter(r => /(^|;)\s*display:\s*contents\s*(;|$)/.test(r.body)).flatMap(r => selectorsOf(r.selector));
+  assert.deepEqual(contents, [`${W} > .hb-step-head`, `${W} > .hb-step-head > div`], 'only the two plain boxes give way');
+  assert.equal(count(bare, '.hb-modes button{min-height:0}'), 1, 'only from 761px do the mode buttons drop the 44px minimum');
+  assert.equal(px(outside, '.hb-page .seg button', 'min-height'), 44, 'up to 760px the mode buttons keep the 44px minimum of choice buttons');
+  for (const css of [wide, coarse]) {
+    for (const rule of cssRules(css)) for (const sel of selectorsOf(rule.selector)) assert.ok(sel.startsWith(W), `for a Watch step with the switch: ${sel}`);
+  }
 });
 
 // The learning path and the idea lessons wait on feat/learn-pilot (docs/superpowers/specs/2026-10-13-see-inside-compare-rollout-design.md,
