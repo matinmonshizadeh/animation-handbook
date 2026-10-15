@@ -56,7 +56,7 @@
   <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
-      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion.</p></div>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
     <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
       <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
@@ -194,7 +194,7 @@
   const field=document.getElementById('field'),fctx=field.getContext('2d');
   const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
   const GRID=28;
-  let mode='normal',kept=null,keptT=0;
+  let mode='normal',kept=null,keptT=0,ra=0; // ra: the time the random half has not yet stepped, in 60ths of a second (see frame)
 
   // tiny deterministic value-noise: hash a lattice, smooth-interpolate, return an angle.
   function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
@@ -233,19 +233,19 @@
   // 60 Hz frames it stands for; k is s, or a third of it in slow motion, and shrinks the step and the field's time but not the dim.
   // Compare: each half draws only inside itself; the first half's particles take a random direction every step (the common
   // mistake), the second half's follow the field. A random walk spreads further in one long step than in two short ones, so the
-  // first half takes one step for each 60th of a second the frame stands for (n), and scribbles as wide at any frame rate.
-  // See inside draws the arrows after the step.
+  // first half's steps all have one length: the frame's time (a third of it in slow motion) adds up in ra, and each whole 60th
+  // of a second is one step. It then scribbles as wide at any frame rate. See inside draws the arrows after the step.
   function frame(s,nf){
     const k=s*(slowTog.checked?1/3:1);
     ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;
     for(let i=0;i<nf;i++)ctx.fillRect(0,0,W,H);
     if(mode==='compare'){
-      const half=W/2,n=Math.max(1,Math.round(s));
+      ra+=k;const half=W/2,n=Math.floor(ra+1e-9);ra-=n; // the 1e-9: a sum that should be whole but rounds just under it
       for(const side of [0,1]){
         ctx.save();ctx.beginPath();ctx.rect(side*half,0,half,H);ctx.clip();
         for(const p of parts)if(p.side===side){
           if(side)move(p,angleAt(p.x,p.y,t),k,half,half);
-          else for(let i=0;i<n;i++)move(p,Math.random()*Math.PI*2,k/n,0,half);
+          else for(let i=0;i<n;i++)move(p,Math.random()*Math.PI*2,1,0,half);
         }
         ctx.restore();
       }
@@ -278,11 +278,12 @@
     }
     fctx.stroke();
   }
-  // A settled picture: 40 frames at once, each a 60 Hz frame's worth, so it is the same picture on every screen. The canvas
-  // is covered completely first, because a see-through dim leaves a faint ghost of whatever was there before
+  // A settled picture: 40 frames at once, each a 60 Hz frame's worth, so it is the same picture on every screen (the random
+  // half's count starts again for it). The canvas is covered completely first, because a see-through dim leaves a faint ghost of
+  // whatever was there before
   function prerender(){
     ctx.fillStyle='#05060a';ctx.fillRect(0,0,W,H);
-    for(let i=0;i<40;i++)frame(1,1);
+    ra=0;for(let i=0;i<40;i++)frame(1,1);
     unseen=false;
   }
 
