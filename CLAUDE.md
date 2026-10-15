@@ -240,8 +240,52 @@ inside an entry's "Production notes" section, never as their own entry.
    new card's Copy prompt is compared there.
 
 Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind, prompt, settings or
-Good for and Avoid on tags, a README's Key parameters, or a card's name, places or order in `CATS`) also means running
-`node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails until then.
+Good for and Avoid on tags, a README's Key parameters, a card's name, places or order in `CATS`, or the Famous effects
+page's description) also means running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails
+until then. Changing a preview that the Famous effects page shows (its key in `PV`, its `case` in `pvMarkup()`, its
+rules or keyframes, its `STILL` point) or that page's cards means running `node tools/make-famous.mjs` again: the famous
+test (`tests/famous.test.js`) fails until then.
+
+## Famous effects page
+`famous/index.html` shows effects people admire on well-known websites: what you see, in plain words; the handbook
+animations that make something similar, as cards with their moving previews; and one prompt to build it
+(`docs/superpowers/specs/2026-10-13-famous-effects-design.md`). It is one page in the home page's look and colors (a test
+compares them); it links neither shared file, and its own script copies, shows the message, falls back to the copy keys and
+shortens prompts on phones in the animation pages' words. Its two marked blocks, the previews' CSS and the `PREVIEWS`
+object, are written by `node tools/make-famous.mjs` from the home page, never by hand.
+
+**An entry** is a `section.fx` with an id (`site-what`, as `stripe-ribbon`), `data-fx-site` (the site's name) and
+`data-fx-start` (`loop`, `load`, `scroll`, `hover` or `press`), then, in order: "Seen on" and the site's address as a link
+(`https://`, in a new tab, its text the address without `https://` or `www.`, its name ending "(opens in a new tab)") and
+the year in a `<time>` whose `datetime` is the day it was checked; the plain title as an `h2` with `tabindex="-1"`; what
+you see, 25 to 70 words; "Build it with these animations" and one to three cards (the card's `CATS` name and line, its page's
+link and `data-slug`, and on its preview a label of one to three words saying what that animation makes here; two different
+animations on the page never share a preview); "A prompt to build something similar" and Copy prompt, which names its
+entry. Copy a neighbor entry's markup, add its chip to the jump row and count it in the pill.
+
+**Its prompt** follows "The copyable prompt" above, but the page has no settings, so it never ends "Match the settings
+listed below.": 60 to 130 words, starting "Add a … to [what the reader fills in]" with each bracketed part in a `<mark>`; it
+asks for the reader's own colors and content, never a copy of the site, says what happens under reduced motion and, when
+the effect starts on hover or press, what touch does. It never names a site of the page, by name or by address.
+
+**The legal checklist** binds every entry (rules to follow, not legal advice):
+- The title, what you see and the prompt are in our own words: no sentence, feature name or slogan from the site.
+- The site is named in plain text, in the page's own font and colors (no logo, icon, brand color or typeface), and linked
+  to its public page.
+- Shown only with the handbook's own demos and previews; nothing from the site in the repository or in posts about the
+  page: no code, screenshots, videos, pictures, icons or logos.
+- The line saying the handbook is not connected to these sites stays on the page, above the first entry, on the first
+  screen.
+- Nothing implies approval or partnership: no "official", "approved", "partner", "as used by"; no company name in the
+  page's title, description or social card; the prompt names no company.
+- "Seen on <site> in <year>", with the day checked in `datetime`.
+- A site owner who asks for an entry to be changed or removed gets it done promptly (the Suggest link is the contact).
+
+**Adding or checking an entry again.** Watch the effect on the live site, logged out, and write what you see in your own
+words; add the entry, its chip and its count in the pill; run `node tools/make-famous.mjs`, `node tools/update-sitemap.mjs`,
+the tests and the page check's `famous` target. Every entry is checked again on its site before each release of the page
+and at least once a year: an effect that changed is described again from what shows now, one that has gone stays true as
+a past sighting or is replaced, and its `datetime` takes the day of the check.
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than
@@ -252,8 +296,8 @@ Good for and Avoid on tags, a README's Key parameters, or a card's name, places 
 ## Tests and the page check
 Run both before calling a page done. They need Node 22 or later (the `--test` glob, the page check's `WebSocket`).
 - **Tests:** `node --test "tests/*.test.js"` from the repo root (nothing to install) checks every page and its
-  README, the shared stylesheet and the home page. GitHub Actions runs them too, on every push to `main` and every
-  pull request (`.github/workflows/tests.yml`).
+  README, the shared stylesheet, the home page and the Famous effects page. GitHub Actions runs them too, on every
+  push to `main` and every pull request (`.github/workflows/tests.yml`).
 - **Page check:** serve the repo root (`python -m http.server <port> --bind 127.0.0.1`), then run
   `node tools/check-pages.mjs --base http://127.0.0.1:<port> <page or category folder>`. It drives Chrome (set
   `CHROME` to its path if it is not in the default Windows folder) and loads each page at six setups (1280×800,
@@ -269,6 +313,11 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   reduced-motion run checks that nothing moves. Every setup also opens the finder (`?view=find`): its desktop run works the answers, See N matches,
   Start over, Show all, the Not here? link and the ways in, and its reduced-motion run checks that every How picture holds a still.
   Run it after changing any page's settings or prompt.
+- **Famous effects:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> famous` checks `famous/` at the same six
+  setups (six `ok` lines): the first screen, overflow and touch targets; its desktop run presses each jump link, watches
+  each entry's previews and presses each Copy prompt (twice more with the clipboard refused or missing); its
+  reduced-motion run checks that nothing moves, that every preview holds a still frame that shows something and that
+  Copy prompt's message does not slide. Run it after changing that page, its cards or a preview it shows.
 
 ## Out of scope
 - Backend code, databases, APIs.

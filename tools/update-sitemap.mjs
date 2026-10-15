@@ -2,15 +2,16 @@
 // Writes sitemap.xml from the home page's cards: a development tool, not part of the site. Run it from a git checkout
 // after adding or changing pages.
 // Usage: node tools/update-sitemap.mjs [--out <file>]
-//   The home page comes first, then every page in the order of the CATS array in index.html (the home page's order),
-//   at the home page's canonical address. A page's lastmod is the date of the last commit that touched its folder
-//   (git log -1 --format=%cs -- <folder>), or today's date when the folder has changes that are not committed yet (a
-//   new page too). The home page's lastmod is the latest of index.html and the files it loads (the page script and
-//   the two fonts): a change to a page alone does not change the home page. changefreq and
-//   priority stay as they are: weekly and 1.0 for the home page, monthly and 0.7 for every page.
+//   The home page comes first, then the Famous effects page (famous/), then every page in the order of the CATS array in
+//   index.html (the home page's order), at the home page's canonical address. A page's lastmod is the date of the last
+//   commit that touched its folder (git log -1 --format=%cs -- <folder>), or today's date when the folder has changes that
+//   are not committed yet (a new page too); the Famous effects page is dated the same way, by famous/. The home page's
+//   lastmod is the latest of index.html and the files it loads (the page script and the two fonts): a change to a page
+//   alone does not change the home page. changefreq and priority: weekly and 1.0 for the home page, monthly and 0.8 for
+//   the Famous effects page, monthly and 0.7 for every page.
 //   Without --out it rewrites sitemap.xml at the repo root, keeping its line endings; --out writes the same text to
 //   another file instead, to compare. It prints how many URLs it wrote and how many dates changed.
-// Needs git on the PATH. Exit code 1 when a card has no page folder or git cannot be read.
+// Needs git on the PATH. Exit code 1 when a card has no page folder, famous/ has no index.html, or git cannot be read.
 import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -51,6 +52,9 @@ if (!BASE) { console.error('index.html has no canonical address ending in /'); p
 const pages = CATS.flatMap(cat => cat.entries.map(([slug]) => `${cat.folder.replace(/\/$/, '')}/${slug}/`));
 const missing = pages.filter(folder => !existsSync(join(ROOT, folder, 'index.html')));
 if (missing.length) { console.error(`cards with no page: ${missing.join(', ')}`); process.exit(1); }
+// The Famous effects page (docs/superpowers/specs/2026-10-13-famous-effects-design.md) comes right after the home page.
+const FAMOUS = 'famous/';
+if (!existsSync(join(ROOT, FAMOUS, 'index.html'))) { console.error('famous/ has no index.html'); process.exit(1); }
 
 const now = new Date();
 const TODAY = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(n => String(n).padStart(2, '0')).join('-');
@@ -83,17 +87,19 @@ async function datesOf(targets, atOnce = 8) {
 const pageDates = await datesOf(pages);
 const homeDate = (await datesOf(['index.html', 'assets/js/demo-page.js', 'assets/fonts/schibsted-latin.woff2',
   'assets/fonts/schibsted-latin-ext.woff2'])).sort().pop();
+const famousDate = (await datesOf([FAMOUS]))[0];
 
 const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const line = (loc, lastmod, changefreq, priority) =>
   `  <url><loc>${escape(loc)}</loc><lastmod>${lastmod}</lastmod><changefreq>${changefreq}</changefreq><priority>${priority}</priority></url>`;
 const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  line(BASE, homeDate, 'weekly', '1.0'), ...pages.map((folder, i) => line(BASE + folder, pageDates[i], 'monthly', '0.7')), '</urlset>'];
+  line(BASE, homeDate, 'weekly', '1.0'), line(BASE + FAMOUS, famousDate, 'monthly', '0.8'),
+  ...pages.map((folder, i) => line(BASE + folder, pageDates[i], 'monthly', '0.7')), '</urlset>'];
 
 const old = existsSync(SITEMAP) ? readFileSync(SITEMAP, 'utf8') : '';
 const EOL = old.includes('\r\n') ? '\r\n' : '\n';
 const oldDates = new Map([...old.matchAll(/<loc>([^<]*)<\/loc><lastmod>([^<]*)<\/lastmod>/g)].map(m => [m[1], m[2]]));
-const newDates = [[BASE, homeDate], ...pages.map((folder, i) => [BASE + folder, pageDates[i]])];
+const newDates = [[BASE, homeDate], [BASE + FAMOUS, famousDate], ...pages.map((folder, i) => [BASE + folder, pageDates[i]])];
 const moved = newDates.filter(([loc, date]) => oldDates.get(loc) !== date).length;
 writeFileSync(OUT, lines.join(EOL) + EOL);
 console.log(`${OUT}: ${newDates.length} URLs, ${moved} lastmod ${moved === 1 ? 'date' : 'dates'} new or changed`);

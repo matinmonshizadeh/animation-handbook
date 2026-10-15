@@ -32,6 +32,8 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get.
 3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 
+**Seen it on a famous site?** [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) shows effects people admire on well-known websites, the handbook animations that make something similar, and a prompt to build your own.
+
 <div align="center">
 <a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/demo-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/demo-still.webp"><source media="(max-width: 600px)" srcset="docs/demo-phone.webp"><img src="docs/demo.webp" alt="Screen recording of the handbook: on the home page, pressing Buttons brings up cards with live previews, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820"></picture></a>
 </div>

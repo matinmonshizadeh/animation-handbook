@@ -193,6 +193,17 @@ test('llms.txt lists every card once, in the order of CATS, with its live addres
   }
 });
 
+test('llms.txt links the Famous effects page with the page\'s own description, after the categories and before the skill files', () => {
+  const text = read(path.join(ROOT, 'llms.txt'));
+  // White space squeezed, as the tool writes it: a description written over two lines is still one line of llms.txt.
+  const lede = decode(read(path.join(ROOT, 'famous', 'index.html')).match(/<meta name="description" content="([^"]+)">/)[1]).replace(/\s+/g, ' ').trim();
+  const line = `- [Famous effects](${LIVE}famous/): ${lede}`;
+  assert.equal(text.split('\n').filter(l => l === line).length, 1, `llms.txt has the line ${line}`);
+  assert.ok(text.includes(`## Famous effects\n\n${line}\n`), 'under its own heading');
+  assert.ok(text.indexOf(line) > text.lastIndexOf(`](${LIVE}animations/`), 'after the last card');
+  assert.ok(text.indexOf(line) < text.indexOf('## Skill files'), 'before the skill files');
+});
+
 test('the plugin marketplace parses and its one plugin installs the skill folder', () => {
   const market = JSON.parse(read(path.join(ROOT, '.claude-plugin', 'marketplace.json')));
   assert.equal(market.name, 'animation-handbook');
