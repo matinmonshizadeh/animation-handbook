@@ -237,15 +237,16 @@
   }
   // Compare: whether a point (in the pull's frame) is in the real button's half
   function inHalf(px,py){return stackedMQ.matches?py-stage.clientTop>=stage.clientHeight/2:px-stage.clientLeft>=stage.clientWidth/2}
-  // In Compare a point the page picks itself (the pose, Show me's spots) stays inside the real button's half and clear of its
-  // name, and its ghost as clear of the copy's name in the copy's half
+  // A point the page picks itself (the pose, Show me's spots) stays inside the box in See inside; in Compare it stays inside the
+  // real button's half and clear of its name, and its ghost as clear of the copy's name in the copy's half
   function keep(px,py){
-    if(mode!=='compare')return{x:px,y:py};
-    const ox=stage.clientLeft,oy=stage.clientTop,W=stage.clientWidth,H=stage.clientHeight,c=restCenter(),t=twinCenter();
-    const d={x:c.x-ox-t.x,y:c.y-oy-t.y},top=stackedMQ.matches?H/2:0,left=stackedMQ.matches?0:W/2;
+    if(mode==='normal')return{x:px,y:py};
+    const ox=stage.clientLeft,oy=stage.clientTop,W=stage.clientWidth,H=stage.clientHeight,cmp=mode==='compare';
+    const top=cmp&&stackedMQ.matches?H/2:0,left=cmp&&!stackedMQ.matches?W/2:0;
     let x=Math.min(Math.max(px-ox,left+4),W-19),y=Math.min(Math.max(py-oy,top+4),H-26);
-    names.forEach((n,i)=>{const nx=n.offsetLeft+(i?0:d.x),ny=n.offsetTop+(i?0:d.y),nb=ny+n.offsetHeight+6;
-      if(x<nx+n.offsetWidth+4&&x+15>nx-4&&y<nb)y=nb});
+    if(cmp){const c=restCenter(),t=twinCenter(),d={x:c.x-ox-t.x,y:c.y-oy-t.y};
+      names.forEach((n,i)=>{const nx=n.offsetLeft+(i?0:d.x),ny=n.offsetTop+(i?0:d.y),nb=ny+n.offsetHeight+6;
+        if(x<nx+n.offsetWidth+4&&x+15>nx-4&&y<nb)y=nb})}
     return{x:x+ox,y:y+oy};
   }
   // The copy's center in the drawing's frame (the stage's padding box)
@@ -290,11 +291,11 @@
     track();
   }
   // The lean as an arrow from where the button rests to where it is now, drawn again each frame while the button glides so it keeps
-  // pace (Slow motion too); none under about 8px, too short to read
+  // pace (Slow motion too); none under about 12px, where it would only blot the button's words
   function drawArrow(){
     const c=restCenter(),cx=c.x-stage.clientLeft,cy=c.y-stage.clientTop,m=new DOMMatrixReadOnly(getComputedStyle(btn).transform);
     const len=Math.hypot(m.e,m.f),ang=Math.atan2(m.f,m.e),hx=cx+m.e,hy=cy+m.f,head=Math.min(9,len/2);
-    const arrow=len<8?'':`M${cx} ${cy}L${hx} ${hy}M${hx-Math.cos(ang-.6)*head} ${hy-Math.sin(ang-.6)*head}L${hx} ${hy}L${hx-Math.cos(ang+.6)*head} ${hy-Math.sin(ang+.6)*head}`;
+    const arrow=len<12?'':`M${cx} ${cy}L${hx} ${hy}M${hx-Math.cos(ang-.6)*head} ${hy-Math.sin(ang-.6)*head}L${hx} ${hy}L${hx-Math.cos(ang+.6)*head} ${hy-Math.sin(ang+.6)*head}`;
     lean.setAttribute('d',arrow);leanEdge.setAttribute('d',arrow);
   }
   function track(){
