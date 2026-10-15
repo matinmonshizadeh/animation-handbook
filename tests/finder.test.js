@@ -200,6 +200,7 @@ test('every How answer has a moving picture, its keyframes are named fd- and mov
   for (const a of homeConst('FIND_Q')[2].answers) {
     assert.match(STYLE, new RegExp(`\\.${a.pic}[\\s.:{,]`), `a rule draws ${a.pic}`);
     assert.ok(names.some(name => name === a.pic || name.startsWith(a.pic + '-')), `${a.pic} moves: @keyframes ${a.pic}`);
+    assert.match(STYLE, new RegExp(`\\.${a.pic}[^{}]*\\{[^{}]*\\banimation:${a.pic}(-[a-z]+)?\\s`), `${a.pic} plays its keyframes`);
   }
   const bodies = [...STYLE.matchAll(/@keyframes\s+(fd-[\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)];
   assert.equal(bodies.length, names.filter(name => name.startsWith('fd-')).length, 'every fd- @keyframes body is read');
