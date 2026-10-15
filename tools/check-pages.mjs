@@ -37,11 +37,13 @@
 // apart from endless ones; up to 30 s, and at once where the press starts no run) and then for the stage to rest before it looks.
 // Only setTimeout timers and animations are seen: a move driven by a frame loop or by setInterval shows only as a stage that
 // changes, so on these two kinds rest also needs the timers and animations to be quiet (a run that moves by a frame loop and then
-// holds on a timer is waited out), and only a pause of 750 ms or more made inside a frame loop, with no timer, would pass for
-// rest. The stage is at rest when it has not changed for 750 ms; every animation in it that never ends (a blinking caret, a
-// loader) is held at its first frame while rest is judged and the rest pictures and mode screenshots are taken, except under
-// reduced motion, where every mode must be still. The whole Watch step (its heading, the switch, the stage, the
-// player bar and the notes) is saved as a screenshot of See inside and of Compare (Normal's is the setup's own screenshot); a
+// holds on a timer is waited out), and only a pause of 750 ms or more made inside a frame loop or a setInterval loop (TIMERS
+// counts setTimeout timers only), with no setTimeout timer waiting, would pass for rest. The stage is at rest when it has not
+// changed for 750 ms (the mode check first lets go of keyboard focus left in the stage, whose caret or focus effect would keep
+// it changing); every animation in it that never ends (a blinking caret, a loader) is held at its first frame while rest is
+// judged and the rest pictures and mode screenshots are taken, except under reduced motion, where every mode must be still. The
+// whole Watch step (its heading, the switch, the stage, the player bar and the notes) is saved as a screenshot of See inside and
+// of Compare (Normal's is the setup's own screenshot); a
 // mode button the page lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page with its
 // box at the middle of its range, a loop paused), the box does not scroll either (read before the run a press starts, which may
 // scroll it), See inside and Compare must each change the stage and differ from each other, Normal must bring the first
@@ -484,8 +486,8 @@ const runCalm = () => evaluate(`(() => {
 // Slow) is waited out, and where no run starts the wait ends at once. A run often holds still on a timer between two moves, so a
 // stage that has not changed for a while is not yet a run that has ended. A move made by a frame loop or by setInterval is not
 // seen here: a run that starts with one looks over until its next timer is set, so the rest judgment that follows (restShot with
-// calm) also waits while a timer waits or an animation runs. Only a pause made inside a frame loop, with no timer, would still
-// pass for rest. Says whether the run ended.
+// calm) also waits while a timer waits or an animation runs. Only a pause made inside a frame loop or a setInterval loop (TIMERS
+// counts setTimeout timers only), with no setTimeout timer waiting, would still pass for rest. Says whether the run ended.
 async function waitForRun() {
   let quiet = 0;
   for (const end = Date.now() + 30000; Date.now() < end; await sleep(100)) {
@@ -540,20 +542,23 @@ async function captionProblems(label) {
     // The words a control shows, parted where innerText parts them (at the edge of a block and at a line break), leaving out
     // every text that is not drawn: inside an aria-hidden="true" part, see-through (opacity 0, on it or on a part around it),
     // hidden (visibility), with no box at all (not rendered, or scaled down to nothing), clipped away, or on a face turned away.
-    // Clipped away: only the part of a text inside every box around it (up to the stage) that clips what overflows it counts, and
-    // a part under 2px across is nothing, as a text kept for screen readers only is. Turned away: a face with
-    // backface-visibility: hidden that the transform property, within its 3D context, turns over, as a flip card's back is
-    // (clip-path and the rotate property are not worked out). So the closed cards a button holds out of sight (Dynamic Island)
+    // Clipped away: only the part of a text inside every box around it (up to the stage) that clips what overflows it counts, on
+    // the axes that box clips, and a part under 2px across is nothing, as a text kept for screen readers only is. Turned away: a
+    // face with backface-visibility: hidden that the transform property, within its 3D context, turns over, as a flip card's back
+    // is (clip-path and the rotate property are not worked out). So the closed cards a button holds out of sight (Dynamic Island)
     // or a second label waiting see-through (Copy to Clipboard's Copied!) are not its words.
     const shownText = c => {
       const blockOf = n => { for (let e = n.parentElement; e !== c; e = e.parentElement) if (!getComputedStyle(e).display.startsWith('inline')) return e; return c; };
+      // A box clips only on an axis whose overflow is not visible (overflow-x: clip with overflow-y: visible clips sideways only).
+      // Every such box around the text counts, even one that does not clip an absolutely placed part because that part's
+      // containing block lies outside it (not worked out).
       const shownPart = (n, rects) => {
         let parts = rects.map(r => [r.left, r.top, r.right, r.bottom]);
         for (let e = n.parentElement; e; e = e === stage ? null : e.parentElement) {
-          const st = getComputedStyle(e);
-          if (st.overflowX === 'visible' && st.overflowY === 'visible') continue;
+          const st = getComputedStyle(e), cx = st.overflowX !== 'visible', cy = st.overflowY !== 'visible';
+          if (!cx && !cy) continue;
           const b = e.getBoundingClientRect();
-          parts = parts.map(([l, t, r, btm]) => [Math.max(l, b.left), Math.max(t, b.top), Math.min(r, b.right), Math.min(btm, b.bottom)]);
+          parts = parts.map(([l, t, r, btm]) => [cx ? Math.max(l, b.left) : l, cy ? Math.max(t, b.top) : t, cx ? Math.min(r, b.right) : r, cy ? Math.min(btm, b.bottom) : btm]);
         }
         return parts.some(([l, t, r, b]) => r - l >= 2 && b - t >= 2);
       };
@@ -606,6 +611,10 @@ async function modeProblems(name, setup, kind) {
   // a hover in the middle of the checks. So where one was sent, the pointer goes to the corner first, and every picture is of the
   // stage without a hover. (Where none was sent the page has no pointer in it, and sending one would also make it focused.)
   if (pointerSent) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0, button: 'none' });
+  // That click (demoProblems makes a real one in the middle of the stage) can also leave keyboard focus in the stage, on a field
+  // whose caret blinks or a canvas that draws a focus effect, and the stage would never come to rest. So focus in the stage is let
+  // go of: blurred, and moved nowhere else.
+  await evaluate(`(() => { const s = document.querySelector('.hb-page .stage'), a = document.activeElement; if (s && a && s.contains(a) && a.blur) a.blur(); })()`);
   const problems = [];
   const labels = { normal: 'Normal', inside: 'See inside', compare: 'Compare' };
   const missing = new Set();
@@ -726,6 +735,9 @@ async function modeProblems(name, setup, kind) {
     if (now.stageH !== normal.stageH) problems.push(`${label}: the box changes size (${now.stageH}px, not ${normal.stageH}px)`);
     else if (now.barTop !== normal.barTop) problems.push(`${label}: the player bar moves (${now.barTop}px below the top of the box, not ${normal.barTop}px)`);
   };
+  // Whether every run so far has ended: Normal's rest is judged as after a run only then (a run that never ended keeps its timers
+  // going, and Normal would only be said not to rest because of it).
+  let allEnded = ended;
   const shots = {}, named = {};
   for (const mode of ['inside', 'compare']) {
     const label = labels[mode];
@@ -740,7 +752,7 @@ async function modeProblems(name, setup, kind) {
     unmoved(label, now);
     sized(label, now);
     let runEnded = true;
-    if (runs && !(runEnded = await waitForRun())) problems.push(`${label}: the run it started does not end within 30 s`);
+    if (runs && !(runEnded = await waitForRun())) { problems.push(`${label}: the run it started does not end within 30 s`); allEnded = false; }
     if (pictures || runs) {
       const rest = await restShot(0, { calm: settles && ended && runEnded });
       if (!rest.still) problems.push(`the stage does not come to rest in ${label}`);
@@ -765,7 +777,7 @@ async function modeProblems(name, setup, kind) {
     unmoved('Normal', now);
     sized('Normal', now);
     if (pictures) {
-      const rest = await restShot(0, { calm: settles && ended });
+      const rest = await restShot(0, { calm: settles && allEnded });
       if (!rest.still) problems.push('the stage does not come to rest in Normal');
       else if (first && !(await samePicture(rest.shot, first))) problems.push('Normal does not bring the first picture back');
     }
