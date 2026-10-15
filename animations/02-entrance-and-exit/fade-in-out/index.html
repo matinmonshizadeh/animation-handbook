@@ -23,13 +23,52 @@
   <style>
     :root{--ui-accent:#5fd88a;--ui-muted:#8a8a92;--dur:600ms;--ease:ease-out}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:#0b0b0d}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:#0b0b0d}
     .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:clamp(28px,5vw,48px);text-align:center;max-width:320px;
       opacity:0;transition:opacity var(--dur) var(--ease);will-change:opacity}
     .card.in{opacity:1}
     .card-icon{font-size:32px;margin-bottom:14px;opacity:.6}
     .card-title{font-size:clamp(17px,2.5vw,22px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    /* See inside and Compare. Their labels are plain words on a dark backing. */
+    .twin,.graph,.side,.when{display:none}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    /* See inside: the card beside a graph of how solid it is over time (below it on phones, filling the room under the card). The
+       line rises with the fade in, in the shape of the Feel, stays at the top while the card stays, and with Loop on falls with the
+       fade out; the dot rides it as the card plays: across with the time, up with how solid the card is (the script draws it). */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);align-items:center;
+      gap:clamp(12px,3vw,32px);padding:clamp(12px,3vw,32px)}
+    .stage[data-hb-mode="inside"] .card{justify-self:center}
+    .stage[data-hb-mode="inside"] .graph{display:block}
+    .graph{position:relative;width:100%;max-width:460px;aspect-ratio:300/170;justify-self:center}
+    .graph svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .graph .axis{fill:none;stroke:rgba(244,244,242,.5);stroke-width:1.5}
+    .graph .curve{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .graph .dot{fill:#f4f4f2}
+    /* Compare: the card twice, each the size it has in Normal, one on each side of a thin line. On the left a copy that appears at
+       once (no fade); on the right the card itself, which fades. Between plays the right card is held a fifth of a second into its
+       fade, with those words under it (their row is kept while they are hidden, so the cards do not move when they show). */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr auto 1fr;
+      align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:48px clamp(8px,2vw,24px) 40px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .when{display:block}
+    .stage[data-hb-mode="compare"] .card{grid-row:2}
+    .card.twin{transition:none!important}
+    .side{top:12px}
+    .side.first{left:12px}
+    .side.second{left:calc(50% + 12px)}
+    .when{position:static;grid-area:3/2;align-self:start;margin-top:10px;max-width:100%;white-space:normal;text-align:center;text-wrap:balance;
+      visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin){opacity:var(--posed,.5)!important;transition:none!important}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px}
+      .stage[data-hb-mode="inside"] .graph{max-width:none;height:100%;aspect-ratio:auto}
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:14px 16px}
+      .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
+      .stage[data-hb-mode="inside"] .card-icon,.stage[data-hb-mode="compare"] .card-icon{font-size:22px;margin-bottom:6px}
+      .graph:has(.xout:not([hidden])) .xstay{display:none}
+    }
     @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=9">
@@ -53,17 +92,41 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card" id="card">
         <div class="card-icon">◈</div>
         <div class="card-title">Fade In</div>
         <div class="card-sub">Nothing moves or changes size; it only goes from see-through to solid.</div>
       </div>
+      <div class="graph" aria-hidden="true">
+        <svg viewBox="0 0 300 170">
+          <path class="axis" d="M70 16V140H290"/>
+          <path class="curve" id="curve" d="M70 140"/>
+          <circle class="dot" id="dot" r="6"/>
+        </svg>
+        <span class="lbl y1" data-hb-caption>Solid</span>
+        <span class="lbl y0" data-hb-caption>See-through</span>
+        <span class="lbl xin" id="lbl-in" data-hb-caption>Fades in</span>
+        <span class="lbl xstay" id="lbl-stay" data-hb-caption>Stays</span>
+        <span class="lbl xout" id="lbl-out" data-hb-caption>Fades out</span>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Appears at once</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Fades in</p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>The graph shows how solid the card is over time: it fades in, then stays, and with Loop on it fades out too. The dot rides the line as the card plays.</p>
+      <p data-hb-for="compare" hidden>On the left, Appears at once: the card is simply there. On the right, Fades in: it turns from see-through to solid, and with Loop off it rests a fifth of a second in.</p>
     </div>
   </section>
 
@@ -134,10 +197,29 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
+  const stage=card.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let ms=600,ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own), the page's hold and wait
+  // with Loop on, the dot's radius and how far the graph's words keep off its line (pixels), and the moment Compare holds.
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const HOLD=800,WAIT=300,R=6,OFF=14,POSE_MS=200;
+  const graph=stage.querySelector('.graph'),svg=graph.querySelector('svg'),axis=graph.querySelector('.axis');
+  const curve=document.getElementById('curve'),dot=document.getElementById('dot');
+  const lblIn=document.getElementById('lbl-in'),lblStay=document.getElementById('lbl-stay'),lblOut=document.getElementById('lbl-out');
+  const lblSolid=graph.querySelector('.y1'),lblClear=graph.querySelector('.y0');
+  // Compare's first card: a copy that appears and leaves at once (no fade), out of reach of the keyboard and screen readers
+  const twin=card.cloneNode(true);
+  twin.removeAttribute('id');twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  card.before(twin);
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='The graph shows how solid the card gets over time, shown still: the dot sits where the fade in ends.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, a fifth of a second in: on the left, Appears at once, the card is fully there; on the right, Fades in, it is only part of the way.';
+  }
+  let mode='normal',cycleStart=-1e9,dotRaf=0,G={x0:0,x1:0,yt:0,yb:0};
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -145,38 +227,130 @@
     vars.setProperty('--ease',ease);
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){card.classList.toggle('in',on);twin.classList.toggle('in',on)}
   function fadeIn(){
+    cycleStart=performance.now();
     // snap back to fully transparent without a transition so every play restarts from invisible
     card.style.setProperty('transition','none','important');
-    card.classList.remove('in');void card.offsetWidth;
+    setIn(false);void card.offsetWidth;
     card.style.removeProperty('transition');
-    card.classList.add('in');
+    setIn(true);
+    if(mode==='inside')ride();
   }
   // One play fades in. While Loop is on it then holds, fades out, waits and plays again;
   // switching Loop off lets the card finish visible. Slow motion stretches the fades, not the waits.
+  // In Compare a play lifts the pose, and once it is over the right card is held at its moment again.
   function cycle(){
-    apply();fadeIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();
+    if(motionOk)pose(false);
+    fadeIn();
+    if(!loopTog.checked||!motionOk){
+      if(motionOk&&mode==='compare')later(()=>pose(true),dur()+700);
+      return;
+    }
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+300);
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // A play's parts in ms: the fade in and the hold, and with Loop on the fade out and the wait
+  function parts(){const d=dur();return loopTog.checked&&motionOk?[d,HOLD,d,WAIT]:[d,HOLD]}
+  function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
+  // The graph, drawn in the box's own pixels: across is time, up is how solid the card is, and each fade has the Feel's own curve.
+  // Its words keep their size and stay off the line, so the dot passes them: the two levels' words end left of the line's start, the
+  // others sit in a row above (Stays, Fades out) or below (Fades in), each centered on its part where the box allows; "Stays" gives
+  // way where it would touch "Fades out".
+  function drawGraph(){
+    const p=parts(),total=p.reduce((s,v)=>s+v,0),[a,b,c,e]=CURVES[ease];
+    lblIn.textContent='Fades in, '+words(p[0]);
+    lblOut.hidden=p.length<3;lblStay.hidden=false;
+    const W=graph.clientWidth,H=graph.clientHeight,lh=lblIn.offsetHeight;
+    if(!W)return;
+    const x0=Math.max(lblSolid.offsetWidth,lblClear.offsetWidth)+OFF,x1=W-R-2,yt=lh+OFF+2,yb=H-lh-OFF-4,h=yb-yt;G={x0,x1,yt,yb};
+    const x=t=>(x0+(x1-x0)*t/total).toFixed(1);
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    axis.setAttribute('d',`M${x0} ${yt}V${yb}H${x1}`);
+    let d=`M${x0} ${yb}C${x(p[0]*a)} ${yb-h*b} ${x(p[0]*c)} ${yb-h*e} ${x(p[0])} ${yt}H${x(p[0]+p[1])}`;
+    if(p.length>2){
+      const o=p[0]+p[1];
+      d+=`C${x(o+p[2]*a)} ${yt+h*b} ${x(o+p[2]*c)} ${yt+h*e} ${x(o+p[2])} ${yb}H${x1}`;
+    }
+    curve.setAttribute('d',d);
+    const put=(el,cx,top,lo=0)=>{const w=el.offsetWidth;el.style.left=Math.min(Math.max(cx-w/2,lo),W-w)+'px';el.style.top=top+'px'};
+    put(lblSolid,x0-OFF-lblSolid.offsetWidth/2,yt-lh/2);put(lblClear,x0-OFF-lblClear.offsetWidth/2,yb-lh/2);
+    put(lblIn,+x(p[0]/2),yb+OFF+2,x0-8);put(lblStay,+x(p[0]+p[1]/2),2);
+    if(p.length>2){put(lblOut,+x(p[0]+p[1]+p[2]/2),2);lblStay.hidden=lblStay.offsetLeft+lblStay.offsetWidth+6>lblOut.offsetLeft}
+  }
+  // The dot: across with the time since the play began, up with how solid the card is right now (still: where the fade in ends).
+  // While a fade runs, the time comes from the fade's own clock (the browser starts it a frame or two after the play), so the dot
+  // stays on the line.
+  function placeDot(){
+    const p=parts(),total=p.reduce((s,v)=>s+v,0),fade=motionOk&&card.getAnimations()[0];
+    if(fade&&fade.currentTime!==null)cycleStart=performance.now()-fade.currentTime-(card.classList.contains('in')?0:p[0]+p[1]);
+    const t=motionOk?Math.min(Math.max(performance.now()-cycleStart,0),total):p[0];
+    const solid=motionOk?parseFloat(getComputedStyle(card).opacity):1;
+    dot.style.transform=`translate(${G.x0+(G.x1-G.x0)*t/total}px,${G.yb-(G.yb-G.yt)*solid}px)`;
+    return t<total;
+  }
+  function ride(){
+    cancelAnimationFrame(dotRaf);
+    const step=()=>{dotRaf=placeDot()&&mode==='inside'&&motionOk?requestAnimationFrame(step):0};
+    step();
+  }
+  // Compare's still moment: a fifth of a second into the fade, the right card as solid as its fade has made it by then
+  function pose(on){
+    stage.classList.toggle('posed',on);
+    if(on)stage.style.setProperty('--posed',curveAt(CURVES[ease],Math.min(1,POSE_MS/dur())).toFixed(3));
+  }
+  function refresh(){
+    drawGraph();
+    if(mode==='inside')placeDot();
+    if(stage.classList.contains('posed'))pose(true);
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    // Leaving Compare's held moment shows the card as it now is, at once, with no fade
+    if(was==='compare'&&mode!=='compare'){card.style.setProperty('transition','none','important');pose(false);void card.offsetWidth;card.style.removeProperty('transition');}
+    pose(mode==='compare'&&!(loopTog.checked&&motionOk));
+    refresh();
+    if(mode==='inside'&&motionOk)ride();
+  });
+
+  // The box changes size with the window, and its words with the site font once it has loaded: the graph is drawn again
+  const redraw=new ResizeObserver(()=>{if(mode==='inside')refresh()});redraw.observe(graph);redraw.observe(lblClear);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  // Loop off in Compare: the right card is held once the play under way is over (one fading out fades in again, then holds)
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(mode==='compare'&&card.classList.contains('in'))later(()=>pose(true),dur()+700);
+    refresh();
+  });
+  slowTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('speed-seg',d=>{ms=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
   apply();
+  drawGraph();
 </script>
 </body>
 </html>
