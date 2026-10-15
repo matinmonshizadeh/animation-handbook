@@ -642,9 +642,16 @@ test('the counts written in the issue template, the 404 page and the sitemap mat
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
   assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
   assert.equal(numberIn(read(path.join(ROOT, '404.html')), />Browse all (\d+) animations</), cards, '404.html: the Browse all link');
-  // The sitemap lists one URL more than the total: the home page.
-  const urls = count(read(path.join(ROOT, 'sitemap.xml')), '<url>');
-  assert.equal(urls, cards + 1, 'sitemap.xml lists the home page and every animation');
+  // The sitemap lists two URLs more than the total: the home page and the Famous effects page, first and in that order, each
+  // address once.
+  const sitemap = read(path.join(ROOT, 'sitemap.xml'));
+  assert.equal(count(sitemap, '<url>'), cards + 2, 'sitemap.xml lists the home page, the Famous effects page and every animation');
+  const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
+  const locs = [...sitemap.matchAll(/<loc>([^<]*)<\/loc>/g)].map(m => m[1]);
+  assert.deepEqual(locs.slice(0, 2), [LIVE, `${LIVE}famous/`], 'the home page, then Famous effects');
+  assert.equal(new Set(locs).size, locs.length, 'each address once');
+  const famousLine = sitemap.split('\n').find(line => line.includes(`<loc>${LIVE}famous/</loc>`)) || '';
+  assert.match(famousLine, /<\/loc><lastmod>\d{4}-\d{2}-\d{2}<\/lastmod><changefreq>monthly<\/changefreq><priority>0\.8<\/priority><\/url>\s*$/, 'Famous effects: monthly, priority 0.8');
 });
 
 // GitHub Pages serves 404.html at every address it has no file for, at any depth, so a relative address in it would
@@ -875,4 +882,16 @@ test('the home page keeps its GitHub button on phones as a round star, and leave
   assert.ok(has('.gh-c', ['display:none']), 'and the star count goes');
   assert.ok(cssRules(between(css, '@media(min-width:601px) and (max-width:620px){', '}}') + '}').some(rule => rule.selector === '.top .nav .lnk'),
     'from 601px to 620px the two text links make room for it');
+});
+
+// The Famous effects page (famous/) is reached from the home page's footer until the tab pass adds it to the top bar
+// (docs/superpowers/specs/2026-10-13-famous-effects-design.md); opened from disk, the link names famous/index.html, as the
+// cards name their pages' index.html. With three links the footer's row wraps on the narrowest phones.
+test('the home page footer links the Famous effects page', () => {
+  const footer = between(HOME, '<footer class="wrap foot">', '</footer>');
+  assert.equal(count(footer, '<a class="lnk" href="famous/">Famous effects</a>'), 1, 'one Famous effects link in the footer');
+  assert.ok(HOME.includes(`if(FROM_DISK)document.querySelectorAll('a[href="famous/"]').forEach(a=>a.setAttribute('href','famous/index.html'));`),
+    'opened from disk, the link opens famous/index.html');
+  assert.ok(cssRules(between(HOME, '<style>', '</style>')).some(rule => rule.selector === '.foot .nav' && /(^|;)\s*flex-wrap:\s*wrap/.test(rule.body)),
+    'the footer links wrap on the narrowest phones');
 });
