@@ -59,3 +59,4 @@ const CLIPS = {
 - [Slide Up Reveal](../slide-up-reveal/) — text rises from behind an invisible edge
 - [Split Text Reveal](../split-text-reveal/) — text appears piece by piece
 - [Fade In / Fade Out](../fade-in-out/) — a plain fade instead of a shape
+- [Ink Spread Reveal](../ink-spread-reveal/) — blots of ink spread and merge to uncover a picture

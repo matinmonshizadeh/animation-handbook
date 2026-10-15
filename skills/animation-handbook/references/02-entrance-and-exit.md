@@ -1,6 +1,6 @@
 # 02 · Entrance & Exit
 
-Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. 14 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers. 15 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -18,6 +18,7 @@ Element-level animations for arriving and departing — fades, slides, reveals, 
 - [Bounce In](#bounce-in)
 - [Rotate In](#rotate-in)
 - [Shatter Effect](#shatter-effect)
+- [Ink Spread Reveal](#ink-spread-reveal)
 
 ## Fade In / Fade Out
 
@@ -312,3 +313,23 @@ Add a shatter effect to [the card or picture you want to break]. When it plays, 
 - Speed: Slow · **Normal** · Fast. How long each piece's flight takes: slow is 1700ms, normal 1100ms and fast 700ms; the cracks take about a third of that before the break.
 - Shows the cracks: **on** · off. Draws the cracks across the card, ring by ring from the impact, before it breaks; off, it breaks at once.
 - Tumbles in 3D: **on** · off. The pieces flip over and fly toward the viewer; off, they spin flat.
+
+## Ink Spread Reveal
+
+Ink drops spread and merge until the picture shows. Best for art and intros.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/ink-spread-reveal/
+- How it runs: plays once
+- Good for: Art and portfolio sites · Page intros · Featured pictures
+- Avoid on: Forms · Rows of small pictures
+
+**Prompt**
+
+Add an ink spread reveal to [the picture or section you want to uncover]. Start with it hidden under a plain paper-colored layer, then let drops of ink land and spread outward as blots that merge until the whole picture shows. Each blot grows quickly at first and slows as it soaks in, like ink on damp paper. Give the blots uneven outlines, as rough as the settings choose, and grow each one by scaling its shape, not redrawing it; when the settings include it, run a dark ink edge just ahead of the picture. If the visitor has reduced motion turned on, fade the picture in instead. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Where the ink lands: One drop · **Several drops** · From a corner. One drop lands in the middle; several drops are three that land in turn across the picture; from a corner, three drops land one after another from the top left toward the bottom right.
+- Speed: Slow · **Normal** · Fast. How long it takes to cover the picture: slow is about 3.6 seconds (each blot grows for 2.6 seconds, the drops half a second apart), normal 2.5 seconds (1.8 seconds, a third of a second apart) and fast 1.5 seconds (1.1 seconds, a fifth of a second apart).
+- Edge: Smooth · **Ragged** · Splashy. Smooth grows round circles; ragged lets each outline wander by about a tenth of its radius; splashy adds nine small drops around each blot (five on phones).
+- Dark ink edge: **on** · off. A dark copy of each blot, a little larger, shows as a rim just ahead of the picture; off, the picture shows with no rim.
