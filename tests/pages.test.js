@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { sections, table } = require('./helpers/markdown.js');
 const vm = require('node:vm');
+const { execFileSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -19,6 +20,17 @@ const between = (s, from, to) => {
   if (start < 0) return '';
   const end = s.indexOf(to, start + from.length);
   return s.slice(start, end < 0 ? undefined : end);
+};
+// The text inside the braces of the first block that starts with `header` (which ends with the block's opening brace), the braces
+// matched, so a rule after the block's closing brace is not part of it ('' when there is no such block).
+const blockOf = (s, header) => {
+  const start = s.indexOf(header);
+  if (start < 0) return '';
+  for (let i = start + header.length, depth = 1; i < s.length; i++) {
+    if (s[i] === '{') depth++;
+    else if (s[i] === '}' && --depth === 0) return s.slice(start + header.length, i);
+  }
+  return '';
 };
 const decode = s => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 // The rules of a stylesheet as { selector, body }: comments removed, rules inside @media and @supports included.
@@ -295,6 +307,106 @@ for (const d of steps) {
   });
 }
 
+// The pages the switch tests cover. FINAL GATE: while the rollout runs these are the pages that have the switch; at integration
+// this line becomes `const SWITCHED = steps;`, so an animation page without the switch fails
+// (docs/superpowers/specs/2026-10-13-see-inside-compare-rollout-design.md, section 4, item 5).
+const SWITCHED = steps.filter(d => pageOf(d).includes('data-hb-modes'));
+// The mode switch (See inside and Compare), exactly as in the template, between the Watch step's heading and its stage, with
+// a note for See inside and one for Compare after the player bar, both hidden until their mode is pressed.
+const MODES = '<div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes><button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button><button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button><button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button></div>';
+// The notes box exactly: the See inside note, then the Compare note, each a direct child of the box and hidden at first.
+const NOTES_BOX = /<div class="hb-mode-notes" aria-live="polite"><p data-hb-for="inside" hidden>((?:(?!<\/p>)[\s\S])*)<\/p><p data-hb-for="compare" hidden>((?:(?!<\/p>)[\s\S])*)<\/p><\/div>/;
+const sentencesIn = html => decode(html.replace(/<[^>]+>/g, '')).split(/[.!?](?:\s|$)/).filter(s => s.trim()).length;
+// The index of the bracket that closes the one at `at` in a script (round, square and curly brackets counted together),
+// stepping over strings, template text (its ${…} parts are read as code), comments and regular expressions; -1 when it is
+// never closed.
+function closingOf(src, at) {
+  let depth = 0;
+  for (let i = at; i < src.length; i++) {
+    const c = src[i];
+    if (c === '"' || c === "'") {
+      for (i++; i < src.length && src[i] !== c; i++) if (src[i] === '\\') i++;
+    } else if (c === '`') {
+      for (i++; i < src.length && src[i] !== '`'; i++) {
+        if (src[i] === '\\') i++;
+        else if (src[i] === '$' && src[i + 1] === '{') { i = closingOf(src, i + 1); if (i < 0) return -1; }
+      }
+    } else if (c === '/' && src[i + 1] === '/') {
+      i = src.indexOf('\n', i);
+      if (i < 0) return -1;
+    } else if (c === '/' && src[i + 1] === '*') {
+      i = src.indexOf('*/', i + 2) + 1;
+      if (i < 1) return -1;
+    } else if (c === '/' && /(?:^|[(,=:[!&|?{};])\s*$/.test(src.slice(Math.max(0, i - 80), i))) {
+      // a regular expression: up to its closing slash, past escapes and character classes
+      for (i++; i < src.length && src[i] !== '/'; i++) {
+        if (src[i] === '\\') i++;
+        else if (src[i] === '[') while (++i < src.length && src[i] !== ']') if (src[i] === '\\') i++;
+      }
+    } else if ('([{'.includes(c)) depth++;
+    else if (')]}'.includes(c) && --depth === 0) return i;
+  }
+  return -1;
+}
+for (const d of SWITCHED) {
+  test(`${d.slug}: the mode switch is as in the template, before the stage, with a note for See inside and Compare`, () => {
+    const html = pageOf(d), flat = html.replace(/>\s+</g, '><');
+    assert.equal(count(html, 'data-hb-modes'), 1, 'one mode switch');
+    assert.ok(flat.includes(MODES), 'the mode switch is exactly as in the template');
+    const watch = between(flat, '<section class="hb-step hb-watch"', '</section>');
+    const at = watch.indexOf(MODES);
+    const stageAt = watch.search(/<div class="stage[\s"]/);
+    assert.ok(stageAt > -1 && at > watch.indexOf('<div class="hb-step-head">') && at < stageAt, 'between the heading and the stage');
+    const notes = between(watch, '<div class="hb-mode-notes" aria-live="polite">', '</div>');
+    assert.ok(notes && watch.indexOf(notes) > watch.indexOf('<div class="hb-player">'), 'the notes come after the player bar');
+    for (const mode of ['inside', 'compare']) assert.equal(count(notes, `<p data-hb-for="${mode}" hidden>`), 1, `one ${mode} note, hidden at first`);
+    for (const [, href] of notes.matchAll(/<a href="([^"]+)"/g)) assert.ok(isDemoDir(path.resolve(d.dir, href)), `note link ${href}`);
+  });
+
+  test(`${d.slug}: exactly two notes, See inside then Compare, each one or two sentences`, () => {
+    const flat = pageOf(d).replace(/>\s+</g, '><');
+    const box = between(flat, '<section class="hb-step hb-watch"', '</section>').match(NOTES_BOX);
+    assert.ok(box, 'the notes box holds the See inside note and then the Compare note, each a direct child, and nothing else');
+    for (const [i, name] of [[1, 'See inside'], [2, 'Compare']]) {
+      const n = sentencesIn(box[i]);
+      assert.ok(n >= 1 && n <= 2, `the ${name} note has ${n} sentences`);
+    }
+  });
+
+  test(`${d.slug}: the page's script listens for hb:mode, and its styles mark modes on the stage only`, () => {
+    const html = pageOf(d);
+    const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    assert.match(script, /document\.addEventListener\(\s*['"]hb:mode['"]/, 'the page script listens for hb:mode on document');
+    // The listener is in place once the script has run: no load or DOMContentLoaded handler holds it, whether written in the call
+    // or as a named function (a load listener for something else, such as Scrollspy Navigation's remeasure, is fine)
+    const listen = script.search(/document\.addEventListener\(\s*['"]hb:mode['"]/);
+    for (const m of script.matchAll(/addEventListener\(\s*['"](?:DOMContentLoaded|load)['"]\s*,\s*([A-Za-z_$][\w$]*)?\s*(\(|=>)?/g)) {
+      const name = m[1] && !m[2] && !/^(?:function|async)$/.test(m[1]) ? m[1].replace(/\$/g, '\\$') : '';
+      const def = name ? script.search(new RegExp(`function\\s+${name}\\s*\\(|\\b(?:const|let|var)\\s+${name}\\s*=`)) : -1;
+      const from = name ? (def > -1 ? script.indexOf('{', def) : -1) : m.index + m[0].indexOf('(');
+      if (from < 0) continue;
+      const to = closingOf(script, from);
+      assert.ok(!(listen > from && listen < (to < 0 ? script.length : to)),
+        `the hb:mode listener is not in place at the top level: it waits for the page to load (${m[0].trim()}…)`);
+    }
+    const style = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+    const marked = cssRules(style).flatMap(r => r.selector.split(',').map(s => s.trim())).filter(s => s.includes('data-hb-mode'));
+    for (const sel of marked) {
+      assert.ok(!/data-hb-mode=["']?normal/.test(sel), `no rule for Normal: ${sel}`);
+      assert.match(sel, /\.stage\[data-hb-mode="(?:inside|compare)"\]/, `a mode rule names the stage: ${sel}`);
+    }
+  });
+}
+
+test("on phones the mode switch's own rule outranks the rule for choice buttons, so its three buttons share the row equally", () => {
+  const bare = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const modes = cssRules(blockOf(bare, '@media(max-width:760px){')).find(r => r.selector === '.hb-page .seg.hb-modes button');
+  const seg = cssRules(blockOf(bare, '@media(max-width:600px){')).find(r => r.selector === '.hb-page .seg button');
+  assert.ok(modes && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(modes.body), 'up to 760px the mode buttons share their row equally (flex: 1 1 0)');
+  assert.ok(seg && /(^|;)\s*flex:/.test(seg.body), 'the phone rule for choice buttons sets flex too');
+  assert.ok(outranks(specificity(modes.selector), specificity(seg.selector)), `${modes.selector} must outrank ${seg.selector}`);
+});
+
 // The do-it pages played with the pointer, where Show me was once the only thing a keyboard could do, can be played from the
 // keyboard too: the stage holds something that takes keyboard focus (a button, a link or an element with tabindex="0"), and
 // the page answers keys (its own script listens for keydown, or its own style has a :focus-visible rule). Every page that
@@ -527,6 +639,147 @@ test('the shared stylesheet gives a stage that grows with its text the same 260p
 
 test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
+});
+
+test('the shared stylesheet draws the mode switch beside the Watch heading and the note beside a short player bar from 761px, and hides an empty notes box', () => {
+  const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css'));
+  const rules = cssRules(css);
+  const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
+  for (const sel of ['.hb-page .seg.hb-modes', '.hb-mode-notes p']) assert.ok(has(sel), sel);
+  // The empty box is the aria-live region that makes a screen reader read each note out, so it must stay rendered: display:none
+  // would take it out of the accessibility tree, and the first note shown might not be announced. It is hidden to the eye and taken
+  // out of the flow instead, which takes no room and adds no gap. The box counts as empty until a note is un-hidden, and a note is
+  // whatever element has data-hb-for (the script un-hides those), wherever it sits in the box.
+  const emptyNotes = rules.filter(r => r.selector === '.hb-mode-notes:not(:has([data-hb-for]:not([hidden])))');
+  assert.ok(emptyNotes.some(r => /(^|;)\s*position:\s*absolute\s*(;|$)/.test(r.body) && /(^|;)\s*clip-path:\s*inset\(50%\)\s*(;|$)/.test(r.body)),
+    'an empty notes box takes no room: it is taken out of the flow and clipped away');
+  assert.ok(!emptyNotes.some(r => /(^|;)\s*display:\s*none\s*(;|$)/.test(r.body)),
+    'an empty notes box stays rendered, so the first note shown is announced by the live region');
+  assert.ok(rules.some(r => r.selector === '.hb-mode-notes a' && /(^|;)\s*text-decoration:\s*underline\s*(;|$)/.test(r.body)),
+    'a link in a note is underlined');
+  // The switch is also a .seg, and the .seg rules (the gap, and the phone rule for .seg buttons) come later in the file: the
+  // switch's own rules name .seg.hb-modes so that they outrank them and the three buttons are equal on phones.
+  assert.ok(rules.some(r => r.selector === '.hb-page .seg.hb-modes button' && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(r.body)),
+    'up to 760px the three mode buttons share their row equally, outranking the phone rule for .seg buttons');
+  assert.match(css, /@media\(min-width:761px\)\{\s*\.hb-watch:has\(> \.hb-modes\)\{display:grid/, 'from 761px the switch shares the heading row');
+  // From 761px a player bar with one or two controls leaves room beside it, so the note for the mode in view sits next to the bar,
+  // under the switch, and is on a laptop's first screen: three columns (the player bar's own width, the room left over, the switch's
+  // width); the heading spans the first two, the player bar keeps the start of its row (a note taller than the bar grows the row,
+  // not the bar, so the bar does not move) and the note spans the other two. A bar with a third control, or with the note that
+  // reduced motion adds (looked for itself: a bar with one control and that note has only two children), keeps the two columns,
+  // the full row and the note under it. Up to 760px the note stays under the player bar: no other rule places it. The blocks
+  // are taken with their braces matched, so a rule after a block's closing brace is not counted as inside it.
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const wide = blockOf(bare, '@media(min-width:761px){');
+  const phones = blockOf(bare, '@media(max-width:760px){');
+  const SHORT = '.hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note))';
+  for (const [what, text] of [
+    ['three columns: the player bar, the room left over, the switch', `${SHORT}{grid-template-columns:auto minmax(0,1fr) auto}`],
+    ['the heading runs up to the switch\'s column (the first two of three)', '.hb-watch:has(> .hb-modes) > .hb-step-head > div > h2{grid-row:1;grid-column:1/-2;'],
+    ['the switch is in the third column', `${SHORT} > .hb-modes{grid-column:3}`],
+    ['the player bar starts its row and stays at the start of it when the row grows', `${SHORT} > .hb-player{grid-column:1;align-self:start}`],
+    ['the note spans the other two columns', `${SHORT} > .hb-mode-notes{grid-column:2/-1;`],
+    ['a bar with a third control keeps the two columns (the switch beside the heading, the rest on the full row)', '.hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;']
+  ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
+  assert.ok(wide.includes('.hb-watch:has(> .hb-modes) > .hb-modes{grid-row:1;grid-column:2;flex-wrap:nowrap;'), 'the 761px block is the one that has the switch beside the heading');
+  assert.equal(count(wide, '> .hb-mode-notes{'), 1, 'one rule places the note beside the player bar, and it is in the 761px block');
+  assert.equal(count(css, '> .hb-mode-notes{'), 1, 'no other rule places the note, so phones keep it under the player bar');
+  assert.ok(phones.includes('.hb-page .seg.hb-modes button{flex:1 1 0'), 'the block up to 760px is found (it holds the equal mode buttons)');
+  assert.ok(!/\.hb-watch|\.hb-mode-notes|\.hb-player/.test(phones), 'up to 760px nothing makes the Watch step a grid or places the note or the player bar');
+});
+
+test('from 761px the help line runs under the heading and the switch, as wide as without the switch, and the heading row is no taller than the heading line', () => {
+  // The Watch step's heading box and the box around its heading and help line give way (display: contents), so the number, the
+  // heading and the help line take places on the step's grid: the heading in the first row up to the switch's column, the help line
+  // in the second row across every column, as wide as on a page without the switch, both as far in as the number and the heading
+  // box's gap put them there. Only those two plain boxes give way: no heading, paragraph or section loses its box, so nothing loses
+  // its meaning for screen readers. The heading row is no taller than the heading line, so the stage and the player bar stay where
+  // they are on a page without the switch: the switch is stretched to that line (from 761px its buttons drop the 44px minimum they
+  // keep up to 760px), the number spans both rows (it reaches into the help line's row there too), and the help line is pulled up
+  // by the gap between the step's rows less its own 4px. That gap is set in one place, the custom property --hb-watch-gap (12px on
+  // short laptop screens), and the pull reads it, so the two cannot drift apart. With a coarse pointer (a phone held sideways, a
+  // tablet) each mode button's tap area reaches 10px above and below it, an empty ::after that moves nothing, so even with the
+  // smallest heading line a finger gets 44px. The values are read from the rules they follow, so a change to one of those fails
+  // here. Every rule from 761px is for a Watch step that has the switch, so a page without it is drawn as before.
+  const bare = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const wide = blockOf(bare, '@media(min-width:761px){');
+  const coarse = blockOf(bare, '@media(min-width:761px) and (pointer:coarse){');
+  const shortLaptop = blockOf(bare, '@media(min-width:601px) and (max-height:760px){');
+  const outside = bare.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, ''); // the rules outside every @media block
+  // The first px value of a property in the one rule written for exactly this selector
+  const px = (css, selector, prop) => {
+    const found = cssRules(css).filter(r => r.selector === selector && new RegExp(`(^|;)\\s*${prop}:`).test(r.body));
+    assert.equal(found.length, 1, `one ${selector} rule sets ${prop}`);
+    return Number(found[0].body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*(-?[\\d.]+)px`))[1]);
+  };
+  // The selectors of a selector list (commas inside brackets, as in :has(a, b), do not split it)
+  const selectorsOf = list => {
+    const out = [];
+    let depth = 0, from = 0;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] === '(') depth++;
+      else if (list[i] === ')') depth--;
+      else if (list[i] === ',' && depth === 0) { out.push(list.slice(from, i).trim()); from = i + 1; }
+    }
+    return [...out, list.slice(from).trim()];
+  };
+  const indent = px(outside, '.hb-num', 'width') + px(outside, '.hb-step-head', 'gap');
+  const own = px(outside, '.hb-step-head p', 'margin');
+  const W = '.hb-watch:has(> .hb-modes)';
+  assert.ok(outside.includes('.hb-watch{--hb-watch-gap:16px;gap:var(--hb-watch-gap)}'), 'the Watch step\'s gap is --hb-watch-gap, 16px');
+  assert.ok(shortLaptop.includes('.hb-watch{--hb-watch-gap:12px}'), 'on a short laptop screen --hb-watch-gap is 12px');
+  for (const rule of cssRules(bare).filter(r => selectorsOf(r.selector).includes('.hb-watch'))) {
+    assert.ok(!/(^|;)\s*(row-)?gap:\s*(?!var\(--hb-watch-gap\))/.test(rule.body), `the Watch step's gap is set only through --hb-watch-gap: .hb-watch{${rule.body}}`);
+  }
+  for (const [what, text] of [
+    ['the heading box and the box inside it give way', `${W} > .hb-step-head,${W} > .hb-step-head > div{display:contents}`],
+    ['the number is in the first column over the heading row and the help line row, at the top', `${W} > .hb-step-head > .hb-num{grid-row:1/span 2;grid-column:1;align-self:start}`],
+    [`the heading is in the first row up to the switch's column, ${indent}px in`, `${W} > .hb-step-head > div > h2{grid-row:1;grid-column:1/-2;margin-left:${indent}px}`],
+    [`the help line is in the second row across every column, ${indent}px in, pulled up by the step's gap less its own ${own}px`,
+      `${W} > .hb-step-head > div > p{grid-row:2;grid-column:1/-1;margin:calc(${own}px - var(--hb-watch-gap)) 0 0 ${indent}px}`],
+    ['the switch is in the heading row, stretched to the heading line', `${W} > .hb-modes{grid-row:1;grid-column:2;flex-wrap:nowrap;align-self:stretch}`],
+    ['its buttons drop the 44px minimum', `${W} > .hb-modes button{min-height:0}`]
+  ]) assert.ok(wide.includes(text), `from 761px: ${what}`);
+  assert.ok(!bare.includes('@media(min-width:761px) and (max-height:760px)'), 'short laptop screens need no pull of their own: --hb-watch-gap carries their gap');
+  for (const [what, text] of [
+    ['a mode button holds its tap area', `${W} > .hb-modes button{position:relative}`],
+    ['the tap area reaches 10px above and below the button, and no wider', `${W} > .hb-modes button::after{content:"";position:absolute;inset:-10px 0}`]
+  ]) assert.ok(coarse.includes(text), `from 761px with a coarse pointer: ${what}`);
+  // The tap area counts from inside the button's border: the smallest heading line (the heading's smallest font size, everywhere or
+  // on a short laptop screen, times its line height) less the two borders, plus 10px above and 10px below.
+  const [, least, lineHeight] = cssRules(outside).find(r => r.selector === '.hb-step-head h2').body.match(/font:\s*\d+\s+clamp\(([\d.]+)px,[^)]*\)\/([\d.]+)/);
+  const line = Math.min(Number(least), px(shortLaptop, '.hb-step-head h2', 'font-size')) * Number(lineHeight);
+  const tap = line - 2 * px(outside, '.hb-page .seg button', 'border') + 2 * 10;
+  assert.ok(tap >= 44, `with the smallest heading line (${line}px) a mode button's tap area is ${tap}px, under 44px`);
+  const contents = cssRules(bare).filter(r => /(^|;)\s*display:\s*contents\s*(;|$)/.test(r.body)).flatMap(r => selectorsOf(r.selector));
+  assert.deepEqual(contents, [`${W} > .hb-step-head`, `${W} > .hb-step-head > div`], 'only the two plain boxes give way');
+  assert.equal(count(bare, '.hb-modes button{min-height:0}'), 1, 'only from 761px do the mode buttons drop the 44px minimum');
+  assert.equal(px(outside, '.hb-page .seg button', 'min-height'), 44, 'up to 760px the mode buttons keep the 44px minimum of choice buttons');
+  for (const css of [wide, coarse]) {
+    for (const rule of cssRules(css)) for (const sel of selectorsOf(rule.selector)) assert.ok(sel.startsWith(W), `for a Watch step with the switch: ${sel}`);
+  }
+});
+
+// The learning path and the idea lessons wait on feat/learn-pilot (docs/superpowers/specs/2026-10-13-see-inside-compare-rollout-design.md,
+// section 5): no tracked page links into learn/ and the shared stylesheet keeps none of their rules. Delete this test when the
+// learning path resumes (its first step reverts the clean-up commit, which takes this test away too).
+test('while the learning path waits, no tracked page links into learn/ and the shared stylesheet has none of its rules', () => {
+  let pages;
+  try {
+    pages = execFileSync('git', ['ls-files', '--', '*.html'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split(/\r?\n/).filter(Boolean);
+  } catch {
+    // No git here (a copy from a source zip): every page in the folder, outside git's, the agents' and the packages' folders
+    const walk = dir => fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).flatMap(e => e.isDirectory()
+      ? (['.git', '.claude', '.superpowers', 'node_modules'].includes(e.name) ? [] : walk(path.join(dir, e.name)))
+      : e.name.endsWith('.html') ? [path.join(dir, e.name)] : []);
+    pages = walk('');
+  }
+  assert.ok(pages.length > 100, `the tracked pages are found (${pages.length})`);
+  const linking = pages.filter(f => /href="(?:(?:\.\.\/)+|\/animation-handbook\/)?learn\//.test(read(path.join(ROOT, f))));
+  assert.deepEqual(linking, [], 'pages that link into learn/');
+  assert.ok(!fs.existsSync(path.join(ROOT, 'learn')), 'the learn/ folder is gone');
+  const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const name of ['hb-lesson', 'hb-why', 'hb-seen', 'hb-learn', 'hb-path']) assert.ok(!css.includes(name), `no ${name} rule`);
 });
 
 test('the home page uses Schibsted Grotesk and asks what to animate', () => {

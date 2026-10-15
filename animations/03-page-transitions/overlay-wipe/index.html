@@ -23,7 +23,7 @@
   <style>
     :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--panel:#b98cff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -50,9 +50,71 @@
     .pstat span{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+    /* The small site: its nav row over its page area. In Compare a copy of it, the twin, sits beside it. */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.steps,.lbl{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .lbl{padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the panel see-through, so the page changing behind it shows, and under the page area the change's three steps
+       as numbered bars on one time line, with a marker that moves through them while a change runs. At rest the panel stands
+       over the page, with the marker where the page changes. */
+    .stage[data-hb-mode="inside"] .panel{opacity:.55}
+    /* With two panels the light one is fainter, so the page behind both still reads */
+    .stage[data-hb-mode="inside"] .panel.back{opacity:.3}
+    .stage[data-hb-mode="inside"].posed .wipe{display:block}
+    .stage[data-hb-mode="inside"] .steps{display:block}
+    .stage[data-hb-mode="inside"] .steps .lbl{display:inline-block}
+    /* The strip takes room from the page area, so the page keeps the tighter spacing of short windows (and on phones and short
+       windows only its eyebrow and heading); the panel's name rides in the panel's top corner, clear of the heading that shows through */
+    .stage[data-hb-mode="inside"] .pc{gap:8px}
+    .stage[data-hb-mode="inside"] .gi{padding:12px}
+    .stage[data-hb-mode="inside"] .panel.front{place-items:start end;padding:10px 18px}
+    .steps{flex:none;padding:6px 14px 8px;background:#111114;border-top:1px solid var(--ui-border)}
+    .bars{position:relative;height:28px}
+    .bar{position:absolute;top:8px;height:18px;border-radius:4px;background:var(--panel);color:#0b0b0d;font:700 12px/18px var(--hb-font);
+      text-align:center;overflow:hidden}
+    .bar.swap{background:repeating-linear-gradient(135deg,var(--panel) 0 5px,color-mix(in srgb,var(--panel) 35%,#111114) 5px 9px)}
+    /* The "2" sits on a chip of the panel's own color, so it reads as well as the "1" and the "3" over the dark stripes */
+    .bar .chip{display:inline-block;padding:0 4px;border-radius:3px;line-height:14px;background:var(--panel)}
+    .bar.lead{top:0;height:6px;background:color-mix(in srgb,var(--panel) 45%,#fff)}
+    .mark{position:absolute;left:0;top:0;width:2px;height:28px;background:#f4f4f2}
+    .key{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
+    /* On the strip's own dark ground the key needs no backing of its own (and so keeps to two rows on a small phone) */
+    .key .k{padding:2px 0}
+    /* Compare: on the left the copy, which changes page at once; on the right the real site, whose panel sweeps over. At rest the
+       real site's panel stands half way across, so the still picture shows the sweep; with two panels the light one stands a
+       quarter further in, so it shows beside the front one. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .wipe{display:block}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .panel{transform:var(--half)}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .panel.back{transform:var(--lead)}
+    .side{position:absolute;bottom:10px;z-index:11}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows (a phone held sideways too) leave the page area short: the page keeps only its eyebrow and heading,
+       inside its area in See inside and clear of the half names in Compare */
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pgrid,.stage[data-hb-mode="inside"] .pstat{display:none}
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
   </style>
-  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=8">
-  <script src="../../../assets/js/demo-page.js?v=8" defer></script>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
 </head>
 <body class="hb" data-hb-kind="do" data-hb-autoplay>
 <nav class="hb-bar" aria-label="Animation Handbook">
@@ -72,16 +134,33 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area">
-        <div class="wipe" id="wipe" aria-hidden="true"><span class="panel back" id="back"></span><span class="panel front" id="front"><b class="pname" id="pname"></b></span></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area">
+          <div class="wipe" id="wipe" aria-hidden="true"><span class="panel back" id="back"></span><span class="panel front" id="front"><b class="pname" id="pname"></b></span></div>
+        </div>
       </div>
+      <div class="steps" aria-hidden="true">
+        <div class="bars"><span class="bar lead" id="b-lead-in"></span><span class="bar lead" id="b-lead-out"></span><span class="bar" id="b-in">1</span><span class="bar swap" id="b-swap"><span class="chip">2</span></span><span class="bar" id="b-out">3</span><span class="mark" id="mark"></span></div>
+        <p class="key"><span class="lbl k" data-hb-caption>1 Panel comes in</span><span class="lbl k" data-hb-caption>2 Page changes behind it</span><span class="lbl k" data-hb-caption>3 Panel leaves</span><span class="lbl k" id="l-lead" data-hb-caption hidden>Light bar: the second panel</span></p>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Switches at once</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Panel sweeps over</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the panel is see-through, so the page changing behind it shows; the bars are the change's three steps, and the marker moves through them. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once: the page simply changes; Panel sweeps over: a panel covers it while it changes. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -176,6 +255,7 @@
     {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
     {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div><div><b>3</b><span>Continents</span></div></div></div>`},
   ];
+  const box=document.getElementById('box'),stage=box.parentElement;
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),wipe=document.getElementById('wipe');
   const front=document.getElementById('front'),back=document.getElementById('back'),nameEl=document.getElementById('pname');
   const twoTog=document.getElementById('two-tog'),slowTog=document.getElementById('slow-tog');
@@ -183,6 +263,10 @@
   // Where a panel waits before it sweeps in, and where it goes when it sweeps out, for each direction
   const FROM={ltr:'translateX(-100%)',rtl:'translateX(100%)',btt:'translateY(100%)',ttb:'translateY(-100%)'};
   const TO={ltr:'translateX(100%)',rtl:'translateX(-100%)',btt:'translateY(-100%)',ttb:'translateY(100%)'};
+  // Half way in, for each direction: where Compare's still picture holds the panel; with two panels the light one, which leads,
+  // stands a quarter further in
+  const HALF={ltr:'translateX(-50%)',rtl:'translateX(50%)',btt:'translateY(50%)',ttb:'translateY(-50%)'};
+  const LEAD={ltr:'translateX(-25%)',rtl:'translateX(25%)',btt:'translateY(25%)',ttb:'translateY(-25%)'};
   const EASE='cubic-bezier(.7,0,.3,1)';
   let current=0,animating=false,dir='ltr',sweepMs=400,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
@@ -192,6 +276,27 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+  // Compare's first half: the same small site, changing page at once. A copy built from the same pages, with no ids and no
+  // buttons, out of the Tab order and hidden from screen readers; it changes page the moment a change of the real site starts (a
+  // click, Show me, Reset), so one input drives both halves.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){twinPages.forEach((el,i)=>el.classList.toggle('active',i===n));twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  // See inside's bars, on a time line of 1.6 seconds (three times that in slow motion), and its marker
+  const mark=document.getElementById('mark'),bars=mark.parentElement,lblLead=document.getElementById('l-lead');
+  const B={in:'b-in',swap:'b-swap',out:'b-out',leadIn:'b-lead-in',leadOut:'b-lead-out'};
+  Object.keys(B).forEach(k=>{B[k]=document.getElementById(B[k])});
+  const SPAN=1600;
+  let mode='normal',changeAt=0,markRaf=0;
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Inside, shown still: the see-through panel covers the page while it changes, and the bars are the three steps of the change.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still: Switches at once simply changes page; Panel sweeps over has its panel caught halfway across.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -223,6 +328,7 @@
     pages.forEach((el,i)=>{rest(el,i===n);el.getAnimations().forEach(a=>a.cancel())});
     clearWipe();
     updateNav(n);
+    showTwin(n);
   }
 
   // Ends a change: the demo is idle again, and a Show me run goes on to its next step
@@ -230,12 +336,14 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     animating=false;
     showPage(current);
+    pose();
   }
 
   // One panel slides from `from` to `to` over `ms`, after waiting `wait` ms, and holds where it ends
@@ -246,6 +354,9 @@
   function navigate(next,then){
     if(next===current||animating)return;
     const prev=current;current=next;updateNav(next);
+    // The copy changes page at once; the pose goes, and the marker starts with the change
+    showTwin(next);stage.classList.remove('posed');changeAt=performance.now();
+    if(mode==='inside'&&motionOk)rideMark();
     afterMove=then||null;animating=true;
     const oldEl=pages[prev],newEl=pages[next];
     if(!motionOk){
@@ -281,19 +392,68 @@
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A sweep already under way finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;pose()});
+
+  // One change, in ms, as navigate() runs it: the front panel comes in after the lead, the page is covered for the stay (it changes
+  // at the start of it), then the front panel leaves; with two panels the lighter one comes in first and leaves last
+  function plan(){
+    const ms=sweepMs*(slowTog.checked?3:1),stay=ms/4,lead=twoTog.checked?ms/4:0;
+    return{ms,stay,lead,total:2*ms+stay+2*lead};
+  }
+  function drawSteps(){
+    const p=plan(),span=SPAN*(slowTog.checked?3:1);
+    const set=(el,from,len)=>{el.style.left=(100*from/span).toFixed(2)+'%';el.style.width=(100*len/span).toFixed(2)+'%'};
+    set(B.in,p.lead,p.ms);set(B.swap,p.lead+p.ms,p.stay);set(B.out,p.lead+p.ms+p.stay,p.ms);
+    set(B.leadIn,0,p.ms);set(B.leadOut,2*p.lead+p.ms+p.stay,p.ms);
+    B.leadIn.hidden=B.leadOut.hidden=lblLead.hidden=!twoTog.checked;
+  }
+  // The marker at time t of a change, on the bars' time line
+  function placeMark(t){
+    const span=SPAN*(slowTog.checked?3:1);
+    mark.style.transform=`translateX(${(bars.clientWidth*Math.min(t,span)/span).toFixed(1)}px)`;
+  }
+  function rideMark(){
+    cancelAnimationFrame(markRaf);
+    const step=()=>{const t=performance.now()-changeAt;placeMark(t);markRaf=t<plan().total&&mode==='inside'?requestAnimationFrame(step):0};
+    step();
+  }
+  // At rest in See inside and Compare the panel stands still at a telling moment: in See inside over the page, see-through,
+  // with the marker where the page changes; in Compare half way across the real site. A change lifts the pose.
+  function pose(){
+    const on=mode!=='normal'&&!animating&&!wayBack;
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    nameEl.textContent=PAGES[(current+1)%PAGES.length].name;
+    back.hidden=!twoTog.checked;
+    stage.style.setProperty('--half',HALF[dir]);stage.style.setProperty('--lead',LEAD[dir]);
+    // A change's last frame can still be waiting for the marker: it would move it off the pose
+    cancelAnimationFrame(markRaf);markRaf=0;
+    const p=plan();placeMark(p.lead+p.ms);
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    drawSteps();
+    pose();
+  });
+  // The posed marker is placed in pixels, so a new size of the window (a phone turned) places it again
+  addEventListener('resize',()=>{if(mode==='inside'&&!animating&&!wayBack)pose()});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      drawSteps();pose();
     }));
   }
   choices('dir-seg',d=>{dir=d.dir});
   choices('color-sw',d=>{document.documentElement.style.setProperty('--panel',d.c)});
   choices('speed-seg',d=>{sweepMs=+d.ms});
+  twoTog.addEventListener('change',()=>{drawSteps();pose()});
+  slowTog.addEventListener('change',()=>{drawSteps();pose()});
   showPage(0);
+  drawSteps();
 </script>
 </body>
 </html>

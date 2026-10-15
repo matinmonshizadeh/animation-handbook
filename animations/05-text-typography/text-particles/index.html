@@ -29,9 +29,30 @@
     .keys{position:absolute;inset:0;border-radius:11px;pointer-events:none}
     /* touch-action none: a finger dragged over the word pushes the dots instead of scrolling the page */
     canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+    /* See inside and Compare: plain words over the picture (the canvas draws the rest), which the pointer passes through */
+    .key,.springs,.side{display:none}
+    .lbl{position:absolute;padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    /* See inside's legend: two in the top corners (one under the other on phones) and one at the bottom, clear of Show me's ring */
+    .key{position:absolute;left:10px;right:10px;top:10px;justify-content:space-between;align-items:flex-start;gap:5px 8px;pointer-events:none}
+    .key .lbl{position:static}
+    .springs{left:10px;bottom:10px;max-width:calc(100% - 20px);white-space:normal}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .key{display:flex}
+    .stage[data-hb-mode="inside"] .springs,.stage[data-hb-mode="compare"] .side{display:block}
+    /* Compare: the soft glow behind each half's word */
+    .stage[data-hb-mode="compare"]{background:radial-gradient(ellipse 30% 46% at 25% 50%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),radial-gradient(ellipse 30% 46% at 75% 50%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),var(--bg)}
+    /* Phones: smaller words, and Compare's halves stacked (a word in a half as narrow as a phone's would be tiny) */
+    @media(max-width:600px){
+      .lbl{font-size:12px;padding:3px 7px}
+      .key{right:auto;flex-direction:column}
+      .side.second{left:10px;top:calc(50% + 8px)}
+      .stage[data-hb-mode="compare"]{background:radial-gradient(ellipse 60% 23% at 50% 25%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),radial-gradient(ellipse 60% 23% at 50% 75%,color-mix(in srgb,var(--glow) 14%,transparent),transparent 72%),var(--bg)}
+    }
   </style>
-  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=8">
-  <script src="../../../assets/js/demo-page.js?v=8" defer></script>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
 </head>
 <body class="hb" data-hb-kind="do" data-hb-autoplay>
 <nav class="hb-bar" aria-label="Animation Handbook">
@@ -51,13 +72,26 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer through the word, drag a finger across it (or Tab to it and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="keys" id="keys" tabindex="0" role="group" aria-label="Word of dots: use the arrow keys to push the dots"></div>
       <canvas id="cvs" role="img" aria-label="The word HELLO, made of small dots"></canvas>
+      <div class="key" aria-hidden="true"><p class="lbl k reach" data-hb-caption>Ring: how far the pointer pushes</p><p class="lbl k" data-hb-caption>Outline: the hidden letters</p></div>
+      <p class="lbl springs" aria-hidden="true" data-hb-caption>Lines: springs pull dots home in about a second</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Solid letters</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Dots that scatter</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the ring is how far the pointer pushes, and each line is a spring pulling a dot back to its home. The dots sit wherever the hidden letters cover a grid.</p>
+      <p data-hb-for="compare" hidden>Solid letters stay as they are wherever the pointer goes. Dots that scatter are pushed away from the pointer and spring back, so the word opens around it.</p>
     </div>
   </section>
 
@@ -167,35 +201,43 @@
   let text='HELLO',gapK=4.2,far=.42,pal='sunset',back='normal',W=0,H=0,fs=0,box={l:0,r:0,t:0,b:0},R=60,rad=1.6,cols=[],sq=false,N=0;
   let hx,hy,x,y,px,py,vx,vy,bk,dn,dnAny=false,L=[],user=null,touchId=null,run=null,ptr=null,mark=null,markA=0,lightAt=null,glow=0,calm=0;
   let raf=0,lastT=null,acc=0,still=true,ready=false,wantShow=false,DPR=1,redWas=reduce.matches;
-  // The word is drawn on a hidden canvas (86% of its width, 42% of its height at most); a dot is kept wherever a letter covers a point of an offset grid
+  // See inside and Compare: the mode on show, where sample() drew the word, the dots away from home, the parked pointer, whether a
+  // mouse is over the word, and Normal's dots kept while Compare shows; Compare's halves stack where the stage is a phone's
+  let mode='normal',org={x:0,y:0},away=new Int32Array(0),park=null,over=false,kept=null;const STACK=matchMedia('(max-width:600px)');
+  // The part of the stage the word fills: all of it, or in Compare the second half (the lower one where the halves stack)
+  function area(){return mode!=='compare'?{x:0,y:0,w:W,h:H,n:1}:STACK.matches?{x:0,y:H/2,w:W,h:Math.floor(H/2),n:2}:{x:W/2,y:0,w:Math.floor(W/2),h:H,n:2};}
+  // The word is drawn on a hidden canvas (86% of its width, 42% of its height at most); a dot is kept wherever a letter covers a point of an offset grid.
+  // In Compare it fills the second half with half the dots, and its points, box and start are moved into that half.
   function sample(){
-    if(!W||!H)return [];
-    const off=document.createElement('canvas');off.width=W;off.height=H;
+    const A=area();if(!A.w||!A.h)return [];
+    const off=document.createElement('canvas');off.width=A.w;off.height=A.h;
     const g=off.getContext('2d',{willReadFrequently:true}),ink=m=>[m.actualBoundingBoxLeft+m.actualBoundingBoxRight,m.actualBoundingBoxAscent+m.actualBoundingBoxDescent];
     const fit=s=>{g.font='900 '+s+'px '+FONT;g.letterSpacing=s*.04+'px';return g.measureText(text)},[w,h]=ink(fit(100));
-    if(!(w>0&&h>0))return [];fs=Math.min(100*W*.86/w,100*H*.42/h);
-    const m=fit(fs),[iw,ih]=ink(m);box={l:(W-iw)/2,r:(W+iw)/2,t:(H-ih)/2,b:(H+ih)/2};
-    g.fillStyle='#fff';g.fillText(text,box.l+m.actualBoundingBoxLeft,box.t+m.actualBoundingBoxAscent);
-    const bx=Math.max(0,Math.floor(box.l)-2),by=Math.max(0,Math.floor(box.t)-2),bw=Math.min(W,Math.ceil(box.r)+2)-bx,bh=Math.min(H,Math.ceil(box.b)+2)-by;
+    if(!(w>0&&h>0))return [];fs=Math.min(100*A.w*.86/w,100*A.h*.42/h);
+    const m=fit(fs),[iw,ih]=ink(m);box={l:(A.w-iw)/2,r:(A.w+iw)/2,t:(A.h-ih)/2,b:(A.h+ih)/2};org={x:box.l+m.actualBoundingBoxLeft,y:box.t+m.actualBoundingBoxAscent};
+    g.fillStyle='#fff';g.fillText(text,org.x,org.y);
+    const bx=Math.max(0,Math.floor(box.l)-2),by=Math.max(0,Math.floor(box.t)-2),bw=Math.min(A.w,Math.ceil(box.r)+2)-bx,bh=Math.min(A.h,Math.ceil(box.b)+2)-by;
     const data=g.getImageData(bx,by,bw,bh).data,grid=gap=>{const out=[],dy=gap*.866;
       for(let c=0,xx=bx+gap/2;xx<bx+bw;c++,xx+=gap/2)for(let yy=by+gap/2+(c&1)*dy;yy<by+bh;yy+=2*dy)
         if(data[(((yy|0)-by)*bw+(xx|0)-bx)*4+3]>128)out.push(xx,yy);
       return out};
     // At most 2,000 dots on phones and 6,000 elsewhere, counted at the smallest size; every size takes the same scale, so they stay apart
-    const s=Math.min(1.25,Math.max(.75,fs/180)),small=grid(3*s).length/2,cap=PHONE.matches?2000:6000;
+    const s=Math.min(1.25,Math.max(.75,fs/180)),small=grid(3*s).length/2,cap=(PHONE.matches?2000:6000)/A.n;
     const gap=gapK*s*(small>cap?Math.sqrt(small/cap)*1.02:1);
-    rad=gap*.38;return grid(gap);
+    rad=gap*.38;const pts=grid(gap);
+    if(A.x||A.y){for(let i=0;i<pts.length;i+=2){pts[i]+=A.x;pts[i+1]+=A.y;}box={l:box.l+A.x,r:box.r+A.x,t:box.t+A.y,b:box.b+A.y};org={x:org.x+A.x,y:org.y+A.y};}
+    return pts;
   }
   // New homes for the dots. With fly, each new dot starts where an old one is (in the same left-to-right order), so they flow into the new letters.
   function rebuild(fly){
     const pts=sample(),n=pts.length/2,o={N,x,y,vx,vy};
-    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));L=[0,0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);dn=new Uint8Array(n);
+    N=n;[hx,hy,x,y,px,py,vx,vy]=Array.from({length:8},()=>new Float32Array(n));L=[0,0,0,0].map(()=>new Int32Array(n));bk=new Uint8Array(n);dn=new Uint8Array(n);away=new Int32Array(n);
     for(let j=0;j<n;j++){
       const k=fly&&o.N?Math.floor(j*o.N/n):-1;
       hx[j]=pts[2*j];hy[j]=pts[2*j+1];bk[j]=Math.min(31,Math.max(0,(hx[j]-box.l)/(box.r-box.l)*32|0));x[j]=px[j]=k<0?hx[j]:o.x[k];y[j]=py[j]=k<0?hy[j]:o.y[k];
       if(k>=0){vx[j]=o.vx[k];vy[j]=o.vy[k];}
     }
-    R=far*Math.max(fs,120);calm=0;paint();cvs.setAttribute('aria-label','The word '+text+', made of small dots');
+    R=far*Math.max(fs,120);calm=0;paint();name();if(user===park)user=parkAt(); // the park moves to the new word's middle
     // Canvas text uses whatever font is ready: once the site font has loaded for these letters, the dots flow into it
     if(document.fonts&&!document.fonts.check(F100,text))document.fonts.load(F100,text).then(()=>{if(document.fonts.check(F100,text))rebuild(!reduce.matches)},()=>{});
     still=!(fly&&o.N)&&!user;
@@ -235,7 +277,7 @@
   function frame(ts){
     const t=(lastT===null?FRAME:Math.min(ts-lastT,50))*(slowTog.checked?1/3:1),red=reduce.matches;lastT=ts;
     // Reduced motion switched on: every dot goes home at once and a run ends (reading the setting here can swallow its change event)
-    if(red&&!redWas){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);run=null;markA=0;still=true;calm=0;}redWas=red;
+    if(red&&!redWas){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);run=null;markA=0;still=true;calm=0;}if(red!==redWas)words();redWas=red;
     if(run){run.t+=t;mark=run.at(Math.min(run.t,run.dur));if(run.t>=run.dur)run=null;}
     ptr=run?mark:user;if(ptr)lightAt=ptr;
     markA=ease(markA,run?1:0,.25,t);glow=ease(glow,ptr?1:0,.2,t);
@@ -249,28 +291,56 @@
   // edge; a phone draws tiny dots as squares. A dot pushed from home is drawn brighter and larger; under reduced motion, those near the pointer.
   function draw(a){
     ctx.clearRect(0,0,W,H);sq=PHONE.matches&&rad<1.25;
-    const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6,n=[0,0,0,0];
+    const red=reduce.matches,l=lightAt,R2=R*R,far2=R*.6,n=[0,0,0,0],ins=mode==='inside',cmp=mode==='compare';let na=0;
+    if(ins)letters(false);else if(cmp)letters(true);
     for(let i=0;i<N;i++){
-      let v=0;if(!red)v=(Math.abs(px[i]+(x[i]-px[i])*a-hx[i])+Math.abs(py[i]+(y[i]-py[i])*a-hy[i]))/far2;
+      let v=0;if(!red){const ex=px[i]+(x[i]-px[i])*a-hx[i],ey=py[i]+(y[i]-py[i])*a-hy[i];v=(Math.abs(ex)+Math.abs(ey))/far2;if(ins&&ex*ex+ey*ey>4)away[na++]=i;}
       else if(glow&&l){const dx=hx[i]-l.x,dy=hy[i]-l.y,d2=dx*dx+dy*dy;if(d2<R2)v=(1-Math.sqrt(d2)/R)*glow;}
       const g=v>.62?3:v>.32?2:v>.1?1:0;L[g][n[g]++]=i;
     }
+    // See inside: each dot away from home tied to it by a faint line (its spring), with a tiny mark at the home
+    if(na){ctx.beginPath();for(let k=0;k<na;k++){const i=away[k];ctx.moveTo(hx[i],hy[i]);ctx.lineTo(px[i]+(x[i]-px[i])*a,py[i]+(y[i]-py[i])*a);}
+      ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.3)';ctx.stroke();ctx.fillStyle='rgba(255,255,255,.75)';
+      for(let k=0;k<na;k++){const i=away[k];ctx.fillRect(hx[i]-.8,hy[i]-.8,1.6,1.6);}}
+    if(cmp){ctx.save();half(1);}
     for(let g=0;g<4;g++){const s=rad*(1+g*.09)-(sq?0:.12/DPR),list=L[g],cs=cols[g];let c=-1;
       for(let k=0;k<n[g];k++){const i=list[k],X=px[i]+(x[i]-px[i])*a,Y=py[i]+(y[i]-py[i])*a;
         if(bk[i]!==c){c=bk[i];ctx.fillStyle=cs[c];}
         if(sq)ctx.fillRect(X-s*.75,Y-s*.75,s*1.5,s*1.5);else{ctx.beginPath();ctx.arc(X,Y,s,0,TAU);ctx.fill();}}}
+    // See inside and Compare: whichever pointer acts (the visitor's, the keys', a run's or the parked one) as a light, in See inside
+    // with a dashed ring as wide as its reach; Compare's second half ends here, and a line parts the halves
+    if(ins||cmp){if(ptr&&ins){ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.65)';ctx.beginPath();ctx.arc(ptr.x,ptr.y,R,0,TAU);ctx.stroke();ctx.setLineDash([]);}
+      if(ptr)light(ptr,1);
+      if(cmp){ctx.restore();ctx.fillStyle='#2a2b33';if(STACK.matches)ctx.fillRect(0,H/2-1,W,2);else ctx.fillRect(W/2-1,0,2,H);}
+      return;}
     if(!markA||!mark)return; // a run's pretend pointer: a small light, and a ring for its reach
     ctx.globalAlpha=markA;ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(mark.x,mark.y,R,0,TAU);ctx.stroke();
-    const gr=ctx.createRadialGradient(mark.x,mark.y,0,mark.x,mark.y,14);
-    gr.addColorStop(0,'#fff');gr.addColorStop(.35,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(mark.x,mark.y,14,0,TAU);ctx.fill();ctx.globalAlpha=1;
+    light(mark,markA);
   }
+  // A pointer drawn as a small light
+  function light(p,al){const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,14);
+    gr.addColorStop(0,'#fff');gr.addColorStop(.35,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.globalAlpha=al;ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,14,0,TAU);ctx.fill();ctx.globalAlpha=1;}
+  // Compare's halves: 0 the first (left, or top where they stack), 1 the second; the canvas is clipped to it
+  function half(k){const s=STACK.matches,w=s?W:W/2,h=s?H/2:H;ctx.beginPath();ctx.rect(k&&!s?w:0,k&&s?h:0,w,h);ctx.clip();}
+  // The word as sample() drew it on its hidden canvas: in See inside outlined faintly behind the dots; in Compare filled solid in the
+  // palette from left to right, in the first half where the dots' word sits in the second, with a faint ghost of the pointer
+  function letters(solid){const A=area(),o=solid?A:{x:0,y:0};ctx.save();if(solid)half(0);
+    ctx.font='900 '+fs+'px '+FONT;ctx.letterSpacing=fs*.04+'px';
+    if(solid){const st=PAL[pal][0],gr=ctx.createLinearGradient(box.l-o.x,0,box.r-o.x,0);st.forEach((c,i)=>gr.addColorStop(i/(st.length-1),c));ctx.fillStyle=gr;ctx.fillText(text,org.x-o.x,org.y-o.y);
+      if(ptr)light({x:ptr.x-o.x,y:ptr.y-o.y},.45);}
+    else{ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.45)';ctx.strokeText(text,org.x,org.y);}
+    ctx.restore();}
   // A mouse or a pen in the air pushes the dots as it moves over the word, a finger where it touches; the visitor's own pointer ends a run
-  function aimAt(e){const b=cvs.getBoundingClientRect();user={x:e.clientX-b.left,y:e.clientY-b.top};calm=0;wake();}
-  cvs.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&e.pointerId!==touchId)return;if(e.isTrusted)run=null;aimAt(e);});
-  cvs.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){user=null;wake();}});
+  // In Compare only a pointer over the second half pushes: over the first (solid letters) it moves nothing, and no ghost shows.
+  function aimAt(e){const b=cvs.getBoundingClientRect(),q={x:e.clientX-b.left,y:e.clientY-b.top};user=mode==='compare'&&(STACK.matches?q.y<H/2:q.x<W/2)?null:q;calm=0;wake();}
+  cvs.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&e.pointerId!==touchId)return;if(e.pointerType!=='touch')over=true;if(e.isTrusted)run=null;aimAt(e);});
+  cvs.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){over=false;user=parkAt();wake();}});
   cvs.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touchId=e.pointerId;try{cvs.setPointerCapture(touchId)}catch(_){}}aimAt(e);});
-  ['pointerup','pointercancel'].forEach(type=>cvs.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;user=null;wake();}}));
+  ['pointerup','pointercancel'].forEach(type=>cvs.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;user=parkAt();wake();}}));
+  // See inside and Compare: whenever no pointer, finger or key is at work, a pointer rests on the word's middle (where Tab puts the keys'
+  // one), so the still picture shows the gap; a run passes over it. It is never the visitor's: it sends nothing and focuses nothing.
+  function parkAt(){return mode!=='normal'&&N&&!over&&touchId===null?(calm=0,park=middle()):null;}
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the dots go home, or follow the visitor
   document.addEventListener('hb:input',()=>{if(run){run=null;wake();}});
   // Show me: a pretend pointer sweeps through the word in 2.6 s, rising and falling; under reduced motion it rests on the middle for 1.4 s
@@ -285,9 +355,9 @@
   // dots as the pointer does. Escape, or focus leaving, lets them go home as the pointer leaving does, unless a pointer has taken over.
   const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kp=null;
   function keyAim(dx,dy,big){if(!N)return; // no word yet (it waits for the font): begin() aims once it is there
-    const s=Math.min(W,H)*(big?.18:.06),p=kp||middle();run=null;
-    user=kp={x:Math.min(W,Math.max(0,p.x+dx*s)),y:Math.min(H,Math.max(0,p.y+dy*s))};calm=0;wake();}
-  function keyRest(){if(user&&user===kp){user=null;wake();}}
+    const A=area(),s=Math.min(A.w,A.h)*(big?.18:.06),p=kp||middle();run=null; // in Compare it keeps to the second half
+    user=kp={x:Math.min(A.x+A.w,Math.max(A.x,p.x+dx*s)),y:Math.min(A.y+A.h,Math.max(A.y,p.y+dy*s))};calm=0;wake();}
+  function keyRest(){if(user&&user===kp){user=parkAt();wake();}}
   keys.addEventListener('focus',()=>keyAim(0,0));keys.addEventListener('blur',keyRest);
   keys.addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;if(e.key==='Escape'){keyRest();return;}
     const d=ARROWS[e.key];if(d){e.preventDefault();keyAim(d[0],d[1],e.shiftKey);}});
@@ -296,13 +366,37 @@
   function choices(id,pick){const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('on'))return; // pressing the choice already made does nothing
       buttons.forEach(o=>{o.classList.toggle('on',o===b);o.setAttribute('aria-pressed',String(o===b))});pick(b.dataset);}));}
-  choices('size-seg',d=>{gapK=+d.k;if(ready)rebuild(!reduce.matches);});
+  choices('size-seg',d=>{gapK=+d.k;kept=null;if(ready)rebuild(!reduce.matches);}); // Normal's dots kept by Compare are out of date
   choices('far-seg',d=>{far=+d.k;R=far*Math.max(fs,120);poke();});
   choices('pal-seg',d=>{pal=d.pal;paint();if(!raf)draw(1);});
-  choices('back-seg',d=>{back=d.b;poke();});
+  choices('back-seg',d=>{back=d.b;words();poke();});
   // The word is the typed text with single spaces and none at its ends, or HELLO; an emptied field goes back to HELLO when left
-  txtIn.addEventListener('input',()=>{const t=txtIn.value.replace(/\s+/g,' ').trim()||'HELLO';if(t!==text){text=t;if(ready)rebuild(!reduce.matches);}});
+  txtIn.addEventListener('input',()=>{const t=txtIn.value.replace(/\s+/g,' ').trim()||'HELLO';if(t!==text){text=t;kept=null;if(ready)rebuild(!reduce.matches);}});
   txtIn.addEventListener('change',()=>{if(!txtIn.value.trim()){txtIn.value='HELLO';txtIn.dispatchEvent(new Event('input',{bubbles:true}));}});
+  // The words that change: See inside's ring and springs and both notes (the markup holds the default ones), for How fast they come
+  // back and for reduced motion; and the picture's name, which says what the mode on show draws
+  const notes=[...document.querySelectorAll('.hb-mode-notes [data-hb-for]')],NOTE=notes.map(p=>p.textContent),reach=document.querySelector('.lbl.reach'),springs=document.querySelector('.lbl.springs');
+  const SOON={slow:'in a second and a half',normal:'in about a second',fast:'in under a second'},STILL=['Shown still: the ring is how far the pointer reaches. With reduced motion on, the dots stay home and only those inside the ring light up.','Shown still: Solid letters ignore the pointer, while Dots that scatter light up around it; with reduced motion on, the dots stay home.'];
+  function words(){const red=reduce.matches,say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+    notes.forEach((p,i)=>say(p,red?STILL[i]:NOTE[i]));say(reach,red?'Ring: how far the pointer reaches':'Ring: how far the pointer pushes');
+    say(springs,red?'With reduced motion on, the dots stay home':'Lines: springs pull dots home '+SOON[back]);name();}
+  function name(){const w='The word '+text+', made of small dots';cvs.setAttribute('aria-label',mode==='inside'?w+(reduce.matches?", with the pointer's reach and the hidden letters drawn in":", with the pointer's reach, the springs and the hidden letters drawn in"):mode==='compare'?'The word '+text+' twice: in solid letters, and in small dots that scatter':w);}
+  // The mode switch draws the mode at once. Compare samples the word again for its second half; Normal's dots are kept and put back when
+  // it is left (sampled again if the stage's size or the font changed). The park takes its place, or is lifted in Normal so every dot
+  // springs home. Safe to run twice; it presses nothing (the shared script then presses Show me, not under reduced motion).
+  document.addEventListener('hb:mode',e=>{
+    const was=mode,keyed=!!user&&user===kp,F=!document.fonts||document.fonts.check(F100,text);mode=e.detail.mode;
+    if(ready&&(was==='compare')!==(mode==='compare')){kp=null;
+      if(mode==='compare'){kept={W,H,F,N,hx,hy,x,y,px,py,vx,vy,bk,dn,L,away,box,fs,rad,org};rebuild(false);}
+      else if(kept&&kept.W===W&&kept.H===H&&kept.F===F){({N,hx,hy,x,y,px,py,vx,vy,bk,dn,L,away,box,fs,rad,org}=kept);R=far*Math.max(fs,120);dn.fill(0);dnAny=false;
+        if(reduce.matches){x.set(hx);y.set(hy);px.set(hx);py.set(hy);vx.fill(0);vy.fill(0);}}
+      else rebuild(false);
+      if(mode!=='compare')kept=null;
+      if(keyed)user=kp=middle(); // the keys' pointer moves to the new word's middle
+    }
+    if(mode==='normal'){if(user===park)user=null;park=null;}else if(!user||user===park)user=parkAt();
+    ptr=run?mark:user;if(ptr)lightAt=ptr;calm=0;name();draw(1);wake();
+  });
   // The canvas works in CSS pixels, its backing store scaled by the pixel ratio (at most 2); a new stage size samples the word again
   function layout(){const w=stage.clientWidth,h=stage.clientHeight;DPR=Math.min(window.devicePixelRatio||1,2);
     if(!w||!h||(w===W&&h===H))return false;
@@ -312,6 +406,7 @@
     if(document.activeElement===keys)keyAim(0,0);} // a Tab that came before the word puts the pointer on it now
   if(document.fonts&&document.fonts.load){document.fonts.load(F100,text).then(begin,begin);setTimeout(begin,1500);}else begin();
   new ResizeObserver(()=>{if(ready&&layout())rebuild(false);}).observe(stage);reduce.addEventListener('change',wake); // a frame sees reduced motion
+  words(); // under reduced motion the notes and See inside's words say so from the start
 </script>
 </body>
 </html>
