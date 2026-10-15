@@ -476,19 +476,25 @@ test('an answer drops Show all and only replaces the address, and in the finder 
   assert.deepEqual([e.prevented, els.q.focused], [true, {}], 'elsewhere');
 });
 
-test('an address that opens the finder hides the hero and the place tiles from the first paint until the script has drawn the view', () => {
+test('an address that opens the finder shows only the top bar from the first paint until the script has drawn the view, and the page once it is read even if the script failed', () => {
   const head = between(HOME, '(function(){var p=new URLSearchParams(location.search);', '</script>');
   assert.ok(head && at(head) < at('</head>'), 'the line runs in the head');
   const page = finder({ URLSearchParams, location: { search: '' } });
   vm.runInContext(source('fromURL'), page);
   for (const search of ['?view=find', '?view=find&what=text&how=fade', '?q=%20&view=find', '?q=fade&view=find', '?place=buttons&view=find', '?view=all', '?what=text', '']) {
-    const added = [];
-    vm.runInNewContext(head, { URLSearchParams, location: { search }, document: { documentElement: { classList: { add: name => added.push(name) } } } });
+    const added = [], removed = [], read = [];
+    vm.runInNewContext(head, { URLSearchParams, location: { search }, addEventListener: (type, fn) => { if (type === 'DOMContentLoaded') read.push(fn); },
+      document: { documentElement: { classList: { add: name => added.push(name), remove: name => removed.push(name) } } } });
     page.location.search = search;
-    assert.deepEqual(added, page.fromURL().next.view === 'find' ? ['fd-direct'] : [], `${search || 'the start page'}: as the page reads the address`);
+    const where = search || 'the start page';
+    assert.deepEqual(added, page.fromURL().next.view === 'find' ? ['fd-direct'] : [], `${where}: as the page reads the address`);
+    read.forEach(fn => fn());
+    assert.deepEqual(removed, added, `${where}: the class goes once the page is read, so a script that failed still leaves the page to see`);
   }
-  assert.ok(HOME.includes('<section class="wrap" aria-labelledby="places-title">'), "the place tiles' section");
-  assert.ok(STYLE.includes('.fd-direct .home-hero,.fd-direct [aria-labelledby="places-title"]{display:none}'), 'the class hides the hero and the place tiles');
+  const main = between(HOME, '<main>', '</main>');
+  for (const part of ['<section class="wrap home-hero"', '<section class="wrap" aria-labelledby="places-title">', '<section class="wrap finder" id="finder"',
+    '<section class="wrap results" id="results"', '<section class="how" id="how"']) assert.ok(main.includes(part), `${part}… sits in <main>`);
+  assert.ok(STYLE.includes('.fd-direct main,.fd-direct .foot{visibility:hidden}'), 'the class hides everything under the top bar and keeps its room');
   assert.match(HOME, /\nconst startCat=readURL\(\);\r?\nrender\(\);\r?\ndocument\.documentElement\.classList\.remove\('fd-direct'\);/, 'the first render takes the class away');
 });
 
