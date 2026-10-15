@@ -12,8 +12,8 @@
 //   the lede and the not-connected line shown, and on the first screen. The desktop run also presses each jump link (the last
 //   one twice), watches each entry's previews move and presses each Copy prompt, then twice more with the clipboard refused
 //   or missing (the hidden text box copies; when it fails too, the prompt is selected); the reduced-motion run checks that
-//   nothing moves, that every preview holds a still frame that shows something and that a jump does not glide. Like home, it
-//   stores a star count first.
+//   nothing moves, that every preview holds a still frame that shows something, that a jump does not glide and that Copy
+//   prompt shows its message without a slide. Like home, it stores a star count first.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
@@ -1014,27 +1014,31 @@ async function famousPreviewProblems() {
   return problems;
 }
 
-// Famous effects, desktop run: each entry's Copy prompt, pressed for real at its center (scrolled into view, the pointer moved
-// onto it, then a mouse press and release), puts exactly that entry's prompt on the clipboard (stubbed: a headless run cannot
-// grant it), reads "Copied", says so in its name and shows the message. Then the browser refuses the clipboard: the first
-// entry's press copies through the hidden text box (its copy command stubbed to report what is selected), so the button reads
-// "Copied" with the message, the text box is gone and keyboard focus is back on the button. Last, with no clipboard and the
-// copy command failing, the second entry's press (the first's again on a page of one) selects its prompt and asks for Ctrl+C.
+// Famous effects: presses an entry's Copy prompt for real at its center (scrolled into view, the pointer moved onto it, then a
+// mouse press and release). Returns what went wrong, or ''.
+async function famousPressCopy(id) {
+  const spot = await evaluate(`(() => { const btn = document.querySelector('#${id} .copy'); if (!btn) return null;
+    btn.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
+    return { x, y, covered: btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
+  if (!spot) return 'no Copy prompt button';
+  if (spot.covered) return `Copy prompt is covered by ${spot.covered} at its center`;
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  return '';
+}
+
+// Famous effects, desktop run: each entry's Copy prompt, pressed for real, puts exactly that entry's prompt on the clipboard
+// (stubbed: a headless run cannot grant it), reads "Copied", says so in its name and shows the message. Then the browser
+// refuses the clipboard: the first entry's press copies through the hidden text box (its copy command stubbed to report what
+// is selected), so the button reads "Copied" with the message, the text box is gone and keyboard focus is back on the button.
+// Last, with no clipboard and the copy command failing, the second entry's press (the first's again on a page of one) selects
+// its prompt and asks for Ctrl+C.
 async function famousCopyProblems() {
   const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
   if (!ids.length) return ['no entries to copy'];
   const problems = [];
-  const press = async id => {
-    const spot = await evaluate(`(() => { const btn = document.querySelector('#${id} .copy'); if (!btn) return null;
-      btn.scrollIntoView({ block: 'center', behavior: 'instant' });
-      const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
-      return { x, y, covered: btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
-    if (!spot) return 'no Copy prompt button';
-    if (spot.covered) return `Copy prompt is covered by ${spot.covered} at its center`;
-    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
-    for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
-    return '';
-  };
+  const press = famousPressCopy;
   const prompt = id => `document.querySelector('#${id} .fx-prompt').textContent.replace(/\\s+/g, ' ').trim()`;
   await evaluate(`(() => { navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; })()`);
   for (const id of ids) {
@@ -1110,8 +1114,9 @@ const changedShare = (a, b) => evaluate(`new Promise(done => {
 // Famous effects, reduced-motion phone run: nothing runs (every animation in the page is paused), neither at once nor once
 // every card has been on screen; every preview holds a still frame that shows something (the home check's pixel test: the
 // stage captured with the preview and again with the preview's contents hidden must differ in at least 0.3% of its pixels,
-// inside a box of at least 1% of it); and a jump does not glide: two frames after the press, the entry's heading is in the
-// window.
+// inside a box of at least 1% of it); a jump does not glide: two frames after the press, the entry's heading is in the
+// window; and the first entry's Copy prompt, pressed for real, copies (the clipboard stubbed), reads "Copied" and shows the
+// message where it stands: no change of position runs on it and it is not offset.
 async function famousMotionProblems() {
   const problems = [];
   const running = when => evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
@@ -1147,6 +1152,19 @@ async function famousMotionProblems() {
   if (!jump) problems.push('reduced motion: no links in the jump row');
   else if (jump.missing) problems.push(`reduced motion: the last link of the jump row (${jump.href}) has no entry with a heading`);
   else if (!jump.shown) problems.push(`reduced motion: the jump to ${jump.href} glides (two frames after the press its heading is at ${jump.top}px)`);
+  const first = await evaluate(`(() => { const s = document.querySelector('section.fx'); if (!s) return null;
+    window.__clipboardGot = null; navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; return s.id; })()`);
+  const trouble = first ? await famousPressCopy(first) : 'no entry';
+  if (trouble) problems.push(`reduced motion, Copy prompt: ${trouble}`);
+  else {
+    const copy = await evaluate(`(async () => { const t = document.getElementById('toast');
+      for (let i = 0; i < 60 && !t.classList.contains('show'); i++) await new Promise(r => setTimeout(r, 50));
+      return { label: document.querySelector('#${first} .copy').textContent.trim(), copied: window.__clipboardGot !== null, shown: t.classList.contains('show'),
+        sliding: t.getAnimations().filter(a => a.transitionProperty === 'transform' || a.animationName).length, offset: Math.round(new DOMMatrix(getComputedStyle(t).transform).m42) }; })()`);
+    if (copy.label !== 'Copied' || !copy.copied || !copy.shown || copy.sliding || copy.offset) {
+      problems.push(`reduced motion, Copy prompt of ${first}: ${JSON.stringify(copy)} (expected "Copied" and the message shown in place, with no slide)`);
+    }
+  }
   return problems;
 }
 

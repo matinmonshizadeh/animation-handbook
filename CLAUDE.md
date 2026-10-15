@@ -252,7 +252,7 @@ object, are written by `node tools/make-famous.mjs` from the home page, never by
 `data-fx-start` (`loop`, `load`, `scroll`, `hover` or `press`), then, in order: "Seen on" and the site's address as a link
 (`https://`, in a new tab, its text the address without `https://` or `www.`, its name ending "(opens in a new tab)") and
 the year in a `<time>` whose `datetime` is the day it was checked; the plain title as an `h2` with `tabindex="-1"`; what
-you see, 25 to 70 words; "Made with these animations" and one to three cards (the card's `CATS` name and line, its page's
+you see, 25 to 70 words; "Build it with these animations" and one to three cards (the card's `CATS` name and line, its page's
 link and `data-slug`, and on its preview a label of one to three words saying what that animation makes here; two different
 animations on the page never share a preview); "A prompt to build something similar" and Copy prompt, which names its
 entry. Copy a neighbor entry's markup, add its chip to the jump row and count it in the pill.
@@ -308,8 +308,8 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
 - **Famous effects:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> famous` checks `famous/` at the same six
   setups (six `ok` lines): the first screen, overflow and touch targets; its desktop run presses each jump link, watches
   each entry's previews and presses each Copy prompt (twice more with the clipboard refused or missing); its
-  reduced-motion run checks that nothing moves and that every preview holds a still frame that shows something. Run it
-  after changing that page, its cards or a preview it shows.
+  reduced-motion run checks that nothing moves, that every preview holds a still frame that shows something and that
+  Copy prompt's message does not slide. Run it after changing that page, its cards or a preview it shows.
 
 ## Out of scope
 - Backend code, databases, APIs.

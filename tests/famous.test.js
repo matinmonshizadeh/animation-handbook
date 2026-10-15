@@ -234,7 +234,7 @@ test('the page script copies, falls back to the copy keys, shortens prompts on p
 
 test('Seen one we should add? opens the Famous effect issue template, which asks for the site and what you see in your own words, with no screenshots or code', () => {
   assert.ok(PAGE.includes(`<a class="fx-suggest" href="${TEMPLATE}" target="_blank" rel="noopener">Suggest it on GitHub<span class="sr"> (opens in a new tab)</span></a>`), 'the Suggest link');
-  assert.ok(PAGE.includes('<p class="fx-note">Each entry was checked by hand on the date shown; a site may have changed since.</p>'), 'the note on dates');
+  assert.ok(PAGE.includes('<p class="fx-note">Each entry was checked on its live site in the year shown; a site may have changed since.</p>'), 'the note on dates');
   const yml = read(path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'famous_effect.yml'));
   assert.match(yml, /^name: Famous effect$/m, 'its name');
   const field = id => yml.split('\n  - type: ').find(part => part.includes(`\n    id: ${id}\n`)) || '';
@@ -305,7 +305,7 @@ for (const e of ENTRIES) {
     assert.ok(!/["“”]/.test(textOf(what[1])), 'what you see quotes no words: it says what shows in our own words');
     assert.ok(STARTS.includes(e.start), `data-fx-start "${e.start}" is one of ${STARTS.join(', ')}`);
     assert.ok(e.site.trim(), 'data-fx-site names the site');
-    assert.ok(e.body.includes('<h3 class="fx-sub">Made with these animations</h3>') && e.body.includes('<h3 class="fx-sub">A prompt to build something similar</h3>'), 'its two parts');
+    assert.ok(e.body.includes('<h3 class="fx-sub">Build it with these animations</h3>') && e.body.includes('<h3 class="fx-sub">A prompt to build something similar</h3>'), 'its two parts');
   });
 
   test(`${e.id}: one to three cards, each an animation of the home page with its name, line and page, and a short label`, async () => {
@@ -421,4 +421,44 @@ test('from 601px to 640px the top bar\'s two text links are narrower, so the bar
   assert.ok(band, 'a rule for that band');
   assert.equal(band[1], '.top .nav .lnk', 'for the two text links');
   assert.match(band[2], /^padding:0 \d+px$/, 'with less padding');
+});
+
+// ---------- Rules the tests did not hold yet (final review B) ----------
+// The page's own style (no generated previews, no comments) and its script.
+const OWN_CSS = (() => {
+  const css = between(PAGE, '<style>', '</style>'), a = css.indexOf('/* ── previews:'), b = css.indexOf('/* ── end of previews ── */');
+  return (css.slice(0, a) + css.slice(b)).replace(/\/\*[\s\S]*?\*\//g, '');
+})();
+const SCRIPT = [...PAGE.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+// The top-level blocks of a style, as { head, body }.
+const cssBlocks = css => {
+  const out = [];
+  let depth = 0, head = '', body = '';
+  for (const ch of css) {
+    if (ch === '{' && depth++ === 0) { body = ''; continue; }
+    if (ch === '}' && --depth === 0) { out.push({ head: head.trim(), body }); head = ''; continue; }
+    if (depth) body += ch; else head += ch;
+  }
+  return out;
+};
+
+test('one <main> holds the entries, and the only request that leaves the site is the GitHub star count', () => {
+  assert.equal(count(MARKUP, '<main'), 1, 'one <main>');
+  assert.ok(MARKUP.indexOf('<main') < MARKUP.indexOf('<section class="fx"') && MARKUP.indexOf('</main>') > MARKUP.lastIndexOf('</section>'), 'around the entries');
+  const calls = [...SCRIPT.matchAll(/\b(fetch|XMLHttpRequest|sendBeacon|EventSource|WebSocket)\b\s*\(?\s*(['"`]?)([^'"`)]*)/g)].map(m => `${m[1]} ${m[3]}`);
+  assert.deepEqual(calls, [`fetch ${REPO.replace('github.com/', 'api.github.com/repos/')}`], 'one request: the star count');
+  for (const [tag] of PAGE.matchAll(/<link\b[^>]*>/g)) {
+    if (!/\srel="canonical"/.test(tag)) assert.ok(!/\shref="(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(tag), `a <link> that loads from elsewhere: ${tag}`);
+  }
+});
+
+test('hover effects only where hover exists, the message fades in place under reduced motion, and prompts start at five lines on phones', () => {
+  const blocks = cssBlocks(OWN_CSS), block = head => (blocks.find(b => b.head === head) || { body: '' }).body;
+  for (const { head, body } of blocks) {
+    if (head === '@media(hover:hover)' || head === '@media(prefers-reduced-motion:reduce)') continue; // the second only undoes the lift
+    assert.ok(!/:hover/.test(head + body), `a hover rule outside @media(hover:hover): ${head}`);
+  }
+  assert.match(block('@media(prefers-reduced-motion:reduce)'), /\.toast\{transform:translate\(-50%,0\);transition:opacity \.25s\}/, 'the message does not slide');
+  assert.match(block('@media(max-width:600px)'), /\.fx-prompt\.is-clamped\{[^}]*-webkit-line-clamp:5/, 'five lines on phones');
+  assert.ok(SCRIPT.includes("p.classList.add('is-clamped');"), 'each prompt starts shortened');
 });
