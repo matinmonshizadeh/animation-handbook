@@ -281,7 +281,7 @@ test('the ways into the finder: the Find button under the Popular line, Finder r
   assert.match(between(HOME, '<nav class="nav" aria-label="Site">', '</nav>'),
     /<a class="lnk" id="nav-find" href="\?view=find">Finder<\/a>\s*<a class="lnk" id="nav-all" href="\?view=all">Browse all<\/a>/, 'Finder right before Browse all');
   const css = [...HOME.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-  assert.ok(css.includes('@media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}'), 'How it works leaves the bar where the three links no longer fit');
+  assert.ok(css.includes('@media(max-width:999px){.top .nav .lnk[href="#how"]{display:none}}'), 'How it works leaves the bar where the four links no longer fit');
   assert.ok(read(path.join(ROOT, 'tools', 'make-social-image.mjs')).includes('.find-cta, #nav-find { display: none }'), 'the social picture leaves both out');
 });
 
