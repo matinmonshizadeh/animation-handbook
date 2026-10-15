@@ -50,7 +50,10 @@
 // The theme is the visitor's own pick (ah-theme), else the system's, which is read first, outside the try: blocked storage
 // throws, and the system's setting must still count. The browser's bar (theme-color) takes the page's background of the theme.
 function setTheme(t){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0e0e11':'#f8f7f4';}
-(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();</script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();
+// An address that opens the finder (?view=find, and no ?q=, which wins) hides the hero and the place tiles until the page's script
+// has drawn the view, so the start page is not painted first.
+(function(){var p=new URLSearchParams(location.search);if(p.get('view')==='find'&&!(p.get('q')||'').trim())document.documentElement.classList.add('fd-direct');})();</script>
 <script src="assets/js/demo-page.js?v=8" defer></script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -322,7 +325,7 @@ button,input{font:inherit;color:inherit}
 
 /* beyond the design: widths and places it does not show */
 @media(max-width:760px){.gh{position:relative;width:44px;padding:0;justify-content:center;gap:0}.gh-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.gh-c{display:none}} /* from 760px down the GitHub button is a round star beside the dark-mode button: the word is still read out, the count goes */
-@media(min-width:601px) and (max-width:620px){.top .nav .lnk{padding:0 11px}} /* at 601px "Browse all" and "How it works" are there too: a little less padding makes room for the star */
+@media(min-width:601px) and (max-width:620px){.top .nav .lnk{padding:0 11px}} /* at 601px "Finder" and "Browse all" are there too: a little less padding leaves more room beside the brand (the star fits either way) */
 @media(max-width:359px){.gh{display:none}} /* below 360px it is left out: it would still fit down to about 330px, not at 320px, so 360px keeps a margin */
 @media(max-width:1238px){.fl2,.fl5{display:none}} /* the two shapes that would crowd the 720px search box below 1239px */
 .acts{flex-wrap:wrap} /* a narrow card puts Try it under Copy prompt */
@@ -342,6 +345,7 @@ button,input{font:inherit;color:inherit}
    answer a dark ring and a tick. What and When answers have a still icon beside their words, How answers a small moving picture
    above them (drawn at the end of this stylesheet). */
 .finder{display:flex;flex-direction:column;align-items:center;padding-top:clamp(16px,4vw,56px);text-align:center}
+.fd-direct .home-hero,.fd-direct [aria-labelledby="places-title"]{display:none} /* an address that opens the finder: the head script's class, gone once the script has drawn the view */
 .fd-h{margin-top:0}
 .fd-qs{display:flex;flex-direction:column;gap:clamp(28px,4vw,44px);width:min(1080px,100%);margin-top:clamp(24px,4vw,44px);text-align:left}
 .fd-q{min-width:0;border:0}
@@ -3018,16 +3022,17 @@ addEventListener('popstate',()=>{
   readURL();render();const a=document.activeElement;
   if(!a||a===document.body||gone(a)){if(state.view==='find')findTitle.focus({preventScroll:true});else toTitle();}
 });
+// "/" goes to the search box; in the finder the box is hidden, so the key is left to the browser (its own quick find).
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
-  if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
+  if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'&&!gone(q)){e.preventDefault();q.focus();}
   else if(e.key==='Escape'&&(el===q||el===q2)){if(el.value){el.value='';typed(el);}el.blur();} // an empty box is only left: a picked place stays
 });
 // ---------- The finder (?view=find) ----------
 // The three questions, built from FIND_Q: a fieldset each, its answers as radios (one Tab stop per question; the arrow keys
 // choose), each in a label with its picture (hidden from screen readers) and its words, which name it. Not sure ends each one.
 const finderEl=$('finder'),findTitle=$('find-title'),findSee=$('find-see'),heroEl=document.querySelector('.home-hero'),
-  placesSec=$('places').closest('section');
+  placesSec=$('places').closest('section'),navFind=$('nav-find');
 $('find-qs').innerHTML=FIND_Q.map((qu,n)=>`<fieldset class="fd-q fd-${qu.key}"><legend><span class="fd-n" aria-hidden="true">${n+1}</span><span>${esc(qu.title)}</span></legend>`+
   (qu.hint?`<p class="fd-hint">${esc(qu.hint)}</p>`:'')+'<div class="fd-as">'+
   [...qu.answers,{key:'unsure',words:'Not sure'}].map(a=>`<label class="fd-a${a.key==='unsure'?' fd-unsure':''}"><input class="fd-r" type="radio" name="fd-${qu.key}" value="${a.key}" autocomplete="off">`+
@@ -3084,7 +3089,6 @@ $('find-reset').addEventListener('click',()=>{go({view:'find'},false);scrollTo({
 // The ways in: the Find button under the search and Finder in the top bar open the finder with one history step, at the top of
 // the page with keyboard focus on its heading (the Find button goes away with the hero). A click with Ctrl, Cmd, Shift or Alt,
 // or with another button, is left to the browser, as for Browse all.
-const navFind=$('nav-find');
 function enterFind(e){
   if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
   e.preventDefault();
@@ -3105,6 +3109,7 @@ function showNotHere(finding,found){
 $('find-words').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});q.focus({preventScroll:true});});
 const startCat=readURL();
 render();
+document.documentElement.classList.remove('fd-direct'); // the view now hides or shows the hero and the tiles itself
 if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 
 (function(){const btn=$('theme-toggle');if(!btn)return;

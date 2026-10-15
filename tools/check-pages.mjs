@@ -1004,6 +1004,10 @@ async function finderLayoutProblems(name, setup) {
 async function finderViewProblems() {
   const problems = [];
   const FIND_TITLE = 'Find an animation you saw — Animation Handbook', ASK = 'Answer a question above, and the animations that match show here.';
+  // See N matches and the results line once something matches, each number with its own word ("See 1 match", "1 best match and
+  // 9 close matches."), never "See 1 matches"; tests/finder.test.js holds both to the page's own lines.
+  const FIND_SEE = /^See (?:1 match|(?!1 )\d+ matches)$/;
+  const FIND_LINE = /^(?:1 best match|(?!1 )\d+ best matches)(?: and (?:1 close match|(?!1 )\d+ close matches))?\.$|^No animation fits all your answers\. These come close\.$/;
   const look = () => evaluate(`(() => {
     const $ = id => document.getElementById(id), shown = el => !!el && !!el.getClientRects().length;
     const links = [...document.querySelectorAll('#cards .card .title a')], a = document.activeElement;
@@ -1049,8 +1053,8 @@ async function finderViewProblems() {
     problems.push(`finder, three answers: chosen ${s.checked}, the address ${s.search}, ${s.steps - steps} history steps added`);
   }
   if (!s.names.slice(0, 6).includes('Hide-on-Scroll Header')) problems.push(`finder: A menu or form · When I scrolled · Slid shows ${s.names.slice(0, 6).join(', ') || 'no cards'} first, not Hide-on-Scroll Header`);
-  if (!/^See \d+ match(es)?$/.test(s.see) || !s.notHere) problems.push(`finder: See N matches reads "${s.see}", Not here? is ${s.notHere ? 'shown' : 'hidden'}`);
-  if (!/^\d+ best match(es)?( and \d+ close match(es)?)?\.$|^No animation fits all your answers\. These come close\.$/.test(s.sub)) problems.push(`finder: the results line "${s.sub}"`);
+  if (!FIND_SEE.test(s.see) || !s.notHere) problems.push(`finder: See N matches reads "${s.see}", Not here? is ${s.notHere ? 'shown' : 'hidden'}`);
+  if (!FIND_LINE.test(s.sub)) problems.push(`finder: the results line "${s.sub}"`);
   const link = await evaluate(`(() => { const a = document.getElementById('find-gh');
     return a ? { href: new URL(a.href).href, want: new URL(findIssueURL({ what: 'menu', when: 'scroll', how: 'slide' })).href, target: a.target, rel: a.rel } : null; })()`);
   if (!link || link.href !== link.want || !link.href.startsWith('https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml&') ||
