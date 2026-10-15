@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 167 web animation techniques" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 168 web animation techniques" width="820"></picture></a>
 
 # Animation Handbook
 
-**A visual reference of 167 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
+**A visual reference of 168 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
@@ -14,7 +14,7 @@ Add it to your AI coding assistant (run in your project folder; needs Node.js):
 npx skills add matinmonshizadeh/animation-handbook
 ```
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-167-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-168-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
 
@@ -22,7 +22,7 @@ npx skills add matinmonshizadeh/animation-handbook
 
 ## What this is
 
-Here are 167 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+Here are 168 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
 Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and its demo runs offline; [Run it locally](#run-it-locally) covers the parts that need a local server. Built to *inspire* and *teach*, not to sell a library.
 
@@ -61,7 +61,7 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 |:--:|----------|:-----:|
 | 01 | [Scroll-Based](#01) | 27 |
 | 02 | [Entrance & Exit](#02) | 15 |
-| 03 | [Page Transitions](#03) | 16 |
+| 03 | [Page Transitions](#03) | 17 |
 | 04 | [Micro-Interactions](#04) | 41 |
 | 05 | [Text & Typography](#05) | 19 |
 | 06 | [3D & Advanced](#06) | 26 |
@@ -69,7 +69,7 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 
 ## Full catalog
 
-All 167 techniques, each linked to its live demo.
+All 168 techniques, each linked to its live demo.
 
 Each technique's code and README are in its folder under [animations/](animations/).
 
@@ -139,11 +139,11 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <a id="03"></a>
 
-### 03 · Page Transitions · 16 techniques
+### 03 · Page Transitions · 17 techniques
 
 <sub>Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the View Transitions API.</sub>
 
-<details><summary>Browse all 16 techniques in Page Transitions</summary>
+<details><summary>Browse all 17 techniques in Page Transitions</summary>
 
 - **[View Transitions API](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/view-transitions-api/)** — The browser animates the change between two pages for you. Best for web apps.
 - **[Shared Element Transition](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/shared-element-transition/)** — A picture grows from the list into the next page's header. Best for galleries.
@@ -161,6 +161,7 @@ Each technique's code and README are in its folder under [animations/](animation
 - **[Overlay Wipe](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/overlay-wipe/)** — A colored panel sweeps over the page as it changes. Best for portfolio sites.
 - **[Page Curl](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/page-curl/)** — The page peels back from its corner like paper. Best for digital magazines.
 - **[Cube Transition](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/cube-transition/)** — The pages sit on a cube that turns to show the next. Best for photo stories.
+- **[Pixelate Transition](https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/pixelate-transition/)** — The page breaks into big pixels, then sharpens into the next. Best for galleries.
 
 </details>
 

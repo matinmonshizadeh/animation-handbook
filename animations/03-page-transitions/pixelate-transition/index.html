@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixelate Transition — Animation Handbook</title>
+  <meta name="description" content="The page breaks into big pixels, then sharpens into the next. Best for galleries.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/pixelate-transition/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Pixelate Transition — Animation Handbook">
+  <meta property="og:description" content="The page breaks into big pixels, then sharpens into the next. Best for galleries.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/pixelate-transition/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pixelate Transition — Animation Handbook">
+  <meta name="twitter:description" content="The page breaks into big pixels, then sharpens into the next. Best for galleries.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Pixelate Transition", "name": "Pixelate Transition", "description": "The page breaks into big pixels, then sharpens into the next. Best for galleries.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/pixelate-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Pixelate Transition"}</script>
+  <style>
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
+    .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
+    .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.nav-btn:hover{border-color:var(--ui-accent)}}
+    .page-area{flex:1;position:relative;overflow:hidden;min-height:0}
+    #cvs{position:absolute;inset:0;width:100%;height:100%;display:block}
+    /* See inside and Compare: plain words over the page */
+    .px-lbl{display:none;position:absolute;z-index:2;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .half{display:block}
+    .in.copy{white-space:normal;text-align:right;max-width:calc(100% - 150px)}
+    .half{bottom:10px}.half.first{left:10px}.half.second{left:calc(50% + 10px)}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../cube-transition/" rel="prev" aria-label="Previous: Cube Transition"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Cube Transition</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">03.17 · Page Transitions</p>
+    <h1>Pixelate Transition</h1>
+    <p class="hb-lede">The page breaks into big pixels, then sharpens into the next. Best for galleries.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+      <div class="page-area" id="page-area">
+        <canvas id="cvs" role="img" aria-label="A small gallery site whose page breaks into big pixels and sharpens into the next page"></canvas>
+        <p class="px-lbl in copy" id="l-copy" aria-hidden="true" data-hb-caption>Small copy · one pixel per block</p>
+        <p class="px-lbl in up" id="l-up" aria-hidden="true" data-hb-caption>Scaled up, smoothing off</p>
+        <p class="px-lbl in swap" id="l-swap" aria-hidden="true" data-hb-caption>Swap here</p>
+        <p class="px-lbl half first" aria-hidden="true" data-hb-caption>Cuts at once</p>
+        <p class="px-lbl half second" aria-hidden="true" data-hb-caption>Pixelates</p>
+      </div>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each block is one pixel of a small copy of the page, scaled up with smoothing off. The strip shows the blocks grow, swap the page at their largest, then shrink.</p>
+      <p data-hb-for="compare" hidden>Cuts at once swaps the page in a blink. Pixelates breaks it into blocks, swaps while it cannot be read, then sharpens, so the cut is hidden.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then click a page or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="block-lbl">Block size</p>
+        <div class="seg" id="block-seg" role="group" aria-labelledby="block-lbl">
+          <button type="button" data-b="8" aria-pressed="false">Small</button>
+          <button type="button" data-b="16" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-b="28" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How big the squares get mid-change.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-ms="1200" aria-pressed="false">Slow</button>
+          <button type="button" data-ms="800" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-ms="500" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the change takes.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="steps-lbl">How the blocks change</p>
+        <div class="seg" id="steps-seg" role="group" aria-labelledby="steps-lbl">
+          <button type="button" data-steps="0" class="on" aria-pressed="true">Smoothly</button>
+          <button type="button" data-steps="1" aria-pressed="false">In steps</button>
+        </div>
+        <p class="hb-hint">In steps looks like an old game console.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a pixelate transition to [the pictures or views you switch between]. When the visitor moves to the next one, break the current picture into square blocks that grow larger, swap to the new picture while the blocks are at their largest, then shrink the blocks until the new picture is sharp again. Make each block one flat color by drawing the picture very small on a canvas and scaling it back up with smoothing turned off. Keep the page names and buttons outside the pixelated area so they stay readable, and draw only while a change runs. If the visitor has reduced motion turned on, use a short, plain fade instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Photo galleries</li><li>Game and retro sites</li><li>Slideshows</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Everyday navigation</li><li>Text-heavy pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const nav=document.getElementById('nav'),area=document.getElementById('page-area'),cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
+  const slowTog=document.getElementById('slow-tog'),reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const LABELS={normal:'A small gallery site whose page breaks into big pixels and sharpens into the next page',
+    inside:'The page as big blocks with their grid, the small copy they come from, and a strip of block size over a change',
+    compare:'The same page change twice: a plain cut on the left, the pixelating change on the right'};
+  // Three pages of a made-up photography site, each a drawn picture with a title (in the site's font once it has loaded)
+  const PAGES=[
+    {name:'Home',draw:(g,w,h)=>{const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#28204a');sky.addColorStop(.6,'#c4567a');sky.addColorStop(1,'#f6a85c');g.fillStyle=sky;g.fillRect(0,0,w,h);
+      g.fillStyle='#ffe2a0';g.beginPath();g.arc(w*.7,h*.62,h*.16,0,6.283);g.fill();
+      g.fillStyle='#3b2c5a';g.beginPath();g.moveTo(0,h);g.lineTo(0,h*.72);g.lineTo(w*.22,h*.5);g.lineTo(w*.42,h*.7);g.lineTo(w*.62,h*.46);g.lineTo(w*.86,h*.68);g.lineTo(w,h*.6);g.lineTo(w,h);g.fill();
+      g.fillStyle='#1d1733';g.fillRect(0,h*.86,w,h*.14);return['Northlight','Photography by the sea']}},
+    {name:'Work',draw:(g,w,h)=>{g.fillStyle='#14161c';g.fillRect(0,0,w,h);
+      const cols=[['#ff7a59','#ffd36e'],['#4fd1c5','#2b6cb0'],['#b794f4','#ed64a6'],['#68d391','#2f855a'],['#f6ad55','#c05621'],['#63b3ed','#5a67d8']];
+      cols.forEach((c,i)=>{const x=w*(.08+(i%3)*.3),y=h*(.36+(i/3|0)*.31),tw=w*.26,th=h*.26,gr=g.createLinearGradient(x,y,x+tw,y+th);gr.addColorStop(0,c[0]);gr.addColorStop(1,c[1]);g.fillStyle=gr;g.fillRect(x,y,tw,th)});
+      return['Selected work','Six stories from the coast']}},
+    {name:'About',draw:(g,w,h)=>{const bg=g.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#2a2016');bg.addColorStop(1,'#6b4a2b');g.fillStyle=bg;g.fillRect(0,0,w,h);
+      const cx=w*.72,cy=h*.6,s=h*.2;g.fillStyle='#1b1410';g.fillRect(cx-s*1.3,cy-s*.8,s*2.6,s*1.7);g.fillStyle='#d9c6a5';g.fillRect(cx-s*.5,cy-s*1.05,s,s*.3);
+      g.fillStyle='#0f0b08';g.beginPath();g.arc(cx,cy+s*.05,s*.62,0,6.283);g.fill();g.fillStyle='#4a7ab8';g.beginPath();g.arc(cx,cy+s*.05,s*.36,0,6.283);g.fill();
+      g.fillStyle='#bfe0ff';g.beginPath();g.arc(cx-s*.12,cy-s*.08,s*.1,0,6.283);g.fill();return['About the studio','Two people, one old camera']}}
+  ];
+  let blockMax=16,changeMs=800,stepped=false,mode='normal',current=0,dpr=1,W=0,H=0,raf=0,lastT=null,change=null,runTimers=[],runFrom=null,font='sans-serif';
+  const pics={}; // each page drawn once for a size (the whole area, or a Compare half): pics[page+':'+w] is a canvas
+  const small=document.createElement('canvas'),sctx=small.getContext('2d');
+  function pic(i,w,h){
+    const key=i+':'+w+'x'+h;if(pics[key])return pics[key];
+    const c=document.createElement('canvas'),g=c.getContext('2d');c.width=w;c.height=h;
+    const [title,sub]=PAGES[i].draw(g,w,h),fs=Math.max(18,Math.min(w*.09,h*.17));
+    g.fillStyle='#fff';g.font=`800 ${fs}px ${font}`;g.fillText(title,w*.07,h*.08+fs);
+    g.globalAlpha=.75;g.font=`500 ${fs*.42}px ${font}`;g.fillText(sub,w*.07,h*.08+fs*1.62);g.globalAlpha=1;
+    return pics[key]=c;
+  }
+  // The block size at a share p of a change: it grows to the largest at the middle, where the page swaps, then shrinks back; In
+  // steps holds it at a few sizes in turn, as old game consoles did
+  function blockAt(p){
+    const k=p<.5?p*2:(1-p)*2;let b=1+(blockMax-1)*k*k*(3-2*k);
+    if(stepped)b=Math.max(1,Math.round(b/blockMax*4)/4*blockMax);
+    return b;
+  }
+  // A page in a rectangle of the canvas (device pixels), as blocks of size b: drawn small, one pixel per block, then scaled back up
+  // with smoothing off, so each block is one flat color
+  function blocks(img,x,y,w,h,b){
+    if(b<1.01*dpr){ctx.drawImage(img,x,y,w,h);return}
+    const bw=Math.max(1,Math.ceil(w/b)),bh=Math.max(1,Math.ceil(h/b));
+    sctx.imageSmoothingEnabled=true;sctx.drawImage(img,0,0,bw,bh);
+    ctx.imageSmoothingEnabled=false;ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.drawImage(small,0,0,bw,bh,x,y,bw*b,bh*b);ctx.restore();
+  }
+  function draw(){
+    const w=cvs.width,h=cvs.height,p=change?change.p:null,b=(p===null?1:blockAt(p))*dpr,show=p!==null&&p>=.5?change.to:current;
+    ctx.clearRect(0,0,w,h);
+    const fade=!!change&&change.fade!==undefined; // a change under reduced motion: no block grows or shrinks, in any mode
+    if(mode==='compare'){
+      const half=Math.floor(w/2),ph=h,rest=p===null,rw=w-half-2*dpr;
+      // the cut swaps at the very moment the blocks are biggest; at rest the right holds that moment beside the page it cut to;
+      // under reduced motion the right fades from one page to the next at that block size
+      ctx.drawImage(pic(show,half,ph),0,0,half,ph);
+      if(fade){blocks(pic(change.from,rw,ph),half+2*dpr,0,rw,ph,blockMax*dpr);ctx.globalAlpha=change.fade;blocks(pic(change.to,rw,ph),half+2*dpr,0,rw,ph,blockMax*dpr);ctx.globalAlpha=1}
+      else blocks(pic(show,rw,ph),half+2*dpr,0,rw,ph,rest?blockMax*dpr:b);
+      ctx.fillStyle='#000';ctx.fillRect(half,0,2*dpr,h);
+    }else if(mode==='inside')drawInside(show,fade?null:p);
+    else if(change&&change.fade!==undefined){ctx.drawImage(pic(change.from,w,h),0,0);ctx.globalAlpha=change.fade;ctx.drawImage(pic(change.to,w,h),0,0);ctx.globalAlpha=1}
+    else blocks(pic(show,w,h),0,0,w,h,b);
+  }
+  // See inside: the page as blocks (the chosen size at rest) with their grid, the small copy in an inset (its size at rest, kept
+  // through a change) with an arrow to the box, and a strip of block size over a change, its top marked where the page swaps
+  function drawInside(show,p){
+    const w=cvs.width,h=cvs.height,b=(p===null?blockMax:Math.max(1,blockAt(p)))*dpr,img=pic(show,w,h);
+    blocks(img,0,0,w,h,b);
+    if(b>=6*dpr){ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.beginPath();for(let x=b;x<w;x+=b){ctx.moveTo(x,0);ctx.lineTo(x,h)}for(let y=b;y<h;y+=b){ctx.moveTo(0,y);ctx.lineTo(w,y)}ctx.stroke()}
+    const bw=Math.ceil(w/b),bh=Math.ceil(h/b),rw=Math.ceil(w/(blockMax*dpr)),rh=Math.ceil(h/(blockMax*dpr)),cell=Math.max(2,Math.floor(Math.min(110*dpr/rw,70*dpr/rh))),iw=rw*cell,ih=rh*cell,ix=w-iw-10*dpr,iy=36*dpr;
+    ctx.fillStyle='rgba(11,11,13,.9)';ctx.fillRect(ix-4*dpr,iy-4*dpr,iw+8*dpr,ih+8*dpr);
+    sctx.imageSmoothingEnabled=true;sctx.drawImage(img,0,0,bw,bh);ctx.imageSmoothingEnabled=false;ctx.drawImage(small,0,0,bw,bh,ix,iy,iw,ih);
+    const ax=ix-6*dpr,ay=iy+ih+6*dpr,tx=w*.42,ty=h*.6;
+    ctx.strokeStyle='#ffce5a';ctx.lineWidth=2.5*dpr;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(tx,ty);
+    const a=Math.atan2(ty-ay,tx-ax);ctx.moveTo(tx-10*dpr*Math.cos(a-.5),ty-10*dpr*Math.sin(a-.5));ctx.lineTo(tx,ty);ctx.lineTo(tx-10*dpr*Math.cos(a+.5),ty-10*dpr*Math.sin(a+.5));ctx.stroke();
+    const sx=10*dpr,sw=Math.min(w*.4,180*dpr),sh=34*dpr,sy=h-sh-10*dpr;
+    ctx.fillStyle='rgba(11,11,13,.9)';ctx.fillRect(sx-6*dpr,sy-6*dpr,sw+12*dpr,sh+12*dpr);
+    ctx.strokeStyle='#b98cff';ctx.lineWidth=2*dpr;ctx.beginPath();
+    for(let i=0;i<=60;i++){const q=i/60,y=sy+sh-(blockAt(q)-1)/(blockMax-1)*sh;i?ctx.lineTo(sx+q*sw,y):ctx.moveTo(sx+q*sw,y)}ctx.stroke();
+    ctx.setLineDash([4*dpr,4*dpr]);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.moveTo(sx+sw/2,sy);ctx.lineTo(sx+sw/2,sy+sh);ctx.stroke();ctx.setLineDash([]);
+    const q=p===null?.5:p;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx+q*sw,sy+sh-(blockAt(q)-1)/(blockMax-1)*sh,5*dpr,0,6.283);ctx.fill();
+    // the small copy's name to its left, Scaled up under it beside where the arrow starts, Swap here over the strip's top; the
+    // labels are all measured before any moves, so the page lays out once a frame
+    const L=['l-copy','l-up','l-swap'].map(id=>{const el=document.getElementById(id);return{el,w:el.offsetWidth,h:el.offsetHeight}});
+    const at=[[ix/dpr-12-L[0].w,iy/dpr],[(ix+iw)/dpr-L[1].w,(iy+ih)/dpr+12],[(sx+sw/2)/dpr-L[2].w/2,sy/dpr-30]];
+    L.forEach((l,i)=>{l.el.style.left=Math.max(6,Math.min(W-l.w-6,at[i][0]))+'px';l.el.style.top=Math.max(6,Math.min(H-l.h-6,at[i][1]))+'px'});
+  }
+  // A change runs by the time that passed (three times as long in slow motion) and draws only while it runs
+  function loop(ts){
+    raf=change?requestAnimationFrame(loop):0;if(!change)return;
+    if(lastT===null){lastT=ts;draw();return}
+    const dt=Math.min(ts-lastT,50);lastT=ts;
+    const dur=(reduceMQ.matches?250:changeMs)*(slowTog.checked?3:1);
+    if(change.fade!==undefined)change.fade=Math.min(1,change.fade+dt/dur);
+    change.p=Math.min(1,change.p+dt/dur);
+    if(change.p>=1){current=change.to;const then=change.then;change=null;draw();if(then)then();return}
+    draw();
+  }
+  function navigate(to,then){
+    if(change||to===current)return;
+    change={from:current,to,p:0,then};if(reduceMQ.matches)change.fade=0;
+    updateNav(to);lastT=null;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+  }
+  const navBtns=PAGES.map((p,i)=>{const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;b.addEventListener('click',()=>navigate(i));nav.appendChild(b);return b});
+  function updateNav(n){navBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-current',i===n?'page':'false')})}
+  // Show me: the next page, a hold of 1.2 s, and back to where it started; every pause waits on a timer. A run is on from its
+  // first change until the way back ends (runFrom is the page it started from); pressed during a run (the mode switch presses it
+  // too) it puts the page back where that run started and runs again, so a run always ends on the page it began on
+  function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);runTimers.push(id)}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];runFrom=null;if(change)change.then=null}
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    if(runFrom!==null){const home=runFrom;stopRun();change=null;cancelAnimationFrame(raf);raf=0;current=home;updateNav(home);draw()}
+    else if(change)return; // the visitor's own change is on
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>later(()=>navigate(start,()=>{runFrom=null}),1200));
+  });
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();change=null;cancelAnimationFrame(raf);raf=0;current=0;updateNav(0);draw()});
+  document.addEventListener('hb:input',()=>{if(runFrom!==null)stopRun()});
+  // A run never moves the focus, so focus arriving in the stage while one runs (a Tab to the page names) is the visitor's
+  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&runFrom!==null)stopRun()});
+  // The mode switch draws the mode at once
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;cvs.setAttribute('aria-label',LABELS[mode]);if(W)draw()});
+  function resize(){
+    const w=area.clientWidth,h=area.clientHeight;if(!w||!h||(w===W&&h===H))return;W=w;H=h;
+    dpr=Math.min(devicePixelRatio||1,2);cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);small.width=cvs.width;small.height=cvs.height;
+    for(const k in pics)delete pics[k];
+    draw();
+  }
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);if(W)draw();
+    }));
+  }
+  choices('block-seg',d=>{blockMax=+d.b});
+  choices('speed-seg',d=>{changeMs=+d.ms});
+  choices('steps-seg',d=>{stepped=d.steps==='1'});
+  // Under reduced motion a change is a short plain fade, and both views are still pictures
+  if(reduceMQ.matches){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: each block is one pixel of a small copy of the page, scaled up with smoothing off; the strip shows the blocks grow, swap the page at their largest and shrink.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still: both halves show the same page at the moment it swaps, Cuts at once as a plain page and Pixelates caught at its largest blocks.';
+  }
+  updateNav(0);
+  new ResizeObserver(resize).observe(area);
+  resize();
+  // The titles use the site's font: once it has loaded, the pages are drawn again
+  document.fonts.ready.then(()=>{font=getComputedStyle(document.body).fontFamily;for(const k in pics)delete pics[k];if(W)draw()});
+</script>
+</body>
+</html>

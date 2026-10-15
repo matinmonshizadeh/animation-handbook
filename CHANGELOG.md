@@ -17,6 +17,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   handbook animations that make something similar and a prompt to build your own. It is linked from the home page's footer.
 - A new animation, Ink Spread Reveal (167 in all): ink drops spread and merge until the picture shows, with See inside and
   Compare from the start.
+- A new animation, Pixelate Transition (168 in all): the page breaks into big pixels, then sharpens into the next, with
+  See inside and Compare from the start.
 
 ## 1.0.0 — 2026-10-10
 
