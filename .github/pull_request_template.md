@@ -19,6 +19,7 @@
 - [ ] Responsive (reflows at 375px, touch targets ≥ 44px, works with touch), works from the keyboard, respects `prefers-reduced-motion` and animates only `transform` and `opacity`
 - [ ] Linked in: the page before it has a Next link to it and the page after it a Previous link, each replacing the old one, and the `NN.MM` category line of every later page is renumbered
 - [ ] A card in the category's `entries` in the `CATS` array of the root `index.html` (slug, name, the page's one-line description), its places in `PLACES` (in the same order as `CATS`) and its own preview: its key in `PV`, its CSS in the category's bespoke block, a `case` in `pvMarkup()` and a `STILL` point if the middle of its loop is not a clear frame
+- [ ] Its finder answers in `FIND`, main first: a row right after `PLACES`, in `CATS` order (`tests/finder.test.js` checks it and runs the finder's test set)
 - [ ] In the category's `README.md` list and in the root `README.md` catalog, with the name linked to its live page and the same one-line description
 - [ ] The technique count updated where it is written: the root `README.md` (the total and the category's count), the home page (its title and meta tags too), `.github/ISSUE_TEMPLATE/config.yml` and `404.html` (its Browse all link)
 - [ ] `og-image.png` drawn again with the repo served: `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`

@@ -87,6 +87,13 @@ problem goes privately, as [SECURITY.md](SECURITY.md) describes, not into a publ
    inside its 16:10 stage), its markup as a `case` in `pvMarkup()`, and a `STILL` point when the
    middle of its loop is not a clear frame (reduced motion holds every preview there). Without
    one the card shows the category's generic picture.
+   Give it its finder answers in `FIND` too, a row right after `PLACES` in `CATS` order:
+   `'slug':['what','when','how']`, each a space-separated list of answer keys from `FIND_Q`, the
+   main one first. What takes 1–3 (the main one is what the demo moves), When 1–3 (every trigger
+   the effect is commonly used with, the most common first) and How 1–4 (the most visible movement
+   first, then the ones a visitor might name instead). Tag what a visitor sees and would say, not
+   how it is built; a page transition answers `newpage`, a loop page `loop`, a Scroll-Based or
+   scroll page `scroll`. `tests/finder.test.js` checks the row and runs the finder's test set.
 6. Add it to the category's `README.md` list (and to any other table there that names pages,
    such as 07's Implementation summary) and to the catalog in the root `README.md`, with the
    same name and description; there the name links to the live page,
@@ -303,8 +310,11 @@ The home page has a check of its own:
 `node tools/check-pages.mjs --base http://127.0.0.1:<port> home`. It checks the layout at the
 six setups. Its desktop run also tries the tiles, the search and Show all, and compares Copy
 prompt on the home page with every page's own prompt and default settings; its phone run tries
-a tile and the slim bar, and its reduced-motion run checks that nothing moves. Run it after
-changing any page's settings or prompt.
+a tile and the slim bar, and its reduced-motion run checks that nothing moves.
+Every setup also opens the finder (`?view=find`): its desktop run works the answers, See N
+matches, Start over, Show all, the Not here? link and the ways in, and its reduced-motion run
+checks that every How picture holds a still.
+Run it after changing any page's settings or prompt.
 
 ## Writing style
 
