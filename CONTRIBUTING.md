@@ -306,6 +306,11 @@ prompt on the home page with every page's own prompt and default settings; its p
 a tile and the slim bar, and its reduced-motion run checks that nothing moves. Run it after
 changing any page's settings or prompt.
 
+The Famous effects page has one too: `node tools/check-pages.mjs --base http://127.0.0.1:<port> famous`. It checks the
+layout at the six setups, presses each jump link and each Copy prompt and watches the previews; its reduced-motion run
+checks that nothing moves. Its previews come from the home page: after changing a preview it shows, run
+`node tools/make-famous.mjs`.
+
 ## Writing style
 
 Prose, not bullet-soup. Show, then explain. Avoid hype ("stunning", "powerful") — describe
@@ -318,3 +323,12 @@ CSS property names. Use American spelling (color, behavior, center, neighbor, gr
 Open an issue (or a PR directly for small fixes). Preserve every demo's behavior — visual
 parity matters more than code elegance. Never combine multiple animations into one file. If
 you change a shared file, bump `?v=N` on every page.
+
+## Suggesting a famous effect
+
+The [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) page shows effects people admire on
+well-known websites, each with the handbook animations that make something similar and a prompt to build your own. Seen
+one we should add? Open an issue with the *Famous effect* template: the site's address, where on the page it shows and
+what you see, in your own words. Please attach no screenshots, videos or code from the site: the page describes each
+effect in its own words and shows it only with the handbook's own demos (the rules are in `CLAUDE.md`, under Famous
+effects page).
