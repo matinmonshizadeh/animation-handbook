@@ -285,12 +285,14 @@ test('the ways into the finder: the Find button under the Popular line, Finder r
   assert.ok(read(path.join(ROOT, 'tools', 'make-social-image.mjs')).includes('.find-cta, #nav-find { display: none }'), 'the social picture leaves both out');
 });
 
-// The fields of a GitHub issue form, in order: each item of its body that has an id, with its type, label and whether it is required.
+// The fields of a GitHub issue form, in order: each item of its body that has an id, with its type, label, whether it keeps its
+// attributes block (GitHub rejects a field without one) and whether its validations block makes it required.
 const formFields = yml => yml.split(/\n  - type: /).slice(1).map(item => ({
   type: item.split(/\r?\n/)[0].trim(),
   id: (item.match(/\n    id: (\S+)/) || [])[1],
   label: ((item.match(/\n      label: (.+)/) || [])[1] || '').trim().replace(/^"(.*)"$/, '$1'),
-  required: /\n      required: true/.test(item)
+  attributes: /\n    attributes:\r?\n/.test(item),
+  required: /\n    validations:\r?\n      required: true/.test(item)
 })).filter(field => field.id);
 const FORM = path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'animation_not_here.yml');
 
@@ -317,6 +319,7 @@ test('the GitHub form for Not here? has its name, title, label and four fields',
     ['textarea', 'what', 'What happened, in your own words', true],
     ['textarea', 'recording', 'A screen recording or picture: drag it into this box', false]
   ]);
+  assert.ok(formFields(form).every(f => f.attributes), 'every field keeps its attributes');
 });
 
 test('the Not here? link names animation_not_here.yml and fills only fields the form has', () => {
