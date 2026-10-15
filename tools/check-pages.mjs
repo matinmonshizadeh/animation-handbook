@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Browser check for guided-steps demo pages: a development tool, not part of the site.
 // Needs the local Chrome and a static server for the repo (python -m http.server 8731 --bind 127.0.0.1).
-// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, home or learn>...
+// Usage: node tools/check-pages.mjs [--base http://127.0.0.1:8731] [--out <folder>] <page or category folder, or home>...
 //   e.g. node tools/check-pages.mjs animations/02-entrance-and-exit
 //   node tools/check-pages.mjs home   checks the home page at the same six setups: overflow, small targets on phones,
 //   the search box and the place tiles on the first screen, the tile counts and the eight Start cards. The desktop run
@@ -39,8 +39,6 @@
 // mode (the stage is cut out of it and compared, and the screenshot taken again, after putting the box back, up to three more
 // times if it differs). A stage that never comes to rest is a problem of its own, and nothing is compared with a frame taken in
 // mid-movement.
-// "learn" stands for the Learn page and every idea lesson in learn/: the page checks run there too, without the prompt parts
-// (chips, What it is), and each lesson's kind is worked like any other page's. "learn/index.html" is the Learn page alone.
 // Without --out every run writes into a new hb-check-<date>-<time>-<process id> folder (--out picks another one).
 // Nothing is emptied or removed, so runs going on at the same time, in other lanes or terminals, never wipe each
 // other's screenshots. The temporary Chrome profile (hb-chrome-* in the temp folder) is removed when the run ends, trying
@@ -73,24 +71,15 @@ const OUT = givenOut || join(tmpdir(), `hb-check-${stamp}-${process.pid}`);
 const isPage = folder => existsSync(join(ROOT, folder, 'index.html'));
 // A category folder (no index.html, but page folders inside) is expanded to its pages, so the call works
 // in shells that do not expand wildcards, such as PowerShell.
-const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '')))
+const pages = args.map(p => (p === 'home' ? p : p.replace(/\\/g, '/').replace(/^\.?\//, '').replace(/\/?(index\.html)?$/, '/')))
   .flatMap(p => {
-    // "learn/index.html" is the Learn page alone.
-    if (p === 'learn/index.html') return ['learn/'];
-    if (p !== 'home') p = p.replace(/\/?(index\.html)?$/, '/');
-    // "learn" and "learn/" stand for the Learn page and every idea lesson in its folder.
-    if (p === 'learn/') {
-      const lessons = existsSync(join(ROOT, 'learn')) ? readdirSync(join(ROOT, 'learn'), { withFileTypes: true })
-        .filter(d => d.isDirectory() && isPage(`learn/${d.name}`)).map(d => `learn/${d.name}/`).sort() : [];
-      return ['learn/', ...lessons];
-    }
     if (p === 'home' || isPage(p) || !existsSync(join(ROOT, p))) return [p];
     const inside = readdirSync(join(ROOT, p), { withFileTypes: true })
       .filter(d => d.isDirectory() && isPage(p + d.name)).map(d => `${p}${d.name}/`).sort();
     return inside.length ? inside : [p];
   });
 if (!pages.length) {
-  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, home or learn>...');
+  console.error('Usage: node tools/check-pages.mjs [--base URL] [--out DIR] <page or category folder, or home>...');
   process.exit(2);
 }
 mkdirSync(OUT, { recursive: true });
@@ -110,12 +99,11 @@ const CHECK = `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
   const problems = [];
-  const learn = document.body.classList.contains('hb-learn');
   if (!document.querySelector('.hb-page')) problems.push('not a guided-steps page');
   // Measured against clientWidth: under mobile emulation the browser widens innerWidth to fit overflowing content.
   if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
   if (phone) {
-    const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-star-row a, .hb-rel, .hb-lesson a, .hb-lesson-nav a, .hb-path a')]
+    const small = [...document.querySelectorAll('.hb-bar a, .hb-page button, .hb-page summary, .hb-page select, .hb-page input[type=range], .hb-page .hb-text, label.hb-toggle, label.hb-switch-row, .hb-foot a, .hb-star-row a, .hb-rel')]
       .filter(el => el.getClientRects().length && !el.closest('.stage'))
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
       .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
@@ -127,11 +115,10 @@ const CHECK = `(() => {
   const shown = el => { for (let n = el; n && n !== tryIt; n = n.parentElement) { if (n.hidden || n.hasAttribute('data-hb-skip') || getComputedStyle(n).display === 'none') return false; } return true; };
   const controls = tryIt ? [...tryIt.querySelectorAll('input[type=range], input[type=checkbox], input[type=text], textarea, select, .seg, .swatches')].filter(shown).length : 0;
   const chips = document.querySelectorAll('.hb-chips li').length;
-  // Learn pages have no prompt, so no chips, and no README
-  if (!learn && chips !== controls) problems.push('chips ' + chips + ' vs settings ' + controls);
+  if (chips !== controls) problems.push('chips ' + chips + ' vs settings ' + controls);
   const what = document.querySelector('.hb-what-text');
-  if (!learn && (!what || !what.querySelector('p'))) problems.push('What it is is missing');
-  else if (!learn && what.querySelector('a[href="README.md"]')) problems.push('What it is did not load from the README');
+  if (!what || !what.querySelector('p')) problems.push('What it is is missing');
+  else if (what.querySelector('a[href="README.md"]')) problems.push('What it is did not load from the README');
   const loop = document.querySelector('[data-hb-loop]');
   const switches = [...document.querySelectorAll('[data-hb-loop], [data-hb-slowmo]')].map(s =>
     ({ name: s.matches('[data-hb-loop]') ? 'Loop' : 'Slow motion', checked: s.checked, disabled: s.disabled }));

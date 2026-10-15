@@ -129,7 +129,7 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 // any) and the window's clipboard; no other test gets any of them. A link test passes `links` ({ protocol, hrefs }): the page is
 // served over that protocol (http: otherwise) and holds one link for each href.
 // `extra` ({ modes, noPrompt }): modes adds the mode switch (Normal, See inside, Compare) and one note for See inside and one
-// for Compare; noPrompt leaves the prompt out, as on an idea lesson.
+// for Compare; noPrompt leaves the prompt out.
 function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
   const opts = extra || {};
   const timers = [], sent = [];
@@ -275,7 +275,7 @@ test('a scroll page with an empty sentence of its own gets the usual note, and o
   assert.equal(standInPage('scroll', false, { 'data-hb-motion-note': 'The layers stay still while the box scrolls' }).player.children.length, 0);
 });
 
-test('a page with no prompt, such as an idea lesson, still gets its player: a scroll page scrolls on arrival and notes reduced motion', () => {
+test('a page with no prompt still gets its player: a scroll page scrolls on arrival and notes reduced motion', () => {
   const page = standInPage('scroll', false, {}, null, null, { noPrompt: true });
   page.runTimers();
   assert.equal(page.play.clicks, 1);
