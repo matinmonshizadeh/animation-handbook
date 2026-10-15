@@ -26,6 +26,17 @@
     .stage{position:relative;background:#030810;touch-action:pan-y}
     canvas{display:block;width:100%;height:100%}
     .no-webgl{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.72)}
+    /* See inside and Compare: plain words over the picture (the picture itself is drawn by the shader) */
+    .key,.side{display:none}
+    .lbl{position:absolute;padding:3px 8px;border-radius:5px;background:rgba(3,8,16,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .key{position:absolute;left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:6px}
+    .key .lbl{position:static}
+    .stage[data-hb-mode="inside"] .key{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage.no-gl .key,.stage.no-gl .side{display:none!important}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -48,13 +59,25 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and one blob follows your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="Soft blobs drifting and melting into each other on a dark background"></canvas>
       <div class="no-webgl" id="no-webgl">WebGL not available in this browser.</div>
+      <div class="key" aria-hidden="true"><span class="lbl k" data-hb-caption>White: each blob's circle</span><span class="lbl k" data-hb-caption>Gold: where two melt</span></div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Circles</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Melting</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each blob is a plain circle, outlined in white; where two come close, the melting adds liquid between them, shaded gold.</p>
+      <p data-hb-for="compare" hidden>On the left, Circles: the blobs only overlap, with sharp corners where they meet. On the right, Melting: they flow into one shape with soft necks between them.</p>
     </div>
   </section>
 
@@ -174,6 +197,11 @@ const slowTog=document.getElementById('slow-tog');
 let W,H,gl,prog,U={},raf=null,paused=false,lastT=0,simT=0;
 let BALLS=5,SMOOTH=.08,RAD=.14,SPD=.8,MOUSE_BALL=true,GLOW=true;
 let COLOR=[88/255,166/255,255/255];
+// See inside and Compare: the mode on show, and what the canvas says it shows in each one
+let mode='normal';
+const LABELS={normal:cvs.getAttribute('aria-label'),
+  inside:'The blobs dimmed, each one\'s own circle outlined in white and the places where two melt together shaded gold',
+  compare:'Two copies of the blobs side by side: hard circles that only overlap on the left, blobs that melt together on the right'};
 const BG=[3/255,8/255,16/255];
 // The pointer is recorded at once, but the picture takes it only when a frame moves on,
 // so a repaint while paused shows a new setting and moves nothing.
@@ -182,7 +210,7 @@ let mouseX=.5,mouseY=.5,shownX=.5,shownY=.5;
 const VS=`attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.,1.);}`;
 const FS=`
 precision mediump float;
-uniform vec2 uRes;uniform float uT;uniform int uBalls;
+uniform vec2 uRes,uOrigin;uniform float uT;uniform int uBalls,uView;
 uniform float uSmooth,uRad;uniform vec2 uMouse;uniform bool uGlow,uMouseBall;
 uniform vec3 uColor,uBG;
 
@@ -198,24 +226,36 @@ vec2 ball(int i,float t){
 }
 
 void main(){
-  vec2 uv=gl_FragCoord.xy/uRes;
+  // uOrigin is where this picture starts on the canvas: Compare draws two pictures side by side
+  vec2 uv=(gl_FragCoord.xy-uOrigin)/uRes;
   uv.y=1.-uv.y;
-  float d=10.;
+  float d=10.,hard=10.,edge=10.;
   for(int i=0;i<8;i++){
     if(i>=uBalls)break;
     vec2 c=(i==0&&uMouseBall)?uMouse:ball(i,uT);
     float bd=length((uv-c)*vec2(uRes.x/uRes.y,1.))-uRad;
     d=smin(d,bd,uSmooth);
+    hard=min(hard,bd);
+    edge=min(edge,abs(bd));
   }
+  // Compare's first picture: the plain circles, with no melting between them
+  if(uView==2)d=hard;
   float inside=smoothstep(.01,-.01,d);
   vec3 rim=uColor*pow(clamp(1.-abs(d)/.05,0.,1.),3.);
   float glow=uGlow?exp(-max(d,0.)/.08)*.4:0.;
   vec3 col=mix(uBG,uColor,inside)+rim*.5+uColor*glow;
+  // See inside: the liquid dimmed; where the melting adds liquid outside every plain circle, gold; each plain circle outlined
+  if(uView==1){
+    col*=.45;
+    float melt=(1.-smoothstep(-.004,.004,d))*smoothstep(0.,.004,hard);
+    col=mix(col,vec3(1.,.82,.36),melt*.95);
+    col=mix(col,vec3(1.),1.-smoothstep(.002,.007,edge));
+  }
   gl_FragColor=vec4(col,1.);
 }`;
 
 // A failed shader is otherwise a silent black canvas — say so instead.
-function fail(msg){gl=null;cvs.style.display='none';
+function fail(msg){stage.classList.add('no-gl');gl=null;cvs.style.display='none';
   noWgl.textContent=msg;noWgl.style.display='flex';}
 
 function init(){
@@ -233,7 +273,7 @@ function init(){
   if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));
     fail('Shader program failed to link — the log is in the browser console.');return false;}
   gl.useProgram(prog);
-  U={};'uRes uT uBalls uSmooth uRad uMouse uGlow uMouseBall uColor uBG'.split(' ')
+  U={};'uRes uOrigin uT uBalls uView uSmooth uRad uMouse uGlow uMouseBall uColor uBG'.split(' ')
     .forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
   const buf=gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER,buf);
@@ -264,16 +304,30 @@ function render(ts){
   if(!paused){simT+=Math.min(dt,100)/1000*SPD/(slowTog.checked?3:1);shownX=mouseX;shownY=mouseY;}
   lastT=ts;
   gl.useProgram(prog);
-  gl.uniform2f(U.uRes,W,H);
   gl.uniform1f(U.uT,simT);
   gl.uniform1i(U.uBalls,BALLS);
   gl.uniform1f(U.uSmooth,SMOOTH);
   gl.uniform1f(U.uRad,RAD);
   gl.uniform2f(U.uMouse,shownX,shownY);
   gl.uniform1i(U.uGlow,GLOW?1:0);
-  gl.uniform1i(U.uMouseBall,MOUSE_BALL?1:0);
   gl.uniform3fv(U.uColor,COLOR);
   gl.uniform3fv(U.uBG,BG);
+  // Compare: one context, two pictures side by side with a thin line between them, the plain circles on the left and the melting
+  // blobs on the right; the pointer, read over the right half only, moves the same blob in both, so the blobs match.
+  if(mode==='compare'){
+    const half=Math.floor(W/2),gap=Math.max(1,Math.round(W/400));
+    gl.viewport(0,0,W,H);gl.clearColor(.17,.17,.2,1);gl.clear(gl.COLOR_BUFFER_BIT);
+    view(0,half-gap,2,MOUSE_BALL);
+    view(half+gap,W-half-gap,0,MOUSE_BALL);
+  }else view(0,W,mode==='inside'?1:0,MOUSE_BALL);
+}
+// One picture of the blobs in a part of the canvas, x and w in canvas pixels: kind 0 as it is, 1 See inside, 2 hard circles
+function view(x,w,kind,mouseBall){
+  gl.viewport(x,0,w,H);
+  gl.uniform2f(U.uOrigin,x,0);
+  gl.uniform2f(U.uRes,w,H);
+  gl.uniform1i(U.uView,kind);
+  gl.uniform1i(U.uMouseBall,mouseBall?1:0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
 function start(){if(raf||!gl)return;lastT=performance.now();raf=requestAnimationFrame(render);}
@@ -289,12 +343,25 @@ document.addEventListener('hb:pause',e=>{
   if(paused){cancelAnimationFrame(raf);raf=null;}
   else start();
 });
+// The mode switch: the next frame draws the mode, and while paused one frame is drawn at once. The canvas's name says what it shows.
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;
+  cvs.setAttribute('aria-label',LABELS[mode]);
+  redraw();
+});
 
 function hexToRgb(hex){return[parseInt(hex.slice(1,3),16)/255,parseInt(hex.slice(3,5),16)/255,parseInt(hex.slice(5,7),16)/255];}
 
 // Shader uv.y is flipped to top-down, so the pointer y must be top-down too.
 // A finger counts as the pointer: a tap moves the blob there and a sideways drag moves it along.
-function aim(e){const r=cvs.getBoundingClientRect();mouseX=(e.clientX-r.left)/r.width;mouseY=(e.clientY-r.top)/r.height;}
+function aim(e){
+  const r=cvs.getBoundingClientRect();
+  // In Compare the pointer is read over the second picture only (a pointer over the first half moves nothing), and its blob
+  // moves in both pictures, so they match
+  if(mode==='compare'){const x=e.clientX-r.left-r.width/2;if(x<0)return;mouseX=x/(r.width/2);}
+  else mouseX=(e.clientX-r.left)/r.width;
+  mouseY=(e.clientY-r.top)/r.height;
+}
 
 if(init()){
   resize();lastT=performance.now();
