@@ -7,7 +7,8 @@
  * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
  * The mode switch (Normal, See inside, Compare) marks the stage with data-hb-mode, shows that mode's note and sends
- * "hb:mode", so the page draws the mode. Pages without a prompt get everything but the prompt parts.
+ * "hb:mode", so the page draws the mode; after See inside or Compare it plays the demo once (Replay or Show me), except under
+ * reduced motion. Pages without a prompt get everything but the prompt parts.
  * Opened from disk (file:), the page's links to folders open each folder's index.html instead of its listing.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
@@ -486,12 +487,23 @@
     }
 
     // See inside and Compare: the mode switch above the stage. Pressing a mode presses its button (one at a time), marks the
-    // stage with data-hb-mode, shows the note for that mode (Normal has none) and sends "hb:mode", so the page draws the mode.
-    // Nothing scrolls and nothing takes focus, and a running Play goes on: the switch sits outside the stage, whose input
-    // stops Play.
+    // stage with data-hb-mode and shows the note for that mode (Normal has none), and only then sends "hb:mode", so the page
+    // finds the buttons, the notes and the mark already changed when it draws the mode. A press on the mode already pressed
+    // sends "hb:mode" again. Nothing scrolls and nothing takes focus, and a running Play goes on: the switch sits outside the
+    // stage, whose input stops Play.
+    // Once the page has drawn See inside or Compare, the demo plays once by itself so the view is seen working: Replay on a
+    // plays-once page, Show me on a do-it page (a press of a mode is the visitor acting, so the Show me press on arrival is then
+    // skipped). Never under reduced motion, never after Normal, never on a scroll page (Play is there for that) or a loop (it is
+    // already moving). The page's own hb:mode listener presses nothing.
     function setUpModes() {
       var buttons = Array.prototype.slice.call(modesCtl.querySelectorAll('[data-hb-mode]'));
       var notes = Array.prototype.slice.call(page.querySelectorAll('[data-hb-for]'));
+      var kind = doc.body.getAttribute('data-hb-kind');
+      function playOnce() {
+        if (reduce && reduce.matches) return;
+        if (kind === 'once' && replayCtl) replayCtl.click();
+        else if (kind === 'do' && demoCtl) { visitorActed = true; demoCtl.click(); }
+      }
       function choose(mode) {
         buttons.forEach(function (b) {
           var on = b.getAttribute('data-hb-mode') === mode;
@@ -501,6 +513,7 @@
         notes.forEach(function (n) { n.hidden = n.getAttribute('data-hb-for') !== mode; });
         if (stage) stage.setAttribute('data-hb-mode', mode);
         doc.dispatchEvent(new win.CustomEvent('hb:mode', { detail: { mode: mode } }));
+        if (mode !== 'normal') playOnce();
       }
       buttons.forEach(function (b) {
         b.addEventListener('click', function () { choose(b.getAttribute('data-hb-mode')); });
@@ -540,7 +553,7 @@
 
     if (win.location.protocol === 'file:') openFoldersAsPages();
     if (promptEl) setUpPrompt();
-    if (copyBtn) setUpCopy();
+    if (promptEl && copyBtn) setUpCopy();
     if (tryStep) ['input', 'change', 'click'].forEach(function (type) { tryStep.addEventListener(type, onSettingsChange); });
     if (slowCtl) slowCtl.addEventListener('change', replay);
     if (pauseCtl) pauseCtl.addEventListener('click', function () { setPaused(!paused); });
