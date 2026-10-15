@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff6f8b;--marq-size:48px;--marq-gap:48px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;justify-content:center;background:#08080a}
+    .stage{position:relative;display:flex;flex-direction:column;justify-content:center;background:#08080a}
     .marq-row{overflow:hidden;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.09)}
     .marq-row:last-child{border-bottom:none}
     .marq-row.accent{background:rgba(255,111,139,.05)}
@@ -36,6 +36,50 @@
     .marq-item{font-size:var(--marq-size);font-weight:700;line-height:1;color:#fff;padding:0 var(--marq-gap);display:flex;align-items:center;gap:var(--marq-gap)}
     .marq-item.rev-row{color:rgba(255,255,255,.6)}
     .sep{color:var(--ui-accent);font-size:.6em;opacity:.7}
+    /* The rows sit in a box of their own, laid out as the stage lays them out */
+    .rows{display:flex;flex-direction:column}
+    .zoom,.solo,.lbl{display:none}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    /* In See inside and Compare the second and third rows stay where they were, unseen and out of the flow but never removed, so
+       their movement goes on for Normal */
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{justify-content:flex-start}
+    .stage[data-hb-mode="inside"] .rows .marq-row:not(.r1),.stage[data-hb-mode="compare"] .rows .marq-row:not(.r1){position:absolute;left:0;right:0;visibility:hidden}
+    /* See inside: the first row at the top, still moving; below it the same strip zoomed out: its two identical copies end to end,
+       and the box as a window sliding over them. When the window reaches the second copy it jumps back to the first, which looks
+       the same, so the jump never shows. */
+    .stage[data-hb-mode="inside"] .zoom{display:flex;flex-direction:column}
+    .stage[data-hb-mode="inside"] .zoom .lbl{display:block}
+    /* The drawing sits in the middle of the room under the row (the side margins are the ones the script measures with) */
+    .zoom{position:relative;flex:1;margin:10px clamp(10px,2%,20px)}
+    .zin{position:relative;flex:none;margin:auto 0}
+    .ztrack{position:absolute;left:0;display:flex;width:max-content;white-space:nowrap;transform-origin:0 0}
+    /* the marks between the repeats drawn twice as big as the zoom makes them, so the Separator setting still shows */
+    .ztrack .sep{transform:scale(2)}
+    .zcopy{position:absolute;border:2px solid rgba(244,244,242,.6);border-radius:6px}
+    .zwin{position:absolute;left:0;border:3px solid var(--ui-accent);border-radius:6px;animation:zwin linear infinite}
+    @keyframes zwin{from{transform:translateX(0)}to{transform:translateX(var(--zgo,0px))}}
+    .zwin .lbl{left:0;top:calc(100% + 6px)}
+    .zjump{position:absolute;width:2px;background:#f4f4f2}
+    /* The arrow as long as the slide: a bar and a head whose tip is where the second copy starts */
+    .zarrow{position:absolute;left:0;height:13px}
+    .zarrow::before{content:"";position:absolute;left:0;right:9px;top:5px;height:3px;border-radius:2px;background:var(--ui-accent)}
+    .zarrow::after{content:"";position:absolute;right:0;top:0;border-style:solid;border-width:6.5px 0 6.5px 10px;border-color:transparent transparent transparent var(--ui-accent)}
+    .zback{transform:translateX(-50%)}
+    /* Pointing at the first row, or tapping it on a touch screen, stops the window in See inside and the one copy in Compare too */
+    @media(hover:hover){.stage[data-hb-mode="inside"]:has(.r1:hover) .zwin,.stage[data-hb-mode="compare"]:has(.r1:hover) .solo-track{animation-play-state:paused}}
+    .stage[data-hb-mode="inside"]:has(.r1.paused) .zwin,.stage[data-hb-mode="compare"]:has(.r1.paused) .solo-track{animation-play-state:paused}
+    /* Compare: on top the common mistake, a single copy of the text that slides out, leaves a gap and jumps back; below it the
+       first row with its two copies, which loops with no seam */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+    .stage[data-hb-mode="compare"] .solo{display:flex;flex-direction:column;justify-content:center;grid-row:1;border-bottom:2px solid rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .rows{grid-row:2;justify-content:center}
+    .stage[data-hb-mode="compare"] .r1{border-bottom-color:transparent}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .side{left:12px}
+    .side.first{top:10px}
+    .side.second{top:calc(50% + 6px)}
+    .solo-track{display:flex;width:max-content;white-space:nowrap;animation:soloL linear infinite}
+    @keyframes soloL{from{transform:translateX(0)}to{transform:translateX(-100%)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -58,10 +102,25 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it, or point at a row (tap it on a phone) to stop just that row.</p></div>
     </div>
-    <div class="stage hb-dots" id="stage"></div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage hb-dots" id="stage">
+      <div class="rows" id="rows"></div>
+      <div class="zoom" id="zoom" aria-hidden="true" inert></div>
+      <div class="solo" id="solo" aria-hidden="true" inert></div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>One copy</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Two copies</p>
+    </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the strip is two identical copies end to end and the box is a window sliding over them; it jumps back at the second copy, which looks the same, so the jump never shows.</p>
+      <p data-hb-for="compare" hidden>On top, One copy: the text slides out, leaves a gap and jumps back. Below, Two copies: a second copy fills the gap, so the loop has no seam.</p>
     </div>
   </section>
 
@@ -161,6 +220,22 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
+  const rows=document.getElementById('rows'),zoom=document.getElementById('zoom'),solo=document.getElementById('solo');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  // Under reduced motion the loop starts paused, so both views are still pictures, and their notes say so, but only while the
+  // still picture is the posed one: once Play has moved it on, the notes say the markup's own words again, until a mode press or
+  // a rebuild poses the one copy anew. The shared script sends hb:pause on every press of Pause or Play, and once at boot under
+  // reduced motion, when it pauses the loop. A note is rewritten only when its words change, as its box reads changes out loud.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+    'Inside, shown still: the strip is two identical copies end to end, and the arrow shows how far the box slides before it jumps back to the start.',
+    'Shown still: on top, One copy, the text has slid most of the way out and left a gap; below, Two copies, the second copy fills it.'];
+  let paused=reduceMQ.matches,posed=true;
+  function describe(){
+    const shown=reduceMQ.matches&&paused&&posed;
+    notes.forEach((n,i)=>{const words=shown?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)posed=false;describe()});
   const vars=document.documentElement.style;
   const txtIn=document.getElementById('text-inp');
   const noHover=matchMedia('(hover:none)');
@@ -178,7 +253,7 @@
     const row=document.createElement('div');row.className='marq-row'+(className?' '+className:'');
     const track=document.createElement('div');track.className='marq-track'+(reverse?' rev':'');track.setAttribute('aria-live','off');
     row.appendChild(track);
-    stage.appendChild(row);
+    rows.appendChild(row);
     // One copy must be wider than the row, so repeat the item until it is, then duplicate that copy once
     const probe=makeItem(text,sep,reverse);track.appendChild(probe);
     const reps=Math.max(2,Math.ceil(row.clientWidth/Math.max(probe.offsetWidth,1))+1);
@@ -208,16 +283,86 @@
   function rebuild(){
     const text=getContent();
     const frac=progressOf(stage.querySelector('.marq-track'));
-    stage.innerHTML='';
-    buildRow(text,separator,false,'');
-    buildRow(text,separator,true,'accent');
-    buildRow(text+' '+separator+' '+text,separator,false,'');
+    rows.innerHTML='';
+    buildRow(text,separator,false,'r1');
+    buildRow(text,separator,true,'accent r2');
+    buildRow(text+' '+separator+' '+text,separator,false,'r3');
     document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t,frac));
+    buildViews();
   }
 
   function refreshSpeeds(){
     document.querySelectorAll('.marq-track').forEach(t=>updateSpeed(t));
   }
+
+  // See inside and Compare are drawn from the first row as it stands (its text, its copies, its width and its speed) and built
+  // again with the rows, so every setting and Your text reach them. Sizes come from the first row, which is always shown.
+  function buildViews(){
+    const row=rows.querySelector('.r1'),track=row&&row.querySelector('.marq-track');
+    if(!track)return;
+    const copyW=track.scrollWidth/2,rowW=stage.clientWidth,rowH=row.offsetHeight;
+    // the zoom's side margins are 2% of the box's width, 10 to 20 pixels, as in the styles
+    const zoomW=Math.max(1,rowW-2*Math.min(20,Math.max(10,rowW*.02)));
+    const k=Math.min(1,zoomW/track.scrollWidth),h=rowH*k,cw=copyW*k;
+    zoom.innerHTML='';
+    const box=document.createElement('div');box.className='zin';box.style.height=h+115+'px';zoom.appendChild(box);
+    const add=(cls,css,words,to=box)=>{
+      const el=document.createElement(words===undefined?'div':'span');el.className=cls;
+      for(const [p,v] of Object.entries(css))el.style.setProperty(p,v);
+      if(words!==undefined){el.textContent=words;el.setAttribute('data-hb-caption','')}
+      to.appendChild(el);return el;
+    };
+    // the whole strip, drawn small enough to fit, with its two copies outlined and named
+    const strip=track.cloneNode(true);
+    strip.className='ztrack';strip.removeAttribute('aria-live');
+    strip.style.top=34+h/2-track.offsetHeight*k/2+'px';strip.style.transform=`scale(${k})`;
+    box.appendChild(strip);
+    add('zcopy',{left:'0px',top:'30px',width:cw+'px',height:h+8+'px'});
+    add('zcopy',{left:cw+'px',top:'30px',width:cw+'px',height:h+8+'px'});
+    add('lbl zcap',{left:'0px',top:'0px'},'Copy 1');
+    add('lbl zcap',{left:cw+4+'px',top:'0px'},'Copy 2, the same');
+    // where the second copy starts the window jumps back; the arrow under it is as long as the slide
+    add('zjump',{left:cw-1+'px',top:'22px',height:h+59+'px'});
+    // the box as a window over the strip, named under it: it slides one copy's width, as long as the row takes, then starts over
+    const win=add('zwin',{top:'26px',width:rowW*k+'px',height:h+16+'px','--zgo':cw+'px','animation-duration':track.durMs+'ms'});
+    add('lbl zcap',{},'In the box',win);
+    add('zarrow',{top:h+74+'px',width:cw+'px'});
+    add('lbl zcap zback',{left:cw+'px',top:h+93+'px'},'Jumps back here');
+    // Compare's mistake: the same strip as Copy 1 (the first row's own first copy), but only that one copy, sliding by its own
+    // width in the time the row takes, then starting over. The two halves differ only by the second copy.
+    solo.innerHTML='';
+    const srow=document.createElement('div');srow.className='marq-row solo-row';
+    const st=document.createElement('div');st.className='solo-track';
+    for(let i=0;i<track.children.length/2;i++)st.appendChild(track.children[i].cloneNode(true));
+    srow.appendChild(st);solo.appendChild(srow);
+    st.style.animationDuration=track.durMs+'ms';
+    syncWindow();
+    poseSolo();
+  }
+  // The window keeps time with the first row: both cover one copy's width in the same time. A window just shown starts a frame
+  // later than asked, so it is set again once it runs (a window hidden before that is let go quietly).
+  function syncWindow(){
+    const t=rows.querySelector('.r1 .marq-track'),w=zoom.querySelector('.zwin');
+    const a=t&&t.getAnimations()[0],b=w&&w.getAnimations()[0];
+    const sync=()=>{if(a.currentTime!=null&&b.playState!=='idle')b.currentTime=a.currentTime%t.durMs};
+    if(a&&b){sync();b.ready.then(sync,()=>{})}
+  }
+  // Compare's mistake starts at its telling moment: the one copy has slid so far that what is left of it covers 40% of the box,
+  // its last words beside a plain gap, and the jump back comes within seconds; under reduced motion the loop is paused, and it
+  // holds there. The copy's width is measured on the first row, which is always shown.
+  function poseSolo(){
+    const t=solo.querySelector('.solo-track'),a=t&&t.getAnimations()[0],r=rows.querySelector('.r1 .marq-track');
+    if(!(a&&a.effect&&r))return;
+    a.currentTime=Math.max(0,1-.4*stage.clientWidth/(r.scrollWidth/2))*a.effect.getComputedTiming().duration;
+    posed=true;describe();
+  }
+  // The mode switch: draws the mode at once. A view's animation starts when the view is shown, so the window is set to the first
+  // row's place then, and the mistake is posed. Pause and Slow motion reach every animation in the stage.
+  document.addEventListener('hb:mode',e=>{
+    syncWindow();
+    if(e.detail.mode==='compare')poseSolo();
+  });
+  reduceMQ.addEventListener('change',()=>{describe();if(reduceMQ.matches)poseSolo()});
 
   txtIn.addEventListener('input',rebuild);
 
@@ -234,7 +379,7 @@
       pick(b.dataset);
     }));
   }
-  choices('speed-seg',d=>{spd=+d.spd;refreshSpeeds()});
+  choices('speed-seg',d=>{spd=+d.spd;refreshSpeeds();buildViews()});
   choices('size-seg',d=>{vars.setProperty('--marq-size',d.size+'px');rebuild()});
   choices('gap-seg',d=>{vars.setProperty('--marq-gap',d.gap+'px');rebuild()});
   choices('sep-seg',d=>{separator=d.sep;rebuild()});
