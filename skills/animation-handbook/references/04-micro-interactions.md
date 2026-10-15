@@ -870,5 +870,5 @@ Add a before-and-after slider to [the two pictures you want to compare]. Stack t
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Split: **Left and right** · Top and bottom. Which way the line runs: left and right shows After to the left of an upright line, dragged anywhere on the pictures; top and bottom shows After below a level line, dragged by its handle only.
-- Handle: **Knob** · Bar · Line only. What there is to grab: knob is a round button with two arrows, bar a narrow bar along the line, line only the bare line (still grabbed across a strip about as wide as a fingertip).
+- Handle: **Knob** · Bar · Line only. What there is to grab: knob is a round button with two arrows, bar a narrow bar along the line, line only the bare line, with nothing showing where to grab (the knob's fingertip-sized grab area stays, unseen, on the middle of the line).
 - Shows labels: **on** · off. Before and After name each side from a corner, and each fades out when the line comes within a few pixels of it.

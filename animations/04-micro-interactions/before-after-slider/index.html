@@ -28,7 +28,7 @@
     @property --v{syntax:"<number>";inherits:false;initial-value:.5}
     .stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);background:#0b0b0d;-webkit-user-select:none;user-select:none}
     .defs{position:absolute;width:0;height:0;overflow:hidden}
-    .ba{position:relative;min-width:0;overflow:hidden;touch-action:pan-y;cursor:ew-resize}
+    .ba{position:relative;min-width:0;overflow:hidden;touch-action:pan-y;cursor:ew-resize;container-type:size}
     .vert .ba{cursor:pointer}
     .layer,.win,.pic,.rail{position:absolute;inset:0}
     .pic svg{display:block;width:100%;height:100%}
@@ -46,6 +46,7 @@
     /* The handle: a slider the keyboard can move too, at least 48px to touch whatever its look */
     .handle{position:absolute;left:0;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;display:grid;place-items:center;border-radius:24px;pointer-events:auto;cursor:grab;touch-action:none}
     .vert .handle{left:50%;top:0}
+    .vert .handle{translate:0 clamp(calc(24px - (1 - var(--v)) * 100cqh), 0px, calc(var(--v) * 100cqh - 24px))}
     .h-bar .handle{height:68px;margin-top:-34px}
     .vert.h-bar .handle{width:68px;height:48px;margin:-24px 0 0 -34px}
     .grip{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:#16161a;box-shadow:0 2px 10px rgba(0,0,0,.4)}
@@ -351,7 +352,7 @@
     twin.removeAttribute('id');stage.insertBefore(twin,ba);findMovers();
   }
   // The parts that move with the line: the window, the picture in it, and the line with its handle (the copy's too)
-  function findMovers(){movers=[...stage.querySelectorAll('.win,.win .pic,.rail')]}
+  function findMovers(){movers=[...stage.querySelectorAll('.win,.win .pic,.rail,.handle')]}
   // The mode switch draws the mode at once. The views hold the line at 70% when it rests in the middle; Normal gets it back.
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;pic.setAttribute('aria-label',LABELS[mode]);
