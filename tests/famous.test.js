@@ -385,8 +385,9 @@ const SITE_PHRASES = [
   'Music for everyone', 'Preview of Spotify', 'Your YouTube history is off', 'In pursuit of democracy', 'Each dot represents',
   'Bright dots are ones', 'Keep scrolling or Skip to next', 'To make Medium work', 'Welcome to the mother chip', 'Pro further', 'A20 Pro'
 ];
-// The entries the live check covered, and the day it checked them (entries 7 and 8 get their day at the owner's review).
-const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
+// The entries the live check covered, and the day it checked them. At the owner's review entry 7 gave its place to reserve R3
+// (apple-sweep), which the check covered too, and entry 8 was left out, as no other reserve had passed.
+const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'apple-sweep', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
 const CHECKED_DAY = '2026-10-13';
 
 // The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
