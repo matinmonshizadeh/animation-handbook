@@ -1580,7 +1580,7 @@ Then a real caret page, main's on both sides, through a copy four folders below 
 Expected: `grep -c "the stage: 0 of [0-9]* pixels differ (0 visibly); Try it: 0 of [0-9]* pixels differ (0 visibly)" $S/real.log` prints `3`, `grep -c "did not come to rest" $S/real.log` prints `0` (its caret blinks for ever and is held), and `0 pictures, 0 clips and 3 comparisons made, 0 skipped, 0 failed`. Then `rm -rf /c/Users/matin/OneDrive/Desktop/Projects/animation-handbook/.superpowers/sdd/2026-10-13-see-inside-compare/kit-hold-real`.
 Then round 4's `--short` on two fixture pages with the copy, for the review, each as a background command, with `<page>` and `<log>` taken in turn from `ok-captions` and `short-ok`, `bad-caption-outside` and `short-bad`:
 `REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; S=$RUN/scratch/kit-hold; node $RUN/slot.mjs run kit-hold -- node $S/site/k/i/t/kit/record.mjs --base http://127.0.0.1:8840 --short --out $S/out-<log> animations/93-phase0/<page> > $S/<log>.log 2>&1; echo "EXIT=$?" >> $S/<log>.log`
-Expected: `short-ok.log` has `27 short-screen pictures checked, 0 with labels cut or overlapping, 0 skipped, 0 failed` and `EXIT=0`; `short-bad.log` has nine `FAIL` lines, one per screen in See inside (`… the label "Outside label" is not inside the stage`), `27 short-screen pictures checked, 8 with labels cut or overlapping, 0 skipped, 0 failed` and `EXIT=1`.
+Expected: `short-ok.log` has `27 short-screen pictures checked, 0 with labels cut or overlapping, 0 skipped, 0 failed` and `EXIT=0`; `short-bad.log` has nine `FAIL` lines, one per screen in See inside (`… the label "Outside label" is not inside the stage`), `27 short-screen pictures checked, 9 with labels cut or overlapping, 0 skipped, 0 failed` and `EXIT=1`.
 
 - [ ] **Step 5: Review (a fresh agent): the hold, and kit rounds 3 and 4**
 
@@ -1790,7 +1790,7 @@ a server. Start every Bash call with:
    stages (lesson 12), in the background as in step 5:
    `cd $WT && node $RUN/slot.mjs run b-{{NUM}} -- node $KIT/record.mjs --base http://127.0.0.1:{{PORT}} --short --out {{KIT}}-short {{PAGE}} > {{KIT}}-short.log 2>&1; echo "EXIT=$?" >> {{KIT}}-short.log`
    then `node $RUN/wait-log.mjs {{KIT}}-short.log`. Expected: the line `27 short-screen pictures checked, 0 with labels cut
-   or overlapping, 0 skipped, 0 failed` and `EXIT=0` (eight screens, three modes); anything cut or overlapping (a `FAIL`
+   or overlapping, 0 skipped, 0 failed` and `EXIT=0` (nine screens, three modes); anything cut or overlapping (a `FAIL`
    line names it): fix it (step 6's rounds again) and run it again.
 8. Every setting (acceptance 7). For each choice of each setting other than its default, and each switch in Try it (never
    Loop, Slow motion, Pause or Play: playback is not a setting), a kit run with `--gallery --press "<selector>"` into
