@@ -381,6 +381,14 @@ button,input{font:inherit;color:inherit}
 @media(hover:hover){.find-cta:hover{border-color:var(--ink)}}
 @media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}
 @media(max-width:600px){.find-cta{display:flex;align-self:stretch;margin-top:8px}}
+/* Not here?, under the finder's cards whenever an answer is picked */
+.fd-not{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;padding:clamp(28px,4vw,44px) 24px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow);text-align:center}
+.fd-not-t{font-size:22px;font-weight:800}
+.fd-not-s{max-width:560px;font-size:16px;color:var(--ink-2)}
+.fd-not-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:4px}
+.fd-fine{font-size:14px;color:var(--muted)}
+.fd-not .pillbtn{min-height:52px;padding:0 24px;font-size:16px;justify-content:center} /* Describe it in words, as Start over: as tall as the dark button beside it, its words in the middle when a phone stretches it */
+@media(max-width:600px){.fd-not-acts{flex-direction:column;align-self:stretch}}
 
 /* ── preview library ── */
 /* The hint names the transform only: opacity in will-change flattens CSS 3D in Chrome (a cube draws as one flat face) */
@@ -1693,6 +1701,12 @@ button,input{font:inherit;color:inherit}
       <p class="pop"><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
     </div>
     <div class="more" id="more"><button type="button" class="bigbtn" id="more-btn"><span id="more-label">Browse all 166 animations</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
+    <div class="fd-not" id="find-not" hidden>
+      <h3 class="fd-not-t">Not here?</h3>
+      <p class="fd-not-s" id="find-not-s">Tell us what you saw. We use it to add the animation or to fix the finder.</p>
+      <p class="fd-not-acts"><a class="fd-btn" id="find-gh" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml" target="_blank" rel="noopener">Tell us on GitHub</a><button type="button" class="pillbtn" id="find-words">Describe it in words</button></p>
+      <p class="fd-fine">The form is on GitHub and needs a free account.</p>
+    </div>
     <noscript><p class="noscript">This page shows its animations with JavaScript. All 166 are still easy to reach: see the <a href="https://github.com/matinmonshizadeh/animation-handbook#categories">category list on GitHub</a> or the <a href="sitemap.xml">full sitemap</a>. Each demo is a page of its own under <code>/animations/&lt;category&gt;/&lt;name&gt;/</code>.</p></noscript>
   </section>
 
@@ -2900,6 +2914,7 @@ function render(answered){
   }
   titleEl.textContent=title;say(sub,finding&&answered);
   showFinder(finding,found);
+  showNotHere(finding,found);
   syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
   clearBtn.hidden=!filtered||finding;
@@ -3077,6 +3092,17 @@ function enterFind(e){
   scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});
 }
 document.querySelectorAll('.find-cta,#nav-find').forEach(a=>a.addEventListener('click',enterFind));
+// Not here?, under the cards whenever an answer is picked: its link opens the GitHub form with the answers filled in; when nothing
+// fits, its line says so and suggests Not sure on one question. Describe it in words goes back to the start, search box focused.
+const findNot=$('find-not'),findNotLine=$('find-not-s'),findGh=$('find-gh');
+function showNotHere(finding,found){
+  const answered=finding&&answeredAny();
+  findNot.hidden=!answered;
+  if(!answered)return;
+  findNotLine.textContent=found.best.length+found.close.length?'Tell us what you saw. We use it to add the animation or to fix the finder.':'Nothing fits these answers yet. Try Not sure on one question, or tell us what you saw.';
+  findGh.href=findIssueURL(state);
+}
+$('find-words').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});q.focus({preventScroll:true});});
 const startCat=readURL();
 render();
 if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}

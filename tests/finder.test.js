@@ -266,6 +266,52 @@ test('the ways into the finder: the Find button under the Popular line, Finder r
   assert.ok(read(path.join(ROOT, 'tools', 'make-social-image.mjs')).includes('.find-cta, #nav-find { display: none }'), 'the social picture leaves both out');
 });
 
+// The fields of a GitHub issue form, in order: each item of its body that has an id, with its type, label and whether it is required.
+const formFields = yml => yml.split(/\n  - type: /).slice(1).map(item => ({
+  type: item.split(/\r?\n/)[0].trim(),
+  id: (item.match(/\n    id: (\S+)/) || [])[1],
+  label: ((item.match(/\n      label: (.+)/) || [])[1] || '').trim().replace(/^"(.*)"$/, '$1'),
+  required: /\n      required: true/.test(item)
+})).filter(field => field.id);
+const FORM = path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'animation_not_here.yml');
+
+test('Not here? sits under the cards with its words, its GitHub link in a new tab and Describe it in words', () => {
+  const panel = between(HOME, '<div class="fd-not" id="find-not" hidden>', '</div>');
+  assert.ok(panel, 'the Not here? panel, hidden until an answer is picked');
+  for (const part of ['<h3 class="fd-not-t">Not here?</h3>',
+    '<p class="fd-not-s" id="find-not-s">Tell us what you saw. We use it to add the animation or to fix the finder.</p>',
+    '<a class="fd-btn" id="find-gh" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml" target="_blank" rel="noopener">Tell us on GitHub</a>',
+    '<button type="button" class="pillbtn" id="find-words">Describe it in words</button>',
+    '<p class="fd-fine">The form is on GitHub and needs a free account.</p>']) assert.ok(panel.includes(part), part);
+  assert.ok(at('id="find-not"') > at('id="more"') && at('id="find-not"') < at('id="how"'), 'under the cards, before How it works');
+});
+
+test('the GitHub form for Not here? has its name, title, label and four fields', () => {
+  const form = read(FORM);
+  assert.match(form, /^name: "Can't find an animation"\r?$/m);
+  assert.match(form, /^description: "You saw an animation on a website, and the finder did not show it\."\r?$/m);
+  assert.match(form, /^title: "\[not here\] "\r?$/m);
+  assert.match(form, /^labels: \["finder"\]\r?$/m);
+  assert.deepEqual(formFields(form).map(f => [f.type, f.id, f.label, f.required]), [
+    ['input', 'answers', 'Your answers in the finder', false],
+    ['input', 'site', 'Where did you see it? A link, and where on the page', true],
+    ['textarea', 'what', 'What happened, in your own words', true],
+    ['textarea', 'recording', 'A screen recording or picture: drag it into this box', false]
+  ]);
+});
+
+test('the Not here? link names animation_not_here.yml and fills only fields the form has', () => {
+  const fields = formFields(read(FORM)).map(f => f.id);
+  const url = new URL(finder().findIssueURL({ what: 'card', when: 'scroll', how: 'pieces' }));
+  assert.equal(url.searchParams.get('template'), path.basename(FORM));
+  for (const name of url.searchParams.keys()) assert.ok(['template', 'title'].includes(name) || fields.includes(name), `${name} is a field of the form`);
+});
+
+test('the issue chooser offers the finder first', () => {
+  const config = read(path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'config.yml'));
+  assert.match(config.split(/\r?\n  - name: /)[1] || '', /^Find an animation by what you saw\r?\n    url: https:\/\/matinmonshizadeh\.github\.io\/animation-handbook\/\?view=find\r?\n/);
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 
