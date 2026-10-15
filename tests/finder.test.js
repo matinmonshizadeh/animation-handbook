@@ -481,7 +481,7 @@ test('an address that opens the finder hides the hero and the place tiles from t
   assert.ok(head && at(head) < at('</head>'), 'the line runs in the head');
   const page = finder({ URLSearchParams, location: { search: '' } });
   vm.runInContext(source('fromURL'), page);
-  for (const search of ['?view=find', '?view=find&what=text&how=fade', '?q=%20&view=find', '?q=fade&view=find', '?view=all', '?what=text', '']) {
+  for (const search of ['?view=find', '?view=find&what=text&how=fade', '?q=%20&view=find', '?q=fade&view=find', '?place=buttons&view=find', '?view=all', '?what=text', '']) {
     const added = [];
     vm.runInNewContext(head, { URLSearchParams, location: { search }, document: { documentElement: { classList: { add: name => added.push(name) } } } });
     page.location.search = search;
