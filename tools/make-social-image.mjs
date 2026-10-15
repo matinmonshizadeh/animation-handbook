@@ -6,10 +6,11 @@
 // Usage: node tools/make-social-image.mjs [--base http://127.0.0.1:8731] [--out og-image.png]
 // Run it again when the picture would change: a new animation changes the count in the pill.
 // The page is laid out 1080 pixels wide and drawn at 1200/1080 of its size, so its words stay readable when a social site
-// shows the picture small. For the picture only, the line under the question, the Popular suggestions and the counts under
-// the tiles are left out (so the tiles fit with room under them), the question is drawn at its full size and the GitHub
-// button shows no star count (the request for it is blocked: a number in the picture would soon be out of date). Every
-// animation is stopped at the same moment of its loop, so every run draws the same picture.
+// shows the picture small. For the picture only, the line under the question, the Popular suggestions, the finder's Find button
+// and Finder link and the counts under the tiles are left out (so the tiles fit with room under them, as before the finder), the
+// question is drawn at its full size and the GitHub button shows no star count (the request for it is blocked: a number in the
+// picture would soon be out of date). Every animation is stopped at the same moment of its loop, so every run draws the same
+// picture.
 // The temporary Chrome profile (hb-social-* in the temp folder) is removed when the run ends, trying again for up to 10 s
 // while Chrome lets go of its files; one that stays is named in the output. Exit code 1 on any problem.
 import { execFileSync, spawn } from 'node:child_process';
@@ -44,7 +45,7 @@ const MOMENT = 6240;
 // For the picture only (see the top of this file). Two floating shapes sat beside the lines that are left out; they move
 // up beside the search box.
 const PICTURE_CSS = `
-.home-hero .sub, .home-hero .pop, .pl-count, .gh-c:empty { display: none }
+.home-hero .sub, .home-hero .pop, .pl-count, .gh-c:empty, .find-cta, #nav-find { display: none }
 .home-hero { padding-top: 32px }
 .h1 { font-size: 64px }
 .fl3 { top: 206px }
