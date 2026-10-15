@@ -621,7 +621,7 @@ const CASES = [
   [6, '', 'scroll', 'pin', ['Pin Animation', 'Sticky Section', 'Scrollytelling']],
   [7, 'card', 'scroll', 'grow', ['Zoom Into Image']],
   [8, '', 'scroll', 'layers', ['Parallax Scrolling', 'Parallax Depth-of-Field']],
-  [9, 'page', 'click', '', ['Circle Reveal', 'Overlay Wipe', 'Portal / Tunnel Zoom']],
+  [9, 'page', 'click', '', ['Circle Reveal', 'Overlay Wipe', 'Portal / Tunnel Zoom', 'Ink Spread Reveal']],
   [10, 'text', 'load', 'reveal', ['Curtain Reveal', 'Text Clip-Path Reveal']],
   [11, 'page', 'scroll', 'slide', ['Smooth (Inertia) Scroll']],
   [12, 'card', 'scroll', 'turn', ['Scroll Image Sequence', 'Scrub Animation', 'Scroll-Driven 3D Rotation']],

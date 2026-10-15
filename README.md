@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 166 web animation techniques" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 167 web animation techniques" width="820"></picture></a>
 
 # Animation Handbook
 
-**A visual reference of 166 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
+**A visual reference of 167 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
@@ -14,7 +14,7 @@ Add it to your AI coding assistant (run in your project folder; needs Node.js):
 npx skills add matinmonshizadeh/animation-handbook
 ```
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-166-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-167-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
 
@@ -22,14 +22,14 @@ npx skills add matinmonshizadeh/animation-handbook
 
 ## What this is
 
-Here are 166 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+Here are 167 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
 Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and its demo runs offline; [Run it locally](#run-it-locally) covers the parts that need a local server. Built to *inspire* and *teach*, not to sell a library.
 
 ## How to use it
 
 1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked", or, if you saw it somewhere and don't know its name, answer three questions in the [finder](https://matinmonshizadeh.github.io/animation-handbook/?view=find).
-2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get.
+2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get. Some pages also have a See inside view, which shows the parts that make the effect (guides, hidden layers, the numbers made visible), and a Compare view, which shows the effect beside a version without its key idea; switch between them above the stage.
 3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 
 **Seen it on a famous site?** [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) shows effects people admire on well-known websites, the handbook animations that make something similar, and a prompt to build your own.
@@ -60,7 +60,7 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 | # | Category | Count |
 |:--:|----------|:-----:|
 | 01 | [Scroll-Based](#01) | 27 |
-| 02 | [Entrance & Exit](#02) | 14 |
+| 02 | [Entrance & Exit](#02) | 15 |
 | 03 | [Page Transitions](#03) | 16 |
 | 04 | [Micro-Interactions](#04) | 41 |
 | 05 | [Text & Typography](#05) | 19 |
@@ -69,7 +69,7 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 
 ## Full catalog
 
-All 166 techniques, each linked to its live demo.
+All 167 techniques, each linked to its live demo.
 
 Each technique's code and README are in its folder under [animations/](animations/).
 
@@ -113,11 +113,11 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <a id="02"></a>
 
-### 02 · Entrance & Exit · 14 techniques
+### 02 · Entrance & Exit · 15 techniques
 
 <sub>Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.</sub>
 
-<details><summary>Browse all 14 techniques in Entrance & Exit</summary>
+<details><summary>Browse all 15 techniques in Entrance & Exit</summary>
 
 - **[Fade In / Fade Out](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/fade-in-out/)** — Fades in to appear and fades out to leave. Best for pop-ups and tooltips.
 - **[Slide In](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/slide-in/)** — Travels into place from one edge. Best for side panels and notifications.
@@ -133,6 +133,7 @@ Each technique's code and README are in its folder under [animations/](animation
 - **[Bounce In](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/bounce-in/)** — Lands with a springy bounce. Best for badges and success messages.
 - **[Rotate In](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/rotate-in/)** — Spins into place while it grows. Best for icons, stars and badges.
 - **[Shatter Effect](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/shatter-effect/)** — Breaks into pieces that fly apart and fade. Best for galleries and bold exits.
+- **[Ink Spread Reveal](https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/ink-spread-reveal/)** — Ink drops spread and merge until the picture shows. Best for art and intros.
 
 </details>
 

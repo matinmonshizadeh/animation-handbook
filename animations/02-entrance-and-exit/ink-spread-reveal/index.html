@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ink Spread Reveal — Animation Handbook</title>
+  <meta name="description" content="Ink drops spread and merge until the picture shows. Best for art and intros.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/ink-spread-reveal/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Ink Spread Reveal — Animation Handbook">
+  <meta property="og:description" content="Ink drops spread and merge until the picture shows. Best for art and intros.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/ink-spread-reveal/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ink Spread Reveal — Animation Handbook">
+  <meta name="twitter:description" content="Ink drops spread and merge until the picture shows. Best for art and intros.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Ink Spread Reveal", "name": "Ink Spread Reveal", "description": "Ink drops spread and merge until the picture shows. Best for art and intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/ink-spread-reveal/", "inLanguage": "en", "articleSection": "Entrance & Exit", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Entrance & Exit, Ink Spread Reveal"}</script>
+  <style>
+    :root{--ui-accent:#5fd88a;--paper:#efe6d2;--ink:#1c1a26}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:var(--paper)}
+    /* One scene, or two side by side in Compare; each draws its own picture, paper and blots at its own size */
+    .scenes{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr)}
+    .scene{position:relative;min-width:0;overflow:hidden}
+    .scene>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+    .paper{fill:var(--paper)}
+    .edge path{fill:var(--ink)}
+    /* A blot grows by scaling its own shape, from where its drop lands; it starts at nothing, so the box starts as paper */
+    .grow{transform:scale(0)}
+    .twin,.faint,.see,.side,.cap{display:none}
+    /* See inside: the picture faint under the paper, each blot outlined and numbered, its final size dashed, the ink edge as a ring */
+    .stage[data-hb-mode="inside"] .faint{display:inline;opacity:.3}
+    .stage[data-hb-mode="inside"] .see{display:inline}
+    .stage[data-hb-mode="inside"] .edge path{fill:rgba(28,26,38,.78)}
+    .stage[data-hb-mode="inside"] .cap{display:block}
+    .see path{fill:none;vector-effect:non-scaling-stroke}
+    .see .line path{stroke:#fff;stroke-width:2.5}
+    .see .dash{stroke:var(--ink);stroke-width:2;stroke-dasharray:8 6}
+    .see .drop{fill:#fff;stroke:var(--ink);stroke-width:2}
+    .cap,.side{position:absolute;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(20,18,28,.9);color:#f4f4f2;
+      font:600 13px/1.2 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .cap.num{padding:3px 8px;border-radius:999px}
+    /* Compare: on the left a copy that grows clean circles, on the right the page as set; each half named at its top */
+    .stage[data-hb-mode="compare"] .scenes{grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] .side{display:block}
+    .side{top:10px;left:10px}
+    @media(max-width:600px){.cap.c-dash{display:none!important}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="once" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../shatter-effect/" rel="prev" aria-label="Previous: Shatter Effect"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Shatter Effect</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">02.15 · Entrance &amp; Exit</p>
+    <h1>Ink Spread Reveal</h1>
+    <p class="hb-lede">Ink drops spread and merge until the picture shows. Best for art and intros.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to watch each drop soak in.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage" id="stage" role="img" aria-label="A drawing of a mountain by the sea, uncovered by drops of ink that spread and merge">
+      <div class="scenes" id="scenes"><div class="scene" id="scene"><p class="side" data-hb-caption>Ink blots</p></div></div>
+      <p class="cap num" id="cap-1" data-hb-caption>1 · lands first</p>
+      <p class="cap num" id="cap-2" data-hb-caption>2</p>
+      <p class="cap num" id="cap-3" data-hb-caption>3</p>
+      <p class="cap c-dash" id="cap-dash" data-hb-caption>Dashed: where it stops</p>
+      <p class="cap" id="cap-faint" data-hb-caption>Faint: still hidden</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the picture waits faintly under the paper. Each numbered blot is a window in the paper that grows to its dashed outline, with the dark ink edge as a ring just ahead.</p>
+      <p data-hb-for="compare" hidden>On the left, Clean circles: the drops grow round and neat, which looks mechanical. On the right, Ink blots: ragged blots spread and merge, which looks like ink.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and the animation plays again.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="drops-lbl">Where the ink lands</p>
+        <div class="seg" id="drops-seg" role="group" aria-labelledby="drops-lbl">
+          <button type="button" data-drops="one" aria-pressed="false">One drop</button>
+          <button type="button" data-drops="several" class="on" aria-pressed="true">Several drops</button>
+          <button type="button" data-drops="corner" aria-pressed="false">From a corner</button>
+        </div>
+        <p class="hb-hint">Where the first drops fall.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="speed-lbl">Speed</p>
+        <div class="seg" id="speed-seg" role="group" aria-labelledby="speed-lbl">
+          <button type="button" data-speed="slow" aria-pressed="false">Slow</button>
+          <button type="button" data-speed="normal" class="on" aria-pressed="true">Normal</button>
+          <button type="button" data-speed="fast" aria-pressed="false">Fast</button>
+        </div>
+        <p class="hb-hint">How long the ink takes to cover it.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="edge-lbl">Edge</p>
+        <div class="seg" id="edge-seg" role="group" aria-labelledby="edge-lbl">
+          <button type="button" data-edge="smooth" aria-pressed="false">Smooth</button>
+          <button type="button" data-edge="ragged" class="on" aria-pressed="true">Ragged</button>
+          <button type="button" data-edge="splashy" aria-pressed="false">Splashy</button>
+        </div>
+        <p class="hb-hint">Splashy throws small drops around each blot.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Dark ink edge</span><input class="hb-switch" type="checkbox" role="switch" id="rim-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">A dark rim runs just ahead of the picture.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an ink spread reveal to [the picture or section you want to uncover]. Start with it hidden under a plain paper-colored layer, then let drops of ink land and spread outward as blots that merge until the whole picture shows. Each blot grows quickly at first and slows as it soaks in, like ink on damp paper. Give the blots uneven outlines, as rough as the settings choose, and grow each one by scaling its shape, not redrawing it; when the settings include it, run a dark ink edge just ahead of the picture. If the visitor has reduced motion turned on, fade the picture in instead. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Art and portfolio sites</li><li>Page intros</li><li>Featured pictures</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Forms</li><li>Rows of small pictures</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.getElementById('stage'),scenesEl=document.getElementById('scenes');
+  const loopTog=document.getElementById('loop-tog'),rimTog=document.getElementById('rim-tog');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  // Where each drop lands, as shares of the scene's width and height, in the order they land
+  const DROPS={one:[[.5,.5]],several:[[.24,.42],[.77,.34],[.52,.7]],corner:[[.08,.12],[.34,.4],[.68,.72]]};
+  // How long one blot grows and the time between two drops (ms)
+  const SPEEDS={slow:[2600,520],normal:[1800,360],fast:[1100,220]};
+  // How far an outline wanders from a circle (a share of the radius) and how many splash drops each blot throws
+  const EDGES={smooth:[0,0],ragged:[.11,0],splashy:[.11,9]};
+  const EASE='cubic-bezier(.15,.7,.25,1)'; // fast at first, then slower and slower, like ink soaking in
+  // See inside and Compare rest on a posed moment, each blot grown this share of its full size (the first drop the most), so
+  // the parts show and paper is still left; reduced motion holds every view there too
+  const POSE=[.62,.44,.27];
+  const LABELS={normal:'A drawing of a mountain by the sea, uncovered by drops of ink that spread and merge',
+    inside:'The reveal taken apart: the picture faint under the paper, and each numbered blot growing to its dashed outline',
+    compare:'The reveal twice: clean circles on the left, ragged ink blots on the right'};
+  let drops='several',speed='normal',edge='ragged',mode='normal',view='paper',anims=[],timers=[];
+  const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
+  const stopTimers=()=>{timers.forEach(clearTimeout);timers=[]};
+  // The same picture for every scene: a mountain by the sea at dawn, drawn in a 400 by 250 box that fills the scene (the edges
+  // that do not fit are cut off). id keeps each copy's gradients apart.
+  const art=(id,W,H)=>`<svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" width="${W}" height="${H}">
+    <defs><linearGradient id="sky-${id}" x2="0" y2="1"><stop offset="0" stop-color="#2f5d9e"/><stop offset=".6" stop-color="#f0a77a"/><stop offset="1" stop-color="#ffd9a0"/></linearGradient>
+    <linearGradient id="sea-${id}" x2="0" y2="1"><stop offset="0" stop-color="#2b86c0"/><stop offset="1" stop-color="#123f66"/></linearGradient></defs>
+    <rect width="400" height="160" fill="url(#sky-${id})"/><circle cx="292" cy="122" r="40" fill="#fff3d2" opacity=".35"/><circle cx="292" cy="122" r="22" fill="#fff1c9"/>
+    <path fill="#6273a6" d="M0 152L58 96 104 122 168 50 232 120 272 98 334 142 400 108V160H0Z"/><path fill="#f4f1ea" d="M150 70L168 50 190 72 180 68 171 77 160 69Z"/>
+    <path fill="#2f4a3a" d="M0 160V118Q44 100 86 126T140 160Z"/><rect y="158" width="400" height="92" fill="url(#sea-${id})"/>
+    <g fill="#ffe3a6" opacity=".85"><rect x="268" y="166" width="48" height="3" rx="1.5"/><rect x="276" y="176" width="32" height="3" rx="1.5"/><rect x="284" y="186" width="18" height="2.5" rx="1.2"/></g>
+    <path fill="none" stroke="#9fd3f2" stroke-width="1.6" opacity=".7" d="M30 182q8-4 16 0t16 0M150 196q8-4 16 0t16 0M60 222q8-4 16 0t16 0M330 214q8-4 16 0t16 0"/>
+    <path fill="#f6f1e6" d="M118 186V158L138 186Z"/><path fill="#7a3b2a" d="M108 188H146L141 195H113Z"/>
+    <path fill="none" stroke="#3a3346" stroke-width="1.6" stroke-linecap="round" d="M206 70q5-4 9 0q4-4 9 0M228 86q4-3 7 0q3-3 7 0"/>
+    <path fill="#e8c88f" d="M0 250V216Q90 200 172 228T260 250Z"/></svg>`;
+  // A seeded random sequence, so both halves of Compare and every redraw get the same blots
+  function rng(s){return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  // One blot of radius 1: a circle whose radius wanders with a few slow waves and a few small fast ones (the feathery edge), and
+  // for Splashy a few drops thrown around it. min is the smallest radius the outline reaches.
+  function unitBlot(rand,wob,dots){
+    const waves=[2,3,5,9,14,23].map((n,i)=>[n,(rand()*2-1)/(i<3?1:2.6),rand()*6.283]);
+    const sum=waves.reduce((s,w)=>s+Math.abs(w[1]),0)||1;
+    waves.forEach(w=>{w[1]*=wob*1.8/sum});
+    const pts=[];let min=1;
+    for(let i=0;i<96;i++){const a=i/96*6.283;let k=1;for(const [n,amp,ph] of waves)k+=amp*Math.sin(n*a+ph);min=Math.min(min,k);pts.push([Math.cos(a)*k,Math.sin(a)*k])}
+    const splash=[...Array(dots)].map(()=>{const a=rand()*6.283,d=1.08+rand()*.3;return [Math.cos(a)*d,Math.sin(a)*d,.022+rand()*.04]});
+    return {pts,splash,min};
+  }
+  // The blot's outline at radius R (and k times larger plus add pixels, for the ink edge), as one path
+  function pathOf(b,R,k=1,add=0){
+    const r=R*k+add,f=v=>(v*r).toFixed(1);
+    let d='M'+b.pts.map(p=>f(p[0])+' '+f(p[1])).join('L')+'Z';
+    for(const [x,y,s] of b.splash){const q=(s*r).toFixed(1);d+=`M${f(x)} ${f(y)}m-${q} 0a${q} ${q} 0 1 0 ${(2*s*r).toFixed(1)} 0a${q} ${q} 0 1 0 -${(2*s*r).toFixed(1)} 0Z`}
+    return d;
+  }
+  // Each scene: the page's own (main) and, for Compare, a copy (twin) that grows clean circles with no ink edge. The copy has no
+  // ids of its own outside its drawing, is out of the keyboard's way and hidden from screen readers.
+  const main={el:document.getElementById('scene'),twin:false};
+  const twinEl=main.el.cloneNode(true);twinEl.removeAttribute('id');twinEl.classList.add('twin');twinEl.inert=true;twinEl.setAttribute('aria-hidden','true');
+  twinEl.querySelector('.side').textContent='Clean circles';main.el.before(twinEl);
+  const twin={el:twinEl,twin:true};
+  const shown=()=>mode==='compare'?[twin,main]:[main];
+  // Draws a scene for its size: the paper, the ink edge, the picture seen through the blots, and See inside's outlines. Every blot
+  // gets the radius that, with the others, covers the whole scene at full size: each spot of the scene belongs to its nearest
+  // drop, and that drop's blot reaches the farthest of its spots even where its outline dips in (the copy gets the same radii).
+  function build(sc){
+    const W=sc.el.clientWidth||1,H=sc.el.clientHeight||1,id=sc.twin?'twin':'main',rand=rng(7);
+    const [wob0,dots0]=EDGES[edge],dotsN=phone.matches?Math.ceil(dots0/2):dots0,[wob,dots]=sc.twin?[0,0]:[wob0,dotsN];
+    const c=DROPS[drops].map(([x,y])=>[x*W,y*H]),far=c.map(()=>1);
+    for(let i=0;i<=12;i++)for(let j=0;j<=8;j++){const x=i/12*W,y=j/8*H,d=c.map(p=>Math.hypot(p[0]-x,p[1]-y)),n=d.indexOf(Math.min(...d));far[n]=Math.max(far[n],d[n])}
+    // The copy's circles take their radius from the ragged outlines the page draws (the same seeded sequence), so both halves of
+    // Compare uncover the same amount at every moment and differ only in their edges
+    const sizes=rng(7);
+    sc.blots=c.map((p,i)=>{const b=unitBlot(rand,wob,dots),ref=unitBlot(sizes,wob0,dotsN);return {x:p[0],y:p[1],R:far[i]*1.06/ref.min,b}});
+    sc.W=W;sc.H=H;
+    const g=(cls,i,d)=>`<g transform="translate(${sc.blots[i].x.toFixed(1)} ${sc.blots[i].y.toFixed(1)})"><g class="grow" data-i="${i}"><path class="${cls}" d="${d}"/></g></g>`;
+    const each=fn=>sc.blots.map(fn).join('');
+    const rim=!sc.twin&&rimTog.checked;
+    sc.el.querySelector('svg')?.remove();
+    sc.el.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><mask id="ink-${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">
+      ${each((b,i)=>g('',i,pathOf(b.b,b.R)).replace('<path class=""','<path fill="#fff"'))}</mask></defs>
+      <rect class="paper" width="${W}" height="${H}"/><g class="faint">${art('f'+id,W,H)}</g>
+      <g class="edge"${rim?'':' display="none"'}>${each((b,i)=>g('',i,pathOf(b.b,b.R,1.04,3)))}</g>
+      <g class="reveal" mask="url(#ink-${id})">${art(id,W,H)}</g>
+      <g class="see">${each(b=>`<path class="dash" d="${pathOf(b.b,b.R)}" transform="translate(${b.x.toFixed(1)} ${b.y.toFixed(1)})"/>`)}
+      <g class="line">${each((b,i)=>g('',i,pathOf(b.b,b.R)))}</g>${each(b=>`<circle class="drop" cx="${b.x.toFixed(1)}" cy="${b.y.toFixed(1)}" r="4"/>`)}</g></svg>`);
+    sc.grows=[...sc.el.querySelectorAll('.grow')];
+    sc.fades=[...sc.el.querySelectorAll('.reveal,.edge')];
+  }
+  // See inside's labels, placed from the blots: a number beside each drop, the dashed line's label on a stretch of the first dashed
+  // outline that is inside the box, and Faint where the paper still hides the most at the resting moment. None goes outside the box.
+  function placeLabels(){
+    const sc=main,W=sc.W,H=sc.H,put=(el,x,y)=>{el.style.left=Math.max(6,Math.min(W-el.offsetWidth-6,x))+'px';el.style.top=Math.max(6,Math.min(H-el.offsetHeight-6,y))+'px'};
+    [1,2,3].forEach(n=>{const el=document.getElementById('cap-'+n),b=sc.blots[n-1];el.style.display=b?'':'none';if(b)put(el,b.x+10,b.y-34)});
+    // the dashed label sits on a stretch of a dashed outline inside the box; with one drop the outline lies outside it, and
+    // the label goes too
+    const dash=document.getElementById('cap-dash');dash.hidden=false;
+    const p=sc.blots.flatMap(b=>b.b.pts.map(([x,y])=>[b.x+x*b.R,b.y+y*b.R])).find(([x,y])=>x>12&&x<W-dash.offsetWidth-12&&y>40&&y<H-40);
+    dash.hidden=!p;if(p)put(dash,p[0]+8,p[1]+6);
+    const s=POSE,spots=[];
+    for(let i=1;i<10;i++)for(let j=1;j<7;j++)spots.push([i/10*W,j/7*H]);
+    const open=([x,y])=>Math.min(...sc.blots.map((b,i)=>Math.hypot(b.x-x,b.y-y)/Math.max(1,b.R*s[i])));
+    const best=spots.reduce((a,q)=>open(q)>open(a)?q:a);
+    const faint=document.getElementById('cap-faint');put(faint,best[0]-faint.offsetWidth/2,best[1]-12);
+  }
+  // The share of a blot's growing time at which it has reached size y (0 to 1), by the same ease as the animation: the ease's
+  // own t for that height found by halving, then its time there
+  const bez=(t,a,b)=>3*a*t*(1-t)*(1-t)+3*b*t*t*(1-t)+t*t*t;
+  function timeFor(y){let lo=0,hi=1;for(let k=0;k<24;k++){const m=(lo+hi)/2;bez(m,.7,1)<y?lo=m:hi=m}return bez((lo+hi)/2,.15,.25)}
+  const total=()=>{const [grow,gap]=SPEEDS[speed];return grow+gap*(DROPS[drops].length-1)};
+  // The blots of every scene on show, each starting when its drop lands. at: the time to start from, or 'pose' for each blot at
+  // its posed size; still: hold there
+  function blots(at,still){
+    anims.forEach(a=>a.cancel());anims=[];
+    const [grow,gap]=SPEEDS[speed];
+    for(const sc of shown())sc.grows.forEach(el=>{
+      const i=+el.dataset.i,a=el.animate([{transform:'scale(0)'},{transform:'scale(1)'}],{duration:grow,delay:i*gap,easing:EASE,fill:'both'});
+      a.currentTime=at==='pose'?i*gap+grow*timeFor(POSE[i]):Math.min(at,total());
+      if(still)a.pause();
+      anims.push(a);
+    });
+  }
+  function layout(){shown().forEach(build);if(mode==='inside')placeLabels()}
+  // One play from plain paper; under reduced motion the whole picture fades in instead. When it ends, Loop holds the picture,
+  // fades it back to paper and plays again; See inside and Compare go back to their resting moment.
+  function play(){
+    stopTimers();layout();view='play';
+    // under reduced motion the picture fades in: the whole picture in Normal, the posed one in a view (its note says part of the way)
+    if(reduce.matches){
+      if(mode!=='normal'){blots('pose',true);view='pose';fade(0,1,600,()=>{});return}
+      blots(total(),true);fade(0,1,600,end);return;
+    }
+    blots(0,false);
+    Promise.all(anims.map(a=>a.finished)).then(end,()=>{});
+  }
+  function fade(from,to,ms,then){
+    const f=shown().flatMap(sc=>sc.fades.map(el=>el.animate([{opacity:from},{opacity:to}],{duration:ms,fill:'forwards'})));
+    anims.push(...f);
+    Promise.all(f.map(a=>a.finished)).then(then,()=>{});
+  }
+  function end(){
+    view='full';
+    if(loopTog.checked&&!reduce.matches)later(()=>{if(!loopTog.checked)return;view='fade';fade(1,0,600,play)},1200);
+    else if(mode!=='normal')later(rest,800);
+  }
+  // At rest: Normal shows the whole picture (or paper, before the first play), and with Loop on goes on looping from there;
+  // See inside and Compare their resting moment
+  function rest(){
+    stopTimers();layout();
+    if(mode==='normal'){if(view==='play')view='full';blots(view==='paper'?0:total(),true);if(loopTog.checked&&!reduce.matches&&view!=='paper')end();return}
+    view='pose';blots('pose',true);
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;stage.setAttribute('aria-label',LABELS[mode]);notes();
+    // A play under way goes on from where it is, drawn for the new size of its scene
+    if(view==='play'&&anims[0]&&!reduce.matches)resumed();
+    else rest();
+  });
+  // The notes follow the settings: with Smooth edges both halves of Compare grow round blots (the same ones with the ink edge
+  // off), with the ink edge off See inside has no ring to name, and with One drop no dashed outline; the markup's words hold for the defaults
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  function notes(){
+    const rim=rimTog.checked,still=reduce.matches;
+    document.querySelector('[data-hb-for="compare"]').textContent=edge==='smooth'
+      ?(rim?'Edge is set to Smooth, so both halves grow round blots and only Ink blots has the dark ink edge. Pick Ragged or Splashy in Try it to see uneven edges.'
+        :'Edge is set to Smooth and the ink edge is off, so Clean circles and Ink blots match. Pick Ragged or Splashy in Try it to see the difference.')
+      :still?'Shown still, part of the way: on the left, Clean circles have grown round and neat; on the right, Ink blots have spread with ragged edges.'
+      :said.compare;
+    // With One drop the blot's full outline lies outside the box, so there is no dashed line to name
+    const one=drops==='one',ring=rim?', with the dark ink edge as a ring just ahead':'';
+    document.querySelector('[data-hb-for="inside"]').textContent=still
+      ?(one?'Shown still, part of the way: the picture waits faintly under the paper, and the numbered blot will grow past the edges of the box.'
+        :'Shown still, part of the way: the picture waits faintly under the paper, and each numbered blot will grow to its dashed outline.')
+      :one?`Inside, the picture waits faintly under the paper. The numbered blot is a window in the paper that grows past the edges of the box${ring}.`
+      :rim?said.inside:'Inside, the picture waits faintly under the paper. Each numbered blot is a window in the paper that grows to its dashed outline.';
+  }
+  // Loop on plays at once; Loop off during the fade back to paper shows the whole picture again
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else if(view==='fade'){view='full';rest()}});
+  // A resize during a play redraws at the new size and goes on from where the play is, as a press of a view does
+  function resumed(){const t=anims[0].currentTime;layout();blots(t,false);Promise.all(anims.map(a=>a.finished)).then(end,()=>{})}
+  new ResizeObserver(()=>{if(view==='play'&&anims[0]&&!reduce.matches)resumed();else rest()}).observe(stage);
+  document.getElementById('btn-play').addEventListener('click',play);
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);notes();
+    }));
+  }
+  choices('drops-seg',d=>{drops=d.drops});choices('speed-seg',d=>{speed=d.speed});choices('edge-seg',d=>{edge=d.edge});
+  rimTog.addEventListener('change',notes);
+  notes();layout();
+</script>
+</body>
+</html>

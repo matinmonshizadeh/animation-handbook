@@ -1,12 +1,12 @@
 ---
 name: animation-handbook
-description: Builds web animations from Animation Handbook, a set of 166 tested techniques with plain-words build prompts and settings (scroll effects, entrances and exits, page transitions, micro-interactions for buttons and forms, text effects, 3D and WebGL, ambient backgrounds). Use when the user asks to add, pick or improve an animation, transition, hover or click effect, loading state, scroll effect or background motion in a web page or web app, in any framework or plain HTML, CSS and JavaScript.
+description: Builds web animations from Animation Handbook, a set of 167 tested techniques with plain-words build prompts and settings (scroll effects, entrances and exits, page transitions, micro-interactions for buttons and forms, text effects, 3D and WebGL, ambient backgrounds). Use when the user asks to add, pick or improve an animation, transition, hover or click effect, loading state, scroll effect or background motion in a web page or web app, in any framework or plain HTML, CSS and JavaScript.
 license: MIT
 ---
 
 # Animation Handbook
 
-[Animation Handbook](https://matinmonshizadeh.github.io/animation-handbook/) is a free reference of 166 web animation techniques. Each has a live demo, a few plain settings for most (speed, direction, color and the like) and a prompt that says in plain words how to build it. This skill holds every prompt and every setting with the demo's values.
+[Animation Handbook](https://matinmonshizadeh.github.io/animation-handbook/) is a free reference of 167 web animation techniques. Each has a live demo, a few plain settings for most (speed, direction, color and the like) and a prompt that says in plain words how to build it. This skill holds every prompt and every setting with the demo's values.
 
 ## How to use it
 
@@ -36,9 +36,9 @@ Keep these even where a prompt does not say them, and follow them where a prompt
 
 ## Where to look
 
-- [references/catalog.md](references/catalog.md): all 166 in one list, grouped by category, with an index by place.
+- [references/catalog.md](references/catalog.md): all 167 in one list, grouped by category, with an index by place.
 - [references/01-scroll-based.md](references/01-scroll-based.md): Scroll-Based, 27 animations. Animations driven by scroll position — parallax, sticky, scrub, snap, and storytelling.
-- [references/02-entrance-and-exit.md](references/02-entrance-and-exit.md): Entrance & Exit, 14 animations. Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.
+- [references/02-entrance-and-exit.md](references/02-entrance-and-exit.md): Entrance & Exit, 15 animations. Element-level animations for arriving and departing — fades, slides, reveals, flips, and text staggers.
 - [references/03-page-transitions.md](references/03-page-transitions.md): Page Transitions, 16 animations. Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the View Transitions API.
 - [references/04-micro-interactions.md](references/04-micro-interactions.md): Micro-Interactions, 41 animations. Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns.
 - [references/05-text-typography.md](references/05-text-typography.md): Text & Typography, 19 animations. Animations specifically for type — kinetic motion, character-level effects, gradient flows, and word transformations.
