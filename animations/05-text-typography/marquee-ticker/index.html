@@ -222,16 +222,20 @@
   const stage=document.getElementById('stage');
   const rows=document.getElementById('rows'),zoom=document.getElementById('zoom'),solo=document.getElementById('solo');
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
-  // Under reduced motion the loop starts paused, so both views are still pictures, and their notes say so. Once the visitor
-  // presses Play, or turns reduced motion off, the notes say the markup's own words again. The shared script sends hb:pause on
-  // every press of Pause or Play, and once at boot under reduced motion, when it pauses the loop.
+  // Under reduced motion the loop starts paused, so both views are still pictures, and their notes say so, but only while the
+  // still picture is the posed one: once Play has moved it on, the notes say the markup's own words again, until a mode press or
+  // a rebuild poses the one copy anew. The shared script sends hb:pause on every press of Pause or Play, and once at boot under
+  // reduced motion, when it pauses the loop. A note is rewritten only when its words change, as its box reads changes out loud.
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
     'Inside, shown still: the strip is two identical copies end to end, and the arrow shows how far the box slides before it jumps back to the start.',
     'Shown still: on top, One copy, the text has slid most of the way out and left a gap; below, Two copies, the second copy fills it.'];
-  let paused=reduceMQ.matches;
-  function describe(){notes.forEach((n,i)=>{n.textContent=reduceMQ.matches&&paused?still[i]:moving[i]})}
+  let paused=reduceMQ.matches,posed=true;
+  function describe(){
+    const shown=reduceMQ.matches&&paused&&posed;
+    notes.forEach((n,i)=>{const words=shown?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
   describe();
-  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)posed=false;describe()});
   const vars=document.documentElement.style;
   const txtIn=document.getElementById('text-inp');
   const noHover=matchMedia('(hover:none)');
@@ -348,7 +352,9 @@
   // holds there. The copy's width is measured on the first row, which is always shown.
   function poseSolo(){
     const t=solo.querySelector('.solo-track'),a=t&&t.getAnimations()[0],r=rows.querySelector('.r1 .marq-track');
-    if(a&&a.effect&&r)a.currentTime=Math.max(0,1-.4*stage.clientWidth/(r.scrollWidth/2))*a.effect.getComputedTiming().duration;
+    if(!(a&&a.effect&&r))return;
+    a.currentTime=Math.max(0,1-.4*stage.clientWidth/(r.scrollWidth/2))*a.effect.getComputedTiming().duration;
+    posed=true;describe();
   }
   // The mode switch: draws the mode at once. A view's animation starts when the view is shown, so the window is set to the first
   // row's place then, and the mistake is posed. Pause and Slow motion reach every animation in the stage.
