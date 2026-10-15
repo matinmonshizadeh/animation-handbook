@@ -93,6 +93,9 @@ test('make-famous: the blocks go between their marker lines, a second run change
   assert.ok(!once.includes('old css'), 'what was between the markers is gone');
   assert.throws(() => replaceBetween('no markers here', CSS_START, CSS_END, 'x'), /must each be there once/);
   assert.throws(() => replaceBetween(CSS_START + CSS_END + CSS_START, CSS_START, CSS_END, 'x'), /must each be there once/);
+  assert.throws(() => replaceBetween(CSS_START + CSS_END + CSS_END, CSS_START, CSS_END, 'x'), /must each be there once/, 'an end marker written twice');
+  assert.throws(() => replaceBetween(CSS_END + CSS_START + CSS_END, CSS_START, CSS_END, 'x'), /must each be there once/, 'an end marker before the start too');
+  assert.throws(() => replaceBetween(CSS_END + CSS_START, CSS_START, CSS_END, 'x'), /must each be there once/, 'the end before the start');
 });
 
 // ---------- The page: its frame ----------
@@ -223,6 +226,8 @@ test('the page script copies, falls back to the copy keys, shortens prompts on p
     assert.ok(shared.includes(`'${words}'`), `as the animation pages do: "${words}"`);
   }
   assert.ok(script.includes("toast('Prompt copied. Paste it into your AI assistant.')") && HOME.includes("toast('Prompt copied. Paste it into your AI assistant.')"), 'the home page\'s message');
+  assert.ok(script.includes("document.execCommand('copy')") && shared.includes("doc.execCommand('copy')"), 'where the clipboard is refused or missing, a hidden text box copies, as on the animation pages');
+  assert.ok(script.indexOf("document.execCommand('copy')") < script.indexOf("copyState(btn,'keys')"), 'before the button asks for the copy keys');
   for (const words of ["'Copy prompt'", "'Copied'"]) assert.ok(script.includes(words), words);
   assert.ok(PAGE.includes('<div class="toast" id="toast" role="status" aria-live="polite">'), 'the message box');
 });
@@ -240,6 +245,22 @@ test('Seen one we should add? opens the Famous effect issue template, which asks
 test('the two preview blocks are what tools/make-famous.mjs writes from the home page now', async () => {
   const { buildFamous } = await tool();
   assert.ok(buildFamous(ROOT)['famous/index.html'] === PAGE, `famous/index.html is out of date: run ${TOOL}`);
+});
+
+// The cards of the home page whose previews this page cannot show: drawn by a script engine, or animated in SVG. Every other
+// card builds, so a change to the home page that the tool cannot read (a card, a preview, its rules) fails here at once,
+// before a card on this page needs it.
+const REFUSED = ['counter-animation', 'scramble-text', 'text-on-path', 'canvas-particle-effect', 'gpgpu-particle-system', 'starfield', 'particle-constellation', 'flow-field'];
+test('make-famous: on the real home page every card builds, but the eight whose previews need a script or animate in SVG', async () => {
+  const { previewBlocks, homeConst } = await tool();
+  const slugs = homeConst(HOME, 'CATS').flatMap(cat => cat.entries.map(([slug]) => slug));
+  for (const slug of REFUSED) {
+    assert.ok(slugs.includes(slug), `${slug} is a card on the home page`);
+    assert.throws(() => previewBlocks(HOME, [slug]), /needs a script engine|animates in SVG/, `${slug} is refused`);
+  }
+  const rest = [...slugs.filter(slug => !REFUSED.includes(slug))]; // a plain array: CATS comes from the tool's vm context
+  const { data } = previewBlocks(HOME, rest); // it throws when a card is not found, or a preview's markup or rules
+  assert.deepEqual(data.split('\n').slice(1, -1).map(line => JSON.parse(line.match(/^("[a-z0-9-]+"):/)[1])), rest, 'one preview for every other card, in order');
 });
 
 // ---------- The page: entries, cards and prompts ----------
@@ -268,8 +289,8 @@ test('every entry is written as the template says, so the tests below see it', (
 
 for (const e of ENTRIES) {
   test(`${e.id}: seen on its site in the year it was checked, a heading, what you see in 25 to 70 words and what starts it`, () => {
-    const seen = e.body.match(/<p class="fx-seen">Seen on <a href="(https:\/\/[^"]+)" target="_blank" rel="noopener">([^<]+)<span class="sr"> \(opens in a new tab\)<\/span><\/a> in <time datetime="((\d{4})-\d{2}-\d{2})">(\d{4})<\/time><\/p>/);
-    assert.ok(seen, 'Seen on: the site\'s address as a link that opens a new tab, then the year in a <time>');
+    const seen = e.body.match(/<p class="fx-seen">Seen on <a href="(https:\/\/[^"]+)" target="_blank" rel="noopener">([^<]+)<span class="sr"> \(opens in a new tab\)<\/span><\/a> in&nbsp;<time datetime="((\d{4})-\d{2}-\d{2})">(\d{4})<\/time><\/p>/);
+    assert.ok(seen, 'Seen on: the site\'s address as a link that opens a new tab, then "in", a no-break space (the year never starts a line) and the year in a <time>');
     const [, href, label, day, year, shown] = seen;
     assert.equal(label, href.replace(/^https:\/\//, '').replace(/^www\./, '').replace(/\/$/, ''), 'the link shows the address without https:// or www.');
     assert.equal(shown, year, 'the year shown is the year of the day checked');
@@ -281,6 +302,7 @@ for (const e of ENTRIES) {
     assert.ok(what, 'what you see');
     const n = words(textOf(what[1]));
     assert.ok(n >= 25 && n <= 70, `what you see has ${n} words, not 25 to 70`);
+    assert.ok(!/["“”]/.test(textOf(what[1])), 'what you see quotes no words: it says what shows in our own words');
     assert.ok(STARTS.includes(e.start), `data-fx-start "${e.start}" is one of ${STARTS.join(', ')}`);
     assert.ok(e.site.trim(), 'data-fx-site names the site');
     assert.ok(e.body.includes('<h3 class="fx-sub">Made with these animations</h3>') && e.body.includes('<h3 class="fx-sub">A prompt to build something similar</h3>'), 'its two parts');
@@ -380,10 +402,23 @@ test('no visible text of the page holds a name or slogan the live check saw on a
 test(`each entry the live check covered is dated ${CHECKED_DAY}, the day it was checked`, () => {
   const present = ENTRIES.filter(e => CHECKED_IDS.includes(e.id));
   assert.ok(present.length > 0, 'the page holds some of the checked entries');
-  for (const e of present) assert.ok(e.body.includes(`<time datetime="${CHECKED_DAY}">`), `${e.id}: not dated ${CHECKED_DAY}`);
+  for (const e of present) {
+    const seen = e.body.match(/<p class="fx-seen">[\s\S]*?<\/p>/);
+    assert.ok(seen, `${e.id}: a Seen on line`);
+    const days = [...seen[0].matchAll(/<time datetime="([^"]*)">/g)].map(m => m[1]);
+    assert.deepEqual(days, [CHECKED_DAY], `${e.id}: its Seen on line is dated ${CHECKED_DAY}`);
+  }
 });
 
-test('the page holds 10 to 12 entries, and its pill counts them', () => {
+test('the page holds 10 to 12 entries, and its one pill counts them', () => {
   assert.ok(ENTRIES.length >= 10 && ENTRIES.length <= 12, `${ENTRIES.length} entries, not 10 to 12`);
-  assert.ok(PAGE.includes(`<p class="pill">${ENTRIES.length} effects from well-known websites</p>`), 'the pill gives the number of entries');
+  assert.equal(count(MARKUP, 'class="pill"'), 1, 'one pill');
+  assert.ok(MARKUP.includes(`<p class="pill">${ENTRIES.length} effects from well-known websites</p>`), 'the pill gives the number of entries');
+});
+
+test('from 601px to 640px the top bar\'s two text links are narrower, so the bar fits beside the logo', () => {
+  const band = PAGE.match(/@media\(min-width:601px\) and \(max-width:640px\)\{([^{}]*)\{([^{}]*)\}\}/);
+  assert.ok(band, 'a rule for that band');
+  assert.equal(band[1], '.top .nav .lnk', 'for the two text links');
+  assert.match(band[2], /^padding:0 \d+px$/, 'with less padding');
 });

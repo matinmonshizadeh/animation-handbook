@@ -14,8 +14,9 @@
 //   a note. From the page's README.md it reads the Key parameters table (name | default | effect): each setting's line
 //   ends with the effect of the row named like the setting on the page, and a page without settings lists every row, the
 //   demo's own values.
-//   It also reads the Famous effects page's description (the meta description of famous/index.html): llms.txt lists that
-//   page after the categories.
+//   It also reads the Famous effects page's description (the meta description of famous/index.html, entities decoded and
+//   white space squeezed, so a description written over two lines stays one line): llms.txt lists that page after the
+//   categories.
 //   It writes skills/animation-handbook/SKILL.md, skills/animation-handbook/references/catalog.md, one
 //   skills/animation-handbook/references/<category folder>.md per category, and llms.txt at the root. Each is written with
 //   LF line endings, and only when its text changed; it prints every file with its size. Running it twice changes
@@ -418,7 +419,7 @@ export function buildSkill(root) {
       ...cat.entries.map(([slug, name, desc]) => `- [${name}](${base}${cat.folder.replace(/\/$/, '')}/${slug}/): ${desc}`), '']),
     // The Famous effects page: effects seen on well-known websites, each with the animations that make something similar.
     '## Famous effects', '',
-    `- [Famous effects](${base}famous/): ${decode(famousLede, 'famous/index.html')}`, '',
+    `- [Famous effects](${base}famous/): ${squeeze(decode(famousLede, 'famous/index.html'))}`, '',
     // The skill's own files, which the site serves as they are: every prompt and setting, as Markdown.
     '## Skill files', '',
     `- [SKILL.md](${base}${SKILL}/SKILL.md): how to find a technique, choose its settings for the user's page and build it, with the rules for real pages`,

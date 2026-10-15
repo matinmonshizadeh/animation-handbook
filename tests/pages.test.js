@@ -642,11 +642,16 @@ test('the counts written in the issue template, the 404 page and the sitemap mat
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
   assert.equal(numberIn(template, /See all (\d+) techniques/), cards, 'config.yml: the link to the live handbook');
   assert.equal(numberIn(read(path.join(ROOT, '404.html')), />Browse all (\d+) animations</), cards, '404.html: the Browse all link');
-  // The sitemap lists two URLs more than the total: the home page and the Famous effects page, first and in that order.
+  // The sitemap lists two URLs more than the total: the home page and the Famous effects page, first and in that order, each
+  // address once.
   const sitemap = read(path.join(ROOT, 'sitemap.xml'));
   assert.equal(count(sitemap, '<url>'), cards + 2, 'sitemap.xml lists the home page, the Famous effects page and every animation');
   const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
-  assert.deepEqual([...sitemap.matchAll(/<loc>([^<]*)<\/loc>/g)].slice(0, 2).map(m => m[1]), [LIVE, `${LIVE}famous/`], 'the home page, then Famous effects');
+  const locs = [...sitemap.matchAll(/<loc>([^<]*)<\/loc>/g)].map(m => m[1]);
+  assert.deepEqual(locs.slice(0, 2), [LIVE, `${LIVE}famous/`], 'the home page, then Famous effects');
+  assert.equal(new Set(locs).size, locs.length, 'each address once');
+  const famousLine = sitemap.split('\n').find(line => line.includes(`<loc>${LIVE}famous/</loc>`)) || '';
+  assert.match(famousLine, /<\/loc><lastmod>\d{4}-\d{2}-\d{2}<\/lastmod><changefreq>monthly<\/changefreq><priority>0\.8<\/priority><\/url>\s*$/, 'Famous effects: monthly, priority 0.8');
 });
 
 // GitHub Pages serves 404.html at every address it has no file for, at any depth, so a relative address in it would

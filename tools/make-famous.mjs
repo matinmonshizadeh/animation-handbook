@@ -189,8 +189,9 @@ export function previewBlocks(home, slugs) {
 
 // The text with what lies between the start and end marker lines replaced by inner (each marker there once, in that order).
 export function replaceBetween(text, start, end, inner) {
-  const a = text.indexOf(start), b = a < 0 ? -1 : text.indexOf(end, a + start.length);
-  if (a < 0 || b < 0 || text.indexOf(start, a + start.length) >= 0) throw new Error(`famous/index.html: the lines "${start}" and "${end}" must each be there once, in that order`);
+  const once = marker => text.indexOf(marker) >= 0 && text.indexOf(marker) === text.lastIndexOf(marker);
+  const a = text.indexOf(start), b = text.indexOf(end);
+  if (!once(start) || !once(end) || b < a + start.length) throw new Error(`famous/index.html: the lines "${start}" and "${end}" must each be there once, in that order`);
   return text.slice(0, a + start.length) + '\n' + inner + '\n' + text.slice(b);
 }
 // The slugs of the page's cards, in page order.

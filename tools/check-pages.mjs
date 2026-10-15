@@ -8,10 +8,12 @@
 //   also tries the tiles, the search and Show all and compares Copy prompt with every page's own; the phone run tries a
 //   tile, the slim bar and long words; the reduced-motion run checks that nothing moves.
 //   node tools/check-pages.mjs famous   checks the Famous effects page (famous/) at the same six setups: overflow, small
-//   targets on phones (every link, chip, card and button), and the title, the lede and the not-connected line on the first
-//   screen. The desktop run also presses each jump link, watches each entry's previews move and presses each Copy prompt,
-//   once more with the clipboard refused; the reduced-motion run checks that nothing moves, that every preview holds a still
-//   frame that shows something and that a jump does not glide. Like home, it stores a star count first.
+//   targets on phones (every link, chip, card and button), room for the focus ring in the scrolling jump row, and the title,
+//   the lede and the not-connected line shown, and on the first screen. The desktop run also presses each jump link (the last
+//   one twice), watches each entry's previews move and presses each Copy prompt, then twice more with the clipboard refused
+//   or missing (the hidden text box copies; when it fails too, the prompt is selected); the reduced-motion run checks that
+//   nothing moves, that every preview holds a still frame that shows something and that a jump does not glide. Like home, it
+//   stores a star count first.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
@@ -143,9 +145,11 @@ const homeCheck = firstScreen => `(() => {
 })()`;
 
 // Runs inside the Famous effects page (famous/). Returns its problems: overflow, small targets on phones (every link, chip,
-// card and button, the site links and the link inside a sentence too), and the title, the lede and the not-connected line on
-// the first screen (the setups marked firstScreen: 1280×800 and 375×812). A page with no entries is a problem of its own, so
-// the desktop steps never pass on an empty page.
+// card and button, the site links and the link inside a sentence too), a jump row that scrolls sideways (phones) with less
+// than 6px above or below its links, where their focus ring (3px, 3px out) would be cut off, and the title, the lede and the
+// not-connected line shown at every setup (hidden is a problem: the not-connected line is a legal requirement) and on the
+// first screen (the setups marked firstScreen: 1280×800 and 375×812). A page with no entries is a problem of its own, so the
+// desktop steps never pass on an empty page.
 const famousCheck = firstScreen => `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
@@ -159,8 +163,14 @@ const famousCheck = firstScreen => `(() => {
       .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
     if (small.length) problems.push('small targets: ' + small.join(', '));
   }
+  const jump = document.querySelector('.fx-jump'), chip = jump && jump.querySelector('a');
+  if (chip && getComputedStyle(jump).overflowX !== 'visible') {
+    const room = [r(chip).top - r(jump).top, r(jump).bottom - r(chip).bottom].map(Math.round);
+    if (Math.min(...room) < 6) problems.push('the jump row scrolls but leaves ' + room.join('px above and ') + 'px below its links: their focus ring is cut off');
+  }
   for (const [what, el] of [['title', document.querySelector('h1')], ['lede', document.querySelector('.fx-lede')], ['not-connected line', document.querySelector('.fx-legal')]]) {
     if (!el) problems.push('no ' + what);
+    else if (!el.getClientRects().length || !r(el).width || !r(el).height) problems.push('the ' + what + ' is hidden');
     else if (${firstScreen} && r(el).bottom > innerHeight) problems.push('the ' + what + ' is below the first screen');
   }
   return { problems };
@@ -946,7 +956,7 @@ const scrollSettled = () => evaluate(`new Promise(done => { let last = scrollY, 
 
 // Famous effects, desktop run: each link of the jump row, pressed as the keyboard presses it (focus, then activate) from the
 // top of the page, brings its entry's heading fully into the window, gives that heading keyboard focus and names the entry in
-// the address.
+// the address. Pressed again while the address names its entry, the last link adds no step to the history.
 async function famousJumpProblems() {
   const hrefs = await evaluate(`[...document.querySelectorAll('.fx-jump a')].map(a => a.getAttribute('href'))`);
   if (!hrefs.length) return ['no links in the jump row'];
@@ -961,6 +971,11 @@ async function famousJumpProblems() {
     if (!got) problems.push(`jump to ${href}: no entry with that id, or no heading in it`);
     else if (!got.shown || !got.focus || got.hash !== href) problems.push(`jump to ${href}: ${JSON.stringify(got)}`);
   }
+  const last = hrefs[hrefs.length - 1];
+  const again = await evaluate(`(() => { const before = history.length, a = document.querySelector('.fx-jump a[href="${last}"]'); a.focus(); a.click();
+    return { hash: location.hash, before, after: history.length }; })()`);
+  await scrollSettled();
+  if (again.hash !== last || again.after !== again.before) problems.push(`jump to ${last} again: ${JSON.stringify(again)} (expected the address ${last} and the same number of history steps)`);
   return problems;
 }
 
@@ -1002,7 +1017,9 @@ async function famousPreviewProblems() {
 // Famous effects, desktop run: each entry's Copy prompt, pressed for real at its center (scrolled into view, the pointer moved
 // onto it, then a mouse press and release), puts exactly that entry's prompt on the clipboard (stubbed: a headless run cannot
 // grant it), reads "Copied", says so in its name and shows the message. Then the browser refuses the clipboard: the first
-// entry's press selects its prompt and the button asks for Ctrl+C.
+// entry's press copies through the hidden text box (its copy command stubbed to report what is selected), so the button reads
+// "Copied" with the message, the text box is gone and keyboard focus is back on the button. Last, with no clipboard and the
+// copy command failing, the second entry's press (the first's again on a page of one) selects its prompt and asks for Ctrl+C.
 async function famousCopyProblems() {
   const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
   if (!ids.length) return ['no entries to copy'];
@@ -1034,14 +1051,40 @@ async function famousCopyProblems() {
     })()`);
     if (!got.same || got.label !== 'Copied' || !got.named || !got.toast) problems.push(`${id}: Copy prompt ${JSON.stringify(got)}`);
   }
-  await evaluate(`(() => { navigator.clipboard.writeText = async () => { throw new DOMException('denied', 'NotAllowedError'); }; getSelection().removeAllRanges(); })()`);
+  // Before each of the two presses below, the button is back to "Copy prompt" (its "Copied" lasts about two seconds) and the
+  // message is put away, so the press has to bring its own.
+  const idle = id => evaluate(`(async () => { const btn = document.querySelector('#${id} .copy');
+    for (let i = 0; i < 100 && btn.textContent.trim() !== 'Copy prompt'; i++) await new Promise(r => setTimeout(r, 50));
+    const t = document.getElementById('toast'); t.classList.remove('show'); t.querySelector('.toast-t').textContent = ''; getSelection().removeAllRanges(); })()`);
+  await evaluate(`(() => { navigator.clipboard.writeText = async () => { throw new DOMException('denied', 'NotAllowedError'); };
+    window.__boxGot = null;
+    document.execCommand = command => { const el = document.activeElement;
+      if (command === 'copy' && el && el.tagName === 'TEXTAREA') window.__boxGot = el.value.slice(el.selectionStart, el.selectionEnd);
+      return command === 'copy'; }; })()`);
+  await idle(ids[0]);
   const trouble = await press(ids[0]);
   if (trouble) problems.push(`${ids[0]}, clipboard refused: ${trouble}`);
   else {
-    const refused = await evaluate(`(async () => { const btn = document.querySelector('#${ids[0]} .copy');
+    const boxed = await evaluate(`(async () => { const btn = document.querySelector('#${ids[0]} .copy'), title = document.querySelector('#${ids[0]} h2').textContent;
+      for (let i = 0; i < 60 && window.__boxGot === null; i++) await new Promise(r => setTimeout(r, 50));
+      await new Promise(r => setTimeout(r, 50));
+      return { same: window.__boxGot === ${prompt(ids[0])}, label: btn.textContent.trim(), named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + title,
+        toast: document.getElementById('toast').classList.contains('show') && document.querySelector('#toast .toast-t').textContent === 'Prompt copied. Paste it into your AI assistant.',
+        boxGone: !document.querySelector('textarea'), focus: document.activeElement === btn }; })()`);
+    if (!boxed.same || boxed.label !== 'Copied' || !boxed.named || !boxed.toast || !boxed.boxGone || !boxed.focus) {
+      problems.push(`${ids[0]}, clipboard refused: ${JSON.stringify(boxed)} (expected the hidden text box to copy the prompt, "Copied" and the message)`);
+    }
+  }
+  const last = ids[1] || ids[0];
+  await evaluate(`(() => { Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }); document.execCommand = () => false; })()`);
+  await idle(last);
+  const trouble2 = await press(last);
+  if (trouble2) problems.push(`${last}, no clipboard: ${trouble2}`);
+  else {
+    const keys = await evaluate(`(async () => { const btn = document.querySelector('#${last} .copy');
       for (let i = 0; i < 60 && !btn.textContent.includes('Ctrl+C'); i++) await new Promise(r => setTimeout(r, 50));
-      return { label: btn.textContent.trim(), selected: getSelection().toString().replace(/\\s+/g, ' ').trim() === ${prompt(ids[0])} }; })()`);
-    if (refused.label !== 'Press Ctrl+C to copy' || !refused.selected) problems.push(`${ids[0]}, clipboard refused: ${JSON.stringify(refused)} (expected "Press Ctrl+C to copy" and the prompt selected)`);
+      return { label: btn.textContent.trim(), selected: getSelection().toString().replace(/\\s+/g, ' ').trim() === ${prompt(last)} }; })()`);
+    if (keys.label !== 'Press Ctrl+C to copy' || !keys.selected) problems.push(`${last}, no clipboard and the text box failing: ${JSON.stringify(keys)} (expected "Press Ctrl+C to copy" and the prompt selected)`);
   }
   return problems;
 }
