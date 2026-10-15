@@ -34,7 +34,7 @@ whether they wait for it or take it in (it then goes live with them).
 | Rollout | `feat/see-inside-compare`; slots `sic/<NN><letter>`, categories `sic/cat-NN` | as it is | `sic-<NN><letter>` | `<start date>-see-inside-compare/` | 8800 (before-pictures), 8801–8820 (slots), 8821–8850 (re-cut slots, the probe, lanes, category checks, final review, integration) |
 | Finder | `feat/animation-finder` | `main` | `af-*` | `<start date>-animation-finder/` | 8901–8909 |
 | Famous effects | `feat/famous-effects` | `main` | `fx-*` | `<start date>-famous-effects/` | 8931–8939 |
-| Ten new | `feat/ten-animations`; lanes `ten/L<n>` | `feat/see-inside-compare` once Phase 0 is merged (owner, 2026-10-14); merged back into it at the start of the rollout's integration | `ten-L<n>` | `<start date>-ten-animations/` | 8961–8970 |
+| Ten new | `feat/ten-animations`; lanes `ten/L<n>` | `feat/see-inside-compare` once Phase 0 is merged (owner, 2026-10-14); merged back into it at the start of the rollout's integration | `ten-L<n>`, `ten-int`, `ten-rev` | `<start date>-ten-animations/` | 8961–8970 (lanes), 8971 (`ten-int`), 8972 (`ten-rev`) |
 | Tab pass | set in its spec | the branch that holds the ten new pages (`main` once they are live) | set in its spec | set in its spec | set in its spec |
 | Releases | `main` | — | `release` | — | 8990 |
 
@@ -75,6 +75,7 @@ Each project changes only what is named here; the coordinator merges one project
 | `CLAUDE.md`, `CONTRIBUTING.md`, `.github/pull_request_template.md` | finder · Famous effects · rollout · tab pass | written at each project's integration, in merge order, on top of what main holds by then |
 | `README.md`, `CHANGELOG.md` | rollout (How to use, step 2) · finder (step 1) · Famous effects (a line after step 3) · ten new (counts, catalog); one Unreleased line each | each only its own lines |
 | Every written count (166 → 176) | ten new only | |
+| Existing page READMEs (`animations/*/*/README.md`) | ten new (one See also line on each of nine closest pages, at integration) | the rollout changes no page README except where a ruling says so |
 | Generated files | nobody by hand | merging rule 5 |
 
 ## Version numbers (`?v=N` on the shared files)
