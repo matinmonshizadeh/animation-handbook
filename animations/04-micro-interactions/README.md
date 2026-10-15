@@ -47,6 +47,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Image Trail](image-trail/) | Pictures pop up in a trail behind your pointer, then fade. Best for portfolios. |
 | [Gooey Menu](gooey-menu/) | Small buttons ooze out of a round button like liquid. Best for quick actions. |
 | [Dynamic Island](dynamic-island/) | A black pill grows into a notification, then shrinks back. Best for live updates. |
+| [Before/After Slider](before-after-slider/) | Drag a line across two pictures to compare them. Best for photo edits. |
 
 ## Key concepts
 

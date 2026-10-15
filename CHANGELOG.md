@@ -19,6 +19,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   Compare from the start.
 - A new animation, Pixelate Transition (168 in all): the page breaks into big pixels, then sharpens into the next, with
   See inside and Compare from the start.
+- A new animation, Before/After Slider (169 in all): drag a line across two pictures to compare them, with See inside and
+  Compare from the start.
 
 ## 1.0.0 — 2026-10-10
 
