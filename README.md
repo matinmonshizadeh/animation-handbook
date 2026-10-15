@@ -28,7 +28,7 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 
 ## How to use it
 
-1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked".
+1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked", or, if you saw it somewhere and don't know its name, answer three questions in the [finder](https://matinmonshizadeh.github.io/animation-handbook/?view=find).
 2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get.
 3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
 

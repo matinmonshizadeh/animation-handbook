@@ -50,7 +50,11 @@
 // The theme is the visitor's own pick (ah-theme), else the system's, which is read first, outside the try: blocked storage
 // throws, and the system's setting must still count. The browser's bar (theme-color) takes the page's background of the theme.
 function setTheme(t){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0e0e11':'#f8f7f4';}
-(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();</script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();
+// An address that opens the finder (?view=find, and no ?q= or ?place=, which win) shows only the top bar until the page's script
+// has drawn the finder, so the start page is not painted first. Once the page is read the class goes in any case: if the script
+// failed, the start page still shows.
+(function(){var p=new URLSearchParams(location.search);if(p.get('view')!=='find'||(p.get('q')||'').trim()||p.get('place'))return;var h=document.documentElement;h.classList.add('fd-direct');addEventListener('DOMContentLoaded',function(){h.classList.remove('fd-direct');});})();</script>
 <script src="assets/js/demo-page.js?v=8" defer></script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
@@ -323,7 +327,7 @@ button,input{font:inherit;color:inherit}
 
 /* beyond the design: widths and places it does not show */
 @media(max-width:760px){.gh{position:relative;width:44px;padding:0;justify-content:center;gap:0}.gh-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.gh-c{display:none}} /* from 760px down the GitHub button is a round star beside the dark-mode button: the word is still read out, the count goes */
-@media(min-width:601px) and (max-width:620px){.top .nav .lnk{padding:0 11px}} /* at 601px "Browse all" and "How it works" are there too: a little less padding makes room for the star */
+@media(min-width:601px) and (max-width:620px){.top .nav .lnk{padding:0 11px}} /* at 601px "Finder" and "Browse all" are there too: a little less padding leaves more room beside the brand (the star fits either way) */
 @media(max-width:359px){.gh{display:none}} /* below 360px it is left out: it would still fit down to about 330px, not at 320px, so 360px keeps a margin */
 @media(max-width:1238px){.fl2,.fl5{display:none}} /* the two shapes that would crowd the 720px search box below 1239px */
 .acts{flex-wrap:wrap} /* a narrow card puts Try it under Copy prompt */
@@ -335,6 +339,64 @@ button,input{font:inherit;color:inherit}
   .copy .i{width:16px;height:16px}
   .tag{left:5px;top:5px;max-width:calc(100% - 10px);padding:3px 6px;font-size:10px}
 }
+
+/* ── finder ── */
+/* The finder (?view=find) takes the place of the hero and the place tiles: its heading and line, three questions of answers and,
+   under them, See N matches and Start over; its matches show in the results below, as Best matches and Close matches. Each answer
+   is a label around a radio hidden from sight but keeping keyboard focus: the label shows the site's focus ring, and a chosen
+   answer a dark ring and a tick. What and When answers have a still icon beside their words, How answers a small moving picture
+   above them (drawn at the end of this stylesheet). */
+.finder{display:flex;flex-direction:column;align-items:center;padding-top:clamp(16px,4vw,56px);text-align:center}
+.fd-direct main,.fd-direct .foot{visibility:hidden} /* an address that opens the finder: the head script's class shows only the top bar until the script has drawn the finder; the start page under it keeps its room, so the bar does not shift */
+.fd-h{margin-top:0}
+.fd-qs{display:flex;flex-direction:column;gap:clamp(28px,4vw,44px);width:min(1080px,100%);margin-top:clamp(24px,4vw,44px);text-align:left}
+.fd-q{min-width:0;border:0}
+.fd-q legend{display:flex;align-items:center;gap:12px;padding:0;font-size:clamp(20px,2.2vw,26px);font-weight:800;letter-spacing:-.015em;line-height:1.2}
+.fd-n{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:50%;background:var(--ink);color:var(--bg);font-size:17px;font-weight:800}
+.fd-hint{margin-top:6px;font-size:16px;color:var(--ink-2)}
+.fd-as{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:16px}
+.fd-how .fd-as{grid-template-columns:repeat(6,minmax(0,1fr))}
+.fd-a{position:relative;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-weight:600;line-height:1.25;cursor:pointer}
+.fd-how .fd-a{flex-direction:column;justify-content:flex-start;gap:8px;padding:10px 8px 12px;text-align:center}
+.fd-icon{width:24px;height:24px;color:var(--ink-2)}
+.fd-r{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.fd-a:has(.fd-r:focus-visible){outline:3px solid var(--brand);outline-offset:3px}
+.fd-a:has(.fd-r:checked){border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.fd-a:has(.fd-r:checked)::before{content:"";position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;background:var(--ink)}
+.fd-a:has(.fd-r:checked)::after{content:"";position:absolute;top:-5px;right:-1px;width:6px;height:11px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.fd-unsure,.fd-how .fd-unsure{justify-content:center;border-style:dashed;border-color:color-mix(in srgb,var(--muted) 80%,var(--bg));background:none;color:var(--ink-2);font-weight:500} /* the dashed outline is the only edge Not sure has: 3.5:1 against the page in light, 4.9:1 in dark */
+.fd-go{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:clamp(24px,4vw,40px)}
+.fd-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-size:16px;font-weight:700;text-decoration:none;cursor:pointer}
+.finder .pillbtn{min-height:52px;padding:0 24px;font-size:16px;justify-content:center} /* Start over keeps its words in the middle when a phone stretches it */
+.fd-gline{margin:-12px 0 18px;font-size:15px;color:var(--muted)}
+@media(hover:hover){.fd-a:hover{border-color:var(--ink)}}
+@media(max-width:1024px){.fd-as{grid-template-columns:repeat(4,minmax(0,1fr))}.fd-how .fd-as{grid-template-columns:repeat(5,minmax(0,1fr))}} /* How keeps one column more than What and When at every width */
+@media(max-width:760px){.fd-as{grid-template-columns:repeat(3,minmax(0,1fr))}.fd-how .fd-as{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){
+  .fd-as{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .fd-how .fd-as{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fd-a{min-height:52px;padding:8px 10px;font-size:14px}
+  .fd-how .fd-a{padding:8px 4px 10px;font-size:13px}
+  .fd-go{flex-direction:column;align-self:stretch}
+  #finder:not([hidden])~.results{scroll-margin-top:12px} /* See N matches leaves the results heading 12px below the top, as on larger screens: the phone bar, which phones keep room for, never shows in the finder */
+}
+/* The ways into the finder: a pill under the Popular line (as wide as the column on phones) and Finder in the top bar, marked as
+   the current page in the finder. Below 870px (measured) Finder, Browse all and How it works no longer all fit beside the brand,
+   so How it works leaves the bar; its band stays on the page. Phones show no top-bar links: there the pill is the way in. */
+.find-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:10px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;font-weight:700;text-decoration:none}
+.lnk[aria-current="page"]{color:var(--ink);background:var(--line-2)}
+@media(hover:hover){.find-cta:hover{border-color:var(--ink)}}
+@media(max-width:869px){.top .nav .lnk[href="#how"]{display:none}}
+@media(max-width:600px){.find-cta{display:flex;align-self:stretch;margin-top:8px}}
+/* Not here?, under the finder's cards whenever an answer is picked */
+.fd-not{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;padding:clamp(28px,4vw,44px) 24px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow);text-align:center}
+.fd-not-t{font-size:22px;font-weight:800}
+.fd-not-s{max-width:560px;font-size:16px;color:var(--ink-2)}
+.fd-not-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:4px}
+.fd-fine{font-size:14px;color:var(--muted)}
+.fd-not-s,.fd-fine{text-wrap:balance} /* lines of even length, so no word is left alone on a last line and "Not sure" stays whole (measured from 320 to 1920px) */
+.fd-not .pillbtn{min-height:52px;padding:0 24px;font-size:16px;justify-content:center} /* Describe it in words, as Start over: as tall as the dark button beside it, its words in the middle when a phone stretches it */
+@media(max-width:600px){.fd-not-acts{flex-direction:column;align-self:stretch}}
 
 /* ── preview library ── */
 /* The hint names the transform only: opacity in will-change flattens CSS 3D in Chrome (a cube draws as one flat face) */
@@ -1436,6 +1498,132 @@ button,input{font:inherit;color:inherit}
 .pv-plasmapv .p2{right:-26%;bottom:-32%;background:radial-gradient(circle,#6ea8ff,transparent 65%);animation-delay:-1.8s}
 .pv-plasmapv .p3{left:28%;bottom:-38%;background:radial-gradient(circle,#b98cff,transparent 65%);animation-delay:-3.6s}
 @keyframes plsm{from{transform:translate(0,0) scale(1)}to{transform:translate(16%,12%) scale(1.28)}}
+
+/* ── finder pictures ── */
+/* "How did it move?": each answer's small dark square (64px) plays its movement on a loop, drawn by up to four <i>; its keyframes
+   are named fd-<answer>. With reduced motion every picture holds its resting frame (the styles below, which show the movement at
+   a glance) with a small arrow for the way it goes. Shapes use the category colors; only transform and opacity move. */
+.fd-pic{position:relative;display:block;width:64px;height:64px;flex:none;border-radius:12px;background:#0b0b0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);overflow:hidden}
+.fd-pic i{position:absolute;display:none}
+/* Faded or blurred: a square comes out of a blur, holds, and fades away */
+.fd-fade i:nth-child(-n+2){display:block;left:18px;top:18px;width:28px;height:28px;border-radius:6px;background:var(--c1)}
+.fd-fade i:nth-child(1){filter:blur(5px);opacity:0;animation:fd-fade-blur 3s ease-in-out infinite}
+.fd-fade i:nth-child(2){animation:fd-fade 3s ease-in-out infinite}
+@keyframes fd-fade{0%,25%{opacity:0}55%,85%{opacity:1}100%{opacity:0}}
+@keyframes fd-fade-blur{0%{opacity:0}25%{opacity:.9}55%,100%{opacity:0}}
+/* Slid: a square slides in from the left, holds, and slides out to the right */
+.fd-slide i:nth-child(1){display:block;left:18px;top:18px;width:28px;height:28px;border-radius:6px;background:var(--c6);animation:fd-slide 2.8s cubic-bezier(.22,1,.36,1) infinite}
+@keyframes fd-slide{0%{transform:translateX(-48px)}35%,70%{transform:none}100%{transform:translateX(48px)}}
+/* Grew or shrank: a square grows from small, holds, and shrinks away */
+.fd-grow i:nth-child(1){display:block;left:16px;top:16px;width:32px;height:32px;border-radius:7px;background:var(--c2);animation:fd-grow 2.8s cubic-bezier(.22,1,.36,1) infinite}
+@keyframes fd-grow{0%{transform:scale(.15);opacity:0}12%{opacity:1}45%,70%{transform:none;opacity:1}100%{transform:scale(.15);opacity:0}}
+/* Turned or flipped: a card turns over, purple front then light back */
+.fd-turn{perspective:160px}
+.fd-turn i:nth-child(-n+2){display:block;left:20px;top:14px;width:24px;height:36px;border-radius:5px;backface-visibility:hidden}
+.fd-turn i:nth-child(1){background:var(--c3);transform:rotateY(-35deg);animation:fd-turn 3s cubic-bezier(.65,0,.35,1) infinite}
+.fd-turn i:nth-child(2){background:#f4f4f2;transform:rotateY(-215deg);animation:fd-turn-back 3s cubic-bezier(.65,0,.35,1) infinite}
+@keyframes fd-turn{0%,10%{transform:rotateY(0)}40%,70%{transform:rotateY(180deg)}100%{transform:rotateY(360deg)}}
+@keyframes fd-turn-back{0%,10%{transform:rotateY(-180deg)}40%,70%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
+/* Bounced or shook: a ball drops onto a floor and bounces back up */
+.fd-bounce i:nth-child(1){display:block;left:26px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--c4);transform:translateY(14px);animation:fd-bounce 1.4s infinite}
+.fd-bounce i:nth-child(2){display:block;left:14px;right:14px;bottom:9px;height:2px;border-radius:1px;background:rgba(255,255,255,.35)}
+@keyframes fd-bounce{0%,100%{transform:translateY(0);animation-timing-function:cubic-bezier(.5,0,1,.5)}50%{transform:translateY(31px);animation-timing-function:cubic-bezier(0,.5,.5,1)}}
+/* One after another: three lines appear in turn */
+.fd-stagger i:nth-child(-n+3){display:block;left:14px;height:7px;border-radius:3px;background:#f4f4f2;animation:fd-stagger 2.8s cubic-bezier(.22,1,.36,1) infinite both}
+.fd-stagger i:nth-child(1){top:17px;width:30px}
+.fd-stagger i:nth-child(2){top:28px;width:24px;opacity:.6;animation-delay:.3s}
+.fd-stagger i:nth-child(3){top:39px;width:28px;opacity:.3;animation-delay:.6s}
+@keyframes fd-stagger{0%{opacity:0;transform:translateY(7px)}20%,70%{opacity:1;transform:none}85%,100%{opacity:0;transform:none}}
+/* Broke into pieces: a square splits into four that fly apart and fade, then it is whole again */
+.fd-pieces i{display:block;width:14px;height:14px;background:var(--c5);transform:translate(calc(var(--x) * .35),calc(var(--y) * .35)) rotate(calc(var(--r) * .3));animation:fd-pieces 2.8s cubic-bezier(.22,1,.36,1) infinite}
+.fd-pieces i:nth-child(1){left:18px;top:18px;--x:-16px;--y:-16px;--r:-40deg;border-radius:4px 0 0 0}
+.fd-pieces i:nth-child(2){left:32px;top:18px;--x:16px;--y:-16px;--r:35deg;border-radius:0 4px 0 0}
+.fd-pieces i:nth-child(3){left:18px;top:32px;--x:-16px;--y:16px;--r:30deg;border-radius:0 0 0 4px}
+.fd-pieces i:nth-child(4){left:32px;top:32px;--x:16px;--y:16px;--r:-35deg;border-radius:0 0 4px 0}
+@keyframes fd-pieces{0%,46%{transform:none;opacity:1}75%{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}76%{transform:none;opacity:0}100%{transform:none;opacity:1}}
+/* Followed my pointer: a pointer moves around and a dot trails behind it */
+.fd-follow i:nth-child(-n+2){display:block;left:0;top:0;animation:fd-follow 3.2s ease-in-out infinite}
+.fd-follow i:nth-child(1){width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--c6);opacity:.85;transform:translate(24px,38px)}
+.fd-follow i:nth-child(2){width:13px;height:18px;background:#f4f4f2;clip-path:polygon(0 0,100% 64%,58% 64%,76% 100%,56% 100%,40% 68%,0 88%);transform:translate(36px,26px);animation-delay:-.4s}
+@keyframes fd-follow{0%,100%{transform:translate(16px,18px)}33%{transform:translate(28px,46px)}66%{transform:translate(46px,24px)}}
+/* Changed color or glowed: a band of colors runs through a rounded bar */
+.fd-color i:nth-child(1){display:block;left:10px;top:20px;width:44px;height:24px;border-radius:12px;overflow:hidden;box-shadow:0 0 14px rgba(185,140,255,.45)}
+.fd-color i:nth-child(1)::before{content:"";position:absolute;left:-96px;top:0;width:192px;height:100%;background:linear-gradient(90deg,var(--c1),var(--c3),var(--c5),var(--c7),var(--c1)) 0 0/96px 100% repeat-x;animation:fd-color 3s linear infinite}
+@keyframes fd-color{to{transform:translateX(96px)}}
+/* Changed into something else: a circle turns into a square and back */
+.fd-morph i:nth-child(-n+2){display:block;left:18px;top:18px;width:28px;height:28px;background:var(--c7)}
+.fd-morph i:nth-child(1){border-radius:50%;animation:fd-morph 3s ease-in-out infinite}
+.fd-morph i:nth-child(2){border-radius:5px;opacity:0;animation:fd-morph-square 3s ease-in-out infinite}
+@keyframes fd-morph{0%,25%{opacity:1;transform:none}50%,75%{opacity:0;transform:rotate(45deg) scale(.85)}100%{opacity:1;transform:none}}
+@keyframes fd-morph-square{0%,25%{opacity:0;transform:rotate(-45deg) scale(.85)}50%,75%{opacity:1;transform:none}100%{opacity:0;transform:rotate(-45deg) scale(.85)}}
+/* Drew or typed itself: a line draws itself from left to right behind a pen tip */
+.fd-draw i:nth-child(1){display:block;left:10px;top:30px;width:44px;height:4px;border-radius:2px;background:var(--c1);transform-origin:left;transform:scaleX(.65);animation:fd-draw 2.6s ease-in-out infinite}
+.fd-draw i:nth-child(2){display:block;left:7px;top:27px;width:10px;height:10px;border-radius:50%;background:#f4f4f2;transform:translateX(29px);animation:fd-draw-pen 2.6s ease-in-out infinite}
+@keyframes fd-draw{0%{transform:scaleX(0)}60%,85%{transform:none;opacity:1}100%{transform:none;opacity:0}}
+@keyframes fd-draw-pen{0%{transform:translateX(0)}60%,85%{transform:translateX(44px);opacity:1}100%{transform:translateX(44px);opacity:0}}
+/* Got uncovered: a colored panel slides off a little landscape, then covers it again */
+.fd-reveal i:nth-child(1){display:block;inset:0;background:linear-gradient(#9fb8ff,#dfe7ff)}
+.fd-reveal i:nth-child(2){display:block;right:12px;top:12px;width:10px;height:10px;border-radius:50%;background:#ffb020}
+.fd-reveal i:nth-child(3){display:block;left:-12px;right:-12px;bottom:-30px;height:52px;border-radius:50%;background:#2b9a4a}
+.fd-reveal i:nth-child(4){display:block;inset:0;background:var(--c5);transform:translateX(55%);animation:fd-reveal 2.8s cubic-bezier(.65,0,.35,1) infinite}
+@keyframes fd-reveal{0%,10%{transform:none}45%,85%{transform:translateX(100%)}100%{transform:none}}
+/* Moved in layers: three bands of dashes slide sideways, the near ones faster (each moves one dash pattern per loop) */
+.fd-layers i:nth-child(-n+3){display:block;left:-64px;width:128px;border-radius:2px;animation:fd-layers 2.4s linear infinite}
+.fd-layers i:nth-child(1){top:14px;height:6px;background:repeating-linear-gradient(90deg,rgba(110,168,255,.55) 0 8px,transparent 8px 16px);--d:16px}
+.fd-layers i:nth-child(2){top:28px;height:8px;background:repeating-linear-gradient(90deg,rgba(185,140,255,.8) 0 16px,transparent 16px 32px);--d:32px}
+.fd-layers i:nth-child(3){top:44px;height:10px;background:repeating-linear-gradient(90deg,var(--c6) 0 32px,transparent 32px 64px);--d:64px}
+@keyframes fd-layers{to{transform:translateX(var(--d))}}
+/* Stayed in place while I scrolled: lines pass upward behind a box that holds still */
+.fd-pin i:nth-child(1){display:block;left:10px;right:10px;top:0;height:128px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.3) 0 3px,transparent 3px 14px);animation:fd-pin 1.4s linear infinite}
+.fd-pin i:nth-child(2){display:block;left:18px;top:22px;width:28px;height:20px;border-radius:4px;background:var(--c7);box-shadow:0 0 0 4px #0b0b0f}
+@keyframes fd-pin{to{transform:translateY(-14px)}}
+/* Drifted or floated: four dots drift slowly, each on its own path */
+.fd-drift i{display:block;width:8px;height:8px;border-radius:50%;background:#f4f4f2;animation:fd-drift 3.6s ease-in-out infinite alternate}
+.fd-drift i:nth-child(1){left:12px;top:14px;--dx:10px;--dy:6px}
+.fd-drift i:nth-child(2){left:40px;top:10px;width:6px;height:6px;opacity:.7;--dx:-8px;--dy:10px;animation-duration:4.2s}
+.fd-drift i:nth-child(3){left:22px;top:40px;width:6px;height:6px;opacity:.6;--dx:8px;--dy:-8px;animation-duration:4.8s}
+.fd-drift i:nth-child(4){left:46px;top:42px;--dx:-10px;--dy:-6px;animation-duration:3.9s}
+@keyframes fd-drift{to{transform:translate(var(--dx),var(--dy))}}
+/* Rippled or waved: rings spread from the middle, one after another */
+.fd-wave i:nth-child(-n+3){display:block;left:12px;top:12px;width:40px;height:40px;border-radius:50%;border:2px solid var(--c6);animation:fd-wave 2.4s ease-out infinite}
+.fd-wave i:nth-child(1){transform:scale(.35)}
+.fd-wave i:nth-child(2){transform:scale(.7);opacity:.75;animation-delay:-.8s}
+.fd-wave i:nth-child(3){transform:scale(1.05);opacity:.5;animation-delay:-1.6s}
+@keyframes fd-wave{0%{transform:scale(.2);opacity:1}100%{transform:scale(1.7);opacity:0}}
+/* Glitched or flickered: a bar jumps while red and blue copies of it jitter beside it */
+.fd-glitch i:nth-child(-n+3){display:block;left:14px;top:26px;width:36px;height:12px;border-radius:2px}
+.fd-glitch i:nth-child(1){background:#ff3b5c;opacity:.85;transform:translateX(-2px);animation:fd-glitch-red 1.6s steps(1) infinite}
+.fd-glitch i:nth-child(2){background:#2fd8ff;opacity:.85;transform:translateX(2px);animation:fd-glitch-blue 1.6s steps(1) infinite}
+.fd-glitch i:nth-child(3){background:#f4f4f2;animation:fd-glitch 1.6s steps(1) infinite}
+@keyframes fd-glitch{0%,100%{transform:none}30%{transform:translateX(3px)}34%{transform:translateX(-2px) scaleY(.7)}38%,82%{transform:none}86%{transform:translateX(-3px)}90%{transform:none}}
+@keyframes fd-glitch-red{0%,100%{transform:translateX(-2px)}30%{transform:translateX(-6px)}38%{transform:translateX(-2px)}86%{transform:translateX(4px)}90%{transform:translateX(-2px)}}
+@keyframes fd-glitch-blue{0%,100%{transform:translateX(2px)}30%{transform:translateX(6px)}38%{transform:translateX(2px)}86%{transform:translateX(-4px)}90%{transform:translateX(2px)}}
+@media(prefers-reduced-motion:reduce){
+  .fd-pic *,.fd-pic *::before,.fd-pic *::after{animation:none!important}
+  /* still frames where the resting styles above do not show the movement: the blur beside the sharp square, the circle beside
+     the square, the small square beside the big one */
+  .fd-fade i:nth-child(1){opacity:.8;transform:translateX(-16px) scale(.6)}
+  .fd-fade i:nth-child(2){transform:translateX(16px) scale(.6)}
+  .fd-morph i:nth-child(1){transform:translateX(-16px) scale(.6)}
+  .fd-morph i:nth-child(2){opacity:1;transform:translateX(16px) scale(.6)}
+  .fd-grow i:nth-child(1){transform:translateX(-21px) scale(.4)}
+  .fd-grow i:nth-child(2){display:block;left:16px;top:16px;width:32px;height:32px;border-radius:7px;background:var(--c2);transform:translateX(16px) scale(.75)}
+  /* the small arrow: which way it moves (a curved one for turning, a double one for glitching, a dark one on the pink panel) */
+  .fd-pic::after{content:"";position:absolute;left:var(--ax,44px);top:var(--ay,4px);width:var(--as,16px);height:var(--as,16px);transform:rotate(var(--ar,0deg));background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4f4f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat}
+  .fd-fade,.fd-morph{--ax:25px;--ay:25px;--as:14px}
+  .fd-slide,.fd-reveal{--ax:47px;--ay:24px}
+  .fd-grow{--ax:20px;--ay:25px;--as:14px}
+  .fd-pieces,.fd-wave{--ax:49px;--ay:1px;--as:14px;--ar:-45deg}
+  .fd-bounce,.fd-stagger{--ax:46px;--ay:24px;--ar:90deg}
+  .fd-follow{--ax:4px;--ay:44px;--ar:-40deg}
+  .fd-color,.fd-draw,.fd-glitch{--ax:26px;--ay:49px}
+  .fd-layers{--ax:25px;--ay:0px;--as:14px} /* above the bands, clear of them all */
+  .fd-pin{--ax:49px;--ay:44px;--ar:-90deg}
+  .fd-drift{--ax:24px;--ay:24px;--ar:-30deg}
+  .fd-turn::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4f4f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5'/%3E%3C/svg%3E")}
+  .fd-glitch::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4f4f2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4'/%3E%3C/svg%3E")}
+  .fd-reveal::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0b0f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h15M13 6l6 6-6 6'/%3E%3C/svg%3E")}
+}
 </style>
 </head>
 <body>
@@ -1443,6 +1631,7 @@ button,input{font:inherit;color:inherit}
 <header class="wrap top" id="top">
   <a class="brand" href="./"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="ring" cx="11.16" cy="20.84" r="6.1"/><circle class="ring" cx="15.12" cy="16.88" r="6.1"/><circle class="ring" cx="18.51" cy="13.49" r="6.1"/><circle class="ball" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
   <nav class="nav" aria-label="Site">
+    <a class="lnk" id="nav-find" href="?view=find">Finder</a>
     <a class="lnk" id="nav-all" href="?view=all">Browse all</a>
     <a class="lnk" href="#how">How it works</a>
     <button type="button" class="icon-btn theme-btn" id="theme-toggle" aria-label="Switch between light and dark">
@@ -1468,6 +1657,7 @@ button,input{font:inherit;color:inherit}
       <button type="submit" class="go"><span class="go-l">Search</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
     <p class="pop"><span>Popular:</span><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
+    <a class="find-cta" href="?view=find">Don't know the name? Find it</a>
   </section>
 
   <section class="wrap" aria-labelledby="places-title">
@@ -1483,6 +1673,13 @@ button,input{font:inherit;color:inherit}
       <button type="button" class="place p-scroll" data-place="scroll" aria-pressed="false"><span class="art" aria-hidden="true"><span class="as"><span class="as-in"></span><span class="as-bar"></span></span></span><span class="pl-name">Scrolling</span><span class="pl-count" data-count="scroll"></span></button>
       <button type="button" class="place p-page" data-place="page" aria-pressed="false"><span class="art" aria-hidden="true"><span class="ax"><span class="pa"></span><span class="pb"></span></span></span><span class="pl-name">Page changes</span><span class="pl-count" data-count="page"></span></button>
     </div>
+  </section>
+
+  <section class="wrap finder" id="finder" aria-labelledby="find-title" hidden>
+    <h1 class="h1 fd-h" id="find-title" tabindex="-1">Find an animation you saw</h1>
+    <p class="sub">Saw an animation on a website and don't know its name? Answer three short questions. The animations that match play below, with their names.</p>
+    <div class="fd-qs" id="find-qs"></div>
+    <div class="fd-go"><button type="button" class="fd-btn" id="find-see" hidden>See 0 matches</button><button type="button" class="pillbtn" id="find-reset">Start over</button></div>
   </section>
 
   <section class="wrap results" id="results" aria-labelledby="results-title">
@@ -1515,6 +1712,12 @@ button,input{font:inherit;color:inherit}
       <p class="pop"><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
     </div>
     <div class="more" id="more"><button type="button" class="bigbtn" id="more-btn"><span id="more-label">Browse all 166 animations</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
+    <div class="fd-not" id="find-not" hidden>
+      <h3 class="fd-not-t">Not here?</h3>
+      <p class="fd-not-s" id="find-not-s">Tell us what you saw. We use it to add the animation or to fix the finder.</p>
+      <p class="fd-not-acts"><a class="fd-btn" id="find-gh" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml" target="_blank" rel="noopener">Tell us on GitHub</a><button type="button" class="pillbtn" id="find-words">Describe it in words</button></p>
+      <p class="fd-fine">The form is on GitHub and needs a free account.</p>
+    </div>
     <noscript><p class="noscript">This page shows its animations with JavaScript. All 166 are still easy to reach: see the <a href="https://github.com/matinmonshizadeh/animation-handbook#categories">category list on GitHub</a> or the <a href="sitemap.xml">full sitemap</a>. Each demo is a page of its own under <code>/animations/&lt;category&gt;/&lt;name&gt;/</code>.</p></noscript>
   </section>
 
@@ -1992,6 +2195,227 @@ const PLACES={
   'light-rays':['bg','intro'],
   'game-of-life':['bg']
 };
+// What moved, when and how: the finder's answers for each card, the main one first.
+const FIND={
+  // 01
+  'parallax-depth-of-field':['background card','scroll','layers fade'],
+  'parallax-scrolling':['background card','scroll','layers'],
+  'reverse-scrolling-columns':['card','scroll','layers slide'],
+  'cover-card-to-fixed-header':['menu card text','scroll','grow morph fade pin'],
+  'fly-in-fly-out-contact-list':['card text','scroll','fade slide grow'],
+  'stacking-cards':['card','scroll','pin slide grow'],
+  'scroll-trigger':['text shape card','scroll','fade turn pin color'],
+  'scrub-animation':['shape card','scroll','draw slide'],
+  'pin-animation':['card text','scroll','pin morph'],
+  'snap-scrolling':['page card','scroll drag','slide'],
+  'scrollytelling':['card text','scroll','pin color morph'],
+  'reveal-on-scroll':['card text','scroll','fade slide grow reveal'],
+  'stagger-reveal':['card text menu','scroll load click','stagger fade slide'],
+  'horizontal-scroll':['card page','scroll','slide pin'],
+  'sticky-section':['text card','scroll','pin fade morph'],
+  'counter-animation':['text loader','scroll load','grow morph stagger'],
+  'progress-bar':['loader shape','scroll','grow draw'],
+  'section-wipe':['page card','scroll','slide pin grow'],
+  'zoom-into-image':['card','scroll','grow reveal pin'],
+  'scroll-image-sequence':['shape card','scroll','turn pin grow'],
+  'smooth-scroll':['page','scroll drag','slide drift'],
+  'text-fill-on-scroll':['text','scroll','color stagger pin'],
+  'scroll-velocity-skew':['card','scroll','turn bounce'],
+  'svg-line-draw':['shape','scroll','draw'],
+  'scrollspy-nav':['menu','scroll click','color slide'],
+  'scroll-background-color':['background page','scroll','color'],
+  'hide-on-scroll-header':['menu','scroll','slide fade grow'],
+  // 02
+  'fade-in-out':['card text loader','load scroll click','fade'],
+  'slide-in':['card menu loader','load click scroll','slide fade'],
+  'slide-up-reveal':['text','load scroll','slide reveal stagger'],
+  'scale-in':['card menu button','click load scroll','grow fade'],
+  'clip-path-reveal':['card text page','scroll load click','reveal grow'],
+  'curtain-reveal':['page text card','load newpage scroll','reveal slide'],
+  'split-text-reveal':['text','load scroll','stagger fade slide'],
+  'letter-by-letter-stagger':['text','load scroll','stagger draw fade'],
+  'word-by-word-reveal':['text','load scroll','stagger fade draw'],
+  'blur-in':['card text','load scroll click','fade'],
+  'flip-in':['card','load scroll click','turn'],
+  'bounce-in':['card loader button','click load scroll','bounce grow'],
+  'rotate-in':['button shape','load click scroll','turn grow'],
+  'shatter-effect':['card page','click load newpage','pieces'],
+  // 03
+  'view-transitions-api':['page','newpage click','fade slide grow'],
+  'shared-element-transition':['card page','newpage click','grow morph slide'],
+  'morph-transition':['shape button page','newpage click','morph'],
+  'crossfade':['page card','newpage click loop','fade'],
+  'slide-transition':['page card','newpage click drag','slide'],
+  'zoom-transition':['page card','newpage click','grow fade'],
+  'flash-transition':['page','newpage click','color fade glitch'],
+  'blur-transition':['page card','newpage click','fade'],
+  'elastic-transition':['page','newpage click drag','bounce slide'],
+  'portal-zoom':['page button shape','newpage click','grow reveal'],
+  'dissolve':['page card','newpage click','pieces fade stagger'],
+  'flip-technique':['card','click drag newpage','slide'],
+  'circle-reveal':['page background button','newpage click','reveal grow'],
+  'overlay-wipe':['page shape','newpage click','reveal slide'],
+  'page-curl':['page card','newpage click drag','turn reveal'],
+  'cube-transition':['page card','newpage click drag','turn slide'],
+  // 04
+  'hover-state':['card button text','hover','color grow slide draw'],
+  'click-ripple':['button menu','click','wave grow fade'],
+  'focus-ring':['menu button shape','click','grow color fade'],
+  'button-press-scale':['button','click','grow bounce'],
+  'magnetic-button':['button','hover','follow slide'],
+  'toggle-switch':['button menu','click','slide color bounce'],
+  'heart-burst':['button particles','click','pieces grow color bounce'],
+  'success-confetti':['particles button','click load','pieces drift'],
+  'skeleton-loader':['loader card','load loop','fade color'],
+  'shimmer-effect':['loader card','load loop','color slide'],
+  'loading-spinner':['loader','load loop','turn bounce grow'],
+  'progress-animation':['loader shape','load click','draw grow color stagger'],
+  'checkmark-draw':['shape loader button','click load','draw color'],
+  'form-field-morph':['menu text','click','slide color draw grow'],
+  'badge-pulse':['button loader','loop load','grow wave'],
+  'tooltip-reveal':['text loader button','hover click','fade grow'],
+  'drawer-slide':['menu card','click drag','slide fade'],
+  'modal-expand':['card button menu','click','grow fade morph'],
+  'accordion':['menu text','click','grow slide reveal'],
+  'cursor-follower':['shape particles','hover','follow color grow'],
+  'error-shake':['menu card','click','bounce color'],
+  'swipe-to-dismiss':['card loader','drag','slide fade reveal'],
+  'hamburger-menu-toggle':['button menu','click','morph turn'],
+  'theme-toggle-morph':['button page background','click','morph color turn'],
+  'copy-to-clipboard':['button text loader','click','morph color fade'],
+  'star-rating':['button menu shape','click hover','color grow bounce'],
+  'toast-notification':['loader card','click load','slide fade grow'],
+  'segmented-control':['menu button shape','click','slide color bounce'],
+  'pull-to-refresh':['loader page card','drag scroll','slide turn bounce'],
+  'gradient-border':['card button shape','loop hover','color turn'],
+  'spotlight-hover':['card background','hover','follow color'],
+  'add-to-cart-fly':['card button','click','slide grow bounce'],
+  'drag-to-reorder':['card menu','drag','slide follow'],
+  'rolling-numbers':['text','click scroll load','slide stagger turn morph'],
+  'typing-indicator':['loader particles','loop','bounce stagger wave fade'],
+  'hold-to-confirm':['button','click','grow color draw bounce'],
+  'expanding-search':['menu button','click','grow morph slide'],
+  'button-loading-states':['button loader','click','morph turn grow color'],
+  'image-trail':['card','hover','follow grow fade stagger'],
+  'gooey-menu':['button menu','click','morph pieces slide bounce'],
+  'dynamic-island':['loader card shape','click load loop','grow morph bounce fade'],
+  // 05
+  'kinetic-typography':['text','load scroll loop','grow slide fade stagger'],
+  'typewriter-effect':['text','load loop scroll','draw stagger'],
+  'scramble-text':['text loader','load hover scroll','glitch morph stagger'],
+  'variable-font-morph':['text','loop hover','grow morph'],
+  'text-clip-path-reveal':['text','load scroll','reveal stagger'],
+  'marquee-ticker':['text card','loop scroll','slide layers'],
+  'text-morphing':['text','loop hover click','morph slide stagger'],
+  'text-gradient-animation':['text','loop hover','color'],
+  'outline-to-fill':['text','load scroll hover','color reveal fade'],
+  'enter-exit-typography':['text','load loop scroll','slide fade grow stagger'],
+  'rotate-word-carousel':['text','loop','slide morph turn'],
+  'glitch-text':['text','loop hover load','glitch pieces bounce'],
+  'text-on-path':['text','loop scroll','slide wave turn'],
+  'wavy-text':['text loader','loop hover','wave bounce stagger'],
+  'highlighter-sweep':['text','scroll load hover','draw color stagger'],
+  'split-flap-board':['text','load loop scroll','turn stagger morph'],
+  'neon-flicker':['text background shape','loop load hover','glitch color'],
+  'handwriting-draw':['text shape','load scroll','draw'],
+  'text-particles':['text particles','hover drag','pieces follow bounce'],
+  // 06
+  '3d-model-orbit':['shape card','loop hover drag','turn follow'],
+  'scroll-driven-3d-rotation':['shape card','scroll','turn pin grow'],
+  'parallax-3d-tilt':['card','hover drag','turn follow color'],
+  'canvas-particle-effect':['particles background','loop hover','drift follow'],
+  'fluid-simulation':['shape background','loop hover','morph drift follow'],
+  'glassmorphism-animated':['card background menu','loop scroll','fade drift color'],
+  'webgl-shader-animation':['background','loop hover','color wave morph'],
+  'noise-based-motion':['particles background shape','loop','wave drift morph'],
+  'svg-path-animation':['shape button text','load scroll hover','draw stagger'],
+  'chromatic-aberration':['text card','loop hover scroll','glitch color'],
+  '2-5d-pseudo-3d':['background card','hover scroll drag','layers follow'],
+  'ray-marching-sdf':['shape background','loop','turn morph'],
+  'gpgpu-particle-system':['particles background','loop','drift wave'],
+  'image-distortion-hover':['card background','hover drag','wave follow glitch'],
+  'cloth-simulation':['card shape','loop drag','wave follow'],
+  'volumetric-smoke':['background','loop','drift fade'],
+  'morphing-blob':['shape background','loop hover','morph follow drift'],
+  'flip-card-3d':['card','click hover','turn'],
+  'carousel-3d':['card','drag click loop','turn slide'],
+  'depth-map-photo':['card background','hover drag scroll','layers follow'],
+  'flocking':['particles background','loop hover','drift follow'],
+  'ascii-halftone':['card background text','loop hover','glitch drift morph'],
+  'physics-2d':['shape particles','click drag load','bounce'],
+  'liquid-glass':['card menu button','drag click scroll','wave follow bounce slide'],
+  'holographic-card':['card','hover drag','color turn follow'],
+  'infinite-zoom':['card background page','loop scroll load','grow'],
+  // 07
+  'animated-gradient-background':['background','loop','color drift'],
+  'mesh-gradient':['background','loop','color drift morph'],
+  'aurora':['background','loop','color wave drift'],
+  'grain-overlay':['background page card','loop','glitch'],
+  'scanline':['background page shape','loop','slide color glitch'],
+  'light-leak':['background card','loop','color fade'],
+  'starfield':['particles background','loop','drift grow layers'],
+  'breathing-glow':['background button loader','loop','grow color fade'],
+  'ambient-ripple':['background shape','loop','wave grow fade'],
+  'floating-elements':['shape background particles','loop hover','drift turn follow'],
+  'grid-dot-pattern-parallax':['background particles','hover loop drag','follow layers drift'],
+  'abstract-geometric-motion':['shape background','loop','turn wave slide'],
+  'particle-constellation':['particles background','loop hover','drift follow'],
+  'flow-field':['particles background shape','loop','drift draw'],
+  'synthwave-grid':['background shape','loop','slide layers drift'],
+  'matrix-rain':['text background','loop','drift draw'],
+  'plasma':['background','loop','color wave morph'],
+  'wave-layers':['background shape','loop','wave layers drift'],
+  'snow-rain':['particles background','loop','drift'],
+  'fireworks':['particles background','loop load click','pieces drift fade'],
+  'topographic-lines':['shape background','loop','morph wave drift'],
+  'light-rays':['background','loop','color drift fade'],
+  'game-of-life':['particles background shape','loop click drag','morph grow glitch']
+};
+// The finder's three questions in order (spec, section 2): each answer's key (in the address and in FIND), its words (which name
+// it) and its picture: a still icon in the site's 24px line style for What and When, the class of a small moving picture for How
+// (drawn at the end of the stylesheet). weight is what a question counts for in findScore. Not sure, at the end of each
+// question, is no answer.
+const FIND_Q=[
+  {key:'what',title:'What moved?',weight:2,answers:[
+    {key:'text',words:'Text or numbers',icon:'<path d="M5 7V4h14v3M12 4v16M9 20h6"/>'},
+    {key:'card',words:'A picture or card',icon:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="15.5" cy="9.5" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/>'},
+    {key:'button',words:'A button or icon',icon:'<rect x="3" y="7" width="18" height="10" rx="5"/><path d="M9 12h6"/>'},
+    {key:'menu',words:'A menu or form',icon:'<path d="M4 6h16M4 12h16M4 18h10"/>'},
+    {key:'loader',words:'A loading sign or message',icon:'<path d="M12 3a9 9 0 1 0 9 9"/>'},
+    {key:'shape',words:'A line or shape',icon:'<circle cx="7.5" cy="7.5" r="3.5"/><path d="m13 20 4-7 4 7z"/><path d="M3 20 9 14"/>'},
+    {key:'particles',words:'Dots or particles',icon:'<circle cx="6" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="18" r="1.5" fill="currentColor"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/>'},
+    {key:'background',words:'The background',icon:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 12 8-8M3 20 19 4M11 20l10-10"/>'},
+    {key:'page',words:'The whole page',icon:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M6.5 6.5h.01M9.5 6.5h.01"/>'}
+  ]},
+  {key:'when',title:'When did it move?',weight:1,answers:[
+    {key:'scroll',words:'When I scrolled',icon:'<rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v4"/>'},
+    {key:'hover',words:'When I pointed at it',icon:'<path d="m5 3 14 7-6 2-2 6z"/>'},
+    {key:'click',words:'When I clicked or tapped',icon:'<path d="m9 9 11 4.5-4.5 1.5-1.5 4.5z"/><path d="m4 4 2 2M9 3v2M3 9h2"/>'},
+    {key:'drag',words:'When I dragged or swiped',icon:'<path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>'},
+    {key:'load',words:'When the page opened',icon:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M12 12v5M9.5 14.5h5"/>'},
+    {key:'newpage',words:'When I went to another page',icon:'<rect x="3" y="5" width="10" height="14" rx="1.5"/><path d="M15 12h6M18 9l3 3-3 3"/>'},
+    {key:'loop',words:'By itself, again and again',icon:'<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'}
+  ]},
+  {key:'how',title:'How did it move?',hint:'Pick the picture closest to what you saw.',weight:3,answers:[
+    {key:'fade',words:'Faded or blurred',pic:'fd-fade'},
+    {key:'slide',words:'Slid',pic:'fd-slide'},
+    {key:'grow',words:'Grew or shrank',pic:'fd-grow'},
+    {key:'turn',words:'Turned or flipped',pic:'fd-turn'},
+    {key:'bounce',words:'Bounced or shook',pic:'fd-bounce'},
+    {key:'stagger',words:'One after another',pic:'fd-stagger'},
+    {key:'pieces',words:'Broke into pieces',pic:'fd-pieces'},
+    {key:'follow',words:'Followed my pointer',pic:'fd-follow'},
+    {key:'color',words:'Changed color or glowed',pic:'fd-color'},
+    {key:'morph',words:'Changed into something else',pic:'fd-morph'},
+    {key:'draw',words:'Drew or typed itself',pic:'fd-draw'},
+    {key:'reveal',words:'Got uncovered',pic:'fd-reveal'},
+    {key:'layers',words:'Moved in layers',pic:'fd-layers'},
+    {key:'pin',words:'Stayed in place while I scrolled',pic:'fd-pin'},
+    {key:'drift',words:'Drifted or floated',pic:'fd-drift'},
+    {key:'wave',words:'Rippled or waved',pic:'fd-wave'},
+    {key:'glitch',words:'Glitched or flickered',pic:'fd-glitch'}
+  ]}
+];
 // The eight cards of "Good places to start", in this order.
 const PICKS=['click-ripple','typewriter-effect','flip-card-3d','aurora','hamburger-menu-toggle','loading-spinner','parallax-scrolling','slide-up-reveal'];
 
@@ -2377,6 +2801,7 @@ document.querySelectorAll('[data-count]').forEach(el=>{
 });
 // ---------- Views, search and the address ----------
 const PAGE=8;
+const FIND_PAGE=12; // the finder shows twelve cards before Show all
 // A typed word drops the first of these endings that leaves at least three letters with a vowel ("ring" stays whole), never
 // the s of "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while at least three stay
 // (snapping → snap, added → add).
@@ -2415,6 +2840,48 @@ function search(text){
   if(!words.length)return [];
   return ALL.map(e=>({e,...score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.own-a.own||a.e.order-b.e.order).map(x=>x.e);
 }
+// ---------- The finder's matching ----------
+// The finder's part of an address: ?view=find, then what, when and how for each question answered (nothing, Not sure or an
+// unknown key leaves the question out).
+function findQuery(answers){
+  return '?view=find'+FIND_Q.map(q=>q.answers.some(a=>a.key===answers[q.key])?'&'+q.key+'='+answers[q.key]:'').join('');
+}
+// The answers in words, Not sure for a question left out: "Text or numbers · When I scrolled · Drew or typed itself".
+function findWords(answers){
+  return FIND_Q.map(q=>{const a=q.answers.find(x=>x.key===answers[q.key]);return a?a.words:'Not sure';}).join(' · ');
+}
+// How one card fits the answers: for each question answered, the card's main (first) answer earns twice the question's weight
+// (How 3, What 2, When 1), another of its answers once, and no answer of it is a miss. size counts all the card's answers.
+function findScore(slug,answers){
+  const lists=(FIND[slug]||['','','']).map(s=>s.split(' ').filter(Boolean));
+  let points=0,misses=0;
+  FIND_Q.forEach((q,i)=>{
+    if(!q.answers.some(a=>a.key===answers[q.key]))return;
+    const at=lists[i].indexOf(answers[q.key]);
+    if(at<0)misses++;else points+=(at?1:2)*q.weight;
+  });
+  return {points,misses,size:lists.reduce((n,l)=>n+l.length,0)};
+}
+// The finder's matches as {best, close}; it never touches the page. Best fits every answer; Close misses exactly one, and only
+// when two or more questions are answered. Each is ordered by points, then fewer answers in all (a card made for just this comes
+// first), then home order. Nothing answered, or only Not sure: no cards.
+function findMatches(answers){
+  const asked=FIND_Q.filter(q=>q.answers.some(a=>a.key===answers[q.key])).length,best=[],close=[];
+  if(!asked)return {best,close};
+  for(const e of ALL){
+    const s=findScore(e.slug,answers);
+    if(!s.misses)best.push({e,...s});else if(s.misses===1&&asked>1)close.push({e,...s});
+  }
+  const order=(a,b)=>b.points-a.points||a.size-b.size||a.e.order-b.e.order;
+  return {best:best.sort(order).map(x=>x.e),close:close.sort(order).map(x=>x.e)};
+}
+// The Not here? link: GitHub's form animation_not_here.yml with its title and its answers field filled in (GitHub fills an issue
+// form's field from the address by its id): the answers in words, then the finder's live address with them. Nothing personal.
+function findIssueURL(answers){
+  const words=findWords(answers);
+  return 'https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml&title='+encodeURIComponent('[not here] '+words)+
+    '&answers='+encodeURIComponent(words+' — https://matinmonshizadeh.github.io/animation-handbook/'+findQuery(answers));
+}
 // All animations: a plain section per group, headed by an h3 (a section with no name adds no landmark). The card titles are
 // h3 too, so here they are set a level below the group headings; showCards() takes that away again.
 function showGroups(){
@@ -2430,39 +2897,45 @@ function showGroups(){
   cardsBox.replaceChildren(...boxes);
   place(cards);
 }
-const state={q:'',place:'',view:'',all:false};
+const state={q:'',place:'',view:'',all:false,what:'',when:'',how:''};
 const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
 let moreAction='all';
 const pinbar=$('pinbar');
-// The phone bar is there while a view other than Start is open and while its own search box has focus, so emptying the box does not take the box away.
-const syncBar=()=>resultsEl.classList.toggle('filtered',isFiltered()||document.activeElement===q2);
+// The phone bar is there while a view other than Start or the finder is open and while its own search box has focus, so emptying the box does not take the box away; never in the finder.
+const syncBar=()=>resultsEl.classList.toggle('filtered',state.view!=='find'&&(isFiltered()||document.activeElement===q2));
 // A pressed button that goes away with the view hands keyboard focus to the results heading. No scrolling: the callers that move the page scroll it themselves.
 const toTitle=()=>titleEl.focus({preventScroll:true});
 const gone=el=>!el.getClientRects().length;
-function render(){
-  const filtered=isFiltered();
-  let list=null,title,sub,tags=true;
+// answered: the render follows an answer in the finder, so the results line waits (say).
+function render(answered){
+  const filtered=isFiltered(),finding=state.view==='find';
+  let list=null,title,sub,tags=true,found=null;
   if(state.q){
     list=search(state.q);title='Results for “'+state.q+'”';
     sub=list.length===1?'1 animation matches.':list.length+' animations match.';
   }else if(state.place){
     list=ALL.filter(e=>e.places.includes(state.place));title=PLACE[state.place].name;sub=list.length+' animations';tags=false;
+  }else if(finding){
+    found=findMatches(state);title='Your matches';sub=findLine(found);
   }else if(state.view==='all'){
     title='All animations';sub=ALL.length+' animations in '+CATS.length+' groups.';
   }else{
     list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different places. Pick a place above to see more.';
   }
-  titleEl.textContent=title;subEl.textContent=sub;
+  titleEl.textContent=title;say(sub,finding&&answered);
+  showFinder(finding,found);
+  showNotHere(finding,found);
   syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
-  clearBtn.hidden=!filtered;
-  if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
-  const empty=!!list&&!list.length;
+  clearBtn.hidden=!filtered||finding;
+  if(found)showFound(found);else if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
+  const empty=!!list&&!list.length,matched=found?found.best.length+found.close.length:0;
   emptyEl.hidden=!empty;
   if(empty)emptyTitle.textContent='Nothing matches “'+state.q+'” yet';
-  if(!filtered||empty){moreAction='all';moreLabel.textContent='Browse all '+ALL.length+' animations';moreBox.hidden=false;}
+  if(finding){moreAction='expand';moreLabel.textContent='Show all '+matched+' matches';moreBox.hidden=state.all||matched<=FIND_PAGE;}
+  else if(!filtered||empty){moreAction='all';moreLabel.textContent='Browse all '+ALL.length+' animations';moreBox.hidden=false;}
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}
   else moreBox.hidden=true;
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
@@ -2483,8 +2956,9 @@ function writeURL(push){
   const p=[];
   if(state.q)p.push('q='+encodeURIComponent(state.q));
   else if(state.place)p.push('place='+PLACE[state.place].url);
+  else if(state.view==='find')p.push(findQuery(state).slice(1));
   else if(state.view)p.push('view=all');
-  if(state.all&&(state.q||state.place))p.push('all=1');
+  if(state.all&&(state.q||state.place||state.view==='find'))p.push('all=1');
   const query=p.length?'?'+p.join('&'):'';
   const moved=String(new URLSearchParams(query))!==String(new URLSearchParams(location.search));
   try{history[push&&moved?'pushState':'replaceState'](null,'',query||location.pathname);}catch(e){}
@@ -2492,15 +2966,16 @@ function writeURL(push){
 // The view the address shows, and the category of an old ?cat= link (to scroll to).
 function fromURL(){
   const p=new URLSearchParams(location.search),found=PLACE_LIST.find(x=>x.url===p.get('place')),cat=p.get('cat')||'';
-  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1'};
+  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1',what:'',when:'',how:''};
   if(!next.q&&found)next.place=found.key;
+  else if(!next.q&&p.get('view')==='find'){next.view='find';FIND_Q.forEach(qu=>{if(qu.answers.some(a=>a.key===p.get(qu.key)))next[qu.key]=p.get(qu.key);});}
   else if(!next.q&&(p.get('view')==='all'||cat))next.view='all';
   return {next,cat};
 }
 // Takes the view from the address. Returns the category of an old ?cat= link, to scroll to.
 function readURL(){const {next,cat}=fromURL();Object.assign(state,next);q.value=q2.value=state.q;return cat;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
-function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false},next);q.value=q2.value=state.q;render();writeURL(push);}
+function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false,what:'',when:'',how:''},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 // A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
 // of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
@@ -2523,7 +2998,7 @@ document.addEventListener('click',e=>{
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
-  Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false});
+  Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false,what:'',when:'',how:''});
   render();writeURL(false);
 }
 q.addEventListener('input',()=>typed(q));
@@ -2541,24 +3016,108 @@ clearBtn.addEventListener('click',()=>{go({},true);toTitle();});
 $('pin-back').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});$('places').querySelector('.place').focus({preventScroll:true});});
 $('more-btn').addEventListener('click',()=>{
   if(moreAction==='all'){go({view:'all'},true);toResults();toTitle();}
-  else{state.all=true;render();writeURL(false);(cardsBox.querySelectorAll('.card .title a')[PAGE]||titleEl).focus();} // the first new card
+  else{state.all=true;render();writeURL(false);(cardsBox.querySelectorAll('.card .title a')[state.view==='find'?FIND_PAGE:PAGE]||titleEl).focus();} // the first new card
 });
 // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
 $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();go({view:'all'},true);toResults();toTitle();});
-// Back and Forward over a fragment only (the skip link, How it works, Back to top) leave the view and keyboard focus as they
-// are. A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it.
+// A step that changes only the fragment (the skip link, How it works, Back to top), and Back and Forward over one, leave the
+// view, the finder's answers and keyboard focus as they are: Not sure, which the address never holds, counts as no answer there.
+// A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it,
+// the finder's heading in the finder.
 addEventListener('popstate',()=>{
   const {next}=fromURL();
-  if(Object.keys(next).every(k=>next[k]===state[k]))return;
-  readURL();render();const a=document.activeElement;if(!a||a===document.body||gone(a))toTitle();
+  if(Object.keys(next).every(k=>next[k]===state[k]||next[k]===''&&state[k]==='unsure'))return;
+  readURL();render();const a=document.activeElement;
+  if(!a||a===document.body||gone(a)){if(state.view==='find')findTitle.focus({preventScroll:true});else toTitle();}
 });
+// "/" goes to the search box; in the finder the box is hidden, so the key is left to the browser (its own quick find).
 addEventListener('keydown',e=>{
   const el=document.activeElement,t=el&&el.tagName;
-  if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'){e.preventDefault();q.focus();}
+  if(e.key==='/'&&t!=='INPUT'&&t!=='TEXTAREA'&&!gone(q)){e.preventDefault();q.focus();}
   else if(e.key==='Escape'&&(el===q||el===q2)){if(el.value){el.value='';typed(el);}el.blur();} // an empty box is only left: a picked place stays
 });
+// ---------- The finder (?view=find) ----------
+// The three questions, built from FIND_Q: a fieldset each, its answers as radios (one Tab stop per question; the arrow keys
+// choose), each in a label with its picture (hidden from screen readers) and its words, which name it. Not sure ends each one.
+const finderEl=$('finder'),findTitle=$('find-title'),findSee=$('find-see'),heroEl=document.querySelector('.home-hero'),
+  placesSec=$('places').closest('section'),navFind=$('nav-find');
+$('find-qs').innerHTML=FIND_Q.map((qu,n)=>`<fieldset class="fd-q fd-${qu.key}"><legend><span class="fd-n" aria-hidden="true">${n+1}</span><span>${esc(qu.title)}</span></legend>`+
+  (qu.hint?`<p class="fd-hint">${esc(qu.hint)}</p>`:'')+'<div class="fd-as">'+
+  [...qu.answers,{key:'unsure',words:'Not sure'}].map(a=>`<label class="fd-a${a.key==='unsure'?' fd-unsure':''}"><input class="fd-r" type="radio" name="fd-${qu.key}" value="${a.key}" autocomplete="off">`+
+    (a.pic?`<span class="fd-pic ${a.pic}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`:a.icon?`<svg class="i fd-icon" viewBox="0 0 24 24" aria-hidden="true">${a.icon}</svg>`:'')+
+    `<span class="fd-w">${esc(a.words)}</span></label>`).join('')+'</div></fieldset>').join('');
+// The results line is a polite live region. In the finder an answer writes it 400 ms after the last change, so arrowing through
+// the answers announces only the final count; every other change writes it at once.
+let sayTimer=0;
+function say(text,later){clearTimeout(sayTimer);if(later)sayTimer=setTimeout(()=>{subEl.textContent=text;},400);else subEl.textContent=text;}
+const answeredAny=()=>FIND_Q.some(qu=>qu.answers.some(a=>a.key===state[qu.key]));
+// The finder's results line: how many fit, or why none do.
+function findLine(found){
+  const b=found.best.length,c=found.close.length,n=(k,one)=>k+' '+one+(k===1?'':'es');
+  if(!answeredAny())return 'Answer a question above, and the animations that match show here.';
+  if(b)return n(b,'best match')+(c?' and '+n(c,'close match'):'')+'.';
+  return c?'No animation fits all your answers. These come close.':'No animation fits these answers yet.';
+}
+// The finder in place of the hero and the place tiles, with the tab's own title, the radios as the state says (after an address,
+// Back, Forward or Start over) and See N matches (hidden while nothing matches).
+const HOME_TITLE=document.title,FIND_TITLE='Find an animation you saw — Animation Handbook';
+function showFinder(finding,found){
+  heroEl.hidden=placesSec.hidden=finding;finderEl.hidden=!finding;
+  document.title=finding?FIND_TITLE:HOME_TITLE;
+  if(finding)navFind.setAttribute('aria-current','page');else navFind.removeAttribute('aria-current');
+  FIND_Q.forEach(qu=>finderEl.querySelectorAll('.fd-r[name="fd-'+qu.key+'"]').forEach(r=>{r.checked=r.value===state[qu.key];}));
+  const matched=found?found.best.length+found.close.length:0;
+  findSee.hidden=!matched;findSee.textContent='See '+matched+(matched===1?' match':' matches');
+}
+// The finder's matches: Best matches, then Close matches, each a group headed like those of All animations (an h3 with its count,
+// the card titles a level below), the first twelve cards until Show all.
+function showFound(found){
+  const boxes=[],cards=[];let left=state.all?Infinity:FIND_PAGE;
+  [['Best matches',found.best,''],['Close matches',found.close,'They fit all but one of your answers.']].forEach(([name,list,line])=>{
+    if(!list.length||left<=0)return;
+    const box=document.createElement('section');box.className='group fd-group';
+    box.innerHTML=`<h3 class="ghead"><span class="gname">${name}</span><span class="gcount">${list.length===1?'1 animation':list.length+' animations'}</span></h3>`+(line?`<p class="fd-gline">${line}</p>`:'');
+    const grid=document.createElement('div');grid.className='grid';
+    list.slice(0,left).forEach(e=>{const c=CARD[e.slug];c.querySelector('.title').setAttribute('aria-level','4');grid.appendChild(c);cards.push(c);});
+    left-=list.length;box.appendChild(grid);boxes.push(box);
+  });
+  cardsBox.replaceChildren(...boxes);
+  place(cards);
+}
+// An answer changes the cards at once and only replaces the address; nothing scrolls. See N matches brings the results heading
+// into view with keyboard focus, as Search does. Start over clears the answers and the cards (the address goes back to
+// ?view=find) and puts keyboard focus on the finder's heading, at the top of the page.
+finderEl.addEventListener('change',e=>{
+  const r=e.target;if(!r.classList.contains('fd-r'))return;
+  state[r.name.slice(3)]=r.value;state.all=false;
+  render(true);writeURL(false);
+});
+findSee.addEventListener('click',()=>{toResults();toTitle();});
+$('find-reset').addEventListener('click',()=>{go({view:'find'},false);scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});});
+// The ways in: the Find button under the search and Finder in the top bar open the finder with one history step, at the top of
+// the page with keyboard focus on its heading (the Find button goes away with the hero). A click with Ctrl, Cmd, Shift or Alt,
+// or with another button, is left to the browser, as for Browse all.
+function enterFind(e){
+  if(e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+  e.preventDefault();
+  if(state.view!=='find')go({view:'find'},true);
+  scrollTo({top:0,behavior:reduce?'auto':'smooth'});findTitle.focus({preventScroll:true});
+}
+document.querySelectorAll('.find-cta,#nav-find').forEach(a=>a.addEventListener('click',enterFind));
+// Not here?, under the cards whenever an answer is picked: its link opens the GitHub form with the answers filled in; when nothing
+// fits, its line says so and suggests Not sure on one question. Describe it in words goes back to the start, search box focused.
+const findNot=$('find-not'),findNotLine=$('find-not-s'),findGh=$('find-gh');
+function showNotHere(finding,found){
+  const answered=finding&&answeredAny();
+  findNot.hidden=!answered;
+  if(!answered)return;
+  findNotLine.textContent=found.best.length+found.close.length?'Tell us what you saw. We use it to add the animation or to fix the finder.':'Nothing fits these answers yet. Try Not sure on one question, or tell us what you saw.';
+  findGh.href=findIssueURL(state);
+}
+$('find-words').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});q.focus({preventScroll:true});});
 const startCat=readURL();
 render();
+document.documentElement.classList.remove('fd-direct'); // the view is drawn: the page under the top bar shows
 if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 
 (function(){const btn=$('theme-toggle');if(!btn)return;

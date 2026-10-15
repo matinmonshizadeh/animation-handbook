@@ -4,6 +4,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
 
 ## Unreleased
 
+- The Animation finder: saw an animation on a website and don't know its name? Answer three short questions on the home page
+  (what moved, when and how) and the animations that match play, with their names. Not here? opens a short GitHub form.
 - A Star on GitHub button under every animation page's Copy prompt and, on screens 820px and wider, at the end of its
   top bar; a round star on the home page for phones.
 - An AI skill: `npx skills add matinmonshizadeh/animation-handbook` adds every page's prompt and settings to Claude
