@@ -189,11 +189,12 @@
   let W=0,H=0,raf=null,lastT=null,fa=0,paused=false,unseen=false,t=0; // fa: the part of a dim not yet applied
   let COUNT=900,SCALE=34,SPD=1.0,TRAIL=0.06,COL='mint';
   let parts=[];
-  // See inside and Compare: the arrows' canvas, a copy of Normal's picture kept while Compare shows, and one arrow per 28px square
+  // See inside and Compare: the arrows' canvas, a copy of Normal's picture (with its particles and the current's time) kept while
+  // Compare shows, and one arrow per 28px square
   const field=document.getElementById('field'),fctx=field.getContext('2d');
   const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
   const GRID=28;
-  let mode='normal',kept=null;
+  let mode='normal',kept=null,keptT=0;
 
   // tiny deterministic value-noise: hash a lattice, smooth-interpolate, return an angle.
   function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
@@ -231,16 +232,21 @@
   // One frame: dim the canvas nf times, then move every particle one step along the field and draw that step. s is how many
   // 60 Hz frames it stands for; k is s, or a third of it in slow motion, and shrinks the step and the field's time but not the dim.
   // Compare: each half draws only inside itself; the first half's particles take a random direction every step (the common
-  // mistake), the second half's follow the field. See inside draws the arrows after the step.
+  // mistake), the second half's follow the field. A random walk spreads further in one long step than in two short ones, so the
+  // first half takes one step for each 60th of a second the frame stands for (n), and scribbles as wide at any frame rate.
+  // See inside draws the arrows after the step.
   function frame(s,nf){
     const k=s*(slowTog.checked?1/3:1);
     ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;
     for(let i=0;i<nf;i++)ctx.fillRect(0,0,W,H);
     if(mode==='compare'){
-      const half=W/2;
+      const half=W/2,n=Math.max(1,Math.round(s));
       for(const side of [0,1]){
         ctx.save();ctx.beginPath();ctx.rect(side*half,0,half,H);ctx.clip();
-        for(const p of parts)if(p.side===side)move(p,side?angleAt(p.x,p.y,t):Math.random()*Math.PI*2,k,side*half,half);
+        for(const p of parts)if(p.side===side){
+          if(side)move(p,angleAt(p.x,p.y,t),k,half,half);
+          else for(let i=0;i<n;i++)move(p,Math.random()*Math.PI*2,k/n,0,half);
+        }
         ctx.restore();
       }
       ctx.fillStyle='#2a2b33';ctx.fillRect(half-1,0,2,H);
@@ -303,14 +309,15 @@
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
-  // The mode switch draws the mode at once. Compare keeps Normal's picture and particles, splits the particles into its two halves
-  // and draws a settled picture of them; leaving Compare puts Normal's back (or draws it again after a setting or size change).
-  // See inside draws the arrows over the picture: every frame while it plays, at once while paused.
+  // The mode switch draws the mode at once. Compare keeps Normal's picture, particles and time, splits the particles into its two
+  // halves and draws a settled picture of them; leaving Compare puts Normal's back, its time too, so the arrows still match the trails
+  // (or draws it again after a setting or size change). See inside draws the arrows over the picture: every frame while it plays,
+  // at once while paused.
   document.addEventListener('hb:mode',e=>{
     const was=mode;mode=e.detail.mode;
-    if(mode==='compare'&&was!=='compare'){keep.width=W;keep.height=H;kctx.drawImage(cvs,0,0);kept=parts;init();prerender();}
+    if(mode==='compare'&&was!=='compare'){keep.width=W;keep.height=H;kctx.drawImage(cvs,0,0);kept=parts;keptT=t;init();prerender();}
     else if(was==='compare'&&mode!=='compare'){
-      if(kept&&keep.width===W&&keep.height===H){ctx.drawImage(keep,0,0);parts=kept;}else{init();prerender();}
+      if(kept&&keep.width===W&&keep.height===H){ctx.drawImage(keep,0,0);parts=kept;t=keptT;}else{init();prerender();}
       kept=null;
     }
     if(mode==='inside')drawField();else fctx.clearRect(0,0,field.width,field.height);
@@ -339,7 +346,8 @@
   function changed(){kept=null;if(paused)prerender();else unseen=true;} // a kept Normal picture would show the old setting
   choices('scale-seg',d=>{SCALE=+d.px;changed();});
   choices('trail-seg',d=>{TRAIL=+d.fade;changed();});
-  choices('speed-seg',d=>{SPD=+d.spd;if(mode==='inside'&&paused)drawField();}); // See inside's arrows follow Speed at once, paused too
+  // See inside's arrows and Compare's halves follow Speed at once, paused too (Compare's kept Normal picture stays good: Speed changes none)
+  choices('speed-seg',d=>{SPD=+d.spd;if(mode==='inside'&&paused)drawField();else if(mode==='compare'&&paused)prerender();});
   choices('count-seg',d=>{COUNT=+d.n;init();changed();});
   choices('color-seg',d=>{COL=d.col;changed();});
 
