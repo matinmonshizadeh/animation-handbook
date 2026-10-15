@@ -239,25 +239,41 @@ textarea.hb-text{min-height:88px;padding:10px 12px;resize:vertical}
   .hb-bar{gap:4px;padding:0 8px}
   .hb-bar .hb-home{font-size:15px}
 }
-/* From 761px the mode switch sits at the right end of the Watch step's heading row (two columns: the heading, the switch). A player
-   bar with one or two controls leaves room beside it, so there the note for the mode in view sits next to the bar, under the switch,
-   and is on a laptop's first screen too. Three columns then: the player bar's own width, the room left over and the switch's width.
-   The heading spans the first two (the room it had before), the stage spans all three, the player bar keeps the start of its row (a
-   note taller than the bar grows the row, not the bar, so the bar does not move) and the note spans the other two. A bar with a
-   third control has no room to spare, and neither has one with the note that reduced motion adds: the note is looked for itself
-   (a bar with one control and that note has only two children), and either way the bar keeps the full row and the note stays
-   under it. An empty notes box is taken out of the flow (above), so it takes no room here either. Up to 760px the note stays
-   under the player bar. */
+/* From 761px the mode switch sits at the right end of the Watch step's heading row (two columns: the heading, the switch), and the
+   help line runs under that row across the whole step, as wide as on a page without the switch. The step is a grid. The heading box
+   and the box around the heading and the help line give way (display: contents: both are plain boxes, so the heading and the help
+   line keep their meaning for screen readers, and the reading order is the page's), and the number, the heading and the help line
+   take places on the grid themselves: the number in the first column over the first two rows, the heading in the first row up to
+   the switch's column, the help line in the second row across every column, both 46px in (the number's 32px and the heading box's
+   14px gap). Nothing in the heading row is taller than the heading line, so the stage stays where it is on a page without the
+   switch: the switch is stretched to that line (its buttons drop the 44px minimum here; up to 760px, in a row of their own, they
+   keep it), and the number reaches into the help line's row, as it does there. The help line keeps its 4px under the heading: it
+   is pulled up by the gap between the step's rows less 4px (16px less 4px; on a short laptop screen 12px less 4px, below).
+   A player bar with one or two controls leaves room beside it, so there the note for the mode in view sits next to the bar, under
+   the switch, and is on a laptop's first screen too. Three columns then: the player bar's own width, the room left over and the
+   switch's width. The heading spans the first two (the room it had before), the stage spans all three, the player bar keeps the
+   start of its row (a note taller than the bar grows the row, not the bar, so the bar does not move) and the note spans the other
+   two. A bar with a third control has no room to spare, and neither has one with the note that reduced motion adds: the note is
+   looked for itself (a bar with one control and that note has only two children), and either way the bar keeps the full row and
+   the note stays under it. An empty notes box is taken out of the flow (above), so it takes no room here either. Up to 760px the
+   note stays under the player bar. */
 @media(min-width:761px){
   .hb-watch:has(> .hb-modes){display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:end}
   .hb-watch:has(> .hb-modes) > *{grid-column:1/-1}
-  .hb-watch:has(> .hb-modes) > .hb-step-head{grid-column:1}
-  .hb-watch:has(> .hb-modes) > .hb-modes{grid-column:2;flex-wrap:nowrap}
+  .hb-watch:has(> .hb-modes) > .hb-step-head,.hb-watch:has(> .hb-modes) > .hb-step-head > div{display:contents}
+  .hb-watch:has(> .hb-modes) > .hb-step-head > .hb-num{grid-row:1/span 2;grid-column:1;align-self:start}
+  .hb-watch:has(> .hb-modes) > .hb-step-head > div > h2{grid-row:1;grid-column:1/-2;margin-left:46px}
+  .hb-watch:has(> .hb-modes) > .hb-step-head > div > p{grid-row:2;grid-column:1/-1;margin:-12px 0 0 46px}
+  .hb-watch:has(> .hb-modes) > .hb-modes{grid-row:1;grid-column:2;flex-wrap:nowrap;align-self:stretch}
+  .hb-watch:has(> .hb-modes) > .hb-modes button{min-height:0}
   .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note)){grid-template-columns:auto minmax(0,1fr) auto}
-  .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note)) > .hb-step-head{grid-column:1/3}
   .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note)) > .hb-modes{grid-column:3}
   .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note)) > .hb-player{grid-column:1;align-self:start}
   .hb-watch:has(> .hb-modes):not(:has(> .hb-player > :nth-child(3), > .hb-player > .hb-player-note)) > .hb-mode-notes{grid-column:2/-1;align-self:center}
+}
+/* A short laptop screen puts 12px between the Watch step's rows (below), so there the help line is pulled up by 12px less 4px */
+@media(min-width:761px) and (max-height:760px){
+  .hb-watch:has(> .hb-modes) > .hb-step-head > div > p{margin-top:-8px}
 }
 /* Up to 760px the switch has a row of its own above the stage, its three buttons sharing it equally (.seg.hb-modes outranks the
    .seg button rule for phones further down) */
