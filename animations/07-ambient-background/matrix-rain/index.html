@@ -194,11 +194,12 @@
   let raf=null,last=null,acc=0,paused=false,unseen=false;
   let SPD=8,FADE=.07,SET='kana',GLOW=true;
   // See inside and Compare: the marks' canvas over the rain; count numbers the steps and back holds the step at which each column
-  // last went back to the top; bc is the column with the gold bracket; kept holds Normal's picture, columns and time while Compare shows
+  // last went back to the top; bc is the column with the gold bracket, picked at step bcAt; lg is the captions' box on the marks'
+  // canvas (with a margin); kept holds Normal's picture, columns and time while Compare shows
   const ov=document.getElementById('marks'),octx=ov.getContext('2d');
   const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
   const keys=stage.querySelector('.mr-keys'),rate=stage.querySelector('.mr-rate'),half2=stage.querySelector('.mr-half.two');
-  let mode='normal',count=0,back=[],bc=-1,kept=null;
+  let mode='normal',count=0,back=[],bc=-1,bcAt=0,lg={l:0,r:0,b:0},kept=null;
 
   function colsFor(w){return Math.floor(w/Math.max(fontSize,phone.matches?14:11));}
 
@@ -254,18 +255,28 @@
     const rows=H/fontSize;drops=Array.from({length:cols},()=>Math.floor(Math.random()*3*rows-2*rows));ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
     back=drops.map(()=>-1e9);bc=-1;
     const n=Math.ceil(rows);
+    if(mode==='compare')pose(rows,n);
     for(let i=0;i<n;i++)step();
     if(mode==='inside')marks();
+  }
+  // Compare's settled picture is posed: each half gets at least three leaders that end the settled steps on screen, below the names
+  function pose(rows,n){
+    const k=Math.floor(cols/2),lands=i=>drops[i]+n>=4&&drops[i]+n<=rows; // its leader ends on row 3 or lower, in full view
+    for(const[a,b]of[[0,k],[k,cols]]){
+      let have=0;for(let i=a;i<b;i++)if(lands(i))have++;
+      for(let t=0;have<3&&t<60;t++){const i=a+Math.floor(Math.random()*(b-a));if(!lands(i)){drops[i]=Math.floor(3+Math.random()*(rows-4))+1-n;have++;}}
+    }
   }
 
   // See inside, on its own canvas over the rain (nothing is drawn on the rain, which keeps its trails): a faint line at each
   // column's edges, a box around every leader on screen, an up arrow at the bottom of each column that went back to the top in the
   // last half second of play (counted in steps, so Pause holds it; at least the last one), and a gold bracket up the trail of one
-  // low leader near the middle, its tick where the trail is half as bright (above the top edge: none)
+  // leader near the middle, its tick where the trail is half as bright (none where that is above the top edge or under the captions)
   function marks(){
     if(ov.width!==cvs.width||ov.height!==cvs.height){ov.width=cvs.width;ov.height=cvs.height;}
     octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,W,H);
-    const rows=String(Math.round(SPD*3.5/(slowTog.checked?3:1)));if(rate.textContent!==rows)rate.textContent=rows; // a third in slow motion
+    const per=String(Math.round(SPD*3.5/(slowTog.checked?3:1)));if(rate.textContent!==per)rate.textContent=per; // a third in slow motion
+    const o=ov.getBoundingClientRect(),c=keys.getBoundingClientRect();lg={l:c.left-o.left-10,r:c.right-o.left+10,b:c.bottom-o.top+4};
     const p=W/cols,fs=fontSize,hr=Math.log(.5)/Math.log(1-FADE),on=i=>drops[i]>0&&(drops[i]-1)*fs<H;
     octx.lineWidth=1;octx.strokeStyle='rgba(255,255,255,.2)';octx.beginPath();
     for(let i=1;i<cols;i++){const x=Math.round(i*p)+.5;octx.moveTo(x,0);octx.lineTo(x,H);}
@@ -279,27 +290,34 @@
     const up=new Path2D();
     for(let i=0;i<cols;i++)if(i===la||count-back[i]<SPD*1.75){const x=(i+.5)*p;up.moveTo(x,H-3);up.lineTo(x,H-17);up.moveTo(x-4,H-13);up.lineTo(x,H-17);up.lineTo(x+4,H-13);}
     ink(up,'#fff',2);
-    if(bc<0||!on(bc))bc=bracketCol(hr);
+    // The bracket keeps its column until the column goes back to the top or the tick passes the bottom: once the leader has left,
+    // it runs from the bottom edge up to the tick, which falls with the trail
+    if(bc<0||back[bc]>=bcAt||(drops[bc]-hr)*fs>=H)bc=bracketCol(hr);
     if(bc>=0){
-      const x=(bc+1)*p+2.5,yb=drops[bc]*fs,yt=yb-hr*fs,br=new Path2D();
-      br.moveTo(x-5,yb);br.lineTo(x,yb);br.lineTo(x,Math.max(yt,0));if(yt>=0)br.lineTo(x-9,yt);
-      ink(br,'#ffce5a',2.5);
+      const x=(bc+1)*p+2.5,yb=drops[bc]*fs,yt=yb-hr*fs,tick=shows(x,yt),y0=tick?yt:under(x)?lg.b:0,br=new Path2D();
+      if(y0<Math.min(yb,H)-4){
+        if(yb<=H){br.moveTo(x-5,yb);br.lineTo(x,yb);}else br.moveTo(x,H);
+        br.lineTo(x,y0);if(tick)br.lineTo(x-9,yt);
+        ink(br,'#ffce5a',2.5);
+      }
     }
   }
   function ink(path,color,w){octx.lineCap='round';octx.lineJoin='round';octx.lineWidth=w+2.5;octx.strokeStyle='rgba(0,0,0,.8)';octx.stroke(path);octx.lineWidth=w;octx.strokeStyle=color;octx.stroke(path);}
-  // The bracket's column: of the leaders on screen whose tick shows (inside the box and clear of the captions), a low one near the
-  // middle (a row lower counts as much as about two columns nearer it); if no tick can show, the lowest
+  function under(x){return x>lg.l&&x<lg.r;}
+  function shows(x,y){return y>=0&&y<H&&!(under(x)&&y<lg.b);}
+  // The bracket's column, of the leaders on screen near the middle (a row counts as much as about two columns). In a still: the
+  // lowest whose tick shows (the most trail in view), else the lowest. In play: the highest clear of the captions, for the longest
+  // ride (its bracket grows up to the captions or the top edge until the tick comes into view)
   function bracketCol(hr){
-    const o=ov.getBoundingClientRect(),p=W/cols,fs=fontSize,r=keys.getBoundingClientRect();
+    const p=W/cols,fs=fontSize,rows=H/fs;
     let best=-1,top=-Infinity;
     for(let i=0;i<cols-1;i++){
-      const L=drops[i]-1;if(L<0||L*fs>=H)continue;
-      const x=o.left+(i+1)*p+2.5,y=o.top+(L+1-hr)*fs;
-      const shown=y>=o.top&&!(x>r.left-10&&x-10<r.right&&y<r.bottom+4);
-      const d=Math.abs((i+1)*p-W/2),s=shown?1e6+L*fs-d/2:L*1e3-d;
+      const L=drops[i]-1;if(L<0||L>=rows)continue;
+      const x=(i+1)*p+2.5,d=Math.abs(x-W/2),s=paused?(shows(x,(L+1-hr)*fs)?1e6+L*fs-d/2:L*1e3-d)
+        :(!under(x)||L*fs>=lg.b?1e6+(rows-L)*fs-d/2:L*1e3-d);
       if(s>top){top=s;best=i;}
     }
-    return best;
+    bcAt=count;return best;
   }
   function restart(){resize();paintStatic();}
 
