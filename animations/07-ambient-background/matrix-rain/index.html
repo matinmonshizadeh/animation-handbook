@@ -25,6 +25,19 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#000}
     canvas{display:block;width:100%;height:100%}
+    /* See inside: a canvas of marks over the rain and three captions at the top left. Compare: a name at the top of each half */
+    .mr-keys,.mr-half{border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .mr-keys{position:absolute;left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:6px;padding:7px 11px;border-radius:10px}
+    .mr-cap svg{display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px;fill:none;stroke:#fff;stroke-width:1.6}
+    .mr-cap.gold svg{stroke:#ffce5a;stroke-width:2.2}
+    .mr-ov{position:absolute;inset:0;pointer-events:none}
+    .mr-half{position:absolute;top:10px;left:10px;padding:4px 10px;border-radius:999px}
+    .mr-half.two{margin-left:10px} /* its left edge, the divider, is set by the script */
+    .mr-ov,.mr-keys,.mr-half{display:none}
+    .stage[data-hb-mode="inside"] .mr-ov{display:block}
+    .stage[data-hb-mode="inside"] .mr-keys{display:flex}
+    .stage[data-hb-mode="compare"] .mr-half{display:block}
+    @media(max-width:600px){.mr-keys{left:6px;top:6px;gap:5px;padding:5px 8px}.mr-keys,.mr-half{font-size:12px}.mr-half{top:6px;left:6px;padding:2px 7px}.mr-half.two{margin-left:6px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +60,29 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <canvas class="mr-ov" id="marks" aria-hidden="true"></canvas>
+      <div class="mr-keys" aria-hidden="true">
+        <p class="mr-cap" data-hb-caption><svg viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10"/></svg>One leader per column, <span class="mr-rate">28</span> rows a second</p>
+        <p class="mr-cap gold" data-hb-caption><svg viewBox="0 0 12 12"><path d="M3 1h5v10H3"/></svg>Dimmed each step, so a trail fades</p>
+        <p class="mr-cap" data-hb-caption><svg viewBox="0 0 12 12"><path d="M6 11.5V1.5M2.5 5 6 1.5 9.5 5"/></svg>Past the bottom, back to the top at random</p>
+      </div>
+      <p class="mr-half one" aria-hidden="true" data-hb-caption>Cleared each step</p>
+      <p class="mr-half two" aria-hidden="true" data-hb-caption>Dimmed each step</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each column has one bright leader that steps down a row at a time. The whole screen is dimmed a little each step, so older characters fade into a trail.</p>
+      <p data-hb-for="compare" hidden>Cleared each step wipes its half to black, so each leader shows with just one dim character above it. Dimmed each step only darkens it a little, so each leader leaves a fading trail.</p>
     </div>
   </section>
 
@@ -163,6 +193,12 @@
   let W=0,H=0,dpr=1,cols=0,drops=[],fontSize=16;
   let raf=null,last=null,acc=0,paused=false,unseen=false;
   let SPD=8,FADE=.07,SET='kana',GLOW=true;
+  // See inside and Compare: the marks' canvas over the rain; count numbers the steps and back holds the step at which each column
+  // last went back to the top; bc is the column with the gold bracket; kept holds Normal's picture, columns and time while Compare shows
+  const ov=document.getElementById('marks'),octx=ov.getContext('2d');
+  const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
+  const keys=stage.querySelector('.mr-keys'),rate=stage.querySelector('.mr-rate'),half2=stage.querySelector('.mr-half.two');
+  let mode='normal',count=0,back=[],bc=-1,kept=null;
 
   function colsFor(w){return Math.floor(w/Math.max(fontSize,phone.matches?14:11));}
 
@@ -178,37 +214,92 @@
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
     cols=colsFor(W);
+    kept=null;half2.style.left=Math.floor(cols/2)*W/cols+'px'; // Compare's second half starts at the column edge nearest the middle
     deal();
   }
 
   function pick(){const s=SETS[SET];return s[Math.floor(Math.random()*s.length)];}
 
   // One step: dim the whole canvas a little instead of clearing it, so older characters decay into the trail, then draw
-  // a bright leader and a dimmer character above it in every column and move the column down a row.
+  // a bright leader and a dimmer character above it in every column and move the column down a row. In Compare the first
+  // half (the columns left of the edge nearest the middle) is cleared to black after the dim, and each half draws only inside itself.
   function step(){
     ctx.fillStyle='rgba(0,0,0,'+FADE+')';
     ctx.fillRect(0,0,W,H);
     ctx.font=fontSize+'px '+FONT;
     ctx.textBaseline='top';
     const pitch=W/cols;
-    for(let i=0;i<cols;i++){
-      const x=i*pitch,y=drops[i]*fontSize;
-      if(GLOW){ctx.shadowColor='#5fd88a';ctx.shadowBlur=8;}else{ctx.shadowBlur=0;}
-      ctx.fillStyle='#d8ffe6';ctx.fillText(pick(),x,y);          // bright leader
-      ctx.shadowBlur=0;
-      ctx.fillStyle='#3aa564';ctx.fillText(pick(),x,y-fontSize); // dimmer follower
-      if(y>H&&Math.random()>.975)drops[i]=Math.floor(Math.random()*-20);
-      drops[i]++;
-    }
+    count++;
+    if(mode==='compare'){
+      const k=Math.floor(cols/2),sx=k*pitch;
+      ctx.fillStyle='#000';ctx.fillRect(0,0,sx,H);
+      for(const[a,b,x0,x1]of[[0,k,0,sx],[k,cols,sx,W]]){ctx.save();ctx.beginPath();ctx.rect(x0,0,x1-x0,H);ctx.clip();for(let i=a;i<b;i++)column(i,pitch);ctx.restore();}
+      ctx.fillStyle='#50535b';ctx.fillRect(sx-1,0,2,H); // the divider
+    }else for(let i=0;i<cols;i++)column(i,pitch);
     unseen=false;
+  }
+  function column(i,pitch){
+    const x=i*pitch,y=drops[i]*fontSize;
+    if(GLOW){ctx.shadowColor='#5fd88a';ctx.shadowBlur=8;}else{ctx.shadowBlur=0;}
+    ctx.fillStyle='#d8ffe6';ctx.fillText(pick(),x,y);          // bright leader
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#3aa564';ctx.fillText(pick(),x,y-fontSize); // dimmer follower
+    if(y>H&&Math.random()>.975){drops[i]=Math.floor(Math.random()*-20);back[i]=count;}
+    drops[i]++;
   }
 
   // A settled picture of rain: columns dealt afresh over a whole cycle (above, on and below the screen) on a black
   // canvas, then a screen of steps, so it looks like rain in full flow.
   function paintStatic(){
     const rows=H/fontSize;drops=Array.from({length:cols},()=>Math.floor(Math.random()*3*rows-2*rows));ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    back=drops.map(()=>-1e9);bc=-1;
     const n=Math.ceil(rows);
     for(let i=0;i<n;i++)step();
+    if(mode==='inside')marks();
+  }
+
+  // See inside, on its own canvas over the rain (nothing is drawn on the rain, which keeps its trails): a faint line at each
+  // column's edges, a box around every leader on screen, an up arrow at the bottom of each column that went back to the top in the
+  // last half second of play (counted in steps, so Pause holds it; at least the last one), and a gold bracket up the trail of one
+  // low leader near the middle, its tick where the trail is half as bright (above the top edge: none)
+  function marks(){
+    if(ov.width!==cvs.width||ov.height!==cvs.height){ov.width=cvs.width;ov.height=cvs.height;}
+    octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,W,H);
+    const rows=String(Math.round(SPD*3.5/(slowTog.checked?3:1)));if(rate.textContent!==rows)rate.textContent=rows; // a third in slow motion
+    const p=W/cols,fs=fontSize,hr=Math.log(.5)/Math.log(1-FADE),on=i=>drops[i]>0&&(drops[i]-1)*fs<H;
+    octx.lineWidth=1;octx.strokeStyle='rgba(255,255,255,.2)';octx.beginPath();
+    for(let i=1;i<cols;i++){const x=Math.round(i*p)+.5;octx.moveTo(x,0);octx.lineTo(x,H);}
+    octx.stroke();
+    octx.lineWidth=1.5;octx.strokeStyle='#fff';octx.beginPath();
+    for(let i=0;i<cols;i++)if(on(i))octx.rect(i*p+1,(drops[i]-1)*fs+1,p-2,fs-2);
+    octx.stroke();
+    let la=-1; // the column that went back last; before any has, the one longest past the bottom
+    for(let i=0;i<cols;i++)if(back[i]>-1e9&&(la<0||back[i]>back[la]))la=i;
+    if(la<0)for(let i=0;i<cols;i++)if((drops[i]-1)*fs>H&&(la<0||drops[i]>drops[la]))la=i;
+    const up=new Path2D();
+    for(let i=0;i<cols;i++)if(i===la||count-back[i]<SPD*1.75){const x=(i+.5)*p;up.moveTo(x,H-3);up.lineTo(x,H-17);up.moveTo(x-4,H-13);up.lineTo(x,H-17);up.lineTo(x+4,H-13);}
+    ink(up,'#fff',2);
+    if(bc<0||!on(bc))bc=bracketCol(hr);
+    if(bc>=0){
+      const x=(bc+1)*p+2.5,yb=drops[bc]*fs,yt=yb-hr*fs,br=new Path2D();
+      br.moveTo(x-5,yb);br.lineTo(x,yb);br.lineTo(x,Math.max(yt,0));if(yt>=0)br.lineTo(x-9,yt);
+      ink(br,'#ffce5a',2.5);
+    }
+  }
+  function ink(path,color,w){octx.lineCap='round';octx.lineJoin='round';octx.lineWidth=w+2.5;octx.strokeStyle='rgba(0,0,0,.8)';octx.stroke(path);octx.lineWidth=w;octx.strokeStyle=color;octx.stroke(path);}
+  // The bracket's column: of the leaders on screen whose tick shows (inside the box and clear of the captions), a low one near the
+  // middle (a row lower counts as much as about two columns nearer it); if no tick can show, the lowest
+  function bracketCol(hr){
+    const o=ov.getBoundingClientRect(),p=W/cols,fs=fontSize,r=keys.getBoundingClientRect();
+    let best=-1,top=-Infinity;
+    for(let i=0;i<cols-1;i++){
+      const L=drops[i]-1;if(L<0||L*fs>=H)continue;
+      const x=o.left+(i+1)*p+2.5,y=o.top+(L+1-hr)*fs;
+      const shown=y>=o.top&&!(x>r.left-10&&x-10<r.right&&y<r.bottom+4);
+      const d=Math.abs((i+1)*p-W/2),s=shown?1e6+L*fs-d/2:L*1e3-d;
+      if(s>top){top=s;best=i;}
+    }
+    return best;
   }
   function restart(){resize();paintStatic();}
 
@@ -218,7 +309,7 @@
     raf=requestAnimationFrame(loop);
     acc+=last===null?0:ts-last;last=ts;
     const interval=1000/(SPD*3.5)*(slowTog.checked?3:1);
-    if(acc>=interval){acc%=interval;step();}
+    if(acc>=interval){acc%=interval;step();if(mode==='inside')marks();}
   }
   function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
 
@@ -233,6 +324,24 @@
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){cancelAnimationFrame(raf);raf=null;}
     else if(!paused)start();
+  });
+  // The mode switch draws the mode at once, playing or paused. Compare keeps Normal's picture, columns and time (unless a changed
+  // setting is not drawn yet) and draws a settled picture of its two halves; leaving it puts Normal's back, or draws a settled
+  // picture after a setting or size change. See inside draws its marks over the rain as it is.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare'){
+      kept=unseen?null:{drops:drops.slice(),back:back.slice(),count,acc};
+      if(kept){keep.width=cvs.width;keep.height=cvs.height;kctx.drawImage(cvs,0,0);}
+      paintStatic();
+    }else if(was==='compare'&&mode!=='compare'){
+      if(kept&&keep.width===cvs.width&&keep.height===cvs.height&&kept.drops.length===cols){
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(keep,0,0);ctx.restore();
+        ({drops,back,count,acc}=kept);
+      }else paintStatic();
+      kept=null;
+    }
+    if(mode==='inside'){if(was!=='inside')bc=-1;marks();}else octx.clearRect(0,0,W,H);
   });
 
   // Setting the canvas size wipes it, so a real change of the stage's size starts the rain over with a settled picture,
@@ -254,9 +363,11 @@
     }));
   }
   // Playing, the next steps show a changed setting. Paused, the trails need steps to show it, so a settled picture is
-  // drawn; if Pause comes before any step has, the picture is drawn then. Speed changes no picture: it shows once it plays.
-  function changed(){if(paused)paintStatic();else unseen=true;}
-  choices('speed-seg',d=>{SPD=+d.spd;});
+  // drawn; if Pause comes before any step has, the picture is drawn then. Speed changes no picture: it shows once it plays
+  // (and at once in See inside's caption, as Slow motion does). A changed setting also drops a kept Normal picture.
+  function changed(){kept=null;if(paused)paintStatic();else unseen=true;}
+  choices('speed-seg',d=>{SPD=+d.spd;if(mode==='inside')marks();});
+  slowTog.addEventListener('change',()=>{if(mode==='inside')marks();});
   choices('set-seg',d=>{SET=d.set;changed();});
   choices('fade-seg',d=>{FADE=+d.fade;changed();});
   choices('size-seg',d=>{fontSize=+d.px;restart();});
