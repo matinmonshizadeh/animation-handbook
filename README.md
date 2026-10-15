@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 168 web animation techniques" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 169 web animation techniques" width="820"></picture></a>
 
 # Animation Handbook
 
-**A visual reference of 168 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
+**A visual reference of 169 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
@@ -14,7 +14,7 @@ Add it to your AI coding assistant (run in your project folder; needs Node.js):
 npx skills add matinmonshizadeh/animation-handbook
 ```
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-168-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-169-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
 
@@ -22,7 +22,7 @@ npx skills add matinmonshizadeh/animation-handbook
 
 ## What this is
 
-Here are 168 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+Here are 169 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
 Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and its demo runs offline; [Run it locally](#run-it-locally) covers the parts that need a local server. Built to *inspire* and *teach*, not to sell a library.
 
@@ -62,14 +62,14 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 | 01 | [Scroll-Based](#01) | 27 |
 | 02 | [Entrance & Exit](#02) | 15 |
 | 03 | [Page Transitions](#03) | 17 |
-| 04 | [Micro-Interactions](#04) | 41 |
+| 04 | [Micro-Interactions](#04) | 42 |
 | 05 | [Text & Typography](#05) | 19 |
 | 06 | [3D & Advanced](#06) | 26 |
 | 07 | [Ambient & Background](#07) | 23 |
 
 ## Full catalog
 
-All 168 techniques, each linked to its live demo.
+All 169 techniques, each linked to its live demo.
 
 Each technique's code and README are in its folder under [animations/](animations/).
 
@@ -167,11 +167,11 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <a id="04"></a>
 
-### 04 · Micro-Interactions · 41 techniques
+### 04 · Micro-Interactions · 42 techniques
 
 <sub>Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns.</sub>
 
-<details><summary>Browse all 41 techniques in Micro-Interactions</summary>
+<details><summary>Browse all 42 techniques in Micro-Interactions</summary>
 
 - **[Hover State Animation](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/hover-state/)** — Six ways a card can react when you point at it. Best for buttons and cards.
 - **[Click / Tap Ripple](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/click-ripple/)** — A ripple spreads out from the spot you press. Best for buttons and list items.
@@ -214,6 +214,7 @@ Each technique's code and README are in its folder under [animations/](animation
 - **[Image Trail](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/image-trail/)** — Pictures pop up in a trail behind your pointer, then fade. Best for portfolios.
 - **[Gooey Menu](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/gooey-menu/)** — Small buttons ooze out of a round button like liquid. Best for quick actions.
 - **[Dynamic Island](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/dynamic-island/)** — A black pill grows into a notification, then shrinks back. Best for live updates.
+- **[Before/After Slider](https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/before-after-slider/)** — Drag a line across two pictures to compare them. Best for photo edits.
 
 </details>
 
