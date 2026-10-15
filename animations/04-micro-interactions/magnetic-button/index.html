@@ -31,6 +31,44 @@
     /* The site focus ring is drawn inside the button. It has the same orange as the fill, so it turns dark. */
     .hb-page .stage .mag:focus-visible{outline-color:#0b0b0d}
     @media(prefers-reduced-motion:reduce){.mag,.mag .mag-label{transition:transform .12s linear}}
+    /* See inside and Compare. Drawn over the stage from the page's own numbers: the ring the pull reaches, the button's resting
+       place, the lean (an arrow from where the button rests to where it is pulled, over a dark edge so the button's words stay
+       readable under it), a faint line to the pointer, a pretend pointer, and in Compare a ghost of the pointer over the copy
+       that stays put. */
+    .twin,.views,.lbl{display:none}
+    .views{position:absolute;inset:0;pointer-events:none}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .ring,.rest,.lean-edge,.lean,.toward,.pointer,.ghost{display:none}
+    .ring{fill:rgba(255,157,92,.06);stroke:rgba(255,157,92,.75);stroke-width:2;stroke-dasharray:6 6}
+    .rest{fill:none;stroke:rgba(244,244,242,.6);stroke-width:2;stroke-dasharray:5 5}
+    .lean-edge{fill:none;stroke:#0b0b0d;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+    .lean{fill:none;stroke:#f4f4f2;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .toward{stroke:rgba(244,244,242,.45);stroke-width:1.5;stroke-dasharray:3 5}
+    .pointer path,.ghost path{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .ghost{opacity:.7}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"] .ring,.stage[data-hb-mode="inside"] .rest,.stage[data-hb-mode="inside"] .lean-edge,
+    .stage[data-hb-mode="inside"] .lean,.stage[data-hb-mode="inside"] .toward,.stage[data-hb-mode="compare"] .toward{display:inline}
+    .stage[data-hb-mode="inside"].pretend .pointer,.stage[data-hb-mode="compare"].pretend .pointer,.stage[data-hb-mode="compare"] .ghost{display:inline}
+    .stage[data-hb-mode="inside"] .in-l,.stage[data-hb-mode="compare"] .cmp-l{display:block}
+    /* Compare: the button twice, side by side (one above the other on phones): on the left a copy that stays put, on the right
+       the real one. The copy sits in the middle of its half; the real button keeps its place in the layout and the script moves
+       it to the middle of its half with translate, so Normal finds it where it was (moved by layout and back, its words came back
+       drawn a fraction of a pixel off). */
+    .stage[data-hb-mode="compare"] .twin{display:inline-block;position:absolute;left:25%;top:50%;translate:-50% -50%}
+    .cmp-l{top:12px}
+    .cmp-l.first{left:12px}
+    .cmp-l.second{left:calc(50% + 12px)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .twin{left:50%;top:25%}
+      .stage[data-hb-mode="compare"] .cmp-l.second{left:12px;top:calc(50% + 8px)}
+    }
+    /* Under reduced motion the views take their pose at once, with no glide */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .mag,.stage[data-hb-mode="inside"] .mag .mag-label,
+      .stage[data-hb-mode="compare"] .mag,.stage[data-hb-mode="compare"] .mag .mag-label{transition:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=9">
   <script src="../../../assets/js/demo-page.js?v=9" defer></script>
@@ -53,12 +91,42 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move the pointer close to the button (touch near it on a phone, or Tab to it and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="mag twin" aria-hidden="true" inert><span class="mag-label">Get Started</span></div>
       <button class="mag" type="button"><span class="mag-label">Get Started</span></button>
+      <div class="views" aria-hidden="true">
+        <svg>
+          <circle class="ring" id="ring" r="0"/>
+          <rect class="rest" id="rest"/>
+          <line class="toward" id="toward"/>
+          <path class="lean-edge" id="lean-edge"/>
+          <path class="lean" id="lean"/>
+        </svg>
+        <span class="lbl in-l" id="l-reach" data-hb-caption>Pulls inside this ring</span>
+        <span class="lbl in-l" id="l-rest" data-hb-caption>Rests here</span>
+        <span class="lbl in-l" id="l-lean" data-hb-caption>Leans toward the pointer</span>
+        <span class="lbl in-l" id="l-label" data-hb-caption>Its label moves a little more</span>
+        <span class="lbl cmp-l first" data-hb-caption>Stays put</span>
+        <span class="lbl cmp-l second" data-hb-caption>Leans toward you</span>
+        <!-- The pretend pointer and its ghost, after the labels so they are never hidden under one -->
+        <svg>
+          <g class="pointer" id="pointer"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g>
+          <g class="ghost" id="ghost"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g>
+        </svg>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the ring shows how far the pull reaches: the button leans part of the way toward the pointer, and its label a little further. Point near it, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Stays put: the button ignores the pointer, shown as a ghost. Leans toward you: point near it, or press Show me, and it is pulled toward the pointer.</p>
     </div>
   </section>
 
@@ -129,15 +197,24 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.querySelector('.stage');
-  const btn=stage.querySelector('.mag');
+  const btn=stage.querySelector('button.mag');
   const label=btn.querySelector('.mag-label');
   const slowTog=document.getElementById('slow-tog');
+  // See inside and Compare: the copy that stays put, the drawn parts and their labels; P is the point pulling now (null at home)
+  const twin=stage.querySelector('.mag.twin');
+  const $=id=>document.getElementById(id);
+  const ring=$('ring'),rest=$('rest'),toward=$('toward'),lean=$('lean'),leanEdge=$('lean-edge'),pointer=$('pointer'),ghost=$('ghost');
+  const L={reach:$('l-reach'),rest:$('l-rest'),lean:$('l-lean'),label:$('l-label')};
+  let mode='normal',P=null,mouseIn=false,shift={x:0,y:0};
+  // Compare stacks its halves where the stage is a phone's
+  const stackedMQ=window.matchMedia('(max-width:600px)');
   const hasHover=window.matchMedia('(hover: hover)').matches;
   let strength=0.35,radius=160,runTimers=[];
 
   // The pull takes a point on the stage (from its top left corner). The mouse, a finger and Show me all call it.
   // It measures from where the button is now, moved or not, and sends the button home when the point is out of reach.
   function pull(px,py){
+    P={x:px,y:py};
     const s=stage.getBoundingClientRect(),b=btn.getBoundingClientRect();
     const dx=px-(b.left+b.width/2-s.left),dy=py-(b.top+b.height/2-s.top),dist=Math.hypot(dx,dy);
     if(dist<radius){
@@ -145,10 +222,81 @@
       const tx=dx*strength*f,ty=dy*strength*f;
       btn.style.setProperty('--tx',tx+'px');btn.style.setProperty('--ty',ty+'px');
       label.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
+      drawViews();
     }else home();
   }
+  // Home: the button goes back to its place. In See inside and Compare, with nothing else pulling it, the pose takes over.
   function home(){
     btn.style.removeProperty('--tx');btn.style.removeProperty('--ty');label.style.transform='';
+    P=null;
+    if(mode!=='normal'&&idle())pose();else drawViews();
+  }
+  // The button's resting center in the pull's frame (the stage's border box): its layout box, which the pull never moves, and in
+  // Compare the move to the middle of its half
+  function restCenter(){return{x:stage.clientLeft+btn.offsetLeft+btn.offsetWidth/2+shift.x,y:stage.clientTop+btn.offsetTop+btn.offsetHeight/2+shift.y}}
+  // Compare: the real button goes to the middle of its half (the right one, or the lower one where they stack) by translate
+  function placeHalves(){
+    shift=mode!=='compare'?{x:0,y:0}:stackedMQ.matches?{x:0,y:stage.clientHeight/4}:{x:stage.clientWidth/4,y:0};
+    btn.style.translate=mode==='compare'?`${shift.x}px ${shift.y}px`:'';
+  }
+  function idle(){return!mouseIn&&touchId===null&&!keyed&&!running()}
+  // The pose: a pretend pointer parked half way to the edge of the ring, up and to the right, and the button leaning toward it as
+  // the pull would lean it from its resting place
+  function pose(){
+    if(mode==='normal')return;
+    const c=restCenter(),k=radius/2,px=c.x+k*.8,py=c.y-k*.6;
+    const tx=(px-c.x)*strength*.5,ty=(py-c.y)*strength*.5;
+    btn.style.setProperty('--tx',tx+'px');btn.style.setProperty('--ty',ty+'px');
+    label.style.transform=`translate(${tx*0.35}px,${ty*0.35}px)`;
+    P={x:px,y:py};
+    drawViews();
+  }
+  // Draws the views for the pull on show (nothing in Normal). The drawing's frame is the stage's padding box.
+  function drawViews(){
+    if(mode==='normal')return;
+    const c=restCenter(),ox=stage.clientLeft,oy=stage.clientTop,cx=c.x-ox,cy=c.y-oy;
+    const tx=parseFloat(btn.style.getPropertyValue('--tx'))||0,ty=parseFloat(btn.style.getPropertyValue('--ty'))||0;
+    const bw=btn.offsetWidth,bh=btn.offsetHeight;
+    ring.setAttribute('cx',cx);ring.setAttribute('cy',cy);ring.setAttribute('r',radius);
+    rest.setAttribute('x',cx-bw/2);rest.setAttribute('y',cy-bh/2);
+    rest.setAttribute('width',bw);rest.setAttribute('height',bh);rest.setAttribute('rx',bh/2);
+    // The lean as an arrow, from where the button rests to where the pull has taken its center (none while it rests), with two
+    // short head strokes, drawn over a dark edge so the button's words stay readable under it
+    const len=Math.hypot(tx,ty),ang=Math.atan2(ty,tx),hx=cx+tx,hy=cy+ty,head=Math.min(9,len/2);
+    const arrow=len<1?'':`M${cx} ${cy}L${hx} ${hy}M${hx-Math.cos(ang-.6)*head} ${hy-Math.sin(ang-.6)*head}L${hx} ${hy}L${hx-Math.cos(ang+.6)*head} ${hy-Math.sin(ang+.6)*head}`;
+    lean.setAttribute('d',arrow);leanEdge.setAttribute('d',arrow);
+    stage.classList.toggle('pretend',!!P&&!mouseIn);
+    toward.style.display=ghost.style.display=P?'':'none';
+    if(P){
+      toward.setAttribute('x1',cx);toward.setAttribute('y1',cy);toward.setAttribute('x2',P.x-ox);toward.setAttribute('y2',P.y-oy);
+      pointer.setAttribute('transform',`translate(${P.x-ox} ${P.y-oy})`);
+      // the ghost: as far from the copy's center as the pointer is from the real button's resting center
+      const s=stage.getBoundingClientRect(),tb=twin.getBoundingClientRect();
+      const t={x:tb.left+tb.width/2-s.left-ox,y:tb.top+tb.height/2-s.top-oy};
+      ghost.setAttribute('transform',`translate(${t.x+P.x-c.x} ${t.y+P.y-c.y})`);
+    }
+    if(mode==='inside')placeLabels(cx,cy,tx,ty);
+  }
+  // See inside's four labels, each beside the part it names, kept inside the stage and clear of each other. The two about the
+  // button sit under its resting place, or over it while the pointer is below the button. The one for the lean takes the first
+  // place by the pointer that covers neither the button (where the pull takes it), the pointer nor a label.
+  function placeLabels(cx,cy,tx,ty){
+    const W=stage.clientWidth,H=stage.clientHeight,ox=stage.clientLeft,oy=stage.clientTop,bw=btn.offsetWidth,bh=btn.offsetHeight;
+    const fit=(el,x,y)=>{x=Math.max(6,Math.min(W-el.offsetWidth-6,x));y=Math.max(6,Math.min(H-el.offsetHeight-6,y));return{x,y,r:x+el.offsetWidth,b:y+el.offsetHeight}};
+    const put=(el,a)=>{el.style.left=a.x+'px';el.style.top=a.y+'px';return a};
+    const hit=(a,b)=>a.x<b.r&&b.x<a.r&&a.y<b.b&&b.y<a.b;
+    const p=P?{x:P.x-ox,y:P.y-oy}:{x:cx,y:cy},w=L.lean.offsetWidth,h=L.lean.offsetHeight,rh=L.rest.offsetHeight,lh=L.label.offsetHeight;
+    // Where the whole box is within reach, the ring is outside it
+    L.reach.textContent=Math.hypot(Math.max(cx,W-cx),Math.max(cy,H-cy))<radius?'Pulls anywhere in this box':'Pulls inside this ring';
+    const up=p.y>cy+bh/2,y1=up?cy-bh/2-12-rh:cy+bh/2+12,y2=up?y1-6-lh:y1+rh+6;
+    // what the lean's label must keep clear of, labels first (weight 9) and then the button and the pointer (weight 1)
+    const taken=[put(L.reach,fit(L.reach,cx-L.reach.offsetWidth/2,cy-radius-L.reach.offsetHeight-6)),
+      put(L.rest,fit(L.rest,cx-L.rest.offsetWidth/2,y1)),put(L.label,fit(L.label,cx-L.label.offsetWidth/2,y2)),
+      {x:cx+tx-bw/2-4,y:cy+ty-bh/2-4,r:cx+tx+bw/2+4,b:cy+ty+bh/2+4},{x:p.x-2,y:p.y-2,r:p.x+17,b:p.y+24}];
+    const cost=a=>taken.reduce((n,o,i)=>n+(hit(a,o)?(i<3?9:1):0),0);
+    const tries=[[p.x+20,p.y-h-6],[p.x-w-8,p.y-h-6],[p.x+20,p.y+26],[p.x-w-8,p.y+26],[p.x+22,p.y],[p.x-w-8,p.y],
+      [p.x-w/2,cy+ty-bh/2-h-8],[p.x-w/2,cy+ty+bh/2+8]].map(([x,y])=>fit(L.lean,x,y));
+    put(L.lean,tries.reduce((m,a)=>cost(a)<cost(m)?a:m));
   }
   function pointAt(e){
     const s=stage.getBoundingClientRect();
@@ -168,12 +316,14 @@
   // A run under way is stopped first and the pull runs after it, so the visitor's own pointer takes over at once;
   // leaving the stage ends a run too (stopRun sends the button home), or the run would carry on after the button went home.
   if(hasHover){
+    stage.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')mouseIn=true});
     stage.addEventListener('pointermove',e=>{
       if(e.pointerType!=='mouse')return;
+      mouseIn=true;
       if(e.isTrusted&&running())stopRun();
       pointAt(e);
     });
-    stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')stopRun()});
+    stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){mouseIn=false;stopRun()}});
   }
   // A finger or pen pulls while it touches the stage, follows it while it moves and sends the button home when it lifts or leaves the stage
   // (a pen lifted outside would send its pointerup elsewhere).
@@ -197,7 +347,8 @@
   // tenth of it a press, a held key repeating, up to 1.2, which is out of reach) through the same pull() as the mouse, so the
   // button leans toward it and springs home once it is out of reach. Escape sends the button home, as the mouse leaving does,
   // and so does the focus leaving after the keys pulled it; Space and Enter press it, as a pointer does. Focus arriving stops a
-  // run under way, as the mouse moving over the stage does.
+  // run under way, as the mouse moving over the stage does. In See inside and Compare the pretend pointer is drawn, so the first
+  // key moves it on from where it is shown.
   const ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   let kx=0,ky=0,keyed=false;
   btn.addEventListener('focus',()=>{kx=ky=0;if(running())stopRun()});
@@ -210,9 +361,11 @@
     const d=ARROWS[e.key];
     if(!d)return;
     e.preventDefault();
+    const c=restCenter();
+    if(!keyed&&mode!=='normal'&&P){kx=(P.x-c.x)/radius;ky=(P.y-c.y)/radius}
     kx=Math.max(-1.2,Math.min(1.2,kx+d[0]*.1));ky=Math.max(-1.2,Math.min(1.2,ky+d[1]*.1));
     keyed=true;
-    pull(stage.clientLeft+btn.offsetLeft+btn.offsetWidth/2+kx*radius,stage.clientTop+btn.offsetTop+btn.offsetHeight/2+ky*radius);
+    pull(c.x+kx*radius,c.y+ky*radius);
   });
   btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')btn.classList.remove('pressed')});
 
@@ -222,18 +375,28 @@
   const SPOTS=[[-.55,-.35],[.6,.1],[-.1,.5]];
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
-    const cx=stage.clientLeft+btn.offsetLeft+btn.offsetWidth/2,cy=stage.clientTop+btn.offsetTop+btn.offsetHeight/2;
-    SPOTS.forEach(([ox,oy],k)=>later(()=>pull(cx+ox*radius,cy+oy*radius),k*550,k*150));
+    const c=restCenter();
+    SPOTS.forEach(([ox,oy],k)=>later(()=>pull(c.x+ox*radius,c.y+oy*radius),k*550,k*150));
     later(home,1650,450);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the button goes home.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  // The mode switch: draws the mode at once (in See inside and Compare the pose, in Normal the button at home). The shared script
+  // then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    placeHalves();
+    if(idle())home();else drawViews();
+  });
+  // A new size of the window moves the button's resting place, so the views are drawn again
+  addEventListener('resize',()=>{if(mode!=='normal'){placeHalves();if(idle())pose();else drawViews()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      if(mode!=='normal'){if(idle())pose();else drawViews()}
     }));
   }
   choices('strength-seg',d=>{strength=+d.strength});
