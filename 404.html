@@ -18,12 +18,17 @@
 // Where a missing address leads: {go} to move on at once, else {words} for the search box. rest is the address's query
 // and fragment. GitHub Pages tells capital letters from small ones, so an address with capitals moves to its lowercase
 // path (percent escapes keep their case, so a lowercase path never moves again), and only within the handbook, so it
-// never leaves the site. /animations/ and a category folder have no page of their own: they open Browse all. Any other
-// address offers the words of its last part ("rotate-inn" gives "rotate inn"), skipping an index or readme file; a part
-// made only of digits offers none.
+// never leaves the site. /animations/ and a category folder have no page of their own: they open Browse all; /finder and
+// /find open the finder, a view of the home page, keeping only its answers (what, when and how). Any other address offers
+// the words of its last part ("rotate-inn" gives "rotate inn"), skipping an index or readme file; a part made only of
+// digits offers none.
 function whereTo(path,rest){
   var lower=path.replace(/%[0-9A-Fa-f]{2}|[A-Z]+/g,function(s){return s.charAt(0)==='%'?s:s.toLowerCase();});
   if(/^\/animation-handbook\/animations(\/\d\d-[a-z0-9-]+)?(\/(index\.html?)?)?$/.test(lower))return {go:'/animation-handbook/?view=all#results'};
+  if(/^\/animation-handbook\/find(er)?\/?$/.test(lower)){
+    var keep=(rest||'').replace(/#.*$/,'').replace(/^\?/,'').split('&').filter(function(p){return /^(what|when|how)=[a-z]+$/.test(p);});
+    return {go:'/animation-handbook/?view=find'+(keep.length?'&'+keep.join('&'):'')};
+  }
   if(lower!==path&&lower.indexOf('/animation-handbook/')===0)return {go:lower+(rest||'')};
   var parts=path.split('/').filter(Boolean);
   if(parts[0]==='animation-handbook')parts.shift();
@@ -104,6 +109,12 @@ button,input{font:inherit;color:inherit}
   .go .i{display:block}
   .ways{flex-direction:column;align-self:stretch}
 }
+/* the narrowest phones: below 350px "Find an animation by what you saw" takes two lines, which would fill its pill edge to edge with one
+   word alone. Some air above and below and balanced lines fix that; a 22px line keeps the text of a one-line way exactly where it was
+   (they stay 48px tall). 359px, as on the home page, leaves 360px and up as it was. */
+@media(max-width:359px){
+  .way{padding:6px 22px;line-height:1.375;text-wrap:balance}
+}
 </style>
 </head>
 <body>
@@ -123,6 +134,7 @@ button,input{font:inherit;color:inherit}
   <nav class="ways" aria-label="Ways back">
     <a class="way" href="/animation-handbook/">Go to the home page</a>
     <a class="way" href="/animation-handbook/?view=all#results">Browse all 166 animations</a>
+    <a class="way" href="/animation-handbook/?view=find">Find an animation by what you saw</a>
   </nav>
 </main>
 </body>
