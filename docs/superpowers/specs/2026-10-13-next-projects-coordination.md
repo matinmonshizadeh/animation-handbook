@@ -14,8 +14,10 @@ main session) owns everything below. Sources: the cross-review of the four specs
 2. **The finder and Famous effects,** at the same time, beside Phase 0 and the owner's first-batch look (about a day of agent
    work each). Each goes live as soon as it is ready and the owner approves it: the finder reached from the home page (the
    button under the search, the Finder link in its top bar), Famous effects from the home page's footer and the README.
-3. **The ten new animations,** once the rollout is integrated; built without the new tabs. Live after the rollout, or with
-   it if the owner says so.
+3. **The ten new animations,** right after the rollout's Phase 0 (owner, 2026-10-14), beside the first batch and the other
+   159 pages, on their own branch; built without the new tabs. Their branch is merged into the rollout's at the start of the
+   rollout's integration, so its final review, gallery and final look cover all 176 pages, and both go live together on the
+   owner's word.
 4. **The tab pass:** Finder and Famous effects tabs on all 176 pages, Famous effects in the home page's bar, Finder in the
    Famous effects page's bar, and 404's bar if decided. The coordinator writes its short spec after the ten new animations
    are integrated, from the finder spec's section 7.
@@ -29,10 +31,10 @@ whether they wait for it or take it in (it then goes live with them).
 
 | Project | Branch | Cut from | Worktrees (`.claude/worktrees/`) | Run folder (`.superpowers/sdd/`) | Ports |
 |---|---|---|---|---|---|
-| Rollout | `feat/see-inside-compare`; slots `sic/<NN><letter>`, categories `sic/cat-NN` | as it is | `sic-<NN><letter>` | `<start date>-see-inside-compare/` | 8800 (before-pictures), 8801–8820 |
+| Rollout | `feat/see-inside-compare`; slots `sic/<NN><letter>`, categories `sic/cat-NN` | as it is | `sic-<NN><letter>` | `<start date>-see-inside-compare/` | 8800 (before-pictures), 8801–8820 (slots), 8821–8850 (re-cut slots, the probe, lanes, category checks, final review, integration) |
 | Finder | `feat/animation-finder` | `main` | `af-*` | `<start date>-animation-finder/` | 8901–8909 |
 | Famous effects | `feat/famous-effects` | `main` | `fx-*` | `<start date>-famous-effects/` | 8931–8939 |
-| Ten new | `feat/ten-animations`; lanes `ten/L<n>` | `feat/see-inside-compare` once integrated, main merged in; `main` if the rollout is live by then | `ten-L<n>` | `<start date>-ten-animations/` | 8961–8970 |
+| Ten new | `feat/ten-animations`; lanes `ten/L<n>` | `feat/see-inside-compare` once Phase 0 is merged (owner, 2026-10-14); merged back into it at the start of the rollout's integration | `ten-L<n>` | `<start date>-ten-animations/` | 8961–8970 |
 | Tab pass | set in its spec | the branch that holds the ten new pages (`main` once they are live) | set in its spec | set in its spec | set in its spec |
 | Releases | `main` | — | `release` | — | 8990 |
 
