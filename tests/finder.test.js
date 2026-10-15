@@ -511,6 +511,17 @@ test("the page check's patterns for See N matches and the results line take each
   for (const wrong of ['1 best matches.', '2 best match.', '5 best matches and 1 close matches.', '1 best match and 2 close match.']) assert.ok(!results.test(wrong), wrong);
 });
 
+test('the phone bar never shows in the finder, even while its own search box has keyboard focus', () => {
+  const q2 = {}, bar = { on: null }, page = vm.createContext({ q2, resultsEl: { classList: { toggle: (name, on) => { bar.on = on; } } }, document: { activeElement: q2 } });
+  for (const from of ['const isFiltered=', 'const syncBar=']) vm.runInContext(statement(from), page);
+  for (const [view, focused, want] of [['find', q2, false], ['find', null, false], ['all', null, true], ['', q2, true], ['', null, false]]) {
+    page.state = { ...NONE, view };
+    page.document.activeElement = focused;
+    vm.runInContext('syncBar()', page);
+    assert.equal(bar.on, want, `${view || 'the start'}, ${focused ? 'its box focused' : 'its box not focused'}`);
+  }
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 
