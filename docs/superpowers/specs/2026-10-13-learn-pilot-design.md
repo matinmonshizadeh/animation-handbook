@@ -1,5 +1,9 @@
 # Learn pilot: design
 
+> **Status (2026-10-13):** See inside (A) and Compare (B) roll out to every page by `2026-10-13-see-inside-compare-rollout-design.md`.
+> The learning path (C) and Motion basics (D) wait on `feat/learn-pilot`; the commit "chore: the learning path and the idea lessons
+> wait on feat/learn-pilot" took them off `feat/see-inside-compare`, and reverting it is the first step when they resume.
+
 2026-10-13. The owner's goal for the handbook is to help people *understand* web animation by seeing it, with no code
 on the site (see `2026-10-13-goal-and-roadmap.md`). From four ideas shown as mockups, the owner picked all four:
 

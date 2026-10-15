@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { sections, table } = require('./helpers/markdown.js');
 const vm = require('node:vm');
+const { execFileSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const ANIM = path.join(ROOT, 'animations');
@@ -558,12 +559,11 @@ test('the shared stylesheet keeps choice buttons at least 44px wide', () => {
   assert.ok(rulesFor('.hb-page .seg button').some(rule => /(^|;)\s*min-width:\s*44px\s*(;|$)/.test(rule.body)), 'a choice button is at least 44px wide');
 });
 
-test('the shared stylesheet draws the mode switch beside the Watch heading and the note beside a short player bar from 761px, hides an empty notes box, and styles the lesson line, the lesson nav and the idea lessons\' sections', () => {
+test('the shared stylesheet draws the mode switch beside the Watch heading and the note beside a short player bar from 761px, and hides an empty notes box', () => {
   const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css'));
   const rules = cssRules(css);
   const has = sel => rules.some(r => r.selector.split(',').map(s => s.trim()).includes(sel));
-  for (const sel of ['.hb-page .seg.hb-modes', '.hb-mode-notes p', '.hb-lesson', '.hb-lesson a', '.hb-lesson-nav', '.hb-lesson-prev',
-    '.hb-lesson-next', '.hb-lesson-all', '.hb-why p', '.hb-seen']) assert.ok(has(sel), sel);
+  for (const sel of ['.hb-page .seg.hb-modes', '.hb-mode-notes p']) assert.ok(has(sel), sel);
   // The empty box is the aria-live region that makes a screen reader read each note out, so it must stay rendered: display:none
   // would take it out of the accessibility tree, and the first note shown might not be announced. It is hidden to the eye and taken
   // out of the flow instead, which takes no room and adds no gap. The box counts as empty until a note is un-hidden, and a note is
@@ -604,7 +604,28 @@ test('the shared stylesheet draws the mode switch beside the Watch heading and t
   assert.equal(count(css, '> .hb-mode-notes{'), 1, 'no other rule places the note, so phones keep it under the player bar');
   assert.ok(phones.includes('.hb-page .seg.hb-modes button{flex:1 1 0'), 'the block up to 760px is found (it holds the equal mode buttons)');
   assert.ok(!/\.hb-watch|\.hb-mode-notes|\.hb-player/.test(phones), 'up to 760px nothing makes the Watch step a grid or places the note or the player bar');
-  assert.match(css, /@media\(min-width:601px\)\{\s*\.hb-head:has\(> \.hb-lesson\)\{display:grid/, 'from 601px the lesson line shares the category row');
+});
+
+// The learning path and the idea lessons wait on feat/learn-pilot (docs/superpowers/specs/2026-10-13-see-inside-compare-rollout-design.md,
+// section 5): no tracked page links into learn/ and the shared stylesheet keeps none of their rules. Delete this test when the
+// learning path resumes (its first step reverts the clean-up commit, which takes this test away too).
+test('while the learning path waits, no tracked page links into learn/ and the shared stylesheet has none of its rules', () => {
+  let pages;
+  try {
+    pages = execFileSync('git', ['ls-files', '--', '*.html'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split(/\r?\n/).filter(Boolean);
+  } catch {
+    // No git here (a copy from a source zip): every page in the folder, outside git's, the agents' and the packages' folders
+    const walk = dir => fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true }).flatMap(e => e.isDirectory()
+      ? (['.git', '.claude', '.superpowers', 'node_modules'].includes(e.name) ? [] : walk(path.join(dir, e.name)))
+      : e.name.endsWith('.html') ? [path.join(dir, e.name)] : []);
+    pages = walk('');
+  }
+  assert.ok(pages.length > 100, `the tracked pages are found (${pages.length})`);
+  const linking = pages.filter(f => /href="(?:(?:\.\.\/)+|\/animation-handbook\/)?learn\//.test(read(path.join(ROOT, f))));
+  assert.deepEqual(linking, [], 'pages that link into learn/');
+  assert.ok(!fs.existsSync(path.join(ROOT, 'learn')), 'the learn/ folder is gone');
+  const css = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const name of ['hb-lesson', 'hb-why', 'hb-seen', 'hb-learn', 'hb-path']) assert.ok(!css.includes(name), `no ${name} rule`);
 });
 
 test('the home page uses Schibsted Grotesk and asks what to animate', () => {

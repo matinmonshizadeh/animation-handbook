@@ -7,7 +7,7 @@
  * loops start paused).
  * On scroll pages Play scrolls the box, Back to top jumps to its top and the visitor's own input stops it.
  * The mode switch (Normal, See inside, Compare) marks the stage with data-hb-mode, shows that mode's note and sends
- * "hb:mode", so the page draws the mode. Pages without a prompt (the idea lessons) get everything but the prompt parts.
+ * "hb:mode", so the page draws the mode. Pages without a prompt get everything but the prompt parts.
  * Opened from disk (file:), the page's links to folders open each folder's index.html instead of its listing.
  * The pure helpers are exported for tests/demo-page.test.js. */
 (function (root, factory) {
