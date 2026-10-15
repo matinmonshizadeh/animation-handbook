@@ -412,7 +412,7 @@ test("on phones the mode switch's own rule outranks the rule for choice buttons,
 // the page answers keys (its own script listens for keydown, or its own style has a :focus-visible rule). Every page that
 // misses one is listed at once.
 const KEYBOARD_PAGES = {
-  '04-micro-interactions': ['cursor-follower', 'hover-state', 'image-trail', 'spotlight-hover', 'magnetic-button', 'click-ripple'],
+  '04-micro-interactions': ['cursor-follower', 'hover-state', 'image-trail', 'spotlight-hover', 'magnetic-button', 'click-ripple', 'before-after-slider'],
   '05-text-typography': ['text-particles'],
   '06-3d-advanced': ['2-5d-pseudo-3d', 'depth-map-photo', 'holographic-card', 'image-distortion-hover', 'parallax-3d-tilt']
 };

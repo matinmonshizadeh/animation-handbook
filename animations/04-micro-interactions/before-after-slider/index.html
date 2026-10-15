@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Before/After Slider — Animation Handbook</title>
+  <meta name="description" content="Drag a line across two pictures to compare them. Best for photo edits.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/before-after-slider/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Before/After Slider — Animation Handbook">
+  <meta property="og:description" content="Drag a line across two pictures to compare them. Best for photo edits.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/before-after-slider/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Before/After Slider — Animation Handbook">
+  <meta name="twitter:description" content="Drag a line across two pictures to compare them. Best for photo edits.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Before/After Slider", "name": "Before/After Slider", "description": "Drag a line across two pictures to compare them. Best for photo edits.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/before-after-slider/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Before/After Slider"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* --v: how much of After shows, 0 to 1 (the line's place from the left, or from the bottom in Top and bottom). It is set on the parts
+       that use it and does not inherit, so a move re-styles those parts and not everything drawn inside them */
+    @property --v{syntax:"<number>";inherits:false;initial-value:.5}
+    .stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);background:#0b0b0d;-webkit-user-select:none;user-select:none}
+    .defs{position:absolute;width:0;height:0;overflow:hidden}
+    .ba{position:relative;min-width:0;overflow:hidden;touch-action:pan-y;cursor:ew-resize;container-type:size}
+    .vert .ba{cursor:pointer}
+    .layer,.win,.pic,.rail{position:absolute;inset:0}
+    .pic svg{display:block;width:100%;height:100%}
+    /* Before lies whole underneath, gray and flat. After sits in a window that slides with the line, and its picture slides back
+       by the same amount, so it never moves: two transforms, nothing redrawn */
+    .before{filter:grayscale(1) contrast(.72) brightness(1.08)}
+    .win{overflow:hidden;transform:translateX(calc((var(--v) - 1) * 100%));will-change:transform}
+    .win .pic{transform:translateX(calc((1 - var(--v)) * 100%));will-change:transform}
+    .vert .win{transform:translateY(calc((1 - var(--v)) * 100%))}
+    .vert .win .pic{transform:translateY(calc((var(--v) - 1) * 100%))}
+    .rail{pointer-events:none;transform:translateX(calc(var(--v) * 100%));will-change:transform}
+    .vert .rail{transform:translateY(calc((1 - var(--v)) * 100%))}
+    .line{position:absolute;left:-1px;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+    .vert .line{left:0;right:0;top:-1px;bottom:auto;width:auto;height:2px}
+    /* The handle: a slider the keyboard can move too, at least 48px to touch whatever its look */
+    .handle{position:absolute;left:0;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;display:grid;place-items:center;border-radius:24px;pointer-events:auto;cursor:grab;touch-action:none}
+    .vert .handle{left:50%;top:0}
+    .vert .handle{translate:0 clamp(calc(24px - (1 - var(--v)) * 100cqh), 0px, calc(var(--v) * 100cqh - 24px))}
+    .h-bar .handle{height:68px;margin-top:-34px}
+    .vert.h-bar .handle{width:68px;height:48px;margin:-24px 0 0 -34px}
+    .grip{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#fff;color:#16161a;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+    .grip svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    .vert .grip svg{transform:rotate(90deg)}
+    .h-bar .grip{width:12px;height:60px;border-radius:6px}
+    .vert.h-bar .grip{width:60px;height:12px}
+    .h-bar .grip svg,.h-line .grip{opacity:0}
+    .tag{position:absolute;top:10px;padding:4px 10px;border-radius:999px;background:rgba(11,11,13,.78);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);transition:opacity .25s}
+    .tag-a{left:10px}.tag-b{right:10px}
+    .vert .tag-b{right:auto;left:10px}.vert .tag-a{top:auto;bottom:10px}
+    .tag.gone,.no-tags .tag{opacity:0}
+    /* See inside and Compare: plain words over the stage; in See inside the two pictures pulled apart, Before at the back and
+       After in front, its hidden part faint and its window dashed */
+    .ghost,.twin,.cap{display:none}
+    .cap{position:absolute;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.half{display:block}
+    .stage[data-hb-mode="inside"] .ghost{display:block;opacity:.3}
+    .stage[data-hb-mode="inside"] .layer{outline:2px solid rgba(255,255,255,.4)}
+    .stage[data-hb-mode="inside"] .back{transform:translate(-9%,-9%) scale(.62)}
+    .stage[data-hb-mode="inside"] .front{overflow:hidden;transform:translate(9%,9%) scale(.62);box-shadow:0 18px 40px rgba(0,0,0,.65)}
+    .stage[data-hb-mode="inside"] .win::after{content:"";position:absolute;inset:0;border:4px dashed var(--ui-accent)}
+    .stage[data-hb-mode="inside"] .tag{font-size:20px}
+    .stage[data-hb-mode="inside"] .tag-b{display:none}
+    .stage[data-hb-mode="inside"] .handle{transform:scale(1.62)}
+    /* Compare: a copy whose After picture is resized with the line beside the real one, which uncovers it; one line drives both.
+       Their names sit in a strip under them, clear of the Before and After labels */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) 36px;column-gap:4px}
+    .stage[data-hb-mode="compare"] .twin{display:block}
+    .twin .win{transform:none}
+    .twin .after{transform:scaleX(var(--v));transform-origin:0 50%}
+    .vert .twin .after{transform:scaleY(var(--v));transform-origin:50% 100%}
+    .cap.half{bottom:6px}.cap.first{left:8px}.cap.second{left:calc(50% + 10px)}
+    @media(prefers-reduced-motion:reduce){.tag{transition:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../dynamic-island/" rel="prev" aria-label="Previous: Dynamic Island"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Dynamic Island</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.42 · Micro-Interactions</p>
+    <h1>Before/After Slider</h1>
+    <p class="hb-lede">Drag a line across two pictures to compare them. Best for photo edits.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the line, or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <svg class="defs" aria-hidden="true"><defs>
+        <linearGradient id="ba-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3f8f"/><stop offset=".6" stop-color="#f08a6c"/><stop offset="1" stop-color="#ffd18a"/></linearGradient>
+        <linearGradient id="ba-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a9d9b"/><stop offset="1" stop-color="#0f3b57"/></linearGradient>
+        <!-- A made-up harbor at dusk: a sun, hills, a lighthouse, houses on the shore, a pier and two boats -->
+        <symbol id="ba-harbor" viewBox="0 0 800 500">
+          <rect width="800" height="330" fill="url(#ba-sky)"/>
+          <circle cx="400" cy="200" r="60" fill="#ffe7a8"/>
+          <path d="M0 296 120 236 214 280 330 222 470 288 560 256 680 300 800 262V332H0Z" fill="#5b4a8c"/>
+          <rect y="326" width="800" height="174" fill="url(#ba-sea)"/>
+          <path d="M346 348h108M364 366h72M378 384h44M390 402h20" stroke="#ffe7a8" stroke-width="6" stroke-linecap="round" opacity=".85"/>
+          <path d="M0 326H268L238 356H0Z" fill="#3a2d29"/>
+          <path d="M20 326V282L52 256 84 282V326ZM96 326V292L126 268 156 292V326ZM168 326V286L196 262 224 286V326Z" fill="#e85d4a"/>
+          <path d="M96 292 126 268 156 292ZM20 282 52 256 84 282Z" fill="#2c3e78"/>
+          <path d="M40 296h12v12H40ZM116 300h12v12h-12ZM186 296h12v12h-12Z" fill="#ffd36e"/>
+          <path d="M236 352H330V362H236Z" fill="#7a5235"/><path d="M250 362h6v26h-6ZM288 362h6v26h-6ZM320 362h6v26h-6Z" fill="#5a3a24"/>
+          <path d="M580 330C596 300 664 296 700 330Z" fill="#2e2a3a"/><path d="M624 314V214H658V314Z" fill="#f4f1ea"/>
+          <path d="M624 240H658V256H624ZM624 278H658V294H624Z" fill="#e0453a"/><path d="M618 214H664L641 190Z" fill="#e0453a"/><rect x="629" y="198" width="24" height="16" fill="#ffe7a8"/>
+          <path d="M470 388H570L552 408H488Z" fill="#d6453d"/><path d="M518 386V316L566 384Z" fill="#fbf7ee"/>
+          <path d="M150 404H222L210 418H162Z" fill="#f2b33d"/><path d="M184 402V356L218 400Z" fill="#fbf7ee"/>
+          <path d="M250 128q12-10 24 0q12-10 24 0M318 104q9-8 18 0q9-8 18 0" fill="none" stroke="#2a2342" stroke-width="4" stroke-linecap="round"/>
+        </symbol>
+      </defs></svg>
+      <div class="ba" id="ba">
+        <div class="layer back">
+          <div class="pic before" id="before-pic" role="img" aria-label="A harbor at dusk, half the gray original and half the edited picture in full color, split by a line you can drag"><svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice"><use href="#ba-harbor" width="800" height="500"/></svg></div>
+          <span class="tag tag-b" aria-hidden="true">Before</span>
+        </div>
+        <div class="layer front">
+          <div class="pic ghost" aria-hidden="true"><svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice"><use href="#ba-harbor" width="800" height="500"/></svg></div>
+          <div class="win"><div class="pic after" aria-hidden="true"><svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice"><use href="#ba-harbor" width="800" height="500"/></svg></div></div>
+          <span class="tag tag-a" aria-hidden="true">After</span>
+          <div class="rail"><span class="line"></span><div class="handle" id="handle" role="slider" tabindex="0" aria-label="Before and after" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% After"><span class="grip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></svg></span></div></div>
+        </div>
+      </div>
+      <p class="cap in" id="c-before" aria-hidden="true" data-hb-caption>Before · whole, underneath</p>
+      <p class="cap in" id="c-after" aria-hidden="true" data-hb-caption>After · shows only in the window</p>
+      <p class="cap in" id="c-win" aria-hidden="true" data-hb-caption>Window · slides with the line</p>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>Resizes it</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>Uncovers it</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, Before lies whole underneath and After sits in front, showing only inside its dashed window. The window slides with the line, while the picture in it stays put.</p>
+      <p data-hb-for="compare" hidden>On the left the colored picture is resized with the line, so it squeezes. On the right it is only uncovered, so both pictures stay put.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then drag the line or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="split-lbl">Split</p>
+        <div class="seg" id="split-seg" role="group" aria-labelledby="split-lbl">
+          <button type="button" data-split="lr" class="on" aria-pressed="true">Left and right</button>
+          <button type="button" data-split="tb" aria-pressed="false">Top and bottom</button>
+        </div>
+        <p class="hb-hint">Which way the line runs.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="handle-lbl">Handle</p>
+        <div class="seg" id="handle-seg" role="group" aria-labelledby="handle-lbl">
+          <button type="button" data-h="knob" class="on" aria-pressed="true">Knob</button>
+          <button type="button" data-h="bar" aria-pressed="false">Bar</button>
+          <button type="button" data-h="line" aria-pressed="false">Line only</button>
+        </div>
+        <p class="hb-hint">A knob tells people they can drag.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shows labels</span><input class="hb-switch" type="checkbox" role="switch" id="tags-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Before and After fade as the line covers them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a before-and-after slider to [the two pictures you want to compare]. Stack the pictures exactly on top of each other and show the top one only up to a dividing line with a handle, so each side of the line shows one picture. Dragging on the pictures moves the line, and a tap jumps it there. Uncover the top picture with a clip or a sliding window, never by resizing it, so neither picture moves or squeezes. Use pointer events for mouse and touch, keep page scrolling free on phones, and let the arrow keys move the handle. If the visitor has reduced motion turned on, move the line without gliding. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Photo edits</li><li>Redesigns</li><li>Renovations</li><li>Product upgrades</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Small thumbnails</li><li>Unrelated pictures</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage'),ba=document.getElementById('ba'),back=ba.querySelector('.back'),front=ba.querySelector('.front');
+  const handle=document.getElementById('handle'),pic=document.getElementById('before-pic'),slowTog=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),caps=['c-before','c-after','c-win'].map(id=>document.getElementById(id));
+  const LABELS={normal:pic.getAttribute('aria-label'),
+    inside:'The two pictures pulled apart: the gray original whole at the back, the edited one in front, showing only in its window',
+    compare:'The same split twice: the edited picture squeezed into the space beside the line, then only uncovered by it'};
+  // v: how much of After shows (0 to 1); aim: where the line is going (a glide's end, or v)
+  // runTo: where a Show me run ends (where the run began; in a view the pose, and the middle again once Normal takes the pose away)
+  // posed: the view holds the line at its pose; fin: the run's way back is moving
+  let v=.5,aim=.5,runTo=.5,mode='normal',posed=false,fin=false,twin=null,movers=[],glideRaf=0,demo=false,runTimers=[],drag=null;
+  const isVert=()=>stage.classList.contains('vert'),middle=x=>Math.abs(x-.5)<1e-6;
+
+  // Everything that needs a measurement is read first and written after, so a frame of a glide lays out once
+  function setV(x){
+    v=Math.min(1,Math.max(0,x));
+    const tags=tagStates(),at=mode==='inside'?capPlaces():null;
+    movers.forEach(m=>m.style.setProperty('--v',v));
+    const pct=Math.round(v*100);handle.setAttribute('aria-valuenow',pct);handle.setAttribute('aria-valuetext',pct+'% After');
+    tags.forEach(t=>t[0].classList.toggle('gone',t[1]));
+    if(at)caps.forEach((c,i)=>{   // only a label that moved is written again: most stay put while the line moves
+      const x=Math.round(at[i][0]*10)/10+'px',y=Math.round(at[i][1]*10)/10+'px';
+      if(c.style.left!==x)c.style.left=x;if(c.style.top!==y)c.style.top=y;
+    });
+  }
+  // Before and After fade while the line covers them, on the real pictures and, in Compare, on the copy
+  function tagStates(){
+    const vert=isVert(),out=[];
+    stage.querySelectorAll('.ba').forEach(f=>{
+      const a=f.querySelector('.tag-a'),b=f.querySelector('.tag-b'),size=vert?f.clientHeight:f.clientWidth,at=vert?(1-v)*size:v*size;
+      if(size)out.push([a,vert?at>a.offsetTop-8:at<a.offsetLeft+a.offsetWidth+8],[b,vert?at<b.offsetTop+b.offsetHeight+8:at>b.offsetLeft-8]);
+    });
+    return out;
+  }
+  // The line glides to a place by the time that passes (three times as long in slow motion); under reduced motion it jumps
+  function glide(to,ms,then){
+    cancelAnimationFrame(glideRaf);glideRaf=0;aim=Math.min(1,Math.max(0,to));
+    if(reduceMQ.matches){setV(aim);if(then)then();return}
+    const from=v,dur=ms*(slowTog.checked?3:1);let t0=null;
+    const step=ts=>{
+      if(t0===null)t0=ts;
+      const k=reduceMQ.matches?1:Math.min(1,(ts-t0)/dur);
+      setV(k<1?from+(aim-from)*k*k*(3-2*k):aim);
+      if(k<1)glideRaf=requestAnimationFrame(step);else{glideRaf=0;if(then)then()}
+    };
+    glideRaf=requestAnimationFrame(step);
+  }
+  // Show me: to 80%, to 20% and back to where it started; every pause waits on a timer, and slow motion triples the moves only
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];if(demo){cancelAnimationFrame(glideRaf);glideRaf=0;aim=v}demo=false;fin=false}
+  // The visitor takes over: a run stops, and the views' pose no longer needs undoing
+  function take(){stopRun();posed=false}
+  // A press during a run starts again from where that run began, so the run still ends there; a view's run ends at its pose
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    const again=demo;
+    stopRun();cancelAnimationFrame(glideRaf);glideRaf=0;demo=true;
+    if(!again)runTo=v;
+    if(mode!=='normal'&&middle(runTo)){posed=true;runTo=.7}
+    glide(.8,700);
+    later(()=>glide(.2,900),700,250);
+    later(()=>{fin=true;glide(runTo,700,()=>{demo=false;fin=false})},1600,500);
+  });
+  // Reset puts the line where the box rests: the middle, or the pose in a view
+  document.getElementById('btn-reset').addEventListener('click',()=>{
+    take();cancelAnimationFrame(glideRaf);glideRaf=0;
+    posed=mode!=='normal';aim=runTo=posed?.7:.5;setV(aim);
+  });
+  document.addEventListener('hb:input',()=>{if(demo)take()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&demo)take()});
+
+  // A drag moves the line with the pointer (in Top and bottom, from the handle only, so the page still scrolls); a tap glides it there;
+  // a finger that starts up and down on the pictures is a page scroll and leaves the line alone
+  const vAt=e=>{const r=front.getBoundingClientRect();return isVert()?1-(e.clientY-r.top)/r.height:(e.clientX-r.left)/r.width};
+  ba.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    drag={id:e.pointerId,x:e.clientX,y:e.clientY,far:false,onHandle:!!e.target.closest('.handle')};
+    drag.grab=!isVert()||drag.onHandle;
+    if(drag.grab)ba.setPointerCapture(e.pointerId);
+  });
+  ba.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    if(!drag.far){
+      const dx=Math.abs(e.clientX-drag.x),dy=Math.abs(e.clientY-drag.y);
+      if(Math.hypot(dx,dy)<5)return;
+      if(e.pointerType==='touch'&&!drag.onHandle&&drag.grab&&dy>dx){drag=null;return}   // an up-and-down swipe: the page scrolls, the line stays
+      drag.far=true;
+    }
+    if(!drag.grab)return;
+    take();cancelAnimationFrame(glideRaf);glideRaf=0;setV(vAt(e));aim=v;
+  });
+  ba.addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.id)return;const d=drag;drag=null;if(!d.far){take();glide(vAt(e),300)}});
+  ba.addEventListener('pointercancel',()=>{drag=null});
+  // The keyboard: the arrows move the line a twentieth, Page Up and Page Down a quarter, Home and End to the ends
+  handle.addEventListener('keydown',e=>{
+    const step={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05,PageUp:.25,PageDown:-.25}[e.key];
+    const to=e.key==='Home'?0:e.key==='End'?1:step===undefined?null:aim+step;
+    if(to===null)return;
+    e.preventDefault();take();glide(to,160);
+  });
+
+  // See inside's three labels: Before above the back picture, After under the front one, Window over the line. The handle sits on
+  // the line, in the middle of the picture; in Top and bottom Window goes beside it when there is room and above the picture when
+  // not, and After steps below the handle when the line is near the bottom. Returns each label's place in the box
+  function capPlaces(){
+    const s=stage.getBoundingClientRect(),b=back.getBoundingClientRect(),f=front.getBoundingClientRect(),vert=isVert(),hb=handle.getBoundingClientRect();
+    const size=caps.map(c=>[c.offsetWidth,c.offsetHeight]),lx=f.left-s.left+v*f.width,ly=f.top-s.top+(1-v)*f.height;
+    const cx=vert?f.left-s.left+f.width/2:lx,cy=vert?ly:f.top-s.top+f.height/2;
+    const H=[cx-hb.width/2-4,cy-hb.height/2-4,cx+hb.width/2+4,cy+hb.height/2+4];
+    const hits=(p,i)=>p[0]<H[2]&&p[0]+size[i][0]>H[0]&&p[1]<H[3]&&p[1]+size[i][1]>H[1];
+    const at=[[b.left-s.left,b.top-s.top-size[0][1]-6],[f.right-s.left-size[1][0],f.bottom-s.top+6],
+      vert?[f.right-s.left-size[2][0]-8,ly-size[2][1]-8]:[lx-size[2][0]/2,f.top-s.top-size[2][1]-6]];
+    if(vert){
+      if(hits(at[2],2))at[2]=[f.right-s.left-size[2][0],Math.min(f.top-s.top,H[1])-size[2][1]-6];
+      if(hits(at[1],1)&&H[3]+size[1][1]<=s.height-8)at[1][1]=H[3]+2;
+    }
+    return at.map((p,i)=>[Math.max(6,Math.min(s.width-size[i][0]-6,p[0])),Math.max(6,Math.min(s.height-size[i][1]-6,p[1]))]);
+  }
+  // Compare's first half: a copy of the pictures, made once, with no ids, names or focus, whose After picture is resized
+  function makeTwin(){
+    twin=ba.cloneNode(true);twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+    twin.querySelectorAll('[id],[role],[tabindex],[aria-label]').forEach(n=>['id','role','tabindex','aria-label'].forEach(a=>n.removeAttribute(a)));
+    twin.removeAttribute('id');stage.insertBefore(twin,ba);findMovers();
+  }
+  // The parts that move with the line: the window, the picture in it, and the line with its handle (the copy's too)
+  function findMovers(){movers=[...stage.querySelectorAll('.win,.win .pic,.rail,.handle')]}
+  // The mode switch draws the mode at once. The views hold the line at 70% when it rests in the middle; Normal gets it back.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;pic.setAttribute('aria-label',LABELS[mode]);
+    if(mode==='compare'&&!twin)makeTwin();
+    if(mode!=='normal'&&!demo&&!glideRaf&&middle(v)){posed=true;aim=.7;setV(.7)}
+    else if(mode==='normal'&&posed){
+      // the pose is lifted: at rest at once; in a run, only its end moves (the way back turns toward the middle without a jump)
+      posed=false;runTo=.5;
+      if(!demo){aim=.5;setV(.5)}else if(fin)glide(.5,300,()=>{demo=false;fin=false});
+    }else setV(v);
+  });
+  new ResizeObserver(()=>setV(v)).observe(stage);
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);setV(v);
+    }));
+  }
+  choices('split-seg',d=>{stage.classList.toggle('vert',d.split==='tb');handle.setAttribute('aria-orientation',d.split==='tb'?'vertical':'horizontal')});
+  choices('handle-seg',d=>{stage.classList.toggle('h-bar',d.h==='bar');stage.classList.toggle('h-line',d.h==='line')});
+  document.getElementById('tags-tog').addEventListener('change',e=>stage.classList.toggle('no-tags',!e.target.checked));
+  findMovers();setV(.5);
+</script>
+</body>
+</html>
