@@ -20,3 +20,4 @@ Full-page transitions between routes or views — crossfades, slides, portals, m
 - [Overlay Wipe](overlay-wipe/) — A colored panel sweeps over the page as it changes. Best for portfolio sites.
 - [Page Curl](page-curl/) — The page peels back from its corner like paper. Best for digital magazines.
 - [Cube Transition](cube-transition/) — The pages sit on a cube that turns to show the next. Best for photo stories.
+- [Pixelate Transition](pixelate-transition/) — The page breaks into big pixels, then sharpens into the next. Best for galleries.
