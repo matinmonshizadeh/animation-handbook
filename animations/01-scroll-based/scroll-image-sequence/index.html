@@ -81,7 +81,7 @@
       <div class="capcol si"><p class="cap si si-count key" aria-hidden="true" data-hb-caption>Frame 1 of 120</p><p class="cap si si-glide key" aria-hidden="true" data-hb-caption><span>Glides to the frame</span> <span>the scroll points at</span></p></div>
       <p class="cap si si-strip" aria-hidden="true" data-hb-caption><span>One picture</span> <span>per frame</span></p>
       <p class="cap cm cm-first" aria-hidden="true" data-hb-caption>24 frames</p><p class="cap cm cm-second" aria-hidden="true" data-hb-caption>120 frames</p>
-      <div class="capfoot cm"><p class="cap cm cm-ghost" aria-hidden="true" data-hb-caption>Faint: the two frames before</p><p class="cap cm cm-glide" aria-hidden="true" data-hb-caption>Both glide</p></div>
+      <div class="capfoot cm"><p class="cap cm cm-ghost" aria-hidden="true" data-hb-caption>Faint: the neighboring frames</p><p class="cap cm cm-glide" aria-hidden="true" data-hb-caption>Both glide</p></div>
     </div></div></div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
@@ -89,7 +89,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the strip shows the pictures in order and the scroll picks one; with gliding on, the picture eases toward the frame the scroll points at. Scroll the box or press Play to watch.</p>
-      <p data-hb-for="compare" hidden>24 frames steps visibly from picture to picture while 120 frames looks smooth; the faint shapes are the frames just before. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>24 frames steps visibly from picture to picture while 120 frames looks smooth; the faint shapes are the neighboring frames. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -252,7 +252,7 @@ function drawInside(f){
   const words='Frame '+(f+1)+' of '+TOTAL;
   if(capCount.textContent!==words)capCount.textContent=words;
   if(!glides())return;
-  const want=mid+Math.round(targetFrame)-f,k=Math.max(0,Math.min(L.n-1,want)),x=L.x0+k*(c+L.g);
+  const want=mid+aim()-f,k=Math.max(0,Math.min(L.n-1,want)),x=L.x0+k*(c+L.g);
   ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.strokeStyle='#f2f5fa';ctx.strokeRect(x+5,y+5,c-10,c-10);ctx.setLineDash([]);
   if(want!==k){
     const e=want>k?1:-1,ax=x+c/2+e*(c/2-9),ay=y+c/2;
@@ -260,25 +260,29 @@ function drawInside(f){
   }
 }
 // Compare: one canvas split down the middle, each half clipped to itself: the first half's sequence has Few frames, the
-// second the page's own. Behind each cube its two frames before are drawn faint, so the gap between them is one step.
+// second the page's own. Behind each cube its two neighboring frames are drawn faint, so the gap between them is one step:
+// the two before it, or at the start of the sequence the nearest ones after it, so the step shows with the box at the top too.
 function drawCompare(f){
   const hw=W/2;
   ctx.clearRect(0,0,W,H);
   [[Math.round(few.shown),FEW],[f,TOTAL]].forEach(([g,n],side)=>{
     const cx=side*hw+hw/2;
     ctx.save();ctx.beginPath();ctx.rect(side*hw,0,hw,H);ctx.clip();
-    for(const [back,a] of [[2,.22],[1,.42]])if(g>=back){ctx.globalAlpha=a;drawSeq(g-back,n,cx,lay.cy,lay.s);}
+    for(const h of [g-1,g-2,g+1,g+2].filter(h=>h>=0&&h<n).slice(0,2).reverse()){ctx.globalAlpha=Math.abs(h-g)>1?.22:.42;drawSeq(h,n,cx,lay.cy,lay.s);}
     ctx.globalAlpha=1;drawSeq(g,n,cx,lay.cy,lay.s);
     ctx.restore();
   });
   ctx.fillStyle='#283041';ctx.fillRect(hw-1,0,2,H);
 }
 function glides(){return smoothEl.checked&&!reduce}
-// Draws what the mode shows, only when it changed: in See inside the frame the scroll points at counts too (its marker),
-// in Compare the first half's frame. In Normal it is the frame on show alone, as before.
+// The frame the marker sits on: the one the scroll points at, or the one on show once the glide has arrived (it stops a
+// hair short of a target half-way between two frames, which would leave the marker a cell ahead for good)
+function aim(){return Math.abs(targetFrame-shownFrame)<1e-3?Math.round(shownFrame):Math.round(targetFrame)}
+// Draws what the mode shows, only when it changed: in See inside the marker's frame counts too, in Compare the first
+// half's frame (a number either way, as Normal's, which is the frame on show alone, as before)
 function paint(){
   const idx=Math.round(shownFrame);
-  const key=mode==='inside'?idx+'i'+(glides()?Math.round(targetFrame):''):mode==='compare'?idx+'c'+Math.round(few.shown):idx;
+  const key=mode==='normal'?idx:idx*1000+(mode==='compare'?Math.round(few.shown):glides()?aim()+1:0);
   if(key===drawn)return;                     // a picture already on the canvas is not drawn again
   if(mode==='inside')drawInside(idx);else if(mode==='compare')drawCompare(idx);else drawFrame(idx);
   drawn=key;
@@ -312,8 +316,8 @@ function layout(){
 // and reduced motion; the notes' words for the default state are the markup's own
 const IN_NOTE=noteIn.textContent,
   IN_STILL='Inside, the strip shows the pictures in order and the scroll picks one; each frame is drawn straight away, as your device asks. Scroll the box or press Play to watch.',
-  CM_NOTE=n=>`${FEW} frames steps visibly from picture to picture while ${n} frames looks smooth; the faint shapes are the frames just before. Scroll the box or press Play to watch.`,
-  CM_STILL=n=>`Shown without gliding: in ${FEW} frames the faint frames just before sit far apart, in ${n} frames close together, so the first steps visibly and the second looks smooth.`,
+  CM_NOTE=n=>`${FEW} frames steps visibly from picture to picture while ${n} frames looks smooth; the faint shapes are the neighboring frames. Scroll the box or press Play to watch.`,
+  CM_STILL=n=>`Shown without gliding: in ${FEW} frames the faint neighboring frames sit far from the cube, in ${n} frames close to it, so the first steps visibly and the second looks smooth.`,
   CM_SAME=`Number of frames is set to Few, so both halves have ${FEW} frames and step the same. Pick Normal or Many in Try it, then scroll the box or press Play to watch.`,
   CM_SAME_STILL=`Shown without gliding; Number of frames is set to Few, so both halves have ${FEW} frames and step the same. Pick Normal or Many in Try it to see the difference.`;
 const NAMES={normal:[stage.getAttribute('aria-label'),canvas.getAttribute('aria-label')],
@@ -327,8 +331,8 @@ function describe(){
   put(capBoth,gl?'Both glide':'Both jump');put(capSecond,TOTAL+' frames');
   put(noteIn,reduce?IN_STILL:IN_NOTE);
   put(noteCm,same?(reduce?CM_SAME_STILL:CM_SAME):reduce?CM_STILL(TOTAL):CM_NOTE(TOTAL));
-  NAMES.compare=same?[`The sequence twice, both with ${FEW} frames, each with faint copies of the frames just before`,`Two cubes side by side, both from ${FEW} frames, each with its two frames before drawn faint`]
-    :[`The sequence twice: with ${FEW} frames and with ${TOTAL}, each with faint copies of the frames just before`,`Two cubes side by side, from ${FEW} frames on the left and ${TOTAL} on the right, each with its two frames before drawn faint`];
+  NAMES.compare=same?[`The sequence twice, both with ${FEW} frames, each with faint copies of its neighboring frames`,`Two cubes side by side, both from ${FEW} frames, each with its neighboring frames drawn faint`]
+    :[`The sequence twice: with ${FEW} frames and with ${TOTAL}, each with faint copies of its neighboring frames`,`Two cubes side by side, from ${FEW} frames on the left and ${TOTAL} on the right, each with its neighboring frames drawn faint`];
   stage.setAttribute('aria-label',NAMES[mode][0]);canvas.setAttribute('aria-label',NAMES[mode][1]);
   layout();
 }
@@ -371,7 +375,7 @@ addEventListener('resize',()=>{resize();updateTarget();});
 reduceMQ.addEventListener('change',e=>{reduce=e.matches;describe()});   // the words and notes follow too
 document.addEventListener('visibilitychange',()=>{drawn=-1});   // a browser may drop a hidden canvas's pixels
 // The mode switch: the mode's words, names and places, then its picture at once, for the frame on show now; nothing else changes
-document.addEventListener('hb:mode',e=>{mode=e.detail.mode;describe();paint();});
+document.addEventListener('hb:mode',e=>{mode=e.detail.mode;drawn=-1;describe();paint();});
 if(document.fonts)document.fonts.ready.then(()=>layout());     // the site font measures the words again once it is in
 
 resize();updateTarget();shownFrame=targetFrame;few.shown=few.target;describe();loop();
