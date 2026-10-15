@@ -8,21 +8,21 @@
 
 **Tech Stack:** Plain HTML, CSS and vanilla JavaScript (canvas 2D, SVG, CSS transforms, Web Audio behind one button); Node 22+ (`node --test`, the run-folder tools); the page check `tools/check-pages.mjs` and the rollout's review kit (`record.mjs`) in headless Chrome through the machine's pool (`slot.mjs`, waited on with `wait-log.mjs`); Python's static server.
 
-**Every page in this plan was built and checked before the plan was written,** in scratch copies of the site made from `feat/see-inside-compare` at `d810bce` with the rollout plan's Phase 0 Tasks 2, 3, 4 and 6 applied as that plan wrote them (the shared files at `?v=10`, the page check's do-it path, run waits, rest and caption checks, the switch tests): with its lane's shared edits, each page passed the tests, six `ok` lines of the page check, the review kit's 27 short-screen pictures with no label cut or overlapping, the home check and the check of the old last page it links, and its clips of Normal, See inside and Compare were read frame by frame; then the ten lanes were merged in order with Task 11's commands as written, and the result passed the tests and the page check of all ten pages, the five old last pages, the pages whose See also changed and the home page. Two pre-flight reviews (`plan-review-A.md`, `plan-review-B.md` in the run folder) were applied, and the changed pages checked again (`plan-fixes.md`). Each task's expected output comes from those runs. The real branch differs from that copy (the rollout's later commits, such as `sic/00f`'s help line and Task 3's review rounds): Task 0 writes the differences in the ledger, and a lane reads its first `FAIL` against them and tunes the page as its steps say.
+**Every page in this plan was built and checked before the plan was written,** in scratch copies of the site made from `feat/see-inside-compare` at `d810bce` with the rollout plan's Phase 0 Tasks 2, 3, 4 and 6 applied as that plan wrote them (the shared files at `?v=10`, the page check's do-it path, run waits, rest and caption checks, the switch tests): with its lane's shared edits, each page passed the tests, six `ok` lines of the page check, the review kit's 27 short-screen pictures with no label cut or overlapping, the home check and the check of the old last page it links, and its clips of Normal, See inside and Compare were read frame by frame; then the ten lanes were merged in order with Task 11's commands as written, and the result passed the tests and the page check of all ten pages, the five old last pages, the pages whose See also changed and the home page. Each lane's first five steps (its shared edits, page, README, preview and generated files, then the tests) and Task 11's merges and edits were run again on a copy of `feat/see-inside-compare` at `fce3a2b` (Phase 0, the first batch and the Animation finder merged): every lane `ℹ fail 0`, and the integration 1763 pass, 0 fail. Two pre-flight reviews and a re-review (`plan-review-A.md`, `plan-review-B.md`, `plan-rereview.md` in the run folder) were applied, and the changed pages checked again (`plan-fixes.md`). Each task's expected output comes from those runs. The real branch differs from that copy (the rollout's later commits, such as `sic/00f`'s help line and Task 3's review rounds): Task 0 writes the differences in the ledger, and a lane reads its first `FAIL` against them and tunes the page as its steps say.
 
 ## Global Constraints
 
 - **CLAUDE.md governs every page** as it reads after the rollout's Phase 0; the rollout spec's section 1 and its acceptance list (`2026-10-13-see-inside-compare-rollout-design.md`) govern both views; where the ten-animations spec and the coordination file disagree, the coordination file (`2026-10-13-next-projects-coordination.md`) wins.
-- **The rollout's lessons and rulings bind these pages too**, since the rollout's final review (part 9) judges them by them: `$RUN/lessons.md` (lessons 1 to 21), `$RUN/briefs/RULINGS.md` (rulings 1 to 7), `$RUN/brief-rulings.md` (G1 to G11), `$RUN/briefs/OPEN-QUESTIONS.md` and, once the owner's first-batch verdict is in, `$RUN/rulings-159.md`. Every builder and reviewer reads them first. A ruling that lands after a lane's approval is applied to the ten pages, through the lanes' fix loop, before integration.
+- **The rollout's lessons and rulings bind these pages too**, since the rollout's final review (part 9) judges them by them: `$RUN/lessons.md` (lessons 1 to 21), `$RUN/briefs/RULINGS.md` (rulings 1 to 7), `$RUN/brief-rulings.md` (G1 to G11), `$RUN/briefs/OPEN-QUESTIONS.md` and `$RUN/rulings-159.md` (the owner approved the first batch on 2026-10-15 with no rules). Every builder and reviewer reads them first. A rule the owner gives later is applied to the ten pages, through the lanes' fix loop, before integration (Task 11 Step 1, Task 12 Step 7).
 - **One animation = one folder** `animations/<category>/<slug>/` holding exactly `index.html` and `README.md`. No build step, no frameworks, no npm packages, no external dependencies. Pictures are drawn in the page (inline SVG, CSS or canvas commands); no image, sound or font file is added; made-up names only, no real brand, place or person.
 - **About 300 lines for the demo plus about 150 for its two views** (the line counts in each task: 306 to 416).
-- **Shared files:** `../../../assets/css/demo-page.css?v=N` and `../../../assets/js/demo-page.js?v=N` (defer), after the page's own `<style>`, with N the number the branch's pages use (10 when this plan was written; Task 0 writes it in the ledger, and a lane's Step 2 sets it); Task 11 sets the ten pages to the number the other pages use by then. **This plan never changes a shared file or the version:** a need for a shared change goes as one line into `$RUN/shared-wishes.md` (page, file, what and why), which the rollout's integration applies with its next number.
+- **Shared files:** `../../../assets/css/demo-page.css?v=N` and `../../../assets/js/demo-page.js?v=N` (defer), after the page's own `<style>`, with N the number the branch's pages use (10 when this plan was written; Task 0 writes it in the ledger, and a lane's Step 2 sets it); Task 11 sets the ten pages to the number the other pages use by then. **This plan never changes a shared file or the version:** a need for a shared change goes in the builder's report, and the coordinator appends it as one line to `$RUN/shared-wishes.md` (page, file, what and why, with one `printf … >>`), which the rollout's integration applies with its next number.
 - **The switch and the notes, exactly:** `<div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>` with Normal (`class="on" aria-pressed="true"`), See inside, Compare, between the Watch heading and the stage; right after the player bar `<div class="hb-mode-notes" aria-live="polite">` holding `<p data-hb-for="inside" hidden>` then `<p data-hb-for="compare" hidden>`, each one or two sentences of at most 35 words (RULINGS 1); a note says left and right only where the halves never stack; a note stays true after every press and setting (lesson 16: under reduced motion "Shown still" only while paused).
 - **The `hb:mode` listener** sits at the top level of the page's script, draws the mode at once, never scrolls, moves focus, presses a control, stops Play or changes Pause; mode CSS starts `.stage[data-hb-mode="inside"]` or `.stage[data-hb-mode="compare"]`; no rule on `[data-hb-mode="normal"]`; no class exactly `lbl`.
 - **Captions** carry `data-hb-caption`, are at least 12px as drawn and 4.5:1, sit inside the stage, never overlap each other, at most six (four on phones), also on the kit's short screens (lesson 12); where the stage, its canvas or picture has an `aria-label`, it changes with the mode.
 - **Owner rulings (2026-10-13):** a press of See inside or Compare plays the demo once (Show me on the do-it pages, Replay on Ink Spread Reveal), never under reduced motion, and the loops are never pressed; on phones the box keeps its size in every mode; Audio Visualizer is silent by default and its Hear it button plays a beat the browser makes (no file, no microphone, no AudioContext before the press).
 - **Do-it pages:** Show me runs two to four seconds with its pauses held by `setTimeout` and ends at rest on exactly the picture it started from; `hb:input` and a trusted `focusin` in the stage stop a run; Normal at rest is never posed (G4). **Loops:** Pause freezes the stage at once; going back to Normal gives back the first picture. **Frame loops** move by elapsed time (`FRAME=1000/60`, `dt` at most 50 ms); Fire Effect and Water Ripple take fixed steps from an accumulator; reduced motion is read inside every frame loop. **Compare's halves** differ in one idea only (lesson 17, G9), and each half stays inside its half (lesson 14).
-- **What a lane changes:** its folder; the home page's card (`CATS`), `PLACES` row, `PV` key, its preview (CSS at the end of its section's bespoke block, a `case` in `pvMarkup()`, a `STILL` point where needed) and, where the finder is on the branch, its `FIND` row; every written count set to 167 and its section's count plus one; the root README's catalog line and the category README's line (and 06's Browser requirements or 07's Implementation summary); the generated files by their tools; and, for the first lane of a section (L1, L2, L3, L6, L8), the old last page's Next link. **Never:** `assets/`, `tests/` (a proof edit is put back with `git checkout`), `tools/`, `CLAUDE.md`, `CONTRIBUTING.md`, `og-image.png`, `docs/`, or any other page.
+- **What a lane changes:** its folder; the home page's card (`CATS`), `PLACES` row, `PV` key, its preview (CSS at the end of its section's bespoke block, a `case` in `pvMarkup()`, a `STILL` point where needed) and its `FIND` row (the finder is on the branch since `fce3a2b`); every written count set to 167 and its section's count plus one; the root README's catalog line and the category README's line (and 06's Browser requirements or 07's Implementation summary); the generated files by their tools; and, for the first lane of a section (L1, L2, L3, L6, L8), the old last page's Next link. **Never:** `assets/`, `tests/` (a proof edit is put back with `git checkout`), `tools/`, `CLAUDE.md`, `CONTRIBUTING.md`, `og-image.png`, `docs/`, or any other page.
 - **Counts:** 167 in each lane; 176 (02: 15, 03: 17, 04: 44, 06: 28, 07: 26) only at integration. **Generated files** (`sitemap.xml`, `llms.txt`, `skills/animation-handbook/`, `og-image.png`, the marked blocks of `famous/index.html`) are never merged by hand: after any merge take either side, run `node tools/update-sitemap.mjs`, `node tools/make-skill.mjs`, `node tools/make-famous.mjs` once `famous/` exists, and (the coordinator only) `node tools/make-social-image.mjs`.
 - **Agents:** only the coordinator starts agents, by the rollout's seat count (`seats = 20 − running − 1`; reviews and fix rounds before new lanes, new work taking turns with the rollout's); every builder and reviewer runs on the strongest model; agents start no agents and never open the browser pane. A builder writes only in its worktree, `$TEN/checks/L<n>/` and `$TEN/reports/L<n>/`; a reviewer only in `$TEN/reports/L<n>/`. Each writes its report as a file whose first line is `RESULT: built <commit>`, `RESULT: approved` or `RESULT: changes <count>`, and replies in at most three lines. **Only the coordinator writes `$TEN/ledger.md`**, from those files.
 - **Machine:** every Chrome run (page check, review kit, frame times) goes through the pool (`node $RUN/slot.mjs run <who> -- <command>`; at most eight at once on the machine), each as its own background command with its output in a log ending in an `EXIT=<code>` line, waited on with `node $RUN/wait-log.mjs <log>` (again while it says `still running`); headless Chrome only, never the browser pane (the owner's); the coordinator starts and stops each worktree's one server; no `git stash`; no `git config` (a setting a command needs goes on that command, `git -c …`); leftover `hb-chrome-*` temp folders removed only with the owner's OK. The main checkout stays on `feat/see-inside-compare` and is never switched.
@@ -95,16 +95,18 @@ grep -c "^Phase 0 done at" $RUN/ledger.md
 git -C $REPO show feat/see-inside-compare:animations/01-scroll-based/parallax-scrolling/index.html | grep -o 'demo-page\.css?v=[0-9]*'
 git -C $REPO show feat/see-inside-compare:tools/check-pages.mjs | grep -c 'async function captionProblems'
 git -C $REPO show feat/see-inside-compare:index.html | grep -c '^const FIND={'
-ls $RUN/slot.mjs $RUN/wait-log.mjs $RUN/lessons.md $RUN/briefs/RULINGS.md $RUN/brief-rulings.md
+git -C $REPO show feat/see-inside-compare:tools/make-famous.mjs > /dev/null 2>&1 && echo "famous: on the branch" || echo "famous: not on the branch"
+grep -c "^First batch approved by the owner on .*rulings-159\.md:" $RUN/ledger.md
+ls $RUN/slot.mjs $RUN/wait-log.mjs $RUN/lessons.md $RUN/briefs/RULINGS.md $RUN/brief-rulings.md $RUN/briefs/OPEN-QUESTIONS.md $RUN/rulings-159.md
 ```
 
-Expected: `1` (Phase 0's Task 6 wrote its ledger line); `demo-page.css?v=N` with N of 10 or more (write N down: the lanes set it in their pages); `1`; `0` or `1` (whether the finder is on the branch); the five paths. If the first or third prints `0`, Phase 0 is not merged yet: stop and wait.
+Expected (each checked on 2026-10-15): `1` (the rollout's ledger line `Phase 0 done at 513be66; shared files frozen at v=10`, written at the start of a line); `demo-page.css?v=N` with N of 10 or more (10 then; write N down: the lanes set it in their pages); `1`; `1` (the Animation finder is live and `main` was merged into the rollout at `fce3a2b`, so the branch has `const FIND={` and each lane adds its own `FIND` row; `0` would mean it is not there); `famous: not on the branch` (until Famous effects goes live: Step 2); `1` (the owner approved the first batch on 2026-10-15 with `rulings-159.md: 0 rules`); the seven paths. If the first or third prints `0`, Phase 0 is not merged yet: stop and wait.
 
-- [ ] **Step 2: The finder and Famous effects: the owner's answer**
+- [ ] **Step 2: Famous effects: the owner's answer**
 
-If both are already on `feat/see-inside-compare` (`main`, with them live, merged in by rule 4), go to Step 3. Otherwise the coordination file's rule applies: the coordinator asks the owner whether the ten pages wait for each project that is not live, or take it in (it then goes live with them), and writes the answer in the ledger once Step 4 has made it. Then:
-- **Wait:** stop here until `main`, with that project live, has been merged into `feat/see-inside-compare` (coordination rule 4); then Step 3.
-- **Take it in:** after Step 3, before Step 6, in a worktree of `feat/ten-animations` merge the project in (Step 3a below); the lanes are cut after it, so each adds its own `FIND` row.
+The Animation finder is live and on `feat/see-inside-compare` (Step 1), so only Famous effects can be open. If Step 1 printed `famous: on the branch`, go to Step 3. Otherwise the coordination file's rule applies: the coordinator asks the owner whether the ten pages wait for Famous effects or take it in (it then goes live with them), and writes the answer in the ledger once Step 4 has made it. Then:
+- **Wait:** stop here until `main`, with Famous effects live, has been merged into `feat/see-inside-compare` (coordination rule 4); then Step 1 again, and Step 3.
+- **Take it in:** Step 3a, right after Step 3 and before Step 4 (Step 4's ledger line and Step 5's tries read the branch with it in); the lanes are cut after it.
 
 - [ ] **Step 3: Track this plan, then cut the branch (the main checkout stays where it is)**
 
@@ -120,24 +122,25 @@ git -C $REPO rev-parse --abbrev-ref HEAD
 
 Expected: `plan tracked already` or one commit of this plan alone (the rollout's integration expects an empty status in the main checkout, and the lanes read the plan from there); then that commit as the tip of `feat/ten-animations`, then `feat/see-inside-compare` (the main checkout was not switched).
 
-- [ ] **Step 3a (only on "take it in"): merge the finder and/or Famous effects into `feat/ten-animations`**
+- [ ] **Step 3a (only on "take it in"): merge Famous effects into `feat/ten-animations`**
 
 ```bash
 REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
 git -C $REPO worktree add $REPO/.claude/worktrees/ten-int feat/ten-animations
 cd $REPO/.claude/worktrees/ten-int || exit 1
 [ "$(git rev-parse --abbrev-ref HEAD)" = feat/ten-animations ] || exit 1
-git -c merge.conflictStyle=diff3 merge --no-ff --no-commit feat/animation-finder; git status --short | grep -E '^(UU|AA|DU|UD) ' || echo "no conflicts"
+git -c merge.conflictStyle=diff3 merge --no-ff --no-commit feat/famous-effects; git status --short | grep -E '^(UU|AA|DU|UD) ' || echo "no conflicts"
 ```
 
-Overlaps are settled by coordination rule 6 (each project keeps its own lines; Phase 0's `tools/check-pages.mjs` and `tests/pages.test.js` against the finder's additions); a resolution beyond keeping both sides gets a fresh agent's review before the commit. Then write the generated files, commit and run the tests:
+Overlaps are settled by coordination rule 6 (each project keeps its own lines; Phase 0's `tools/check-pages.mjs` and `tests/pages.test.js` against Famous effects' additions); a resolution beyond keeping both sides gets a fresh agent's review before the commit. Then write the generated files, commit and run the tests:
 
 ```bash
 REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
 cd $REPO/.claude/worktrees/ten-int || exit 1
 [ "$(git rev-parse --abbrev-ref HEAD)" = feat/ten-animations ] || exit 1
 node tools/update-sitemap.mjs && node tools/make-skill.mjs && ([ -f tools/make-famous.mjs ] && node tools/make-famous.mjs || true)
-git add -A && git commit -m "Merge feat/animation-finder into feat/ten-animations: it goes live with the ten new animations"
+git grep -qE '^(<{7}|\|{7}|>{7})( |$)' && { echo "conflict markers left"; exit 1; }
+git add -A && git commit -m "Merge feat/famous-effects into feat/ten-animations: it goes live with the ten new animations"
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
@@ -153,7 +156,7 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-int || exit 1; node $RUN/slot.mjs run ten-take-in -- node tools/check-pages.mjs --base http://127.0.0.1:8971 --out $TEN/checks/take-in home $( [ -d famous ] && echo famous ) > $TEN/checks/take-in/check.log 2>&1; echo "EXIT=$?" >> $TEN/checks/take-in/check.log
 ```
 
-Expected: `EXIT=0` in both logs; six `ok   home …` lines (and six `ok   famous …` where it exists). Commit the social image (`git add og-image.png && git commit -m "Draw the social image again after the finder's merge"`, in ten-int after the branch check). For Famous effects do the same with `feat/famous-effects`. Then stop the server, `git -C $REPO worktree remove $REPO/.claude/worktrees/ten-int`, and add a ledger line: `<date time>  coord  took in <project> at <commit>; it goes live with the rollout`.
+Expected: `EXIT=0` in both logs; six `ok   home …` lines (and six `ok   famous …` where it exists). If the image changed, commit it (`git add og-image.png && git commit -m "Draw the social image again after Famous effects' merge"`, in ten-int after the branch check). Then stop the server and `git -C $REPO worktree remove $REPO/.claude/worktrees/ten-int`. The ledger line comes after Step 4's, once the ledger exists: `<date time>  coord  took in feat/famous-effects at <commit>; it goes live with the rollout`.
 
 - [ ] **Step 4: The run folder, its ledger and its four tools**
 
@@ -165,7 +168,7 @@ printf '%s  coord  run folder ready; feat/ten-animations at %s; shared files ?v=
 tail -1 $TEN/ledger.md
 ```
 
-Expected: one ledger line naming the cut commit, the version, the finder and Famous effects, and how far the branch has moved from the base this plan was checked on (the shared files, the page check and the tests). Write these four files into `$TEN` exactly.
+Expected: one ledger line naming the cut commit, the version, the finder and Famous effects, and how far the branch has moved from the base this plan was checked on (the shared files, the page check and the tests); then, if Step 3a ran, its `took in` line and the owner's answer. Write these four files into `$TEN` exactly.
 
 `$TEN/lanes.mjs`:
 
@@ -656,7 +659,7 @@ for (const line of said) console.log(line);
 if (said.some(l => l.startsWith('FIND is not'))) for (const [, rows] of FIND) for (const r of rows) console.log(row(r) + ',');
 ```
 
-Run: `TEN=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook/.superpowers/sdd/2026-10-14-ten-new-animations; for f in lanes frametimes resolve integrate; do node --check $TEN/$f.mjs && echo "$f ok"; done`
+Run: `REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations; for f in lanes frametimes resolve integrate; do node --check $TEN/$f.mjs && echo "$f ok"; done`
 Expected: `lanes ok`, `frametimes ok`, `resolve ok`, `integrate ok`.
 
 - [ ] **Step 5: Try every lane's shared edits on its own scratch export, and the tests on one (outside the repository)**
@@ -670,7 +673,7 @@ cd $S || exit 1; node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|f
 cd /tmp && rm -rf $S
 ```
 
-Expected: ten lines `lane <n> shared edits applied to …` and no `FAILED`; then, for lane 3, exactly five failing tests: `04-micro-interactions/dynamic-island uses the guided-steps page correctly` (its new Next link opens a page that is not there yet), `the Full catalog in the root README lists every card once, in home order, linked to its live page`, `the counts written in the issue template, the 404 page and the sitemap match the cards`, `the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, and `llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`; `ℹ fail 5`. (A lane that gives no Next link starts from the last four. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists: its rules read each page's kind.) A `FAILED` lane names the anchor that no longer matches: the coordinator fixes it in `$TEN/lanes.mjs` (no one else edits the tool) and runs this step again.
+Expected: ten lines `lane <n> shared edits applied to …` and no `FAILED`; then, for lane 3, exactly six failing tests: `the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll` (the finder's: its rules read each page's kind, and the page is not there yet), `04-micro-interactions/dynamic-island uses the guided-steps page correctly` (its new Next link opens a page that is not there yet), `the Full catalog in the root README lists every card once, in home order, linked to its live page`, `the counts written in the issue template, the 404 page and the sitemap match the cards`, `the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, and `llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`; `ℹ fail 6` (this plan's run on `feat/see-inside-compare` at `fce3a2b`, the finder there: the branch alone 1643 pass, 0 fail; with lane 3's edits 1637 pass, 6 fail). A lane that gives no Next link has the other five. A `FAILED` lane names the anchor that no longer matches: the coordinator fixes it in `$TEN/lanes.mjs` (no one else edits the tool) and runs this step again.
 
 - [ ] **Step 6: Check the ten finder rows (a fresh agent; nothing committed)**
 
@@ -691,7 +694,7 @@ Expected: ten `stand-in page …` lines (the finder's tests read each page's kin
 - [ ] **Step 7: Ten worktrees, one branch each**
 
 ```bash
-REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook
+REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
 for n in 1 2 3 4 5 6 7 8 9 10; do git -C $REPO worktree add -b ten/L$n $REPO/.claude/worktrees/ten-L$n feat/ten-animations; done
 git -C $REPO worktree list | grep -c 'ten-L'
 ```
@@ -700,7 +703,7 @@ Expected: ten `Preparing worktree (new branch 'ten/L<n>')` messages, then `10`.
 
 - [ ] **Step 8: Briefs, servers and dispatch**
 
-For each lane write `$TEN/briefs/L<n>.md`: "Carry out Task <n> of `docs/superpowers/plans/2026-10-14-ten-new-animations.md` (the main checkout's copy) in `$REPO/.claude/worktrees/ten-L<n>`, served on port `<8960+n>` by the coordinator. First read CLAUDE.md, the plan's Global Constraints, your page's section of `docs/superpowers/specs/2026-10-13-ten-new-animations-design.md`, `$RUN/lessons.md`, `$RUN/briefs/RULINGS.md`, `$RUN/brief-rulings.md`, `$RUN/briefs/OPEN-QUESTIONS.md` and, once it holds the owner's verdict, `$RUN/rulings-159.md`. Write only in your worktree, `$TEN/checks/L<n>/` and `$TEN/reports/L<n>/`; start no agents; never open the browser pane; never use `git stash` or `git config`. The shared-file version is `?v=<N from the ledger>`. Write your report as the task's last step says and reply in at most three lines." Before dispatching a lane's builder, the coordinator starts its server as a background command, `cd $REPO/.claude/worktrees/ten-L<n> && python -m http.server <8960+n> --bind 127.0.0.1`, and keeps it until the lane is approved (and again for a later fix round). Dispatch builders (strongest model) by the rollout's seat count, `seats = 20 − running − 1`, reviews and fix rounds of any lane before a new builder, new lanes taking turns with the rollout's new pages; while the pool has been full for 20 minutes with runs waiting, start no new builder that round. Ledger line per dispatch: `… L<n>  builder dispatched`.
+For each lane write `$TEN/briefs/L<n>.md`: "Carry out Task <n> of `docs/superpowers/plans/2026-10-14-ten-new-animations.md` (the main checkout's copy) in `$REPO/.claude/worktrees/ten-L<n>`, served on port `<8960+n>` by the coordinator. First read CLAUDE.md, the plan's Global Constraints, your page's section of `docs/superpowers/specs/2026-10-13-ten-new-animations-design.md`, `$RUN/lessons.md`, `$RUN/briefs/RULINGS.md`, `$RUN/brief-rulings.md`, `$RUN/briefs/OPEN-QUESTIONS.md` and, once it holds the owner's verdict, `$RUN/rulings-159.md`. Write only in your worktree, `$TEN/checks/L<n>/` and `$TEN/reports/L<n>/` (a shared-file need goes in your report; the coordinator passes it on); start no agents; never open the browser pane; never use `git stash` or `git config`. The shared-file version is `?v=<N from the ledger>`. Write your report as the task's last step says and reply in at most three lines." Before dispatching a lane's builder, the coordinator starts its server as a background command, `cd $REPO/.claude/worktrees/ten-L<n> && python -m http.server <8960+n> --bind 127.0.0.1`, and keeps it until the lane is approved (and again for a later fix round). Dispatch builders (strongest model) by the rollout's seat count, `seats = 20 − running − 1`, reviews and fix rounds of any lane before a new builder, new lanes taking turns with the rollout's new pages; while the pool has been full for 20 minutes with runs waiting, start no new builder that round. Ledger line per dispatch: `… L<n>  builder dispatched`.
 
 ---
 
@@ -716,7 +719,7 @@ Plays once · step 1 "Watch it" · player bar: Replay, Loop and Slow motion (`da
 
 **Files:**
 - Create: `animations/02-entrance-and-exit/ink-spread-reveal/index.html` (360 lines), `animations/02-entrance-and-exit/ink-spread-reveal/README.md`
-- Modify (by `$TEN/lanes.mjs 1`): `index.html` (the card after Shatter Effect's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 02's count 14 → 15, the catalog line), `animations/02-entrance-and-exit/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/02-entrance-and-exit/shatter-effect/index.html` (its first Next link, to Ink Spread Reveal)
+- Modify (by `$TEN/lanes.mjs 1`): `index.html` (the card after Shatter Effect's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 02's count 14 → 15, the catalog line), `animations/02-entrance-and-exit/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/02-entrance-and-exit/shatter-effect/index.html` (its first Next link, to Ink Spread Reveal)
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 02 bespoke block, `case 'inkspread':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js`; the page check of the new page, of Shatter Effect and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices; frame times
@@ -733,10 +736,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L1 || exit 1
 node $TEN/lanes.mjs 1 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 1 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/02-entrance-and-exit/README.md`, ` M animations/02-entrance-and-exit/shatter-effect/index.html`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ 02-entrance-and-exit/shatter-effect uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (Shatter Effect's new Next link opens a page that is not there yet.) Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 1 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/02-entrance-and-exit/README.md`, ` M animations/02-entrance-and-exit/shatter-effect/index.html`, ` M index.html`; then these 6 failing tests and `ℹ fail 6`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ 02-entrance-and-exit/shatter-effect uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, and Shatter Effect's new Next link opens a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/02-entrance-and-exit/ink-spread-reveal/index.html`**
 
@@ -1228,7 +1231,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: The page check and the short screens (each a background command, waited on)**
 
@@ -1311,7 +1314,7 @@ git commit -m "feat: 02.15 Ink Spread Reveal, with See inside and Compare from t
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/02-entrance-and-exit/ink-spread-reveal/README.md`, `A  animations/02-entrance-and-exit/ink-spread-reveal/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/02-entrance-and-exit/README.md`, `M  animations/02-entrance-and-exit/shatter-effect/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L1/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/02-entrance-and-exit/ink-spread-reveal/README.md`, `A  animations/02-entrance-and-exit/ink-spread-reveal/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/02-entrance-and-exit/README.md`, `M  animations/02-entrance-and-exit/shatter-effect/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L1/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 11: Review, at most three fix rounds**
 
@@ -1325,7 +1328,7 @@ Do it · step 1 "Click it" · player bar: Show me, Reset and Slow motion (the pa
 
 **Files:**
 - Create: `animations/03-page-transitions/pixelate-transition/index.html` (306 lines), `animations/03-page-transitions/pixelate-transition/README.md`
-- Modify (by `$TEN/lanes.mjs 2`): `index.html` (the card after Cube Transition's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 03's count 16 → 17, the catalog line), `animations/03-page-transitions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/03-page-transitions/cube-transition/index.html` (its first Next link, to Pixelate Transition)
+- Modify (by `$TEN/lanes.mjs 2`): `index.html` (the card after Cube Transition's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 03's count 16 → 17, the catalog line), `animations/03-page-transitions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/03-page-transitions/cube-transition/index.html` (its first Next link, to Pixelate Transition)
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 03 bespoke block, `case 'pixelate':` in `pvMarkup()`, a `STILL` point
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js`; the page check of the new page, of Cube Transition and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices; frame times
@@ -1342,10 +1345,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L2 || exit 1
 node $TEN/lanes.mjs 2 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 2 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/03-page-transitions/README.md`, ` M animations/03-page-transitions/cube-transition/index.html`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ 03-page-transitions/cube-transition uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (Cube Transition's new Next link opens a page that is not there yet.) Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 2 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/03-page-transitions/README.md`, ` M animations/03-page-transitions/cube-transition/index.html`, ` M index.html`; then these 6 failing tests and `ℹ fail 6`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ 03-page-transitions/cube-transition uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, and Cube Transition's new Next link opens a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/03-page-transitions/pixelate-transition/index.html`**
 
@@ -1766,7 +1769,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: The page check and the short screens (each a background command, waited on)**
 
@@ -1849,7 +1852,7 @@ git commit -m "feat: 03.17 Pixelate Transition, with See inside and Compare from
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/03-page-transitions/pixelate-transition/README.md`, `A  animations/03-page-transitions/pixelate-transition/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/03-page-transitions/README.md`, `M  animations/03-page-transitions/cube-transition/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L2/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/03-page-transitions/pixelate-transition/README.md`, `A  animations/03-page-transitions/pixelate-transition/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/03-page-transitions/README.md`, `M  animations/03-page-transitions/cube-transition/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L2/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 11: Review, at most three fix rounds**
 
@@ -1863,7 +1866,7 @@ Do it · step 1 "Drag it" · player bar: Show me, Reset and Slow motion (the pag
 
 **Files:**
 - Create: `animations/04-micro-interactions/before-after-slider/index.html` (344 lines), `animations/04-micro-interactions/before-after-slider/README.md`
-- Modify (by `$TEN/lanes.mjs 3`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/04-micro-interactions/dynamic-island/index.html` (its first Next link, to Before/After Slider)
+- Modify (by `$TEN/lanes.mjs 3`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/04-micro-interactions/dynamic-island/index.html` (its first Next link, to Before/After Slider)
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 04 bespoke block, `case 'beforeafter':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js` (with a proof edit, put back); the page check of the new page, of Dynamic Island and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults
@@ -1880,10 +1883,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L3 || exit 1
 node $TEN/lanes.mjs 3 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 3 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M animations/04-micro-interactions/dynamic-island/index.html`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ 04-micro-interactions/dynamic-island uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (Dynamic Island's new Next link opens a page that is not there yet.) Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 3 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M animations/04-micro-interactions/dynamic-island/index.html`, ` M index.html`; then these 6 failing tests and `ℹ fail 6`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ 04-micro-interactions/dynamic-island uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, and Dynamic Island's new Next link opens a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/04-micro-interactions/before-after-slider/index.html`**
 
@@ -2345,7 +2348,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: Prove the keyboard test for Task 11, then put the test file back**
 
@@ -2441,7 +2444,7 @@ git commit -m "feat: 04.42 Before/After Slider, with See inside and Compare from
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/04-micro-interactions/before-after-slider/README.md`, `A  animations/04-micro-interactions/before-after-slider/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  animations/04-micro-interactions/dynamic-island/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L3/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/04-micro-interactions/before-after-slider/README.md`, `A  animations/04-micro-interactions/before-after-slider/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  animations/04-micro-interactions/dynamic-island/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L3/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 12: Review, at most three fix rounds**
 
@@ -2455,7 +2458,7 @@ Do it · step 1 "Hover it" · player bar: Show me and Slow motion (the page slow
 
 **Files:**
 - Create: `animations/04-micro-interactions/magnifier-lens/index.html` (367 lines), `animations/04-micro-interactions/magnifier-lens/README.md`
-- Modify (by `$TEN/lanes.mjs 4`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
+- Modify (by `$TEN/lanes.mjs 4`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 04 bespoke block, `case 'magnifier':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js` (with a proof edit, put back); the page check of the new page and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults
@@ -2472,10 +2475,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L4 || exit 1
 node $TEN/lanes.mjs 4 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 4 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M index.html`; then these 4 failing tests and `ℹ fail 4`: `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 4 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, from a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/04-micro-interactions/magnifier-lens/index.html`**
 
@@ -2945,7 +2948,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: Prove the keyboard test for Task 11, then put the test file back**
 
@@ -3041,7 +3044,7 @@ git commit -m "feat: 04.43 Magnifier Lens, with See inside and Compare from the 
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/04-micro-interactions/magnifier-lens/README.md`, `A  animations/04-micro-interactions/magnifier-lens/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L4/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/04-micro-interactions/magnifier-lens/README.md`, `A  animations/04-micro-interactions/magnifier-lens/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L4/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 12: Review, at most three fix rounds**
 
@@ -3055,7 +3058,7 @@ Do it · step 1 "Drag it" · player bar: Show me, Reset and Slow motion (the pag
 
 **Files:**
 - Create: `animations/04-micro-interactions/card-deck-swipe/index.html` (404 lines), `animations/04-micro-interactions/card-deck-swipe/README.md`
-- Modify (by `$TEN/lanes.mjs 5`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
+- Modify (by `$TEN/lanes.mjs 5`): `index.html` (the card after Dynamic Island's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 04's count 41 → 42, the catalog line), `animations/04-micro-interactions/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 04 bespoke block, `case 'deckswipe':` in `pvMarkup()`, a `STILL` point
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js` (with a proof edit, put back); the page check of the new page and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults
@@ -3072,10 +3075,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L5 || exit 1
 node $TEN/lanes.mjs 5 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 5 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M index.html`; then these 4 failing tests and `ℹ fail 4`: `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 5 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/04-micro-interactions/README.md`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, from a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/04-micro-interactions/card-deck-swipe/index.html`**
 
@@ -3594,7 +3597,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: Prove the keyboard test for Task 11, then put the test file back**
 
@@ -3691,7 +3694,7 @@ git commit -m "feat: 04.44 Card Deck Swipe, with See inside and Compare from the
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/04-micro-interactions/card-deck-swipe/README.md`, `A  animations/04-micro-interactions/card-deck-swipe/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L5/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/04-micro-interactions/card-deck-swipe/README.md`, `A  animations/04-micro-interactions/card-deck-swipe/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/04-micro-interactions/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L5/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 12: Review, at most three fix rounds**
 
@@ -3705,7 +3708,7 @@ Do it · step 1 "Drag it" · player bar: Show me, Reset and Slow motion (the pag
 
 **Files:**
 - Create: `animations/06-3d-advanced/water-ripple/index.html` (386 lines), `animations/06-3d-advanced/water-ripple/README.md`
-- Modify (by `$TEN/lanes.mjs 6`): `index.html` (the card after Infinite Zoom's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 06's count 26 → 27, the catalog line), `animations/06-3d-advanced/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/06-3d-advanced/infinite-zoom/index.html` (its first Next link, to Water Ripple)
+- Modify (by `$TEN/lanes.mjs 6`): `index.html` (the card after Infinite Zoom's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 06's count 26 → 27, the catalog line), `animations/06-3d-advanced/README.md` (its line), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/06-3d-advanced/infinite-zoom/index.html` (its first Next link, to Water Ripple)
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 06 bespoke block, `case 'waterripple':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js` (with a proof edit, put back); the page check of the new page, of Infinite Zoom and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices; frame times
@@ -3722,10 +3725,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L6 || exit 1
 node $TEN/lanes.mjs 6 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 6 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/06-3d-advanced/README.md`, ` M animations/06-3d-advanced/infinite-zoom/index.html`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ 06-3d-advanced/infinite-zoom uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (Infinite Zoom's new Next link opens a page that is not there yet.) Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 6 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/06-3d-advanced/README.md`, ` M animations/06-3d-advanced/infinite-zoom/index.html`, ` M index.html`; then these 6 failing tests and `ℹ fail 6`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ 06-3d-advanced/infinite-zoom uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, and Infinite Zoom's new Next link opens a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/06-3d-advanced/water-ripple/index.html`**
 
@@ -4222,7 +4225,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: Prove the keyboard test for Task 11, then put the test file back**
 
@@ -4319,7 +4322,7 @@ git commit -m "feat: 06.27 Water Ripple, with See inside and Compare from the st
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/06-3d-advanced/water-ripple/README.md`, `A  animations/06-3d-advanced/water-ripple/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/06-3d-advanced/README.md`, `M  animations/06-3d-advanced/infinite-zoom/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L6/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/06-3d-advanced/water-ripple/README.md`, `A  animations/06-3d-advanced/water-ripple/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/06-3d-advanced/README.md`, `M  animations/06-3d-advanced/infinite-zoom/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L6/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 12: Review, at most three fix rounds**
 
@@ -4333,7 +4336,7 @@ Loop · step 1 "Watch it" · player bar: Pause and Slow motion (the page pauses 
 
 **Files:**
 - Create: `animations/06-3d-advanced/audio-visualizer/index.html` (416 lines), `animations/06-3d-advanced/audio-visualizer/README.md`
-- Modify (by `$TEN/lanes.mjs 7`): `index.html` (the card after Infinite Zoom's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 06's count 26 → 27, the catalog line), `animations/06-3d-advanced/README.md` (its line and a Browser requirements row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
+- Modify (by `$TEN/lanes.mjs 7`): `index.html` (the card after Infinite Zoom's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 06's count 26 → 27, the catalog line), `animations/06-3d-advanced/README.md` (its line and a Browser requirements row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 06 bespoke block, `case 'audioviz':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js` (with a proof edit, put back); the page check of the new page and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices; frame times
@@ -4350,10 +4353,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L7 || exit 1
 node $TEN/lanes.mjs 7 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 7 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/06-3d-advanced/README.md`, ` M index.html`; then these 4 failing tests and `ℹ fail 4`: `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 7 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/06-3d-advanced/README.md`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, from a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/06-3d-advanced/audio-visualizer/index.html`**
 
@@ -4393,7 +4396,7 @@ Expected: `lane 7 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/co
     @media(hover:hover){.hear:hover{border-color:rgba(255,255,255,.6)}}
     /* See inside and Compare: plain words over the picture */
     .av-lbl{display:none;position:absolute;padding:3px 8px;border-radius:6px;background:rgba(8,8,12,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
-    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .row{display:block}
+    .stage[data-hb-mode="inside"] .in:not(.scale),.stage[data-hb-mode="compare"] .row{display:block}
     .key{left:10px;top:10px;max-width:calc(100% - 140px);white-space:normal}
     .key i{display:inline-block;width:9px;height:9px;margin:0 4px 0 2px;border-radius:50%;vertical-align:0}
     .beat{left:10px;top:var(--beat-y,50px)}
@@ -4742,10 +4745,10 @@ Expected: `lane 7 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/co
     const still=reduceMQ.matches&&paused,ins=document.querySelector('[data-hb-for="inside"]'),cmp=document.querySelector('[data-hb-for="compare"]');
     const where=style==='circle'?'kick and bass at the top, round to the hi-hats':'kick and bass on the left, hi-hats on the right';
     ins.textContent=style==='wave'?'Inside, each colored line is one part of the tune, and the white line is all of them added together: the shape a speaker moves to.'
-      :still?`Shown still, on a kick: each bar is split by the parts of the tune filling it, ${where}. The top strip marks the beat.`
+      :still?`Shown still: each bar is split by the parts of the tune filling it, ${where}. The top strip marks the beat.`
       :style==='circle'?`Inside, each bar is split by the parts of the tune filling it, ${where}. The top strip marks the beat: each kick lifts the low bars.`:said.inside;
     cmp.textContent=style==='wave'?'Style is set to Wave, which draws the sound\'s shape, not its pitches, so Equal slices and Wider for treble match. Pick Bars or Circle in Try it to see the difference.'
-      :(still?'Shown still, on a kick: Equal slices crowds the bass into a few bars, while Wider for treble spreads the tune across the whole row.'
+      :(still?'Shown still: Equal slices crowds the bass into a few bars, while Wider for treble spreads the tune across the whole row.'
       :'Equal slices gives every bar the same share of pitches, so the bass crowds into a few bars. Wider for treble widens the slices as pitches rise, as we hear, so the whole row dances.');
   }
   function resize(){
@@ -4881,7 +4884,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: Prove the phone default test for Task 11, then put the test file back**
 
@@ -4978,7 +4981,7 @@ git commit -m "feat: 06.28 Audio Visualizer, with See inside and Compare from th
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/06-3d-advanced/audio-visualizer/README.md`, `A  animations/06-3d-advanced/audio-visualizer/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/06-3d-advanced/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L7/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/06-3d-advanced/audio-visualizer/README.md`, `A  animations/06-3d-advanced/audio-visualizer/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/06-3d-advanced/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L7/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 12: Review, at most three fix rounds**
 
@@ -4992,7 +4995,7 @@ Loop · step 1 "Watch it" · player bar: Pause (`data-hb-pause="css"`) and Slow 
 
 **Files:**
 - Create: `animations/07-ambient-background/ken-burns/index.html` (323 lines), `animations/07-ambient-background/ken-burns/README.md`
-- Modify (by `$TEN/lanes.mjs 8`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/07-ambient-background/game-of-life/index.html` (its first Next link, to Ken Burns Effect)
+- Modify (by `$TEN/lanes.mjs 8`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`, `animations/07-ambient-background/game-of-life/index.html` (its first Next link, to Ken Burns Effect)
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 07 bespoke block, `case 'kenburns':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js`; the page check of the new page, of Game of Life and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices
@@ -5009,10 +5012,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L8 || exit 1
 node $TEN/lanes.mjs 8 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 8 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M animations/07-ambient-background/game-of-life/index.html`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ 07-ambient-background/game-of-life uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (Game of Life's new Next link opens a page that is not there yet.) Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 8 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M animations/07-ambient-background/game-of-life/index.html`, ` M index.html`; then these 6 failing tests and `ℹ fail 6`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ 07-ambient-background/game-of-life uses the guided-steps page correctly`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, and Game of Life's new Next link opens a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/07-ambient-background/ken-burns/index.html`**
 
@@ -5244,7 +5247,7 @@ Expected: `lane 8 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/co
       <path fill="#1d1830" d="M0 600H90V560L130 530 170 560V600H230V540H330V610H420V580L470 550 520 580V700H0Z"/>
       <g fill="#ffd27a"><rect x="40" y="620" width="14" height="18"/><rect x="150" y="575" width="12" height="16"/><rect x="270" y="560" width="14" height="18"/><rect x="460" y="600" width="12" height="16"/></g>
       <path fill="#1d1830" d="M560 760H700L680 785H580ZM620 760V690L660 752Z"/><path fill="#ffd9a0" opacity=".55" d="M1180 720h120v6h-120zM1200 750h80v5h-80zM1218 780h44v4h-44z"/>`},
-    {name:'Dunmere Road under the stars',start:[.56,.66],poi:[.5,.4],svg:id=>{let st='';for(let i=0;i<70;i++){const x=(i*397)%1600,y=(i*173)%560,r=(i%5?1.6:2.8);st+=`<circle cx="${x}" cy="${y}" r="${r}"/>`}
+    {name:'Quellmarrow Road under the stars',start:[.56,.66],poi:[.5,.4],svg:id=>{let st='';for(let i=0;i<70;i++){const x=(i*397)%1600,y=(i*173)%560,r=(i%5?1.6:2.8);st+=`<circle cx="${x}" cy="${y}" r="${r}"/>`}
       return `<defs><linearGradient id="a${id}" x2="0" y2="1"><stop offset="0" stop-color="#050914"/><stop offset=".6" stop-color="#16285a"/><stop offset="1" stop-color="#4a3468"/></linearGradient></defs>
       <rect width="1600" height="640" fill="url(#a${id})"/><g fill="#f6f2ff" opacity=".85">${st}</g><circle cx="1220" cy="190" r="48" fill="#fff6d8"/><circle cx="1244" cy="176" r="44" fill="#0a1124"/>
       <path fill="#3a2a4a" d="M0 640L120 560H300L340 600H560L600 580H760L800 640Z"/><path fill="#30223e" d="M980 640L1040 540H1240L1290 600H1420L1470 560H1600V640Z"/>
@@ -5448,7 +5451,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: The page check and the short screens (each a background command, waited on)**
 
@@ -5531,7 +5534,7 @@ git commit -m "feat: 07.24 Ken Burns Effect, with See inside and Compare from th
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/07-ambient-background/ken-burns/README.md`, `A  animations/07-ambient-background/ken-burns/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  animations/07-ambient-background/game-of-life/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L8/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/07-ambient-background/ken-burns/README.md`, `A  animations/07-ambient-background/ken-burns/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  animations/07-ambient-background/game-of-life/index.html`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L8/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 11: Review, at most three fix rounds**
 
@@ -5545,7 +5548,7 @@ Loop · step 1 "Watch it" · player bar: Pause and Slow motion (the page pauses 
 
 **Files:**
 - Create: `animations/07-ambient-background/fire-effect/index.html` (345 lines), `animations/07-ambient-background/fire-effect/README.md`
-- Modify (by `$TEN/lanes.mjs 9`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
+- Modify (by `$TEN/lanes.mjs 9`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 07 bespoke block, `case 'fire':` in `pvMarkup()`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js`; the page check of the new page and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults; frame times
@@ -5562,10 +5565,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L9 || exit 1
 node $TEN/lanes.mjs 9 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 9 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M index.html`; then these 4 failing tests and `ℹ fail 4`: `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 9 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, from a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/07-ambient-background/fire-effect/index.html`**
 
@@ -6030,7 +6033,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: The page check and the short screens (each a background command, waited on)**
 
@@ -6112,7 +6115,7 @@ git commit -m "feat: 07.25 Fire Effect, with See inside and Compare from the sta
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/07-ambient-background/fire-effect/README.md`, `A  animations/07-ambient-background/fire-effect/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L9/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/07-ambient-background/fire-effect/README.md`, `A  animations/07-ambient-background/fire-effect/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L9/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 11: Review, at most three fix rounds**
 
@@ -6126,7 +6129,7 @@ Loop · step 1 "Watch it" · player bar: Pause and Slow motion (the page pauses 
 
 **Files:**
 - Create: `animations/07-ambient-background/lightning/index.html` (376 lines), `animations/07-ambient-background/lightning/README.md`
-- Modify (by `$TEN/lanes.mjs 10`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row where the finder is on the branch, every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
+- Modify (by `$TEN/lanes.mjs 10`): `index.html` (the card after Game of Life's, the `PV` key, the `PLACES` row, the `FIND` row (the finder is on the branch), every count 166 → 167), `README.md` (counts, 07's count 23 → 24, the catalog line), `animations/07-ambient-background/README.md` (its line and its Implementation summary row), `.github/ISSUE_TEMPLATE/config.yml`, `404.html`
 - Modify (Step 4, by hand): `index.html`: the preview's CSS at the end of the 07 bespoke block, `case 'lightning':` in `pvMarkup()`, a `STILL` point
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/` (their tools)
 - Test: `tests/*.test.js`; the page check of the new page and of the home page; the review kit's short screens, a gallery for the defaults and for each other choice in Try it, clips of the defaults and of the timing settings' choices; frame times
@@ -6143,10 +6146,10 @@ REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.sup
 cd $REPO/.claude/worktrees/ten-L10 || exit 1
 node $TEN/lanes.mjs 10 .
 git status --short
-node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -8
+node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)" | head -10
 ```
 
-Expected: `lane 10 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M index.html`; then these 4 failing tests and `ℹ fail 4`: `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. Where the finder is on the branch, `tests/finder.test.js` fails once more until the page exists (its rules read each page's kind). If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
+Expected: `lane 10 shared edits applied to .`; then ` M .github/ISSUE_TEMPLATE/config.yml`, ` M 404.html`, ` M README.md`, ` M animations/07-ambient-background/README.md`, ` M index.html`; then these 5 failing tests and `ℹ fail 5`: `✖ the answers keep the rules every page of a kind shares: transitions answer newpage, loops loop, scroll pages scroll`, `✖ the Full catalog in the root README lists every card once, in home order, linked to its live page`, `✖ the counts written in the issue template, the 404 page and the sitemap match the cards`, `✖ the skill and llms.txt are what tools/make-skill.mjs writes from the pages and the home page now`, `✖ llms.txt lists every card once, in the order of CATS, with its live address and its description, and links the skill files`. (The finder's test reads each page's kind, from a page that is not there yet; this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave exactly these.) If `lanes.mjs` stops with `not found (…)`, stop and tell the coordinator, who alone edits `$TEN/lanes.mjs`; before running it again, put the worktree back with `git checkout -- .` (this step makes no other changes; the tool refuses a second run on a changed tree).
 
 - [ ] **Step 2: Write the page: `animations/07-ambient-background/lightning/index.html`**
 
@@ -6641,7 +6644,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `ℹ fail 0`. If the finder is on the branch and only `tests/finder.test.js`'s test set or case 9 fails, note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
+Expected: `ℹ fail 0` (this plan's run of every lane on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there, gave it). If only `tests/finder.test.js` fails (its case 9 waits for Task 11 when the finder has changed since), note the failing lines in your report for Task 11 (lanes never change `tests/`) and go on; any other failure names what to fix in this lane's files.
 
 - [ ] **Step 6: The page check and the short screens (each a background command, waited on)**
 
@@ -6725,7 +6728,7 @@ git commit -m "feat: 07.26 Lightning, with See inside and Compare from the start
 git log --oneline -1
 ```
 
-Expected before the commit: `A  animations/07-ambient-background/lightning/README.md`, `A  animations/07-ambient-background/lightning/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L10/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (written also as one line in `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
+Expected before the commit: `A  animations/07-ambient-background/lightning/README.md`, `A  animations/07-ambient-background/lightning/index.html`, `M  .github/ISSUE_TEMPLATE/config.yml`, `M  404.html`, `M  README.md`, `M  animations/07-ambient-background/README.md`, `M  index.html`, `M  llms.txt`, `M  sitemap.xml` and the changed files under `skills/animation-handbook/`; nothing else (the kit's copy is ignored; logs and pictures are in `$TEN`). Then write `$TEN/reports/L10/build.md`: first line `RESULT: built <commit>`, then the line count, the page check's `ok` count and its round, the short screens' last line, the galleries and clips looked at (one line per choice: what changes in each view; one line per clip: what moves), the tests' pass and fail line, the frame times, the hand checks' results, every place the page departs from the spec or this task and why, and any shared-file need (the coordinator appends it to `$RUN/shared-wishes.md`; there should be none). Reply to the coordinator in at most three lines.
 
 - [ ] **Step 11: Review, at most three fix rounds**
 
@@ -6739,7 +6742,7 @@ The coordinator runs this task itself (coordination rule 6: it alone settles ove
 
 **Files:**
 - Merge into `feat/ten-animations` (worktree `.claude/worktrees/ten-int`, served on port 8971): `feat/see-inside-compare`, then `ten/L1` … `ten/L10`
-- Modify (by `$TEN/integrate.mjs`): the pager lines of `magnifier-lens`, `card-deck-swipe`, `audio-visualizer`, `fire-effect`, `lightning` (Previous) and `before-after-slider`, `magnifier-lens`, `water-ripple`, `ken-burns`, `fire-effect` (Next); every count in `index.html`, `README.md`, `.github/ISSUE_TEMPLATE/config.yml`, `404.html`; `tests/pages.test.js` (`KEYBOARD_PAGES`, `PHONE_DEFAULTS`); `index.html` `FIND` and `tests/finder.test.js` case 9 (where the finder is on the branch); See also: one line each in the READMEs of `clip-path-reveal`, `dissolve`, `spotlight-hover`, `swipe-to-dismiss`, `ambient-ripple`, `abstract-geometric-motion`, `infinite-zoom`, `fireworks` and `snow-rain` (the coordination file's "nine page READMEs, one See also line each"), and six between new pages (Before/After Slider and Magnifier Lens, Fire Effect and Lightning, Fire Effect and Water Ripple, each both ways); `CHANGELOG.md`; the ten pages' `?v=N`
+- Modify (by `$TEN/integrate.mjs`): the pager lines of `magnifier-lens`, `card-deck-swipe`, `audio-visualizer`, `fire-effect`, `lightning` (Previous) and `before-after-slider`, `magnifier-lens`, `water-ripple`, `ken-burns`, `fire-effect` (Next); every count in `index.html`, `README.md`, `.github/ISSUE_TEMPLATE/config.yml`, `404.html`; `tests/pages.test.js` (`KEYBOARD_PAGES`, `PHONE_DEFAULTS`); `index.html` `FIND` and `tests/finder.test.js` case 9 (the finder is on the branch); See also: one line each in the READMEs of `clip-path-reveal`, `dissolve`, `spotlight-hover`, `swipe-to-dismiss`, `ambient-ripple`, `abstract-geometric-motion`, `infinite-zoom`, `fireworks` and `snow-rain` (the coordination file's "nine page READMEs, one See also line each"), and six between new pages (Before/After Slider and Magnifier Lens, Fire Effect and Lightning, Fire Effect and Water Ripple, each both ways); `CHANGELOG.md`; the ten pages' `?v=N`
 - Regenerate: `sitemap.xml`, `llms.txt`, `skills/animation-handbook/`, `og-image.png` (coordinator), `famous/index.html` blocks (once `famous/` exists)
 - Test: the tests; the page check of the ten new pages, the five old last pages, the eight other pages whose See also changed, `home` and `famous` (once it exists)
 - Write: `$TEN/checks/int/`, `$TEN/reports/rulings-check.md` (when Step 1 needs it), ledger lines
@@ -6757,7 +6760,7 @@ for n in 1 2 3 4 5 6 7 8 9 10; do a=$(grep "  L$n  approved at" $TEN/ledger.md |
 grep "^First batch approved by the owner on .*rulings-159\.md:" $RUN/ledger.md; grep "  coord  rulings check:" $TEN/ledger.md | tail -1
 ```
 
-Expected: `10`; ten `L<n> tip approved` lines (a lane whose tip is not its approved commit goes back to its review first); then the rollout's verdict line, if the owner has given it, and the last rulings check, if any. When the verdict line is there and a lane was approved before it (the ledger's times say which; a lane built after it read `rulings-159.md` already) with no rulings check since: dispatch a fresh reviewer (strongest model) with `$RUN/rulings-159.md`, the rules it added to `$RUN/lessons.md` (`Owner (first batch) R<k>`), the ten pages (`git -C $REPO show ten/L<n>:<page folder>/index.html`) and their newest pictures in `$TEN/checks/L<n>/`. It writes `$TEN/reports/rulings-check.md`: first line `RESULT: none` or `RESULT: changes <count>`, then for each page what a rule changes. Each change goes through its lane's fix loop (the lane task's last step: the builder fixes and checks, the reviewer re-reviews, a new approval line); then the ledger line `<date time>  coord  rulings check: <none | L<n>, … fixed>` and this step again. While the verdict waits, go on: Task 12 Step 7 makes this check when it lands.
+Expected: `10`; ten `L<n> tip approved` lines (a lane whose tip is not its approved commit goes back to its review first); then the rollout's verdict line (on 2026-10-15: `First batch approved by the owner on 2026-10-15; shared files at v=10; rulings-159.md: 0 rules`) and the last rulings check, if any. When the verdict line is there and `$TEN/ledger.md` has no `rulings check:` line yet, check all ten pages (no ledger time is needed): if the verdict says `rulings-159.md: 0 rules`, as it did, there is nothing to apply, and the coordinator writes `<date time>  coord  rulings check: none (0 rules)`; otherwise dispatch a fresh reviewer (strongest model) with `$RUN/rulings-159.md`, the rules it added to `$RUN/lessons.md` (`Owner (first batch) R<k>`), the ten pages (`git -C $REPO show ten/L<n>:<page folder>/index.html`) and their newest pictures in `$TEN/checks/L<n>/`. It writes `$TEN/reports/rulings-check.md`: first line `RESULT: none` or `RESULT: changes <count>`, then for each page what a rule changes. Each change goes through its lane's fix loop (the lane task's last step: the builder fixes and checks, the reviewer re-reviews, a new approval line); then the ledger line `<date time>  coord  rulings check: <none | L<n>, … fixed>` and this step again. While the verdict waits, go on: Task 12 Step 7 makes this check when it lands. A rule the owner gives later (a new `Owner …` line in `$RUN/lessons.md`) goes the same way.
 
 - [ ] **Step 2: The integration worktree, and the rollout's progress merged in first**
 
@@ -6782,7 +6785,7 @@ git status --short | wc -l
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: the merge commit; or, when the rollout had nothing new but the tools still wrote something (its page commits move the sitemap's dates), `Write the generated files again before the lanes`, a commit of its own (never an amend of the rollout's commit); or `nothing new on feat/see-inside-compare`. Then `0` and `ℹ fail 0` (this plan's run: `Already up to date.`, `no conflicts`, the generated files' commit for the sitemap's 167 dates, `0`).
+Expected: the merge commit; or, when the rollout had nothing new but the tools still wrote something (its page commits move the sitemap's dates), `Write the generated files again before the lanes`, a commit of its own (never an amend of the rollout's commit); or `nothing new on feat/see-inside-compare`. Then `0` and `ℹ fail 0` (this plan's runs: on its scratch base, `Already up to date.`, `no conflicts`, the generated files' commit for the sitemap's 167 dates, `0`; on a copy of `feat/see-inside-compare` at `fce3a2b`, `Already up to date.`, `no conflicts`, `nothing new on feat/see-inside-compare`, `0`).
 
 - [ ] **Step 3: Merge the ten lanes in table order, settling the expected overlaps**
 
@@ -6813,7 +6816,7 @@ done
 git status --short | wc -l
 ```
 
-Expected (this plan's run): each merge prints its `CONFLICT` lines (the generated files every time: they take our side and are written again), then `resolve.mjs`'s lines and `merged L<n>`: L1 none; L2 and L3 `README.md: 1 resolved` (the Categories table's neighboring rows); L4 `README.md: 2 resolved`, `animations/04-micro-interactions/README.md: 1 resolved`, `index.html: 5 resolved`; L5 the same with `index.html: 6 resolved` (the `STILL` line too); L6 `index.html: 1 resolved` (the `PV` lines side by side); L7 `README.md: 1 resolved`, `animations/06-3d-advanced/README.md: 1 resolved`, `index.html: 5 resolved`; L8 `README.md: 1 resolved`; L9 `README.md: 2 resolved`, `animations/07-ambient-background/README.md: 1 resolved`, `index.html: 5 resolved`; L10 `README.md: 2 resolved`, `animations/07-ambient-background/README.md: 2 resolved`, `index.html: 6 resolved`; ten `merged` lines, then `0` (with the finder on the branch, `index.html` counts one more for each `FIND` overlap). If the loop stopped, the coordinator settles the named file by hand under the same rule (both sides, the earlier lane first; a line both changed keeps both additions), a fresh agent reviews the resolution, then `git add` it, `git commit --no-edit` after the branch check, and the loop runs again (the merged lanes print `Already up to date.`; the stopped lane's generated files are written and folded into its merge).
+Expected (this plan's run on a copy of `feat/see-inside-compare` at `fce3a2b`, the finder there): each merge prints its `CONFLICT` lines (the generated files every time: they take our side and are written again), then `resolve.mjs`'s lines and `merged L<n>`: L1 none; L2 and L3 `README.md: 1 resolved` (the Categories table's neighboring rows); L4 `README.md: 2 resolved`, `animations/04-micro-interactions/README.md: 1 resolved`, `index.html: 6 resolved` (cards, `PLACES` and `FIND` rows, previews, `PV` keys); L5 the same with `index.html: 7 resolved` (the `STILL` line too); L6 `index.html: 1 resolved` (the `PV` lines side by side); L7 `README.md: 1 resolved`, `animations/06-3d-advanced/README.md: 1 resolved`, `index.html: 6 resolved`; L8 `README.md: 1 resolved`; L9 `README.md: 2 resolved`, `animations/07-ambient-background/README.md: 1 resolved`, `index.html: 6 resolved`; L10 `README.md: 2 resolved`, `animations/07-ambient-background/README.md: 2 resolved`, `index.html: 7 resolved`; ten `merged` lines, then `0` (on its scratch base without the finder, `index.html` counted one less in L4, L5, L7, L9 and L10). If the loop stopped, the coordinator settles the named file by hand under the same rule (both sides, the earlier lane first; a line both changed keeps both additions), a fresh agent reviews the resolution, then `git add` it, `git commit --no-edit` after the branch check, and the loop runs again (the merged lanes print `Already up to date.`; the stopped lane's generated files are written and folded into its merge).
 
 ```bash
 REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
@@ -6824,7 +6827,7 @@ grep -n "light rays, game of life" animations/07-ambient-background/README.md | 
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: `10`; `izoom:.02,pixelate:.34,deckswipe:.4,lightning:.016`; `game of life, fire, lightning |`; and only the three count tests fail, the counts still saying 167: `the counts written on the home page match its cards`, `the counts written in the root README match the cards`, `the counts written in the issue template, the 404 page and the sitemap match the cards` (this plan's run: 1697 pass, 3 fail). Where the rollout moved the shared files past the lanes' number since Task 0, `every guided-steps page and the home page link the same version of the shared files` fails too, and where the finder is on the branch, its case 9 in `tests/finder.test.js`: both until Step 4.
+Expected: `10`; `izoom:.02,pixelate:.34,deckswipe:.4,lightning:.016`; `game of life, fire, lightning |`; and only the three count tests fail, the counts still saying 167: `the counts written on the home page match its cards`, `the counts written in the root README match the cards`, `the counts written in the issue template, the 404 page and the sitemap match the cards` (this plan's run on `fce3a2b`: 1760 pass, 3 fail). Where the rollout moved the shared files past the lanes' number since Task 0, `every guided-steps page and the home page link the same version of the shared files` fails too, until Step 4.
 
 - [ ] **Step 4: The integration's edits, committed**
 
@@ -6837,7 +6840,7 @@ node tools/update-sitemap.mjs && node tools/make-skill.mjs && ([ -f tools/make-f
 node --test "tests/*.test.js" 2>&1 | grep -E "^✖|^ℹ (pass|fail)"
 ```
 
-Expected: ten link lines (`Magnifier Lens: Previous is Before/After Slider`, `Before/After Slider: Next is Magnifier Lens`, … `Fire Effect: Next is Lightning`), the count lines (`home: 176 Web Animation Techniques` … `404: 176`, with 04 at 44, 06 at 28 and 07 at 26), `KEYBOARD_PAGES 04`, `KEYBOARD_PAGES 06`, `PHONE_DEFAULTS`; then either `FIND rows after …` five times and `finder case 9 takes Ink Spread Reveal` (the finder on the branch; `already: FIND rows after …` where the lanes added their own rows) or `FIND is not on this branch: its ten rows go in the ledger (listed below)`; fifteen `See also in …` lines (the nine existing pages, then six between new pages), `CHANGELOG`, ten lines on the shared files' version (`already: <page> at ?v=10`, or `<page> now at ?v=<N>` where the rollout moved on), and, without the finder, the ten `FIND` rows. Then `ℹ fail 0` (this plan's run, without the finder: 1700 pass, 0 fail). Run a second time, it prints `already: …` for every edit (this plan's run did). Then commit, so the checks and any later lane merge start from a clean tree:
+Expected: ten link lines (`Magnifier Lens: Previous is Before/After Slider`, `Before/After Slider: Next is Magnifier Lens`, … `Fire Effect: Next is Lightning`), the count lines (`home: 176 Web Animation Techniques` … `404: 176`, with 04 at 44, 06 at 28 and 07 at 26), `KEYBOARD_PAGES 04`, `KEYBOARD_PAGES 06`, `PHONE_DEFAULTS`; `already: FIND rows after …` five times (each lane added its own row) and `finder case 9 takes Ink Spread Reveal`; fifteen `See also in …` lines (the nine existing pages, then six between new pages), `CHANGELOG`, ten lines on the shared files' version (`already: <page> at ?v=10`, or `<page> now at ?v=<N>` where the rollout moved on). Then `ℹ fail 0` (this plan's run on `fce3a2b`: 1763 pass, 0 fail; on its scratch base without the finder, 1700). Run a second time, it prints only `already: …` lines (this plan's run did). Then commit, so the checks and any later lane merge start from a clean tree:
 
 ```bash
 REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
@@ -6894,7 +6897,7 @@ cd $REPO/.claude/worktrees/ten-int || exit 1
 git status --short | wc -l; git log --oneline -3
 ```
 
-Expected: `0`, then the social image's commit, the integration's commit and the last lane's merge. Ledger: `<date time>  int  integrated at <commit>; tests <pass>/0; checks 144 ok; FIND <added | open item: the ten rows below>; version ?v=<N>` (an open item lists the ten `FIND` rows `integrate.mjs` printed, for whichever merge brings the finder: Task 12 Step 6). Stop the server (Step 5's background command). The worktree stays for Task 12's integration fixes. Task 12 starts.
+Expected: `0`, then the social image's commit, the integration's commit and the last lane's merge. Ledger: `<date time>  int  integrated at <commit>; tests <pass>/0; checks 144 ok; FIND added; version ?v=<N>` (the finder is on the branch: `integrate.mjs` keeps the lanes' rows and sets finder case 9). Stop the server (Step 5's background command). The worktree stays for Task 12's integration fixes. Task 12 starts.
 
 ---
 
@@ -6968,20 +6971,20 @@ Expected: the log's last lines `done  90 pictures, 30 clips and 0 comparisons ma
 
 - [ ] **Step 6: Hand over to the rollout**
 
-The merge into `feat/see-inside-compare` is the rollout plan's Task 12 Step 1 (its `?v` step where the higher number wins, its `176` and `data-hb-modes` checks, `og-image.png` taken from this branch); this plan does not restate it. Hand over with the ledger line `<date time>  coord  ready to join: feat/ten-animations at <commit>; ten pages approved; final review clear; owner's look <verdict>; reports in reports/ and final/; whole-site check <done here | left to the rollout's Task 12 Step 7>; FIND <added | open item>`, and ask that step to draw `og-image.png` again if its merge touched the home page's top. If the ledger holds the `FIND` open item (Task 11 Step 7) and the merged `index.html` has `const FIND={` (the finder went live and `main` was merged into the rollout first), that step runs `node $TEN/integrate.mjs .` in the merge before its commit (every other edit prints `already: …`; it adds the ten rows and finder case 9) and then `node --test tests/finder.test.js` (`ℹ fail 0`). If the finder goes live only after the release, write the ten rows into the finder's run folder (`.superpowers/sdd/2026-10-13-animation-finder/ten-new-rows.md`) for its own merge, with a ledger line.
+The merge into `feat/see-inside-compare` is the rollout plan's Task 12 Step 1 (its `?v` step where the higher number wins, its `176` and `data-hb-modes` checks, `og-image.png` taken from this branch); this plan does not restate it. Hand over with the ledger line `<date time>  coord  ready to join: feat/ten-animations at <commit>; ten pages approved; final review clear; owner's look <verdict>; reports in reports/ and final/; whole-site check <done here | left to the rollout's Task 12 Step 7>; FIND added; took in: <none | feat/famous-effects at <commit>>`, and the same news where the rollout looks for it, one line appended to its ledger: `printf '%s\n' "Ten new animations ready to join: feat/ten-animations at <commit>; run folder .superpowers/sdd/2026-10-14-ten-new-animations/; took in: <none | feat/famous-effects at <commit>>" >> $RUN/ledger.md` (the rollout's Task 12 Step 1 and its part 9 read this project's ledger and reports from that folder; a project taken in reaches the rollout through this merge). Ask that step to draw `og-image.png` again if its merge touched the home page's top. The finder's rows come with the branch (each lane added its own, and Task 11 set finder case 9), so that merge needs nothing more for the finder.
 
 - [ ] **Step 7: The owner's first-batch rules, if they land after Task 11 Step 1**
 
-When the rollout's ledger gets `First batch approved by the owner on …; rulings-159.md: …` after Task 11 Step 1 ran: the rulings check of Task 11 Step 1 (a fresh reviewer, `$TEN/reports/rulings-check.md`), each change through its lane's fix loop, then Step 3's merge, check and re-review, and the ledger line `<date time>  coord  rulings check: <none | L<n>, … fixed>`. Before the hand-over this goes into Step 6's line; after it, as Step 8.
+When the rollout's ledger has `First batch approved by the owner on …; rulings-159.md: …` and `$TEN/ledger.md` no `rulings check:` line yet (or the owner gives a rule later): the rulings check of Task 11 Step 1 on all ten pages (nothing to apply for `0 rules`; otherwise a fresh reviewer, `$TEN/reports/rulings-check.md`), each change through its lane's fix loop, then Step 3's merge, check and re-review, and the ledger line `<date time>  coord  rulings check: <none | L<n>, … fixed>`. Before the hand-over this goes into Step 6's line; after it, as Step 8.
 
 - [ ] **Step 8: Fixes after joining**
 
-A finding on one of the ten pages from the rollout's final review (its Task 13, part 9) or the owner's final look comes back to the page's lane: re-create its worktree if Step 9 has not run (`git -C $REPO worktree add $REPO/.claude/worktrees/ten-L<n> ten/L<n>`, with the variables first; it is still there otherwise), the coordinator serves it on 8960 + n, the builder fixes as in its task's fix rounds, its reviewer re-reviews, and the coordinator writes the approval line; then Task 11 Step 1's approval check, Step 3's loop and Step 4 in `ten-int` (re-created the same way on `feat/ten-animations` if needed), the checks of Step 3 above, and the ledger line `<date time>  coord  fix after joining: L<n> at <commit>; feat/ten-animations at <commit>`. The rollout's coordinator merges `feat/ten-animations` on again by its own plan.
+A finding on one of the ten pages from the rollout's final review (its Task 13, part 9) or the owner's final look comes back to the page's lane: re-create its worktree if Step 9 has run (`git -C $REPO worktree add $REPO/.claude/worktrees/ten-L<n> ten/L<n>`, with the variables first); otherwise it is still there, the coordinator serves it on 8960 + n, the builder fixes as in its task's fix rounds, its reviewer re-reviews, and the coordinator writes the approval line; then Task 11 Step 1's approval check, Step 3's loop and Step 4 in `ten-int` (re-created the same way on `feat/ten-animations` if needed), the checks of Step 3 above, and the ledger line `<date time>  coord  fix after joining: L<n> at <commit>; feat/ten-animations at <commit>`. The rollout's coordinator merges `feat/ten-animations` on again by its own plan.
 
 - [ ] **Step 9: Clean up, only after the rollout's Task 13 has merged**
 
 ```bash
-REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook
+REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; TEN=$REPO/.superpowers/sdd/2026-10-14-ten-new-animations
 for n in 1 2 3 4 5 6 7 8 9 10; do git -C $REPO worktree remove $REPO/.claude/worktrees/ten-L$n; done
 git -C $REPO worktree remove $REPO/.claude/worktrees/ten-rev
 git -C $REPO worktree remove $REPO/.claude/worktrees/ten-int
@@ -7008,4 +7011,4 @@ Expected: `0` worktrees left with `ten-` in their path (the kit's copies are ign
 
 **Consistency:** the tools' names and options (`lanes.mjs <n> <root>`, `frametimes.mjs --base … [--phone] [--modes …] <page>`, `resolve.mjs <file>...`, `integrate.mjs <root> [--finder-check]`) are the same in Task 0, the lanes and Tasks 11 and 12; preview keys, slugs, titles, ledes, places and finder rows match between `lanes.mjs`, `integrate.mjs` and each lane's Interfaces; ports are 8960 + n for the lanes, 8971 for `ten-int` and 8972 for `ten-rev` (the coordination file's Ten new row); every command block sets `REPO`, `RUN` and `TEN` and checks its `cd`; every Chrome run is a pool run in the background with an `EXIT=` line, waited on with `wait-log.mjs`; the kit always runs from a copy inside the worktree it pictures; report files start with a `RESULT:` line and only the coordinator writes the ledger.
 
-**Pre-flight reviews:** `plan-review-A.md` (the process) and `plan-review-B.md` (the lanes) were applied; `plan-fixes.md` in the run folder lists each finding, what changed, and the checks run again.
+**Pre-flight reviews:** `plan-review-A.md` (the process), `plan-review-B.md` (the lanes) and the re-review `plan-rereview.md` were applied; `plan-fixes.md` in the run folder lists each finding, what changed, and the checks run again.
