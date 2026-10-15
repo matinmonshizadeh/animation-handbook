@@ -25,6 +25,17 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#05060a}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: a second canvas over the picture for the current's arrows, and plain words over the picture */
+    .field,.lbl{display:none}
+    .field{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .lbl{position:absolute;padding:4px 9px;border-radius:999px;background:rgba(5,6,10,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .field,.stage[data-hb-mode="inside"] .fl,.stage[data-hb-mode="compare"] .side{display:block}
+    .fl.what{left:10px;top:10px}
+    .fl.how{left:10px;bottom:10px}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=9">
   <script src="../../../assets/js/demo-page.js?v=9" defer></script>
@@ -45,14 +56,28 @@
   <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
-      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
     </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <canvas class="field" id="field" aria-hidden="true"></canvas>
+      <p class="lbl fl what" aria-hidden="true" data-hb-caption>Arrows: the hidden current</p>
+      <p class="lbl fl how" aria-hidden="true" data-hb-caption>Each particle follows the arrow under it</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Random each step</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Follows the current</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the arrows show the invisible current: at every spot it points one way and turns slowly over time, and each particle follows the arrow under it.</p>
+      <p data-hb-for="compare" hidden>On the left, Random each step: each particle picks a new direction every step, so it only scribbles in place. On the right, Follows the current: the particles ride smooth streams.</p>
     </div>
   </section>
 
@@ -164,6 +189,11 @@
   let W=0,H=0,raf=null,lastT=null,fa=0,paused=false,unseen=false,t=0; // fa: the part of a dim not yet applied
   let COUNT=900,SCALE=34,SPD=1.0,TRAIL=0.06,COL='mint';
   let parts=[];
+  // See inside and Compare: the arrows' canvas, a copy of Normal's picture kept while Compare shows, and one arrow per 28px square
+  const field=document.getElementById('field'),fctx=field.getContext('2d');
+  const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
+  const GRID=28;
+  let mode='normal',kept=null;
 
   // tiny deterministic value-noise: hash a lattice, smooth-interpolate, return an angle.
   function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
@@ -179,32 +209,68 @@
     return n*Math.PI*4; // map [0,1] noise to a couple of full turns
   }
 
-  function init(){parts=Array.from({length:phone.matches?Math.min(COUNT,PHONE_PARTS):COUNT},()=>({x:Math.random()*W,y:Math.random()*H}));}
+  // In Compare the particles split in two: the first half lives in the left half of the canvas and the second in the right (on
+  // phones each half gets half the phone's particles). Elsewhere every particle may go anywhere, as before.
+  function init(){
+    const n=phone.matches?Math.min(COUNT,PHONE_PARTS):COUNT,split=mode==='compare';
+    parts=Array.from({length:n},(_,i)=>{
+      const side=split&&i>=n/2?1:0,x0=split?side*W/2:0,w=split?W/2:W;
+      return{x:x0+Math.random()*w,y:Math.random()*H,side};
+    });
+  }
 
   // Rainbow takes its color from a table of whole degrees: building a color string for every particle costs about four times more
   const HUES=Array.from({length:360},(_,h)=>`hsla(${h},80%,65%,.5)`);
-  function colorFor(p){
+  function colorFor(p,x0=0,w=W){ // x0 and w: the part of the canvas the particle lives in (in Compare, its half)
     if(COL==='mint')return'rgba(122,255,200,.5)';
     if(COL==='ember')return'rgba(255,150,80,.5)';
     if(COL==='ice')return'rgba(120,190,255,.5)';
-    return HUES[Math.floor((p.x/W*120+t*20)%360)];
+    return HUES[Math.floor(((p.x-x0)/w*120+t*20)%360)];
   }
 
   // One frame: dim the canvas nf times, then move every particle one step along the field and draw that step. s is how many
   // 60 Hz frames it stands for; k is s, or a third of it in slow motion, and shrinks the step and the field's time but not the dim.
+  // Compare: each half draws only inside itself; the first half's particles take a random direction every step (the common
+  // mistake), the second half's follow the field. See inside draws the arrows after the step.
   function frame(s,nf){
     const k=s*(slowTog.checked?1/3:1);
     ctx.fillStyle=`rgba(5,6,10,${TRAIL})`;
     for(let i=0;i<nf;i++)ctx.fillRect(0,0,W,H);
-    for(const p of parts){
-      const a=angleAt(p.x,p.y,t);
-      const nx=p.x+Math.cos(a)*SPD*k,ny=p.y+Math.sin(a)*SPD*k;
-      ctx.strokeStyle=colorFor(p);ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(nx,ny);ctx.stroke();
-      p.x=nx;p.y=ny;
-      if(p.x<0||p.x>W||p.y<0||p.y>H){p.x=Math.random()*W;p.y=Math.random()*H;}
-    }
+    if(mode==='compare'){
+      const half=W/2;
+      for(const side of [0,1]){
+        ctx.save();ctx.beginPath();ctx.rect(side*half,0,half,H);ctx.clip();
+        for(const p of parts)if(p.side===side)move(p,side?angleAt(p.x,p.y,t):Math.random()*Math.PI*2,k,side*half,half);
+        ctx.restore();
+      }
+      ctx.fillStyle='#2a2b33';ctx.fillRect(half-1,0,2,H);
+    }else for(const p of parts)move(p,angleAt(p.x,p.y,t),k,0,W);
     t+=0.01*k;
+    if(mode==='inside')drawField();
+  }
+  // One step of one particle in direction a, drawn; one that leaves its part of the canvas (x0 to x0 + w) starts again somewhere in it
+  function move(p,a,k,x0,w){
+    const nx=p.x+Math.cos(a)*SPD*k,ny=p.y+Math.sin(a)*SPD*k;
+    ctx.strokeStyle=colorFor(p,x0,w);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(nx,ny);ctx.stroke();
+    p.x=nx;p.y=ny;
+    if(p.x<x0||p.x>x0+w||p.y<0||p.y>H){p.x=x0+Math.random()*w;p.y=Math.random()*H;}
+  }
+  // See inside: the current at the middle of every grid square, as a small arrow pointing where the field points there now (it is
+  // longer at a higher Speed), on its own canvas over the picture
+  function drawField(){
+    if(field.width!==W||field.height!==H){field.width=W;field.height=H;}
+    fctx.clearRect(0,0,W,H);
+    fctx.strokeStyle='rgba(244,244,242,.8)';fctx.lineWidth=1.5;fctx.lineCap='round';
+    const len=8+5*SPD;
+    fctx.beginPath();
+    for(let y=GRID/2;y<H;y+=GRID)for(let x=GRID/2;x<W;x+=GRID){
+      const a=angleAt(x,y,t),dx=Math.cos(a)*len/2,dy=Math.sin(a)*len/2;
+      fctx.moveTo(x-dx,y-dy);fctx.lineTo(x+dx,y+dy);
+      fctx.lineTo(x+dx-Math.cos(a-.6)*5,y+dy-Math.sin(a-.6)*5);
+      fctx.moveTo(x+dx,y+dy);fctx.lineTo(x+dx-Math.cos(a+.6)*5,y+dy-Math.sin(a+.6)*5);
+    }
+    fctx.stroke();
   }
   // A settled picture: 40 frames at once, each a 60 Hz frame's worth, so it is the same picture on every screen. The canvas
   // is covered completely first, because a see-through dim leaves a faint ghost of whatever was there before
@@ -237,6 +303,18 @@
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
+  // The mode switch draws the mode at once. Compare keeps Normal's picture and particles, splits the particles into its two halves
+  // and draws a settled picture of them; leaving Compare puts Normal's back (or draws it again after a setting or size change).
+  // See inside draws the arrows over the picture: every frame while it plays, at once while paused.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare'){keep.width=W;keep.height=H;kctx.drawImage(cvs,0,0);kept=parts;init();prerender();}
+    else if(was==='compare'&&mode!=='compare'){
+      if(kept&&keep.width===W&&keep.height===H){ctx.drawImage(keep,0,0);parts=kept;}else{init();prerender();}
+      kept=null;
+    }
+    if(mode==='inside')drawField();else fctx.clearRect(0,0,field.width,field.height);
+  });
 
   // Setting the canvas size wipes it, so a real change of the stage's size starts the particles again with a settled
   // picture at once, playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
@@ -244,6 +322,7 @@
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
     W=cvs.width=w;H=cvs.height=h;
+    kept=null;
     init();prerender();
   }
 
@@ -256,11 +335,11 @@
     }));
   }
   // Playing, the next frames show a changed setting. Paused, the trails need steps to show it, so a fresh settled picture
-  // is drawn; if Pause comes before any frame has, the picture is drawn then. Speed changes no picture: it keeps the one on screen.
-  function changed(){if(paused)prerender();else unseen=true;}
+  // is drawn; if Pause comes before any frame has, the picture is drawn then. Speed changes no picture in Normal: it keeps the one on screen.
+  function changed(){kept=null;if(paused)prerender();else unseen=true;} // a kept Normal picture would show the old setting
   choices('scale-seg',d=>{SCALE=+d.px;changed();});
   choices('trail-seg',d=>{TRAIL=+d.fade;changed();});
-  choices('speed-seg',d=>{SPD=+d.spd;});
+  choices('speed-seg',d=>{SPD=+d.spd;if(mode==='inside'&&paused)drawField();}); // See inside's arrows follow Speed at once, paused too
   choices('count-seg',d=>{COUNT=+d.n;init();changed();});
   choices('color-seg',d=>{COL=d.col;changed();});
 
