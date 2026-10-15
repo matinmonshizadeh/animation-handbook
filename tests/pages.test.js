@@ -697,6 +697,7 @@ test('the 404 page sends /finder and /find to the finder, keeping only its answe
     ['/animation-handbook/Finder/', '?what=text&when=scroll&how=draw#top', { go: '/animation-handbook/?view=find&what=text&when=scroll&how=draw' }],
     ['/animation-handbook/FIND', '?q=fade&how=fade&utm_source=x', { go: '/animation-handbook/?view=find&how=fade' }],
     ['/animation-handbook/finder', '?what=%3Cb%3E', { go: '/animation-handbook/?view=find' }],
+    ['/animation-handbook/finder', '?view=find&all=1&xwhat=a&what=a%2Fb&how=fade', { go: '/animation-handbook/?view=find&how=fade' }],
     ['/animation-handbook/finders', '', { words: 'finders' }],
     ['/animation-handbook/animations/finder/', '', { words: 'finder' }]
   ];

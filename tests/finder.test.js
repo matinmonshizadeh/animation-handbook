@@ -86,6 +86,12 @@ test('FIND_Q holds the three questions in order, with the answers of the spec in
   for (const a of questions[2].answers) assert.equal(a.pic, `fd-${a.key}`, `${a.key}: the class of its moving picture`);
 });
 
+test("every question and answer key is small letters only, the values the 404 page's way into the finder keeps", () => {
+  const questions = homeConst('FIND_Q');
+  assert.deepEqual(questions.flatMap(q => [q.key, ...q.answers.map(a => a.key)]).filter(key => !/^[a-z]+$/.test(key)), []);
+  assert.ok(read(path.join(ROOT, '404.html')).includes(`/^(${questions.map(q => q.key).join('|')})=[a-z]+$/`), '404.html keeps what, when and how');
+});
+
 test('FIND lists every card once, in home order, with 1–3 What, 1–3 When and 1–4 How answers, all known, none twice', () => {
   const find = homeConst('FIND'), questions = homeConst('FIND_Q');
   const all = homeConst('CATS').flatMap(cat => cat.entries.map(e => e[0]));
@@ -169,6 +175,18 @@ test('the Not here? address opens the form animation_not_here.yml with its title
   assert.equal(url.searchParams.get('title'), '[not here] Text or numbers · When I scrolled · Drew or typed itself');
   assert.equal(url.searchParams.get('answers'),
     'Text or numbers · When I scrolled · Drew or typed itself — https://matinmonshizadeh.github.io/animation-handbook/?view=find&what=text&when=scroll&how=draw');
+});
+
+test('the Not here? title and answers are encoded whole, so an answer with &, #, + or % reaches the form as written', () => {
+  const questions = homeConst('FIND_Q');
+  questions[0].answers[0].words = 'Fish & chips #1 + 50%';
+  const page = finder({ FIND_Q: questions }), answers = { what: questions[0].answers[0].key }, words = 'Fish & chips #1 + 50% · Not sure · Not sure';
+  const href = page.findIssueURL(answers);
+  assert.ok(href.includes('&title=' + encodeURIComponent('[not here] ' + words) + '&answers='), 'the title as encodeURIComponent writes it');
+  const url = new URL(href);
+  assert.deepEqual([...url.searchParams.keys()], ['template', 'title', 'answers']);
+  assert.equal(url.searchParams.get('title'), '[not here] ' + words);
+  assert.equal(url.searchParams.get('answers'), words + ' — https://matinmonshizadeh.github.io/animation-handbook/' + page.findQuery(answers));
 });
 
 // ── The pictures of the How answers ──
@@ -310,6 +328,187 @@ test('the Not here? link names animation_not_here.yml and fills only fields the 
 test('the issue chooser offers the finder first', () => {
   const config = read(path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'config.yml'));
   assert.match(config.split(/\r?\n  - name: /)[1] || '', /^Find an animation by what you saw\r?\n    url: https:\/\/matinmonshizadeh\.github\.io\/animation-handbook\/\?view=find\r?\n/);
+});
+
+// ── The finder's view as the page runs it ──
+// The page's own code for the results line, See N matches, the groups, Not here?, the ways in, an answer and the "/" key, run with
+// vm over stand-ins for the page's elements, its history and its listeners, as the fragment-step test above runs popstate.
+
+// A stand-in for an element: it keeps what the code sets on it (hidden, its words, markup, link, attributes and children), records
+// keyboard focus and its listeners, and has client rects only while it is not hidden, as a hidden element has none.
+const fakeEl = (more = {}) => ({ hidden: false, textContent: '', innerHTML: '', className: '', href: '', value: '', attrs: {}, children: [], on: {},
+  focused: null, setAttribute(name, value) { this.attrs[name] = String(value); }, removeAttribute(name) { delete this.attrs[name]; },
+  appendChild(child) { this.children.push(child); }, replaceChildren(...children) { this.children = children; },
+  addEventListener(type, fn) { this.on[type] = fn; }, focus(options) { this.focused = plain(options || {}); },
+  getClientRects() { return this.hidden ? [] : [{}]; }, ...more });
+// A statement of the page's script, from `from` up to the semicolon that ends its line, and a listener the page adds.
+const statement = from => { const start = at(from); return HOME.slice(start, start + HOME.slice(start).search(/;[ \t]*(\/\/[^\n]*)?\r?\n/) + 1); };
+const listener = from => { const start = at(from); return HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1) + ')'; };
+const SLUGS = homeConst('CATS').flatMap(cat => cat.entries.map(e => e[0]));
+// Matches made of the first cards in home order: `best` of them, then `close` more.
+const someMatches = (best, close) => ({ best: SLUGS.slice(0, best).map(slug => ({ slug })), close: SLUGS.slice(best, best + close).map(slug => ({ slug })) });
+const NONE = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+function finderView() {
+  const els = {}, calls = [], listeners = {};
+  const $ = id => els[id] ??= fakeEl(id === 'places' ? { closest: () => els.placesSection ??= fakeEl() } : {});
+  // The radios the page builds from FIND_Q, Not sure last in each question, found by their name as the finder finds them.
+  const radios = homeConst('FIND_Q').flatMap(q => [...q.answers.map(a => a.key), 'unsure'].map(value =>
+    fakeEl({ name: 'fd-' + q.key, value, checked: false, classList: { contains: name => name === 'fd-r' } })));
+  els.finder = fakeEl({ querySelectorAll: selector => radios.filter(r => selector === `.fd-r[name="${r.name}"]`) });
+  const CARD = Object.fromEntries(SLUGS.map(slug => { const title = fakeEl(); return [slug, fakeEl({ slug, title, querySelector: s => (s === '.title' ? title : null) })]; }));
+  const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' }, $, CARD, cardsBox: $('cards'), q: $('q'), q2: $('q2'), reduce: false,
+    history: { pushState: (s, t, url) => calls.push(['push', url]), replaceState: (s, t, url) => calls.push(['replace', url]) },
+    document: { title: 'Animation Handbook', activeElement: null, createElement: tag => fakeEl({ tag }), querySelector: s => (s === '.home-hero' ? (els.hero ??= fakeEl()) : null) },
+    render: answered => calls.push(['render', answered]), place: cards => calls.push(['place', cards.length]), scrollTo: to => calls.push(['scrollTo', to.top]),
+    addEventListener: (type, fn) => { listeners[type] = fn; } });
+  for (const from of ['const FIND_PAGE=', 'const gone=', 'const answeredAny=', 'const finderEl=', 'const HOME_TITLE=', 'const findNot=']) vm.runInContext(statement(from), page);
+  for (const name of ['findLine', 'showFinder', 'showFound', 'showNotHere', 'enterFind', 'go', 'writeURL']) vm.runInContext(source(name), page);
+  for (const from of ["finderEl.addEventListener('change',", "addEventListener('keydown',"]) vm.runInContext(listener(from), page);
+  return { page, els, calls, listeners, radios };
+}
+
+test("the finder's results line, See N matches, the Best and Close groups and Not here? say what the contract says", () => {
+  assert.match(statement('const finderEl='), /navFind=\$\('nav-find'\)/, "the Finder link is found with the finder's other elements, before the code that reads it");
+  const { page, els, radios } = finderView();
+  const ASK = 'Answer a question above, and the animations that match show here.';
+  const line = (answers, best, close) => { page.state = { ...NONE, view: 'find', ...answers }; return page.findLine(someMatches(best, close)); };
+  assert.equal(line({}, 0, 0), ASK, 'no answer');
+  assert.equal(line({ what: 'unsure', when: 'unsure', how: 'unsure' }, 0, 0), ASK, 'only Not sure');
+  assert.equal(line({ what: 'text', how: 'fade' }, 5, 9), '5 best matches and 9 close matches.');
+  assert.equal(line({ what: 'text', how: 'fade' }, 1, 1), '1 best match and 1 close match.');
+  assert.equal(line({ what: 'text' }, 5, 0), '5 best matches.');
+  assert.equal(line({ what: 'text' }, 1, 0), '1 best match.');
+  assert.equal(line({ what: 'text', how: 'fade' }, 0, 9), 'No animation fits all your answers. These come close.');
+  assert.equal(line({ what: 'text', how: 'fade' }, 0, 0), 'No animation fits these answers yet.');
+
+  // The finder in place of the hero and the tiles, its answers chosen as the state says; See N matches, hidden while nothing matches.
+  page.state = { ...NONE, view: 'find', what: 'text', when: 'unsure' };
+  const see = () => [els['find-see'].hidden, els['find-see'].textContent];
+  page.showFinder(true, someMatches(1, 0));
+  assert.deepEqual(see(), [false, 'See 1 match']);
+  page.showFinder(true, someMatches(5, 9));
+  assert.deepEqual(see(), [false, 'See 14 matches']);
+  assert.deepEqual([els.hero.hidden, els.placesSection.hidden, els.finder.hidden, page.document.title, els['nav-find'].attrs['aria-current']],
+    [true, true, false, 'Find an animation you saw — Animation Handbook', 'page']);
+  assert.deepEqual(radios.filter(r => r.checked).map(r => r.name + '=' + r.value), ['fd-what=text', 'fd-when=unsure']);
+  page.showFinder(true, someMatches(0, 0));
+  assert.equal(els['find-see'].hidden, true, 'See N matches is hidden while nothing matches');
+  page.showFinder(false, null);
+  assert.deepEqual([els.hero.hidden, els.placesSection.hidden, els.finder.hidden, page.document.title, 'aria-current' in els['nav-find'].attrs],
+    [false, false, true, 'Animation Handbook', false]);
+
+  // Best matches, then Close matches with its line; the first twelve cards until Show all, their titles a level below the headings.
+  page.state = { ...NONE, view: 'find', what: 'text', how: 'fade' };
+  const groups = () => els.cards.children.map(box => [box.className, box.innerHTML, box.children[0].children.length]);
+  page.showFound(someMatches(5, 9));
+  assert.deepEqual(groups(), [
+    ['group fd-group', '<h3 class="ghead"><span class="gname">Best matches</span><span class="gcount">5 animations</span></h3>', 5],
+    ['group fd-group', '<h3 class="ghead"><span class="gname">Close matches</span><span class="gcount">9 animations</span></h3><p class="fd-gline">They fit all but one of your answers.</p>', 7]]);
+  assert.ok(els.cards.children.every(box => box.children[0].children.every(card => card.title.attrs['aria-level'] === '4')), 'card titles at level 4');
+  page.state.all = true;
+  page.showFound(someMatches(5, 9));
+  assert.deepEqual(groups().map(g => g[2]), [5, 9], 'Show all shows every card');
+  page.showFound(someMatches(1, 1));
+  assert.deepEqual(groups().map(g => g[1].match(/"gcount">([^<]*)</)[1]), ['1 animation', '1 animation']);
+  page.showFound(someMatches(0, 3));
+  assert.deepEqual(groups().map(g => g[1].match(/"gname">([^<]*)</)[1]), ['Close matches'], 'no Best group when no card fits every answer');
+
+  // Not here? shows once a question has a real answer, with its own sentence when nothing fits, and links to the form.
+  const notHere = (answers, best, close) => {
+    page.state = { ...NONE, view: 'find', ...answers };
+    page.showNotHere(true, someMatches(best, close));
+    return els['find-not'].hidden ? 'hidden' : els['find-not-s'].textContent;
+  };
+  assert.equal(notHere({}, 0, 0), 'hidden', 'no answer');
+  assert.equal(notHere({ what: 'unsure', how: 'unsure' }, 0, 0), 'hidden', 'only Not sure');
+  assert.equal(notHere({ what: 'text', when: 'scroll' }, 3, 2), 'Tell us what you saw. We use it to add the animation or to fix the finder.');
+  assert.equal(els['find-gh'].href, page.findIssueURL({ what: 'text', when: 'scroll' }));
+  assert.equal(notHere({ what: 'text', when: 'scroll', how: 'pin' }, 0, 0), 'Nothing fits these answers yet. Try Not sure on one question, or tell us what you saw.');
+  page.showNotHere(false, null);
+  assert.equal(els['find-not'].hidden, true, 'hidden outside the finder');
+});
+
+test('the Find button and the Finder link open the finder with one history step, at the top, with keyboard focus on its heading', () => {
+  assert.ok(HOME.includes("document.querySelectorAll('.find-cta,#nav-find').forEach(a=>a.addEventListener('click',enterFind));"), 'both ways in');
+  const { page, els, calls } = finderView();
+  const click = (more = {}) => ({ button: 0, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, prevented: false, preventDefault() { this.prevented = true; }, ...more });
+  page.state = { ...NONE };
+  const e = click();
+  page.enterFind(e);
+  assert.ok(e.prevented, 'the page opens the finder itself');
+  assert.deepEqual(calls, [['render', undefined], ['push', '?view=find'], ['scrollTo', 0]]);
+  assert.deepEqual([page.state.view, els['find-title'].focused], ['find', { preventScroll: true }]);
+  // Already in the finder: no second step and the answers stay; the page goes to the top and the heading takes keyboard focus.
+  calls.length = 0;
+  els['find-title'].focused = null;
+  page.location.search = '?view=find&what=text';
+  page.state = { ...NONE, view: 'find', what: 'text' };
+  page.enterFind(click());
+  assert.deepEqual([calls, page.state.what, els['find-title'].focused], [[['scrollTo', 0]], 'text', { preventScroll: true }]);
+  // A click with Ctrl, Cmd, Shift or Alt, or with another button, is left to the browser (a new tab or window).
+  calls.length = 0;
+  page.state = { ...NONE };
+  for (const more of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }]) {
+    const other = click(more);
+    page.enterFind(other);
+    assert.equal(other.prevented, false, JSON.stringify(more));
+  }
+  assert.deepEqual(calls, []);
+});
+
+test('an answer drops Show all and only replaces the address, and in the finder the "/" key is left to the browser', () => {
+  const { page, els, calls, listeners, radios } = finderView();
+  page.state = { ...NONE, view: 'find', what: 'background', all: true };
+  page.location.search = '?view=find&what=background&all=1';
+  els.finder.on.change({ target: radios.find(r => r.name === 'fd-how' && r.value === 'fade') });
+  assert.deepEqual(plain(page.state), { ...NONE, view: 'find', what: 'background', how: 'fade' });
+  assert.deepEqual(calls, [['render', true], ['replace', '?view=find&what=background&how=fade']]);
+  // "/" goes to the search box, unless the box is hidden, as it is with the hero in the finder: then nothing happens and the key
+  // stays the browser's (its own quick find).
+  const press = () => ({ key: '/', prevented: false, preventDefault() { this.prevented = true; } });
+  els.q.hidden = true;
+  let e = press();
+  listeners.keydown(e);
+  assert.deepEqual([e.prevented, els.q.focused], [false, null], 'in the finder');
+  els.q.hidden = false;
+  e = press();
+  listeners.keydown(e);
+  assert.deepEqual([e.prevented, els.q.focused], [true, {}], 'elsewhere');
+});
+
+test('an address that opens the finder hides the hero and the place tiles from the first paint until the script has drawn the view', () => {
+  const head = between(HOME, '(function(){var p=new URLSearchParams(location.search);', '</script>');
+  assert.ok(head && at(head) < at('</head>'), 'the line runs in the head');
+  const page = finder({ URLSearchParams, location: { search: '' } });
+  vm.runInContext(source('fromURL'), page);
+  for (const search of ['?view=find', '?view=find&what=text&how=fade', '?q=%20&view=find', '?q=fade&view=find', '?view=all', '?what=text', '']) {
+    const added = [];
+    vm.runInNewContext(head, { URLSearchParams, location: { search }, document: { documentElement: { classList: { add: name => added.push(name) } } } });
+    page.location.search = search;
+    assert.deepEqual(added, page.fromURL().next.view === 'find' ? ['fd-direct'] : [], `${search || 'the start page'}: as the page reads the address`);
+  }
+  assert.ok(HOME.includes('<section class="wrap" aria-labelledby="places-title">'), "the place tiles' section");
+  assert.ok(STYLE.includes('.fd-direct .home-hero,.fd-direct [aria-labelledby="places-title"]{display:none}'), 'the class hides the hero and the place tiles');
+  assert.match(HOME, /\nconst startCat=readURL\(\);\r?\nrender\(\);\r?\ndocument\.documentElement\.classList\.remove\('fd-direct'\);/, 'the first render takes the class away');
+});
+
+test("the page check's patterns for See N matches and the results line take each number only with its own word, as the page writes it", () => {
+  const check = read(path.join(ROOT, 'tools', 'check-pages.mjs'));
+  const pattern = name => {
+    const m = check.match(new RegExp(`const ${name} = (/.+/);\\r?\\n`));
+    assert.ok(m, `${name} in tools/check-pages.mjs`);
+    return vm.runInNewContext(m[1]);
+  };
+  const see = pattern('FIND_SEE'), results = pattern('FIND_LINE'), { page, els } = finderView();
+  page.state = { ...NONE, view: 'find', what: 'text', how: 'fade' };
+  for (const [best, close] of [[1, 0], [1, 1], [5, 0], [5, 9], [11, 1], [21, 0], [0, 1], [0, 21]]) {
+    page.showFinder(true, someMatches(best, close));
+    const said = page.findLine(someMatches(best, close));
+    assert.ok(see.test(els['find-see'].textContent), els['find-see'].textContent);
+    assert.ok(results.test(said), said);
+  }
+  for (const wrong of ['See 1 matches', 'See 2 match', 'See 21 match']) assert.ok(!see.test(wrong), wrong);
+  for (const wrong of ['1 best matches.', '2 best match.', '5 best matches and 1 close matches.', '1 best match and 2 close match.']) assert.ok(!results.test(wrong), wrong);
 });
 
 // ── Every card's answers and the test set ──
