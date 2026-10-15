@@ -29,16 +29,18 @@
 // player bar its place under it (a stage that grows with its text, hb-grow, aside). In each mode the labels and half names
 // (data-hb-caption) on show must be inside the stage, at least 12px as drawn, clear of each other and at most six (four on
 // phones); no id may be used twice (a copy that kept one); a control in the stage named with aria-label must say its visible
-// words (text hidden from screen readers, see-through, hidden or clipped to nothing is not counted); and where the page names
-// its picture (an aria-label on the stage, or on its canvas or picture), each mode must name it differently. A plays-once page
-// is tried with Loop off and a do-it page from rest (Reset where it has one). On both, except under reduced motion, a press of
-// See inside or Compare plays the demo once (the shared script presses Replay or Show me), and the check waits for that run to
-// end (no timer of the page set for 6 s or less still waiting, no animation on the stage running apart from endless ones; up
-// to 30 s, and at once where the press starts no run) and then for the stage to rest before it looks. Only setTimeout timers
-// and animations are seen: a run driven by a frame loop or by setInterval shows only as a stage that changes, so a pause of
-// 750 ms or more inside it would pass for rest (a run holds its pauses with setTimeout). The stage is at rest when it has not
-// changed for 750 ms; every animation in it that never ends (a blinking caret, a loader) is held at its first frame while rest
-// is judged and the rest pictures and mode screenshots are taken. The whole Watch step (its heading, the switch, the stage, the
+// words (text hidden from screen readers, see-through, hidden, clipped away or on a face turned away is not counted); and where
+// the page names its picture (an aria-label on the stage, or on its canvas or picture, a copy aside), each mode must name it
+// differently. A plays-once page is tried with Loop off and a do-it page from rest (Reset where it has one). On both, except
+// under reduced motion, a press of See inside or Compare plays the demo once (the shared script presses Replay or Show me), and
+// the check waits for that run to end (no timer of the page set for 6 s or less still waiting, no animation on the stage running
+// apart from endless ones; up to 30 s, and at once where the press starts no run) and then for the stage to rest before it looks.
+// Only setTimeout timers and animations are seen: a move driven by a frame loop or by setInterval shows only as a stage that
+// changes, so on these two kinds rest also needs the timers and animations to be quiet (a run that moves by a frame loop and then
+// holds on a timer is waited out), and only a pause of 750 ms or more made inside a frame loop, with no timer, would pass for
+// rest. The stage is at rest when it has not changed for 750 ms; every animation in it that never ends (a blinking caret, a
+// loader) is held at its first frame while rest is judged and the rest pictures and mode screenshots are taken, except under
+// reduced motion, where every mode must be still. The whole Watch step (its heading, the switch, the stage, the
 // player bar and the notes) is saved as a screenshot of See inside and of Compare (Normal's is the setup's own screenshot); a
 // mode button the page lacks is named. At the desktop and reduced-motion setups, with the stage at rest (a scroll page with its
 // box at the middle of its range, a loop paused), the box does not scroll either (read before the run a press starts, which may
@@ -301,7 +303,12 @@ async function stageShot() {
 // rest pictures and the mode screenshots, holdEndless() pauses each one that runs at its first frame (each call also takes any
 // that started since the last), and releaseEndless() puts each back where it was and lets it run on (one the page has dropped
 // meanwhile is left alone). A loop the page has paused is not touched, and waitForRun never counts such an animation as a run.
+// Nothing is held under reduced motion: there every mode must be a still picture, so an endless movement that is still running
+// is a stage that never comes to rest. A held CSS animation no longer follows the page's own animation-play-state (its CSS pause)
+// for the rest of that page load; nothing later in the check needs it to (loopProblems runs before the modes, and each setup
+// loads the page again).
 const holdEndless = () => evaluate(`(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const stage = document.querySelector('.hb-page .stage'), held = window.__hbHeld || (window.__hbHeld = []);
   for (const a of document.getAnimations()) {
     const t = a.effect && a.effect.target;
@@ -327,18 +334,21 @@ async function heldShot() {
 }
 
 // The stage once it has come to rest: after waiting `wait` ms, captures 250 ms apart until the picture has stayed the same for
-// 750 ms (four captures in a row), for up to 10 s, with the animations that never end held (see holdEndless). still says whether
-// it did; when it did not, shot is only the last frame of a movement that goes on and is not worth comparing with anything.
-async function restShot(wait = 0) {
+// 750 ms (four captures in a row), with the animations that never end held (see holdEndless), for up to 10 s. With calm (rest
+// judged after a run), a capture counts towards rest only while runCalm also holds (no timer waiting, no animation running): a run
+// that moves by a frame loop and then holds still on a timer, as Page Curl's turn does, looks at rest during that hold. Such a run
+// is waited out for up to 30 s, as waitForRun waits. still says whether the stage came to rest; when it did not, shot is only the
+// last frame of a movement that goes on and is not worth comparing with anything.
+async function restShot(wait = 0, { calm = false } = {}) {
   if (wait) await sleep(wait);
   try {
     await holdEndless();
     let shot = await stageShot(), same = 0;
-    for (const end = Date.now() + 10000; Date.now() < end;) {
+    for (const end = Date.now() + (calm ? 30000 : 10000); Date.now() < end;) {
       await sleep(250);
       await holdEndless();
       const next = await stageShot();
-      if (next !== shot) { shot = next; same = 0; continue; }
+      if (next !== shot || (calm && !(await runCalm()))) { shot = next; same = 0; continue; }
       if (++same === 3) return { shot, still: true };
     }
     return { shot, still: false };
@@ -458,34 +468,39 @@ async function watchStepShot() {
   return { png, stage, ratio: g.ratio };
 }
 
+// Whether the page shows no run going on: no timer of the page set for 6 s or less is waiting (TIMERS counts them) and no
+// animation on the stage runs (one that never ends, such as a blinking caret, does not count).
+const runCalm = () => evaluate(`(() => {
+  const stage = document.querySelector('.hb-page .stage');
+  const busy = document.getAnimations().some(a => {
+    const t = a.effect && a.effect.target;
+    return a.playState === 'running' && t && stage.contains(t) && a.effect.getComputedTiming().endTime !== Infinity;
+  });
+  return !busy && (window.__hbWaiting ? window.__hbWaiting() : 0) === 0;
+})()`);
+
 // After a press that may start a run (Replay or Show me, pressed by the shared script after a mode press, or Reset): waits until
-// no timer of the page set for 6 s or less is waiting (TIMERS counts them) and no animation on the stage runs (one that never
-// ends, such as a blinking caret, does not count), three looks in a row 100 ms apart, for up to 30 s: a run as long as Kinetic
-// Typography's (about 16 s, 26 s at Slow) is waited out, and where no run starts the wait ends at once. A run often holds still
-// on a timer between two moves, so a stage that has not changed for a while is not yet a run that has ended. A frame loop or a
-// setInterval is not seen here: such a run is waited for only by restShot, so its pauses must be setTimeout holds. Says whether
-// it ended.
+// runCalm holds three looks in a row 100 ms apart, for up to 30 s: a run as long as Kinetic Typography's (about 16 s, 26 s at
+// Slow) is waited out, and where no run starts the wait ends at once. A run often holds still on a timer between two moves, so a
+// stage that has not changed for a while is not yet a run that has ended. A move made by a frame loop or by setInterval is not
+// seen here: a run that starts with one looks over until its next timer is set, so the rest judgment that follows (restShot with
+// calm) also waits while a timer waits or an animation runs. Only a pause made inside a frame loop, with no timer, would still
+// pass for rest. Says whether the run ended.
 async function waitForRun() {
-  const calm = () => evaluate(`(() => {
-    const stage = document.querySelector('.hb-page .stage');
-    const busy = document.getAnimations().some(a => {
-      const t = a.effect && a.effect.target;
-      return a.playState === 'running' && t && stage.contains(t) && a.effect.getComputedTiming().endTime !== Infinity;
-    });
-    return !busy && (window.__hbWaiting ? window.__hbWaiting() : 0) === 0;
-  })()`);
   let quiet = 0;
   for (const end = Date.now() + 30000; Date.now() < end; await sleep(100)) {
-    quiet = (await calm()) ? quiet + 1 : 0;
+    quiet = (await runCalm()) ? quiet + 1 : 0;
     if (quiet === 3) return true;
   }
   return false;
 }
 
-// The name the page gives its picture (the stage's aria-label, else its canvas's or picture's), or null where it gives none.
+// The name the page gives its picture (the stage's aria-label, else its canvas's or picture's), or null where it gives none. A
+// copy hidden from screen readers or inert (Compare's) is not the picture, even where it kept the name it was copied with.
 const pictureName = () => evaluate(`(() => {
   const stage = document.querySelector('.hb-page .stage');
-  const named = stage.hasAttribute('aria-label') ? stage : stage.querySelector('canvas[aria-label], [role="img"][aria-label], svg[aria-label]');
+  const named = stage.hasAttribute('aria-label') ? stage : [...stage.querySelectorAll('canvas[aria-label], [role="img"][aria-label], svg[aria-label]')]
+    .find(el => !el.closest('[aria-hidden="true"], [inert]'));
   return named ? named.getAttribute('aria-label') : null;
 })()`);
 
@@ -524,17 +539,36 @@ async function captionProblems(label) {
     const wordsOf = t => (t || '').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
     // The words a control shows, parted where innerText parts them (at the edge of a block and at a line break), leaving out
     // every text that is not drawn: inside an aria-hidden="true" part, see-through (opacity 0, on it or on a part around it),
-    // hidden (visibility), with no box at all (not rendered, or scaled down to nothing), or clipped to nothing (inside a box under
-    // 2px across that clips what overflows it, as a text kept for screen readers only is). So the closed cards a button holds out
-    // of sight (Dynamic Island) or a second label waiting see-through (Copy to Clipboard's Copied!) are not its words.
+    // hidden (visibility), with no box at all (not rendered, or scaled down to nothing), clipped away, or on a face turned away.
+    // Clipped away: only the part of a text inside every box around it (up to the stage) that clips what overflows it counts, and
+    // a part under 2px across is nothing, as a text kept for screen readers only is. Turned away: a face with
+    // backface-visibility: hidden that the transform property, within its 3D context, turns over, as a flip card's back is
+    // (clip-path and the rotate property are not worked out). So the closed cards a button holds out of sight (Dynamic Island)
+    // or a second label waiting see-through (Copy to Clipboard's Copied!) are not its words.
     const shownText = c => {
       const blockOf = n => { for (let e = n.parentElement; e !== c; e = e.parentElement) if (!getComputedStyle(e).display.startsWith('inline')) return e; return c; };
-      const clipped = n => {
-        for (let e = n.parentElement; ; e = e.parentElement) {
-          const st = getComputedStyle(e), r = e.getBoundingClientRect();
-          if ((st.overflowX !== 'visible' || st.overflowY !== 'visible') && (r.width < 2 || r.height < 2)) return true;
-          if (e === c) return false;
+      const shownPart = (n, rects) => {
+        let parts = rects.map(r => [r.left, r.top, r.right, r.bottom]);
+        for (let e = n.parentElement; e; e = e === stage ? null : e.parentElement) {
+          const st = getComputedStyle(e);
+          if (st.overflowX === 'visible' && st.overflowY === 'visible') continue;
+          const b = e.getBoundingClientRect();
+          parts = parts.map(([l, t, r, btm]) => [Math.max(l, b.left), Math.max(t, b.top), Math.min(r, b.right), Math.min(btm, b.bottom)]);
         }
+        return parts.some(([l, t, r, b]) => r - l >= 2 && b - t >= 2);
+      };
+      const turnedAway = n => {
+        for (let e = n.parentElement; e && e !== stage; e = e.parentElement) {
+          if (getComputedStyle(e).backfaceVisibility !== 'hidden') continue;
+          let m = new DOMMatrix();
+          for (let f = e; ; f = f.parentElement) {
+            const t = getComputedStyle(f).transform;
+            if (t !== 'none') m = new DOMMatrix(t).multiply(m);
+            if (!f.parentElement || getComputedStyle(f.parentElement).transformStyle !== 'preserve-3d') break;
+          }
+          if (m.m33 < 0) return true;
+        }
+        return false;
       };
       const walk = document.createTreeWalker(c, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
       let text = '', last = null;
@@ -542,8 +576,9 @@ async function captionProblems(label) {
         if (n.nodeType !== 3) { if (n.tagName === 'BR') text += ' '; continue; }
         const el = n.parentElement, range = document.createRange();
         range.selectNodeContents(n);
+        const rects = [...range.getClientRects()].filter(r => r.width > 0 && r.height > 0);
         if (el.closest('[aria-hidden="true"]') || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true, checkOpacity: true, checkVisibilityCSS: true })
-          || ![...range.getClientRects()].some(r => r.width > 0 && r.height > 0) || clipped(n)) continue;
+          || !rects.length || !shownPart(n, rects) || turnedAway(n)) continue;
         const block = blockOf(n);
         text += (last && block !== last ? ' ' : '') + n.textContent;
         last = block;
@@ -628,7 +663,7 @@ async function modeProblems(name, setup, kind) {
   // this mode (none at the lighter setups, where the stage may be moving): the stage cut out of the screenshot must be that
   // picture. If it is not, the box is put back, the page given a moment, and the screenshot taken again, up to three more times;
   // a screenshot that never shows the stage as it was seen is a problem of its own. With a picture to show, animations that never
-  // end are held as they were for it (see holdEndless).
+  // end are held as they were for it (see holdEndless; never under reduced motion).
   const capture = async (mode, expected) => {
     let png = '', shows = !expected;
     try {
@@ -661,7 +696,11 @@ async function modeProblems(name, setup, kind) {
   // one. Whatever still runs then (the last play, the run on arrival, a result that goes back on a timer) is waited for.
   if (kind === 'once') await evaluate(`(() => { const l = document.querySelector('[data-hb-loop]'); if (l && l.checked) l.click(); })()`);
   if (kind === 'do') await evaluate(`(() => { const r = document.querySelector('[data-hb-reset]'); if (r) r.click(); })()`);
-  if ((kind === 'once' || kind === 'do') && !(await waitForRun())) problems.push('the demo does not come to rest before the modes are tried (a timer or an animation of the page keeps going for 30 s)');
+  // On those two kinds rest is judged as after a run (restShot with calm), unless the run never ended: the page's timers never
+  // stop then, and waiting on them again would only say so again.
+  const settles = kind === 'once' || kind === 'do';
+  let ended = true;
+  if (settles && !(ended = await waitForRun())) problems.push('the demo does not come to rest before the modes are tried (a timer or an animation of the page keeps going for 30 s)');
   // A scroll page is tried with its box at the middle of its range: there a scroll-driven effect shows something, a mode change
   // that sends the box back to the top or draws for the top is seen, and Compare shows its difference in the screenshot.
   if (pictures && kind === 'scroll') await evaluate(`(() => { const b = ${BOX}; b.scrollTo({ top: (b.scrollHeight - b.clientHeight) / 2, behavior: 'instant' }); })()`);
@@ -674,7 +713,7 @@ async function modeProblems(name, setup, kind) {
   // The first picture is the stage at rest. A stage that never comes to rest is said so, and then no picture is compared with it.
   let first = null;
   if (pictures) {
-    const rest = await restShot();
+    const rest = await restShot(0, { calm: settles && ended });
     if (rest.still) first = rest.shot;
     else problems.push('the stage does not come to rest before the modes are tried');
     restTop = await evaluate(`(() => { const b = ${BOX}; return b ? b.scrollTop : 0; })()`);
@@ -700,9 +739,10 @@ async function modeProblems(name, setup, kind) {
     if (now.notes.some(n => n !== mode)) problems.push(`${label}: the other note is still shown`);
     unmoved(label, now);
     sized(label, now);
-    if (runs && !(await waitForRun())) problems.push(`${label}: the run it started does not end within 30 s`);
+    let runEnded = true;
+    if (runs && !(runEnded = await waitForRun())) problems.push(`${label}: the run it started does not end within 30 s`);
     if (pictures || runs) {
-      const rest = await restShot();
+      const rest = await restShot(0, { calm: settles && ended && runEnded });
       if (!rest.still) problems.push(`the stage does not come to rest in ${label}`);
       else if (pictures) {
         shots[mode] = rest.shot;
@@ -725,7 +765,7 @@ async function modeProblems(name, setup, kind) {
     unmoved('Normal', now);
     sized('Normal', now);
     if (pictures) {
-      const rest = await restShot();
+      const rest = await restShot(0, { calm: settles && ended });
       if (!rest.still) problems.push('the stage does not come to rest in Normal');
       else if (first && !(await samePicture(rest.shot, first))) problems.push('Normal does not bring the first picture back');
     }
