@@ -4431,7 +4431,7 @@ Start the preview of the main checkout (Claude Browser `preview_start` with the 
 
 Run, as a background command (about fifteen minutes):
 `REPO=/c/Users/matin/OneDrive/Desktop/Projects/animation-handbook; RUN=$REPO/.superpowers/sdd/2026-10-13-see-inside-compare; KIT=$REPO/.superpowers/sdd/2026-10-13-learn-pilot/review-kit; node $RUN/slot.mjs run kit-batch -- node $KIT/record.mjs --base http://127.0.0.1:8731 --before http://127.0.0.1:8800 --rulings $RUN/first-batch-rulings.json --out $RUN/kit/first-batch --clean --keep-frames animations/01-scroll-based/parallax-scrolling animations/02-entrance-and-exit/fade-in-out animations/03-page-transitions/overlay-wipe animations/04-micro-interactions/magnetic-button animations/05-text-typography/marquee-ticker animations/06-3d-advanced/fluid-simulation animations/07-ambient-background/flow-field > $RUN/kit/first-batch.log 2>&1`
-When it has ended: `tail -2 $RUN/kit/first-batch.log`. Expected: `63 pictures, 21 clips and 14 comparisons made, 0 skipped, 0 failed`. The comparisons say `0 of … pixels differ` for Parallax, Fade In, Overlay Wipe, Magnetic Button and Fluid (a few corner pixels at most), a few for Marquee and many for Flow Field (random particles: by eye).
+When it has ended: `tail -2 $RUN/kit/first-batch.log`. Expected: `63 pictures, 21 clips and 21 comparisons made, 0 skipped, 0 failed` (three sizes per page since the kit's round 3: 1280, 375 and 320, each the stage and Try it). The comparisons say `0 of … pixels differ` for Parallax, Fade In, Overlay Wipe, Magnetic Button and Fluid (a few corner pixels at most), a few for Marquee and many for Flow Field (random particles: by eye).
 
 - [ ] **Step 4: The coordinator looks first**
 
