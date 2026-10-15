@@ -307,23 +307,105 @@ for (const d of steps) {
   });
 }
 
+// The pages the switch tests cover. FINAL GATE: while the rollout runs these are the pages that have the switch; at integration
+// this line becomes `const SWITCHED = steps;`, so an animation page without the switch fails
+// (docs/superpowers/specs/2026-10-13-see-inside-compare-rollout-design.md, section 4, item 5).
+const SWITCHED = steps.filter(d => pageOf(d).includes('data-hb-modes'));
 // The mode switch (See inside and Compare), exactly as in the template, between the Watch step's heading and its stage, with
 // a note for See inside and one for Compare after the player bar, both hidden until their mode is pressed.
 const MODES = '<div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes><button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button><button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button><button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button></div>';
-for (const d of steps.filter(d => pageOf(d).includes('data-hb-modes'))) {
+// The notes box exactly: the See inside note, then the Compare note, each a direct child of the box and hidden at first.
+const NOTES_BOX = /<div class="hb-mode-notes" aria-live="polite"><p data-hb-for="inside" hidden>((?:(?!<\/p>)[\s\S])*)<\/p><p data-hb-for="compare" hidden>((?:(?!<\/p>)[\s\S])*)<\/p><\/div>/;
+const sentencesIn = html => decode(html.replace(/<[^>]+>/g, '')).split(/[.!?](?:\s|$)/).filter(s => s.trim()).length;
+// The index of the bracket that closes the one at `at` in a script (round, square and curly brackets counted together),
+// stepping over strings, template text (its ${…} parts are read as code), comments and regular expressions; -1 when it is
+// never closed.
+function closingOf(src, at) {
+  let depth = 0;
+  for (let i = at; i < src.length; i++) {
+    const c = src[i];
+    if (c === '"' || c === "'") {
+      for (i++; i < src.length && src[i] !== c; i++) if (src[i] === '\\') i++;
+    } else if (c === '`') {
+      for (i++; i < src.length && src[i] !== '`'; i++) {
+        if (src[i] === '\\') i++;
+        else if (src[i] === '$' && src[i + 1] === '{') { i = closingOf(src, i + 1); if (i < 0) return -1; }
+      }
+    } else if (c === '/' && src[i + 1] === '/') {
+      i = src.indexOf('\n', i);
+      if (i < 0) return -1;
+    } else if (c === '/' && src[i + 1] === '*') {
+      i = src.indexOf('*/', i + 2) + 1;
+      if (i < 1) return -1;
+    } else if (c === '/' && /(?:^|[(,=:[!&|?{};])\s*$/.test(src.slice(Math.max(0, i - 80), i))) {
+      // a regular expression: up to its closing slash, past escapes and character classes
+      for (i++; i < src.length && src[i] !== '/'; i++) {
+        if (src[i] === '\\') i++;
+        else if (src[i] === '[') while (++i < src.length && src[i] !== ']') if (src[i] === '\\') i++;
+      }
+    } else if ('([{'.includes(c)) depth++;
+    else if (')]}'.includes(c) && --depth === 0) return i;
+  }
+  return -1;
+}
+for (const d of SWITCHED) {
   test(`${d.slug}: the mode switch is as in the template, before the stage, with a note for See inside and Compare`, () => {
     const html = pageOf(d), flat = html.replace(/>\s+</g, '><');
     assert.equal(count(html, 'data-hb-modes'), 1, 'one mode switch');
     assert.ok(flat.includes(MODES), 'the mode switch is exactly as in the template');
     const watch = between(flat, '<section class="hb-step hb-watch"', '</section>');
     const at = watch.indexOf(MODES);
-    assert.ok(at > watch.indexOf('<div class="hb-step-head">') && at < watch.indexOf('<div class="stage"'), 'between the heading and the stage');
+    const stageAt = watch.search(/<div class="stage[\s"]/);
+    assert.ok(stageAt > -1 && at > watch.indexOf('<div class="hb-step-head">') && at < stageAt, 'between the heading and the stage');
     const notes = between(watch, '<div class="hb-mode-notes" aria-live="polite">', '</div>');
     assert.ok(notes && watch.indexOf(notes) > watch.indexOf('<div class="hb-player">'), 'the notes come after the player bar');
     for (const mode of ['inside', 'compare']) assert.equal(count(notes, `<p data-hb-for="${mode}" hidden>`), 1, `one ${mode} note, hidden at first`);
     for (const [, href] of notes.matchAll(/<a href="([^"]+)"/g)) assert.ok(isDemoDir(path.resolve(d.dir, href)), `note link ${href}`);
   });
+
+  test(`${d.slug}: exactly two notes, See inside then Compare, each one or two sentences`, () => {
+    const flat = pageOf(d).replace(/>\s+</g, '><');
+    const box = between(flat, '<section class="hb-step hb-watch"', '</section>').match(NOTES_BOX);
+    assert.ok(box, 'the notes box holds the See inside note and then the Compare note, each a direct child, and nothing else');
+    for (const [i, name] of [[1, 'See inside'], [2, 'Compare']]) {
+      const n = sentencesIn(box[i]);
+      assert.ok(n >= 1 && n <= 2, `the ${name} note has ${n} sentences`);
+    }
+  });
+
+  test(`${d.slug}: the page's script listens for hb:mode, and its styles mark modes on the stage only`, () => {
+    const html = pageOf(d);
+    const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    assert.match(script, /document\.addEventListener\(\s*['"]hb:mode['"]/, 'the page script listens for hb:mode on document');
+    // The listener is in place once the script has run: no load or DOMContentLoaded handler holds it, whether written in the call
+    // or as a named function (a load listener for something else, such as Scrollspy Navigation's remeasure, is fine)
+    const listen = script.search(/document\.addEventListener\(\s*['"]hb:mode['"]/);
+    for (const m of script.matchAll(/addEventListener\(\s*['"](?:DOMContentLoaded|load)['"]\s*,\s*([A-Za-z_$][\w$]*)?\s*(\(|=>)?/g)) {
+      const name = m[1] && !m[2] && !/^(?:function|async)$/.test(m[1]) ? m[1].replace(/\$/g, '\\$') : '';
+      const def = name ? script.search(new RegExp(`function\\s+${name}\\s*\\(|\\b(?:const|let|var)\\s+${name}\\s*=`)) : -1;
+      const from = name ? (def > -1 ? script.indexOf('{', def) : -1) : m.index + m[0].indexOf('(');
+      if (from < 0) continue;
+      const to = closingOf(script, from);
+      assert.ok(!(listen > from && listen < (to < 0 ? script.length : to)),
+        `the hb:mode listener is not in place at the top level: it waits for the page to load (${m[0].trim()}…)`);
+    }
+    const style = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+    const marked = cssRules(style).flatMap(r => r.selector.split(',').map(s => s.trim())).filter(s => s.includes('data-hb-mode'));
+    for (const sel of marked) {
+      assert.ok(!/data-hb-mode=["']?normal/.test(sel), `no rule for Normal: ${sel}`);
+      assert.match(sel, /\.stage\[data-hb-mode="(?:inside|compare)"\]/, `a mode rule names the stage: ${sel}`);
+    }
+  });
 }
+
+test("on phones the mode switch's own rule outranks the rule for choice buttons, so its three buttons share the row equally", () => {
+  const bare = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const modes = cssRules(blockOf(bare, '@media(max-width:760px){')).find(r => r.selector === '.hb-page .seg.hb-modes button');
+  const seg = cssRules(blockOf(bare, '@media(max-width:600px){')).find(r => r.selector === '.hb-page .seg button');
+  assert.ok(modes && /(^|;)\s*flex:\s*1 1 0\s*(;|$)/.test(modes.body), 'up to 760px the mode buttons share their row equally (flex: 1 1 0)');
+  assert.ok(seg && /(^|;)\s*flex:/.test(seg.body), 'the phone rule for choice buttons sets flex too');
+  assert.ok(outranks(specificity(modes.selector), specificity(seg.selector)), `${modes.selector} must outrank ${seg.selector}`);
+});
 
 // The do-it pages played with the pointer, where Show me was once the only thing a keyboard could do, can be played from the
 // keyboard too: the stage holds something that takes keyboard focus (a button, a link or an element with tabindex="0"), and
