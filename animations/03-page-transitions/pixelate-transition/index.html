@@ -205,7 +205,8 @@
     ctx.imageSmoothingEnabled=false;ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.drawImage(small,0,0,bw,bh,x,y,bw*b,bh*b);ctx.restore();
   }
   function draw(){
-    const w=cvs.width,h=cvs.height,p=change?change.p:null,b=(p===null?1:blockAt(p))*dpr,show=p!==null&&p>=.5?change.to:current;
+    const held=!change&&runFrom!==null&&!reduceMQ.matches; // a Show me run's hold: the change's last frame, not the pose (G4)
+    const w=cvs.width,h=cvs.height,p=change?change.p:held?1:null,b=(p===null?1:blockAt(p))*dpr,show=change&&p>=.5?change.to:current;
     ctx.clearRect(0,0,w,h);
     const fade=!!change&&change.fade!==undefined; // a change under reduced motion: no block grows or shrinks, in any mode
     if(mode==='compare'){
@@ -229,7 +230,10 @@
     const bw=Math.ceil(w/b),bh=Math.ceil(h/b),rw=Math.ceil(w/(blockMax*dpr)),rh=Math.ceil(h/(blockMax*dpr)),cell=Math.max(2,Math.floor(Math.min(110*dpr/rw,70*dpr/rh))),iw=rw*cell,ih=rh*cell,ix=w-iw-10*dpr,iy=36*dpr;
     ctx.fillStyle='rgba(11,11,13,.9)';ctx.fillRect(ix-4*dpr,iy-4*dpr,iw+8*dpr,ih+8*dpr);
     sctx.imageSmoothingEnabled=true;sctx.drawImage(img,0,0,bw,bh);ctx.imageSmoothingEnabled=false;ctx.drawImage(small,0,0,bw,bh,ix,iy,iw,ih);
-    const ax=ix-6*dpr,ay=iy+ih+6*dpr,tx=w*.42,ty=h*.6;
+    // the labels are measured first: Scaled up sits under the inset and the arrow starts at its left end, aiming at least 50px left of it
+    const L=['l-copy','l-up','l-swap'].map(id=>{const el=document.getElementById(id);return{el,w:el.offsetWidth,h:el.offsetHeight}});
+    const upX=Math.max(6,Math.min(W-L[1].w-6,(ix+iw)/dpr-L[1].w)),upY=(iy+ih)/dpr+12;
+    const ax=(upX-6)*dpr,ay=(upY+L[1].h/2)*dpr,tx=Math.min(w*.42,ax-50*dpr),ty=h*.6;
     ctx.strokeStyle='#ffce5a';ctx.lineWidth=2.5*dpr;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(tx,ty);
     const a=Math.atan2(ty-ay,tx-ax);ctx.moveTo(tx-10*dpr*Math.cos(a-.5),ty-10*dpr*Math.sin(a-.5));ctx.lineTo(tx,ty);ctx.lineTo(tx-10*dpr*Math.cos(a+.5),ty-10*dpr*Math.sin(a+.5));ctx.stroke();
     const sx=10*dpr,sw=Math.min(w*.4,180*dpr),sh=34*dpr,sy=h-sh-10*dpr;
@@ -238,10 +242,9 @@
     for(let i=0;i<=60;i++){const q=i/60,y=sy+sh-(blockAt(q)-1)/(blockMax-1)*sh;i?ctx.lineTo(sx+q*sw,y):ctx.moveTo(sx+q*sw,y)}ctx.stroke();
     ctx.setLineDash([4*dpr,4*dpr]);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.moveTo(sx+sw/2,sy);ctx.lineTo(sx+sw/2,sy+sh);ctx.stroke();ctx.setLineDash([]);
     const q=p===null?.5:p;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx+q*sw,sy+sh-(blockAt(q)-1)/(blockMax-1)*sh,5*dpr,0,6.283);ctx.fill();
-    // the small copy's name to its left, Scaled up under it beside where the arrow starts, Swap here over the strip's top; the
-    // labels are all measured before any moves, so the page lays out once a frame
-    const L=['l-copy','l-up','l-swap'].map(id=>{const el=document.getElementById(id);return{el,w:el.offsetWidth,h:el.offsetHeight}});
-    const at=[[ix/dpr-12-L[0].w,iy/dpr],[(ix+iw)/dpr-L[1].w,(iy+ih)/dpr+12],[(sx+sw/2)/dpr-L[2].w/2,sy/dpr-30]];
+    // the small copy's name to its left, Scaled up under it where the arrow starts, Swap here over the strip's top (all measured
+    // before any moves, so the page lays out once a frame)
+    const at=[[ix/dpr-12-L[0].w,iy/dpr],[upX,upY],[(sx+sw/2)/dpr-L[2].w/2,sy/dpr-30]];
     L.forEach((l,i)=>{l.el.style.left=Math.max(6,Math.min(W-l.w-6,at[i][0]))+'px';l.el.style.top=Math.max(6,Math.min(H-l.h-6,at[i][1]))+'px'});
   }
   // A change runs by the time that passed (three times as long in slow motion) and draws only while it runs
@@ -271,12 +274,12 @@
     if(runFrom!==null){const home=runFrom;stopRun();change=null;cancelAnimationFrame(raf);raf=0;current=home;updateNav(home);draw()}
     else if(change)return; // the visitor's own change is on
     const start=current;runFrom=start;
-    navigate((start+1)%PAGES.length,()=>later(()=>navigate(start,()=>{runFrom=null}),1200));
+    navigate((start+1)%PAGES.length,()=>later(()=>navigate(start,()=>{runFrom=null;draw()}),1200));
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();change=null;cancelAnimationFrame(raf);raf=0;current=0;updateNav(0);draw()});
-  document.addEventListener('hb:input',()=>{if(runFrom!==null)stopRun()});
+  document.addEventListener('hb:input',()=>{if(runFrom!==null){stopRun();if(!change)draw()}});
   // A run never moves the focus, so focus arriving in the stage while one runs (a Tab to the page names) is the visitor's
-  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&runFrom!==null)stopRun()});
+  document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&runFrom!==null){stopRun();if(!change)draw()}});
   // The mode switch draws the mode at once
   document.addEventListener('hb:mode',e=>{mode=e.detail.mode;cvs.setAttribute('aria-label',LABELS[mode]);if(W)draw()});
   function resize(){

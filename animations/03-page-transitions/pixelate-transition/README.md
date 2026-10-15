@@ -12,7 +12,7 @@ A pixelate transition hides the change from one page or picture to the next behi
 - A playful change between the sections of a landing page
 
 ## How it works
-The pages are pictures drawn once onto hidden canvases. During a change, each frame draws the current page very small on a second canvas, one pixel per block, with smoothing on, so each pixel becomes the average color of its block; then it draws that small copy back up to the full size with smoothing off, so every pixel turns into one flat square:
+The pages are pictures drawn once onto hidden canvases. During a change, each frame draws the current page very small on a second canvas, one pixel per block, with smoothing on, so each pixel takes its color from the middle of its block; then it draws that small copy back up to the full size with smoothing off, so every pixel turns into one flat square:
 
 ```js
 const bw = Math.ceil(w / b), bh = Math.ceil(h / b);          // b: the block size this frame
@@ -42,6 +42,7 @@ A change runs by the time that has passed, three times as long in slow motion, a
 - **Pictures, not live pages.** A canvas cannot pixelate HTML. For real pages, take a picture of each view first (html2canvas or a server-side screenshot), or pixelate only the hero picture and fade the rest. With the View Transitions API, the old and new views can be shown as pictures that a shader or canvas pixelates.
 - **WebGL.** A fragment shader that rounds each pixel's coordinates to its block (`floor(uv * blocks) / blocks`) pixelates a full-screen view in one pass; PixiJS has a ready-made pixelate filter.
 - **Keep text readable.** Leave navigation and buttons out of the pixelated area, and keep the change short: it hides the page for a moment by design.
+- **Sampled, not averaged.** The small copy takes a spot near each block's middle rather than averaging the whole block, which is close enough for flat squares. For a true average, set the small canvas's smoothing quality to medium or high, which costs more per frame.
 - **Reduced motion.** Use a short, plain crossfade instead.
 
 ## See also
