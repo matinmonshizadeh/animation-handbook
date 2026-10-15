@@ -532,6 +532,56 @@ test('the phone bar never shows in the finder, even while its own search box has
   }
 });
 
+test('the questions are native radios in fieldsets with legends, each named by its words, its picture or icon hidden from screen readers, Not sure last', () => {
+  const box = { innerHTML: '' }, page = finder({ $: id => (id === 'find-qs' ? box : null) });
+  vm.runInContext(statement("$('find-qs').innerHTML="), page);
+  const questions = homeConst('FIND_Q');
+  const sets = [...box.innerHTML.matchAll(/<fieldset class="fd-q fd-(\w+)"><legend><span class="fd-n" aria-hidden="true">(\d)<\/span><span>([^<]+)<\/span><\/legend>(?:<p class="fd-hint">[^<]*<\/p>)?<div class="fd-as">(.*?)<\/div><\/fieldset>/g)];
+  assert.equal(sets.map(m => m[0]).join(''), box.innerHTML, 'three fieldsets and nothing else');
+  assert.deepEqual(sets.map(m => [m[1], m[2], m[3]]), questions.map((q, i) => [q.key, String(i + 1), q.title]));
+  sets.forEach((m, i) => {
+    const q = questions[i];
+    const labels = [...m[4].matchAll(/<label class="fd-a( fd-unsure)?"><input class="fd-r" type="radio" name="fd-(\w+)" value="(\w+)" autocomplete="off">(<span class="fd-pic (fd-\w+)" aria-hidden="true"><i><\/i><i><\/i><i><\/i><i><\/i><\/span>|<svg class="i fd-icon" viewBox="0 0 24 24" aria-hidden="true">.*?<\/svg>|)<span class="fd-w">([^<]+)<\/span><\/label>/g)];
+    assert.equal(labels.map(l => l[0]).join(''), m[4], `${q.key}: only labels around radios`);
+    assert.deepEqual(labels.map(l => [l[2], l[3], l[6], !!l[1]]), [...q.answers.map(a => [q.key, a.key, a.words, false]), [q.key, 'unsure', 'Not sure', true]]);
+    labels.slice(0, -1).forEach((l, j) => assert.ok(q.key === 'how' ? l[5] === q.answers[j].pic : l[4].startsWith('<svg'), `${q.key} ${l[3]}: its picture or icon`));
+  });
+});
+
+test("Back or Forward that hides the focused control gives keyboard focus to the finder's heading in the finder, to the results heading elsewhere", () => {
+  for (const [from, search, want] of [['', '?view=find&what=text', 'findTitle'], ['find', '', 'toTitle']]) {
+    const calls = [];
+    const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' }, q: { value: '' }, q2: { value: '' },
+      document: { body: {}, activeElement: {} }, gone: () => true, render: () => calls.push('render'), toTitle: () => calls.push('toTitle'),
+      findTitle: { focus: () => calls.push('findTitle') }, addEventListener: (type, fn) => { if (type === 'popstate') page.popstate = fn; } });
+    for (const name of ['fromURL', 'readURL']) vm.runInContext(source(name), page);
+    vm.runInContext(listener("addEventListener('popstate',"), page);
+    page.state = { ...NONE, view: from, what: from ? 'text' : '' };
+    page.location.search = search;
+    page.popstate();
+    assert.deepEqual(calls, ['render', want], search || 'the start page');
+  }
+});
+
+test('the results heading reads Your matches, its line comes 400 ms after the last answer and at once after any other change, and Show all names the matches', () => {
+  const timers = [], sub = { textContent: 'old' };
+  const page = vm.createContext({ subEl: sub, setTimeout: (fn, ms) => timers.push({ fn, ms }), clearTimeout: id => { if (timers[id - 1]) timers[id - 1].fn = null; } });
+  vm.runInContext(statement('let sayTimer='), page);
+  vm.runInContext(source('say'), page);
+  page.say('one', true);
+  page.say('two', true);
+  assert.deepEqual([sub.textContent, timers.map(t => t.ms), timers.map(t => !!t.fn)], ['old', [400, 400], [false, true]], 'the line waits; a second answer restarts the wait');
+  timers[1].fn();
+  assert.equal(sub.textContent, 'two');
+  page.say('three', true);
+  page.say('four', false);
+  assert.deepEqual([sub.textContent, !!timers[2].fn], ['four', false], 'any other change writes at once and drops the wait');
+  const render = source('render');
+  assert.match(render, /say\(sub,finding&&answered\)/, 'render waits only after an answer in the finder');
+  assert.match(render, /title='Your matches'/, 'the results heading in the finder');
+  assert.match(render, /moreLabel\.textContent='Show all '\+matched\+' matches'/, 'Show all N matches');
+});
+
 // ── Every card's answers and the test set ──
 // The reviewed answers: every answer given to some card, the rules every page of a kind shares, and the spec's 28 described effects.
 
