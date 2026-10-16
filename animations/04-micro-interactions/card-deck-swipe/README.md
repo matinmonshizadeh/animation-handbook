@@ -34,7 +34,7 @@ On release, a card whose middle went past the swipe distance, or that was flicke
 | How far to swipe | Medium | How far the card's middle must go before letting go sends it: short is a quarter of the card's width, medium 40% and long 60%; a quick flick sends it from anywhere |
 | How much it turns | A little | How far the card turns for each card width of drag, around a point below its bottom edge: none does not turn, a little turns 14 degrees and a lot 30 degrees |
 | Shows stamps | on | Like in green and Nope in red fade in on the card as it is dragged, fully shown at the swipe distance |
-| Cards behind | Peeking | How the waiting cards show: peeking sets each one a little lower and 5% smaller, fanned turns them 5 degrees left or right in turn around the same low point, hidden shows only the top card until the next one grows in |
+| Cards behind | Peeking | How the waiting cards show: peeking sets each one a little lower and 5% smaller, fanned turns them left and right in turn, 5 degrees more and 3% smaller for each card further back, around the same low point, hidden shows only the top card until the next one grows in |
 
 ## Production notes
 - **Transforms only.** Move, turn and grow the cards with transform and fade them with opacity; never change their left, top or size.

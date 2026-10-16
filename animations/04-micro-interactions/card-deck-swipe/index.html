@@ -43,7 +43,7 @@
     .who{padding:8cqw 9cqw 1cqw;color:#f4f4f2;font:700 clamp(12px,8.5cqw,19px)/1.2 var(--hb-font)}
     .line{padding:0 9cqw;color:#b4b4bb;font:500 clamp(10px,6cqw,13px)/1.4 var(--hb-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .line:last-of-type{padding-bottom:7cqw}
-    .stamp{position:absolute;top:8%;padding:1px 8px;border:3px solid;border-radius:8px;font:800 clamp(13px,11cqw,24px)/1.15 var(--hb-font);letter-spacing:.06em;opacity:0;pointer-events:none}
+    .stamp{position:absolute;top:8%;padding:1px 8px;border:3px solid;border-radius:8px;background:rgba(11,11,13,.85);font:800 clamp(13px,11cqw,24px)/1.15 var(--hb-font);letter-spacing:.06em;opacity:0;pointer-events:none}
     .like{left:8%;color:var(--like);transform:rotate(-14deg)}.nope{right:8%;color:var(--nope);transform:rotate(14deg)}
     .spring .stamp{transition:opacity calc(.3s * var(--sp))}
     /* Nope, Undo and Like: round buttons under the pile, 48px to touch */
@@ -67,6 +67,7 @@
     .guide.lit{border-left-color:var(--ui-accent)}
     .pivot{position:absolute;left:0;top:0;z-index:2;width:60px;height:60px;margin:-30px 0 0 -30px;overflow:visible;pointer-events:none}
     .pivot path{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round}.pivot circle{fill:var(--ui-accent);stroke:#0b0b0d;stroke-width:2}
+    .stage[data-hb-mode="inside"].flat .pivot,.stage[data-hb-mode="inside"].flat #c-held{display:none}
     /* Compare: a copy of the pile whose cards slide flat and vanish beside the real one; one drag moves both; a card flying off
        is cut off at its own half's edge (lesson 14) */
     .stage[data-hb-mode="compare"] .decks{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:4px}.stage[data-hb-mode="compare"] .deck{overflow:hidden}
@@ -222,6 +223,16 @@
   const pileEl=document.getElementById('pile'),LABELS={normal:pileEl.getAttribute('aria-label'),
     inside:'Profile cards spread apart and numbered, with dashed lines at the swipe distance and the point the top card turns around',
     compare:'Profile cards: this pile flies off when let go, and a copy beside it vanishes'};
+  // The words follow the settings and reduced motion: with None the card stays upright, so See inside has no pivot to name;
+  // under reduced motion the right card fades where it is instead of flying off
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  if(reduceMQ.matches){document.querySelector('.cap.second').textContent='Fades out';LABELS.compare='Profile cards: this pile fades out when let go, and a copy beside it vanishes'}
+  function notes(){
+    document.querySelector('[data-hb-for="inside"]').textContent=turn?said.inside:'Inside, the pile is spread apart and numbered: each waiting card is smaller. With no turn set, the top card stays upright, and a dashed line lights once it is far enough to fly.';
+    document.querySelector('[data-hb-for="compare"]').textContent=reduceMQ.matches?'On the left the card vanishes the moment you let go. On the right, with reduced motion on, it fades out where it is and the next one appears in its place.':said.compare;
+    LABELS.inside='Profile cards spread apart and numbered, with dashed lines at the swipe distance'+(turn?' and the point the top card turns around':'');
+    if(mode==='inside')pileEl.setAttribute('aria-label',LABELS.inside);
+  }
   // Five made-up people: name, two lines, and the picture's colors (background, shirt, hair)
   const PEOPLE=[['Mira, 27','Climbs on weekends','Bakes bread at dawn','#ff9a76','#7c4dff','#2f3b8f','#3b2416'],
     ['Theo, 31','Plays the cello','Has two old cats','#5ec7c0','#1f5f8b','#e8b04a','#1b1b1f'],
@@ -286,7 +297,7 @@
     gone.push({p:+c.dataset.p,dir});if(t)t.remove();
     c.classList.remove('drag','spring','top');c.classList.add('out');c.style.opacity='0';
     if(!reduceMQ.matches)c.style.transform=`translate(${dir*cardW*2.2}px,${-cardW*.12}px) rotate(${dir*Math.max(turn,8)*1.6}deg)`;
-    c.addEventListener('transitionend',()=>{c.remove();if(!live(real).length&&!real.pile.children.length){build();settle(false)}},{once:true});
+    c.addEventListener('transitionend',()=>{c.remove();if(!quiet&&!live(real).length&&!real.pile.children.length){build();settle(false)}},{once:true});
     for(const d of decks())restack(d);
     settle(!reduceMQ.matches);
     // a throw Show me plays leaves focus alone: moving it would count as the visitor's own focus and stop the run before its Undo
@@ -358,6 +369,7 @@
     runFrame=requestAnimationFrame(step);
   }
   function stopRun(){
+    if(thrown&&!live(real).length){build();settle(false)}   // a run stopped while its throw left the pile empty refills it, as an empty pile does
     thrown=false;runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;
     if(runDragging){runDragging=false;settle(!reduceMQ.matches)}
   }
@@ -366,7 +378,8 @@
     if(back)undo(true);   // the last run was cut short between its throw and its Undo: the card comes back first, so every run starts from the same pile
     if(!topOf(real))return;
     const s=thr*cardW;
-    runDrag(restX()+s*.55,700,()=>settle(!reduceMQ.matches));
+    const a=restX(),q=Math.min(a+s*.55,s*.9),to=q-a<s*.3?a-s*.55:q;   // the drag that springs back stays short of both lines
+    runDrag(to,700,()=>settle(!reduceMQ.matches));
     // the spring-back (400 ms) and the fly-off (420 ms) count as moves, so slow motion slows them as it slows the drags
     later(()=>runDrag(-(s+cardW*.2),600,()=>{thrown=true;send(-1,true)}),700+400,200);
     later(()=>{thrown=false;undo(true)},1300+400+420,580);
@@ -384,7 +397,7 @@
     const n=live(real),nx=n[n.length-2],g=R(gr),p=R(pivot),b=nx?R(nx):[6,6,6,6],t=R(topOf(real)||pivot),u=(p[2]-p[0])/60,cx=(p[0]+p[2])/2,cy=(p[1]+p[3])/2;
     const arc=[cx-20*u-3,cy-24*u-3,cx+20*u+3,cy+9*u+3],gx=(g[0]+g[2])/2;
     const area=(a,c)=>Math.max(0,Math.min(a[2],c[2])-Math.max(a[0],c[0]))*Math.max(0,Math.min(a[3],c[3])-Math.max(a[1],c[1]));
-    const spots=[(w,h)=>[[gx-w/2,g[3]+4,0],[gx-w/2,arc[3]+4,5],[gx-w/2,g[1]-h-4,10]],
+    const spots=[(w,h)=>[[gx-w/2,g[3]+4,0],[Math.max(gx-w/2,arc[2]+4),g[3]+4,2],[gx-w/2,arc[3]+4,5],[gx-w/2,g[1]-h-4,10]],
       (w,h)=>[[arc[0]-4-w,cy-h/2,0],[arc[2]+4,cy-h/2,5],[cx-w/2,arc[3]+4,10],[cx-w/2,arc[3]+8+h,15]],
       (w,h)=>[[b[0],b[1]-h-6,0],[b[0],Math.min(b[1],t[1])-h-6,0],[b[0],Math.max(b[3],t[3])+6,800],[s.width-w-6,6,1500],[6,6,1500]]];
     const opts=caps.map((el,i)=>{const w=el.offsetWidth,h=el.offsetHeight;return spots[i](w,h).map(([x,y,pen])=>{x=Math.max(6,Math.min(s.width-w-6,x));y=Math.max(6,Math.min(s.height-h-6,y));return[x,y,x+w,y+h,pen]})});
@@ -425,11 +438,11 @@
     }));
   }
   choices('dist-seg',d=>{thr=+d.t});
-  choices('turn-seg',d=>{turn=+d.turn});
+  choices('turn-seg',d=>{turn=+d.turn;stage.classList.toggle('flat',!turn);notes()});
   choices('behind-seg',d=>{stage.classList.remove('fan','hide');if(d.behind!=='peek')stage.classList.add(d.behind)});
   document.getElementById('stamp-tog').addEventListener('change',e=>{stamps=e.target.checked;follow(dx)});
   slowTog.addEventListener('change',()=>stage.style.setProperty('--sp',slowTog.checked?3:1));
-  build();measure();
+  build();measure();notes();
 </script>
 </body>
 </html>
