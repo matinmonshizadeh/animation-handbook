@@ -51,3 +51,4 @@ A press that does not move glides the line to it, eased by the time that passes.
 - [Swipe to Dismiss](../swipe-to-dismiss/) — a drag that follows the finger and springs back
 - [Liquid Glass](../../06-3d-advanced/liquid-glass/) — a glass panel dragged over a picture, arrow keys too
 - [Clip-Path Reveal](../../02-entrance-and-exit/clip-path-reveal/) — a shape uncovers a picture once, by itself
+- [Magnifier Lens](../magnifier-lens/) — a lens follows the pointer and shows the picture up close

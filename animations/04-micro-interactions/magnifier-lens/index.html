@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magnifier Lens — Animation Handbook</title>
+  <meta name="description" content="A lens follows your pointer and shows the picture up close. Best for product photos.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnifier-lens/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Magnifier Lens — Animation Handbook">
+  <meta property="og:description" content="A lens follows your pointer and shows the picture up close. Best for product photos.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnifier-lens/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Magnifier Lens — Animation Handbook">
+  <meta name="twitter:description" content="A lens follows your pointer and shows the picture up close. Best for product photos.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Magnifier Lens", "name": "Magnifier Lens", "description": "A lens follows your pointer and shows the picture up close. Best for product photos.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnifier-lens/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Magnifier Lens"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* --r: the lens's radius; --s: how far See inside zooms out; --grow: how long the lens takes to grow in or shrink away */
+    .stage{--r:75px;--s:.3;--grow:.22s;position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);background:#0b0d13;touch-action:none;-webkit-user-select:none;user-select:none}
+    .stage svg{font-family:var(--hb-font)}
+    .defs{position:absolute;width:0;height:0;overflow:hidden}
+    .mag{position:relative;min-width:0;overflow:hidden;cursor:crosshair}
+    .world{position:absolute;inset:0}
+    .pic,.whole{position:absolute;left:0;top:0;display:block;width:100%;height:100%}
+    /* The lens: a window moved to the pointer by a transform, holding a copy as many times bigger as the zoom (drawn at that size,
+       so it stays sharp) that moves the other way, so the spot under the pointer sits in its middle */
+    .lens{position:absolute;left:0;top:0;width:calc(var(--r) * 2);height:calc(var(--r) * 2);pointer-events:none;will-change:transform}
+    .glass{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#0b0d13;box-shadow:0 10px 28px rgba(0,0,0,.55);transform:scale(0);transition:transform var(--grow) cubic-bezier(.2,.8,.2,1)}
+    .glass::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),inset 0 0 16px rgba(0,0,0,.35)}
+    .square .glass{border-radius:14px}
+    .lens-on .glass{transform:scale(1)}
+    .zoom{position:absolute;left:0;top:0;display:block;will-change:transform}
+    /* See inside and Compare: plain words over the stage */
+    .whole,.cross,.twin,.cap{display:none}
+    .cap{position:absolute;left:0;top:0;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.half{display:block}
+    /* See inside: zoomed out so the bigger copy fits, drawn whole but faint and outlined, with a cross on the pointer's spot */
+    .stage[data-hb-mode="inside"] .mag{overflow:visible}
+    .stage[data-hb-mode="inside"] .world{transform:scale(var(--s))}
+    .stage[data-hb-mode="inside"] .whole{display:block;opacity:.32;outline:calc(2px / var(--s)) dashed rgba(255,255,255,.7)}
+    .stage[data-hb-mode="inside"] .pic{outline:calc(2px / var(--s)) solid rgba(255,255,255,.75)}
+    .stage[data-hb-mode="inside"] .cross{display:block}
+    .cross{position:absolute;left:0;top:0;width:20px;height:20px;margin:-10px 0 0 -10px;pointer-events:none}
+    .cross::before,.cross::after{content:"";position:absolute;left:8px;top:0;width:4px;height:20px;border-radius:2px;background:var(--ui-accent);box-shadow:0 0 0 1.5px #0b0d13}
+    .cross::after{transform:rotate(90deg)}
+    /* Compare: a copy whose lens stretches a small picture of the watch beside the real one; one pointer moves both */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:4px}
+    .stage[data-hb-mode="compare"] .twin{display:block}
+    .cap.half{top:8px}.cap.first{left:8px}.cap.second{left:calc(50% + 10px)}
+    @media(prefers-reduced-motion:reduce){.glass{transition:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../before-after-slider/" rel="prev" aria-label="Previous: Before/After Slider"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Before/After Slider</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.43 · Micro-Interactions</p>
+    <h1>Magnifier Lens</h1>
+    <p class="hb-lede">A lens follows your pointer and shows the picture up close. Best for product photos.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Hover it</h2><p>Point at the watch or touch it, or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <svg class="defs" aria-hidden="true"><defs>
+        <radialGradient id="mg-bg" cx=".5" cy=".45" r=".7"><stop offset="0" stop-color="#2a3145"/><stop offset="1" stop-color="#0b0d13"/></radialGradient>
+        <linearGradient id="mg-case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef0f4"/><stop offset=".5" stop-color="#9aa0ad"/><stop offset="1" stop-color="#d9dce3"/></linearGradient>
+        <radialGradient id="mg-dial" cx=".45" cy=".4" r=".75"><stop offset="0" stop-color="#2b3f78"/><stop offset="1" stop-color="#121a36"/></radialGradient>
+        <!-- A made-up watch: its maker's name, a date window, a small seconds dial and two lines of fine print that need the lens -->
+        <symbol id="mg-watch" viewBox="0 0 1000 500">
+          <rect width="1000" height="500" fill="url(#mg-bg)"/>
+          <g transform="translate(100 0)">
+          <path d="M332 0H468L460 112H340ZM340 388H460L468 500H332Z" fill="#6b3f26"/>
+          <path d="M346 0 351 106M454 0 449 106M351 394 346 500M449 394 454 500" fill="none" stroke="#d9a877" stroke-width="2" stroke-dasharray="6 5"/>
+          <rect x="560" y="234" width="24" height="32" rx="5" fill="#a7acb8"/>
+          <circle cx="400" cy="250" r="168" fill="url(#mg-case)"/>
+          <circle cx="400" cy="250" r="152" fill="url(#mg-dial)"/>
+          <circle cx="400" cy="250" r="142" fill="none" stroke="#cfd8ee" stroke-width="7" stroke-dasharray="1.2 13.67" stroke-dashoffset=".6"/>
+          <circle cx="400" cy="250" r="132" fill="none" stroke="#f4efe2" stroke-width="16" stroke-dasharray="4 65.12" stroke-dashoffset="2"/>
+          <text x="400" y="188" text-anchor="middle" font-size="24" font-weight="800" letter-spacing="5" fill="#f4efe2">NORDVEL</text>
+          <text x="400" y="205" text-anchor="middle" font-size="7.5" font-weight="600" letter-spacing="2.5" fill="#d8c79c">AUTOMATIC · CHRONOMETER</text>
+          <rect x="494" y="237" width="36" height="26" rx="3" fill="#f7f3ea"/>
+          <text x="512" y="256" text-anchor="middle" font-size="17" font-weight="700" fill="#1b2340">14</text>
+          <circle cx="400" cy="300" r="30" fill="#16203f" stroke="#d8c79c" stroke-width="1.5"/>
+          <circle cx="400" cy="300" r="25" fill="none" stroke="#cfd8ee" stroke-width="4" stroke-dasharray="1 9.47"/>
+          <text x="400" y="288" text-anchor="middle" font-size="5.5" fill="#d8c79c">60</text>
+          <text x="416" y="302" text-anchor="middle" font-size="5.5" fill="#d8c79c">20</text>
+          <text x="384" y="302" text-anchor="middle" font-size="5.5" fill="#d8c79c">40</text>
+          <path d="M400 300 409 285" stroke="#e2553f" stroke-width="1.5" stroke-linecap="round"/>
+          <text x="400" y="348" text-anchor="middle" font-size="5" font-weight="600" letter-spacing="1" fill="#d8c79c">25 JEWELS · WATER RESIST 100 M</text>
+          <text x="400" y="357" text-anchor="middle" font-size="5" font-weight="600" letter-spacing="1" fill="#d8c79c">No. 0417 · MADE BY HAND</text>
+          <path d="M400 250 331 210" stroke="#f4efe2" stroke-width="9" stroke-linecap="round"/>
+          <path d="M400 250 504 190" stroke="#f4efe2" stroke-width="6" stroke-linecap="round"/>
+          <path d="M400 250 513 315" stroke="#e2553f" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="400" cy="250" r="8" fill="#d8c79c"/>
+          </g>
+        </symbol>
+      </defs></svg>
+      <div class="mag" id="mag" tabindex="0" role="img" aria-label="A watch with fine print on its face: point at it, touch it or use the arrow keys to see it up close in a lens">
+        <div class="world">
+          <svg class="whole" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#mg-watch" width="1000" height="500"/></svg>
+          <svg class="pic" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#mg-watch" width="1000" height="500"/></svg>
+          <div class="lens"><div class="glass"><svg class="zoom" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#mg-watch" width="1000" height="500"/></svg></div></div>
+          <span class="cross"></span>
+        </div>
+      </div>
+      <p class="cap in" id="c-copy" aria-hidden="true" data-hb-caption>Bigger copy · slides the other way</p>
+      <p class="cap in" id="c-lens" aria-hidden="true" data-hb-caption>Lens · a window onto the copy</p>
+      <p class="cap in" id="c-ptr" aria-hidden="true" data-hb-caption>Pointer</p>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>Stretched copy</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>Bigger copy</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the box is zoomed out: the picture sits over a faint, bigger copy of itself. The lens is a window onto that copy, which slides the other way as the lens moves.</p>
+      <p data-hb-for="compare" hidden>On the left the lens stretches the small picture, so the detail blurs. On the right it shows a bigger copy, so the detail stays sharp.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then point at the watch or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="zoom-lbl">Zoom</p>
+        <div class="seg" id="zoom-seg" role="group" aria-labelledby="zoom-lbl">
+          <button type="button" data-z="2" aria-pressed="false">2 times</button>
+          <button type="button" data-z="3" class="on" aria-pressed="true">3 times</button>
+          <button type="button" data-z="4" aria-pressed="false">4 times</button>
+        </div>
+        <p class="hb-hint">How much bigger things look in the lens.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Lens size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-r="55" aria-pressed="false">Small</button>
+          <button type="button" data-r="75" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-r="100" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">A bigger lens shows more around the spot.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Lens shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-shape="round" class="on" aria-pressed="true">Round</button>
+          <button type="button" data-shape="square" aria-pressed="false">Square</button>
+        </div>
+        <p class="hb-hint">Square suits maps and plans.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a magnifier lens to [the product photo or detailed picture people want to inspect]. While the pointer is over the picture, show a lens there holding an enlarged copy, placed so the spot under the pointer sits in the middle of the lens. Fill the lens from a larger, sharper version of the picture, never the same small one stretched, and move the lens and the copy with transforms only. On touch screens, show it while a finger is down, just above the finger; from the keyboard, show it on focus and move it with the arrow keys. If the visitor has reduced motion turned on, let it appear without growing. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Product photos</li><li>Maps</li><li>Artwork</li><li>Detailed plans</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Small or plain pictures</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage'),mag=document.getElementById('mag'),defs=stage.querySelector('.defs'),slowTog=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phoneMQ=matchMedia('(max-width:600px),(max-height:500px)');
+  const caps=['c-copy','c-lens','c-ptr'].map(id=>document.getElementById(id));
+  const LABELS={normal:mag.getAttribute('aria-label'),
+    inside:'Zoomed out: the watch small in the middle of a faint, bigger copy, and the lens showing part of that copy',
+    compare:'The watch twice: a lens that stretches a small picture of it, and a lens that shows a bigger, sharp copy'};
+  // The details Show me visits, in the drawing's own units (1000 by 500): the maker's name, the date and the fine print
+  const SPOTS=[[500,192],[612,250],[500,352]];
+  const parts=el=>({el,world:el.querySelector('.world'),lens:el.querySelector('.lens'),zoom:el.querySelector('.zoom'),whole:el.querySelector('.whole'),cross:el.querySelector('.cross'),w:0,h:0});
+  const real=parts(mag);
+  // fx,fy: the spot magnified, as shares of the picture's width and height; lifted: the lens sits above the spot (for a finger)
+  let Z=3,size=75,R=75,mode='normal',twin=null,fx=.5,fy=.5,lifted=false,mouseIn=false,keyed=false,touchId=null,runTimers=[],runFrame=0;
+  const frames=()=>twin&&mode==='compare'?[twin,real]:[real];
+
+  // Sizes: the lens, how far See inside zooms out, and each copy as many times bigger than its picture as the zoom
+  function measure(){
+    R=size*(phoneMQ.matches?.8:1);
+    stage.style.setProperty('--r',R+'px');stage.style.setProperty('--s',.92/Z);stage.style.setProperty('--grow',slowTog.checked?'.66s':'.22s');
+    for(const f of frames()){
+      f.w=f.el.clientWidth;f.h=f.el.clientHeight;
+      for(const c of [f.zoom,f.whole])if(c){c.style.width=f.w*Z+'px';c.style.height=f.h*Z+'px'}
+    }
+    if(twin&&mode==='compare')paintSmall();
+    place();
+  }
+  // The lens over the spot, or just above it for a finger (below it near the top); the copy inside moves the other way by the
+  // zoom, so the spot sits in the lens's middle. In See inside the whole copy and a cross on the spot are drawn too.
+  function place(){
+    for(const f of frames()){
+      if(!f.w)continue;
+      const x=fx*f.w,y=fy*f.h,up=y-R-28,ly=!lifted?y:up>=R*.6?up:y+R+28;
+      f.lens.style.transform=`translate(${x-R}px,${ly-R}px)`;
+      f.zoom.style.transform=`translate(${R-x*Z}px,${R-y*Z}px)`;
+      if(f.whole){f.whole.style.transform=`translate(${x-x*Z}px,${ly-y*Z}px)`;f.cross.style.transform=`translate(${x}px,${y}px) scale(${Z/.92})`}
+    }
+    if(mode==='inside')placeCaps();
+  }
+  const show=on=>stage.classList.toggle('lens-on',on);
+  // A point of the drawing as shares of the picture (the drawing is cut to fill it, as a cover image is)
+  function spot([px,py]){const w=real.w,h=real.h,k=Math.max(w/1000,h/500);return[((w-1000*k)/2+px*k)/w,((h-500*k)/2+py*k)/h]}
+  // At rest: no lens in Normal; See inside holds it in the middle, Compare on the fine print
+  const pose=()=>mode==='inside'?[.5,.5]:spot(SPOTS[2]);
+  function rest(){lifted=false;if(mode==='normal')show(false);else{[fx,fy]=pose();place();show(true)}}
+  const running=()=>runTimers.length>0||runFrame!==0;
+  const idle=()=>!mouseIn&&touchId===null&&!keyed&&!running();
+
+  // The pointer's spot on the picture under it (in Compare either half; one pointer moves both lenses)
+  function aimAt(e){
+    const fs=frames(),f=fs.length>1&&e.clientX<real.el.getBoundingClientRect().left?fs[0]:real,r=f.world.getBoundingClientRect();
+    fx=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));fy=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));place();
+  }
+  // A mouse or a pen in the air shows the lens where it points; a finger while it is down, above it (touch-action none keeps the
+  // drag on the picture). A run under way stops first.
+  stage.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'){if(e.pointerId===touchId)aimAt(e);return}
+    if(e.isTrusted&&running())stopRun();
+    mouseIn=true;keyed=false;lifted=false;aimAt(e);show(true);
+  });
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType==='touch')return;mouseIn=false;if(e.isTrusted&&running())stopRun();if(idle())rest()});
+  stage.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='touch'||touchId!==null)return;
+    touchId=e.pointerId;try{stage.setPointerCapture(touchId)}catch(_){}
+    keyed=false;lifted=true;aimAt(e);show(true);
+  });
+  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(e.pointerId===touchId){touchId=null;rest()}}));
+  // The keyboard: focus shows the lens in the middle, the arrows move it (Shift for bigger steps), Escape puts it away
+  mag.addEventListener('focus',()=>{if(!mag.matches(':focus-visible'))return;if(running())stopRun();keyed=true;lifted=false;fx=fy=.5;place();show(true)});
+  mag.addEventListener('blur',()=>{if(keyed){keyed=false;if(idle())rest()}});
+  mag.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){if(keyed){keyed=false;rest()}return}
+    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+    if(!d||e.altKey||e.ctrlKey||e.metaKey)return;
+    e.preventDefault();if(running())stopRun();
+    if(!keyed){keyed=true;lifted=false;show(true)}
+    const st=e.shiftKey?.15:.04;fx=Math.min(1,Math.max(0,fx+d[0]*st));fy=Math.min(1,Math.max(0,fy+d[1]*st));place();
+  });
+
+  // The lens glides to a spot by the time that passes (three times as long in slow motion); under reduced motion it jumps
+  function glide(to,ms){
+    cancelAnimationFrame(runFrame);runFrame=0;
+    if(reduceMQ.matches){[fx,fy]=to;place();return}
+    const from=[fx,fy],dur=ms*(slowTog.checked?3:1);let t0=null;
+    const step=ts=>{
+      if(t0===null)t0=ts;
+      const k=reduceMQ.matches?1:Math.min(1,(ts-t0)/dur),e=k*k*(3-2*k);
+      fx=from[0]+(to[0]-from[0])*e;fy=from[1]+(to[1]-from[1])*e;place();
+      runFrame=k<1?requestAnimationFrame(step):0;
+      if(k>=1&&idle())rest();
+    };
+    runFrame=requestAnimationFrame(step);
+  }
+  // Show me: the lens over the maker's name, the date and the fine print, then away (in See inside and Compare back to its
+  // place). Every pause waits on a timer; slow motion triples the moves, never the pauses.
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0}
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();keyed=false;lifted=false;
+    const pts=SPOTS.map(spot),view=mode!=='normal',first=view?600:220;
+    if(view)glide(pts[0],600);else{[fx,fy]=pts[0];place();show(true)}
+    later(()=>glide(pts[1],600),first,350);
+    later(()=>glide(pts[2],600),first+600,700);
+    later(()=>{if(mode!=='normal')glide(pose(),600);else show(false)},first+1200,1050);
+  });
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();if(idle())rest()}});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+
+  // See inside's three labels: the lens's above it and the pointer's below it, and the copy's at the first corner of its outline that
+  // leaves the other two clear (the top left, unless the lens is close to it); all are measured before any moves, so the page lays
+  // out once
+  function placeCaps(){
+    const s=stage.getBoundingClientRect(),g=real.lens.firstElementChild.getBoundingClientRect(),c=real.whole.getBoundingClientRect();
+    const size=caps.map(el=>[el.offsetWidth,el.offsetHeight]),mid=(g.left+g.right)/2-s.left;
+    const fit=(i,x,y)=>[Math.max(6,Math.min(s.width-size[i][0]-6,x)),Math.max(6,Math.min(s.height-size[i][1]-6,y))];
+    const hit=(a,i,b,j)=>a[0]<b[0]+size[j][0]&&b[0]<a[0]+size[i][0]&&a[1]<b[1]+size[j][1]&&b[1]<a[1]+size[i][1];
+    const at=[0,fit(1,mid-size[1][0]/2,g.top-s.top-size[1][1]-8),fit(2,mid-size[2][0]/2,g.bottom-s.top+8)];
+    const l=c.left-s.left+8,t=c.top-s.top+8,r=c.right-s.left-8-size[0][0],b=c.bottom-s.top-8-size[0][1];
+    const corners=[[l,t],[l,b],[r,t],[r,b]].map(p=>fit(0,p[0],p[1]));
+    at[0]=corners.find(p=>!hit(p,0,at[1],1)&&!hit(p,0,at[2],2))||corners[0];
+    caps.forEach((el,i)=>{el.style.transform=`translate(${at[i][0]}px,${at[i][1]}px)`});
+  }
+  // Compare's first half: a copy of the watch, made once, with no ids, name or focus, whose lens holds the small picture stretched
+  function makeTwin(){
+    const el=mag.cloneNode(true);el.removeAttribute('id');el.classList.add('twin');el.inert=true;el.setAttribute('aria-hidden','true');
+    ['tabindex','role','aria-label'].forEach(a=>el.removeAttribute(a));
+    const c=document.createElement('canvas');c.className='zoom';el.querySelector('.zoom').replaceWith(c);
+    stage.insertBefore(el,mag);twin=parts(el);
+  }
+  // The small picture: the drawing at one pixel per pixel of its half, as a photo shown at its own size would be; drawn when
+  // Compare first shows and again only when its half changes size (the newest request wins)
+  let painted='',paintSeq=0;
+  function paintSmall(){
+    const w=twin.w,h=twin.h,c=twin.zoom;if(!w||!h||painted===w+'x'+h)return;
+    painted=w+'x'+h;const mine=++paintSeq,img=new Image();
+    img.onload=()=>{if(mine!==paintSeq)return;c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h)};
+    img.src='data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice" font-family="sans-serif">${defs.innerHTML}<use href="#mg-watch" width="1000" height="500"/></svg>`);
+  }
+  // The mode switch draws the mode at once: the copies' sizes for its layout, then its picture at rest
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;mag.setAttribute('aria-label',LABELS[mode]);
+    if(mode==='compare'&&!twin)makeTwin();
+    measure();if(idle())rest();
+  });
+  new ResizeObserver(measure).observe(stage);
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);measure();
+    }));
+  }
+  choices('zoom-seg',d=>{Z=+d.z});
+  choices('size-seg',d=>{size=+d.r});
+  choices('shape-seg',d=>{stage.classList.toggle('square',d.shape==='square')});
+  slowTog.addEventListener('change',measure);
+  measure();
+</script>
+</body>
+</html>
