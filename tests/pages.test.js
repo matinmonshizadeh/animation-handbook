@@ -1127,10 +1127,10 @@ test('the home page keeps its GitHub button on phones as a round star, and leave
     /(^|;)\s*display:\s*none/.test(rule.body));
   assert.equal(hiding.length, 1, 'one rule hides the GitHub button');
   assert.equal(count(HOME, '@media(max-width:359px){.gh{display:none}}'), 1, 'and it is for screens under 360px');
-  const round = cssRules(between(css, '@media(max-width:760px){', '}}') + '}');
+  const round = cssRules(between(css, '@media(max-width:879px){', '}}') + '}');
   const has = (selector, declarations) => round.some(rule => rule.selector === selector &&
     declarations.every(want => rule.body.split(';').some(d => d.replace(/\s+/g, '') === want)));
-  assert.ok(has('.gh', ['width:44px', 'padding:0']), 'from 760px down the GitHub button is a 44px round star');
+  assert.ok(has('.gh', ['width:44px', 'padding:0']), 'from 879px down the GitHub button is a 44px round star');
   assert.ok(has('.gh-t', ['position:absolute', 'width:1px', 'height:1px', 'overflow:hidden']), 'its word is hidden from sight and still read out');
   assert.ok(has('.gh-c', ['display:none']), 'and the star count goes');
   assert.ok(cssRules(between(css, '@media(min-width:601px) and (max-width:620px){', '}}') + '}').some(rule => rule.selector === '.top .nav .lnk'),
