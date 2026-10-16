@@ -32,8 +32,8 @@ The copy is drawn at its full bigger size, not scaled up with a transform: a lay
 - **Use a bigger image.** Stretching the same small image only enlarges its pixels and the detail blurs; load a version two to four times larger (with `srcset`, or lazily when the pointer first arrives) and use it as the lens's copy or as its background.
 - **Size it, then move it.** Give the copy its final size in layout and move it only with transforms; scaling it up with a transform after the browser has drawn it as a layer blurs it.
 - **Background-image variant.** A lens can also be a single element whose background is the large image, moved with `background-position`; that repaints the lens on every move, which is fine for small lenses.
-- **Touch and keyboard.** Show the lens above the finger, flip it below near the top edge, and give keyboard users focus, arrow keys and Escape.
-- **Libraries.** Drift, Zoomist and many shop themes package the same idea; in a React app, react-medium-image-zoom or a small custom hook does it.
+- **Touch and keyboard.** Show the lens above the finger and flip it below near the top edge; put `touch-action: none` on the picture only, so a drag moves the lens and the page still scrolls around it. Give keyboard users focus, arrow keys and Escape.
+- **Libraries.** Drift and many shop themes package the same idea; in a React app, a small custom hook around the same two transforms does it.
 - **Reduced motion.** Let the lens appear and go at once instead of growing.
 
 ## See also

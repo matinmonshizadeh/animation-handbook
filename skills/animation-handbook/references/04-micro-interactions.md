@@ -885,7 +885,7 @@ A lens follows your pointer and shows the picture up close. Best for product pho
 
 **Prompt**
 
-Add a magnifier lens to [the product photo or detailed picture people want to inspect]. While the pointer is over the picture, show a lens there holding an enlarged copy, placed so the spot under the pointer sits in the middle of the lens. Fill the lens from a larger, sharper version of the picture, never the same small one stretched, and move the lens and the copy with transforms only. On touch screens, show it while a finger is down, just above the finger; from the keyboard, show it on focus and move it with the arrow keys. If the visitor has reduced motion turned on, let it appear without growing. Match the settings listed below.
+Add a magnifier lens to [the product photo or detailed picture people want to inspect]. While the pointer is over the picture, show a lens there holding an enlarged copy, placed so the spot under the pointer sits in the middle of the lens. Fill the lens from a larger, sharper version of the picture, never the same small one stretched, and move the lens and the copy with transforms only. On touch screens, show it while a finger is down, just above the finger, and let a drag move it without scrolling the page; from the keyboard, show it on focus and move it with the arrow keys. If the visitor has reduced motion turned on, let it appear without growing. Match the settings listed below.
 
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
