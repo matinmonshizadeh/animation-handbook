@@ -40,5 +40,4 @@ The copy is drawn at its full bigger size, not scaled up with a transform: a lay
 - [Spotlight Hover Glow](../spotlight-hover/) — a light follows the pointer across cards
 - [Cursor Follower](../cursor-follower/) — a shape trails the pointer, from the keyboard too
 - [Liquid Glass](../../06-3d-advanced/liquid-glass/) — a panel bends the picture behind it at its rim
-- [Image Distortion on Hover](../../06-3d-advanced/image-distortion-hover/) — the picture warps near the pointer
 - [Before/After Slider](../before-after-slider/) — a line dragged across two pictures uncovers one over the other
