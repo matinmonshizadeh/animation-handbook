@@ -18,3 +18,4 @@ Element-level entrance and exit animations — how individual pieces of UI arriv
 - [Bounce In](bounce-in/) — Lands with a springy bounce. Best for badges and success messages.
 - [Rotate In](rotate-in/) — Spins into place while it grows. Best for icons, stars and badges.
 - [Shatter Effect](shatter-effect/) — Breaks into pieces that fly apart and fade. Best for galleries and bold exits.
+- [Ink Spread Reveal](ink-spread-reveal/) — Ink drops spread and merge until the picture shows. Best for art and intros.

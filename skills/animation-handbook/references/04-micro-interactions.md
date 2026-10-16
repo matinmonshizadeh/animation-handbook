@@ -1,6 +1,6 @@
 # 04 · Micro-Interactions
 
-Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. 41 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. 43 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -45,6 +45,8 @@ Short, user-triggered animations — hover, click, focus, loading states, and UI
 - [Image Trail](#image-trail)
 - [Gooey Menu](#gooey-menu)
 - [Dynamic Island](#dynamic-island)
+- [Before/After Slider](#beforeafter-slider)
+- [Magnifier Lens](#magnifier-lens)
 
 ## Hover State Animation
 
@@ -852,3 +854,41 @@ Add a Dynamic Island style notification to [the top of your app or page]. At res
 - Notification: **Call** · Timer · Music. What the 96 by 32px pill grows into: a call card 76px tall, a timer in a wide capsule 64px tall, or a music card with controls 148px tall; the call and music cards are about 85% as wide as the screen and the timer about 77%; picking another while it is open changes the shape straight into the new one.
 - Speed: Slow · **Normal** · Fast. How long it takes to grow or shrink: slow is 1100ms, normal 700ms and fast 450ms; a spring needs a little longer than a plain ease, because it settles at the end.
 - Bounce: None · **Soft** · Springy. None eases out without going past the size; Soft goes past it by about 5% of the change in size and Springy by about 16%, and each settles by the end of its time.
+
+## Before/After Slider
+
+Drag a line across two pictures to compare them. Best for photo edits.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/before-after-slider/
+- How it runs: reacts to the visitor
+- Good for: Photo edits · Redesigns · Renovations · Product upgrades
+- Avoid on: Small thumbnails · Unrelated pictures
+
+**Prompt**
+
+Add a before-and-after slider to [the two pictures you want to compare]. Stack the pictures exactly on top of each other and show the top one only up to a dividing line with a handle, so each side of the line shows one picture. Dragging on the pictures moves the line, and a tap jumps it there. Uncover the top picture with a clip or a sliding window, never by resizing it, so neither picture moves or squeezes. Use pointer events for mouse and touch, keep page scrolling free on phones, and let the arrow keys move the handle. If the visitor has reduced motion turned on, move the line without gliding. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Split: **Left and right** · Top and bottom. Which way the line runs: left and right shows After to the left of an upright line, dragged anywhere on the pictures; top and bottom shows After below a level line, dragged by its handle only.
+- Handle: **Knob** · Bar · Line only. What there is to grab: knob is a round button with two arrows, bar a narrow bar along the line, line only the bare line, with nothing showing where to grab (the knob's fingertip-sized grab area stays, unseen, on the middle of the line).
+- Shows labels: **on** · off. Before and After name each side from a corner, and each fades out when the line comes within a few pixels of it.
+
+## Magnifier Lens
+
+A lens follows your pointer and shows the picture up close. Best for product photos.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/magnifier-lens/
+- How it runs: reacts to the visitor
+- Good for: Product photos · Maps · Artwork · Detailed plans
+- Avoid on: Small or plain pictures
+
+**Prompt**
+
+Add a magnifier lens to [the product photo or detailed picture people want to inspect]. While the pointer is over the picture, show a lens there holding an enlarged copy, placed so the spot under the pointer sits in the middle of the lens. Fill the lens from a larger, sharper version of the picture, never the same small one stretched, and move the lens and the copy with transforms only. On touch screens, show it while a finger is down, just above the finger, and let a drag move it without scrolling the page; from the keyboard, show it on focus and move it with the arrow keys. If the visitor has reduced motion turned on, let it appear without growing. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Zoom: 2 times · **3 times** · 4 times. How many times bigger the copy in the lens is than the picture: 2 times, 3 times or 4 times.
+- Lens size: Small · **Medium** · Large. How wide the lens is: small is 110 pixels across, medium 150 and large 200, a fifth less on phones.
+- Lens shape: **Round** · Square. Round is a circle; square is a square with slightly rounded corners, which suits maps and plans.
