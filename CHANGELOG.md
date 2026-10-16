@@ -23,6 +23,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   Compare from the start.
 - A new animation, Magnifier Lens (170 in all): a lens follows your pointer and shows the picture up close, with See inside
   and Compare from the start.
+- A new animation, Card Deck Swipe (171 in all): swipe the top card left or right and the next one rises, with See inside
+  and Compare from the start.
 
 ## 1.0.0 — 2026-10-10
 

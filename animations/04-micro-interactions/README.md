@@ -49,6 +49,7 @@ Short, user-triggered animations that provide feedback, confirm actions, and com
 | [Dynamic Island](dynamic-island/) | A black pill grows into a notification, then shrinks back. Best for live updates. |
 | [Before/After Slider](before-after-slider/) | Drag a line across two pictures to compare them. Best for photo edits. |
 | [Magnifier Lens](magnifier-lens/) | A lens follows your pointer and shows the picture up close. Best for product photos. |
+| [Card Deck Swipe](card-deck-swipe/) | Swipe the top card left or right; the next one rises. Best for quick choices. |
 
 ## Key concepts
 
