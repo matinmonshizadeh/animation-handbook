@@ -89,3 +89,4 @@ ctx.setLineDash([]);
 - [Ambient Ripple Effect](../ambient-ripple/) — rings spreading from a few spots, on their own
 - [WebGL Shader Animation](../../06-3d-advanced/webgl-shader-animation/) — patterns drawn by the graphics card
 - [Noise-Based Motion](../../06-3d-advanced/noise-based-motion/) — smooth, natural-looking random motion
+- [Audio Visualizer](../../06-3d-advanced/audio-visualizer/) — bars that move to the music, from bass to treble

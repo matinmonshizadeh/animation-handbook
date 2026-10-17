@@ -534,7 +534,7 @@ test('every guided-steps page and the home page link the same version of the sha
 // the mark and presses it there. The home page reads the page without running it, and on a phone the shared script counts the
 // marked choice instead of the pressed one, so a card's Copy prompt copies what the page copies on the same screen.
 test('a setting that starts lower on phones marks that choice data-hb-phone, and the page script starts there from the mark', () => {
-  const PHONE_DEFAULTS = { 'gpgpu-particle-system': ['count-seg', '16,000'], 'cloth-simulation': ['detail-seg', 'Low'] };
+  const PHONE_DEFAULTS = { 'gpgpu-particle-system': ['count-seg', '16,000'], 'cloth-simulation': ['detail-seg', 'Low'], 'audio-visualizer': ['bars-seg', 'Some'] };
   for (const slug of Object.keys(PHONE_DEFAULTS)) assert.ok(steps.some(d => d.slug === slug), `${slug} is a guided-steps page`);
   for (const d of steps) {
     const html = pageOf(d), where = `${d.cat}/${d.slug}`;

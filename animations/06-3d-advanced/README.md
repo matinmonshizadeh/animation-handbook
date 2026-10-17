@@ -33,6 +33,7 @@ WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects
 | [Holographic Card](holographic-card/) | A card tilts as you point, and its rainbow foil shimmers. Best for collectibles. |
 | [Infinite Zoom](infinite-zoom/) | The view keeps zooming into pictures inside pictures. Best for page intros. |
 | [Water Ripple](water-ripple/) | Ripples spread from your finger and bend the picture below. Best for hero images. |
+| [Audio Visualizer](audio-visualizer/) | Bars dance to the music, from bass to treble. Best for music players. |
 
 ## Key concepts
 
@@ -51,6 +52,7 @@ WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects
 | All WebGL demos | WebGL 1.0 (all modern browsers) |
 | GPGPU Particle System | WebGL2 (Chrome 56+, Firefox 51+, Safari 15+) |
 | backdrop-filter (Glassmorphism) | Chrome, Edge, Safari; Firefox 103+ |
+| Web Audio (Audio Visualizer) | Every modern browser; the sound starts only after Hear it is pressed, and the bars move without it |
 | SVG filter in backdrop-filter (Liquid Glass) | Chromium browsers on a computer or Android (Chrome, Edge, Opera); Safari, Firefox and every browser on iPhone and iPad show frosted glass instead |
 
 ## See also

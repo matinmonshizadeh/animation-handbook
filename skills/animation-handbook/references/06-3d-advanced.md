@@ -1,6 +1,6 @@
 # 06 · 3D & Advanced
 
-WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects. 27 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects. 28 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -31,6 +31,7 @@ WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects
 - [Holographic Card](#holographic-card)
 - [Infinite Zoom](#infinite-zoom)
 - [Water Ripple](#water-ripple)
+- [Audio Visualizer](#audio-visualizer)
 
 ## 3D Model Orbit
 
@@ -592,3 +593,24 @@ Add a water ripple effect to [the picture you want to look as if it lies under w
 - How long ripples last: Short · **Medium** · Long. How much height the water loses each step: short is 5%, which fades a pebble's rings within a second; medium 2.2%, about three seconds; long 0.9%, long enough for rings to bounce off the edges and cross.
 - Bend: Subtle · **Medium** · Strong. How far the picture under a slope is shifted: subtle is 5 grid points for a full slope, medium 12 and strong 22.
 - Light on the waves: **on** · off. Slopes that face the light show a lighter picture, in three steps of brightness; off, only the bending shows.
+
+## Audio Visualizer
+
+Bars dance to the music, from bass to treble. Best for music players.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/audio-visualizer/
+- How it runs: moves by itself
+- Good for: Music players · Podcast pages · Radio and DJ sites · Voice notes
+- Avoid on: Pages without sound · Reading pages
+
+**Prompt**
+
+Add an audio visualizer to [your music player, podcast card or hero section]. Connect the playing audio to an analyzer that reports, many times a second, how loud each band of pitches is, and draw the bands on a canvas from bass to treble, in the style the settings choose, each sized by its loudness. Give higher bands wider slices of pitch, as hearing does, so the whole row moves. Let bands jump up at once and sink back as the settings choose. Start sound only when the visitor presses play, never use the microphone without asking, and draw fewer bars on phones. If the visitor has reduced motion turned on, keep the bars still until they press play. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Style: **Bars** · Wave · Circle. Bars stand in a row from bass to treble; wave draws the sound's shape over a few hundredths of a second instead of its pitches; circle sets the bars around a ring that swells with the bass.
+- Number of bars: Few · Some · **Many** (phones start with Some). Few is 16 bars, some 32 and many 64; phones start at some, and each row of Compare holds half as many bars on phones; a wave has no bars, so it ignores this.
+- How bars fall: Quickly · **Gently** · Slowly. How fast a bar sinks after it jumps: quickly is 2.6 bar heights a second, gently 1.2 and slowly 0.45, like an old stereo; a wave ignores it.
+- Peak marks: **on** · off. A thin mark (a dot in the ring) holds each bar's highest point for 0.4 seconds, then sinks slowly; off, only the bars show; a wave has none.
+- Colors: **Sunset** · Ocean · Neon. The colors from the bottom of each bar to its top: sunset runs from coral to gold, ocean from deep blue to cyan, neon from pink to cyan; See inside lays the colors of the tune's parts over them.

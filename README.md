@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 172 web animation techniques" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 173 web animation techniques" width="820"></picture></a>
 
 # Animation Handbook
 
-**A visual reference of 172 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
+**A visual reference of 173 web animation techniques: watch each one play live, change most of them with plain settings, and copy a ready-made prompt for your AI assistant. Free to use, with no sign-up.**
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
@@ -14,7 +14,7 @@ Add it to your AI coding assistant (run in your project folder; needs Node.js):
 npx skills add matinmonshizadeh/animation-handbook
 ```
 
-[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-172-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-173-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
 
@@ -22,7 +22,7 @@ npx skills add matinmonshizadeh/animation-handbook
 
 ## What this is
 
-Here are 172 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
+Here are 173 web animation techniques in one place, each shown working. Every page plays its animation live and gives you a ready-made prompt to paste into your AI assistant, so you can add the animation to your own site without writing the code yourself. Most pages also let you change the animation with a few plain settings, and the prompt you copy lists your choices. Each folder's `README.md` explains how the technique works, the values that matter, and the production gotchas, for anyone who wants to build it by hand.
 
 Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no CDN. Open any page's `index.html` from a copy of this repository and its demo runs offline; [Run it locally](#run-it-locally) covers the parts that need a local server. Built to *inspire* and *teach*, not to sell a library.
 
@@ -64,12 +64,12 @@ Then ask for an animation in plain words, like "make the cards fade in as they s
 | 03 | [Page Transitions](#03) | 17 |
 | 04 | [Micro-Interactions](#04) | 44 |
 | 05 | [Text & Typography](#05) | 19 |
-| 06 | [3D & Advanced](#06) | 27 |
+| 06 | [3D & Advanced](#06) | 28 |
 | 07 | [Ambient & Background](#07) | 23 |
 
 ## Full catalog
 
-All 172 techniques, each linked to its live demo.
+All 173 techniques, each linked to its live demo.
 
 Each technique's code and README are in its folder under [animations/](animations/).
 
@@ -252,11 +252,11 @@ Each technique's code and README are in its folder under [animations/](animation
 
 <a id="06"></a>
 
-### 06 · 3D & Advanced · 27 techniques
+### 06 · 3D & Advanced · 28 techniques
 
 <sub>WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects.</sub>
 
-<details><summary>Browse all 27 techniques in 3D & Advanced</summary>
+<details><summary>Browse all 28 techniques in 3D & Advanced</summary>
 
 - **[3D Model Orbit](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/)** — A lit 3D shape spins, or turns to face your pointer. Best for product views.
 - **[Scroll-Driven 3D Rotation](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/scroll-driven-3d-rotation/)** — Scrolling turns a 3D cube from pose to pose. Best for product tours.
@@ -285,6 +285,7 @@ Each technique's code and README are in its folder under [animations/](animation
 - **[Holographic Card](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/holographic-card/)** — A card tilts as you point, and its rainbow foil shimmers. Best for collectibles.
 - **[Infinite Zoom](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/infinite-zoom/)** — The view keeps zooming into pictures inside pictures. Best for page intros.
 - **[Water Ripple](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/water-ripple/)** — Ripples spread from your finger and bend the picture below. Best for hero images.
+- **[Audio Visualizer](https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/audio-visualizer/)** — Bars dance to the music, from bass to treble. Best for music players.
 
 </details>
 
