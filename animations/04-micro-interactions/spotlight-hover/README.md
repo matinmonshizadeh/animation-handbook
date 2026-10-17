@@ -56,3 +56,4 @@ The grid also takes keyboard focus (`tabindex="0"`), and the light then appears 
 - [Parallax 3D Tilt](../../06-3d-advanced/parallax-3d-tilt/) — a card that tilts and catches the light
 - [Hover State Animation](../hover-state/) — simpler ways for a card to react
 - [Animated Gradient Border](../gradient-border/) — an edge with a band of colors that runs on its own
+- [Magnifier Lens](../magnifier-lens/) — a lens follows the pointer and shows the picture up close

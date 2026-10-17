@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Ripple — Animation Handbook</title>
+  <meta name="description" content="Ripples spread from your finger and bend the picture below. Best for hero images.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/water-ripple/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Water Ripple — Animation Handbook">
+  <meta property="og:description" content="Ripples spread from your finger and bend the picture below. Best for hero images.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/water-ripple/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Water Ripple — Animation Handbook">
+  <meta name="twitter:description" content="Ripples spread from your finger and bend the picture below. Best for hero images.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Water Ripple", "name": "Water Ripple", "description": "Ripples spread from your finger and bend the picture below. Best for hero images.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/water-ripple/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Water Ripple"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:#0b3b44}
+    /* The water is drawn at the grid's size on small canvases that the browser stretches over the box (or a half of it) */
+    .view{position:absolute;display:block;pointer-events:none}
+    .view.half,.view.flat,#over,.wr-lbl,.divide{display:none}
+    #cvs{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;background:transparent}
+    #cvs:focus-visible{outline:2px solid var(--ui-accent);outline-offset:-3px}
+    /* The keyboard's spot: a small ring the arrow keys move, shown while the box has keyboard focus */
+    .spot{position:absolute;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.45);opacity:0;pointer-events:none}
+    #cvs:focus-visible~.spot{opacity:1}
+    /* Under reduced motion a touch shows still rings that fade */
+    .still-rings{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;pointer-events:none;transition:opacity .9s linear}
+    .stage[data-hb-mode="inside"] .view.whole,.stage[data-hb-mode="compare"] .view.whole{display:none}
+    .stage[data-hb-mode="inside"] .view.flat,.stage[data-hb-mode="inside"] #over,.stage[data-hb-mode="compare"] .view.half,.stage[data-hb-mode="compare"] .divide{display:block}
+    #over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .divide{position:absolute;left:calc(50% - 1px);top:0;width:2px;height:100%;background:#08262c}
+    .wr-lbl{position:absolute;padding:3px 8px;border-radius:6px;background:rgba(6,20,24,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);pointer-events:none;max-width:46%}
+    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .half-name{display:block}
+    .in.crest{left:10px;top:10px}.in.patch{right:10px;bottom:104px;text-align:right}.in.read{left:10px;bottom:10px}
+    .half-name{top:10px}.half-name.first{left:10px}.half-name.second{left:calc(50% + 10px)}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../infinite-zoom/" rel="prev" aria-label="Previous: Infinite Zoom"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Infinite Zoom</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.27 · 3D &amp; Advanced</p>
+    <h1>Water Ripple</h1>
+    <p class="hb-lede">Ripples spread from your finger and bend the picture below. Best for hero images.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag across the pond (a finger will not scroll the page), tap for a pebble, use Tab and the arrow keys, or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <canvas id="over" aria-hidden="true"></canvas><i class="divide" aria-hidden="true"></i>
+      <canvas id="cvs" role="img" tabindex="0" aria-label="A pond with pebbles, a koi and lily pads under clear water. Drag or tap to make ripples; with the keyboard, the arrow keys move a ring and Enter drops a pebble."></canvas>
+      <i class="spot" aria-hidden="true"></i>
+      <p class="wr-lbl in crest" aria-hidden="true" data-hb-caption>Bright is a crest, dark a trough</p>
+      <p class="wr-lbl in patch" aria-hidden="true" data-hb-caption>Each point: half its neighbors' total, minus its last height</p>
+      <p class="wr-lbl in read" aria-hidden="true" data-hb-caption>The picture is read from a shifted spot</p>
+      <p class="wr-lbl half-name first" aria-hidden="true" data-hb-caption>Rings on top</p>
+      <p class="wr-lbl half-name second" aria-hidden="true" data-hb-caption>Bends the picture</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>The gray map is the water's height; blue tints mark slopes facing the light. Each step, a point becomes half its neighbors' total minus its last height; the picture is read from a shifted spot.</p>
+      <p data-hb-for="compare" hidden>Rings on top draws light rings over a picture that stays flat; Bends the picture shifts the picture itself under the waves, so it looks like water. Drag or tap either half.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then drag the water or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="size-lbl">Ripple size</p>
+        <div class="seg" id="size-seg" role="group" aria-labelledby="size-lbl">
+          <button type="button" data-r="2" aria-pressed="false">Small</button>
+          <button type="button" data-r="3.5" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-r="5.5" aria-pressed="false">Large</button>
+        </div>
+        <p class="hb-hint">How wide each push or drop is.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="last-lbl">How long ripples last</p>
+        <div class="seg" id="last-seg" role="group" aria-labelledby="last-lbl">
+          <button type="button" data-damp=".05" aria-pressed="false">Short</button>
+          <button type="button" data-damp=".022" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-damp=".009" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">Long lets them bounce off the edges and cross.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="bend-lbl">Bend</p>
+        <div class="seg" id="bend-seg" role="group" aria-labelledby="bend-lbl">
+          <button type="button" data-bend="5" aria-pressed="false">Subtle</button>
+          <button type="button" data-bend="12" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-bend="22" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">How much the picture under the water bends.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Light on the waves</span><input class="hb-switch" type="checkbox" role="switch" id="light-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Bright glints on the slopes.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a water ripple effect to [the picture you want to look as if it lies under water]. Keep two grids of water heights, now and one step earlier. On each step, set every point to half the total of its four neighbors minus its earlier height, then damp it slightly, so ripples spread, cross, bounce off the edges and fade. A finger or mouse drag leaves a trail of small pushes without scrolling the page; a tap drops a pebble. Draw the picture shifted at each point by the slope of the water, so it bends under the waves. Use a coarse grid and fixed steps, and stop once the water is calm. Under reduced motion, show still rings that fade. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero pictures</li><li>Pool, spa and travel sites</li><li>Playful backgrounds</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Pictures with text</li><li>Busy pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const cvs=document.getElementById('cvs'),stage=cvs.parentElement,over=document.getElementById('over'),octx=over.getContext('2d');
+  const spot=stage.querySelector('.spot'),slowTog=document.getElementById('slow-tog'),lightTog=document.getElementById('light-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  // CALM: below this height no point of the picture moves by a pixel or changes its light, so the water counts as calm; the two
+  // views count it as calm at twice that, where their rings are too faint to see, so the still ripple stands in without a gap
+  const FRAME=1000/60,CALM=.04;
+  const LABELS={normal:'',   // written by notes(), which follows the Light switch and reduced motion
+    inside:'',
+    compare:'The same ripples twice: light rings over a flat picture on the left, the picture bending under the water on the right. Drag or tap either half.'};
+  let radius=3.5,damp=.022,bend=12,mode='normal',W=0,H=0,raf=0,lastT=null,behind=0,calmSteps=0,running=false;
+  let main=null,pair=null,frozen=null,runTimers=[],path=null,down=null,key={x:.5,y:.5};
+  // A water surface for a rectangle of the box (in shares of it): two grids of heights, now and one step earlier, about one point
+  // per four pixels and at most 200 across (128 on phones, half that for Compare's water), and the views that draw it
+  function Water(rect,cols){
+    const gw=Math.max(24,cols),gh=Math.max(16,Math.round(gw*rect.h*H/(rect.w*W)));
+    return{rect,gw,gh,cur:new Float32Array(gw*gh),prev:new Float32Array(gw*gh),sx:new Float32Array(gw*gh),sy:new Float32Array(gw*gh)};
+  }
+  // One step: every point becomes half the total of its four neighbors minus its own earlier height, then loses a little
+  // (How long ripples last); the edges stay flat, so waves bounce off them. Returns the largest height left.
+  function step(w){
+    const {gw,gh,cur,prev}=w;let most=0;
+    for(let y=1;y<gh-1;y++)for(let x=1,i=y*gw+1;x<gw-1;x++,i++){
+      const v=((cur[i-1]+cur[i+1]+cur[i-gw]+cur[i+gw])/2-prev[i])*(1-damp);
+      prev[i]=v;const a=v<0?-v:v;if(a>most)most=a;
+    }
+    w.cur=prev;w.prev=cur;return most;
+  }
+  // A push of the water at (x, y) in the box's pixels: a round dip, deeper in the middle; a pebble (big) is a wider, deeper one
+  function push(w,x,y,k,big){
+    const gx=(x/W-w.rect.x)/w.rect.w*w.gw,gy=(y/H-w.rect.y)/w.rect.h*w.gh,r=radius*(main.gw/(phone.matches?128:200))*(big?1.5:1);
+    for(let j=Math.max(1,Math.floor(gy-r));j<=Math.min(w.gh-2,Math.ceil(gy+r));j++)for(let i=Math.max(1,Math.floor(gx-r));i<=Math.min(w.gw-2,Math.ceil(gx+r));i++){
+      const d=Math.hypot(i-gx,j-gy)/r;if(d<1)w.cur[j*w.gw+i]-=k*.5*(1+Math.cos(d*Math.PI))}
+  }
+  // The pond, drawn with canvas commands at a view's size: deep water, a pebble floor, a koi and lily pads with a flower
+  function pond(g,w,h){
+    const s=Math.min(w/320,h/200),rnd=(n=>()=>{n=(n*16807)%2147483647;return n/2147483647})(42);
+    const water=g.createLinearGradient(0,0,0,h);water.addColorStop(0,'#1d6f7a');water.addColorStop(1,'#0b3b44');g.fillStyle=water;g.fillRect(0,0,w,h);
+    for(let i=0;i<140;i++){const x=rnd()*w,y=rnd()*h,r=(3+rnd()*8)*s,t=rnd();g.fillStyle=`rgb(${110+t*60|0},${118+t*44|0},${104+t*30|0})`;
+      g.beginPath();g.ellipse(x,y,r,r*.7,rnd()*3,0,6.283);g.fill()}
+    g.fillStyle='rgba(20,90,100,.35)';g.fillRect(0,0,w,h);
+    const kx=w*.55,ky=h*.55;g.save();g.translate(kx,ky);g.rotate(-.35);g.scale(s,s);
+    g.fillStyle='#f5f0e6';g.beginPath();g.ellipse(0,0,34,12,0,0,6.283);g.fill();
+    g.fillStyle='#ff7a2f';g.beginPath();g.ellipse(-6,-2,16,9,0,0,6.283);g.fill();g.beginPath();g.ellipse(18,1,8,6,0,0,6.283);g.fill();
+    g.fillStyle='#f5f0e6';g.beginPath();g.moveTo(-30,0);g.lineTo(-52,-12);g.lineTo(-48,0);g.lineTo(-52,12);g.closePath();g.fill();g.restore();
+    for(const [px,py,pr] of [[.18,.3,22],[.8,.22,26],[.86,.72,18],[.28,.78,20]]){const x=px*w,y=py*h,r=pr*s;
+      g.fillStyle='#3f8f3a';g.beginPath();g.moveTo(x,y);g.arc(x,y,r,.3,6.1);g.closePath();g.fill();g.strokeStyle='#2b6b2a';g.lineWidth=1.2*s;g.stroke()}
+    g.fillStyle='#ff9ec0';for(let i=0;i<6;i++){g.beginPath();g.ellipse(w*.8+Math.cos(i)*5*s,h*.22+Math.sin(i)*5*s,6*s,3*s,i,0,6.283);g.fill()}
+    g.fillStyle='#ffe38a';g.beginPath();g.arc(w*.8,h*.22,3*s,0,6.283);g.fill();
+  }
+  // A view: a small canvas for one water, twice the grid's size each way (R), stretched over its rectangle; it keeps the pond's
+  // pixels and three lighter copies of them for the light on the waves
+  const R=2;
+  function View(w,cls){
+    const c=document.createElement('canvas'),g=c.getContext('2d'),rw=w.gw*R,rh=w.gh*R;c.width=rw;c.height=rh;c.className='view '+cls;c.setAttribute('aria-hidden','true');
+    Object.assign(c.style,{left:w.rect.x*100+'%',top:w.rect.y*100+'%',width:w.rect.w*100+'%',height:w.rect.h*100+'%'});
+    stage.prepend(c);pond(g,rw,rh);
+    const img=g.getImageData(0,0,rw,rh),base=new Uint32Array(img.data.buffer.slice(0)),lit=[base];
+    for(const k of [.12,.24,.4]){const d=new Uint8ClampedArray(img.data),a=new Uint32Array(d.buffer);for(let i=0;i<d.length;i+=4){d[i]+=(255-d[i])*k;d[i+1]+=(255-d[i+1])*k;d[i+2]+=(255-d[i+2])*k}lit.push(a)}
+    const dim=new Uint8ClampedArray(img.data.length);for(let i=0;i<dim.length;i++)dim[i]=img.data[i]*.3;   // the pond at 30% strength, for See inside
+    return{c,g,img,px:new Uint32Array(img.data.buffer),lit,dim};
+  }
+  // How much the height changes across each point, which the picture and See inside both read; a slope facing up and left (the
+  // light's side) is lit from 1 to 3
+  function slopes(w){
+    const {gw,gh,cur,sx,sy}=w;
+    for(let y=0,i=0;y<gh;y++)for(let x=0;x<gw;x++,i++){sx[i]=x>0&&x<gw-1?cur[i+1]-cur[i-1]:0;sy[i]=y>0&&y<gh-1?cur[i+gw]-cur[i-gw]:0}
+  }
+  const glint=(dx,dy)=>Math.min(3,Math.max(0,Math.round(-(dx+dy)*6)));
+  // Draws a water in a view: each point shows the pond read from a spot shifted by the slope there (bend), lit where the slope
+  // faces the light; rings: the pond stays where it is and only the light shows (Compare's first half)
+  function paint(w,v,rings){
+    const {gw,gh,sx,sy}=w,{px,lit}=v,rw=gw*R,rh=gh*R,b=bend*R*main.gw/(phone.matches?128:200),light=lightTog.checked||rings;
+    for(let Y=0,o=0;Y<rh;Y++)for(let X=0;X<rw;X++,o++){
+      const i=(Y/R|0)*gw+(X/R|0),dx=sx[i],dy=sy[i];
+      let qx=X,qy=Y;if(!rings&&(dx||dy)){qx=Math.min(rw-1,Math.max(0,X+Math.round(dx*b)));qy=Math.min(rh-1,Math.max(0,Y+Math.round(dy*b)))}
+      const l=light?rings?Math.min(3,Math.round((Math.abs(dx)+Math.abs(dy))*7)):glint(dx,dy):0;
+      px[o]=lit[l][qy*rw+qx];
+    }
+    v.g.putImageData(v.img,0,0);
+  }
+  // See inside: the heights in grays over a faint pond (bright a crest, dark a trough), blue tints where a slope faces the light
+  // (the Light switch), a magnified patch of nine points around the steepest spot, and on a coarse grid small arrows from each
+  // point to the spot its picture is read from, as long as the picture's shift
+  function paintInside(w,v){
+    const {gw,gh,cur,sx,sy}=w,{dim}=v,u=v.img.data,rw=gw*R,tint=lightTog.checked;
+    for(let y=0,i=0;y<gh;y++)for(let x=0;x<gw;x++,i++){   // each point's gray and tint, written to its R by R picture pixels
+      const g=Math.max(0,Math.min(255,128+cur[i]*230))*.7,l=tint?glint(sx[i],sy[i]):0,r=g+l*4,gr=g+l*14,b=g+l*26;
+      for(let j=0;j<R;j++)for(let k=0,q=((y*R+j)*rw+x*R)*4;k<R;k++,q+=4){u[q]=dim[q]+r;u[q+1]=dim[q+1]+gr;u[q+2]=dim[q+2]+b}}
+    v.g.putImageData(v.img,0,0);
+    octx.clearRect(0,0,W,H);
+    const step=34,cx=W/gw,cy=H/gh,b=bend*gw/(phone.matches?128:200);
+    octx.strokeStyle='#ffce5a';octx.lineWidth=1.8;octx.lineCap='round';octx.beginPath();
+    for(let y=step/2;y<H-90;y+=step)for(let x=step/2;x<W;x+=step){
+      const i=Math.min(gh-2,Math.max(1,y/cy|0))*gw+Math.min(gw-2,Math.max(1,x/cx|0)),dx=sx[i]*b*cx,dy=sy[i]*b*cy,len=Math.hypot(dx,dy);
+      octx.moveTo(x,y);
+      if(len<1.5){octx.lineTo(x,y);continue}   // a dot: a point where the picture is not shifted
+      const tx=x+dx,ty=y+dy;octx.lineTo(tx,ty);
+      if(len>5){const a=Math.atan2(dy,dx),h=Math.min(4.5,len*.5);octx.lineTo(tx-h*Math.cos(a-.5),ty-h*Math.sin(a-.5));octx.moveTo(tx,ty);octx.lineTo(tx-h*Math.cos(a+.5),ty-h*Math.sin(a+.5))}}
+    octx.stroke();octx.lineCap='butt';
+    let best=gw+1,top=0;for(let i=gw+1;i<gw*(gh-1)-1;i++){const s=Math.abs(sx[i])+Math.abs(sy[i]);if(s>top){top=s;best=i}}
+    const bx=best%gw,by=best/gw|0,size=phone.matches?18:22,ox=W-10-size*3,oy=H-10-size*3;
+    for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const g=Math.max(0,Math.min(255,128+cur[best+j*gw+i]*230))|0;octx.fillStyle=`rgb(${g},${g},${g})`;octx.fillRect(ox+(i+1)*size+1,oy+(j+1)*size+1,size-2,size-2)}
+    octx.strokeStyle='#ffce5a';octx.lineWidth=2;octx.strokeRect(ox+size+1,oy+size+1,size-2,size-2);
+    octx.setLineDash([4,4]);octx.beginPath();octx.moveTo(ox,oy+size*1.5);octx.lineTo(bx*cx,by*cy);octx.stroke();octx.setLineDash([]);
+  }
+  function draw(){
+    if(!main)return;
+    const at=w=>calmNow(w)&&frozen?frozen[w===main?0:1]:w;
+    if(mode==='inside'){const w=at(main);slopes(w);paintInside(w,main.views[1])}
+    else if(mode==='compare'){const w=at(pair);slopes(w);paint(w,pair.views[0],true);paint(w,pair.views[1],false)}
+    else{slopes(main);paint(main,main.views[0],false)}
+  }
+  const calmNow=w=>!running&&w.still;
+  // The loop takes fixed steps of a 60th of a second (a third as many in slow motion, at most three a frame) and stops once the
+  // water is calm for a third of a second: then the plain picture (or See inside's and Compare's frozen ripple) is drawn
+  function loop(ts){
+    if(reduceMQ.matches){calm();return} // reduced motion turned on while the water moves: it goes flat at once
+    raf=requestAnimationFrame(loop);
+    if(lastT===null){lastT=ts;return}
+    const dt=Math.min(ts-lastT,50)*(slowTog.checked?1/3:1);lastT=ts;behind+=dt;
+    const w=mode==='compare'?pair:main;
+    if(path)trace(dt);
+    let n=0,most=1;while(behind>=FRAME-1&&n<3){most=step(w);behind-=FRAME;n++}
+    if(n){calmSteps=most<(mode==='normal'?CALM:CALM*2)?calmSteps+n:0;w.still=false}
+    if(calmSteps>20&&!path){w.cur.fill(0);w.prev.fill(0);w.still=true;running=false;cancelAnimationFrame(raf);raf=0}
+    if(n||path)draw();
+  }
+  function wake(){if(reduceMQ.matches)return;running=true;calmSteps=0;(mode==='compare'?pair:main).still=false;if(!raf){lastT=null;behind=0;raf=requestAnimationFrame(loop)}}
+  function calm(){for(const w of [main,pair]){w.cur.fill(0);w.prev.fill(0);w.still=true}running=false;cancelAnimationFrame(raf);raf=0;draw()}
+  document.addEventListener('visibilitychange',()=>{lastT=null;behind=0});
+  // A touch on the water, k strong (a pebble is a tap): in Compare a touch on either half reaches the one water both halves draw
+  let ringAt=-1e9;
+  function touchAt(x,y,k,pebble){
+    if(reduceMQ.matches){const now=performance.now();if(pebble||now-ringAt>300){ringAt=now;stillRings(x,y)}return}
+    const w=mode==='compare'?pair:main;if(mode==='compare'&&x>W/2)x-=W/2;
+    push(w,x,y,k,pebble);wake();
+  }
+  // Under reduced motion: still rings at the spot, which fade within a second (a few per touch at most)
+  function stillRings(x,y){
+    const r=document.createElementNS('http://www.w3.org/2000/svg','svg');r.setAttribute('viewBox','-60 -60 120 120');r.setAttribute('class','still-rings');r.setAttribute('aria-hidden','true');
+    r.innerHTML=[18,34,50].map((c,i)=>`<circle r="${c}" fill="none" stroke="rgba(255,255,255,${.8-i*.2})" stroke-width="2"/>`).join('');
+    r.style.left=x+'px';r.style.top=y+'px';stage.insertBefore(r,spot);
+    setTimeout(()=>{r.style.opacity='0';setTimeout(()=>r.remove(),950)},60);
+  }
+  // Pointer Events for mouse, pen and touch: a drag leaves a trail of small pushes, a short tap drops a pebble; a mouse that only
+  // points leaves a faint wake. A push is as strong per second on a 120 Hz screen as on a 60 Hz one: it follows the time since
+  // the last event.
+  const local=e=>{const r=cvs.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  let moveT=0;
+  const pace=t=>{const gap=t-moveT,q=gap>100?1:Math.min(3,Math.max(.25,gap/FRAME));moveT=t;return q};
+  cvs.addEventListener('pointerdown',e=>{if(e.button)return;const p=local(e);down={...p,t:e.timeStamp,moved:0};moveT=e.timeStamp;cvs.setPointerCapture(e.pointerId)});
+  cvs.addEventListener('pointermove',e=>{const p=local(e),q=pace(e.timeStamp);
+    if(down){down.moved+=Math.hypot(p.x-down.x,p.y-down.y);down.x=p.x;down.y=p.y;touchAt(p.x,p.y,.35*q)}
+    else if(e.pointerType==='mouse'&&!reduceMQ.matches)touchAt(p.x,p.y,.12*q)});
+  cvs.addEventListener('pointerup',e=>{if(down&&down.moved<8&&e.timeStamp-down.t<400)touchAt(down.x,down.y,1,true);down=null});
+  cvs.addEventListener('pointercancel',()=>{down=null});
+  // The keyboard: the arrow keys move the ring, leaving a wake (Shift for bigger moves); Enter or Space drops a pebble there
+  cvs.addEventListener('keydown',e=>{
+    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+    if(d){e.preventDefault();const k=e.shiftKey?.12:.04;key.x=Math.min(.97,Math.max(.03,key.x+d[0]*k));key.y=Math.min(.95,Math.max(.05,key.y+d[1]*k));placeSpot();touchAt(key.x*W,key.y*H,.35)}
+    else if(e.key==='Enter'||e.key===' '){e.preventDefault();touchAt(key.x*W,key.y*H,1,true)}
+  });
+  const placeSpot=()=>{spot.style.transform=`translate(${key.x*W}px,${key.y*H}px)`};
+  // Show me: a finger draws an S across the pond (across one half in Compare, so the S is whole in both), then two taps (3 s in
+  // all); the water then calms by itself. The S moves by the time that passed; the taps wait with timers, as every pause of a run does.
+  const span=()=>mode==='compare'?W/2:W;
+  function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms*(slowTog.checked?3:1));runTimers.push(id)}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];path=null}
+  function trace(dt){
+    path.t+=dt/1800;const t=Math.min(1,path.t),x=span()*(.2+.6*t),y=H*(.5+.28*Math.sin(t*Math.PI*2));
+    touchAt(x,y,.35*dt/FRAME);if(t>=1)path=null;
+  }
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    stopRun();
+    if(reduceMQ.matches){touchAt(W*.32,H*.45,1,true);later(()=>touchAt(W*.68,H*.58,1,true),800);return}
+    path={t:0};wake();
+    later(()=>touchAt(span()*.3,H*.32,1,true),2000);later(()=>touchAt(span()*.72,H*.68,1,true),2500);
+  });
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();calm()});
+  document.addEventListener('hb:input',()=>{if(runTimers.length||path)stopRun()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&(runTimers.length||path))stopRun()});
+  // The mode switch draws the mode at once; See inside and Compare show a frozen ripple while the water is calm
+  // Normal and See inside show one water, Compare another: each keeps moving where it was left, so the water a mode shows wakes
+  // if it was still moving when the loop stopped for the other
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;cvs.setAttribute('aria-label',LABELS[mode]);if(mode!=='inside')octx.clearRect(0,0,W,H);draw();
+    const w=mode==='compare'?pair:main;if(!w.still&&!reduceMQ.matches)wake();
+  });
+  // A frozen ripple for See inside and Compare at rest: two pebbles from a fixed start, a fixed number of steps on
+  function freeze(){
+    const deep=phone.matches?2:1;   // the grid is coarse on a phone: twice as deep, so the posed ripple bends the picture as it should
+    frozen=[main,pair].map(w=>{const f={...w,cur:new Float32Array(w.cur.length),prev:new Float32Array(w.cur.length)};
+      push(f,W*(w===main?.36:.18),H*.45,1.4*deep,true);push(f,W*(w===main?.66:.34),H*.6,1.1*deep,true);for(let i=0;i<26;i++)step(f);return f});
+  }
+  function build(){
+    stage.querySelectorAll('.view').forEach(c=>c.remove());
+    const cols=Math.min(phone.matches?128:200,Math.round(W/4)),half=Math.round(cols/2);
+    main=Water({x:0,y:0,w:1,h:1},cols);main.views=[View(main,'whole'),View(main,'flat')];main.still=true;
+    pair=Water({x:0,y:0,w:.5,h:1},half);pair.views=[View(pair,'half'),View({...pair,rect:{x:.5,y:0,w:.5,h:1}},'half')];pair.still=true;
+    freeze();
+  }
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h||(w===W&&h===H))return;W=w;H=h;
+    const dpr=Math.min(devicePixelRatio||1,1.5);over.width=W*dpr;over.height=H*dpr;octx.setTransform(dpr,0,0,dpr,0,0);
+    stopRun();running=false;cancelAnimationFrame(raf);raf=0;build();placeSpot();draw();
+  }
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);if(main){freeze();draw()}
+    }));
+  }
+  choices('size-seg',d=>{radius=+d.r});
+  choices('last-seg',d=>{damp=+d.damp});
+  choices('bend-seg',d=>{bend=+d.bend});
+  // The notes and the canvas names follow the Light switch and reduced motion, read each time either changes (the markup holds
+  // the words for light on, with motion): under reduced motion the water never moves, so they say what the still views show
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const NOTE_IN=[["The gray map is the water's height. Each step, a point becomes half its neighbors' total minus its last height, and the picture is read from a spot shifted by the slope.",noteIn.textContent],
+    ["Shown still: the gray map is the water's height. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from.",
+     "Shown still: the gray map is the water's height; blue tints mark slopes facing the light. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from."]];
+  const NOTE_CMP=[noteCmp.textContent,'Shown still: Rings on top draws light rings over a flat picture, while Bends the picture shifts the picture itself under the waves, so it looks like water.'];
+  function notes(){
+    const lit=lightTog.checked,still=reduceMQ.matches,ask=still?'see still rings':'make ripples';
+    noteIn.textContent=NOTE_IN[+still][+lit];noteCmp.textContent=NOTE_CMP[+still];
+    LABELS.normal='A pond with pebbles, a koi and lily pads under clear water. Drag or tap to '+ask+'; with the keyboard, the arrow keys move a ring and Enter drops a pebble.';
+    LABELS.inside="The water's height as a gray map over a faint pond,"+(lit?' blue tints on slopes that face the light,':'')+' a magnified patch of nine points and arrows to the spots the picture is read from. Drag or tap to '+ask+'.';
+    cvs.setAttribute('aria-label',LABELS[mode]);
+  }
+  lightTog.addEventListener('change',()=>{notes();draw()});
+  reduceMQ.addEventListener('change',notes);
+  notes();
+  new ResizeObserver(resize).observe(stage);
+  resize();
+</script>
+</body>
+</html>

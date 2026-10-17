@@ -76,6 +76,18 @@ The page owns the stage's width, border, corners and height (`--hb-stage-h` and 
 another one); the demo owns overflow, background, alignment and perspective. `hb-dots` adds a dotted
 background to a plain dark stage; `hb-grow` lets a stage with visitor-editable text grow taller.
 
+**Mode switch** (optional, on some pages). In the Watch step, between the heading and the stage, `div.seg.hb-modes[data-hb-modes]`
+holds three buttons with `data-hb-mode`: `normal` (pressed at first), `inside` (See inside) and `compare`. After the player bar,
+`div.hb-mode-notes[aria-live=polite]` holds exactly two hidden notes, direct children and one or two sentences each:
+`p[data-hb-for="inside"]` then `p[data-hb-for="compare"]` (the Compare note names the halves by their labels). A press marks the
+stage `data-hb-mode`, shows that mode's note and then sends `hb:mode` on `document` (`detail.mode`; again on a press of the mode
+already pressed, never at boot). The demo listens at the top level of its script, draws the mode at once and never scrolls, moves
+focus, presses a control, stops Play or changes Pause; every mode rule names `.stage[data-hb-mode="inside"]` or `"compare"` (Normal
+has none) and labels carry `data-hb-caption`. Ruling 1: after See inside or Compare the shared script presses Replay (once pages)
+or Show me (do pages) one time so the view is seen working; never under reduced motion, after Normal, or on a scroll or loop page.
+The mode is not a setting: it stays out of Your settings and the prompt. Copy `fade-in-out` (once), `magnetic-button` (do),
+`parallax-scrolling` (scroll) or `marquee-ticker` (loop).
+
 #### Page kinds and their controls
 The body declares one kind: `<body class="hb" data-hb-kind="once|loop|do|scroll">`. Every kind except loop also
 has `data-hb-autoplay` on the body, which runs the arrival. Player markers sit in the player bar, at most one

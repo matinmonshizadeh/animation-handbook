@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Deck Swipe — Animation Handbook</title>
+  <meta name="description" content="Swipe the top card left or right; the next one rises. Best for quick choices.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/card-deck-swipe/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Card Deck Swipe — Animation Handbook">
+  <meta property="og:description" content="Swipe the top card left or right; the next one rises. Best for quick choices.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/card-deck-swipe/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Card Deck Swipe — Animation Handbook">
+  <meta name="twitter:description" content="Swipe the top card left or right; the next one rises. Best for quick choices.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Card Deck Swipe", "name": "Card Deck Swipe", "description": "Swipe the top card left or right; the next one rises. Best for quick choices.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/card-deck-swipe/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Card Deck Swipe"}</script>
+  <style>
+    :root{--ui-accent:#ff9d5c;--like:#34c77b;--nope:#ff5a5f;--undo:#f5c84c}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* --sp: 3 in slow motion. The box is taller on phones, in every mode alike, so the pile and its buttons both fit */
+    .stage{--sp:1;--hb-stage-h-phone:400px;position:relative;display:flex;flex-direction:column;background:#0b0b0d;-webkit-user-select:none;user-select:none}
+    .decks{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+    .deck{position:relative;min-width:0;container-type:size}
+    .pile{position:absolute;inset:0}
+    /* A card: about 60% of the box's width at most, a little above the middle so the pile's back edges keep clear of the buttons, turning around a point below its bottom edge (transform-origin) */
+    .card{--tb:translateY(calc(var(--i) * 12px)) scale(calc(1 - var(--i) * .05));position:absolute;left:50%;top:calc(50% - 12px);width:min(64cqh,60cqw);aspect-ratio:4/5;translate:-50% -50%;
+      display:flex;flex-direction:column;overflow:hidden;border-radius:14px;background:#17171c;box-shadow:0 10px 26px rgba(0,0,0,.45);container-type:inline-size;
+      transform-origin:50% 130%;transform:var(--spread,translate(0)) var(--tb);touch-action:pan-y;cursor:grab;
+      transition:transform calc(.3s * var(--sp)) cubic-bezier(.2,.8,.2,1),opacity calc(.3s * var(--sp))}
+    .fan .card{--tb:rotate(calc(var(--i) * var(--f) * 5deg)) scale(calc(1 - var(--i) * .03))}
+    .hide .card{--tb:scale(calc(1 - min(var(--i),1) * .05))}
+    .hide .card:not(.top),.card.deep{opacity:0}
+    .card.drag{transition:none}
+    .card.spring{transition:transform calc(.4s * var(--sp)) cubic-bezier(.3,1.35,.5,1),opacity calc(.3s * var(--sp))}
+    .card.out{pointer-events:none;transition:transform calc(.42s * var(--sp)) cubic-bezier(.4,0,1,1),opacity calc(.42s * var(--sp)) ease-in}
+    .photo{flex:1;min-height:0;background:radial-gradient(circle at 50% 44%,#f1c7a3 0 15%,#0000 15.5%),radial-gradient(circle at 50% 37%,var(--hair) 0 19%,#0000 19.5%),radial-gradient(ellipse 34% 24% at 50% 100%,var(--shirt) 0 99%,#0000 100%),linear-gradient(160deg,var(--bg1),var(--bg2))}
+    .who{padding:8cqw 9cqw 1cqw;color:#f4f4f2;font:700 clamp(12px,8.5cqw,19px)/1.2 var(--hb-font)}
+    .line{padding:0 9cqw;color:#b4b4bb;font:500 clamp(10px,6cqw,13px)/1.4 var(--hb-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .line:last-of-type{padding-bottom:7cqw}
+    .stamp{position:absolute;top:8%;padding:1px 8px;border:3px solid;border-radius:8px;background:rgba(11,11,13,.85);font:800 clamp(13px,11cqw,24px)/1.15 var(--hb-font);letter-spacing:.06em;opacity:0;pointer-events:none}
+    .like{left:8%;color:var(--like);transform:rotate(-14deg)}.nope{right:8%;color:var(--nope);transform:rotate(14deg)}
+    .spring .stamp{transition:opacity calc(.3s * var(--sp))}
+    /* Nope, Undo and Like: round buttons under the pile, 48px to touch */
+    .acts{display:flex;justify-content:center;gap:18px;padding:12px 0 12px}
+    .act{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:#17171c;cursor:pointer}
+    .act svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    .nope-b{color:var(--nope)}.undo-b{color:var(--undo)}.like-b{color:var(--like)}
+    @media(hover:hover){.act:hover{border-color:currentColor}}
+    /* See inside and Compare: plain words over the stage; in See inside the pile spread apart and numbered, the swipe distance
+       dashed on both sides (lit once the card's middle passes it) and the point the card turns around */
+    .guide,.pivot,.twin,.cap{display:none}
+    .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .cap{position:absolute;left:0;top:0;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.half{display:block}
+    .stage[data-hb-mode="inside"] .deck{transform:scale(.7);transform-origin:50% 8%}
+    .stage[data-hb-mode="inside"] .card{--spread:translate(calc(var(--i) * -40px),calc(var(--i) * -14px))}
+    .stage[data-hb-mode="inside"].hide .card:not(.top):not(.deep){opacity:.45}
+    .stage[data-hb-mode="inside"] .card::after{content:attr(data-n);position:absolute;left:8px;bottom:8px;width:32px;height:32px;border-radius:50%;background:var(--ui-accent);color:#16161a;font:800 18px/32px var(--hb-font);text-align:center}
+    .stage[data-hb-mode="inside"] .guide,.stage[data-hb-mode="inside"] .pivot{display:block}
+    .guide{position:absolute;left:50%;top:0;z-index:2;border-left:3px dashed rgba(255,255,255,.6);pointer-events:none}
+    .guide.lit{border-left-color:var(--ui-accent)}
+    .pivot{position:absolute;left:0;top:0;z-index:2;width:60px;height:60px;margin:-30px 0 0 -30px;overflow:visible;pointer-events:none}
+    .pivot path{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round}.pivot circle{fill:var(--ui-accent);stroke:#0b0b0d;stroke-width:2}
+    .stage[data-hb-mode="inside"].flat .pivot,.stage[data-hb-mode="inside"].flat #c-held{display:none}
+    /* Compare: a copy of the pile whose cards slide flat and vanish beside the real one; one drag moves both; a card flying off
+       is cut off at its own half's edge (lesson 14) */
+    .stage[data-hb-mode="compare"] .decks{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:4px}.stage[data-hb-mode="compare"] .deck{overflow:hidden}
+    .stage[data-hb-mode="compare"] .twin{display:block}
+    .twin .card,.twin .card.spring{transition:none}
+    .cap.half{top:8px}.cap.first{left:8px}.cap.second{left:calc(50% + 10px)}
+    @media(prefers-reduced-motion:reduce){.card,.card.spring,.card.out{transition:opacity .2s}.spring .stamp{transition:none}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="do" data-hb-autoplay>
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../magnifier-lens/" rel="prev" aria-label="Previous: Magnifier Lens"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Magnifier Lens</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">04.44 · Micro-Interactions</p>
+    <h1>Card Deck Swipe</h1>
+    <p class="hb-lede">Swipe the top card left or right; the next one rises. Best for quick choices.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the top card sideways and let go (or Tab to it and use the arrow keys), or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <div class="decks">
+        <div class="deck" id="deck">
+          <div class="pile" id="pile" role="group" aria-label="Profile cards"></div>
+          <span class="guide gl" aria-hidden="true"></span><span class="guide gr" aria-hidden="true"></span>
+          <svg class="pivot" viewBox="-30 -30 60 60" aria-hidden="true"><path d="M-17-13A21 21 0 0 1 17-13M11-19 17-13 10-8M-11-19-17-13-10-8"/><circle r="6"/></svg>
+        </div>
+      </div>
+      <div class="acts">
+        <button class="act nope-b" type="button" id="btn-nope" aria-label="Nope"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <button class="act undo-b" type="button" id="btn-undo" aria-label="Undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+        <button class="act like-b" type="button" id="btn-like" aria-label="Like"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></button>
+      </div>
+      <p class="sr-only" id="say" role="status" aria-live="polite"></p>
+      <p class="cap in" id="c-go" aria-hidden="true" data-hb-caption>Let go past here: it flies</p>
+      <p class="cap in" id="c-held" aria-hidden="true" data-hb-caption>Held here, so it turns</p>
+      <p class="cap in" id="c-next" aria-hidden="true" data-hb-caption>Next · waits a little smaller</p>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>Vanishes</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>Flies off</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+      <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the pile is spread apart and numbered: each waiting card is smaller. The top card turns around a point below it, and a dashed line lights once it is far enough to fly.</p>
+      <p data-hb-for="compare" hidden>On the left the card vanishes when you let go, so it is hard to tell where it went. On the right it flies off the side you chose as the next one rises.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting, then drag a card or press Show me.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="dist-lbl">How far to swipe</p>
+        <div class="seg" id="dist-seg" role="group" aria-labelledby="dist-lbl">
+          <button type="button" data-t="0.25" aria-pressed="false">Short</button>
+          <button type="button" data-t="0.4" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-t="0.6" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">How far to drag before letting go sends it.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="turn-lbl">How much it turns</p>
+        <div class="seg" id="turn-seg" role="group" aria-labelledby="turn-lbl">
+          <button type="button" data-turn="0" aria-pressed="false">None</button>
+          <button type="button" data-turn="14" class="on" aria-pressed="true">A little</button>
+          <button type="button" data-turn="30" aria-pressed="false">A lot</button>
+        </div>
+        <p class="hb-hint">As if held at the bottom edge.</p>
+      </div>
+      <div class="hb-setting">
+        <label class="hb-switch-row"><span>Shows stamps</span><input class="hb-switch" type="checkbox" role="switch" id="stamp-tog" checked autocomplete="off"></label>
+        <p class="hb-hint">Like and Nope fade in as you drag.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="behind-lbl">Cards behind</p>
+          <div class="seg" id="behind-seg" role="group" aria-labelledby="behind-lbl">
+            <button type="button" data-behind="peek" class="on" aria-pressed="true">Peeking</button>
+            <button type="button" data-behind="fan" aria-pressed="false">Fanned</button>
+            <button type="button" data-behind="hide" aria-pressed="false">Hidden</button>
+          </div>
+          <p class="hb-hint">How the waiting cards show.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a swipeable card deck to [your stack of cards, such as profiles or products]. Pile the cards with the waiting ones behind the top one, showing as the settings choose. While dragged, the top card follows the finger and turns as the settings choose, as if held at its bottom edge, and Like or Nope stamps fade in when the settings include them. On release, send it off that side if it went far enough or was flicked; otherwise spring it back, and grow the next card into place. Use transforms and pointer events, let up-and-down scrolling pass through, and add Nope, Like and Undo buttons for keyboards. If the visitor has reduced motion turned on, fade cards out instead of throwing them. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Matching apps</li><li>Product pickers</li><li>Flashcards</li><li>Quick polls</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Lists people compare</li><li>Choices that need care</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.querySelector('.stage'),deck=document.getElementById('deck'),slowTog=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),gl=deck.querySelector('.gl'),gr=deck.querySelector('.gr'),pivot=deck.querySelector('.pivot');
+  const caps=['c-go','c-held','c-next'].map(id=>document.getElementById(id)),sayEl=document.getElementById('say');
+  const pileEl=document.getElementById('pile'),LABELS={normal:pileEl.getAttribute('aria-label'),
+    inside:'Profile cards spread apart and numbered, with dashed lines at the swipe distance and the point the top card turns around',
+    compare:'Profile cards: this pile flies off when let go, and a copy beside it vanishes'};
+  // The words follow the settings and reduced motion: with None the card stays upright, so See inside has no pivot to name;
+  // under reduced motion the right card fades where it is instead of flying off
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  if(reduceMQ.matches){document.querySelector('.cap.second').textContent='Fades out';document.getElementById('c-go').textContent='Let go past here: it fades';LABELS.compare='Profile cards: this pile fades out when let go, and a copy beside it vanishes'}
+  function notes(){
+    const verb=reduceMQ.matches?'fade':'fly';
+    document.querySelector('[data-hb-for="inside"]').textContent=turn?said.inside.replace('to fly.','to '+verb+'.'):'Inside, the pile is spread apart and numbered: each waiting card is smaller. With no turn set, the top card stays upright, and a dashed line lights once it is far enough to '+verb+'.';
+    document.querySelector('[data-hb-for="compare"]').textContent=reduceMQ.matches?'On the left the card vanishes the moment you let go. On the right, with reduced motion on, it fades out where it is and the next one appears in its place.':said.compare;
+    LABELS.inside='Profile cards spread apart and numbered, with dashed lines at the swipe distance'+(turn?' and the point the top card turns around':'');
+    if(mode==='inside')pileEl.setAttribute('aria-label',LABELS.inside);
+  }
+  // Five made-up people: name, two lines, and the picture's colors (background, shirt, hair)
+  const PEOPLE=[['Mira, 27','Climbs on weekends','Bakes bread at dawn','#ff9a76','#7c4dff','#2f3b8f','#3b2416'],
+    ['Theo, 31','Plays the cello','Has two old cats','#5ec7c0','#1f5f8b','#e8b04a','#1b1b1f'],
+    ['Lena, 25','Draws maps for fun','Runs by the river','#f6c85f','#d1495b','#3a7d44','#8a4b2a'],
+    ['Kofi, 29','Cooks for twelve','Fixes old bikes','#8fb8ff','#3d348b','#f26b38','#16120f'],
+    ['Ines, 33','Grows tomatoes','Loves night trains','#b8e1a3','#2d6a4f','#9b5de5','#5a2d1c']];
+  const real={pile:document.getElementById('pile'),twin:false};
+  // thr: how far the card's middle must go to fly, as a share of its width; turn: degrees of turn for a card width of drag
+  let thr=.4,turn=14,stamps=true,mode='normal',twin=null,cardW=0,cardH=0,dx=0,gone=[],drag=null,runTimers=[],runFrame=0,runDragging=false,thrown=false;
+  const decks=()=>twin?[real,twin]:[real];
+  const live=d=>[...d.pile.children].filter(c=>!c.classList.contains('out'));
+  const topOf=d=>{const l=live(d);return l[l.length-1]||null};
+  const clamp01=x=>Math.min(1,Math.max(0,x));
+
+  function cardEl(p,copy){
+    const [who,l1,l2,bg1,bg2,shirt,hair]=PEOPLE[p],c=document.createElement('div');
+    c.className='card';c.dataset.p=p;c.style.setProperty('--f',p%2?1:-1);
+    c.innerHTML=`<div class="photo" style="--bg1:${bg1};--bg2:${bg2};--shirt:${shirt};--hair:${hair}"></div><p class="who">${who}</p><p class="line">${l1}</p><p class="line">${l2}</p>`+
+      (copy?'':'<span class="stamp like" aria-hidden="true">LIKE</span><span class="stamp nope" aria-hidden="true">NOPE</span>');
+    return c;
+  }
+  // Depth of every card (0 on top); only the top card of the real pile takes focus, and it says what the keys do
+  function restack(d){
+    const l=live(d);
+    l.forEach((c,k)=>{
+      const i=l.length-1-k;c.style.setProperty('--i',i);c.dataset.n=i+1;c.classList.toggle('top',!i);c.classList.toggle('deep',i>=(mode==='inside'?4:3));
+      if(i)c.style.transform='';
+      if(d.twin)return;
+      if(i)c.querySelectorAll('.stamp').forEach(m=>{m.style.opacity=''});
+      c.tabIndex=i?-1:0;
+      if(i){c.removeAttribute('aria-label');c.removeAttribute('role')}
+      else{c.setAttribute('role','group');c.setAttribute('aria-label',PEOPLE[c.dataset.p].slice(0,3).join(', ')+'. Left arrow for Nope, right arrow for Like')}
+    });
+  }
+  function build(){gone=[];dx=0;for(const d of decks()){d.pile.textContent='';[4,3,2,1,0].forEach(p=>d.pile.appendChild(cardEl(p,d.twin)));restack(d)}}
+  // The top card where a drag puts it: moved, turned around its pivot below, its stamp as strong as the drag is far; the copy in
+  // Compare only slides, flat. See inside lights the line the card's middle has passed and moves the pivot with the card.
+  function follow(x,y=0){
+    dx=x;const c=topOf(real),s=thr*cardW,t=twin&&topOf(twin);
+    if(c){
+      c.style.transform=x||y?`translate(${x}px,${y}px) rotate(${cardW?x/cardW*turn:0}deg)`:'';
+      c.querySelector('.like').style.opacity=stamps?clamp01(x/(s/2)):0;c.querySelector('.nope').style.opacity=stamps?clamp01(-x/(s/2)):0;
+    }
+    if(t)t.style.transform=x?`translateX(${x}px)`:'';
+    gr.classList.toggle('lit',x>s);gl.classList.toggle('lit',-x>s);
+    pivot.style.transform=`translate(${deck.clientWidth/2+x}px,${deck.clientHeight/2+cardH*.8+y}px)`;
+    if(mode==='inside')placeCaps();
+  }
+  // At rest the top card sits in the middle; See inside holds it half way to the line, Compare a third of a card to the right
+  // (short of the line, so a plain click never sends it)
+  const restX=()=>mode==='inside'?thr*cardW/2:mode==='compare'?Math.min(cardW/3,thr*cardW*.8):0;
+  function settle(spring){
+    for(const d of decks()){const c=topOf(d);if(c){c.classList.remove('drag');c.classList.toggle('spring',spring)}}
+    follow(restX());
+  }
+  // The top card leaves to one side (under reduced motion it fades where it is); the copy's card vanishes at once; the next card
+  // grows into place, and an empty pile fills again
+  function send(dir,quiet){
+    const c=topOf(real);if(!c)return;
+    if(!quiet)sayEl.textContent=(dir>0?'Like: ':'Nope: ')+PEOPLE[c.dataset.p][0];
+    const had=document.activeElement===c,t=twin&&topOf(twin);
+    gone.push({p:+c.dataset.p,dir});if(t)t.remove();
+    c.classList.remove('drag','spring','top');c.classList.add('out');c.style.opacity='0';
+    if(!reduceMQ.matches)c.style.transform=`translate(${dir*cardW*2.2}px,${-cardW*.12}px) rotate(${dir*Math.max(turn,8)*1.6}deg)`;
+    c.addEventListener('transitionend',()=>{c.remove();if(!quiet&&!live(real).length&&!real.pile.children.length){build();settle(false)}},{once:true});
+    for(const d of decks())restack(d);
+    settle(!reduceMQ.matches);
+    // a throw Show me plays leaves focus alone: moving it would count as the visitor's own focus and stop the run before its Undo
+    const n=topOf(real);if(had&&!quiet)(n||document.getElementById('btn-undo')).focus({preventScroll:true});
+  }
+  // Undo: the last card comes back from the side it left on (under reduced motion it fades in)
+  function undo(quiet){
+    const g=gone.pop();if(!g)return;
+    if(!quiet)sayEl.textContent='Undone: '+PEOPLE[g.p][0]+' is back on top';
+    const c=cardEl(g.p,false);c.classList.add('drag');c.style.opacity='0';
+    if(!reduceMQ.matches)c.style.transform=`translate(${g.dir*cardW*2.2}px,${-cardW*.12}px) rotate(${g.dir*Math.max(turn,8)*1.6}deg)`;
+    real.pile.appendChild(c);if(twin)twin.pile.appendChild(cardEl(g.p,true));
+    for(const d of decks())restack(d);
+    void c.offsetWidth;c.style.opacity='';settle(!reduceMQ.matches);
+  }
+
+  // The visitor's drag: the top card follows the pointer (touch-action pan-y keeps the page scrolling up and down); letting go
+  // past the line or with a flick sends it, otherwise it springs back
+  const scale=()=>deck.getBoundingClientRect().width/deck.offsetWidth||1;
+  real.pile.addEventListener('pointerdown',e=>{
+    const c=e.target.closest('.card');if(!c||c!==topOf(real)||(e.pointerType==='mouse'&&e.button!==0))return;
+    stopRun();const k=scale();
+    drag={id:e.pointerId,x0:e.clientX-dx*k,y0:e.clientY,sx:e.clientX,touch:e.pointerType==='touch',axis:'',k,lastX:e.clientX,lastT:performance.now(),vel:0};
+    for(const d of decks()){const t=topOf(d);if(t){t.classList.add('drag');t.classList.remove('spring')}}
+    c.setPointerCapture(e.pointerId);
+  });
+  real.pile.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    // a finger that starts moving up and down is a page scroll: let go of the card (touch-action pan-y hands the gesture over)
+    if(drag.touch&&!drag.axis){
+      const mx=Math.abs(e.clientX-drag.sx),my=Math.abs(e.clientY-drag.y0);
+      if(mx<8&&my<8)return;
+      if(my>mx){drag=null;settle(!reduceMQ.matches);return}
+      drag.axis='x';
+    }
+    const now=performance.now();if(now>drag.lastT){drag.vel=(e.clientX-drag.lastX)/(now-drag.lastT);drag.lastX=e.clientX;drag.lastT=now}
+    follow((e.clientX-drag.x0)/drag.k,(e.clientY-drag.y0)/drag.k*.25);
+  });
+  function release(e,cancelled){
+    if(!drag||e.pointerId!==drag.id)return;
+    const d=drag;drag=null;if(performance.now()-d.lastT>100)d.vel=0;
+    const past=Math.abs(dx)>thr*cardW,flick=Math.abs(d.vel)>.5&&Math.abs(dx)>20&&Math.sign(d.vel)===Math.sign(dx);
+    if(!cancelled&&(past||flick))send(dx>0?1:-1);else settle(!reduceMQ.matches);
+  }
+  real.pile.addEventListener('pointerup',e=>release(e,false));
+  real.pile.addEventListener('pointercancel',e=>release(e,true));
+  // The keyboard and the buttons: Left and Right on the focused top card, or Nope, Like and Undo
+  real.pile.addEventListener('keydown',e=>{
+    if(e.target!==topOf(real)||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;
+    e.preventDefault();stopRun();send(e.key==='ArrowRight'?1:-1);
+  });
+  document.getElementById('btn-nope').addEventListener('click',()=>{stopRun();send(-1)});
+  document.getElementById('btn-like').addEventListener('click',()=>{stopRun();send(1)});
+  document.getElementById('btn-undo').addEventListener('click',()=>{if(thrown&&!live(real).length)thrown=false;stopRun();undo()});   // not a refill: Undo brings the last card back
+
+  // Show me: a drag that springs back, a throw to the left, then Undo. Its drags move the card the way a finger would, by the
+  // time that passes; every pause waits on a timer, and slow motion triples the moves, never the pauses.
+  function later(fn,move,hold){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
+  const running=()=>runTimers.length>0||runFrame!==0;
+  function runDrag(to,ms,then){
+    for(const d of decks()){const t=topOf(d);if(t){t.classList.add('drag');t.classList.remove('spring')}}
+    const from=dx,dur=ms*(slowTog.checked?3:1);let t0=null;runDragging=true;
+    const step=ts=>{
+      if(t0===null)t0=ts;
+      const k=reduceMQ.matches?1:Math.min(1,(ts-t0)/dur);follow(from+(to-from)*k*k*(3-2*k));
+      if(k<1){runFrame=requestAnimationFrame(step);return}
+      runFrame=0;runDragging=false;then();
+    };
+    runFrame=requestAnimationFrame(step);
+  }
+  function stopRun(){
+    if(thrown&&!live(real).length){build();settle(false)}   // a run stopped while its throw left the pile empty refills it, as an empty pile does
+    thrown=false;runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;
+    if(runDragging){runDragging=false;settle(!reduceMQ.matches)}
+  }
+  document.getElementById('btn-demo').addEventListener('click',()=>{
+    const back=thrown;stopRun();
+    if(back)undo(true);   // the last run was cut short between its throw and its Undo: the card comes back first, so every run starts from the same pile
+    if(!topOf(real))return;
+    const s=thr*cardW;
+    const a=restX(),q=Math.min(a+s*.55,s*.9),to=q-a<s*.3?a-s*.55:q;   // the drag that springs back stays short of both lines
+    runDrag(to,700,()=>settle(!reduceMQ.matches));
+    // the spring-back (400 ms) and the fly-off (420 ms) count as moves, so slow motion slows them as it slows the drags
+    later(()=>runDrag(-(s+cardW*.2),600,()=>{thrown=true;send(-1,true)}),700+400,200);
+    later(()=>{thrown=false;undo(true)},1300+400+420,580);
+  });
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();build();settle(false)});
+  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+
+  // See inside's labels, measured before any moves. Each has a few places to try, the usual one first: the line's under its end
+  // (or below the pivot's arc, or above the line), the pivot's to its left (or right, or one or two rows below), the next card's
+  // above it (or above both cards, or in the box's corner, or below the pile). Of every combination the one that costs least wins:
+  // overlap with the pivot's arc and with each other, a little for covering the top card, and a fixed price for a far place.
+  function placeCaps(){
+    const s=stage.getBoundingClientRect(),R=el=>{const b=el.getBoundingClientRect();return[b.left-s.left,b.top-s.top,b.right-s.left,b.bottom-s.top]};
+    const n=live(real),nx=n[n.length-2],g=R(gr),p=R(pivot),b=nx?R(nx):[6,6,6,6],t=R(topOf(real)||pivot),u=(p[2]-p[0])/60,cx=(p[0]+p[2])/2,cy=(p[1]+p[3])/2;
+    const arc=[cx-20*u-3,cy-24*u-3,cx+20*u+3,cy+9*u+3],gx=(g[0]+g[2])/2;
+    const area=(a,c)=>Math.max(0,Math.min(a[2],c[2])-Math.max(a[0],c[0]))*Math.max(0,Math.min(a[3],c[3])-Math.max(a[1],c[1]));
+    const spots=[(w,h)=>[[gx-w/2,g[3]+4,0],[Math.max(gx-w/2,arc[2]+4),g[3]+4,2],[gx-w/2,arc[3]+4,5],[gx-w/2,g[1]-h-4,10]],
+      (w,h)=>[[arc[0]-4-w,cy-h/2,0],[arc[2]+4,cy-h/2,5],[cx-w/2,arc[3]+4,10],[cx-w/2,arc[3]+8+h,15]],
+      (w,h)=>[[b[0],b[1]-h-6,0],[b[0],Math.min(b[1],t[1])-h-6,0],[b[0],Math.max(b[3],t[3])+6,800],[s.width-w-6,6,1500],[6,6,1500]]];
+    const opts=caps.map((el,i)=>{const w=el.offsetWidth,h=el.offsetHeight;return spots[i](w,h).map(([x,y,pen])=>{x=Math.max(6,Math.min(s.width-w-6,x));y=Math.max(6,Math.min(s.height-h-6,y));return[x,y,x+w,y+h,pen]})});
+    let best=null;
+    for(const r0 of opts[0])for(const r1 of opts[1])for(const r2 of opts[2]){
+      const cost=area(r0,arc)+area(r1,arc)+area(r2,arc)+area(r0,r1)+area(r0,r2)+area(r1,r2)+area(r2,t)/4+r0[4]+r1[4]+r2[4];
+      if(!best||cost<best.cost)best={cost,r:[r0,r1,r2]};
+    }
+    best.r.forEach((r,i)=>{caps[i].style.transform=`translate(${r[0]}px,${r[1]}px)`});
+  }
+  // the cards move with transitions, so the next card's box is only final once they end
+  real.pile.addEventListener('transitionend',e=>{if(mode==='inside'&&e.propertyName==='transform')placeCaps()});
+  // Compare's first half: a copy of the pile, made once, inert and unnamed; it then follows every change of the real one
+  function makeTwin(){
+    const el=document.createElement('div');el.className='deck twin';el.inert=true;el.setAttribute('aria-hidden','true');
+    el.innerHTML='<div class="pile"></div>';deck.before(el);twin={pile:el.firstChild,twin:true};
+    live(real).forEach(c=>twin.pile.appendChild(cardEl(+c.dataset.p,true)));restack(twin);
+  }
+  // Card sizes, and the dashed lines at the swipe distance: from a little above the card down to its bottom edge
+  function measure(){
+    const c=real.pile.querySelector('.card');cardW=c?c.offsetWidth:0;cardH=c?c.offsetHeight:0;
+    for(const [g,k] of [[gl,-1],[gr,1]]){g.style.top=deck.clientHeight/2-cardH*.56+'px';g.style.height=cardH*1.08+'px';g.style.transform=`translateX(${k*thr*cardW}px)`}
+  }
+  // The mode switch draws the mode at once: the card at the mode's rest, with no spring
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;pileEl.setAttribute('aria-label',LABELS[mode]);
+    if(mode==='compare'&&!twin)makeTwin();
+    for(const d of decks())restack(d);
+    measure();if(!drag&&!running())settle(false);else follow(dx);
+  });
+  new ResizeObserver(()=>{measure();follow(drag||running()?dx:restX())}).observe(deck);
+
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);measure();if(!drag&&!running())settle(false);
+    }));
+  }
+  choices('dist-seg',d=>{thr=+d.t});
+  choices('turn-seg',d=>{turn=+d.turn;stage.classList.toggle('flat',!turn);notes()});
+  choices('behind-seg',d=>{stage.classList.remove('fan','hide');if(d.behind!=='peek')stage.classList.add(d.behind)});
+  document.getElementById('stamp-tog').addEventListener('change',e=>{stamps=e.target.checked;follow(dx)});
+  slowTog.addEventListener('change',()=>stage.style.setProperty('--sp',slowTog.checked?3:1));
+  build();measure();notes();
+</script>
+</body>
+</html>

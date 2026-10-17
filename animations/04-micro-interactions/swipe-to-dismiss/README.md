@@ -58,5 +58,5 @@ Commit is decided by distance **or** velocity — a fast flick counts even if th
 ## See also
 - [Drawer / Panel Slide](../drawer-slide/) — another panel moved by a gesture
 - [Modal Expand](../modal-expand/) — a window that grows out of the button you pressed
-- [Button Press Scale](../button-press-scale/) — a button that shrinks as you press it
 - [Toggle / Switch Slide](../toggle-switch/) — a smaller control that slides and settles
+- [Card Deck Swipe](../card-deck-swipe/) — the top card of a pile goes left or right and the next one rises
