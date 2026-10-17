@@ -1,6 +1,6 @@
 # 03 · Page Transitions
 
-Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the View Transitions API. 16 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Full-page transitions between routes or views — crossfades, slides, portals, morphs, and the View Transitions API. 17 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -20,6 +20,7 @@ Full-page transitions between routes or views — crossfades, slides, portals, m
 - [Overlay Wipe](#overlay-wipe)
 - [Page Curl](#page-curl)
 - [Cube Transition](#cube-transition)
+- [Pixelate Transition](#pixelate-transition)
 
 ## View Transitions API
 
@@ -327,3 +328,22 @@ Add a cube transition to [the pages or slides you want to switch between]. Treat
 - Turn direction: **Sideways** · Up and down. Sideways turns around a vertical line, a later page coming in from the right; up and down turns around a horizontal line, a later page coming in from below.
 - Speed: Slow · **Normal** · Fast. How long the cube takes to turn: slow is 1100ms, normal 750ms and fast 500ms.
 - Depth: Shallow · **Normal** · Deep. How close the viewer is to the cube: shallow puts them 3.2 sides away, normal 1.6 and deep 0.9, so the near edge looms larger.
+
+## Pixelate Transition
+
+The page breaks into big pixels, then sharpens into the next. Best for galleries.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/pixelate-transition/
+- How it runs: reacts to the visitor
+- Good for: Photo galleries · Game and retro sites · Slideshows
+- Avoid on: Everyday navigation · Text-heavy pages
+
+**Prompt**
+
+Add a pixelate transition to [the pictures or views you switch between]. When the visitor moves to the next one, break the current picture into square blocks that grow larger, swap to the new picture while the blocks are at their largest, then shrink the blocks until the new picture is sharp again. Make each block one flat color by drawing the picture very small on a canvas and scaling it back up with smoothing turned off. Keep the page names and buttons outside the pixelated area so they stay readable, and draw only while a change runs. If the visitor has reduced motion turned on, use a short, plain fade instead. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Block size: Small · **Medium** · Large. How big the squares are at the middle of a change: small is 8 pixels, medium 16 and large 28.
+- Speed: Slow · **Normal** · Fast. How long a change takes: slow is 1.2 seconds, normal 0.8 seconds and fast 0.5 seconds.
+- How the blocks change: **Smoothly** · In steps. Smoothly grows and shrinks the blocks evenly; in steps holds them at a quarter, a half, three quarters and the full size in turn.
