@@ -911,5 +911,5 @@ Add a swipeable card deck to [your stack of cards, such as profiles or products]
 
 - How far to swipe: Short · **Medium** · Long. How far the card's middle must go before letting go sends it: short is a quarter of the card's width, medium 40% and long 60%; a quick flick sends it from anywhere.
 - How much it turns: None · **A little** · A lot. How far the card turns for each card width of drag, around a point below its bottom edge: none does not turn, a little turns 14 degrees and a lot 30 degrees.
-- Shows stamps: **on** · off. Like in green and Nope in red fade in on the card as it is dragged, fully shown at the swipe distance.
+- Shows stamps: **on** · off. Like in green and Nope in red fade in on the card as it is dragged, fully shown halfway to the swipe distance.
 - Cards behind: **Peeking** · Fanned · Hidden. How the waiting cards show: peeking sets each one a little lower and 5% smaller, fanned turns them left and right in turn, 5 degrees more and 3% smaller for each card further back, around the same low point, hidden shows only the top card until the next one grows in.

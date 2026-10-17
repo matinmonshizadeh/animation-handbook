@@ -226,9 +226,10 @@
   // The words follow the settings and reduced motion: with None the card stays upright, so See inside has no pivot to name;
   // under reduced motion the right card fades where it is instead of flying off
   const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
-  if(reduceMQ.matches){document.querySelector('.cap.second').textContent='Fades out';LABELS.compare='Profile cards: this pile fades out when let go, and a copy beside it vanishes'}
+  if(reduceMQ.matches){document.querySelector('.cap.second').textContent='Fades out';document.getElementById('c-go').textContent='Let go past here: it fades';LABELS.compare='Profile cards: this pile fades out when let go, and a copy beside it vanishes'}
   function notes(){
-    document.querySelector('[data-hb-for="inside"]').textContent=turn?said.inside:'Inside, the pile is spread apart and numbered: each waiting card is smaller. With no turn set, the top card stays upright, and a dashed line lights once it is far enough to fly.';
+    const verb=reduceMQ.matches?'fade':'fly';
+    document.querySelector('[data-hb-for="inside"]').textContent=turn?said.inside.replace('to fly.','to '+verb+'.'):'Inside, the pile is spread apart and numbered: each waiting card is smaller. With no turn set, the top card stays upright, and a dashed line lights once it is far enough to '+verb+'.';
     document.querySelector('[data-hb-for="compare"]').textContent=reduceMQ.matches?'On the left the card vanishes the moment you let go. On the right, with reduced motion on, it fades out where it is and the next one appears in its place.':said.compare;
     LABELS.inside='Profile cards spread apart and numbered, with dashed lines at the swipe distance'+(turn?' and the point the top card turns around':'');
     if(mode==='inside')pileEl.setAttribute('aria-label',LABELS.inside);
@@ -274,7 +275,7 @@
     dx=x;const c=topOf(real),s=thr*cardW,t=twin&&topOf(twin);
     if(c){
       c.style.transform=x||y?`translate(${x}px,${y}px) rotate(${cardW?x/cardW*turn:0}deg)`:'';
-      c.querySelector('.like').style.opacity=stamps?clamp01(x/s):0;c.querySelector('.nope').style.opacity=stamps?clamp01(-x/s):0;
+      c.querySelector('.like').style.opacity=stamps?clamp01(x/(s/2)):0;c.querySelector('.nope').style.opacity=stamps?clamp01(-x/(s/2)):0;
     }
     if(t)t.style.transform=x?`translateX(${x}px)`:'';
     gr.classList.toggle('lit',x>s);gl.classList.toggle('lit',-x>s);
@@ -351,7 +352,7 @@
   });
   document.getElementById('btn-nope').addEventListener('click',()=>{stopRun();send(-1)});
   document.getElementById('btn-like').addEventListener('click',()=>{stopRun();send(1)});
-  document.getElementById('btn-undo').addEventListener('click',()=>{stopRun();undo()});
+  document.getElementById('btn-undo').addEventListener('click',()=>{if(thrown&&!live(real).length)thrown=false;stopRun();undo()});   // not a refill: Undo brings the last card back
 
   // Show me: a drag that springs back, a throw to the left, then Undo. Its drags move the card the way a finger would, by the
   // time that passes; every pause waits on a timer, and slow motion triples the moves, never the pauses.

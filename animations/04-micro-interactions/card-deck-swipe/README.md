@@ -23,7 +23,7 @@ While it is dragged, the top card's transform follows the pointer and turns in p
 
 ```js
 card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / cardWidth * turn}deg)`;
-like.style.opacity = Math.min(1, Math.max(0, dx / (threshold * cardWidth)));
+like.style.opacity = Math.min(1, Math.max(0, dx / (threshold * cardWidth / 2)));
 ```
 
 On release, a card whose middle went past the swipe distance, or that was flicked away from the middle faster than half a pixel per millisecond, gets a transition and is moved off that side; otherwise it springs back with an overshooting curve. The next card's depth becomes 0, so its own transition grows it into place, and the card that left is removed once its transition ends. Undo puts the last card back on top where it left and lets the transition bring it in. Nope, Like and Undo are real buttons, the Left and Right keys work on the focused top card, and each choice is also written into a polite status line for screen readers. Under reduced motion, cards fade instead of flying.
@@ -33,7 +33,7 @@ On release, a card whose middle went past the swipe distance, or that was flicke
 |-----------|---------|--------|
 | How far to swipe | Medium | How far the card's middle must go before letting go sends it: short is a quarter of the card's width, medium 40% and long 60%; a quick flick sends it from anywhere |
 | How much it turns | A little | How far the card turns for each card width of drag, around a point below its bottom edge: none does not turn, a little turns 14 degrees and a lot 30 degrees |
-| Shows stamps | on | Like in green and Nope in red fade in on the card as it is dragged, fully shown at the swipe distance |
+| Shows stamps | on | Like in green and Nope in red fade in on the card as it is dragged, fully shown halfway to the swipe distance |
 | Cards behind | Peeking | How the waiting cards show: peeking sets each one a little lower and 5% smaller, fanned turns them left and right in turn, 5 degrees more and 3% smaller for each card further back, around the same low point, hidden shows only the top card until the next one grows in |
 
 ## Production notes
