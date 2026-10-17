@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Visualizer — Animation Handbook</title>
+  <meta name="description" content="Bars dance to the music, from bass to treble. Best for music players.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/audio-visualizer/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Audio Visualizer — Animation Handbook">
+  <meta property="og:description" content="Bars dance to the music, from bass to treble. Best for music players.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/audio-visualizer/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Audio Visualizer — Animation Handbook">
+  <meta name="twitter:description" content="Bars dance to the music, from bass to treble. Best for music players.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Audio Visualizer", "name": "Audio Visualizer", "description": "Bars dance to the music, from bass to treble. Best for music players.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/audio-visualizer/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Audio Visualizer"}</script>
+  <style>
+    :root{--ui-accent:#3fd6c4}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:radial-gradient(80% 70% at 50% 100%,#1a1430,#08080c 70%)}
+    #cvs{position:absolute;inset:0;width:100%;height:100%;display:block}
+    /* Hear it: a small player row in the box, at least 44px */
+    .hear{position:absolute;right:10px;top:10px;z-index:2;display:inline-flex;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:0 14px;
+      border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(8,8,12,.82);color:#f4f4f2;font:600 14px/1 var(--hb-font);cursor:pointer}
+    .hear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .hear[aria-pressed="true"]{border-color:var(--ui-accent);color:var(--ui-accent)}
+    @media(hover:hover){.hear:hover{border-color:rgba(255,255,255,.6)}}
+    /* See inside and Compare: plain words over the picture */
+    .av-lbl{display:none;position:absolute;padding:3px 8px;border-radius:6px;background:rgba(8,8,12,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .in:not(.scale),.stage[data-hb-mode="compare"] .row{display:block}
+    .key{left:10px;top:10px;max-width:calc(100% - 140px);white-space:normal}
+    .key i{display:inline-block;width:9px;height:9px;margin:0 4px 0 2px;border-radius:50%;vertical-align:0}
+    .key span{white-space:nowrap}
+    .beat{left:10px;top:var(--beat-y,50px)}
+    .scale{left:10px;right:10px;bottom:8px}
+    .stage[data-hb-mode="inside"].st-bars .scale{display:flex;justify-content:space-between}
+    .row{left:10px}.row.first{top:10px}.row.second{top:var(--l2-y,50%)}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../water-ripple/" rel="prev" aria-label="Previous: Water Ripple"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Water Ripple</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">06.28 · 3D &amp; Advanced</p>
+    <h1>Audio Visualizer</h1>
+    <p class="hb-lede">Bars dance to the music, from bass to treble. Best for music players.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves to a built-in beat, in silence. Press Hear it to play the beat out loud.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage st-bars">
+      <canvas id="cvs" role="img" aria-label="Bars from bass on the left to treble on the right, jumping to a beat and sinking back"></canvas>
+      <button class="hear" type="button" id="hear" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Hear it</span></button>
+      <p class="av-lbl in key" aria-hidden="true" data-hb-caption><span><i style="background:#ff5d5d"></i>Kick</span> <span><i style="background:#ffa94d"></i>Snare</span> <span><i style="background:#b07cff"></i>Bass</span> <span><i style="background:#5cd18a"></i>Melody</span> <span><i style="background:#4fc3f7"></i>Hi-hats</span></p>
+      <p class="av-lbl in beat" aria-hidden="true" data-hb-caption>The beat</p>
+      <p class="av-lbl in scale" aria-hidden="true" data-hb-caption><span>Bass</span><span>Middle</span><span>Treble</span></p>
+      <p class="av-lbl row first" aria-hidden="true" data-hb-caption>Equal slices</p>
+      <p class="av-lbl row second" aria-hidden="true" data-hb-caption>Wider for treble</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each bar is split by the parts of the tune filling it, kick and bass on the left, hi-hats on the right. The top strip marks the beat: each kick lifts the low bars.</p>
+      <p data-hb-for="compare" hidden>Equal slices gives every bar the same share of pitches, so the bass crowds into a few bars. Wider for treble widens the slices as pitches rise, as we hear, so the whole row dances.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="style-lbl">Style</p>
+        <div class="seg" id="style-seg" role="group" aria-labelledby="style-lbl">
+          <button type="button" data-style="bars" class="on" aria-pressed="true">Bars</button>
+          <button type="button" data-style="wave" aria-pressed="false">Wave</button>
+          <button type="button" data-style="circle" aria-pressed="false">Circle</button>
+        </div>
+        <p class="hb-hint">Wave draws the sound's shape instead of its pitches.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="bars-lbl">Number of bars</p>
+        <div class="seg" id="bars-seg" role="group" aria-labelledby="bars-lbl">
+          <button type="button" data-n="16" aria-pressed="false">Few</button>
+          <button type="button" data-n="32" data-hb-phone aria-pressed="false">Some</button>
+          <button type="button" data-n="64" class="on" aria-pressed="true">Many</button>
+        </div>
+        <p class="hb-hint">Fewer read better when small.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="fall-lbl">How bars fall</p>
+        <div class="seg" id="fall-seg" role="group" aria-labelledby="fall-lbl">
+          <button type="button" data-fall="2.6" aria-pressed="false">Quickly</button>
+          <button type="button" data-fall="1.2" class="on" aria-pressed="true">Gently</button>
+          <button type="button" data-fall="0.45" aria-pressed="false">Slowly</button>
+        </div>
+        <p class="hb-hint">Slowly sinks like an old stereo.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Peak marks</span><input class="hb-switch" type="checkbox" role="switch" id="peak-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">A small mark holds each bar's highest point for a moment.</p>
+        </div>
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="colors-lbl">Colors</p>
+          <div class="seg" id="colors-seg" role="group" aria-labelledby="colors-lbl">
+            <button type="button" data-pal="sunset" class="on" aria-pressed="true">Sunset</button>
+            <button type="button" data-pal="ocean" aria-pressed="false">Ocean</button>
+            <button type="button" data-pal="neon" aria-pressed="false">Neon</button>
+          </div>
+          <p class="hb-hint">The colors from the bottom of each bar to its top, or along the wave.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add an audio visualizer to [your music player, podcast card or hero section]. Connect the playing audio to an analyzer that reports, many times a second, how loud each band of pitches is, and draw the bands on a canvas from bass to treble, in the style the settings choose, each sized by its loudness. Give higher bands wider slices of pitch, as hearing does, so the whole row moves. Let bands jump up at once and sink back as the settings choose. Start sound only when the visitor presses play, never use the microphone without asking, and draw fewer bars on phones. If the visitor has reduced motion turned on, keep the bars still until they press play. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Music players</li><li>Podcast pages</li><li>Radio and DJ sites</li><li>Voice notes</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Pages without sound</li><li>Reading pages</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d'),stage=cvs.parentElement,hear=document.getElementById('hear');
+  const slowTog=document.getElementById('slow-tog'),peakTog=document.getElementById('peak-tog'),pauseBtn=document.getElementById('btn-pause');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  // The tune: four bars at 100 beats a minute (a beat is 0.6 s, the loop 9.6 s), written as the beats each part plays on.
+  // Bass and melody notes are [beat, length in beats, frequency in Hz].
+  const BEAT=.6,LOOP=16*BEAT;
+  const KICK=[0,1.5,2,4,5.5,6,8,9.5,10,12,13.5,14,15],SNARE=[1,3,5,7,9,11,13,15],HATS=[...Array(32)].map((_,i)=>i/2);
+  const BASS=[[0,1.5,55],[1.5,.5,55],[2,1,55],[3,1,110],[4,1.5,43.65],[5.5,.5,43.65],[6,1,43.65],[7,1,87.3],[8,1.5,65.4],[9.5,.5,65.4],[10,1,65.4],[11,1,130.8],[12,1.5,49],[13.5,.5,49],[14,1,49],[15,1,98]];
+  const MELODY=[[0,1,440],[1,1,523.3],[2,2,659.3],[4,1,587.3],[5,1,523.3],[6,2,440],[8,1,392],[9,1,440],[10,2,523.3],[12,1,493.9],[13,1,392],[14,2,329.6]];
+  const PARTS=['kick','snare','bass','melody','hats'],PART_COLORS=['#ff5d5d','#ffa94d','#b07cff','#5cd18a','#4fc3f7'];
+  const PALETTES={sunset:['#ff5f6d','#ffc371'],ocean:['#0083b0','#00e5ff'],neon:['#ff00a0','#00f0ff']};
+  // The box's name follows the view and the style (then the loop: "held still" while it is paused)
+  const NAMES={
+    normal:{bars:'Bars from bass on the left to treble on the right',wave:'A line that traces the shape of the sound',circle:'A ring of bars from bass at the top round to treble'},
+    inside:{bars:'The bars split by the parts of the tune that fill them, with a scale from bass to treble and the beat on top',
+      wave:'The sound\'s shape split into one line for each part of the tune, with the beat on top',circle:'The ring of bars split by the parts of the tune that fill them, with the beat on top'},
+    compare:{bars:'Two rows of bars for the same tune: equal slices of pitch above, slices that widen for treble below',
+      wave:'Two matching lines for the same tune: Wave draws the sound\'s shape, so both rows are the same',circle:'Two rings of bars for the same tune: equal slices of pitch above, slices that widen for treble below'}};
+  let style='bars',count=64,fall=1.2,pal='sunset',mode='normal',paused=false;
+  let W=0,H=0,raf=0,lastT=null,clock=.03,song=.03,rows=null,audio=null,insideTop=40;
+  // On phones the bars start at the choice marked data-hb-phone (Some), pressed here before the shared script reads the settings
+  if(phone.matches){const b=document.querySelector('#bars-seg [data-hb-phone]');count=+b.dataset.n;
+    document.querySelectorAll('#bars-seg button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))})}
+  const bars=()=>count;
+  // How loud each part is at a time of the loop (s, in seconds): a hit dies away after it is struck, a note while it sounds
+  const since=(beats,s)=>{let best=1e9;for(const b of beats){const d=s-b*BEAT;if(d>=0&&d<best)best=d;const w=s+LOOP-b*BEAT;if(w>=0&&w<best)best=w}return best};
+  const note=(notes,s)=>{for(const [b,l,f] of notes){const d=s-b*BEAT;if(d>=0&&d<l*BEAT)return{f,amp:Math.exp(-d/(l*BEAT*1.2))}}return{f:0,amp:0}};
+  function parts(s){
+    return{kick:Math.exp(-since(KICK,s)/.12),snare:.8*Math.exp(-since(SNARE,s)/.15),hats:.55*Math.exp(-since(HATS,s)/.05),bass:note(BASS,s),melody:note(MELODY,s)};
+  }
+  // How strongly a part fills a band of pitches (lo to hi Hz), as an analyzer would measure it: the part's loudness averaged over
+  // the band, its energy sitting around its own pitches, spread over a range (a drum) or over a note and its overtones
+  // (pitches in octaves: lf is a sampled pitch of the band, c a part's own pitch, w how far its energy spreads)
+  const near=(lf,c,w)=>{const d=(lf-c)/w;return Math.exp(-d*d)};
+  const L62=Math.log2(62),L200=Math.log2(200),L1800=Math.log2(1800),L9000=Math.log2(9000);
+  function fill(row,i,p,out){
+    const lb=p.bass.amp?Math.log2(p.bass.f):0,lm=p.melody.amp?Math.log2(p.melody.f):0;
+    const tone=(n,k,l,lf)=>n.amp?k*n.amp*(near(lf,l,.3)+.5*near(lf,l+1,.3)+.25*near(lf,l+1.585,.3)):0;
+    out.fill(0);
+    for(let j=0;j<6;j++){const lf=row.lf[i*6+j];
+      out[0]+=p.kick*near(lf,L62,.9);out[1]+=p.snare*(.6*near(lf,L200,.6)+near(lf,L1800,1.6));out[2]+=tone(p.bass,1,lb,lf);out[3]+=tone(p.melody,.8,lm,lf);out[4]+=p.hats*near(lf,L9000,.9)}
+    for(let k=0;k<5;k++)out[k]/=6;
+    return out;
+  }
+  // A row of bands: Wider for treble splits 40 Hz to 16 kHz evenly by octave (each band wider in pitches than the last), Equal
+  // slices into equal widths of 0 to 16 kHz. Each keeps its bars' heights and peak marks.
+  function makeRow(even,n){
+    const edges=[...Array(n+1)].map((_,i)=>even?16000*i/n:40*Math.pow(400,i/n)),lf=new Float32Array(n*6);
+    // six pitches spread across each band, kept in octaves, at which the parts are measured
+    for(let i=0;i<n;i++)for(let j=0;j<6;j++)lf[i*6+j]=Math.log2(Math.max(20,edges[i]+(edges[i+1]-edges[i])*(j+.5)/6));
+    return{edges,lf,level:new Float32Array(n),peak:new Float32Array(n),hold:new Float32Array(n),split:[...Array(n)].map(()=>[0,0,0,0,0])};
+  }
+  // Normal and See inside draw the log row; Compare draws its own pair, each row half as many bars on phones. All three follow
+  // the tune every frame, so a mode opens on the current beat.
+  function build(){const n=bars(),c=phone.matches?n/2:n;rows={log:makeRow(false,n),lin:makeRow(true,c),cmp:makeRow(false,c)};
+    for(const row of Object.values(rows))settle(row,aim(row,song,null),1e6)}
+  phone.addEventListener('change',()=>{if(rows){build();draw()}});
+  // The heights a frame aims for: from the tune itself, or from the real sound once Hear it plays it
+  function aim(row,s,freq){
+    const p=parts(s),n=row.level.length,bin=freq?audio.ctx.sampleRate/2/freq.length:1,out=new Float32Array(n);
+    for(let i=0;i<n;i++){
+      const lo=row.edges[i],hi=row.edges[i+1],f=fill(row,i,p,row.split[i]),sum=f[0]+f[1]+f[2]+f[3]+f[4];
+      for(let k=0;k<5;k++)f[k]=sum?f[k]/sum:0;
+      if(freq){let a=0,c=0;for(let k=Math.floor(lo/bin);k<=Math.max(Math.floor(lo/bin),Math.floor(hi/bin));k++){a+=freq[k]||0;c++}out[i]=Math.min(1,a/c/210)}
+      else out[i]=1-Math.exp(-1.6*sum);
+    }
+    return out;
+  }
+  // Bars jump up at once and sink back by How bars fall (heights a second, a third of it in slow motion); a peak mark holds for
+  // 0.4 s, then falls slowly
+  function settle(row,target,dt){
+    const k=dt/1000,{level,peak,hold}=row;
+    for(let i=0;i<level.length;i++){
+      level[i]=target[i]>level[i]?target[i]:Math.max(target[i],level[i]-fall*k);
+      if(level[i]>=peak[i]){peak[i]=level[i];hold[i]=.4}else if((hold[i]-=k)<0)peak[i]=Math.max(level[i],peak[i]-.35*k);
+    }
+  }
+  // The sound's shape: the parts of the tune added together, a short stretch of time around now, worked out once for a moment of the
+  // tune and shared by every line drawn from it (120 points, 80 on phones)
+  const waveSize=()=>phone.matches?80:120;
+  let waveSet=null;
+  function waves(s){
+    const n=waveSize();
+    if(waveSet&&waveSet.s===s&&waveSet.n===n)return waveSet;
+    const p=parts(s),sum=new Float32Array(n),each=[0,1,2,3,4].map(()=>new Float32Array(n));
+    for(let j=0;j<n;j++){const ph=(s+j/n*.03)*6.283,
+      v=[p.kick*Math.sin(ph*60),p.snare*.5*Math.sin(ph*3100+j*j),p.bass.amp*.8*Math.sin(ph*p.bass.f),p.melody.amp*.5*Math.sin(ph*p.melody.f),p.hats*.3*Math.sin(ph*9000+j*7)];
+      for(let k=0;k<5;k++)each[k][j]=v[k]*.6;
+      sum[j]=(v[0]+v[1]+v[2]+v[3]+v[4])*.6}
+    return waveSet={s,n,sum,each};
+  }
+  const wave=(s,part)=>part===undefined?waves(s).sum:waves(s).each[part];
+  function grad(x0,y0,x1,y1){const g=ctx.createLinearGradient(x0,y0,x1,y1),[a,b]=PALETTES[pal];g.addColorStop(0,a);g.addColorStop(1,b);return g}
+  // One row of bars in a rectangle; split: draw each bar in the colors of the parts filling it (See inside)
+  // The palette's colors from the bottom of a bar to its top, drawn once into a strip one pixel wide; each bar copies the part of
+  // the strip it reaches, which costs far less than filling bars with a gradient every frame
+  let strip=null;
+  function stripFor(h){
+    if(strip&&strip.h===Math.round(h)&&strip.pal===pal)return strip.c;
+    const c=document.createElement('canvas'),g=c.getContext('2d'),[a,b]=PALETTES[pal],gr=g.createLinearGradient(0,h,0,0);
+    c.width=1;c.height=Math.max(1,Math.round(h));gr.addColorStop(0,a);gr.addColorStop(1,b);g.fillStyle=gr;g.fillRect(0,0,1,h);
+    strip={c,h:Math.round(h),pal};return c;
+  }
+  // Every bar is drawn in the palette first (in See inside a little larger, so the palette frames it); See inside then fills it part
+  // by part, every bar of one color in one path, filled once over the palette, so Colors shows there too
+  function drawBars(row,x,y,w,h,split){
+    const n=row.level.length,bw=w/n,gap=Math.min(3,bw*.25),c=stripFor(h),e=split?Math.max(.6,gap/2-.3):0;
+    for(let i=0;i<n;i++){const bh=Math.max(2,row.level[i]*h);ctx.drawImage(c,0,c.height-bh,1,bh,x+i*bw+gap/2-e,y+h-bh-e,bw-gap+2*e,bh+e)}
+    if(split){
+      ctx.globalAlpha=.86;
+      for(let k=0;k<5;k++){
+        ctx.beginPath();
+        for(let i=0;i<n;i++){const bh=Math.max(2,row.level[i]*h),sh=row.split[i][k];let under=0;for(let q=0;q<k;q++)under+=row.split[i][q];
+          if(sh)ctx.rect(x+i*bw+gap/2,y+h-(under+sh)*bh,bw-gap,sh*bh)}
+        ctx.fillStyle=PART_COLORS[k];ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if(peakTog.checked){ctx.beginPath();for(let i=0;i<n;i++)ctx.rect(x+i*bw+gap/2,y+h-row.peak[i]*h-3,bw-gap,2);ctx.fillStyle=split?PALETTES[pal][1]:'#f4f4f2';ctx.fill()}
+  }
+  // The ring: every bar in the palette (one path), the parts over it in See inside (one path each), a dot beyond each bar's peak
+  function drawCircle(row,cx,cy,r0,len,split){
+    const n=row.level.length,bass=(row.level[0]+row.level[1]+row.level[2])/3,r=r0*(1+.18*bass),[ca,cb]=PALETTES[pal],g=ctx.createRadialGradient(cx,cy,r,cx,cy,r+len);
+    g.addColorStop(0,ca);g.addColorStop(1,cb);
+    const lw=Math.max(2,Math.min(8,6.283*r/n*.55)),spoke=i=>{const a=-Math.PI/2+i/n*6.283;return[Math.cos(a),Math.sin(a),Math.max(2,row.level[i]*len)]};
+    ctx.lineWidth=split?lw+1.6:lw;ctx.lineCap='round';ctx.strokeStyle=g;ctx.beginPath();
+    for(let i=0;i<n;i++){const[c,s,l]=spoke(i);ctx.moveTo(cx+c*r,cy+s*r);ctx.lineTo(cx+c*(r+l),cy+s*(r+l))}
+    ctx.stroke();
+    if(split){
+      ctx.globalAlpha=.86;ctx.lineWidth=lw;ctx.lineCap='butt';
+      for(let k=0;k<5;k++){
+        ctx.strokeStyle=PART_COLORS[k];ctx.beginPath();
+        for(let i=0;i<n;i++){const sh=row.split[i][k];if(sh<.02)continue;const[c,s,l]=spoke(i);let under=0;for(let q=0;q<k;q++)under+=row.split[i][q];
+          const d0=r+under*l,d1=r+(under+sh)*l;ctx.moveTo(cx+c*d0,cy+s*d0);ctx.lineTo(cx+c*d1,cy+s*d1)}
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+    if(peakTog.checked){ctx.fillStyle=split?cb:'#f4f4f2';ctx.beginPath();const pr=Math.max(1.5,lw*.4);
+      for(let i=0;i<n;i++){const[c,s]=spoke(i),d=r+row.peak[i]*len+lw/2+pr+1,px=cx+c*d,py=cy+s*d;ctx.moveTo(px+pr,py);ctx.arc(px,py,pr,0,6.283)}
+      ctx.fill()}
+    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,r-4,0,6.283);ctx.stroke();
+  }
+  // A soft limit keeps the line inside its box at the loudest moments, so it never reaches into the half beside it
+  // (step 3 for the noisy parts, whose jagged lines cost the most to draw and read the same with fewer points)
+  function drawWave(pts,x,y,w,h,color,width,step=1){
+    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='bevel';ctx.beginPath();
+    for(let j=0;j<pts.length;j+=step){const v=pts[j],px=x+j/(pts.length-1)*w,py=y+h/2-v/(1+.25*Math.abs(v))*h*.42;j?ctx.lineTo(px,py):ctx.moveTo(px,py)}
+    ctx.stroke();
+  }
+  function drawRow(row,x,y,w,h,split,s,live){
+    if(style==='bars')drawBars(row,x,y,w,h,split);
+    else if(style==='circle'){const R=Math.min(w,h)/2-8;drawCircle(row,x+w/2,y+h/2,R*.36,R*.6,split)}
+    else{
+      // See inside: the line of Normal, with one thin line for each part of the tune under it
+      if(split)PART_COLORS.forEach((c,k)=>drawWave(wave(s,k),x,y,w,h,c,1.5,k===1||k===4?3:1));
+      drawWave(live||wave(s),x,y,w,h,grad(x,0,x+w,0),3)}
+  }
+  // See inside's beat strip: the loop in half beats, the kicks in the kick's color and the snares in the snare's, and a mark that
+  // moves with the tune
+  const CELLS=[...Array(32)].map((_,b)=>KICK.includes(b/2)?PART_COLORS[0]:SNARE.includes(b/2)?PART_COLORS[1]:'rgba(255,255,255,.14)');
+  function drawBeat(y){
+    const x=10,w=W-20,cw=w/32;
+    for(let b=0;b<32;b++){ctx.fillStyle=CELLS[b];ctx.fillRect(x+b*cw+1,y,cw-2,10)}
+    ctx.fillStyle='#fff';ctx.fillRect(x+song/LOOP*w-1.5,y-4,3,18);
+  }
+  // Where Compare draws: the top 58px hold Hear it and the first name, then two halves of the same width and height, the second
+  // name in the band between them
+  function layout(){const h=Math.max(40,Math.floor((H-58-8-30)/2));return{h,y1:58,y2:58+h+30,l2:58+h+4}}
+  // While the sound plays, Wave draws the analyzer's own line; a context held back (Pause, a hidden tab) keeps the last one it drew
+  let liveWave=null;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    if(audio&&audio.ctx.state==='running')liveWave=toWave(audio.an);
+    const live=audio&&style==='wave'?liveWave:null;
+    if(mode==='compare'){const L=layout();drawRow(rows.lin,10,L.y1,W-20,L.h,false,song,live);drawRow(rows.cmp,10,L.y2,W-20,L.h,false,song,live);
+      ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,L.y1+L.h+1,W,2)}
+    else if(mode==='inside'){drawBeat(insideTop+30);drawRow(rows.log,10,insideTop+56,W-20,H-insideTop-96,true,song,live)}
+    else drawRow(rows.log,10,58,W-20,H-68,false,song,live);
+  }
+  const waveBuf=new Float32Array(120);
+  const toWave=an=>{const d=audio.td||(audio.td=new Uint8Array(an.fftSize)),n=waveSize(),stride=Math.floor(600/n);an.getByteTimeDomainData(d);for(let j=0;j<n;j++)waveBuf[j]=(d[j*stride]-128)/128*1.6;return waveBuf.subarray(0,n)};
+  // One frame: the tune moves on by the time that passed (a third of it in slow motion), the heights follow it (or the real
+  // sound), and the sound is scheduled a little ahead
+  function frame(dt){
+    if(!rows)return;
+    const rate=slowTog.checked?1/3:1;clock+=dt/1000*rate;song=clock%LOOP;
+    // the real sound only once the browser plays it: a context it holds back (no sound device, or no permission) leaves the bars
+    // on the tune's own heights
+    let freq=null;if(audio&&audio.ctx.state==='running'){freq=audio.freq||(audio.freq=new Uint8Array(audio.an.frequencyBinCount));audio.an.getByteFrequencyData(freq);schedule()}
+    for(const row of Object.values(rows))settle(row,aim(row,song,freq),dt*rate);
+    draw();
+  }
+  function loop(ts){
+    raf=requestAnimationFrame(loop);
+    if(lastT===null){lastT=ts;return}
+    const dt=Math.min(ts-lastT,50);lastT=ts;frame(dt);
+  }
+  function start(){if(raf||paused)return;lastT=null;raf=requestAnimationFrame(loop)}
+  // Hear it: the same tune played by the browser (oscillators and a burst of generated noise), made only on this press; the bars
+  // then follow a real analyzer. Pause and a hidden tab suspend the sound; slow motion plays it at a third of the tempo.
+  // The browser answers a start, stop or close with a promise that can fail (a context already closed): nothing to report then
+  const quiet=p=>{if(p&&p.catch)p.catch(()=>{})};
+  function startAudio(){
+    liveWave=null;
+    const ac=new (window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser(),out=ac.createGain();
+    an.fftSize=2048;an.smoothingTimeConstant=.5;out.gain.value=.45;out.connect(an);an.connect(ac.destination);
+    const noise=ac.createBuffer(1,ac.sampleRate,ac.sampleRate),d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    audio={ctx:ac,an,out,noise,upTo:clock};
+    quiet(ac.resume());
+  }
+  function play(kind,at,f,len){
+    const {ctx:ac,out,noise}=audio,g=ac.createGain();g.connect(out);
+    const env=(peak,dur)=>{g.gain.setValueAtTime(peak,at);g.gain.exponentialRampToValueAtTime(.001,at+dur)};
+    if(kind==='kick'){const o=ac.createOscillator();o.frequency.setValueAtTime(150,at);o.frequency.exponentialRampToValueAtTime(45,at+.12);env(1,.35);o.connect(g);o.start(at);o.stop(at+.4)}
+    else if(kind==='snare'||kind==='hats'){const s=ac.createBufferSource(),fl=ac.createBiquadFilter();s.buffer=noise;fl.type=kind==='hats'?'highpass':'bandpass';
+      fl.frequency.value=kind==='hats'?7000:1800;env(kind==='hats'?.25:.6,kind==='hats'?.05:.18);s.connect(fl);fl.connect(g);s.start(at);s.stop(at+.3)}
+    else{const o=ac.createOscillator();o.type=kind==='bass'?'sawtooth':'triangle';o.frequency.value=f;env(kind==='bass'?.3:.2,len);o.connect(g);o.start(at);o.stop(at+len+.05)}
+  }
+  // Every note whose time falls in the next tenth of a second of the tune is handed to the browser, at the time it should sound;
+  // clock is the tune's time counted on, past the end of the loop
+  function schedule(){
+    // notes that came and went while the context was held back are dropped, never played all at once
+    const rate=slowTog.checked?1/3:1,{ctx:ac}=audio,from=Math.max(audio.upTo,clock-.02),to=clock+.1;
+    if(to<=from)return;
+    const each=(b,fn)=>{const s0=b*BEAT;for(let o=s0+Math.floor((from-s0)/LOOP)*LOOP;o<to;o+=LOOP)if(o>=from)fn(Math.max(ac.currentTime,ac.currentTime+(o-clock)/rate))};
+    for(const [list,kind] of [[KICK,'kick'],[SNARE,'snare'],[HATS,'hats']])for(const b of list)each(b,at=>play(kind,at,0,0));
+    for(const [list,kind] of [[BASS,'bass'],[MELODY,'melody']])for(const [b,l,f] of list)each(b,at=>play(kind,at,f,l*BEAT/rate*.9));
+    audio.upTo=to;
+  }
+  hear.addEventListener('click',()=>{
+    if(audio){quiet(audio.ctx.close());audio=null;hear.setAttribute('aria-pressed','false');if(paused)draw();return}
+    if(paused)pauseBtn.click(); // the sound follows the loop, so Hear it pressed while paused plays both
+    try{startAudio();hear.setAttribute('aria-pressed','true')}catch(err){audio=null}
+  });
+  // Registered at the top level: under reduced motion the shared script pauses the loop at once, on a kick
+  document.addEventListener('hb:pause',e=>{
+    paused=e.detail.paused;notes();
+    if(audio)quiet(paused?audio.ctx.suspend():audio.ctx.resume());
+    if(paused){cancelAnimationFrame(raf);raf=0;if(rows)draw()}else start();
+  });
+  document.addEventListener('visibilitychange',()=>{lastT=null;if(audio)quiet(document.hidden?audio.ctx.suspend():paused||audio.ctx.resume())});
+  // The mode switch draws the mode at once, playing or paused
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;notes();place();if(rows)draw()});
+  // See inside's beat strip sits under the key, which wraps onto more lines in a narrow box
+  function place(){insideTop=stage.querySelector('.key').offsetHeight+20;stage.style.setProperty('--beat-y',insideTop+2+'px');stage.style.setProperty('--l2-y',layout().l2+'px')}
+  // The words follow the view, the style, the loop and reduced motion: with Wave both rows of Compare match and See inside shows the
+  // parts of the wave; Circle runs from the bass at the top round to the hi-hats; "Shown still" only while the loop is paused under
+  // reduced motion (also when the device's setting changes after load); the box's name says "held still" while it is paused
+  const insideEl=document.querySelector('[data-hb-for="inside"]'),compareEl=document.querySelector('[data-hb-for="compare"]');
+  const said={inside:insideEl.textContent,compare:compareEl.textContent};
+  const setText=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  function notes(){
+    const still=reduceMQ.matches&&paused,ring=style==='circle';
+    setText(insideEl,style==='wave'?'Inside, each thin colored line is one part of the tune, and the thick line is all of them added together: the shape a speaker moves to.'
+      :still?`Shown still: each bar is split by the parts of the tune filling it, ${ring?'kick and bass at the top, round to the hi-hats':'kick and bass on the left, hi-hats on the right'}. The top strip marks the beat.`
+      :ring?said.inside.replace('on the left, hi-hats on the right','at the top, round to the hi-hats'):said.inside);
+    setText(compareEl,style==='wave'?'Style is set to Wave, which draws the sound\'s shape, not its pitches, so Equal slices and Wider for treble match. Pick Bars or Circle in Try it to see the difference.'
+      :still?`Shown still: Equal slices crowds the bass into a few bars, while Wider for treble spreads the tune across the whole ${ring?'ring':'row'}.`
+      :ring?said.compare.replace('whole row dances','whole ring dances'):said.compare);
+    cvs.setAttribute('aria-label',NAMES[mode][style]+(paused?', held still':mode==='normal'?(style==='wave'?', moving to a beat':', jumping to a beat and sinking back'):''));
+  }
+  reduceMQ.addEventListener('change',notes);
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h||(w===W&&h===H))return;W=w;H=h;
+    const dpr=Math.min(devicePixelRatio||1,1.5);cvs.width=W*dpr;cvs.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(!rows)build();
+    place();draw();
+  }
+  // A setting shows at once, playing or paused
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);notes();if(rows)draw();
+    }));
+  }
+  // A wave has no bars, so the settings that only change bars are hidden while Wave is chosen (and out of Your settings)
+  const barOnly=['bars-seg','fall-seg','peak-tog'].map(id=>document.getElementById(id).closest('.hb-setting'));
+  choices('style-seg',d=>{style=d.style;stage.classList.toggle('st-bars',style==='bars');barOnly.forEach(s=>s.hidden=style==='wave')});
+  choices('bars-seg',d=>{count=+d.n;build()});
+  choices('fall-seg',d=>{fall=+d.fall});
+  choices('colors-seg',d=>{pal=d.pal});
+  peakTog.addEventListener('change',()=>{if(rows)draw()});
+  notes();
+  new ResizeObserver(resize).observe(stage);
+  resize();
+  start();
+</script>
+</body>
+</html>
