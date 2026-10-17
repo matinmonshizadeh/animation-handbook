@@ -610,7 +610,7 @@ Add an audio visualizer to [your music player, podcast card or hero section]. Co
 **Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
 
 - Style: **Bars** · Wave · Circle. Bars stand in a row from bass to treble; wave draws the sound's shape over a few hundredths of a second instead of its pitches; circle sets the bars around a ring that swells with the bass.
-- Number of bars: Few · Some · **Many** (phones start with Some). Few is 16 bars, some 32 and many 64; phones start at some, and each row of Compare holds half as many bars on phones; a wave has no bars, so it ignores this.
-- How bars fall: Quickly · **Gently** · Slowly. How fast a bar sinks after it jumps: quickly is 2.6 bar heights a second, gently 1.2 and slowly 0.45, like an old stereo; a wave ignores it.
-- Peak marks: **on** · off. A thin mark (a dot in the ring) holds each bar's highest point for 0.4 seconds, then sinks slowly; off, only the bars show; a wave has none.
-- Colors: **Sunset** · Ocean · Neon. The colors from the bottom of each bar to its top: sunset runs from coral to gold, ocean from deep blue to cyan, neon from pink to cyan; See inside lays the colors of the tune's parts over them.
+- Number of bars: Few · Some · **Many** (phones start with Some). With Bars or Circle: few is 16 bars, some 32 and many 64; phones start at some, and each row of Compare holds half as many bars on phones; Wave has no bars and hides this setting.
+- How bars fall: Quickly · **Gently** · Slowly. With Bars or Circle, how fast a bar sinks after it jumps: quickly is 2.6 bar heights a second, gently 1.2 and slowly 0.45, like an old stereo; Wave hides this setting.
+- Peak marks: **on** · off. With Bars or Circle, a thin mark (a dot in the ring) holds each bar's highest point for 0.4 seconds, then sinks slowly; off, only the bars show; Wave hides this setting.
+- Colors: **Sunset** · Ocean · Neon. The colors from the bottom of each bar to its top, or from left to right along the wave: sunset runs from coral to gold, ocean from deep blue to cyan, neon from pink to cyan; See inside lays the colors of the tune's parts over them.

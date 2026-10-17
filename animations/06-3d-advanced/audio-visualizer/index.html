@@ -36,6 +36,7 @@
     .stage[data-hb-mode="inside"] .in:not(.scale),.stage[data-hb-mode="compare"] .row{display:block}
     .key{left:10px;top:10px;max-width:calc(100% - 140px);white-space:normal}
     .key i{display:inline-block;width:9px;height:9px;margin:0 4px 0 2px;border-radius:50%;vertical-align:0}
+    .key span{white-space:nowrap}
     .beat{left:10px;top:var(--beat-y,50px)}
     .scale{left:10px;right:10px;bottom:8px}
     .stage[data-hb-mode="inside"].st-bars .scale{display:flex;justify-content:space-between}
@@ -70,7 +71,7 @@
     <div class="stage st-bars">
       <canvas id="cvs" role="img" aria-label="Bars from bass on the left to treble on the right, jumping to a beat and sinking back"></canvas>
       <button class="hear" type="button" id="hear" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg><span>Hear it</span></button>
-      <p class="av-lbl in key" aria-hidden="true" data-hb-caption><i style="background:#ff5d5d"></i>Kick <i style="background:#ffa94d"></i>Snare <i style="background:#b07cff"></i>Bass <i style="background:#5cd18a"></i>Melody <i style="background:#4fc3f7"></i>Hi-hats</p>
+      <p class="av-lbl in key" aria-hidden="true" data-hb-caption><span><i style="background:#ff5d5d"></i>Kick</span> <span><i style="background:#ffa94d"></i>Snare</span> <span><i style="background:#b07cff"></i>Bass</span> <span><i style="background:#5cd18a"></i>Melody</span> <span><i style="background:#4fc3f7"></i>Hi-hats</span></p>
       <p class="av-lbl in beat" aria-hidden="true" data-hb-caption>The beat</p>
       <p class="av-lbl in scale" aria-hidden="true" data-hb-caption><span>Bass</span><span>Middle</span><span>Treble</span></p>
       <p class="av-lbl row first" aria-hidden="true" data-hb-caption>Equal slices</p>
@@ -134,7 +135,7 @@
             <button type="button" data-pal="ocean" aria-pressed="false">Ocean</button>
             <button type="button" data-pal="neon" aria-pressed="false">Neon</button>
           </div>
-          <p class="hb-hint">The colors from the bottom of each bar to its top.</p>
+          <p class="hb-hint">The colors from the bottom of each bar to its top, or along the wave.</p>
         </div>
       </div>
     </details>
@@ -348,9 +349,12 @@
   // Where Compare draws: the top 58px hold Hear it and the first name, then two halves of the same width and height, the second
   // name in the band between them
   function layout(){const h=Math.max(40,Math.floor((H-58-8-30)/2));return{h,y1:58,y2:58+h+30,l2:58+h+4}}
+  // While the sound plays, Wave draws the analyzer's own line; a context held back (Pause, a hidden tab) keeps the last one it drew
+  let liveWave=null;
   function draw(){
     ctx.clearRect(0,0,W,H);
-    const live=audio&&audio.ctx.state==='running'&&style==='wave'?toWave(audio.an):null;
+    if(audio&&audio.ctx.state==='running')liveWave=toWave(audio.an);
+    const live=audio&&style==='wave'?liveWave:null;
     if(mode==='compare'){const L=layout();drawRow(rows.lin,10,L.y1,W-20,L.h,false,song,live);drawRow(rows.cmp,10,L.y2,W-20,L.h,false,song,live);
       ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,L.y1+L.h+1,W,2)}
     else if(mode==='inside'){drawBeat(insideTop+30);drawRow(rows.log,10,insideTop+56,W-20,H-insideTop-96,true,song,live)}
@@ -380,6 +384,7 @@
   // The browser answers a start, stop or close with a promise that can fail (a context already closed): nothing to report then
   const quiet=p=>{if(p&&p.catch)p.catch(()=>{})};
   function startAudio(){
+    liveWave=null;
     const ac=new (window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser(),out=ac.createGain();
     an.fftSize=2048;an.smoothingTimeConstant=.5;out.gain.value=.45;out.connect(an);an.connect(ac.destination);
     const noise=ac.createBuffer(1,ac.sampleRate,ac.sampleRate),d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
@@ -452,7 +457,9 @@
       pick(b.dataset);notes();if(rows)draw();
     }));
   }
-  choices('style-seg',d=>{style=d.style;stage.classList.toggle('st-bars',style==='bars')});
+  // A wave has no bars, so the settings that only change bars are hidden while Wave is chosen (and out of Your settings)
+  const barOnly=['bars-seg','fall-seg','peak-tog'].map(id=>document.getElementById(id).closest('.hb-setting'));
+  choices('style-seg',d=>{style=d.style;stage.classList.toggle('st-bars',style==='bars');barOnly.forEach(s=>s.hidden=style==='wave')});
   choices('bars-seg',d=>{count=+d.n;build()});
   choices('fall-seg',d=>{fall=+d.fall});
   choices('colors-seg',d=>{pal=d.pal});

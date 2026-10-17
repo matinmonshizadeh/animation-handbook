@@ -36,10 +36,10 @@ The demo plays no file and uses no microphone. Its tune is written in the page a
 | Parameter | Default | Effect |
 |-----------|---------|--------|
 | Style | Bars | Bars stand in a row from bass to treble; wave draws the sound's shape over a few hundredths of a second instead of its pitches; circle sets the bars around a ring that swells with the bass |
-| Number of bars | Many | Few is 16 bars, some 32 and many 64; phones start at some, and each row of Compare holds half as many bars on phones; a wave has no bars, so it ignores this |
-| How bars fall | Gently | How fast a bar sinks after it jumps: quickly is 2.6 bar heights a second, gently 1.2 and slowly 0.45, like an old stereo; a wave ignores it |
-| Peak marks | on | A thin mark (a dot in the ring) holds each bar's highest point for 0.4 seconds, then sinks slowly; off, only the bars show; a wave has none |
-| Colors | Sunset | The colors from the bottom of each bar to its top: sunset runs from coral to gold, ocean from deep blue to cyan, neon from pink to cyan; See inside lays the colors of the tune's parts over them |
+| Number of bars | Many | With Bars or Circle: few is 16 bars, some 32 and many 64; phones start at some, and each row of Compare holds half as many bars on phones; Wave has no bars and hides this setting |
+| How bars fall | Gently | With Bars or Circle, how fast a bar sinks after it jumps: quickly is 2.6 bar heights a second, gently 1.2 and slowly 0.45, like an old stereo; Wave hides this setting |
+| Peak marks | on | With Bars or Circle, a thin mark (a dot in the ring) holds each bar's highest point for 0.4 seconds, then sinks slowly; off, only the bars show; Wave hides this setting |
+| Colors | Sunset | The colors from the bottom of each bar to its top, or from left to right along the wave: sunset runs from coral to gold, ocean from deep blue to cyan, neon from pink to cyan; See inside lays the colors of the tune's parts over them |
 
 ## Production notes
 - **Ask before sound.** Create the `AudioContext` inside the visitor's own press of play: browsers keep a context made earlier suspended and warn in the console. Never open the microphone without a clear reason and the visitor's yes.
