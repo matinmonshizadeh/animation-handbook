@@ -74,7 +74,7 @@
       <canvas id="cvs" role="img" tabindex="0" aria-label="A pond with pebbles, a koi and lily pads under clear water. Drag or tap to make ripples; with the keyboard, the arrow keys move a ring and Enter drops a pebble."></canvas>
       <i class="spot" aria-hidden="true"></i>
       <p class="wr-lbl in crest" aria-hidden="true" data-hb-caption>Bright is a crest, dark a trough</p>
-      <p class="wr-lbl in patch" aria-hidden="true" data-hb-caption>Each point: its neighbors, minus its last height</p>
+      <p class="wr-lbl in patch" aria-hidden="true" data-hb-caption>Each point: half its neighbors' total, minus its last height</p>
       <p class="wr-lbl in read" aria-hidden="true" data-hb-caption>The picture is read from a shifted spot</p>
       <p class="wr-lbl half-name first" aria-hidden="true" data-hb-caption>Rings on top</p>
       <p class="wr-lbl half-name second" aria-hidden="true" data-hb-caption>Bends the picture</p>
@@ -179,8 +179,8 @@
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
   // CALM: below this height no point of the picture moves by a pixel or changes its light, so the water counts as calm; the two
   // views count it as calm at twice that, where their rings are too faint to see, so the still ripple stands in without a gap
-  const FRAME=1000/60,CALM=.04,quiet=reduceMQ.matches,ASK=quiet?'see still rings':'make ripples';
-  const LABELS={normal:'A pond with pebbles, a koi and lily pads under clear water. Drag or tap to '+ASK+'; with the keyboard, the arrow keys move a ring and Enter drops a pebble.',
+  const FRAME=1000/60,CALM=.04;
+  const LABELS={normal:'',   // written by notes(), which follows the Light switch and reduced motion
     inside:'',
     compare:'The same ripples twice: light rings over a flat picture on the left, the picture bending under the water on the right. Drag or tap either half.'};
   let radius=3.5,damp=.022,bend=12,mode='normal',W=0,H=0,raf=0,lastT=null,behind=0,calmSteps=0,running=false;
@@ -203,7 +203,7 @@
   }
   // A push of the water at (x, y) in the box's pixels: a round dip, deeper in the middle; a pebble (big) is a wider, deeper one
   function push(w,x,y,k,big){
-    const gx=(x/W-w.rect.x)/w.rect.w*w.gw,gy=(y/H-w.rect.y)/w.rect.h*w.gh,r=radius*(w.gw/(phone.matches?128:200))*(big?1.5:1);
+    const gx=(x/W-w.rect.x)/w.rect.w*w.gw,gy=(y/H-w.rect.y)/w.rect.h*w.gh,r=radius*(main.gw/(phone.matches?128:200))*(big?1.5:1);
     for(let j=Math.max(1,Math.floor(gy-r));j<=Math.min(w.gh-2,Math.ceil(gy+r));j++)for(let i=Math.max(1,Math.floor(gx-r));i<=Math.min(w.gw-2,Math.ceil(gx+r));i++){
       const d=Math.hypot(i-gx,j-gy)/r;if(d<1)w.cur[j*w.gw+i]-=k*.5*(1+Math.cos(d*Math.PI))}
   }
@@ -245,7 +245,7 @@
   // Draws a water in a view: each point shows the pond read from a spot shifted by the slope there (bend), lit where the slope
   // faces the light; rings: the pond stays where it is and only the light shows (Compare's first half)
   function paint(w,v,rings){
-    const {gw,gh,sx,sy}=w,{px,lit}=v,rw=gw*R,rh=gh*R,b=bend*R*gw/(phone.matches?128:200),light=lightTog.checked||rings;
+    const {gw,gh,sx,sy}=w,{px,lit}=v,rw=gw*R,rh=gh*R,b=bend*R*main.gw/(phone.matches?128:200),light=lightTog.checked||rings;
     for(let Y=0,o=0;Y<rh;Y++)for(let X=0;X<rw;X++,o++){
       const i=(Y/R|0)*gw+(X/R|0),dx=sx[i],dy=sy[i];
       let qx=X,qy=Y;if(!rings&&(dx||dy)){qx=Math.min(rw-1,Math.max(0,X+Math.round(dx*b)));qy=Math.min(rh-1,Math.max(0,Y+Math.round(dy*b)))}
@@ -303,6 +303,7 @@
   }
   function wake(){if(reduceMQ.matches)return;running=true;calmSteps=0;(mode==='compare'?pair:main).still=false;if(!raf){lastT=null;behind=0;raf=requestAnimationFrame(loop)}}
   function calm(){for(const w of [main,pair]){w.cur.fill(0);w.prev.fill(0);w.still=true}running=false;cancelAnimationFrame(raf);raf=0;draw()}
+  document.addEventListener('visibilitychange',()=>{lastT=null;behind=0});
   // A touch on the water, k strong (a pebble is a tap): in Compare a touch on either half reaches the one water both halves draw
   let ringAt=-1e9;
   function touchAt(x,y,k,pebble){
@@ -363,8 +364,9 @@
   });
   // A frozen ripple for See inside and Compare at rest: two pebbles from a fixed start, a fixed number of steps on
   function freeze(){
+    const deep=phone.matches?2:1;   // the grid is coarse on a phone: twice as deep, so the posed ripple bends the picture as it should
     frozen=[main,pair].map(w=>{const f={...w,cur:new Float32Array(w.cur.length),prev:new Float32Array(w.cur.length)};
-      push(f,W*(w===main?.36:.18),H*.45,1.4,true);push(f,W*(w===main?.66:.34),H*.6,1.1,true);for(let i=0;i<26;i++)step(f);return f});
+      push(f,W*(w===main?.36:.18),H*.45,1.4*deep,true);push(f,W*(w===main?.66:.34),H*.6,1.1*deep,true);for(let i=0;i<26;i++)step(f);return f});
   }
   function build(){
     stage.querySelectorAll('.view').forEach(c=>c.remove());
@@ -388,20 +390,22 @@
   choices('size-seg',d=>{radius=+d.r});
   choices('last-seg',d=>{damp=+d.damp});
   choices('bend-seg',d=>{bend=+d.bend});
-  // The notes and See inside's name follow the Light switch and reduced motion (the markup holds the words for light on, with
-  // motion): under reduced motion the water never moves, so they say what the still views show
+  // The notes and the canvas names follow the Light switch and reduced motion, read each time either changes (the markup holds
+  // the words for light on, with motion): under reduced motion the water never moves, so they say what the still views show
   const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
-  const NOTE_IN=quiet?["Shown still: the gray map is the water's height. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from.",
-      "Shown still: the gray map is the water's height; blue tints mark slopes facing the light. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from."]
-    :["The gray map is the water's height. Each step, a point becomes half its neighbors' total minus its last height, and the picture is read from a spot shifted by the slope.",noteIn.textContent];
+  const NOTE_IN=[["The gray map is the water's height. Each step, a point becomes half its neighbors' total minus its last height, and the picture is read from a spot shifted by the slope.",noteIn.textContent],
+    ["Shown still: the gray map is the water's height. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from.",
+     "Shown still: the gray map is the water's height; blue tints mark slopes facing the light. Each point is half its neighbors' total minus its last height; arrows show where the picture is read from."]];
+  const NOTE_CMP=[noteCmp.textContent,'Shown still: Rings on top draws light rings over a flat picture, while Bends the picture shifts the picture itself under the waves, so it looks like water.'];
   function notes(){
-    const lit=lightTog.checked;
-    noteIn.textContent=NOTE_IN[+lit];
-    LABELS.inside="The water's height as a gray map over a faint pond,"+(lit?' blue tints on slopes that face the light,':'')+' a magnified patch of nine points and arrows to the spots the picture is read from. Drag or tap to '+ASK+'.';
+    const lit=lightTog.checked,still=reduceMQ.matches,ask=still?'see still rings':'make ripples';
+    noteIn.textContent=NOTE_IN[+still][+lit];noteCmp.textContent=NOTE_CMP[+still];
+    LABELS.normal='A pond with pebbles, a koi and lily pads under clear water. Drag or tap to '+ask+'; with the keyboard, the arrow keys move a ring and Enter drops a pebble.';
+    LABELS.inside="The water's height as a gray map over a faint pond,"+(lit?' blue tints on slopes that face the light,':'')+' a magnified patch of nine points and arrows to the spots the picture is read from. Drag or tap to '+ask+'.';
     cvs.setAttribute('aria-label',LABELS[mode]);
   }
   lightTog.addEventListener('change',()=>{notes();draw()});
-  if(quiet)noteCmp.textContent='Shown still: Rings on top draws light rings over a flat picture, while Bends the picture shifts the picture itself under the waves, so it looks like water.';
+  reduceMQ.addEventListener('change',notes);
   notes();
   new ResizeObserver(resize).observe(stage);
   resize();
