@@ -25,6 +25,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   and Compare from the start.
 - A new animation, Card Deck Swipe (171 in all): swipe the top card left or right and the next one rises, with See inside
   and Compare from the start.
+- A new animation, Water Ripple (172 in all): ripples spread from your finger and bend the picture below, with See inside
+  and Compare from the start.
 
 ## 1.0.0 — 2026-10-10
 

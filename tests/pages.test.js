@@ -414,7 +414,7 @@ test("on phones the mode switch's own rule outranks the rule for choice buttons,
 const KEYBOARD_PAGES = {
   '04-micro-interactions': ['cursor-follower', 'hover-state', 'image-trail', 'spotlight-hover', 'magnetic-button', 'click-ripple', 'before-after-slider', 'magnifier-lens', 'card-deck-swipe'],
   '05-text-typography': ['text-particles'],
-  '06-3d-advanced': ['2-5d-pseudo-3d', 'depth-map-photo', 'holographic-card', 'image-distortion-hover', 'parallax-3d-tilt']
+  '06-3d-advanced': ['2-5d-pseudo-3d', 'depth-map-photo', 'holographic-card', 'image-distortion-hover', 'parallax-3d-tilt', 'water-ripple']
 };
 test('the do-it pages played with the pointer can be played from the keyboard', () => {
   const problems = [];

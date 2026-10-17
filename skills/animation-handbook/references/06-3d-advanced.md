@@ -1,6 +1,6 @@
 # 06 · 3D & Advanced
 
-WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects. 26 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects. 27 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -30,6 +30,7 @@ WebGL, shaders, particles, 3D transforms, simulations, and other heavier effects
 - [Liquid Glass](#liquid-glass)
 - [Holographic Card](#holographic-card)
 - [Infinite Zoom](#infinite-zoom)
+- [Water Ripple](#water-ripple)
 
 ## 3D Model Orbit
 
@@ -571,3 +572,23 @@ Add an infinite zoom to [the section you want it in]. Give each picture, such as
 - Number of scenes: 1 · 3 · **5**. How many different pictures take turns: one picture holds a copy of itself; three are the gallery, the drive-in and the living room; five add the desk and the photo on a table.
 - Direction: **In** · Out. In dives into each picture's window; out pulls back, so each picture shrinks into the window of the one around it.
 - Shows the scene edges: on · **off**. Outlines the edge of every picture with a dashed line and numbers the ones big enough to read by their place in the chain, so you can see each one grow to the edges of the box and take over.
+
+## Water Ripple
+
+Ripples spread from your finger and bend the picture below. Best for hero images.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/water-ripple/
+- How it runs: reacts to the visitor
+- Good for: Hero pictures · Pool, spa and travel sites · Playful backgrounds
+- Avoid on: Pictures with text · Busy pages
+
+**Prompt**
+
+Add a water ripple effect to [the picture you want to look as if it lies under water]. Keep two grids of water heights, now and one step earlier. On each step, set every point to half the total of its four neighbors minus its earlier height, then damp it slightly, so ripples spread, cross, bounce off the edges and fade. A finger or mouse drag leaves a trail of small pushes without scrolling the page; a tap drops a pebble. Draw the picture shifted at each point by the slope of the water, so it bends under the waves. Use a coarse grid and fixed steps, and stop once the water is calm. Under reduced motion, show still rings that fade. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Ripple size: Small · **Medium** · Large. How wide each push is, in grid points of a full-size grid: small is 2, medium 3.5 and large 5.5 (a tap's pebble is half as wide again).
+- How long ripples last: Short · **Medium** · Long. How much height the water loses each step: short is 5%, which fades a pebble's rings within a second; medium 2.2%, about three seconds; long 0.9%, long enough for rings to bounce off the edges and cross.
+- Bend: Subtle · **Medium** · Strong. How far the picture under a slope is shifted: subtle is 5 grid points for a full slope, medium 12 and strong 22.
+- Light on the waves: **on** · off. Slopes that face the light show a lighter picture, in three steps of brightness; off, only the bending shows.

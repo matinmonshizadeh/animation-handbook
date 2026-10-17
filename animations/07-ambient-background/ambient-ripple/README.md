@@ -90,3 +90,4 @@ function updateSource(source) {
 - [Click / Tap Ripple](../../04-micro-interactions/click-ripple/) — a ripple that answers a click instead
 - [Breathing / Pulsing Glow](../breathing-glow/) — one glow that grows and shrinks instead of rings
 - [Abstract Geometric Motion](../abstract-geometric-motion/) — its Rings pattern spreads rings from the center
+- [Water Ripple](../../06-3d-advanced/water-ripple/) — ripples from a finger spread and bend the picture below
