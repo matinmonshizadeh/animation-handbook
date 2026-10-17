@@ -1,6 +1,6 @@
 # 04 · Micro-Interactions
 
-Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. 43 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Short, user-triggered animations — hover, click, focus, loading states, and UI feedback patterns. 44 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -47,6 +47,7 @@ Short, user-triggered animations — hover, click, focus, loading states, and UI
 - [Dynamic Island](#dynamic-island)
 - [Before/After Slider](#beforeafter-slider)
 - [Magnifier Lens](#magnifier-lens)
+- [Card Deck Swipe](#card-deck-swipe)
 
 ## Hover State Animation
 
@@ -892,3 +893,23 @@ Add a magnifier lens to [the product photo or detailed picture people want to in
 - Zoom: 2 times · **3 times** · 4 times. How many times bigger the copy in the lens is than the picture: 2 times, 3 times or 4 times.
 - Lens size: Small · **Medium** · Large. How wide the lens is: small is 110 pixels across, medium 150 and large 200, a fifth less on phones.
 - Lens shape: **Round** · Square. Round is a circle; square is a square with slightly rounded corners, which suits maps and plans.
+
+## Card Deck Swipe
+
+Swipe the top card left or right; the next one rises. Best for quick choices.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/card-deck-swipe/
+- How it runs: reacts to the visitor
+- Good for: Matching apps · Product pickers · Flashcards · Quick polls
+- Avoid on: Lists people compare · Choices that need care
+
+**Prompt**
+
+Add a swipeable card deck to [your stack of cards, such as profiles or products]. Pile the cards with the waiting ones behind the top one, showing as the settings choose. While dragged, the top card follows the finger and turns as the settings choose, as if held at its bottom edge, and Like or Nope stamps fade in when the settings include them. On release, send it off that side if it went far enough or was flicked; otherwise spring it back, and grow the next card into place. Use transforms and pointer events, let up-and-down scrolling pass through, and add Nope, Like and Undo buttons for keyboards. If the visitor has reduced motion turned on, fade cards out instead of throwing them. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- How far to swipe: Short · **Medium** · Long. How far the card's middle must go before letting go sends it: short is a quarter of the card's width, medium 40% and long 60%; a quick flick sends it from anywhere.
+- How much it turns: None · **A little** · A lot. How far the card turns for each card width of drag, around a point below its bottom edge: none does not turn, a little turns 14 degrees and a lot 30 degrees.
+- Shows stamps: **on** · off. Like in green and Nope in red fade in on the card as it is dragged, fully shown halfway to the swipe distance.
+- Cards behind: **Peeking** · Fanned · Hidden. How the waiting cards show: peeking sets each one a little lower and 5% smaller, fanned turns them left and right in turn, 5 degrees more and 3% smaller for each card further back, around the same low point, hidden shows only the top card until the next one grows in.
