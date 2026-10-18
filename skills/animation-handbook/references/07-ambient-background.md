@@ -1,6 +1,6 @@
 # 07 · Ambient & Background
 
-Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 25 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 26 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -29,6 +29,7 @@ Passive, looping effects that hold visual interest without demanding attention �
 - [Game of Life](#game-of-life)
 - [Ken Burns Effect](#ken-burns-effect)
 - [Fire Effect](#fire-effect)
+- [Lightning](#lightning)
 
 ## Animated Gradient Background
 
@@ -560,3 +561,24 @@ Add a fire effect to [the dark section or edge you want to set alight]. Keep a s
 - Colors: **Orange** · Blue · Green. The palette from cool to hot: orange runs from dark red to yellow and white, blue from deep navy to pale blue, green from dark green to pale yellow.
 - Wind: **None** · Left · Right. Left or right moves half of the heat one extra cell to that side each step, so the flames lean that way.
 - Sparks: **on** · off. About 24 sparks a second rise from the flames and fade within one to two and a half seconds (10 a second on phones).
+
+## Lightning
+
+Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/lightning/
+- How it runs: moves by itself
+- Good for: Game sites · Storm and weather themes · Dramatic intros
+- Avoid on: Reading pages · Calm or health sites
+
+**Prompt**
+
+Add lightning to [the dark section or storm scene you want it in]. Every so often, draw a jagged bolt from the clouds to the ground on a canvas: start from a straight line, split it again and again, pushing each new midpoint sideways at random by less each time, and let thinner forks branch off. Draw a wide, faint stroke under a thin bright one for the glow; the bolt flickers once and fades within half a second. When the settings include it, light the sky softly, never more than twice a second. A click or tap strikes where the visitor points. If the visitor has reduced motion turned on, show a still bolt with no flash. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- How often: Rarely · **Sometimes** · Often. The wait between strikes, picked at random: rarely is 5 to 8 seconds, sometimes 2.6 to 4.4 seconds and often 1.6 to 2.4 seconds; never less than 1.5 seconds.
+- Branches: Few · **Some** · Many. How many thinner forks split off the bolt: few is 2, some 4 and many 7.
+- Bolt color: **White** · Blue · Violet. The color of the glow and of the core, which is that color mixed halfway to white: white, blue or violet.
+- Lights up the sky: **on** · off. The sky turns at most 30% white with each strike and follows its flicker (15% under See inside's drawing, a steady 10% behind a still bolt, and a soft fade to 10% under reduced motion); off, only the bolt flashes.
+- Rain: **on** · off. 160 thin raindrops fall at a slant (70 on phones); off, the sky is clear of rain.

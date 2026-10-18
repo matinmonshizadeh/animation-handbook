@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning — Animation Handbook</title>
+  <meta name="description" content="Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/lightning/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Lightning — Animation Handbook">
+  <meta property="og:description" content="Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/lightning/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Lightning — Animation Handbook">
+  <meta name="twitter:description" content="Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Lightning", "name": "Lightning", "description": "Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/lightning/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Lightning"}</script>
+  <style>
+    :root{--ui-accent:#ffce5a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:linear-gradient(#0b1020,#1a2236 55%,#262c40)}
+    /* The storm in layers: clouds (moved by the script), the rain on one canvas, the bolts on another, the hills in front, and
+       the light of the sky as a white layer whose opacity the script sets (never above 30%) */
+    .clouds{position:absolute;left:0;top:-4%;width:200%;height:44%;background-size:50% 100%;background-repeat:repeat-x;pointer-events:none}
+    .c1{background-image:radial-gradient(30% 46% at 18% 30%,#3a4258,#0000 70%),radial-gradient(26% 38% at 52% 20%,#323a50,#0000 70%),radial-gradient(34% 44% at 84% 34%,#3a4258,#0000 70%)}
+    .c2{top:4%;opacity:.8;background-image:radial-gradient(24% 34% at 30% 46%,#2a3146,#0000 70%),radial-gradient(30% 40% at 72% 40%,#2e354b,#0000 70%)}
+    #cvs,.rain{position:absolute;inset:0;width:100%;height:100%;display:block}
+    .rain{pointer-events:none}
+    #cvs:focus-visible{outline:2px solid var(--ui-accent);outline-offset:-3px}
+    .hills{position:absolute;left:0;bottom:0;width:100%;height:30%;display:block;pointer-events:none}
+    .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+    /* See inside and Compare: plain words over the picture */
+    .lt-lbl{display:none;position:absolute;max-width:46%;padding:3px 8px;border-radius:6px;background:rgba(8,10,18,.9);color:#f4f4f2;
+      font:600 13px/1.25 var(--hb-font);pointer-events:none}
+    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .half{display:block}
+    .half{top:10px}.half.first{left:10px}.half.second{left:calc(50% + 10px)}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../fire-effect/" rel="prev" aria-label="Previous: Fire Effect"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Fire Effect</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.26 · Ambient &amp; Background</p>
+    <h1>Lightning</h1>
+    <p class="hb-lede">Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Click or tap the sky to make a bolt strike there.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage">
+      <i class="clouds c1" aria-hidden="true"></i><i class="clouds c2" aria-hidden="true"></i>
+      <canvas class="rain" aria-hidden="true"></canvas>
+      <canvas id="cvs" role="img" tabindex="0" aria-label="A storm over dark hills where a bolt strikes every few seconds. Click, or press Enter or Space, to make one strike."></canvas>
+      <svg class="hills" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><path fill="#141a2a" d="M0 120Q140 40 300 110T620 90T1000 110V300H0Z"/><path fill="#0b0f1a" d="M0 190Q200 130 380 180T760 160T1000 170V300H0Z"/></svg>
+      <i class="flash" aria-hidden="true"></i>
+      <p class="lt-lbl in" id="l-straight" aria-hidden="true" data-hb-caption>Starts straight</p>
+      <p class="lt-lbl in" id="l-split" aria-hidden="true" data-hb-caption>Each split pushes the middle aside, less each time</p>
+      <p class="lt-lbl in" id="l-fork" aria-hidden="true" data-hb-caption>Forks branch off</p>
+      <p class="lt-lbl in" id="l-glow" aria-hidden="true" data-hb-caption>Glow · a wide, faint copy</p>
+      <p class="lt-lbl half first" aria-hidden="true" data-hb-caption>Even zigzag</p>
+      <p class="lt-lbl half second" aria-hidden="true" data-hb-caption>Random splits</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each bolt is drawn round by round: a straight line, split again and again with each middle pushed aside by less, then forks and a soft glow.</p>
+      <p data-hb-for="compare" hidden>On the left, Even zigzag bends in equal steps, so it looks drawn. On the right, Random splits pushes each split aside by less, so it has big bends and fine jitter.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="often-lbl">How often</p>
+        <div class="seg" id="often-seg" role="group" aria-labelledby="often-lbl">
+          <button type="button" data-often="rarely" aria-pressed="false">Rarely</button>
+          <button type="button" data-often="sometimes" class="on" aria-pressed="true">Sometimes</button>
+          <button type="button" data-often="often" aria-pressed="false">Often</button>
+        </div>
+        <p class="hb-hint">Rarely keeps it calm behind text.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="forks-lbl">Branches</p>
+        <div class="seg" id="forks-seg" role="group" aria-labelledby="forks-lbl">
+          <button type="button" data-forks="2" aria-pressed="false">Few</button>
+          <button type="button" data-forks="4" class="on" aria-pressed="true">Some</button>
+          <button type="button" data-forks="7" aria-pressed="false">Many</button>
+        </div>
+        <p class="hb-hint">How many thinner forks split off.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Bolt color</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="White" data-rgb="235,240,255" style="background:#ebf0ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-rgb="140,196,255" style="background:#8cc4ff"></button>
+          <button type="button" aria-pressed="false" aria-label="Violet" data-rgb="200,164,255" style="background:#c8a4ff"></button>
+        </div>
+        <p class="hb-hint">The bolt and its glow.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Lights up the sky</span><input class="hb-switch" type="checkbox" role="switch" id="sky-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">The sky glows softly with each strike.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Rain</span><input class="hb-switch" type="checkbox" role="switch" id="rain-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Light rain falls through the storm.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add lightning to [the dark section or storm scene you want it in]. Every so often, draw a jagged bolt from the clouds to the ground on a canvas: start from a straight line, split it again and again, pushing each new midpoint sideways at random by less each time, and let thinner forks branch off. Draw a wide, faint stroke under a thin bright one for the glow; the bolt flickers once and fades within half a second. When the settings include it, light the sky softly, never more than twice a second. A click or tap strikes where the visitor points. If the visitor has reduced motion turned on, show a still bolt with no flash. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Game sites</li><li>Storm and weather themes</li><li>Dramatic intros</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Reading pages</li><li>Calm or health sites</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d'),stage=cvs.parentElement,rain=stage.querySelector('.rain'),rctx=rain.getContext('2d');
+  const clouds=[...stage.querySelectorAll('.clouds')],flash=stage.querySelector('.flash');
+  const slowTog=document.getElementById('slow-tog'),skyTog=document.getElementById('sky-tog'),rainTog=document.getElementById('rain-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  const FRAME=1000/60,GAP=1500; // safety: strikes start at least 1.5 s apart, whatever is pressed, so at most two flashes in any second
+  const EVERY={rarely:[5000,8000],sometimes:[2600,4400],often:[1600,2400]}; // the wait between strikes, in ms, picked at random
+  const LABELS={normal:'A storm over dark hills where a bolt strikes every few seconds. Click, or press Enter or Space, to make one strike.',
+    inside:'The bolt drawn round by round: a straight line split again and again, its forks numbered and its glow. Click, or press Enter or Space, to strike.',
+    compare:'Two bolts strike together: an even zigzag on the left and random splits on the right. Click, or press Enter or Space, to strike.'};
+  let often='sometimes',forks=4,rgb=[235,240,255],mode='normal',paused=false;
+  let W=0,H=0,raf=0,lastT=null,t=0,lastStrike=-1e9,nextAt=900,pending=null,strike=null,drops=[],shownKey='';
+  let seed=5;const rand=()=>{seed=seed+0x6D2B79F5|0;let x=Math.imul(seed^seed>>>15,1|seed);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
+  // A bolt from (x0, y0) to (x1, y1), split rounds times: each segment's midpoint is pushed sideways at random by up to off,
+  // and off halves every round. Every round is kept, so See inside can draw them one after another.
+  function split(x0,y0,x1,y1,rounds,off){
+    let pts=[[x0,y0],[x1,y1]];const steps=[pts];
+    for(let k=0;k<rounds;k++,off/=2){
+      const next=[pts[0]];
+      for(let i=1;i<pts.length;i++){const [ax,ay]=pts[i-1],[bx,by]=pts[i],l=Math.hypot(bx-ax,by-ay)||1,o=(rand()*2-1)*off;
+        next.push([(ax+bx)/2-(by-ay)/l*o,(ay+by)/2+(bx-ax)/l*o],pts[i])}
+      steps.push(pts=next);
+    }
+    return steps;
+  }
+  // The common mistake: the same line bent in equal steps, from side to side, like an icon
+  function zigzag(x0,y0,x1,y1){
+    const n=8,l=Math.hypot(x1-x0,y1-y0),a=l*.06,pts=[];
+    for(let i=0;i<=n;i++){const s=i%2?a:-a,k=i/n,e=i===0||i===n?0:s;pts.push([x0+(x1-x0)*k-(y1-y0)/l*e,y0+(y1-y0)*k+(x1-x0)/l*e])}
+    return [pts];
+  }
+  // A whole strike in a rectangle (x, w): the main bolt from the clouds to (tx, ty), and its forks from points along it (fp: where
+  // along the bolt each fork starts, its side and its length as a share of the bolt's); even: the mistake, zigzags in equal steps
+  function makeBolt(x,w,tx,ty,even,fp){
+    // it starts low enough in the clouds to stay clear of Compare's labels
+    const sx=Math.min(x+w-8,Math.max(x+8,tx+(rand()-.5)*w*.25)),sy=Math.max(H*.1,46),len=Math.hypot(tx-sx,ty-sy);
+    const main=even?zigzag(sx,sy,tx,ty):split(sx,sy,tx,ty,7,len*.22),line=main[main.length-1],fk=[];
+    for(const [at,side,k] of fp){const p=line[Math.floor(at*(line.length-1))],fl=len*k,ex=p[0]+side*fl*.6,ey=p[1]+fl*.8;
+      fk.push(even?zigzag(p[0],p[1],ex,ey):split(p[0],p[1],ex,ey,5,fl*.2))}
+    const b={main,forks:fk};fitX(b,x+8,x+w-8);return b;
+  }
+  // The whole strike, glow and all, kept inside its rectangle: moved sideways if it pokes out, narrowed if it is wider than the
+  // rectangle (the rounds share their points, so each point is moved once)
+  function fitX(b,x0,x1){
+    const ps=new Set([...b.main.flat(),...b.forks.flat(2)]);let lo=1e9,hi=-1e9;
+    for(const p of ps){lo=Math.min(lo,p[0]);hi=Math.max(hi,p[0])}
+    const k=Math.min(1,(x1-x0)/(hi-lo||1)),c=(lo+hi)/2,r=(hi-lo)*k/2,nc=Math.min(x1-r,Math.max(x0+r,c));
+    for(const p of ps)p[0]=nc+(p[0]-c)*k;
+  }
+  // The bolts of a strike that lands at (tx, ty): one for Normal and See inside, and for Compare one in each half, at the same place
+  // in its half, with forks in the same places. A resize or a new number of branches draws them again for the same spot, keeping
+  // the strike's time. On a narrow box the bolt keeps to 60% of the width on its side, which leaves See inside's labels room.
+  function bolts(tx,ty){
+    const half=W/2,u=tx/W,fp=[...Array(forks)].map(()=>[.18+.55*rand(),rand()<.5?-1:1,.22+.2*rand()]),x=W<600&&u>=.5?W*.4:0;
+    return {tx,ty,bolt:makeBolt(x,W<600?W*.6:W,tx,ty,false,fp),left:makeBolt(0,half,u*half,ty,true,fp),right:makeBolt(half,half,half+u*half,ty,false,fp)};
+  }
+  // A strike where the visitor pointed, or on the ground under a random spot
+  function strikeNow(at){
+    strike={at:t,still:false,full:false,...bolts(at?at.x:W*(.25+.5*rand()),at?Math.min(H*.9,at.y):H*(.74+.06*rand()))};
+    lastStrike=t;nextAt=t+EVERY[often][0]+rand()*(EVERY[often][1]-EVERY[often][0]);
+    placeLabels();
+  }
+  function redrawBolts(){if(strike){Object.assign(strike,bolts(strike.tx,strike.ty));placeLabels()}draw()}
+  // How bright a strike is, age ms after it began: a flicker (bright, dim, bright) that fades within half a second; under reduced
+  // motion a soft fade in and out with no flicker
+  function bright(age){
+    if(reduceMQ.matches)return age<250?age/250:age<600?1:age<1100?1-(age-600)/500:0;
+    return age<60?1:age<120?.35:age<180?.9:age<500?.9*(1-(age-180)/320):0;
+  }
+  // the glow in the bolt's color, and the core that color mixed halfway to white, so the color shows in both
+  const col=a=>`rgba(${rgb.join()},${a})`,core=a=>`rgba(${rgb.map(v=>Math.round(v+(255-v)*.5)).join()},${a})`;
+  let numFont='700 12px sans-serif'; // the site font for the forks' numbers, read once the page's styles are in (resize)
+  function stroke(pts,w,style,dash){ctx.lineWidth=w;ctx.strokeStyle=style;ctx.setLineDash(dash||[]);ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke()}
+  // A bolt as it looks: a wide, faint stroke for the glow under a thin bright one (no shadow blur); forks thinner, all of them in
+  // one path, so a frame of a flash strokes four paths a bolt
+  function strokeAll(lines,w,style){ctx.lineWidth=w;ctx.strokeStyle=style;ctx.setLineDash([]);ctx.beginPath();for(const pts of lines)pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke()}
+  function drawBolt(b,a){
+    if(a<=0)return;
+    const main=[b.main[b.main.length-1]],forks=b.forks.map(f=>f[f.length-1]);
+    strokeAll(main,11,col(.24*a));strokeAll(forks,6.5,col(.24*a));strokeAll(main,2.2,core(a));strokeAll(forks,1.3,core(a));
+  }
+  // See inside: the bolt round by round (the straight line dashed, each later round lighter, the pushed points dotted), then the
+  // forks numbered, then the glow. A strike builds it a round every 110 ms; between strikes the last drawing stays, faint.
+  function drawRounds(b,age){
+    const shown=age===null?99:age/110,f=age===null||age>1800?.7:1,main=b.main;
+    main.forEach((pts,k)=>{if(k>shown)return;
+      if(k===0)stroke(pts,1.5,`rgba(220,226,240,${.8*f})`,[6,6]);
+      else stroke(pts,k===7?2.2:1.2,k===7?core(f):`rgba(${rgb.join()},${(.15+.08*k)*f})`);
+      if(k>0&&k<5){ctx.fillStyle=`rgba(255,206,90,${.9*f})`;pts.forEach((p,i)=>{if(i%2){ctx.beginPath();ctx.arc(p[0],p[1],k<3?3:2,0,6.283);ctx.fill()}})}});
+    const nums=[]; // the fork's number sits a little way along the fork, clear of the main bolt and of the numbers before it
+    if(shown>8)b.forks.forEach((fk,i)=>{const pts=fk[fk.length-1],at=k=>pts[Math.floor(pts.length*k)];stroke(pts,1.2,col(.8*f));
+      const q=[.5,.72,.35,.88].map(at).find(p=>nums.every(n=>Math.hypot(n[0]-p[0],n[1]-p[1])>24))||at(.5);nums.push(q);
+      ctx.fillStyle=`rgba(8,10,18,${.9*f})`;ctx.beginPath();ctx.arc(q[0],q[1],9,0,6.283);ctx.fill();
+      ctx.fillStyle=`rgba(255,255,255,${f})`;ctx.font=numFont;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,q[0],q[1]+.5)});
+    if(shown>9)stroke(main[7],11,col(.24*f));
+  }
+  // The rain has its own canvas, drawn every frame; the bolts' canvas is drawn only when it changes
+  function drawRain(){
+    rctx.clearRect(0,0,W,H);
+    if(!rainTog.checked)return;
+    rctx.strokeStyle=mode==='inside'?'rgba(170,190,230,.15)':'rgba(170,190,230,.35)';rctx.lineWidth=1;rctx.beginPath();
+    for(const d of drops){rctx.moveTo(d.x,d.y);rctx.lineTo(d.x-2,d.y+d.l)}rctx.stroke();
+  }
+  function drawBolts(){
+    ctx.clearRect(0,0,W,H);
+    // a still bolt (paused, under reduced motion or after a click while paused) shows at full strength with no flash
+    const age=strike?t-strike.at:1e9,a=strike?(strike.still?1:bright(age)):0;
+    ctx.lineCap=ctx.lineJoin='round';
+    if(mode==='inside'&&strike)drawRounds(strike.bolt,age<2000&&!strike.still&&!strike.full?age:null);
+    else if(mode==='compare'&&strike){
+      // each half's bolt stays inside its own half, even where its bends or forks reach toward the other
+      [strike.left,strike.right].forEach((b,i)=>{ctx.save();ctx.beginPath();ctx.rect(i?W/2+1:0,0,W/2-1,H);ctx.clip();drawBolt(b,Math.max(a,.3));ctx.restore()}); // faint between strikes
+      ctx.fillStyle='#05070d';ctx.fillRect(W/2-1,0,2,H)}
+    else if(strike)drawBolt(strike.bolt,a);
+    // The sky's light: at most 30% white, following the flicker (half that under See inside's drawing); a still bolt keeps a
+    // steady faint glow, and under reduced motion the glow only fades in and out with the bolt, never above 10%
+    let sky=0;
+    if(skyTog.checked&&strike)sky=strike.still?.1:reduceMQ.matches?.1*a:.3*a*(mode==='inside'?.5:1);
+    flash.style.opacity=sky.toFixed(3);
+  }
+  function draw(){drawRain();drawBolts();shownKey=boltKey()}
+  // What the bolts' canvas shows, as a key that changes every frame while a strike flashes and once a round (every 110 ms)
+  // while See inside builds it; the loop draws the canvas again only when the key changes
+  function boltKey(){
+    if(!strike||strike.still)return mode+'still';
+    const age=t-strike.at;
+    if(mode==='inside')return strike.full||age>=2000?'built':'round'+Math.floor(age/110);
+    return age<(reduceMQ.matches?1100:600)?'flash'+t:'after';
+  }
+  // See inside's labels beside the parts they name, each one beside the bolt where the bolt, its forks and the labels already
+  // placed leave room, nearer the bolt; a label with no room at its height looks lower, then higher
+  function placeLabels(){
+    if(!strike||mode!=='inside'||!W)return;
+    const b=strike.bolt,[[x0,y0],[x1,y1]]=b.main[0],pts=[],f=b.forks[0],done=[];
+    for(let k=0;k<=24;k++)pts.push([x0+(x1-x0)*k/24,y0+(y1-y0)*k/24]);
+    b.main.slice(1).forEach(r=>pts.push(...r));b.forks.forEach(fk=>pts.push(...fk[fk.length-1]));
+    const want=[['l-straight',H*.08],['l-split',H*.3],['l-fork',f?Math.min(H*.62,Math.max(H*.4,f[0][0][1]-10)):H*.52],['l-glow',H*.72]];
+    for(const [id,at] of want){
+      const el=document.getElementById(id),tries=[];
+      for(let y=at;y<H;y+=10)tries.push(y);for(let y=at-10;y>=8;y-=10)tries.push(y);
+      // with no room anywhere (a click near the middle of a narrow box), narrower still, then over the forks but never over a label
+      tries.some(y=>fit(el,Math.max(8,y),pts,done,96))||tries.some(y=>fit(el,Math.max(8,y),pts,done,72))||tries.some(y=>fit(el,Math.max(8,y),[],done,72));
+      done.push({l:el.offsetLeft,t:el.offsetTop,r:el.offsetLeft+el.offsetWidth,b:el.offsetTop+el.offsetHeight});
+    }
+  }
+  const PAD=14; // the glow and the forks' numbers reach this far from a line
+  function fit(el,y,pts,done,min){
+    let w=Math.min(W*.46,260);
+    for(let i=0;i<3;i++){
+      el.style.left='0px';el.style.maxWidth=w+'px';const h=el.offsetHeight,ew=el.offsetWidth;if(y+h>H-8)return false; // measured at the left edge, where the box does not squeeze it
+      let lo=1e9,hi=-1e9;for(const [px,py] of pts)if(py>y-PAD&&py<y+h+PAD){lo=Math.min(lo,px);hi=Math.max(hi,px)}
+      if(lo>hi)lo=hi=strike.tx; // nothing at this height: beside where it strikes
+      const left=lo-PAD-8,right=W-8-hi-PAD,free=x=>!done.some(d=>x<d.r+6&&d.l<x+ew+6&&y<d.b+6&&d.t<y+h+6);
+      // the side with more room first, then the other
+      for(const [room,x] of right>=left?[[right,hi+PAD],[left,lo-PAD-ew]]:[[left,lo-PAD-ew],[right,hi+PAD]])
+        if(ew<=room&&free(x)){el.style.left=x+'px';el.style.top=y+'px';return true}
+      const room=Math.max(left,right);
+      if(room<min||ew<=room)return false;
+      w=room; // narrower, on more lines, then measured again
+    }
+    return false;
+  }
+  // The rain falls by the time that passed; fewer drops on phones
+  function makeRain(){drops=Array.from({length:phone.matches?70:160},()=>({x:rand()*(W+40),y:rand()*H,l:8+rand()*10,v:.5+rand()*.3}))}
+  // The loop moves the rain and the clouds and keeps the strikes by the time that passed (a third of it in slow motion). A strike
+  // the visitor asked for waits until the gap since the last one is over.
+  function loop(ts){
+    raf=requestAnimationFrame(loop);
+    if(followReduce())return; // reduced motion just turned on: the bolt holds still, and the shared script pauses
+    if(lastT===null){lastT=ts;return}
+    const dt=Math.min(ts-lastT,50)*(slowTog.checked?1/3:1);lastT=ts;t+=dt;
+    if(t-lastStrike>=GAP&&(pending||t>=nextAt)){strikeNow(pending);pending=null}
+    for(const d of drops){d.y+=d.v*dt;d.x-=d.v*dt*.12;if(d.y>H){d.y=-d.l;d.x=rand()*(W+40)}}
+    clouds.forEach((c,i)=>{c.style.transform=`translateX(${-((t*(i?.006:.01))%W).toFixed(1)}px)`});
+    drawRain();
+    const key=boltKey();
+    if(key!==shownKey){drawBolts();shownKey=key}
+  }
+  function start(){if(raf||paused)return;lastT=null;raf=requestAnimationFrame(loop)}
+  // Registered at the top level: under reduced motion the shared script pauses the loop at once, on a still bolt
+  // A still bolt starts fading when the loop plays again
+  document.addEventListener('hb:pause',e=>{
+    paused=e.detail.paused;followReduce();notes();
+    if(paused){cancelAnimationFrame(raf);raf=0;draw();return}
+    // a still bolt starts fading, and counts as the last strike, so the next keeps the gap
+    if(strike&&strike.still){strike.still=false;strike.at=lastStrike=t-(reduceMQ.matches?600:180)}
+    start();
+  });
+  document.addEventListener('visibilitychange',()=>{lastT=null});
+  // The mode switch draws the mode at once; See inside opened while paused shows the last bolt's whole drawing
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(paused&&strike)strike.full=true;cvs.setAttribute('aria-label',LABELS[mode]);placeLabels();if(W)draw()});
+  // A click, a tap, or Enter or Space on the box asks for a strike there (the middle, from the keyboard). While paused it draws a
+  // new still bolt there at once, with no flash.
+  function ask(at){
+    if(!paused){pending=at;return}
+    strikeNow(at);strike.still=true;lastStrike=-1e9;draw();
+  }
+  cvs.addEventListener('click',e=>{const r=cvs.getBoundingClientRect();ask({x:e.clientX-r.left,y:Math.max(H*.3,e.clientY-r.top)})});
+  cvs.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ask({x:W/2,y:H*.62})}});
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h||(w===W&&h===H))return;
+    const sx=W?w/W:1,sy=H?h/H:1;W=w;H=h;
+    // thin lines stay sharp enough at one and a half pixels per CSS pixel, which spares a phone almost half the work
+    const dpr=Math.min(devicePixelRatio||1,1.5);
+    for(const [c,g] of [[cvs,ctx],[rain,rctx]]){c.width=W*dpr;c.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0)}
+    numFont='700 12px '+getComputedStyle(stage).getPropertyValue('--hb-font');
+    makeRain();
+    if(strike){strike.tx*=sx;strike.ty*=sy}
+    redrawBolts();
+  }
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  // Branches and colors show at once, on the bolt on screen; How often counts from the next strike
+  choices('often-seg',d=>{often=d.often;nextAt=Math.min(nextAt,lastStrike+EVERY[often][1])});
+  choices('forks-seg',d=>{forks=+d.forks;redrawBolts()});
+  choices('color-sw',d=>{rgb=d.rgb.split(',').map(Number);draw()});
+  skyTog.addEventListener('change',draw);
+  rainTog.addEventListener('change',draw);
+  new ResizeObserver(resize).observe(stage);
+  resize();
+  // Under reduced motion the loop starts paused on a still bolt, and the notes say so while it is paused; playing, the markup's
+  // words hold
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  const STILL={inside:'Shown still: the bolt is a straight line split again and again, each middle pushed aside by less, with its forks numbered and a soft glow.',
+    compare:'Shown still: on the left, Even zigzag bends in equal steps, so it looks drawn; on the right, Random splits has big bends and fine jitter.'};
+  function notes(){const still=reduceMQ.matches&&paused;for(const k of ['inside','compare'])document.querySelector(`[data-hb-for="${k}"]`).textContent=still?STILL[k]:said[k]}
+  // The still bolt: the strike on screen held, or a new one at a fixed spot (the random numbers are seeded, so it is the same bolt
+  // every time)
+  function stillBolt(){
+    if(!strike||(!strike.still&&bright(t-strike.at)<=0))strikeNow({x:W*.62,y:H*.78});
+    strike.still=true;lastStrike=-1e9;draw();
+  }
+  if(reduceMQ.matches)stillBolt();
+  notes();
+  // The device's setting changed after load: turned on, the bolt on screen holds still (the shared script pauses the loop); either
+  // way the notes follow. Chrome sends no change event to a page that reads the setting every frame, so the loop and the pause
+  // look too.
+  let wasReduced=reduceMQ.matches;
+  function followReduce(){
+    const r=reduceMQ.matches;if(r===wasReduced)return false;wasReduced=r;
+    if(r&&W)stillBolt();notes();return r;
+  }
+  reduceMQ.addEventListener('change',followReduce);
+  document.fonts&&document.fonts.ready.then(placeLabels); // the labels' sizes once the site font is in
+  if(!reduceMQ.matches)start(); // under reduced motion the shared script pauses at once: no frame may come first
+</script>
+</body>
+</html>

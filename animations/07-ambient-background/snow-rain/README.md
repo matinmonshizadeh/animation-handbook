@@ -70,3 +70,4 @@ The number of particles follows the area they share, so a phone draws about a qu
 - [Wave Layers](../wave-layers/) — the same near-fast, far-slow depth rule with layers of water
 - [Particle Constellation](../particle-constellation/) — drifting dots that link up when they come close
 - [Fireworks](../fireworks/) — particles over the same kind of dark scene, bursting instead of falling
+- [Lightning](../lightning/) — bolts and a soft flash over the same kind of rainy scene
