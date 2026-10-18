@@ -45,7 +45,8 @@
       font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
     /* See inside: the whole photo held still and dimmed, and over it the frame the visitor sees, gliding from the dashed start
        frame to the dashed end frame along the arrow. The frame's timeline is the photo's turned inside out, from the same
-       numbers (--ffrom, --fto). The moving parts stay rendered in every mode (hidden, not removed), so they keep time. */
+       numbers, with two framings in between so it stays on the true view (the photo's zoom and shift are straight lines, the
+       view they show is not). The moving parts stay rendered in every mode (hidden, not removed), so they keep time. */
     .stage[data-hb-mode="inside"] .photo{visibility:hidden}
     .stage[data-hb-mode="inside"] .fit{display:block;position:absolute;inset:0}
     .in-part{display:block;visibility:hidden;position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;pointer-events:none}
@@ -53,16 +54,21 @@
     .frame{outline:3px solid #fff;box-shadow:0 0 0 3000px rgba(5,6,9,.6);animation:kb-frame calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
     .fs,.fe{outline:2px dashed rgba(255,255,255,.9);outline-offset:-1px}
     .fs{transform:var(--ffrom)}.fe{transform:var(--fto)}
-    .fl{animation:kb-fl calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    /* The frame's label (.fl) and, in this view, the caption (.fc) ride with the frame: each layer's --l0 to --l3 are a point of
+       the frame at the four framings, and the script sets each one's offset from that point where the arrow and labels are not */
+    .fl,.fc{animation:kb-fl calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
     .fl .tags{position:absolute;inset:0}
-    .fl .kb-lbl{left:0;top:14px;transform:translateX(-50%)}
+    .fl .kb-lbl,.fc .cap{left:0;top:0;bottom:auto;max-width:none}
+    /* The riding caption keeps its labels' timeline running while it is unseen, so it is hidden, never removed */
+    .fc .cap{display:block;visibility:hidden}.stage[data-hb-mode="inside"].caps .fc .cap{visibility:visible}
+    .stage[data-hb-mode="inside"] .slide>.cap{display:none}
     .tags{animation:kb-tags calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
     .le{transform:translateX(-100%)}
     .arrow{overflow:visible}
     .arrow path{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-    @keyframes kb-frame{0%{transform:var(--ffrom)}38.1%,100%{transform:var(--fto)}}
-    @keyframes kb-fl{0%{transform:var(--lfrom)}38.1%,100%{transform:var(--lto)}}
-    /* A slide's labels show only while it is the photo on top, never while the next fades in over it */
+    @keyframes kb-frame{0%{transform:var(--ffrom)}12.7%{transform:var(--f1)}25.4%{transform:var(--f2)}38.1%,100%{transform:var(--fto)}}
+    @keyframes kb-fl{0%{transform:var(--l0)}12.7%{transform:var(--l1)}25.4%{transform:var(--l2)}38.1%,100%{transform:var(--l3)}}
+    /* A slide's labels appear once it has faded in, and go when it is fully covered by the next */
     @keyframes kb-tags{0%,4.76%{opacity:0}4.77%,38.1%{opacity:1}38.11%,100%{opacity:0}}
     /* Compare: on the left a copy whose photos never move, only fade; on the right the reel itself. The copy stays rendered,
        unseen, in the other modes, so its fades keep time with the reel's. */
@@ -83,7 +89,7 @@
       .s1{--d:calc(var(--T)*-1 + 1.5s)}.s2{--d:1.5s}.s3{--d:calc(var(--T) + 1.5s)}
       .photo{animation:none;transform:var(--to)}
       .frame{animation:none;transform:var(--fto)}
-      .fl{animation:none;transform:var(--lto)}
+      .fl,.fc{animation:none;transform:var(--l3)}
     }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -119,7 +125,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the whole photo stays still and the bright frame is what the visitor sees: it glides from the dashed start frame to the dashed end frame, then the next photo fades in.</p>
-      <p data-hb-for="compare" hidden>Still photos only fade from one to the next, like a plain slideshow. Zoom and pan drifts and zooms each photo as it fades, so still pictures feel alive.</p>
+      <p data-hb-for="compare" hidden>Still photos only fade from one to the next, like a plain slideshow. Zoom and pan also drifts and zooms each photo while it shows, so still pictures feel alive.</p>
     </div>
   </section>
 
@@ -136,7 +142,7 @@
           <button type="button" data-zoom="out" aria-pressed="false">Out</button>
           <button type="button" data-zoom="both" class="on" aria-pressed="true">Both</button>
         </div>
-        <p class="hb-hint">Both changes direction from photo to photo.</p>
+        <p class="hb-hint">Both zooms some photos in and others out.</p>
       </div>
       <div class="hb-setting">
         <p class="hb-setting-name" id="move-lbl">How much it moves</p>
@@ -244,7 +250,8 @@
     `<p class="cap">${PHOTOS[k].name}</p>`+(inside?`<div class="fit"><svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">${PHOTOS[k].svg('f'+id)}</svg></div>`+
     `<i class="in-part fs"></i><i class="in-part fe"></i><svg class="in-part arrow"><path/></svg><i class="in-part frame"></i>`+
     `<div class="in-part tags"><span class="kb-lbl ls" data-hb-caption>Start</span><span class="kb-lbl le" data-hb-caption>End</span></div>`+
-    `<div class="in-part fl"><div class="tags"><span class="kb-lbl" data-hb-caption>Frame · what the visitor sees</span></div></div>`:'')+`</div>`;
+    `<div class="in-part fl"><div class="tags"><span class="kb-lbl lf" data-hb-caption>Frame · what the visitor sees</span></div></div>`+
+    `<div class="in-part fc"><p class="cap tags">${PHOTOS[k].name}</p></div>`:'')+`</div>`;
   stage.innerHTML=`<div class="reel copy" inert aria-hidden="true">${PHOTOS.map((_,k)=>slideOf(k,'c'+k,false)).join('')}</div>`+
     `<div class="reel">${PHOTOS.map((_,k)=>slideOf(k,k,true)).join('')}</div>`+
     `<p class="kb-lbl half first" data-hb-caption>Still photos</p><p class="kb-lbl half second" data-hb-caption>Zoom and pan</p>`;
@@ -253,11 +260,12 @@
   // the photo covers the box. The photo's transform shows that framing; the frame's is the same framing turned inside out: the
   // part of the whole photo that the box shows. Both are straight lines between two framings, so every moment between two that
   // cover the box covers it too.
-  const fit=(z,[x,y])=>{const h=.5/z;return{z,x:Math.min(1-h,Math.max(h,x)),y:Math.min(1-h,Math.max(h,y))}};
+  const fit=(z,[x,y])=>{const h=.5/z+.003;return{z,x:Math.min(1-h,Math.max(h,x)),y:Math.min(1-h,Math.max(h,y))}};
   const pct=v=>(v*100).toFixed(3)+'%';
   const photoT=f=>`translate(${pct((.5-f.x*f.z)/ZMAX)},${pct((.5-f.y*f.z)/ZMAX)}) scale(${(f.z/ZMAX).toFixed(4)})`;
   const frameT=f=>`translate(${pct(f.x-.5/f.z)},${pct(f.y-.5/f.z)}) scale(${(1/f.z).toFixed(4)})`;
-  const centerT=f=>`translate(${pct(f.x)},${pct(f.y)})`;
+  // The view the photo really shows a share u of the way through its move: its zoom and shift both change in straight lines
+  const viewAt=(a,b,u)=>{const z=a.z+(b.z-a.z)*u,t=k=>(.5-a[k]*a.z)+((.5-b[k]*b.z)-(.5-a[k]*a.z))*u;return{z,x:(.5-t('x'))/z,y:(.5-t('y'))/z}};
   // Each photo zooms in (or out, or every other one with Both) and drifts from its start toward its point of interest; zooming out
   // starts close on that point and pulls back
   function framings(k){
@@ -269,16 +277,53 @@
     slides.forEach((el,k)=>{
       const [a,b]=framings(k);
       for(const s of [el,copies[k]]){s.style.setProperty('--from',photoT(a));s.style.setProperty('--to',photoT(b))}
-      el.style.setProperty('--ffrom',frameT(a));el.style.setProperty('--fto',frameT(b));
-      el.style.setProperty('--lfrom',centerT(a));el.style.setProperty('--lto',centerT(b));
-      // Start sits inside the start frame's top left corner and End inside the end frame's top right one; the moving frame's own
-      // label rides just below its middle, so none of them meets another or the caption (the box's lower left corner)
+      el.F=[a,viewAt(a,b,1/3),viewAt(a,b,2/3),b];
+      ['--ffrom','--f1','--f2','--fto'].forEach((v,i)=>el.style.setProperty(v,frameT(el.F[i])));
+      // Start sits inside the start frame's top left corner and End inside the end frame's top right one
       const ls=el.querySelector('.ls'),le=el.querySelector('.le');
       ls.style.left=`calc(${pct(a.x-.5/a.z)} + 8px)`;ls.style.top=`calc(${pct(a.y-.5/a.z)} + 8px)`;
       le.style.left=`calc(${pct(b.x+.5/b.z)} - 8px)`;le.style.top=`calc(${pct(b.y-.5/b.z)} + 8px)`;
       el.ab=[a,b];
     });
     drawArrows();
+  }
+  // In See inside the caption rides inside the frame's lower left corner, and the frame's label takes the first of these places
+  // that stays clear of the arrow, the Start and End labels, the caption and the box's edges all through the move. Each place is
+  // a point of the frame (shares of its width and height) and where the label sits from it (shares of the label's size, plus px).
+  // 'cap' is just above the caption, when it shows; 'row2' is a row below the Start and End labels.
+  const PLACES=[[.5,1,-.5,-1,0,-8],[1,1,-1,-1,-8,-8],[1,.5,-1,-.5,-8,0],[0,.5,0,-.5,8,0],[.5,0,-.5,0,0,8],[0,1,0,-1,8,'cap'],[.5,1,-.5,-1,0,'cap'],
+    [0,0,0,0,8,'row2'],[1,0,-1,0,-8,'row2'],[.5,.5,-.5,0,0,14],[.5,.5,-.5,-1,0,-14]];
+  function placeLabels(W,H){
+    const caps=stage.classList.contains('caps');
+    slides.forEach(el=>{
+      const F=el.F,lf=el.querySelector('.lf'),fc=el.querySelector('.fc'),cap=fc.firstChild,fl=el.querySelector('.fl');
+      const R=F.map(f=>({l:(f.x-.5/f.z)*W,t:(f.y-.5/f.z)*H,w:W/f.z,h:H/f.z}));
+      const rects=[];for(let i=0;i<3;i++)for(let j=0;j<4;j++){const u=j/4,A=R[i],B=R[i+1];rects.push({l:A.l+(B.l-A.l)*u,t:A.t+(B.t-A.t)*u,w:A.w+(B.w-A.w)*u,h:A.h+(B.h-A.h)*u})}
+      rects.push(R[3]);
+      const anchor=(r,px,py)=>[r.l+r.w*px,r.t+r.h*py];
+      const pointT=(px,py)=>R.map(r=>`translate(${pct(anchor(r,px,py)[0]/W)},${pct(anchor(r,px,py)[1]/H)})`);
+      cap.style.maxWidth=Math.max(80,Math.min(...R.map(r=>r.w))-16)+'px';
+      const cw=cap.offsetWidth,ch=cap.offsetHeight;
+      pointT(0,1).forEach((t,i)=>fc.style.setProperty('--l'+i,t));cap.style.transform=`translate(8px,${-8-ch}px)`;
+      const [a,b]=el.ab,ls=el.querySelector('.ls'),le=el.querySelector('.le'),line=[];
+      const fixed=[{l:R[0].l+8,t:R[0].t+8,w:ls.offsetWidth,h:ls.offsetHeight},{l:R[3].l+R[3].w-8-le.offsetWidth,t:R[3].t+8,w:le.offsetWidth,h:le.offsetHeight}];for(let i=0;i<=40;i++)line.push([(a.x+(b.x-a.x)*i/40)*W,(a.y+(b.y-a.y)*i/40)*H]);
+      const meets=(p,q,m)=>p.l<q.l+q.w+m&&q.l<p.l+p.w+m&&p.t<q.t+q.h+m&&q.t<p.t+p.h+m;
+      const lw=lf.offsetWidth,lh=lf.offsetHeight;
+      let best=null;
+      for(const [px,py,sx,sy,ox,oy] of PLACES){
+        const dx=lw*sx+ox,dy=lh*sy+(oy==='cap'?-8-(caps?ch+6:0):oy==='row2'?14+lh:oy);let hits=0;
+        for(const r of rects){
+          const [x,y]=anchor(r,px,py),L={l:x+dx,t:y+dy,w:lw,h:lh};
+          if(L.l<4||L.t<4||L.l+L.w>W-4||L.t+L.h>H-4)hits++;
+          if(fixed.some(q=>meets(L,q,4)))hits++;
+          if(line.some(([u,v])=>u>L.l-6&&u<L.l+L.w+6&&v>L.t-6&&v<L.t+L.h+6))hits++;
+          if(caps&&meets(L,{l:r.l+8,t:r.t+r.h-8-ch,w:cw,h:ch},4))hits++;
+        }
+        if(!best||hits<best.hits)best={hits,px,py,dx,dy};
+        if(!hits)break;
+      }
+      pointT(best.px,best.py).forEach((t,i)=>fl.style.setProperty('--l'+i,t));lf.style.transform=`translate(${best.dx}px,${best.dy}px)`;
+    });
   }
   // The arrow from the middle of the start frame to the middle of the end frame, drawn in the box's own pixels
   function drawArrows(){
@@ -288,9 +333,10 @@
       svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
       svg.firstChild.setAttribute('d',Math.hypot(x2-x1,y2-y1)<4?'':`M${x1} ${y1}L${x2} ${y2}M${x2-h*Math.cos(ang-.5)} ${y2-h*Math.sin(ang-.5)}L${x2} ${y2}L${x2-h*Math.cos(ang+.5)} ${y2-h*Math.sin(ang+.5)}`);
     });
+    placeLabels(W,H);
   }
   // The mode switch: the styles show the mode at once and every timeline keeps running (or stays paused); the picture is renamed
-  document.addEventListener('hb:mode',e=>{stage.setAttribute('aria-label',LABELS[e.detail.mode])});
+  document.addEventListener('hb:mode',e=>{stage.setAttribute('aria-label',LABELS[e.detail.mode]);if(e.detail.mode==='inside')drawArrows()});
   // The notes say what the box shows: the markup's words, or under reduced motion a still while the loop is paused and, while it
   // plays, photos that only fade. Registered at the top level: the shared script sends hb:pause at once under reduced motion.
   const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
@@ -299,12 +345,20 @@
     playing:{inside:'Inside, the bright frame is the part the visitor sees, held at the end of its move, with dashed frames where it starts and ends. Under reduced motion the photos only fade.',
       compare:'Still photos keeps the first view of each photo, while Zoom and pan shows the end of each move. Under reduced motion both only fade from one photo to the next.'}};
   let paused=false;
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
   function notes(){
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced=reduceMQ.matches;
     for(const k of ['inside','compare'])document.querySelector(`[data-hb-for="${k}"]`).textContent=reduced?REDUCED[paused?'still':'playing'][k]:said[k];
   }
   document.addEventListener('hb:pause',e=>{paused=e.detail.paused;notes()});
   notes();
+  // A reduced-motion change made after load: the moves that come back start again from nothing, so they take the slides' time
+  // (every timeline in the box was made in one go), and the notes are written again
+  reduceMQ.addEventListener('change',()=>{
+    requestAnimationFrame(()=>{const all=stage.getAnimations({subtree:true});
+      Promise.all(all.map(a=>a.ready)).then(()=>{const t=slides[0].getAnimations()[0]?.currentTime;if(t!=null)all.forEach(a=>{a.currentTime=t})})});
+    notes();
+  });
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -315,9 +369,10 @@
   choices('zoom-seg',d=>{zoom=d.zoom;apply()});
   choices('move-seg',d=>{move=d.move;apply()});
   choices('time-seg',d=>{stage.style.setProperty('--T',d.time+'s')});
-  document.getElementById('cap-tog').addEventListener('change',e=>stage.classList.toggle('caps',e.target.checked));
+  document.getElementById('cap-tog').addEventListener('change',e=>{stage.classList.toggle('caps',e.target.checked);drawArrows()});
   new ResizeObserver(drawArrows).observe(stage);
   apply();
+  document.fonts.ready.then(drawArrows);
 </script>
 </body>
 </html>
