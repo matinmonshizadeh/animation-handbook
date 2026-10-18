@@ -31,6 +31,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   pressed, with See inside and Compare from the start.
 - A new animation, Ken Burns Effect (174 in all): photos slowly zoom and pan, then fade into the next, with See inside and
   Compare from the start.
+- A new animation, Fire Effect (175 in all): flames flicker and rise as heat climbs and cools, with See inside and Compare
+  from the start.
 
 ## 1.0.0 — 2026-10-10
 

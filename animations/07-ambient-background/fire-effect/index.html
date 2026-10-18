@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fire Effect — Animation Handbook</title>
+  <meta name="description" content="Flames flicker and rise as heat climbs and cools. Best for game and event pages.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/fire-effect/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Fire Effect — Animation Handbook">
+  <meta property="og:description" content="Flames flicker and rise as heat climbs and cools. Best for game and event pages.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/fire-effect/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fire Effect — Animation Handbook">
+  <meta name="twitter:description" content="Flames flicker and rise as heat climbs and cools. Best for game and event pages.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Fire Effect", "name": "Fire Effect", "description": "Flames flicker and rise as heat climbs and cools. Best for game and event pages.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/fire-effect/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Fire Effect"}</script>
+  <style>
+    :root{--ui-accent:#ffce5a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .stage{position:relative;overflow:hidden;background:#070608}
+    /* Each fire is a small canvas of one pixel per heat cell, stretched over its part of the box by the browser (smoothly, so the
+       flames look soft); See inside draws on a canvas of the box's own size */
+    .fire,#cvs{position:absolute;display:block;width:100%;height:100%;left:0;top:0}
+    .fire.half,#cvs,.divide{display:none}
+    .stage[data-hb-mode="inside"] .fire,.stage[data-hb-mode="compare"] .fire.whole{display:none}
+    .stage[data-hb-mode="inside"] #cvs,.stage[data-hb-mode="compare"] .fire.half{display:block}
+    .divide{position:absolute;left:calc(50% - 1px);top:0;width:2px;height:100%;background:#000}
+    .stage[data-hb-mode="compare"] .divide{display:block}
+    /* See inside and Compare: plain words over the picture */
+    .fx-lbl{display:none;position:absolute;padding:3px 8px;border-radius:6px;background:rgba(7,6,8,.88);color:#f4f4f2;
+      font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .half{display:block}
+    .in.what{left:10px;top:10px;white-space:normal;max-width:min(60%,330px)}
+    .half{top:10px}.half.first{left:10px}.half.second{left:calc(50% + 10px)}
+    @media(max-width:360px){.half.second{left:10px;top:calc(50% + 10px)}.divide{left:0;top:calc(50% - 1px);width:100%;height:2px}}
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../ken-burns/" rel="prev" aria-label="Previous: Ken Burns Effect"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Ken Burns Effect</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.25 · Ambient &amp; Background</p>
+    <h1>Fire Effect</h1>
+    <p class="hb-lede">Flames flicker and rise as heat climbs and cools. Best for game and event pages.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it, or turn on slow motion to watch the heat rise.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage" role="img" aria-label="Flames flickering along the bottom of a dark box, with sparks drifting up">
+      <canvas id="cvs" aria-hidden="true"></canvas><i class="divide" aria-hidden="true"></i>
+      <p class="fx-lbl in what" aria-hidden="true" data-hb-caption>Each square holds one heat value: white is hottest</p>
+      <p class="fx-lbl in" id="l-base" aria-hidden="true" data-hb-caption>Always full heat</p>
+      <p class="fx-lbl in" id="l-up" aria-hidden="true" data-hb-caption>Heat moves up a row each step</p>
+      <p class="fx-lbl in" id="l-cool" aria-hidden="true" data-hb-caption>It cools as it rises</p>
+      <p class="fx-lbl half first" aria-hidden="true" data-hb-caption>Flickers in place</p>
+      <p class="fx-lbl half second" aria-hidden="true" data-hb-caption>Heat rises</p>
+    </div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each square is one heat value, white the hottest: the hidden bottom row is always hot, heat moves up a row each step with a little sideways wobble, and it cools as it rises.</p>
+      <p data-hb-for="compare" hidden>Flickers in place gives each spot new random heat every step, so it looks like static. Heat rises lifts heat from below and cools it on the way up, so it forms flames.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="height-lbl">Flame height</p>
+        <div class="seg" id="height-seg" role="group" aria-labelledby="height-lbl">
+          <button type="button" data-h="low" aria-pressed="false">Low</button>
+          <button type="button" data-h="medium" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-h="tall" aria-pressed="false">Tall</button>
+        </div>
+        <p class="hb-hint">Tall flames cool more slowly as they rise.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="shape-lbl">Fire shape</p>
+        <div class="seg" id="shape-seg" role="group" aria-labelledby="shape-lbl">
+          <button type="button" data-shape="edge" class="on" aria-pressed="true">Along the edge</button>
+          <button type="button" data-shape="camp" aria-pressed="false">Campfire</button>
+        </div>
+        <p class="hb-hint">Campfire heats only the middle, so the flames meet in a point.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="color-lbl">Colors</p>
+        <div class="swatches" id="color-sw" role="group" aria-labelledby="color-lbl">
+          <button type="button" class="on" aria-pressed="true" aria-label="Orange" data-col="orange" style="background:#f5781a"></button>
+          <button type="button" aria-pressed="false" aria-label="Blue" data-col="blue" style="background:#2a8cf0"></button>
+          <button type="button" aria-pressed="false" aria-label="Green" data-col="green" style="background:#50c828"></button>
+        </div>
+        <p class="hb-hint">The color of the heat.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <p class="hb-setting-name" id="wind-lbl">Wind</p>
+          <div class="seg" id="wind-seg" role="group" aria-labelledby="wind-lbl">
+            <button type="button" data-w="0" class="on" aria-pressed="true">None</button>
+            <button type="button" data-w="-1" aria-pressed="false">Left</button>
+            <button type="button" data-w="1" aria-pressed="false">Right</button>
+          </div>
+          <p class="hb-hint">Leans the flames to one side.</p>
+        </div>
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Sparks</span><input class="hb-switch" type="checkbox" role="switch" id="spark-tog" checked autocomplete="off"></label>
+          <p class="hb-hint">Small sparks drift up from the flames.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a fire effect to [the dark section or edge you want to set alight]. Keep a small grid of heat values whose bottom row always holds full heat. Many times a second, give each cell the heat of a cell just below it, nudged sideways and cooled a little at random, so heat rises, flickers and dies out. Color each cell by its heat with the palette the settings choose, dark when cool and brightest when hot, and draw the grid on a small canvas stretched over the area so the flames look soft. Step the grid at a fixed rate on every screen, coarser on phones. If the visitor has reduced motion turned on, show still flames. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Game sites</li><li>Sale and event banners</li><li>Night and festival themes</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Reading pages</li><li>Light themes</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d'),stage=cvs.parentElement,divide=stage.querySelector('.divide');
+  const slowTog=document.getElementById('slow-tog'),sparkTog=document.getElementById('spark-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  const narrow=matchMedia('(max-width:360px)'); // where the Compare halves stack, as the labels do
+  const FRAME=1000/60,SEED=11,WARM=200; // one step is a 60th of a second; a new fire is run 200 steps from a fixed seed, so it starts full
+  const HEIGHT={low:.32,medium:.52,tall:.78}; // the share of the box the flames reach
+  const PALETTES={orange:[[7,6,8],[96,10,6],[196,44,10],[245,120,26],[255,204,80],[255,250,226]],
+    blue:[[7,6,8],[8,14,70],[24,60,180],[42,140,240],[150,222,255],[238,250,255]],
+    green:[[7,6,8],[6,44,14],[24,124,34],[80,200,40],[196,250,120],[246,255,224]]};
+  const LABELS={normal:'Flames flickering along the bottom of a dark box, with sparks drifting up',
+    inside:'The fire as a grid of gray squares, one heat value each, with the always-hot bottom row, rising arrows and a bar that cools upward',
+    compare:'Two fires side by side: random flicker that stays in place, and heat that rises into flames'};
+  let height='medium',shape='edge',color='orange',wind=0,mode='normal',paused=false;
+  let W=0,H=0,raf=0,lastT=null,acc=0,lut=null,main=null,pair=null;
+  // A seeded random sequence (32 random bits a call), so a new fire is the same fire every time; rand() gives 0 to 1
+  function rng(s){let x=s|0||1;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return x>>>0}}
+  // The palette as 256 colors, from cool (dark) to hot (near white), as the pixels of an ImageData want them
+  function makeLut(){
+    const stops=PALETTES[color],out=new Uint32Array(256);
+    for(let i=0;i<256;i++){const p=i/255*(stops.length-1),k=Math.min(stops.length-2,Math.floor(p)),f=p-k,a=stops[k],b=stops[k+1];
+      out[i]=255<<24|Math.round(a[2]+(b[2]-a[2])*f)<<16|Math.round(a[1]+(b[1]-a[1])*f)<<8|Math.round(a[0]+(b[0]-a[0])*f)}
+    return out;
+  }
+  // One fire in a rectangle of the box (in shares of its size): cols × rows heat values, the last row hidden below the box, drawn
+  // on a small canvas of one pixel per cell that the browser stretches over the rectangle. flicker: the common mistake, new random
+  // heat in place every step.
+  function Fire(rect,cols,flicker,seed,half){
+    const cell=rect.w*W/cols,rows=Math.max(8,Math.round(rect.h*H/cell))+1,small=document.createElement('canvas'),bits=rng(seed);
+    small.width=cols;small.height=rows-1;small.className='fire '+(half?'half':'whole');small.setAttribute('aria-hidden','true');
+    Object.assign(small.style,{left:rect.x*100+'%',top:rect.y*100+'%',width:rect.w*100+'%',height:rect.h*100+'%'});
+    divide.before(small);
+    return {cols,rows,flicker,half,h:new Float32Array(cols*rows),bits,rand:()=>bits()/4294967296,sparks:[],sctx:small.getContext('2d'),img:new ImageData(cols,rows-1)};
+  }
+  const base=(f,x)=>shape==='edge'?1:Math.max(0,1-Math.abs(x+.5-f.cols/2)/(f.cols*.16));
+  // One step: the hidden bottom row gets full heat (only its middle for a campfire); every other cell takes the heat of the cell
+  // below it, written one cell to the side at random (and more often toward the wind), and half the time a little cooler, so heat
+  // moves up a row each step, runs out at the chosen height and leaves hotter streaks where it happened to cool less
+  function step(f){
+    const {cols:c,rows:r,h,rand,bits}=f;
+    if(f.flicker){const hh=HEIGHT[height];for(let y=0;y<r-1;y++){const k=Math.pow(Math.max(0,(y/(r-2)-1+hh)/hh),2.2);for(let x=0;x<c;x++)h[y*c+x]=rand()*k*base(f,x)}return}
+    for(let x=0;x<c;x++)h[(r-1)*c+x]=base(f,x);
+    const cool=2/((r-1)*HEIGHT[height]);
+    // one draw of random bits a cell: two for the sideways step (left, stay, stay, right), one for cooling, one for the wind
+    for(let y=1;y<r;y++)for(let x=0,i=y*c;x<c;x++,i++){
+      const n=bits(),q=n&3;let nx=x+(q===3?0:q-1)+(wind&&n&16?wind:0);
+      nx=nx<0?0:nx>=c?c-1:nx;
+      const v=h[i]-(n&8?cool:0);
+      h[i-c-x+nx]=v>0?v:0;
+    }
+  }
+  // Sparks rise from the hot cells and fade, moved by the time that passed (s seconds); fewer on phones and in each Compare half
+  function sparks(f,s){
+    const {rand}=f,rate=(phone.matches?10:24)*(f.half?.5:1);
+    if(sparkTog.checked&&rand()<rate*s){let x=rand()*f.cols;if(base(f,Math.floor(x))<.5)x=f.cols/2+(rand()-.5)*f.cols*.2;
+      f.sparks.push({x:x/f.cols,y:1-HEIGHT[height]*(.25+rand()*.45),vy:.18+rand()*.22,ph:rand()*6.28,life:1.2+rand()*1.2,age:0})}
+    for(const p of f.sparks){p.age+=s;p.y-=p.vy*s;p.x+=Math.sin(p.ph+p.age*3)*.02*s+wind*.03*s}
+    f.sparks=f.sparks.filter(p=>p.age<p.life&&p.y>0);
+  }
+  // A new fire for every rectangle of the current mode, run WARM steps from its seed, so it is full from the first frame
+  function build(){
+    stage.querySelectorAll('.fire').forEach(c=>c.remove());
+    const stack=narrow.matches,max=phone.matches?96:160;
+    // about one cell per five pixels, at most 160 across (96 on phones); a Compare half covers half the box, so half the cells
+    const make=(rect,flicker,seed,half)=>{const f=Fire(rect,Math.max(16,Math.min(max,Math.round(rect.w*W/5))),flicker,seed,half);
+      for(let i=0;i<WARM;i++){step(f);sparks(f,FRAME/1000)}return f};
+    main=make({x:0,y:0,w:1,h:1},false,SEED,false);
+    const halves=stack?[{x:0,y:0,w:1,h:.5},{x:0,y:.5,w:1,h:.5}]:[{x:0,y:0,w:.5,h:1},{x:.5,y:0,w:.5,h:1}];
+    pair=halves.map((rect,i)=>make(rect,i===0,SEED+i,true));
+  }
+  // A fire's picture: its heat as colors, then its sparks as soft dots (a cell wide, at their own place between cells)
+  function paint(f){
+    const {cols:c,rows:r,h,img,sctx}=f,px=new Uint32Array(img.data.buffer);
+    // each pixel blends a cell with its two side neighbors, which softens the grain across and keeps the streaks that rise
+    for(let y=0;y<r-1;y++)for(let x=0,i=y*c;x<c;x++,i++)px[i]=lut[Math.min(255,(h[i-(x>0)]+2*h[i]+h[i+(x<c-1)])*63.75|0)];
+    sctx.putImageData(img,0,0);
+    sctx.fillStyle=`rgb(${PALETTES[color][5].join()})`;
+    for(const p of f.sparks){sctx.globalAlpha=1-p.age/p.life;sctx.fillRect(p.x*c-.5,p.y*(r-1)-.5,1,1)}
+    sctx.globalAlpha=1;
+  }
+  // See inside: the same fire as big squares in grays (one heat value each, white the hottest), its hidden bottom row shown and
+  // white, rising arrows with a sideways wobble (toward the wind), and at the side a bar in the fire's colors that cools upward
+  // The squares are one pixel each on a small canvas, drawn up with smoothing off, and the gaps between them one path on top
+  const grid=document.createElement('canvas'),gctx=grid.getContext('2d');let gimg=null;
+  function paintInside(){
+    const f=main,{cols:c,rows:r,h}=f,B=phone.matches?6:5,bc=Math.ceil(c/B),s=W/bc,br=Math.ceil(H/s);
+    if(!gimg||gimg.width!==bc||gimg.height!==br){grid.width=bc;grid.height=br;gimg=gctx.createImageData(bc,br)}
+    const px=new Uint32Array(gimg.data.buffer);
+    for(let j=0;j<br;j++)for(let i=0;i<bc;i++){const y=r-1-j*B,g=Math.round(18+(y<0?0:h[y*c+Math.min(c-1,i*B+(B>>1))])*237);px[(br-1-j)*bc+i]=0xff000000|g<<16|g<<8|g}
+    gctx.putImageData(gimg,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(grid,0,H-br*s,W,br*s);
+    ctx.strokeStyle='#111014';ctx.lineWidth=2;ctx.beginPath();
+    for(let i=0;i<=bc;i++){ctx.moveTo(i*s,0);ctx.lineTo(i*s,H)}
+    for(let j=0;j<=br;j++){ctx.moveTo(0,H-j*s);ctx.lineTo(W,H-j*s)}
+    ctx.stroke();
+    for(const p of f.sparks){ctx.fillStyle='#fff';ctx.fillRect(p.x*W-1.5,p.y*H-1.5,3,3)}
+    const top=H*(1-HEIGHT[height]),d=wind*s*.5,segs=phone.matches?2:3,y0=H-1.5*s,at=layout(s,top,d,segs,y0);
+    ctx.lineCap='round';ctx.lineJoin='round';
+    for(const x of at)for(const [w,col] of [[6,'#111014'],[2.5,'#ffce5a']]){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();
+      ctx.moveTo(x,y0);for(let k=1;k<=segs;k++)ctx.lineTo(x+d+(k<segs?(k%2?-.5:.5)*s:0),y0-k*s);
+      const tx=x+d,ty=y0-segs*s;ctx.moveTo(tx-6,ty+7);ctx.lineTo(tx,ty);ctx.lineTo(tx+6,ty+7);ctx.stroke()}
+    const bar=ctx.createLinearGradient(0,H-s,0,top),st=PALETTES[color];
+    st.forEach((col,i)=>bar.addColorStop(1-i/(st.length-1),`rgb(${col.join()})`));
+    ctx.fillStyle='#111014';ctx.fillRect(W-30,top-2,18,H-s-top+4);ctx.fillStyle=bar;ctx.fillRect(W-28,top,14,H-s-top);
+  }
+  // Where See inside's labels and arrows go, worked out again only when the box or a setting moves them. The always-hot row's label
+  // sits just above it, or, for a campfire, in it beside its hot middle; the arrows share the width the labels leave (over a
+  // campfire's middle); "Heat moves up" sits over their tips and "It cools" beside the bar's top, lifted over the other if they meet
+  let laidOut='',arrowsAt=[];
+  function layout(s,top,d,segs,y0){
+    const lb=document.getElementById('l-base'),lu=document.getElementById('l-up'),lc=document.getElementById('l-cool'),what=stage.querySelector('.in.what');
+    const key=[W,H,s,shape,height,wind,segs,what.offsetHeight,lu.offsetWidth].join();if(key===laidOut)return arrowsAt;laidOut=key; // the sizes: once the font loads
+    const R=el=>({l:el.offsetLeft,t:el.offsetTop,r:el.offsetLeft+el.offsetWidth,b:el.offsetTop+el.offsetHeight});
+    const camp=shape==='camp',hot0=W*.34,hot1=W*.66,reach=.5*s+Math.abs(d)+8;
+    // beside a campfire's middle on a narrow box the label takes two lines, so it stays off the hot squares
+    lb.style.whiteSpace=camp?'normal':'';lb.style.maxWidth=camp?Math.max(80,hot0-18)+'px':'';
+    if(camp)place(lb,hot0-6-lb.offsetWidth,Math.min(H-s+(s-lb.offsetHeight)/2,H-lb.offsetHeight-4));else place(lb,12,H-s-lb.offsetHeight-6);
+    const a0=camp?hot0+reach*.5:R(lb).r+reach,a1=camp?hot1-reach*.5:W-36-reach;let n=camp?(phone.matches?1:2):(phone.matches?2:3);
+    while(n>1&&(a1-a0)/n<1.1*s+Math.abs(d))n--; // fewer arrows where they would cross
+    arrowsAt=Array.from({length:n},(_,i)=>a0+(a1-a0)*(i+.5)/n);
+    const tipY=y0-segs*s-4,below=R(what).b+6,mid=arrowsAt.reduce((a,b)=>a+b,0)/n+d;
+    place(lu,Math.min(mid-lu.offsetWidth/2,W-36-lu.offsetWidth),Math.max(below,tipY-lu.offsetHeight-6)); // never over the bar
+    const U=R(lu),cx=W-36-lc.offsetWidth;let cy=Math.min(top+4,tipY-lc.offsetHeight-6);
+    if(cx<U.r&&cx+lc.offsetWidth>U.l)cy=Math.min(cy,U.t-lc.offsetHeight-6);
+    if(cx<R(what).r)cy=Math.max(cy,below);
+    place(lc,cx,cy);
+    return arrowsAt;
+  }
+  const place=(el,x,y)=>{el.style.left=Math.max(6,Math.min(W-el.offsetWidth-6,x))+'px';el.style.top=Math.max(6,Math.min(H-el.offsetHeight-6,y))+'px'};
+  function draw(){
+    if(mode==='inside')paintInside();
+    else (mode==='compare'?pair:[main]).forEach(paint);
+  }
+  // The loop takes fixed steps of a 60th of a second from the time that passed (a third of it in slow motion), at most two a
+  // frame, and draws every frame, as the sparks move by the time itself. Compare steps its own two fires, so Normal's waits as it was.
+  function loop(ts){
+    raf=requestAnimationFrame(loop);
+    if(lastT===null){lastT=ts;return}
+    const dt=Math.min(ts-lastT,50)*(slowTog.checked?1/3:1);lastT=ts;acc+=dt;
+    const fires=mode==='compare'?pair:[main];let n=0;
+    while(acc>=FRAME-1&&n<2){fires.forEach(step);acc-=FRAME;n++}
+    if(acc>FRAME)acc=0;
+    fires.forEach(f=>sparks(f,dt/1000));
+    draw();
+  }
+  function start(){if(raf||paused)return;lastT=null;acc=0;raf=requestAnimationFrame(loop)}
+  // Registered at the top level: under reduced motion the shared script pauses the loop at once, and the full fire stays still
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;notes();if(paused){cancelAnimationFrame(raf);raf=0}else start()});
+  document.addEventListener('visibilitychange',()=>{lastT=null;acc=0});
+  // The mode switch draws the mode at once, playing or paused; each mode keeps its own fire, so Normal comes back as it was
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;stage.setAttribute('aria-label',LABELS[mode]);if(W)draw()});
+  // A real change of the box's size builds new fires for it (a phone's address bar sliding leaves it as it was); the box is watched
+  // itself, so its size once the page's styles have loaded counts too
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h||(w===W&&h===H))return;W=w;H=h;
+    const dpr=Math.min(devicePixelRatio||1,2);cvs.width=W*dpr;cvs.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    build();draw();
+  }
+  // A setting changes the fire as it plays; while paused it builds the fire again with the new setting, so the change shows
+  function changed(rebuild){if(paused&&rebuild)build();if(W)draw()}
+  function choices(id,pick,rebuild){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);changed(rebuild);
+    }));
+  }
+  choices('height-seg',d=>{height=d.h},true);
+  choices('shape-seg',d=>{shape=d.shape},true);
+  choices('color-sw',d=>{color=d.col;lut=makeLut()},false);
+  choices('wind-seg',d=>{wind=+d.w},true);
+  // Sparks switched off go at once from every fire, so none are left to fade in a view not shown yet
+  sparkTog.addEventListener('change',()=>{if(!sparkTog.checked&&main)[main,...pair].forEach(f=>{f.sparks=[]});changed(true)});
+  // Under reduced motion the loop starts paused on a full fire, and the notes say so while it is paused; playing, the fire burns
+  // as it does without reduced motion, and the markup's words hold
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  const STILL={inside:'Shown still: each square is one heat value, white the hottest; the hidden bottom row is always hot, heat moves up a row each step, and it cools as it rises. Press Play to watch.',
+    compare:'Shown still: Flickers in place gives each spot new random heat every step, like static; Heat rises lifts heat from below and cools it, so it forms flames. Press Play to watch.'};
+  function notes(){const still=reduceMQ.matches&&paused;for(const k of ['inside','compare'])document.querySelector(`[data-hb-for="${k}"]`).textContent=still?STILL[k]:said[k]}
+  notes();
+  reduceMQ.addEventListener('change',notes); // the device's setting changed after load: the shared script pauses only when it turns on
+  lut=makeLut();
+  resize();
+  new ResizeObserver(resize).observe(stage);
+  if(!reduceMQ.matches)start(); // under reduced motion the shared script pauses it at once: no step may come first, so the still is the seeded one
+</script>
+</body>
+</html>
