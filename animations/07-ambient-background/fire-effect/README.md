@@ -12,12 +12,14 @@ A fire effect fills the bottom of a dark area with flames that flicker, rise and
 - Short intros where a burst of energy fits the brand
 
 ## How it works
-The fire is a grid of numbers between 0 (cold) and 1 (hottest), about one cell per five pixels of the box. The bottom row sits just below the box and is set to full heat every step (only its middle, for a campfire). Every other cell takes the heat of the cell below it, written straight up half the time and one cell to the left or the right the rest (more often toward the wind) and, half the time, a little cooler. So heat moves up a row each step, runs out about where the flame height says, and leaves hotter streaks where it happened to cool less:
+The fire is a grid of numbers between 0 (cold) and 1 (hottest), about one cell per five pixels of the box. The bottom row sits just below the box and is set to full heat every step (only its middle, for a campfire). Every other cell passes its heat to the row above: straight up half the time and one cell to the left or the right the rest (more often toward the wind) and, half the time, a little cooler. Where two cells land on the same cell, the later write wins, which favors the side the row is walked toward, so the walk changes direction every step and neither side wins; taking heat from below instead would blur the streaks into level bands. So heat moves up a row each step, runs out about where the flame height says, and leaves hotter streaks where it happened to cool less:
 
 ```js
 for (let x = 0; x < cols; x++) heat[(rows - 1) * cols + x] = base(x);   // the hidden row: always full heat
 const cool = 2 / ((rows - 1) * HEIGHT[height]);                          // the average loss per row
-for (let y = 1; y < rows; y++) for (let x = 0; x < cols; x++) {
+back = !back;                                                             // walk the other way each step
+for (let y = 1; y < rows; y++) for (let k = 0; k < cols; k++) {
+  const x = back ? cols - 1 - k : k;
   const r = rand(), dx = (r < .25 ? -1 : r < .75 ? 0 : 1) + (wind && rand() < .5 ? wind : 0);   // left, stay, stay, right
   const nx = Math.min(cols - 1, Math.max(0, x + dx));
   heat[(y - 1) * cols + nx] = Math.max(0, heat[y * cols + x] - (rand() < .5 ? 0 : cool));

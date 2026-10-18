@@ -35,10 +35,10 @@
     /* See inside and Compare: plain words over the picture */
     .fx-lbl{display:none;position:absolute;padding:3px 8px;border-radius:6px;background:rgba(7,6,8,.88);color:#f4f4f2;
       font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
-    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="inside"] .in,.stage[data-hb-mode="compare"] .cmp{display:block}
     .in.what{left:10px;top:10px;white-space:normal;max-width:min(60%,330px)}
-    .half{top:10px}.half.first{left:10px}.half.second{left:calc(50% + 10px)}
-    @media(max-width:360px){.half.second{left:10px;top:calc(50% + 10px)}.divide{left:0;top:calc(50% - 1px);width:100%;height:2px}}
+    .cmp{top:10px}.cmp.first{left:10px}.cmp.second{left:calc(50% + 10px)}
+    @media(max-width:360px){.cmp.second{left:10px;top:calc(50% + 10px)}.divide{left:0;top:calc(50% - 1px);width:100%;height:2px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -72,8 +72,8 @@
       <p class="fx-lbl in" id="l-base" aria-hidden="true" data-hb-caption>Always full heat</p>
       <p class="fx-lbl in" id="l-up" aria-hidden="true" data-hb-caption>Heat moves up a row each step</p>
       <p class="fx-lbl in" id="l-cool" aria-hidden="true" data-hb-caption>It cools as it rises</p>
-      <p class="fx-lbl half first" aria-hidden="true" data-hb-caption>Flickers in place</p>
-      <p class="fx-lbl half second" aria-hidden="true" data-hb-caption>Heat rises</p>
+      <p class="fx-lbl cmp first" aria-hidden="true" data-hb-caption>Flickers in place</p>
+      <p class="fx-lbl cmp second" aria-hidden="true" data-hb-caption>Heat rises</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
@@ -211,20 +211,23 @@
     return {cols,rows,flicker,half,h:new Float32Array(cols*rows),bits,rand:()=>bits()/4294967296,sparks:[],sctx:small.getContext('2d'),img:new ImageData(cols,rows-1)};
   }
   const base=(f,x)=>shape==='edge'?1:Math.max(0,1-Math.abs(x+.5-f.cols/2)/(f.cols*.16));
-  // One step: the hidden bottom row gets full heat (only its middle for a campfire); every other cell takes the heat of the cell
-  // below it, written one cell to the side at random (and more often toward the wind), and half the time a little cooler, so heat
-  // moves up a row each step, runs out at the chosen height and leaves hotter streaks where it happened to cool less
+  // One step: the hidden bottom row gets full heat (only its middle for a campfire); every other cell passes its heat to the row
+  // above, straight up half the time or one cell to the side at random (more often toward the wind), and half the time a little
+  // cooler, so heat moves up a row each step, runs out at the chosen height and leaves hotter streaks where it cooled less.
+  // Where two cells land on one, the later write wins, which favors the side the row is walked toward: the walk changes
+  // direction every step, so neither side wins (taking heat from below instead blurs the streaks into level bands)
   function step(f){
     const {cols:c,rows:r,h,rand,bits}=f;
-    if(f.flicker){const hh=HEIGHT[height];for(let y=0;y<r-1;y++){const k=Math.pow(Math.max(0,(y/(r-2)-1+hh)/hh),2.2);for(let x=0;x<c;x++)h[y*c+x]=rand()*k*base(f,x)}return}
+    if(f.flicker){const hh=HEIGHT[height];for(let y=0;y<r-1;y++){const k=Math.pow(Math.max(0,(y/(r-2)-1+hh)/hh),2.2);for(let x=0;x<c;x++)h[y*c+x]=(1-Math.pow(rand(),3))*k*base(f,x)}return} // skewed hot, as bright at its base as the rising fire
     for(let x=0;x<c;x++)h[(r-1)*c+x]=base(f,x);
     const cool=2/((r-1)*HEIGHT[height]);
     // one draw of random bits a cell: two for the sideways step (left, stay, stay, right), one for cooling, one for the wind
-    for(let y=1;y<r;y++)for(let x=0,i=y*c;x<c;x++,i++){
+    const back=f.back=!f.back,x0=back?c-1:0,dx=back?-1:1;
+    for(let y=1;y<r;y++)for(let x=x0,k=0;k<c;x+=dx,k++){
       const n=bits(),q=n&3;let nx=x+(q===3?0:q-1)+(wind&&n&16?wind:0);
       nx=nx<0?0:nx>=c?c-1:nx;
-      const v=h[i]-(n&8?cool:0);
-      h[i-c-x+nx]=v>0?v:0;
+      const v=h[y*c+x]-(n&8?cool:0);
+      h[(y-1)*c+nx]=v>0?v:0;
     }
   }
   // Sparks rise from the hot cells and fade, moved by the time that passed (s seconds); fewer on phones and in each Compare half
@@ -232,7 +235,7 @@
     const {rand}=f,rate=(phone.matches?10:24)*(f.half?.5:1);
     if(sparkTog.checked&&rand()<rate*s){let x=rand()*f.cols;if(base(f,Math.floor(x))<.5)x=f.cols/2+(rand()-.5)*f.cols*.2;
       f.sparks.push({x:x/f.cols,y:1-HEIGHT[height]*(.25+rand()*.45),vy:.18+rand()*.22,ph:rand()*6.28,life:1.2+rand()*1.2,age:0})}
-    for(const p of f.sparks){p.age+=s;p.y-=p.vy*s;p.x+=Math.sin(p.ph+p.age*3)*.02*s+wind*.03*s}
+    for(const p of f.sparks){p.age+=s;p.y-=p.vy*s;p.x+=Math.sin(p.ph+p.age*3)*.02*s+wind*.08*s}
     f.sparks=f.sparks.filter(p=>p.age<p.life&&p.y>0);
   }
   // A new fire for every rectangle of the current mode, run WARM steps from its seed, so it is full from the first frame
@@ -264,7 +267,9 @@
     const f=main,{cols:c,rows:r,h}=f,B=phone.matches?6:5,bc=Math.ceil(c/B),s=W/bc,br=Math.ceil(H/s);
     if(!gimg||gimg.width!==bc||gimg.height!==br){grid.width=bc;grid.height=br;gimg=gctx.createImageData(bc,br)}
     const px=new Uint32Array(gimg.data.buffer);
-    for(let j=0;j<br;j++)for(let i=0;i<bc;i++){const y=r-1-j*B,g=Math.round(18+(y<0?0:h[y*c+Math.min(c-1,i*B+(B>>1))])*237);px[(br-1-j)*bc+i]=0xff000000|g<<16|g<<8|g}
+    // each square shows the average of the B cells across its block's middle, so the squares rise as a band instead of twinkling
+    for(let j=0;j<br;j++){const y=r-1-j*B;for(let i=0;i<bc;i++){let sum=0;if(y>=0)for(let k=0;k<B;k++)sum+=h[y*c+Math.min(c-1,i*B+k)];
+      const g=Math.round(18+sum/B*237);px[(br-1-j)*bc+i]=0xff000000|g<<16|g<<8|g}}
     gctx.putImageData(gimg,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(grid,0,H-br*s,W,br*s);
     ctx.strokeStyle='#111014';ctx.lineWidth=2;ctx.beginPath();
     for(let i=0;i<=bc;i++){ctx.moveTo(i*s,0);ctx.lineTo(i*s,H)}
