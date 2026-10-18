@@ -1,6 +1,6 @@
 # 07 · Ambient & Background
 
-Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 24 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 25 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -28,6 +28,7 @@ Passive, looping effects that hold visual interest without demanding attention �
 - [Light Rays](#light-rays)
 - [Game of Life](#game-of-life)
 - [Ken Burns Effect](#ken-burns-effect)
+- [Fire Effect](#fire-effect)
 
 ## Animated Gradient Background
 
@@ -538,3 +539,24 @@ Add a Ken Burns effect to [your hero photo or slideshow]. Slowly zoom and pan ea
 - How much it moves: Subtle · **Medium** · Strong. Subtle zooms from 1.04 to 1.16 times and drifts less than half of the way toward the point of interest; medium zooms from 1.06 to 1.3 times and drifts three quarters of the way; strong zooms from 1.08 to 1.5 times and drifts all the way.
 - Time on each photo: Short · **Medium** · Long. Short is 5 seconds, medium 7 seconds and long 10 seconds; each fade takes a seventh of that, about a second at medium.
 - Shows a caption: on · **off**. On, each photo's name sits in the lower left corner and stays still while the photo moves.
+
+## Fire Effect
+
+Flames flicker and rise as heat climbs and cools. Best for game and event pages.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/fire-effect/
+- How it runs: moves by itself
+- Good for: Game sites · Sale and event banners · Night and festival themes
+- Avoid on: Reading pages · Light themes
+
+**Prompt**
+
+Add a fire effect to [the dark section or edge you want to set alight]. Keep a small grid of heat values whose bottom row always holds full heat. Many times a second, give each cell the heat of a cell just below it, nudged sideways and cooled a little at random, so heat rises, flickers and dies out. Color each cell by its heat with the palette the settings choose, dark when cool and brightest when hot, and draw the grid on a small canvas stretched over the area so the flames look soft. Step the grid at a fixed rate on every screen, coarser on phones. If the visitor has reduced motion turned on, show still flames. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Flame height: Low · **Medium** · Tall. Where the heat runs out, as a share of the box's height: low is about a third, medium about half and tall about four fifths; taller flames lose less heat per row.
+- Fire shape: **Along the edge** · Campfire. Along the edge heats the whole bottom row, so flames burn across the box; campfire heats only its middle third, fading to the sides, so the flames lean in and meet in a point.
+- Colors: **Orange** · Blue · Green. The palette from cool to hot: orange runs from dark red to yellow and white, blue from deep navy to pale blue, green from dark green to pale yellow.
+- Wind: **None** · Left · Right. Left or right moves half of the heat one extra cell to that side each step, so the flames lean that way.
+- Sparks: **on** · off. About 24 sparks a second rise from the flames and fade within one to two and a half seconds (10 a second on phones).
