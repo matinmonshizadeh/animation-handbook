@@ -85,7 +85,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, each bolt is drawn round by round: a straight line, split again and again with each middle pushed aside by less, then forks and a soft glow.</p>
-      <p data-hb-for="compare" hidden>On the left, Even zigzag bends in equal steps, so it looks drawn. On the right, Random splits pushes each split aside by less, so it has big bends and fine jitter.</p>
+      <p data-hb-for="compare" hidden>On the left, Even zigzag bends in equal steps, so it looks drawn. On the right, Random splits pushes each new middle aside by less each time, so it has big bends and fine jitter.</p>
     </div>
   </section>
 
@@ -181,7 +181,7 @@
   const clouds=[...stage.querySelectorAll('.clouds')],flash=stage.querySelector('.flash');
   const slowTog=document.getElementById('slow-tog'),skyTog=document.getElementById('sky-tog'),rainTog=document.getElementById('rain-tog');
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
-  const FRAME=1000/60,GAP=1500; // safety: strikes start at least 1.5 s apart, whatever is pressed, so at most two flashes in any second
+  const FRAME=1000/60,GLOW=990,GAP=1500; // GLOW: when See inside draws the glow (round 9) // safety: strikes start at least 1.5 s apart, whatever is pressed, so at most two flashes in any second
   const EVERY={rarely:[5000,8000],sometimes:[2600,4400],often:[1600,2400]}; // the wait between strikes, in ms, picked at random
   const LABELS={normal:'A storm over dark hills where a bolt strikes every few seconds. Click, or press Enter or Space, to make one strike.',
     inside:'The bolt drawn round by round: a straight line split again and again, its forks numbered and its glow. Click, or press Enter or Space, to strike.',
@@ -209,10 +209,12 @@
   }
   // A whole strike in a rectangle (x, w): the main bolt from the clouds to (tx, ty), and its forks from points along it (fp: where
   // along the bolt each fork starts, its side and its length as a share of the bolt's); even: the mistake, zigzags in equal steps
-  function makeBolt(x,w,tx,ty,even,fp){
+  function makeBolt(x,w,tx,ty,even,fp,sd){
+    seed=sd;
     // it starts low enough in the clouds to stay clear of Compare's labels
     const sx=Math.min(x+w-8,Math.max(x+8,tx+(rand()-.5)*w*.25)),sy=Math.max(H*.1,46),len=Math.hypot(tx-sx,ty-sy);
     const main=even?zigzag(sx,sy,tx,ty):split(sx,sy,tx,ty,7,len*.22),line=main[main.length-1],fk=[];
+    seed=sd^0x5bd1;
     for(const [at,side,k] of fp){const p=line[Math.floor(at*(line.length-1))],fl=len*k,ex=p[0]+side*fl*.6,ey=p[1]+fl*.8;
       fk.push(even?zigzag(p[0],p[1],ex,ey):split(p[0],p[1],ex,ey,5,fl*.2))}
     const b={main,forks:fk};fitX(b,x+8,x+w-8);return b;
@@ -228,17 +230,22 @@
   // The bolts of a strike that lands at (tx, ty): one for Normal and See inside, and for Compare one in each half, at the same place
   // in its half, with forks in the same places. A resize or a new number of branches draws them again for the same spot, keeping
   // the strike's time. On a narrow box the bolt keeps to 60% of the width on its side, which leaves See inside's labels room.
-  function bolts(tx,ty){
+  // Each strike has its own seed, and the main line and the forks draw from seeds of their own, so a new number of branches adds
+  // or takes away forks on the same bolt
+  function bolts(tx,ty,sd){
+    const keep=seed;seed=sd^0x9e37;
     const half=W/2,u=tx/W,fp=[...Array(forks)].map(()=>[.18+.55*rand(),rand()<.5?-1:1,.22+.2*rand()]),x=W<600&&u>=.5?W*.4:0;
-    return {tx,ty,bolt:makeBolt(x,W<600?W*.6:W,tx,ty,false,fp),left:makeBolt(0,half,u*half,ty,true,fp),right:makeBolt(half,half,half+u*half,ty,false,fp)};
+    const out={tx,ty,bolt:makeBolt(x,W<600?W*.6:W,tx,ty,false,fp,sd),left:makeBolt(0,half,u*half,ty,true,fp,sd+1),right:makeBolt(half,half,half+u*half,ty,false,fp,sd+2)};
+    seed=keep;return out;
   }
   // A strike where the visitor pointed, or on the ground under a random spot
   function strikeNow(at){
-    strike={at:t,still:false,full:false,...bolts(at?at.x:W*(.25+.5*rand()),at?Math.min(H*.9,at.y):H*(.74+.06*rand()))};
+    const sd=rand()*4294967296|0;
+    strike={at:t,still:false,full:false,seed:sd,...bolts(at?at.x:W*(.25+.5*rand()),at?Math.min(H*.9,at.y):H*(.74+.06*rand()),sd)};
     lastStrike=t;nextAt=t+EVERY[often][0]+rand()*(EVERY[often][1]-EVERY[often][0]);
     placeLabels();
   }
-  function redrawBolts(){if(strike){Object.assign(strike,bolts(strike.tx,strike.ty));placeLabels()}draw()}
+  function redrawBolts(){if(strike){Object.assign(strike,bolts(strike.tx,strike.ty,strike.seed));placeLabels()}draw()}
   // How bright a strike is, age ms after it began: a flicker (bright, dim, bright) that fades within half a second; under reduced
   // motion a soft fade in and out with no flicker
   function bright(age){
@@ -290,10 +297,10 @@
       [strike.left,strike.right].forEach((b,i)=>{ctx.save();ctx.beginPath();ctx.rect(i?W/2+1:0,0,W/2-1,H);ctx.clip();drawBolt(b,Math.max(a,.3));ctx.restore()}); // faint between strikes
       ctx.fillStyle='#05070d';ctx.fillRect(W/2-1,0,2,H)}
     else if(strike)drawBolt(strike.bolt,a);
-    // The sky's light: at most 30% white, following the flicker (half that under See inside's drawing); a still bolt keeps a
-    // steady faint glow, and under reduced motion the glow only fades in and out with the bolt, never above 10%
+    // The sky's light: at most 30% white, following the flicker; See inside lights it once, softly, when it draws the glow; a still
+    // bolt, and every bolt under reduced motion, keeps a steady faint glow that never changes with a strike
     let sky=0;
-    if(skyTog.checked&&strike)sky=strike.still?.1:reduceMQ.matches?.1*a:.3*a*(mode==='inside'?.5:1);
+    if(skyTog.checked&&strike)sky=strike.still||reduceMQ.matches?.1:mode==='inside'?(age>=GLOW&&age<GLOW+510?.15*(1-(age-GLOW)/510):0):.3*a;
     flash.style.opacity=sky.toFixed(3);
   }
   function draw(){drawRain();drawBolts();shownKey=boltKey()}
@@ -302,7 +309,7 @@
   function boltKey(){
     if(!strike||strike.still)return mode+'still';
     const age=t-strike.at;
-    if(mode==='inside')return strike.full||age>=2000?'built':'round'+Math.floor(age/110);
+    if(mode==='inside')return strike.full||age>=2000?'built':age>=GLOW&&age<GLOW+510&&skyTog.checked?'glow'+t:'round'+Math.floor(age/110);
     return age<(reduceMQ.matches?1100:600)?'flash'+t:'after';
   }
   // See inside's labels beside the parts they name, each one beside the bolt where the bolt, its forks and the labels already
@@ -313,11 +320,21 @@
     for(let k=0;k<=24;k++)pts.push([x0+(x1-x0)*k/24,y0+(y1-y0)*k/24]);
     b.main.slice(1).forEach(r=>pts.push(...r));b.forks.forEach(fk=>pts.push(...fk[fk.length-1]));
     const want=[['l-straight',H*.08],['l-split',H*.3],['l-fork',f?Math.min(H*.62,Math.max(H*.4,f[0][0][1]-10)):H*.52],['l-glow',H*.72]];
-    for(const [id,at] of want){
-      const el=document.getElementById(id),tries=[];
-      for(let y=at;y<H;y+=10)tries.push(y);for(let y=at-10;y>=8;y-=10)tries.push(y);
-      // with no room anywhere (a click near the middle of a narrow box), narrower still, then over the forks but never over a label
-      tries.some(y=>fit(el,Math.max(8,y),pts,done,96))||tries.some(y=>fit(el,Math.max(8,y),pts,done,72))||tries.some(y=>fit(el,Math.max(8,y),[],done,72));
+    for(let [id,at] of want){
+      // in order, top to bottom: near its height first, a little higher or lower, its top never above the label before (beside it,
+      // on the other side of the bolt, is fine); then anywhere
+      const el=document.getElementById(id),tries=[],prev=done[done.length-1],top=prev?prev.t+12:8;at=Math.max(at,top);
+      for(let d=0;at+d<H||at-d>=top;d+=10){if(at+d<H)tries.push(at+d);if(d&&at-d>=top)tries.push(at-d)}
+      for(let y=top-10;y>=8;y-=10)tries.push(y);
+      // with no room anywhere (a click near the middle of a narrow box), narrower still, then where it covers the fewest points of
+      // the bolt, never over a label
+      if(!tries.some(y=>fit(el,Math.max(8,y),pts,done,96))&&!tries.some(y=>fit(el,Math.max(8,y),pts,done,72))){
+        el.style.left='0px';el.style.maxWidth=Math.min(W*.46,260)+'px';const ew=el.offsetWidth,h=el.offsetHeight;let best=[8,8],few=1e9;
+        for(const y0 of tries){const y=Math.max(8,y0);if(y+h>H-8)continue;
+          for(let x=8;x+ew<=W-8;x+=8){if(done.some(d=>x<d.r+6&&d.l<x+ew+6&&y<d.b+6&&d.t<y+h+6))continue;
+            const n=pts.filter(([px,py])=>px>x-6&&px<x+ew+6&&py>y-6&&py<y+h+6).length;if(n<few){few=n;best=[x,y]}}}
+        el.style.left=best[0]+'px';el.style.top=best[1]+'px';
+      }
       done.push({l:el.offsetLeft,t:el.offsetTop,r:el.offsetLeft+el.offsetWidth,b:el.offsetTop+el.offsetHeight});
     }
   }

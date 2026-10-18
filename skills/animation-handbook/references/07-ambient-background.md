@@ -580,5 +580,5 @@ Add lightning to [the dark section or storm scene you want it in]. Every so ofte
 - How often: Rarely · **Sometimes** · Often. The wait between strikes, picked at random: rarely is 5 to 8 seconds, sometimes 2.6 to 4.4 seconds and often 1.6 to 2.4 seconds; never less than 1.5 seconds.
 - Branches: Few · **Some** · Many. How many thinner forks split off the bolt: few is 2, some 4 and many 7.
 - Bolt color: **White** · Blue · Violet. The color of the glow and of the core, which is that color mixed halfway to white: white, blue or violet.
-- Lights up the sky: **on** · off. The sky turns at most 30% white with each strike and follows its flicker (15% under See inside's drawing, a steady 10% behind a still bolt, and a soft fade to 10% under reduced motion); off, only the bolt flashes.
+- Lights up the sky: **on** · off. The sky turns at most 30% white with each strike and follows its flicker (in See inside one soft fall from 15% when the glow is drawn; a steady 10% glow behind a still bolt and under reduced motion); off, only the bolt flashes.
 - Rain: **on** · off. 160 thin raindrops fall at a slant (70 on phones); off, the sky is clear of rain.
