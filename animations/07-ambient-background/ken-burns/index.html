@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ken Burns Effect — Animation Handbook</title>
+  <meta name="description" content="Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.">
+  <link rel="canonical" href="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ken-burns/">
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../favicon.png">
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+  <link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Animation Handbook">
+  <meta property="og:title" content="Ken Burns Effect — Animation Handbook">
+  <meta property="og:description" content="Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.">
+  <meta property="og:url" content="https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ken-burns/">
+  <meta property="og:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ken Burns Effect — Animation Handbook">
+  <meta name="twitter:description" content="Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.">
+  <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Ken Burns Effect", "name": "Ken Burns Effect", "description": "Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ken-burns/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Ken Burns Effect"}</script>
+  <style>
+    :root{--ui-accent:#ffce5a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    /* --T: the time on each photo; --Z: the strongest zoom, the size each photo is drawn at so it is only ever scaled down */
+    .stage{position:relative;overflow:hidden;background:#07080b;--T:7s;--Z:1.5}
+    /* A reel of three slides. Each slide runs one timeline of three photos' length: it fades in over the one before (on top,
+       z-index 2) for a seventh of its time, shows, lets the next fade in over it (z-index 1) and is hidden until its turn.
+       Its photo moves from --from to --to over the whole time it shows, so the motion never stops. */
+    .reel{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+    .slide{position:absolute;inset:0;opacity:0;animation:kb-fade calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    .s1{--d:calc(var(--T)*-.15)}.s2{--d:calc(var(--T)*.85)}.s3{--d:calc(var(--T)*1.85)}
+    .photo{position:absolute;left:0;top:0;width:calc(100%*var(--Z));height:calc(100%*var(--Z));transform-origin:0 0;
+      animation:kb-move calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    .photo svg,.fit svg{display:block;width:100%;height:100%}
+    @keyframes kb-fade{0%{opacity:0;z-index:2}4.76%{opacity:1}33.33%{z-index:2}33.34%{z-index:1}38.1%{opacity:1}38.11%,100%{opacity:0;z-index:1}}
+    @keyframes kb-move{0%{transform:var(--from)}38.1%,100%{transform:var(--to)}}
+    .cap{display:none;position:absolute;z-index:2;left:14px;bottom:12px;max-width:calc(100% - 28px);padding:6px 12px;border-radius:8px;background:rgba(7,8,11,.62);
+      color:#fff;font:600 clamp(13px,1.6vw,16px)/1.3 var(--hb-font)}
+    .stage.caps .cap{display:block}
+    /* See inside and Compare. Labels are plain words on a dark backing. */
+    .fit,.in-part,.half{display:none}
+    .kb-lbl{position:absolute;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(7,8,11,.9);color:#f4f4f2;
+      font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    /* See inside: the whole photo held still and dimmed, and over it the frame the visitor sees, gliding from the dashed start
+       frame to the dashed end frame along the arrow. The frame's timeline is the photo's turned inside out, from the same
+       numbers (--ffrom, --fto). The moving parts stay rendered in every mode (hidden, not removed), so they keep time. */
+    .stage[data-hb-mode="inside"] .photo{visibility:hidden}
+    .stage[data-hb-mode="inside"] .fit{display:block;position:absolute;inset:0}
+    .in-part{display:block;visibility:hidden;position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;pointer-events:none}
+    .stage[data-hb-mode="inside"] .in-part{visibility:visible}
+    .frame{outline:3px solid #fff;box-shadow:0 0 0 3000px rgba(5,6,9,.6);animation:kb-frame calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    .fs,.fe{outline:2px dashed rgba(255,255,255,.9);outline-offset:-1px}
+    .fs{transform:var(--ffrom)}.fe{transform:var(--fto)}
+    .fl{animation:kb-fl calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    .fl .tags{position:absolute;inset:0}
+    .fl .kb-lbl{left:0;top:14px;transform:translateX(-50%)}
+    .tags{animation:kb-tags calc(var(--T)*3) linear infinite;animation-delay:var(--d)}
+    .le{transform:translateX(-100%)}
+    .arrow{overflow:visible}
+    .arrow path{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    @keyframes kb-frame{0%{transform:var(--ffrom)}38.1%,100%{transform:var(--fto)}}
+    @keyframes kb-fl{0%{transform:var(--lfrom)}38.1%,100%{transform:var(--lto)}}
+    /* A slide's labels show only while it is the photo on top, never while the next fades in over it */
+    @keyframes kb-tags{0%,4.76%{opacity:0}4.77%,38.1%{opacity:1}38.11%,100%{opacity:0}}
+    /* Compare: on the left a copy whose photos never move, only fade; on the right the reel itself. The copy stays rendered,
+       unseen, in the other modes, so its fades keep time with the reel's. */
+    .copy{visibility:hidden}
+    .copy .photo{animation:none;transform:var(--from)}
+    .stage[data-hb-mode="compare"] .copy{visibility:visible;right:50%;border-right:2px solid #07080b}
+    .stage[data-hb-mode="compare"] .reel:not(.copy){left:50%}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    .half{top:10px}.half.first{left:10px}.half.second{left:calc(50% + 10px)}
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"] .copy{right:0;bottom:50%;border-right:0;border-bottom:2px solid #07080b}
+      .stage[data-hb-mode="compare"] .reel:not(.copy){left:0;top:50%}
+      .half.second{left:10px;top:calc(50% + 10px)}
+    }
+    /* Under reduced motion each photo holds the end of its move and the photos only fade; the frame waits at the end too. The
+       loop starts paused with the first photo shown a second and a half before the next fades in, so Play soon shows a fade. */
+    @media(prefers-reduced-motion:reduce){
+      .s1{--d:calc(var(--T)*-1 + 1.5s)}.s2{--d:1.5s}.s3{--d:calc(var(--T) + 1.5s)}
+      .photo{animation:none;transform:var(--to)}
+      .frame{animation:none;transform:var(--fto)}
+      .fl{animation:none;transform:var(--lto)}
+    }
+  </style>
+  <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
+  <script src="../../../assets/js/demo-page.js?v=10" defer></script>
+</head>
+<body class="hb" data-hb-kind="loop">
+<nav class="hb-bar" aria-label="Animation Handbook">
+  <a class="hb-home" href="../../../"><svg class="hb-mark" viewBox="0 0 32 32" aria-hidden="true"><g class="g"><circle cx="11.16" cy="20.84" r="6.1"/><circle cx="15.12" cy="16.88" r="6.1"/><circle cx="18.51" cy="13.49" r="6.1"/></g><circle class="b" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
+  <span class="hb-pager"><a href="../game-of-life/" rel="prev" aria-label="Previous: Game of Life"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span><span class="hb-dir">Previous: </span>Game of Life</span></a></span>
+  <a class="hb-star" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener" aria-label="Star on GitHub"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Star on GitHub</span></a>
+</nav>
+<main class="hb-page">
+  <header class="hb-head">
+    <p class="hb-cat">07.24 · Ambient &amp; Background</p>
+    <h1>Ken Burns Effect</h1>
+    <p class="hb-lede">Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.</p>
+  </header>
+
+  <section class="hb-step hb-watch" aria-labelledby="hb-watch-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">1</span>
+      <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it, or turn on slow motion to follow each drift.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage" id="stage" role="img" aria-label="Three drawn photos, each slowly zooming and drifting, then fading into the next"></div>
+    <div class="hb-player">
+      <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+      <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the whole photo stays still and the bright frame is what the visitor sees: it glides from the dashed start frame to the dashed end frame, then the next photo fades in.</p>
+      <p data-hb-for="compare" hidden>Still photos only fade from one to the next, like a plain slideshow. Zoom and pan drifts and zooms each photo as it fades, so still pictures feel alive.</p>
+    </div>
+  </section>
+
+  <section class="hb-step hb-try" aria-labelledby="hb-try-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">2</span>
+      <div><h2 id="hb-try-title">Try it</h2><p>Change a setting and see the difference as it moves.</p></div>
+    </div>
+    <div class="hb-settings">
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="zoom-lbl">Which way it zooms</p>
+        <div class="seg" id="zoom-seg" role="group" aria-labelledby="zoom-lbl">
+          <button type="button" data-zoom="in" aria-pressed="false">In</button>
+          <button type="button" data-zoom="out" aria-pressed="false">Out</button>
+          <button type="button" data-zoom="both" class="on" aria-pressed="true">Both</button>
+        </div>
+        <p class="hb-hint">Both changes direction from photo to photo.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="move-lbl">How much it moves</p>
+        <div class="seg" id="move-seg" role="group" aria-labelledby="move-lbl">
+          <button type="button" data-move="subtle" aria-pressed="false">Subtle</button>
+          <button type="button" data-move="medium" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-move="strong" aria-pressed="false">Strong</button>
+        </div>
+        <p class="hb-hint">Subtle feels calm; strong feels like film.</p>
+      </div>
+      <div class="hb-setting">
+        <p class="hb-setting-name" id="time-lbl">Time on each photo</p>
+        <div class="seg" id="time-seg" role="group" aria-labelledby="time-lbl">
+          <button type="button" data-time="5" aria-pressed="false">Short</button>
+          <button type="button" data-time="7" class="on" aria-pressed="true">Medium</button>
+          <button type="button" data-time="10" aria-pressed="false">Long</button>
+        </div>
+        <p class="hb-hint">Longer is calmer.</p>
+      </div>
+    </div>
+    <details class="hb-options">
+      <summary><span class="hb-more-label">More options</span><span class="hb-less">Fewer options</span><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="hb-settings">
+        <div class="hb-setting">
+          <label class="hb-switch-row"><span>Shows a caption</span><input class="hb-switch" type="checkbox" role="switch" id="cap-tog" autocomplete="off"></label>
+          <p class="hb-hint">The caption stays still while the photo moves.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
+    <div class="hb-step-head">
+      <span class="hb-num" aria-hidden="true">3</span>
+      <div><h2 id="hb-prompt-title">Copy the prompt</h2><p>Paste it into an AI assistant such as ChatGPT, Claude or Cursor to build this in your own project.</p></div>
+    </div>
+    <div class="hb-card">
+      <p class="hb-prompt">Add a Ken Burns effect to [your hero photo or slideshow]. Slowly zoom and pan each photo, the way a documentary camera moves over a still print, and crossfade to the next photo before its move ends, so the motion never stops. Give each photo its own start and end framing that drifts toward a point of interest, at an even, unhurried pace. Keep the photo larger than its frame at every moment so no edge ever shows, move it with transforms only, and keep any text on top still and readable. If the visitor has reduced motion turned on, show each photo still and change photos with a slow fade. Match the settings listed below.</p>
+      <div class="hb-chips-box" hidden>
+        <p class="hb-chips-title">Your settings</p>
+        <ul class="hb-chips"></ul>
+      </div>
+      <div class="hb-copy-row">
+        <button class="hb-copy" type="button"><svg class="hb-ic hb-i-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="hb-ic hb-i-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hb-copy-label" aria-live="polite">Copy prompt</span></button>
+        <p class="hb-hint">Replace the words in brackets with your own element. Your settings are added at the end.</p>
+      </div>
+    </div>
+    <div class="hb-star-row"><p>Free and open source. If this helped, a star on GitHub helps other people find it.</p><a class="hb-star-btn" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener"><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Star on GitHub</a></div>
+  </section>
+
+  <section class="hb-about" aria-labelledby="hb-what-title">
+    <div class="hb-what">
+      <h2 id="hb-what-title">What it is</h2>
+      <div class="hb-what-text"><p>The full explanation is in <a href="README.md">README.md</a>.</p></div>
+    </div>
+    <div class="hb-fit">
+      <h2>Good for</h2>
+      <ul class="hb-tags hb-good"><li>Hero photos</li><li>Slideshows</li><li>Travel and property sites</li><li>Story pages</li></ul>
+      <h3>Avoid on</h3>
+      <ul class="hb-tags hb-avoid"><li>Product photos people inspect</li><li>Pictures of text</li></ul>
+    </div>
+  </section>
+
+  <section class="hb-related" aria-labelledby="hb-related-title" hidden>
+    <h2 id="hb-related-title">Similar animations</h2>
+    <div class="hb-rel-list"></div>
+  </section>
+</main>
+<footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
+<script>
+  const stage=document.getElementById('stage');
+  const ZMAX=1.5; // the strongest zoom: each photo is drawn this much larger than the box and only ever scaled down from there
+  // Three drawn photos (1600 by 1000, cropped to fill the box), each with where its move starts and its point of interest, as
+  // shares of the photo's width and height. id keeps the gradients of each copy apart.
+  const PHOTOS=[
+    {name:'Ashfall Ridge at dawn',start:[.38,.62],poi:[.69,.48],svg:id=>`<defs><linearGradient id="a${id}" x2="0" y2="1"><stop offset="0" stop-color="#1b2a4a"/><stop offset=".45" stop-color="#8a5a86"/><stop offset=".62" stop-color="#f29a62"/><stop offset=".7" stop-color="#ffd38a"/></linearGradient><linearGradient id="b${id}" x2="0" y2="1"><stop offset="0" stop-color="#f3a46c"/><stop offset="1" stop-color="#2b2b44"/></linearGradient></defs>
+      <rect width="1600" height="760" fill="url(#a${id})"/><circle cx="1100" cy="505" r="190" fill="#ffe6a8" opacity=".25"/><circle cx="1100" cy="505" r="74" fill="#fff4cf"/>
+      <path fill="#8f7397" d="M0 640L180 520 330 590 520 450 700 560 860 470 1010 560 1200 430 1380 540 1600 470V760H0Z"/>
+      <path fill="#4c4466" d="M0 700L240 600 420 660 640 560 820 650 1040 590 1260 660 1440 600 1600 640V780H0Z"/>
+      <rect y="760" width="1600" height="240" fill="url(#b${id})"/><g fill="#ffe2a6" opacity=".75"><rect x="1010" y="790" width="180" height="6" rx="3"/><rect x="1040" y="820" width="120" height="5" rx="2.5"/><rect x="1068" y="848" width="64" height="4" rx="2"/></g>
+      <path fill="#23233a" d="M0 780H1600V830Q1200 800 900 840T0 820Z"/><path fill="#1b1b2e" d="M120 790l26-90 26 90zM190 790l20-66 20 66zM1380 790l24-80 24 80zM1440 790l18-58 18 58z"/>`},
+    {name:'Lantern Cove at dusk',start:[.34,.58],poi:[.76,.44],svg:id=>`<defs><linearGradient id="a${id}" x2="0" y2="1"><stop offset="0" stop-color="#271b48"/><stop offset=".5" stop-color="#b5527a"/><stop offset=".72" stop-color="#f7a55b"/></linearGradient><linearGradient id="b${id}" x2="0" y2="1"><stop offset="0" stop-color="#3b4b7a"/><stop offset="1" stop-color="#101a33"/></linearGradient></defs>
+      <rect width="1600" height="720" fill="url(#a${id})"/><rect y="700" width="1600" height="300" fill="url(#b${id})"/>
+      <path fill="#2a2440" d="M1060 760Q1140 640 1280 650T1500 760Z"/><path fill="#f1ece4" d="M1196 660L1214 420H1262L1280 660Z"/><path fill="#c8463f" d="M1206 590H1272L1268 540H1210ZM1213 490H1264L1262 455H1215Z"/>
+      <rect x="1206" y="392" width="64" height="30" fill="#2a2440"/><circle cx="1238" cy="400" r="18" fill="#ffe7a0"/><circle cx="1238" cy="400" r="70" fill="#ffd27a" opacity=".22"/>
+      <path fill="#1d1830" d="M0 600H90V560L130 530 170 560V600H230V540H330V610H420V580L470 550 520 580V700H0Z"/>
+      <g fill="#ffd27a"><rect x="40" y="620" width="14" height="18"/><rect x="150" y="575" width="12" height="16"/><rect x="270" y="560" width="14" height="18"/><rect x="460" y="600" width="12" height="16"/></g>
+      <path fill="#1d1830" d="M560 760H700L680 785H580ZM620 760V690L660 752Z"/><path fill="#ffd9a0" opacity=".55" d="M1180 720h120v6h-120zM1200 750h80v5h-80zM1218 780h44v4h-44z"/>`},
+    {name:'Quellmarrow Road under the stars',start:[.56,.66],poi:[.5,.4],svg:id=>{let st='';for(let i=0;i<70;i++){const x=(i*397)%1600,y=(i*173)%560,r=(i%5?1.6:2.8);st+=`<circle cx="${x}" cy="${y}" r="${r}"/>`}
+      return `<defs><linearGradient id="a${id}" x2="0" y2="1"><stop offset="0" stop-color="#050914"/><stop offset=".6" stop-color="#16285a"/><stop offset="1" stop-color="#4a3468"/></linearGradient></defs>
+      <rect width="1600" height="640" fill="url(#a${id})"/><g fill="#f6f2ff" opacity=".85">${st}</g><circle cx="1220" cy="190" r="48" fill="#fff6d8"/><circle cx="1244" cy="176" r="44" fill="#0a1124"/>
+      <path fill="#3a2a4a" d="M0 640L120 560H300L340 600H560L600 580H760L800 640Z"/><path fill="#30223e" d="M980 640L1040 540H1240L1290 600H1420L1470 560H1600V640Z"/>
+      <rect y="630" width="1600" height="370" fill="#241a2c"/><path fill="#14101a" d="M520 1000L792 632H808L1080 1000Z"/>
+      <path fill="#ffd27a" d="M798 650h4l3 30h-10zM795 720h10l5 60h-20zM790 840h20l8 100h-36z"/>`}}
+  ];
+  // How far each photo zooms (its zoom at the start and the end of a zoom in) and how far it drifts toward its point of interest
+  const MOVES={subtle:{z:[1.04,1.16],k:.45},medium:{z:[1.06,1.3],k:.75},strong:{z:[1.08,1.5],k:1}};
+  let zoom='both',move='medium';
+  const LABELS={normal:'Three drawn photos, each slowly zooming and drifting, then fading into the next',
+    inside:'The whole photo held still, with a bright frame gliding from where the view starts to where it ends',
+    compare:'Two slideshows of the same photos: still photos that only fade, and photos that zoom and drift'};
+  // Both reels are made in one go, so their timelines start together: the reel, with the frame, dashed frames, arrow and labels of
+  // See inside in each slide, and Compare's copy, whose photos never move (no ids of its own, out of reach of the keyboard).
+  const slideOf=(k,id,inside)=>`<div class="slide s${k+1}"><div class="photo"><svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">${PHOTOS[k].svg(id)}</svg></div>`+
+    `<p class="cap">${PHOTOS[k].name}</p>`+(inside?`<div class="fit"><svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">${PHOTOS[k].svg('f'+id)}</svg></div>`+
+    `<i class="in-part fs"></i><i class="in-part fe"></i><svg class="in-part arrow"><path/></svg><i class="in-part frame"></i>`+
+    `<div class="in-part tags"><span class="kb-lbl ls" data-hb-caption>Start</span><span class="kb-lbl le" data-hb-caption>End</span></div>`+
+    `<div class="in-part fl"><div class="tags"><span class="kb-lbl" data-hb-caption>Frame · what the visitor sees</span></div></div>`:'')+`</div>`;
+  stage.innerHTML=`<div class="reel copy" inert aria-hidden="true">${PHOTOS.map((_,k)=>slideOf(k,'c'+k,false)).join('')}</div>`+
+    `<div class="reel">${PHOTOS.map((_,k)=>slideOf(k,k,true)).join('')}</div>`+
+    `<p class="kb-lbl half first" data-hb-caption>Still photos</p><p class="kb-lbl half second" data-hb-caption>Zoom and pan</p>`;
+  const slides=[...stage.querySelectorAll('.reel:not(.copy) .slide')],copies=[...stage.querySelectorAll('.copy .slide')];
+  // A framing: the zoom z and the point (x, y) of the photo at the middle of the box, kept far enough from the photo's edges that
+  // the photo covers the box. The photo's transform shows that framing; the frame's is the same framing turned inside out: the
+  // part of the whole photo that the box shows. Both are straight lines between two framings, so every moment between two that
+  // cover the box covers it too.
+  const fit=(z,[x,y])=>{const h=.5/z;return{z,x:Math.min(1-h,Math.max(h,x)),y:Math.min(1-h,Math.max(h,y))}};
+  const pct=v=>(v*100).toFixed(3)+'%';
+  const photoT=f=>`translate(${pct((.5-f.x*f.z)/ZMAX)},${pct((.5-f.y*f.z)/ZMAX)}) scale(${(f.z/ZMAX).toFixed(4)})`;
+  const frameT=f=>`translate(${pct(f.x-.5/f.z)},${pct(f.y-.5/f.z)}) scale(${(1/f.z).toFixed(4)})`;
+  const centerT=f=>`translate(${pct(f.x)},${pct(f.y)})`;
+  // Each photo zooms in (or out, or every other one with Both) and drifts from its start toward its point of interest; zooming out
+  // starts close on that point and pulls back
+  function framings(k){
+    const m=MOVES[move],p=PHOTOS[k],into=zoom==='in'||(zoom==='both'&&k!==1);
+    const near=[p.start[0]+(p.poi[0]-p.start[0])*m.k,p.start[1]+(p.poi[1]-p.start[1])*m.k];
+    return into?[fit(m.z[0],p.start),fit(m.z[1],near)]:[fit(m.z[1],near),fit(m.z[0],p.start)];
+  }
+  function apply(){
+    slides.forEach((el,k)=>{
+      const [a,b]=framings(k);
+      for(const s of [el,copies[k]]){s.style.setProperty('--from',photoT(a));s.style.setProperty('--to',photoT(b))}
+      el.style.setProperty('--ffrom',frameT(a));el.style.setProperty('--fto',frameT(b));
+      el.style.setProperty('--lfrom',centerT(a));el.style.setProperty('--lto',centerT(b));
+      // Start sits inside the start frame's top left corner and End inside the end frame's top right one; the moving frame's own
+      // label rides just below its middle, so none of them meets another or the caption (the box's lower left corner)
+      const ls=el.querySelector('.ls'),le=el.querySelector('.le');
+      ls.style.left=`calc(${pct(a.x-.5/a.z)} + 8px)`;ls.style.top=`calc(${pct(a.y-.5/a.z)} + 8px)`;
+      le.style.left=`calc(${pct(b.x+.5/b.z)} - 8px)`;le.style.top=`calc(${pct(b.y-.5/b.z)} + 8px)`;
+      el.ab=[a,b];
+    });
+    drawArrows();
+  }
+  // The arrow from the middle of the start frame to the middle of the end frame, drawn in the box's own pixels
+  function drawArrows(){
+    const W=stage.clientWidth,H=stage.clientHeight;
+    slides.forEach(el=>{
+      const [a,b]=el.ab,svg=el.querySelector('.arrow'),x1=a.x*W,y1=a.y*H,x2=b.x*W,y2=b.y*H,ang=Math.atan2(y2-y1,x2-x1),h=10;
+      svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+      svg.firstChild.setAttribute('d',Math.hypot(x2-x1,y2-y1)<4?'':`M${x1} ${y1}L${x2} ${y2}M${x2-h*Math.cos(ang-.5)} ${y2-h*Math.sin(ang-.5)}L${x2} ${y2}L${x2-h*Math.cos(ang+.5)} ${y2-h*Math.sin(ang+.5)}`);
+    });
+  }
+  // The mode switch: the styles show the mode at once and every timeline keeps running (or stays paused); the picture is renamed
+  document.addEventListener('hb:mode',e=>{stage.setAttribute('aria-label',LABELS[e.detail.mode])});
+  // The notes say what the box shows: the markup's words, or under reduced motion a still while the loop is paused and, while it
+  // plays, photos that only fade. Registered at the top level: the shared script sends hb:pause at once under reduced motion.
+  const said={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  const REDUCED={still:{inside:'Shown still, at the end of the move: the bright frame is the part the visitor sees, and the dashed frames show where the view starts and ends.',
+      compare:'Shown still: Still photos keeps the first view of the photo, while Zoom and pan has drifted and zoomed to the end of its move.'},
+    playing:{inside:'Inside, the bright frame is the part the visitor sees, held at the end of its move, with dashed frames where it starts and ends. Under reduced motion the photos only fade.',
+      compare:'Still photos keeps the first view of each photo, while Zoom and pan shows the end of each move. Under reduced motion both only fade from one photo to the next.'}};
+  let paused=false;
+  function notes(){
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for(const k of ['inside','compare'])document.querySelector(`[data-hb-for="${k}"]`).textContent=reduced?REDUCED[paused?'still':'playing'][k]:said[k];
+  }
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;notes()});
+  notes();
+  function choices(id,pick){
+    const buttons=document.querySelectorAll('#'+id+' button');
+    buttons.forEach(b=>b.addEventListener('click',()=>{
+      buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
+      pick(b.dataset);
+    }));
+  }
+  choices('zoom-seg',d=>{zoom=d.zoom;apply()});
+  choices('move-seg',d=>{move=d.move;apply()});
+  choices('time-seg',d=>{stage.style.setProperty('--T',d.time+'s')});
+  document.getElementById('cap-tog').addEventListener('change',e=>stage.classList.toggle('caps',e.target.checked));
+  new ResizeObserver(drawArrows).observe(stage);
+  apply();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 07 · Ambient & Background
 
-Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 23 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
+Passive, looping effects that hold visual interest without demanding attention — gradients, particles, grain, and glows. 24 animations from Animation Handbook, in the home page's order. Each entry gives the live demo, how it runs, what it is good for and what to avoid it on, the prompt from its page word for word, and its settings with what each does and the demo's values.
 
 ## Contents
 
@@ -27,6 +27,7 @@ Passive, looping effects that hold visual interest without demanding attention �
 - [Topographic Lines](#topographic-lines)
 - [Light Rays](#light-rays)
 - [Game of Life](#game-of-life)
+- [Ken Burns Effect](#ken-burns-effect)
 
 ## Animated Gradient Background
 
@@ -517,3 +518,23 @@ Add a Game of Life background to [the section you want it behind]. Split a canva
 - Color: **Mint** · Amber · Sky blue · Pink. Mint, amber, sky blue or pink cells.
 - Fading trails: **on** · off. A cell that dies fades out over about half a second instead of vanishing at once.
 - Grid lines: on · **off**. Faint lines show the squares the cells live in.
+
+## Ken Burns Effect
+
+Photos slowly zoom and pan, then fade into the next. Best for hero slideshows.
+
+- Live demo: https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/ken-burns/
+- How it runs: moves by itself
+- Good for: Hero photos · Slideshows · Travel and property sites · Story pages
+- Avoid on: Product photos people inspect · Pictures of text
+
+**Prompt**
+
+Add a Ken Burns effect to [your hero photo or slideshow]. Slowly zoom and pan each photo, the way a documentary camera moves over a still print, and crossfade to the next photo before its move ends, so the motion never stops. Give each photo its own start and end framing that drifts toward a point of interest, at an even, unhurried pace. Keep the photo larger than its frame at every moment so no edge ever shows, move it with transforms only, and keep any text on top still and readable. If the visitor has reduced motion turned on, show each photo still and change photos with a slow fade. Match the settings listed below.
+
+**Settings** (the choice in bold is where the demo starts; each line ends with what the setting does, with the demo's values):
+
+- Which way it zooms: In · Out · **Both**. In zooms every photo in, toward its point of interest; out starts close and pulls back; both zooms the first and third photos in and the second out.
+- How much it moves: Subtle · **Medium** · Strong. Subtle zooms from 1.04 to 1.16 times and drifts less than half of the way toward the point of interest; medium zooms from 1.06 to 1.3 times and drifts three quarters of the way; strong zooms from 1.08 to 1.5 times and drifts all the way.
+- Time on each photo: Short · **Medium** · Long. Short is 5 seconds, medium 7 seconds and long 10 seconds; each fade takes a seventh of that, about a second at medium.
+- Shows a caption: on · **off**. On, each photo's name sits in the lower left corner and stays still while the photo moves.

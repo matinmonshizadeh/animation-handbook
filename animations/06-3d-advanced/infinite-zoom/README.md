@@ -81,3 +81,4 @@ while (p < 0) { p++; at = (at + COUNT - 1) % COUNT; } // zooming out, the pictur
 - [Portal / Tunnel Zoom](../../03-page-transitions/portal-zoom/) — the next page opens out of a circle you click
 - [Starfield / Space Particles](../../07-ambient-background/starfield/) — stars stream toward you, another endless dive
 - [2.5D / Pseudo-3D](../2-5d-pseudo-3d/) — flat layers that slide by different amounts to fake depth
+- [Ken Burns Effect](../../07-ambient-background/ken-burns/) — photos slowly zoom and pan, then fade into the next
