@@ -181,7 +181,9 @@
   const clouds=[...stage.querySelectorAll('.clouds')],flash=stage.querySelector('.flash');
   const slowTog=document.getElementById('slow-tog'),skyTog=document.getElementById('sky-tog'),rainTog=document.getElementById('rain-tog');
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
-  const FRAME=1000/60,GLOW=990,GAP=1500; // GLOW: when See inside draws the glow (round 9) // safety: strikes start at least 1.5 s apart, whatever is pressed, so at most two flashes in any second
+  // GLOW: when See inside draws the glow (round 9); GAP, for safety: strikes start at least 1.5 s apart, whatever is pressed, so
+  // there are at most two flashes in any second
+  const FRAME=1000/60,GLOW=990,GAP=1500;
   const EVERY={rarely:[5000,8000],sometimes:[2600,4400],often:[1600,2400]}; // the wait between strikes, in ms, picked at random
   const LABELS={normal:'A storm over dark hills where a bolt strikes every few seconds. Click, or press Enter or Space, to make one strike.',
     inside:'The bolt drawn round by round: a straight line split again and again, its forks numbered and its glow. Click, or press Enter or Space, to strike.',
@@ -232,9 +234,11 @@
   // the strike's time. On a narrow box the bolt keeps to 60% of the width on its side, which leaves See inside's labels room.
   // Each strike has its own seed, and the main line and the forks draw from seeds of their own, so a new number of branches adds
   // or takes away forks on the same bolt
+  // Each fork starts in its own seventh of the bolt, in an order that spreads the first few, so Branches keeps the first forks
+  const SLOT=[3,1,5,0,6,2,4];
   function bolts(tx,ty,sd){
     const keep=seed;seed=sd^0x9e37;
-    const half=W/2,u=tx/W,fp=[...Array(forks)].map(()=>[.18+.55*rand(),rand()<.5?-1:1,.22+.2*rand()]),x=W<600&&u>=.5?W*.4:0;
+    const half=W/2,u=tx/W,fp=[...Array(forks)].map((_,i)=>[.18+.55*(SLOT[i]+.15+.7*rand())/7,rand()<.5?-1:1,.22+.2*rand()]),x=W<600&&u>=.5?W*.4:0;
     const out={tx,ty,bolt:makeBolt(x,W<600?W*.6:W,tx,ty,false,fp,sd),left:makeBolt(0,half,u*half,ty,true,fp,sd+1),right:makeBolt(half,half,half+u*half,ty,false,fp,sd+2)};
     seed=keep;return out;
   }
@@ -272,12 +276,26 @@
       if(k===0)stroke(pts,1.5,`rgba(220,226,240,${.8*f})`,[6,6]);
       else stroke(pts,k===7?2.2:1.2,k===7?core(f):`rgba(${rgb.join()},${(.15+.08*k)*f})`);
       if(k>0&&k<5){ctx.fillStyle=`rgba(255,206,90,${.9*f})`;pts.forEach((p,i)=>{if(i%2){ctx.beginPath();ctx.arc(p[0],p[1],k<3?3:2,0,6.283);ctx.fill()}})}});
-    const nums=[]; // the fork's number sits a little way along the fork, clear of the main bolt and of the numbers before it
-    if(shown>8)b.forks.forEach((fk,i)=>{const pts=fk[fk.length-1],at=k=>pts[Math.floor(pts.length*k)];stroke(pts,1.2,col(.8*f));
-      const q=[.5,.72,.35,.88].map(at).find(p=>nums.every(n=>Math.hypot(n[0]-p[0],n[1]-p[1])>24))||at(.5);nums.push(q);
+    const nums=numSpots(b,true);
+    if(shown>8)b.forks.forEach((fk,i)=>{const pts=fk[fk.length-1],q=nums[i];stroke(pts,1.2,col(.8*f));
       ctx.fillStyle=`rgba(8,10,18,${.9*f})`;ctx.beginPath();ctx.arc(q[0],q[1],9,0,6.283);ctx.fill();
       ctx.fillStyle=`rgba(255,255,255,${f})`;ctx.font=numFont;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,q[0],q[1]+.5)});
     if(shown>9)stroke(main[7],11,col(.24*f));
+  }
+  // Where each fork's number goes: a spot on its fork, from a third of the way to its tip, then just beside it or past its tip,
+  // 22px clear of the numbers before it (the circles are 18px across); with none clear, the spot farthest from them
+  // Drawn, it also keeps off the labels (placed around the numbers first, so this matters only where a label found no room)
+  function numSpots(b,drawn){
+    const lb=drawn?[...stage.querySelectorAll('.lt-lbl.in')].map(e=>[e.offsetLeft-11,e.offsetTop-11,e.offsetLeft+e.offsetWidth+11,e.offsetTop+e.offsetHeight+11]):[];
+    const nums=[],inBox=p=>p[0]>10&&p[0]<W-10&&p[1]>10&&p[1]<H-10&&!lb.some(([l,t,r,bt])=>p[0]>l&&p[0]<r&&p[1]>t&&p[1]<bt);
+    for(const fk of b.forks){
+      const pts=fk[fk.length-1],a=pts[0],z=pts[pts.length-1],l=Math.hypot(z[0]-a[0],z[1]-a[1])||1,dx=(z[0]-a[0])/l,dy=(z[1]-a[1])/l,on=[];
+      for(let k=.3;k<1.01;k+=.05)on.push(pts[Math.min(pts.length-1,Math.floor((pts.length-1)*k))]);
+      const ring=[];for(let r=22;r<=66;r+=11)for(let k=0;k<12;k++)ring.push([z[0]+r*Math.cos(k*.5236),z[1]+r*Math.sin(k*.5236)]); // around the tip, last
+      const spots=[...on,...[12,24,36].map(d=>[z[0]+dx*d,z[1]+dy*d]),...on.flatMap(p=>[14,26].flatMap(o=>[[p[0]-o*dy,p[1]+o*dx],[p[0]+o*dy,p[1]-o*dx]])),...ring].filter(inBox);
+      const gap=p=>nums.reduce((m,n)=>Math.min(m,Math.hypot(n[0]-p[0],n[1]-p[1])),1e9);
+      nums.push(spots.find(p=>gap(p)>22)||spots.reduce((s,p)=>gap(p)>gap(s)?p:s,on[0]))}
+    return nums;
   }
   // The rain has its own canvas, drawn every frame; the bolts' canvas is drawn only when it changes
   function drawRain(){
@@ -314,16 +332,24 @@
   }
   // See inside's labels beside the parts they name, each one beside the bolt where the bolt, its forks and the labels already
   // placed leave room, nearer the bolt; a label with no room at its height looks lower, then higher
+  // A label with no room in order makes a second layout, free of the order (each label still starts at its own height); the one
+  // that covers less of the bolt, then keeps the order better, is kept
   function placeLabels(){
     if(!strike||mode!=='inside'||!W)return;
-    const b=strike.bolt,[[x0,y0],[x1,y1]]=b.main[0],pts=[],f=b.forks[0],done=[];
+    const b=strike.bolt,[[x0,y0],[x1,y1]]=b.main[0],pts=[],f=b.forks[0];
     for(let k=0;k<=24;k++)pts.push([x0+(x1-x0)*k/24,y0+(y1-y0)*k/24]);
-    b.main.slice(1).forEach(r=>pts.push(...r));b.forks.forEach(fk=>pts.push(...fk[fk.length-1]));
+    b.main.slice(1).forEach(r=>pts.push(...r));b.forks.forEach(fk=>pts.push(...fk[fk.length-1]));const ns=numSpots(b);pts.push(...ns); // and the numbers
     const want=[['l-straight',H*.08],['l-split',H*.3],['l-fork',f?Math.min(H*.62,Math.max(H*.4,f[0][0][1]-10)):H*.52],['l-glow',H*.72]];
+    const first=layout(want,pts,ns,true);if(first.cost===0)return;
+    const keep=first.at,second=layout(want,pts,ns,false);
+    if(first.cost<second.cost||first.cost===second.cost&&first.order<=second.order)keep.forEach(([el,l,t,mw])=>{el.style.left=l;el.style.top=t;el.style.maxWidth=mw});
+  }
+  function layout(want,pts,ns,ordered){
+    const done=[];let cost=0;
     for(let [id,at] of want){
-      // in order, top to bottom: near its height first, a little higher or lower, its top never above the label before (beside it,
-      // on the other side of the bolt, is fine); then anywhere
-      const el=document.getElementById(id),tries=[],prev=done[done.length-1],top=prev?prev.t+12:8;at=Math.max(at,top);
+      // near its height first, a little higher or lower; in order, its top never above the label before (beside it, on the other
+      // side of the bolt, is fine); then anywhere
+      const el=document.getElementById(id),tries=[],prev=done[done.length-1],top=ordered&&prev?prev.t+12:8;at=Math.max(at,top);
       for(let d=0;at+d<H||at-d>=top;d+=10){if(at+d<H)tries.push(at+d);if(d&&at-d>=top)tries.push(at-d)}
       for(let y=top-10;y>=8;y-=10)tries.push(y);
       // with no room anywhere (a click near the middle of a narrow box), narrower still, then where it covers the fewest points of
@@ -332,11 +358,15 @@
         el.style.left='0px';el.style.maxWidth=Math.min(W*.46,260)+'px';const ew=el.offsetWidth,h=el.offsetHeight;let best=[8,8],few=1e9;
         for(const y0 of tries){const y=Math.max(8,y0);if(y+h>H-8)continue;
           for(let x=8;x+ew<=W-8;x+=8){if(done.some(d=>x<d.r+6&&d.l<x+ew+6&&y<d.b+6&&d.t<y+h+6))continue;
-            const n=pts.filter(([px,py])=>px>x-6&&px<x+ew+6&&py>y-6&&py<y+h+6).length;if(n<few){few=n;best=[x,y]}}}
-        el.style.left=best[0]+'px';el.style.top=best[1]+'px';
+            const hit=([px,py],m)=>px>x-m&&px<x+ew+m&&py>y-m&&py<y+h+m; // a number counts far more than a line
+            const n=pts.filter(q=>hit(q,6)).length+100*ns.filter(q=>hit(q,11)).length+(y<top?30:0); // out of order costs too
+            if(n<few){few=n;best=[x,y]}}}
+        el.style.left=best[0]+'px';el.style.top=best[1]+'px';cost+=few+1;
       }
-      done.push({l:el.offsetLeft,t:el.offsetTop,r:el.offsetLeft+el.offsetWidth,b:el.offsetTop+el.offsetHeight});
+      done.push({el,l:el.offsetLeft,t:el.offsetTop,r:el.offsetLeft+el.offsetWidth,b:el.offsetTop+el.offsetHeight});
     }
+    const order=done.filter((d,i)=>i&&d.t<done[i-1].t).length;
+    return {cost,order,at:done.map(d=>[d.el,d.el.style.left,d.el.style.top,d.el.style.maxWidth])};
   }
   const PAD=14; // the glow and the forks' numbers reach this far from a line
   function fit(el,y,pts,done,min){
