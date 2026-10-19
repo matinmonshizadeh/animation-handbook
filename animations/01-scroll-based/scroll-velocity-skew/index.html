@@ -23,16 +23,63 @@
   <style>
     :root{--ui-accent:#6ea8ff;--ui-border:rgba(255,255,255,.09)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{position:relative;overflow-y:auto;scrollbar-width:none;background:#111114}
+    .stage{position:relative;overflow-y:auto;scrollbar-width:none;background:#111114;
+      --pad:clamp(16px,3vw,32px);--g:clamp(14px,2vw,22px);--cp:clamp(10px,3vw,32px);--cg:clamp(10px,2vw,22px)}
     .stage::-webkit-scrollbar{display:none}
     /* overflow:clip keeps a leaning row from making the box scrollable sideways or taller while it leans */
-    .content{padding:clamp(16px,3vw,32px);display:flex;flex-direction:column;gap:clamp(14px,2vw,22px);overflow:clip}
+    .content{padding:var(--pad);display:flex;flex-direction:column;gap:var(--g);overflow:clip}
     .row{display:flex;gap:clamp(10px,2vw,18px);align-items:center;padding:clamp(10px,1.6vw,16px);background:rgba(255,255,255,.03);border:1px solid var(--ui-border);border-radius:8px;will-change:transform}
     .thumb{flex-shrink:0;width:clamp(72px,14vw,120px);aspect-ratio:4/3;border-radius:6px}
     .meta{min-width:0;flex:1}
     .m-title{font-weight:700;font-size:clamp(13px,1.8vw,17px);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .m-line{height:7px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:6px}
     .m-line.short{width:62%}
+    /* See inside and Compare. The effect exists only while the box is scrolling, so at rest (and always under reduced motion, when
+       the rows never lean) both views rest on a posed example: every row draws a dashed outline of itself leaning as a quick scroll
+       would lean it, while the real rows stay straight. Scrolling hides the outlines (the real rows lean) and they come back about
+       a second after the rows are straight. A layer fixed to the box (zero tall, so the scroll length never changes) holds the
+       graph and every label. Compare: an inert copy of the rows that never leans fills the left column; the real rows keep the
+       right one, so the content is as tall as in Normal. */
+    .views,.twin,.ex,.g-in,.g-cmp{display:none}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"] .g-in,.stage[data-hb-mode="compare"] .g-cmp{display:block}
+    .stage[data-hb-mode="inside"] .row,.stage[data-hb-mode="compare"] .row{position:relative}
+    .stage[data-hb-mode="inside"].posed .ex,.stage[data-hb-mode="compare"].posed .ex{display:block}
+    .ex{position:absolute;inset:-1px;border:1.5px dashed rgba(244,244,242,.65);border-radius:8px;pointer-events:none;transform:var(--ex,none)}
+    .views{position:sticky;top:0;height:0;z-index:3;pointer-events:none}
+    .frame{position:absolute;left:0;right:0;top:0;height:var(--sh,300px)}
+    .cap{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.93);color:#f4f4f2;font:600 12.5px/1.25 var(--hb-font)}
+    .frame>.cap,.legend{position:absolute}
+    .graph{position:absolute;top:10px;right:10px;width:calc(clamp(140px,16vw,200px) + 18px);padding:8px;border-radius:8px;
+      background:rgba(11,11,13,.93);border:1px solid rgba(255,255,255,.14)}
+    .graph>.cap{display:block;padding:0;background:none}
+    .graph>.cap+.plot,.graph>.plot+.cap{margin-top:6px}
+    .plot{position:relative;height:clamp(90px,9.4vw,120px)}
+    .plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .ax{fill:none;stroke:rgba(244,244,242,.55);stroke-width:1.5}
+    .lid{fill:none;stroke:rgba(244,244,242,.45);stroke-width:1.5;stroke-dasharray:4 3}
+    .ln{fill:none;stroke:var(--ui-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .dot{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%}
+    .dot-live{background:#f4f4f2;border:2px solid var(--ui-accent)}
+    .dot-eg{display:none;border:2px solid #f4f4f2;background:rgba(11,11,13,.9)}
+    .stage[data-hb-mode="inside"].posed .dot-eg{display:block}
+    .stage[data-hb-mode="inside"].posed .dot-live{display:none}
+    .plot>.cap{position:absolute;right:2px;top:0;white-space:nowrap}
+    .c-dash{left:10px;bottom:10px;display:none}
+    .stage[data-hb-mode="inside"].posed .c-dash,.stage[data-hb-mode="compare"].posed .legend .c-dash{display:block}
+    .h-l,.h-r{top:8px}
+    .h-l{left:var(--cp);max-width:calc(50% - var(--cp) - var(--cg) / 2)}
+    .h-r{left:calc(50% + var(--cg) / 2);max-width:calc(50% - var(--cp) - var(--cg) / 2)}
+    .legend{left:calc(50% + var(--cg) / 2);right:var(--cp);bottom:10px;flex-direction:column;align-items:flex-end;gap:4px}
+    .stage[data-hb-mode="compare"] .legend{display:flex}
+    .legend>.cap{max-width:100%}
+    /* On a phone each half is narrow, so the two legend lines run across the bottom of both halves, centered */
+    @media(max-width:600px),(max-height:500px){.legend{left:var(--cp);align-items:center}}
+    .stage[data-hb-mode="compare"] .content{position:relative;padding-inline:var(--cp)}
+    .stage[data-hb-mode="compare"] .row{margin-left:calc(50% + var(--cg) / 2)}
+    .stage[data-hb-mode="compare"] .twin{display:flex;flex-direction:column;gap:var(--g);position:absolute;z-index:1;left:0;top:0;bottom:0;
+      width:calc(50% + var(--cg) / 2);padding:var(--pad) var(--cg) var(--pad) var(--cp);background:#111114;box-shadow:inset -1px 0 0 var(--ui-border)}
+    .stage[data-hb-mode="compare"] .twin .row{margin-left:0;will-change:auto}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -55,12 +102,41 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll fast inside the box and stop, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Rows that lean as you scroll">
+      <div class="views" aria-hidden="true" inert>
+        <div class="frame" id="frame">
+          <div class="graph g-in">
+            <p class="cap" data-hb-caption>Lean (up) against scroll speed (across)</p>
+            <div class="plot" id="plot">
+              <svg aria-hidden="true"><path class="ax" id="g-ax"/><path class="lid" id="g-lid"/><path class="ln" id="g-ln"/></svg>
+              <i class="dot dot-live" id="dot-live"></i><i class="dot dot-eg" id="dot-eg"></i>
+              <p class="cap" id="c-top" data-hb-caption>The most it leans</p>
+            </div>
+            <p class="cap c-spring" data-hb-caption>Straight again in under half a second</p>
+          </div>
+          <p class="cap c-dash" data-hb-caption>Dashed: a quick scroll's lean</p>
+          <p class="cap h-l g-cmp" data-hb-caption>Stays straight</p>
+          <p class="cap h-r g-cmp" data-hb-caption>Leans with speed</p>
+          <div class="legend g-cmp">
+            <p class="cap c-dash" id="c-limit" data-hb-caption>Dashed: a quick scroll, never past a medium lean</p>
+            <p class="cap c-spring" data-hb-caption>Straight again in under half a second</p>
+          </div>
+        </div>
+      </div>
       <div class="content" id="content"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the graph is the rule: the faster you scroll, the more the rows lean, up to a limit. Dashed rows show a quick scroll's lean; scroll fast and stop.</p>
+      <p data-hb-for="compare" hidden>Stays straight never leans; Leans with speed tips its rows while you scroll fast and straightens when you stop, shown dashed at rest. Scroll fast and stop, or press Play.</p>
     </div>
   </section>
 
@@ -155,17 +231,19 @@
   const stage=document.getElementById('stage'),content=document.getElementById('content');
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 
-  // Build 28 media-card-like rows: gradient thumbnail + placeholder text lines.
+  // Build 28 media-card-like rows: gradient thumbnail + placeholder text lines. Each real row also holds .ex, the dashed outline
+  // that the views show at rest; Compare's copy (made on first use) has none.
   const rows=[];
   const NAMES=['Signal','Drift','Cascade','Vector','Halide','Meridian','Pulse','Strata','Kelvin','Orbit','Fathom','Relay','Cinder','Apex'];
-  for(let i=0;i<28;i++){
+  function makeRow(i,ex){
     const hue=(210+i*22)%360;
     const el=document.createElement('div');el.className='row';
     el.innerHTML=`<div class="thumb" style="background:linear-gradient(135deg,hsl(${hue} 45% 42%),hsl(${(hue+40)%360} 55% 22%))"></div>`+
       `<div class="meta"><div class="m-title">${String(i+1).padStart(2,'0')} — ${NAMES[i%14]}</div>`+
-      `<div class="m-line"></div><div class="m-line short"></div></div>`;
-    content.appendChild(el);rows.push(el);
+      `<div class="m-line"></div><div class="m-line short"></div></div>`+(ex?'<i class="ex"></i>':'');
+    return el;
   }
+  for(let i=0;i<28;i++){const el=makeRow(i,true);content.appendChild(el);rows.push(el)}
 
   const FRAME=1000/60;                   // speed is counted per 1/60 s, so a 120Hz screen leans the same
   let INTENSITY=0.35,MAX=12,SMOOTH=0.12,axis='skewY';
@@ -186,16 +264,17 @@
     const raw=(top-lastTop)*FRAME/dt;lastTop=top;   // px moved per 1/60 s
     vel+=(raw-vel)*(1-Math.pow(1-SMOOTH,dt/FRAME)); // lerp-smooth the raw speed, the same at any frame rate
     applySkew(reduce?0:clamp(vel*INTENSITY,-MAX,MAX));
+    placeDot();
     if(Math.abs(vel)<0.01&&!scrolled){     // settled: park the loop
-      vel=0;applySkew(0);
-      running=false;return;
+      vel=0;applySkew(0);placeDot();
+      running=false;poseLater();return;
     }
     scrolled=false;
     requestAnimationFrame(tick);
   }
 
   stage.addEventListener('scroll',()=>{
-    scrolled=true;
+    scrolled=true;lift();
     // A run starts from where the box was before this move, so a single notch of the wheel counts as speed too.
     // Its first frame counts as 1/60 s: a frame's timestamp can be earlier than this moment.
     if(!running){running=true;lastTop=seenTop;lastTime=0;requestAnimationFrame(tick);}
@@ -210,6 +289,7 @@
   function setAxis(a){
     axis=a;
     lastSkew=NaN;applySkew(reduce?0:clamp(vel*INTENSITY,-MAX,MAX));
+    redraw();
   }
 
   function choices(id,pick){
@@ -217,6 +297,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      redraw();
     }));
   }
   choices('str-seg',d=>{INTENSITY=+d.k});
@@ -224,11 +305,85 @@
   choices('spring-seg',d=>{SMOOTH=+d.s});
   choices('max-seg',d=>{MAX=+d.max});
 
+  // See inside and Compare. view is the mode on show. The graph's ranges are fixed (up to a hard flick across, a little past the
+  // largest limit up), so Strength tilts its line and Most it leans lowers its flat top. EG is a quick scroll, in px per 1/60 s.
+  // The example (class posed on the stage) shows while view is not Normal and the loop is not running, and only a second after it
+  // parks; under reduced motion no row ever leans, so it always shows. Nothing here moves the box or keeps tick() running.
+  const XMAX=80,YMAX=30,EG=25,POSE_MS=1000;
+  const frame=document.getElementById('frame'),plot=document.getElementById('plot'),dotLive=document.getElementById('dot-live'),dotEg=document.getElementById('dot-eg');
+  const lnTop=document.getElementById('c-top'),limitCap=document.getElementById('c-limit');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],NOTES0=notes.map(n=>n.textContent);
+  const NOTES_RM=['Shown still: as your device asks, the rows stay straight; the dashed rows and the graph show how far a quick scroll would lean them, up to a limit.',
+    'Shown still: Stays straight never leans; in Leans with speed the dashed rows show how far a quick scroll would tip them. Here the rows stay straight.'];
+  const NAMES_VIEW={normal:stage.getAttribute('aria-label'),inside:'Rows that lean as you scroll, with a graph of lean against scroll speed and dashed rows for a quick scroll',
+    compare:'The rows twice: staying straight, and leaning with the scroll speed'};
+  // Each Spring back as a beginner says it (95% straight again after about 0.7, 0.4 and 0.2 s), and each limit
+  const SPRING={0.07:'about three quarters of a second',0.12:'under half a second',0.2:'about a fifth of a second'};
+  const LIMIT={6:'small',12:'medium',20:'large'};
+  let view='normal',poseOn=true,poseTimer=0,twin=null,G={l:0,r:0,t:0,b:0},dotAt='';
+
+  const showEx=()=>view!=='normal'&&(reduce||(poseOn&&!running));
+  function sync(){stage.classList.toggle('posed',showEx());placeDot()}
+  function lift(){clearTimeout(poseTimer);poseTimer=0;if(poseOn){poseOn=false;sync()}}
+  function poseLater(){
+    clearTimeout(poseTimer);poseTimer=0;
+    if(view!=='normal')poseTimer=setTimeout(()=>{poseTimer=0;poseOn=true;sync()},POSE_MS);
+  }
+  const gx=s=>G.l+(G.r-G.l)*Math.min(Math.abs(s)/XMAX,1),gy=d=>G.b-(G.b-G.t)*Math.min(Math.abs(d)/YMAX,1);
+  const put=(el,x,y)=>{el.style.transform=`translate(${(x-5).toFixed(1)}px,${(y-5).toFixed(1)}px)`};
+  // The live dot rides the line at the smoothed speed and the lean tick() writes; the hollow one marks a quick scroll
+  function placeDot(){
+    if(view!=='inside'||!G.r)return;
+    const at=`${gx(vel).toFixed(1)},${gy(clamp(vel*INTENSITY,-MAX,MAX)).toFixed(1)}`;
+    if(at===dotAt)return;
+    dotAt=at;put(dotLive,gx(vel),gy(clamp(vel*INTENSITY,-MAX,MAX)));
+  }
+  function drawGraph(){
+    const W=plot.clientWidth,H=plot.clientHeight;if(!W)return;
+    G={l:7,r:W-7,t:7,b:H-7};
+    const xc=Math.min(XMAX,MAX/INTENSITY),pts=xc<XMAX?[[0,0],[xc,MAX],[XMAX,MAX]]:[[0,0],[XMAX,INTENSITY*XMAX]];
+    document.getElementById('g-ax').setAttribute('d',`M${G.l} ${G.t}V${G.b}H${G.r}`);
+    document.getElementById('g-lid').setAttribute('d',`M${G.l} ${gy(MAX).toFixed(1)}H${G.r}`);
+    document.getElementById('g-ln').setAttribute('d','M'+pts.map(([x,y])=>`${gx(x).toFixed(1)} ${gy(y).toFixed(1)}`).join('L'));
+    lnTop.style.top=(gy(MAX)-lnTop.offsetHeight-7).toFixed(1)+'px';
+    put(dotEg,gx(EG),gy(Math.min(EG*INTENSITY,MAX)));
+    dotAt='';placeDot();
+  }
+  // The words that follow the settings and reduced motion; the markup holds Medium's and Normal's, for the default state
+  function words(){
+    const say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+    document.querySelectorAll('.c-spring').forEach(el=>say(el,(reduce?'Would be straight again in ':'Straight again in ')+SPRING[SMOOTH]));
+    say(limitCap,`Dashed: a quick scroll, never past a ${LIMIT[MAX]} lean`);
+    notes.forEach((n,i)=>say(n,reduce?NOTES_RM[i]:NOTES0[i]));
+  }
+  // Compare's left column, made once on first entry: the same rows, no outlines, inert and hidden from screen readers
+  function makeTwin(){
+    twin=document.createElement('div');twin.className='twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+    for(let i=0;i<28;i++)twin.appendChild(makeRow(i,false));
+    content.appendChild(twin);
+  }
+  function redraw(){
+    stage.style.setProperty('--ex',`${axis}(${Math.min(EG*INTENSITY,MAX).toFixed(2)}deg)`);
+    frame.style.setProperty('--sh',stage.clientHeight+'px');
+    words();
+    if(view!=='normal'){drawGraph();sync()}
+  }
+  // The mode switch: draws the mode at once, at rest on the example; it never scrolls or presses anything
+  document.addEventListener('hb:mode',e=>{
+    view=e.detail.mode;stage.setAttribute('aria-label',NAMES_VIEW[view]);
+    if(view==='compare'&&!twin)makeTwin();
+    poseOn=!running;if(!running)clearTimeout(poseTimer);else poseLater();
+    redraw();sync();
+  });
+  new ResizeObserver(()=>{if(view!=='normal')redraw()}).observe(stage);
+  new ResizeObserver(()=>{if(view==='inside')drawGraph()}).observe(plot);
+
   // Reduced motion: the rows stay straight however fast the box scrolls, and stop leaning at once if it turns on mid-visit.
   const rmq=window.matchMedia('(prefers-reduced-motion: reduce)');
   function onReduce(){
     reduce=rmq.matches;
     if(reduce){vel=0;lastSkew=NaN;applySkew(0);}
+    redraw();
   }
   rmq.addEventListener('change',onReduce);onReduce();
 </script>
