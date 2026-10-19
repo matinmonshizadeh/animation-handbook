@@ -34,17 +34,86 @@
     .ch-body{font-size:14px;line-height:1.7;opacity:.65;max-width:300px;margin-bottom:12px}
     .ch-fact{border-left:3px solid var(--ui-accent);padding-left:12px;font-size:14px;opacity:.5;line-height:1.6}
     /* The porthole shrinks in short boxes so it and the depth under it fit the column */
-    #porthole{width:min(220px,85%,calc(100cqh - 106px));aspect-ratio:1;border-radius:50%;border:4px solid #00c8ff;overflow:hidden;flex-shrink:0;position:relative}
-    #ph-bg{position:absolute;inset:0}
-    #ph-shimmer{position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,transparent 50%)}
-    #depth-num{font-size:clamp(26px,3.5vw,42px);font-weight:bold;letter-spacing:2px;font-variant-numeric:tabular-nums;text-align:center}
-    #depth-lbl{font-size:11px;color:var(--ui-muted);letter-spacing:3px;text-transform:uppercase;text-align:center}
+    #porthole,.cp-ph{width:min(220px,85%,calc(100cqh - 106px));aspect-ratio:1;border-radius:50%;border:4px solid #00c8ff;overflow:hidden;flex-shrink:0;position:relative}
+    #ph-bg,.cp-bg{position:absolute;inset:0}
+    #ph-shimmer,.cp-sh{position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,transparent 50%)}
+    #depth-num,.cp-dn{font-size:clamp(26px,3.5vw,42px);font-weight:bold;letter-spacing:2px;font-variant-numeric:tabular-nums;text-align:center}
+    #depth-lbl,.cp-dl{font-size:11px;color:var(--ui-muted);letter-spacing:3px;text-transform:uppercase;text-align:center}
+
+    /* See inside and Compare. The picture and its copy sit in .pic (it adds no box in Normal); the reading line and the
+       bars are drawn on the chapters, the blend bar under the depth, and none of them changes a size or a place in the flow. */
+    .fx,.bar,.bl,.cp,.pic-n,.cm-div,.bl-b[hidden]{display:none}
+    .pic{display:contents}
+    .cap{padding:2px 6px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.95);color:#f4f4f2;border:1px solid rgba(244,244,242,.3);font:600 12.5px/16px var(--hb-font)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow-anchor:none}
+    /* its place in the flow is below the chapters' top padding: the margins lift it to the top of the scroll and give the space back */
+    .fx{position:sticky;top:0;height:0;z-index:3;pointer-events:none;margin:calc(-1 * var(--fxo,0px)) 0 var(--fxo,0px)}
+    .fx-line{position:absolute;left:-14px;right:-28px;top:calc(42cqh - 1px);height:2px;background:#ffd166;box-shadow:0 0 0 1px #000}
+    .fx-cap{position:absolute;right:0;top:calc(42cqh + 5px)}
+    /* the chapters' box is as tall as their text, so the layer in it keeps sticking to the top of the box all the way down */
+    @media(min-width:601px){
+      .stage[data-hb-mode="inside"] .chapters{align-self:flex-start;padding-bottom:0}
+    }
+    .stage[data-hb-mode="inside"] .ch:last-child .bar{bottom:0}
+    .stage[data-hb-mode="inside"] .fx{display:flow-root}
+    .stage[data-hb-mode="inside"] .ch{position:relative}
+    .stage[data-hb-mode="inside"] .ch-eye,.stage[data-hb-mode="inside"] .ch-head{opacity:.6}
+    .stage[data-hb-mode="inside"] .ch-body{opacity:.4}
+    .stage[data-hb-mode="inside"] .ch-fact{opacity:.32}
+    .stage[data-hb-mode="inside"] .bar{display:block;position:absolute;left:-14px;top:0;bottom:-1px;width:4px;border-radius:2px;background:rgba(244,244,242,.2);box-shadow:0 0 0 1px rgba(0,0,0,.7)}
+    .stage[data-hb-mode="inside"] .ch0 .bar{top:var(--b0,0px)}
+    .bar i{position:absolute;inset:0;border-radius:2px;background:#ffd166;transform:scaleY(0);transform-origin:top}
+    .stage[data-hb-mode="inside"] .vis{gap:10px;padding-top:12px;padding-bottom:12px}
+    .stage[data-hb-mode="inside"] #porthole{width:min(150px,85%,calc(100cqh - 180px))}
+    .stage[data-hb-mode="inside"] .bl{display:block;width:min(200px,calc(45cqw - 60px));margin:6px auto 0}
+    .bl-trk{position:relative;height:8px;border-radius:4px;border:1px solid rgba(244,244,242,.7)}
+    .bl-dot{position:absolute;left:0;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid #f4f4f2;box-shadow:0 0 0 1px #000}
+    .bl-lab{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+    .bl-lab .cap{padding:2px 4px;font-size:12px}
+    /* Compare: the picture twice in the same column (or strip), side by side; the left copy shows only the chapter's own values */
+    .cp{display:none}
+    .stage[data-hb-mode="compare"] .vis{flex-direction:row;align-items:stretch;gap:0;padding:0 6px}
+    .stage[data-hb-mode="compare"] .pic,.stage[data-hb-mode="compare"] .cp{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;flex:1 1 0;min-width:0;position:relative;padding:34px 0 10px}
+    .stage[data-hb-mode="compare"] .pic-n{display:block;position:absolute;top:8px;left:50%;transform:translateX(-50%)}
+    .stage[data-hb-mode="compare"] .cm-div{display:block;position:absolute;left:50%;top:10px;bottom:10px;width:2px;margin-left:-1px;background:#f4f4f2}
+    .stage[data-hb-mode="compare"] #porthole,.stage[data-hb-mode="compare"] .cp-ph{width:min(150px,92%,calc(100cqh - 150px))}
+    .stage[data-hb-mode="compare"] #depth-num,.stage[data-hb-mode="compare"] .cp-dn{font-size:clamp(20px,2.4vw,30px);letter-spacing:1px}
     /* Phones: the porthole and the depth become a strip across the top and the chapters scroll under it */
     @media(max-width:600px){
       .stage{flex-direction:column}
       .vis{position:sticky;top:0;width:100%;height:112px;flex-direction:row;gap:16px;padding:14px 16px;z-index:2;background:#0b0b0d}
-      #porthole{width:84px;border-width:3px}
+      #porthole,.cp-ph{width:84px;border-width:3px}
       .chapters{padding:12px 16px}
+      .fx-line{left:-12px;right:-16px}
+      .stage[data-hb-mode="inside"] .bar{left:-12px}
+      .stage[data-hb-mode="inside"] .vis{padding:6px 16px;gap:12px}
+      .stage[data-hb-mode="inside"] #porthole{width:56px}
+      .stage[data-hb-mode="inside"] .bl{width:140px;margin-top:4px}
+      .stage[data-hb-mode="compare"] .vis{padding:0 8px}
+      .stage[data-hb-mode="compare"] .pic,.stage[data-hb-mode="compare"] .cp{flex-direction:row;gap:8px;padding:28px 0 4px}
+      .stage[data-hb-mode="compare"] .pic-n{top:5px}
+      .stage[data-hb-mode="compare"] #porthole,.stage[data-hb-mode="compare"] .cp-ph{width:60px}
+      .stage[data-hb-mode="compare"] #depth-lbl,.stage[data-hb-mode="compare"] .cp-dl{display:none}
+      .stage[data-hb-mode="compare"] #depth-num,.stage[data-hb-mode="compare"] .cp-dn{font-size:20px;letter-spacing:0}
+    }
+    @media(max-width:360px){
+      .stage[data-hb-mode="inside"] .bl{width:128px}
+      .stage[data-hb-mode="compare"] .vis{padding:0 2px}
+      .stage[data-hb-mode="compare"] .pic-n{font-size:12px;padding:2px 3px}
+      .stage[data-hb-mode="compare"] .pic,.stage[data-hb-mode="compare"] .cp{gap:6px}
+      .stage[data-hb-mode="compare"] #porthole,.stage[data-hb-mode="compare"] .cp-ph{width:46px;border-width:2px}
+      .stage[data-hb-mode="compare"] #depth-num,.stage[data-hb-mode="compare"] .cp-dn{font-size:17px}
+    }
+    .pic-n span{display:inline-block;line-height:16px}
+    @media(min-width:701px) and (max-width:800px){
+      .stage[data-hb-mode="compare"] .vis{padding:0 2px}
+      .stage[data-hb-mode="compare"] .pic-n{font-size:12px;padding:2px 4px}
+    }
+    /* Just over the phone width the box gives each half under 140px: both half names then take two lines, so they keep a gap on both sides */
+    @media(min-width:601px) and (max-width:700px){
+      .stage[data-hb-mode="compare"] .pic,.stage[data-hb-mode="compare"] .cp{padding-top:46px}
+      .stage[data-hb-mode="compare"] .pic-n{font-size:12px;line-height:16px;padding:2px 8px;border-radius:12px;text-align:center}
+      .stage[data-hb-mode="compare"] .pic-n span{display:block}
     }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -68,16 +137,35 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Six chapters about the ocean's depths">
       <div class="vis">
-        <div id="porthole" aria-hidden="true"><div id="ph-bg"></div><div id="ph-shimmer"></div></div>
-        <div><div id="depth-num" role="img" aria-label="0 meters deep">0</div><div id="depth-lbl" aria-hidden="true">meters depth</div></div>
+        <i class="cm-div" aria-hidden="true"></i>
+        <div class="pic cp" aria-hidden="true" inert>
+          <span class="cap pic-n" data-hb-caption><span>Jumps each</span> <span>chapter</span></span>
+          <div class="cp-ph"><div class="cp-bg"></div><div class="cp-sh"></div></div>
+          <div><div class="cp-dn">0</div><div class="cp-dl">meters depth</div></div>
+        </div>
+        <div class="pic">
+          <span class="cap pic-n" data-hb-caption aria-hidden="true"><span>Blends</span> <span>smoothly</span></span>
+          <div id="porthole" aria-hidden="true"><div id="ph-bg"></div><div id="ph-shimmer"></div></div>
+          <div><div id="depth-num" role="img" aria-label="0 meters deep">0</div><div id="depth-lbl" aria-hidden="true">meters depth</div>
+            <div class="bl" aria-hidden="true"><div class="bl-trk"><i class="bl-dot"></i></div><div class="bl-lab"><span class="cap bl-a" data-hb-caption></span><span class="cap bl-b" data-hb-caption></span></div></div></div>
+        </div>
       </div>
       <div class="chapters" id="chapters"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each chapter's bar fills as the reading line passes through it, and the picture blends toward the next chapter's depth and color by that share. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Jumps each chapter changes the picture only when a new chapter crosses the reading line; Blends smoothly moves it a little with every bit you scroll. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -120,6 +208,20 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
+  // The switch above the box: the page draws the mode at once, from the same numbers the scroll uses
+  let mode='normal',inCi=-1,cpCi=-1,blW=0;
+  const LABELS={
+    normal:"Six chapters about the ocean's depths",
+    inside:"Six chapters about the ocean's depths, with the reading line and how far the picture has blended toward the next chapter",
+    compare:'The ocean picture twice beside one story: jumping at each chapter, and blending smoothly'
+  };
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]||LABELS.normal);
+    inCi=cpCi=-1;fills.length=0;
+    remeasure();
+  });
+
   const CHS=[
     {depth:0,    head:'The Surface',       eye:'01 · 0 m',         bg:'#1a4a8c',ac:'#40d8ff',
      body:'Sunlight refracts through wave patterns, scattering blue and gold. This threshold separates two entirely different worlds.',
@@ -144,6 +246,10 @@
   const phBg=document.getElementById('ph-bg'),porthole=document.getElementById('porthole');
   const depNum=document.getElementById('depth-num');
   let ticking=false;
+  const fills=[];
+  const $=q=>stage.querySelector(q);
+  const blTrk=$('.bl-trk'),blDot=$('.bl-dot'),blA=$('.bl-a'),blB=$('.bl-b');
+  const cpNum=$('.cp-dn'),cpBg=$('.cp-bg'),cpPh=$('.cp-ph');
 
   function lerpCol(h1,h2,t){
     const p=s=>[parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];
@@ -153,16 +259,18 @@
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b),lerp=(a,b,t)=>a+(b-a)*t;
 
   // The three deepest colours are nearly invisible on the dark stage, so a label uses its chapter colour mixed half and half with the text colour
-  CHS.forEach(c=>{
-    const d=document.createElement('div');d.className='ch';
+  chs.innerHTML='<div class="fx" aria-hidden="true"><i class="fx-line"></i><span class="cap fx-cap" data-hb-caption>Reading line</span></div>';
+  const els=[],bars=[];
+  CHS.forEach((c,i)=>{
+    const d=document.createElement('div');d.className=i?'ch':'ch ch0';
     d.innerHTML=`<div class="ch-eye" style="color:${lerpCol(c.ac,'#f4f4f2',0.5)}">${c.eye}</div>
       <div class="ch-head">${c.head}</div><div class="ch-body">${c.body}</div>
-      <div class="ch-fact">${c.fact}</div>`;
-    chs.appendChild(d);
+      <div class="ch-fact">${c.fact}</div><i class="bar"><i></i></i>`;
+    chs.appendChild(d);els.push(d);bars.push(d.querySelector('.bar i'));
   });
 
   function update(){
-    const els=[...chs.children],N=els.length,st=stage.scrollTop,line=stage.clientHeight*0.42;
+    const N=els.length,st=stage.scrollTop,line=stage.clientHeight*0.42;
     // Where the scrolled content starts, measured from the box's own edge inside its border
     const origin=stage.getBoundingClientRect().top+stage.clientTop-st;
     // The scroll position at which each chapter's top reaches the reading line; the first chapter is current from the start
@@ -179,15 +287,51 @@
     depNum.style.color=lerpCol(col,'#f4f4f2',0.5);
     phBg.style.background=`radial-gradient(circle at 50% 40%,${lerpCol(c.bg,cn.bg,cf)},#000 80%)`;
     porthole.style.borderColor=col;
+    if(mode==='inside')drawInside(frac,ci,cf,c,cn,col);
+    else if(mode==='compare')drawCopy(c);
     ticking=false;
+  }
+
+  // See inside: each chapter's bar is full up to the share of the way the reading line has gone through it (the last has no next chapter, so it is full once reached)
+  function drawInside(frac,ci,cf,c,cn,col){
+    const N=els.length;
+    els.forEach((_,i)=>{
+      const v=i<N-1?clamp(frac-i,0,1):(frac>=N-1?1:0);
+      if(v!==fills[i]){fills[i]=v;bars[i].style.transform=`scaleY(${v})`}
+    });
+    if(ci!==inCi){
+      inCi=ci;
+      blTrk.style.background=`linear-gradient(90deg,${c.ac},${cn.ac})`;
+      blA.textContent=c.depth.toLocaleString()+' m';
+      blB.textContent=cn.depth.toLocaleString()+' m';
+      blB.hidden=ci===N-1;
+    }
+    blDot.style.background=col;
+    blDot.style.transform=`translateX(${cf*blW}px)`;
+  }
+  // Compare: the copy shows only the current chapter's own values, so it changes when a new chapter crosses the line
+  function drawCopy(c){
+    if(c===CHS[cpCi])return;
+    cpCi=CHS.indexOf(c);
+    cpNum.textContent=c.depth.toLocaleString();
+    cpNum.style.color=lerpCol(c.ac,'#f4f4f2',0.5);
+    cpBg.style.background=`radial-gradient(circle at 50% 40%,${c.bg},#000 80%)`;
+    cpPh.style.borderColor=c.ac;
+  }
+  // The first bar starts where the reading line is at the top of the box, as the page's own count does
+  function remeasure(){
+    stage.style.setProperty('--b0',Math.max(0,stage.clientHeight*0.42-els[0].offsetTop)+'px');
+    stage.style.setProperty('--fxo',chs.offsetTop+parseFloat(getComputedStyle(chs).paddingTop)+'px');
+    blW=blTrk.clientWidth;
+    update();
   }
   function request(){if(!ticking){ticking=true;requestAnimationFrame(update)}}
 
   stage.addEventListener('scroll',request,{passive:true});
-  addEventListener('resize',request);
-  update();
+  addEventListener('resize',remeasure);
+  remeasure();
   // The chapters' heights depend on the site font
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(request);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(remeasure);
 </script>
 </body>
 </html>
