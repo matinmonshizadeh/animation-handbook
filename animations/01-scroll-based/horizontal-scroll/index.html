@@ -38,6 +38,48 @@
     .panel-num{font-size:clamp(48px,6vw,80px);font-weight:700;opacity:.1;line-height:1;margin-bottom:12px}
     .panel-title{font-size:clamp(22px,2.4vw,32px);font-weight:700;line-height:1.2;margin-bottom:14px;color:var(--ac)}
     .panel-body{font-size:clamp(14px,1.2vw,16px);line-height:1.6;color:#d6d6da;max-width:480px}
+    /* The layer for both views is fixed to the box: sticky at the top of the stage and no tall, so it adds nothing to the scroll */
+    .fx{display:none;position:sticky;top:0;height:0;z-index:6;pointer-events:none}
+    .fx-in,.fx-cmp,.stack{display:none}
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx{display:block}
+    .fx-in,.fx-cmp{position:absolute;left:0;top:0;width:100cqw;height:100cqh}
+    .cap{position:absolute;padding:3px 7px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.92);color:#f4f4f2;
+      font:600 12px/1.25 var(--hb-font)}
+    /* See inside: a map of the whole strip along the bottom, a frame on it for what the box shows, and a bar for the whole
+       scroll down the right edge. The frame and the marker are moved by the page's own update. The map shrinks the strip's
+       slide, so a faint dashed frame stays on the first tile, where the frame started (ruling 2). */
+    .stage[data-hb-mode="inside"] .fx-in{display:block}
+    .stage[data-hb-mode="inside"] #h-track{opacity:.45}
+    .map{position:absolute;left:10px;right:10px;bottom:30px;height:44px;display:flex;padding:4px;border-radius:8px;background:rgba(11,11,13,.92)}
+    .tile{flex:1 1 0;display:flex;align-items:center;justify-content:center;background:var(--ac);color:#0b0b0d;font:700 13px/1 var(--hb-font)}
+    .mstart,.mframe{position:absolute;left:4px;top:4px;bottom:4px;width:calc((100% - 8px) / var(--panels))}
+    .mstart{border:2px dashed rgba(244,244,242,.75)}
+    .mframe{border:3px solid #fff;box-shadow:0 0 0 2px #0b0b0d,inset 0 0 0 2px #0b0b0d}
+    .mframe .cap{top:calc(100% + 9px);left:50%;translate:-50% 0;border:1px solid #fff}
+    .cap-map{left:10px;bottom:80px}
+    .bar-wrap{position:absolute;right:10px;top:12px;bottom:112px;width:16px;padding:3px;border-radius:8px;background:rgba(11,11,13,.92)}
+    .bar{display:flex;flex-direction:column;height:100%;border-radius:5px;overflow:hidden}
+    .bar span{flex:1 1 0;min-height:0;background:#8a8a92}
+    .bar span:nth-child(2){background:var(--ui-accent)}
+    .mk{position:absolute;left:50%;top:3px;width:28px;height:5px;margin-left:-14px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px #0b0b0d}
+    .cap-bar{right:34px;top:14px}
+    /* Compare: a column of the panels one above the other, an ordinary scroll, beside the page itself in the right half. The
+       column is out of the flow and exactly as tall as the real content, so the scroll never changes; its panels start half a
+       box lower, so the halves never show the same whole panel at once. */
+    .stage[data-hb-mode="compare"] .fx-cmp{display:block}
+    .stage[data-hb-mode="compare"] .stack{display:block;position:absolute;top:0;left:0;width:50cqw;
+      height:calc(var(--panels) * 100cqh + 119.9cqh)}
+    .stack .spacer{margin-bottom:50cqh}
+    .stack .panel{height:100cqh}
+    .stage[data-hb-mode="compare"]>.spacer,.stage[data-hb-mode="compare"]>#pin-section{margin-left:50cqw}
+    /* The number and title sit at the top of each panel, so a panel half out of the box still shows what it is, clear of the names */
+    .stage[data-hb-mode="compare"] .panel{justify-content:flex-start;padding:clamp(40px,13cqh,56px) clamp(14px,3vw,40px) 0}
+    .stage[data-hb-mode="compare"] .panel-num{font-size:clamp(32px,4.4vw,72px);margin-bottom:8px}
+    .stage[data-hb-mode="compare"] .panel-title{font-size:clamp(17px,2.2vw,30px);margin-bottom:0}
+    .stage[data-hb-mode="compare"] .panel-body{display:none}
+    .split{position:absolute;left:50cqw;top:0;bottom:0;width:2px;margin-left:-1px;background:#0b0b0d}
+    .cap-l{left:8px;top:8px}
+    .cap-r{left:calc(50cqw + 8px);top:8px}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -60,7 +102,25 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Panels that slide sideways as you scroll">
+      <div class="fx">
+        <div class="fx-in">
+          <div class="bar-wrap"><div class="bar"><span></span><span></span><span></span></div><i class="mk"></i></div>
+          <p class="cap cap-bar" data-hb-caption>You scroll down</p>
+          <p class="cap cap-map" data-hb-caption>The whole strip</p>
+          <div class="map"><i class="mstart"></i><i class="mframe"><b class="cap" data-hb-caption>In the box</b></i></div>
+        </div>
+        <div class="fx-cmp">
+          <i class="split"></i>
+          <p class="cap cap-l" data-hb-caption>Stacked ↑</p>
+          <p class="cap cap-r" data-hb-caption>Slides sideways ←</p>
+        </div>
+      </div>
       <p class="spacer">Scroll down ↓</p>
       <div id="pin-section">
         <div id="pin-inner">
@@ -98,6 +158,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the map is the whole strip of five panels, the bright frame is the box, and the side bar is how far you scrolled. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Stacked scrolls its panels up the ordinary way; Slides sideways holds the box still and brings each panel in from the right as you scroll down. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -141,18 +205,51 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage'),track=document.getElementById('h-track'),pinSection=document.getElementById('pin-section');
-  let ticking=false;
+  const pinInner=document.getElementById('pin-inner'),panels=[...track.children];
+  let ticking=false,mode='normal';
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const LABELS={
+    normal:'Panels that slide sideways as you scroll',
+    inside:'Panels that slide sideways as you scroll, with a map of the whole strip and a bar for your scroll',
+    compare:'The panels twice: stacked and scrolling up, and in a strip that slides sideways'
+  };
+
+  // The views' parts, made once from the panels: the map's tiles and, for Compare, an inert column of copies without ids
+  const map=stage.querySelector('.map'),frame=stage.querySelector('.mframe'),marker=stage.querySelector('.mk');
+  const bar=stage.querySelector('.bar'),parts=bar.children;
+  map.prepend(...panels.map(p=>{
+    const t=document.createElement('span');
+    t.className='tile';t.setAttribute('style',p.getAttribute('style'));t.setAttribute('aria-hidden','true');
+    t.textContent=p.querySelector('.panel-num').textContent;
+    return t;
+  }));
+  const stack=document.createElement('div');
+  stack.className='stack';stack.inert=true;stack.setAttribute('aria-hidden','true');
+  stack.append(stage.querySelector('.spacer').cloneNode(true),...panels.map(p=>p.cloneNode(true)));
+  stage.querySelector('.fx').after(stack);
 
   function update(){
     const budget=pinSection.offsetHeight-stage.clientHeight;
     const progress=clamp((stage.scrollTop-pinSection.offsetTop)/budget,0,1);
-    const maxShift=track.offsetWidth-stage.clientWidth;
+    // The frame's own width: the stage's in Normal, half of it in Compare
+    const maxShift=track.offsetWidth-pinInner.clientWidth;
     track.style.transform=`translateX(${(-progress*maxShift).toFixed(2)}px)`;
+    if(mode==='inside'){
+      // The frame rides the map by the same share; the bar's three parts are the lead-in, the held section and the lead-out
+      const max=stage.scrollHeight-stage.clientHeight,lead=pinSection.offsetTop;
+      frame.style.transform=`translateX(${(progress*(panels.length-1)*100).toFixed(2)}%)`;
+      parts[0].style.flexGrow=lead;parts[1].style.flexGrow=budget;parts[2].style.flexGrow=Math.max(max-lead-budget,0);
+      marker.style.transform=`translateY(${((max>0?stage.scrollTop/max:0)*(bar.clientHeight-marker.offsetHeight)).toFixed(2)}px)`;
+    }
     ticking=false;
   }
   function schedule(){if(!ticking){requestAnimationFrame(update);ticking=true}}
 
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]);
+    update();
+  });
   stage.addEventListener('scroll',schedule,{passive:true});
   window.addEventListener('resize',schedule);
   update();
