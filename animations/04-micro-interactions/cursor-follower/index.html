@@ -34,22 +34,59 @@
     .hover-target{display:flex;align-items:center;min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--ui-border);cursor:none;font-size:11px;background:rgba(255,255,255,.05)}
     /* The keyboard's way in: a layer over the stage that Tab focuses (the pointer passes through it); its ring follows the stage's corners */
     .keys{position:absolute;inset:0;border-radius:11px;pointer-events:none}
-    /* Cursor follower: a wrapper that only moves (by transform), holding a .shape that carries the size, fill and corners and is the part that grows */
-    #follower{position:absolute;left:0;top:0;pointer-events:none;z-index:100;opacity:0;will-change:transform;mix-blend-mode:difference}
-    #follower.no-blend{mix-blend-mode:normal}
-    #follower .shape{position:absolute;left:0;top:0;width:var(--follower-size);height:var(--follower-size);border-radius:50%;background:#fff;transform:translate(-50%,-50%);transition:transform .2s ease,border-radius .2s ease}
-    #follower.square .shape{border-radius:4px}
-    #follower.no-blend .shape{background:rgba(255,157,92,.5)}
-    #follower.expanded .shape{transform:translate(-50%,-50%) scale(2.5)}
-    #follower.square.expanded .shape{border-radius:1.6px}
+    /* Cursor follower: a wrapper that only moves (by transform), holding a .shape that carries the size, fill and corners and is the part that grows.
+       Compare's copy of the dot (.dot-twin) shares every rule. */
+    :is(#follower,.dot-twin){position:absolute;left:0;top:0;pointer-events:none;z-index:100;opacity:0;will-change:transform;mix-blend-mode:difference}
+    :is(#follower,.dot-twin).no-blend{mix-blend-mode:normal}
+    :is(#follower,.dot-twin) .shape{position:absolute;left:0;top:0;width:var(--follower-size);height:var(--follower-size);border-radius:50%;background:#fff;transform:translate(-50%,-50%);transition:transform .2s ease,border-radius .2s ease}
+    :is(#follower,.dot-twin).square .shape{border-radius:4px}
+    :is(#follower,.dot-twin).no-blend .shape{background:rgba(255,157,92,.5)}
+    :is(#follower,.dot-twin).expanded .shape{transform:translate(-50%,-50%) scale(2.5)}
+    :is(#follower,.dot-twin).square.expanded .shape{border-radius:1.6px}
     /* The ring is an SVG stroke, not a border: a border is snapped to whole device pixels and would not stay 2px when scaled up */
-    #follower.ring .shape,#follower.ring.no-blend .shape{background:none}
-    #follower .shape svg{display:none;position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-    #follower.ring .shape svg{display:block}
-    #follower .shape circle{cx:50%;cy:50%;r:calc(50% - 1px);fill:none;stroke:#fff;stroke-width:2;transition:stroke-width .2s ease,r .2s ease}
-    #follower.expanded .shape circle{stroke-width:.8;r:calc(50% - .4px)}
-    #follower.no-blend.ring circle{fill:rgba(255,157,92,.5);stroke:var(--ui-accent)}
-    @media(prefers-reduced-motion:reduce){#follower .shape,#follower circle{transition:none!important}}
+    :is(#follower,.dot-twin).ring .shape,:is(#follower,.dot-twin).ring.no-blend .shape{background:none}
+    :is(#follower,.dot-twin) .shape svg{display:none;position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    :is(#follower,.dot-twin).ring .shape svg{display:block}
+    :is(#follower,.dot-twin) .shape circle{cx:50%;cy:50%;r:calc(50% - 1px);fill:none;stroke:#fff;stroke-width:2;transition:stroke-width .2s ease,r .2s ease}
+    :is(#follower,.dot-twin).expanded .shape circle{stroke-width:.8;r:calc(50% - .4px)}
+    :is(#follower,.dot-twin).no-blend.ring circle{fill:rgba(255,157,92,.5);stroke:var(--ui-accent)}
+    @media(prefers-reduced-motion:reduce){:is(#follower,.dot-twin) .shape,:is(#follower,.dot-twin) circle{transition:none!important}}
+    /* See inside and Compare, drawn from the page's own numbers above the dots (so the color flip never turns them), moved by transform only.
+       See inside: a cross where the hidden pointer is, a line for the gap still to close, faint marks of where the dot was at equal moments,
+       the buttons outlined. Compare: an inert copy of the areas whose dot sits right on the pointer; an arrow in each half it is not over. */
+    .twin,.views,.cf-lbl,.cf-half{display:none}
+    .views{position:absolute;inset:0;z-index:102;pointer-events:none}
+    .cf-mark,.cf-gap,.cf-cross,.cf-lbl,.cf-arrow{position:absolute;left:0;top:0}
+    .cf-mark{width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ui-accent);box-shadow:0 0 0 1.5px #0b0b0d}
+    .cf-gap{width:100px;height:2px;margin-top:-1px;background:var(--ui-accent);transform-origin:0 50%}
+    .cf-cross{width:14px;height:14px;margin:-7px 0 0 -7px;overflow:visible;fill:none;stroke-linecap:round}
+    .cf-half{position:absolute;left:0;top:0;width:50%;height:100%;overflow:hidden}.cf-half.two{left:50%}
+    .cf-arrow{width:15px;height:22px;overflow:visible}.cf-arrow path{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .cf-lbl{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/16px var(--hb-font);white-space:nowrap}
+    .cmp-l{left:8px;top:8px}.cmp-l.two{left:calc(50% + 8px)}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="inside"] .in-l,
+    .stage[data-hb-mode="compare"] .cmp-l,.stage[data-hb-mode="compare"] .cf-half{display:block}
+    .stage[data-hb-mode="compare"] .cf-mark,.stage[data-hb-mode="compare"] .cf-gap,.stage[data-hb-mode="compare"] .cf-cross{display:none}
+    .stage[data-hb-mode="inside"] .hover-target{outline:2px dashed var(--ui-accent);outline-offset:3px}
+    /* Compare: the copy fills the first half (left, or top on phones) above the real dot, which keeps to the second; the cursor shows */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .stage[data-hb-mode="compare"],.stage[data-hb-mode="compare"] .hover-target{cursor:default}
+    .stage[data-hb-mode="compare"]>.zone:nth-child(1){grid-area:1/3}.stage[data-hb-mode="compare"]>.zone:nth-child(2){grid-area:1/4}
+    .stage[data-hb-mode="compare"]>.zone:nth-child(3){grid-area:2/3}.stage[data-hb-mode="compare"]>.zone:nth-child(4){grid-area:2/4}
+    .stage[data-hb-mode="compare"] .keys{left:50%}
+    .stage[data-hb-mode="compare"] .twin{display:grid;position:absolute;left:0;top:0;width:50%;height:100%;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));overflow:hidden;z-index:101}
+    @media(min-width:601px){.cf-br{display:none}}
+    @media(max-width:600px){
+      .cf-lbl{padding:2px 6px;font-size:12px;line-height:15px}.cmp-l{left:3px;top:2px;padding:1px 6px}.cmp-l.two{left:3px;top:calc(50% + 2px)}
+      .cf-half{width:100%;height:50%}.cf-half.two{left:0;top:50%}
+      .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"]>.zone:nth-child(1){grid-area:3/1}.stage[data-hb-mode="compare"]>.zone:nth-child(2){grid-area:3/2}
+      .stage[data-hb-mode="compare"]>.zone:nth-child(3){grid-area:4/1}.stage[data-hb-mode="compare"]>.zone:nth-child(4){grid-area:4/2}
+      .stage[data-hb-mode="compare"] .keys{left:0;top:50%}.stage[data-hb-mode="compare"] .twin{width:100%;height:50%}
+      /* Stacked halves: each area's content sits away from its half's outer edge (the grown dot is 80px across), the same in both halves */
+      .stage[data-hb-mode="compare"]>.zone:nth-child(-n+2),.stage[data-hb-mode="compare"] .twin>.zone:nth-child(-n+2){align-items:flex-end;padding-top:0;padding-bottom:8px}
+      .stage[data-hb-mode="compare"]>.zone:nth-child(n+3),.stage[data-hb-mode="compare"] .twin>.zone:nth-child(n+3){align-items:flex-start;padding-top:8px;padding-bottom:0}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -72,6 +109,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the box or tap in it (or Tab to it and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="zone zone-dark">Move your pointer here</div>
       <div class="zone zone-accent"><div class="hover-target" data-hover>Button</div></div>
@@ -79,9 +121,23 @@
       <div class="zone zone-mid">Pass over these words</div>
       <div class="keys" id="keys" tabindex="0" role="group" aria-label="Dot follower: use the arrow keys to move it"></div>
       <div id="follower" class="circle" aria-hidden="true"><div class="shape"><svg aria-hidden="true"><circle cx="50%" cy="50%" r="50%"/></svg></div></div>
+      <div class="views" aria-hidden="true">
+        <i class="cf-gap"></i>
+        <svg class="cf-cross" viewBox="-7 -7 14 14"><path d="M-5 0H5M0-5V5" stroke="#0b0b0d" stroke-width="4"/><path d="M-5 0H5M0-5V5" stroke="#f4f4f2" stroke-width="1.6"/></svg>
+        <div class="cf-half"><svg class="cf-arrow"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg></div><div class="cf-half two"><svg class="cf-arrow"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg></div>
+        <span class="cf-lbl in-l l-gap" data-hb-caption>Catches up in about a third of a second,<br class="cf-br"> in smaller and smaller steps</span>
+        <span class="cf-lbl in-l l-ptr" data-hb-caption>Where the pointer is</span>
+        <span class="cf-lbl in-l l-flip" data-hb-caption>Flips the colors<br class="cf-br"> under it</span>
+        <span class="cf-lbl in-l l-grow" data-hb-caption>Grows two and a half times over a button</span>
+        <span class="cf-lbl cmp-l" data-hb-caption>No lag</span><span class="cf-lbl cmp-l two" data-hb-caption>Trails behind</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the cross is where the pointer is: each frame the dot closes part of the gap, in smaller and smaller steps. Move over the box, or press Show me.</p>
+      <p data-hb-for="compare" hidden>No lag: the dot sits right on the pointer; Trails behind: it glides after it and eases in as it catches up. Move over either half, or press Show me.</p>
     </div>
   </section>
 
@@ -182,6 +238,15 @@
   const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: ease is the share of the gap the dot closes in one of them
   // mx,my: where the dot is heading; fx,fy: where it is; px,py: the last spot a pointer or a tap put on the stage; last: the previous frame's time
   let mx=0,my=0,fx=0,fy=0,px=null,py=null,ease=0.15,inside=false,expandOnHover=true,runTimers=[],last=null;
+  // See inside and Compare: posed (resting on the pose P), See inside's marks (trail; tick: the time since the last), what steers the dot
+  // (ptr: 'mouse', over half 1 or 2 in Compare, or 'pretend'), the real dot's box B, the boxes of the words and buttons WB, the labels' sizes SZ
+  let mode='normal',posed=false,P=null,trail=[],tick=0,ptr='pretend',over=2,B=null,WB=null,SZ=new Map(),dotPx=32,sig='';
+  // Compare's first half: an inert copy of the four areas (no ids, its buttons only words) with a dot of its own
+  const twin=Object.assign(document.createElement('div'),{className:'twin',inert:true}),dotTwin=follower.cloneNode(true);twin.setAttribute('aria-hidden','true');
+  zones.forEach(z=>{const c=z.cloneNode(true);c.querySelector('[data-hover]')?.removeAttribute('data-hover');twin.append(c)});dotTwin.removeAttribute('id');twin.append(dotTwin);stage.append(twin);
+  const twinPieces=[dotTwin.querySelector('.shape'),dotTwin.querySelector('circle')],pane=stage.querySelector('.views'),$=s=>pane.querySelector(s);
+  const gap=$('.cf-gap'),cross=$('.cf-cross'),arrows=[...pane.querySelectorAll('.cf-arrow')],L={gap:$('.l-gap'),ptr:$('.l-ptr'),flip:$('.l-flip'),grow:$('.l-grow')};
+  const marks=[0,1,2,3,4,5].map(()=>pane.insertBefore(Object.assign(document.createElement('i'),{className:'cf-mark'}),gap));
 
   // Every spot is measured on the stage, from the top left of its inner box, which is where the dot's left:0, top:0 lies
   function spot(x,y){const r=stage.getBoundingClientRect();return [x-r.left-stage.clientLeft,y-r.top-stage.clientTop]}
@@ -189,9 +254,14 @@
   function draw(){follower.style.transform=`translate(${fx.toFixed(1)}px, ${fy.toFixed(1)}px)`}
   function grow(on){follower.classList.toggle('expanded',on&&expandOnHover)}
   function hide(){inside=false;follower.style.opacity='0';follower.classList.remove('expanded')}
+  // The real dot's box: the whole stage, or in Compare the half the real areas fill (the second: right, or lower on phones)
+  function box(){if(mode!=='compare')return{x:0,y:0,w:stage.clientWidth,h:stage.clientHeight};
+    const a=zones[0].getBoundingClientRect(),d=zones[3].getBoundingClientRect(),[x,y]=spot(a.left,a.top),[r,b]=spot(d.right,d.bottom);return{x,y,w:r-x,h:b-y}}
+  function overButton(x,y){return buttons.some(b=>{const r=b.getBoundingClientRect(),[l,t]=spot(r.left,r.top);return x>=l&&x<=l+r.width&&y>=t&&y<=t+r.height})}
   // The pointer, a tap and Show me all send the dot to a spot. It appears there directly, as a pointer entering the stage
   // would, so it never swoops in from where it was last; once it is shown it glides after each new spot.
   function aim(x,y,onButton){
+    unpose();
     if(inside){mx=x;my=y}
     else{mx=fx=x;my=fy=y;draw();inside=true;follower.style.opacity='1'}
     grow(onButton);
@@ -201,7 +271,10 @@
   // The first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms.
   function loop(ts){
     const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
+    // See inside marks where the dot sets off after the pointer (views() then adds a mark every twentieth of a second)
+    if(inside&&mode==='inside'&&!trail.length&&Math.hypot(mx-fx,my-fy)>=1){trail=[[fx,fy]];tick=0}
     if(inside){const a=1-Math.pow(1-ease,dt/FRAME);fx+=(mx-fx)*a;fy+=(my-fy)*a;draw()}
+    if(mode!=='normal')views(dt);
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
@@ -218,10 +291,14 @@
   // A mouse or a pen in the air steers the dot: it shows where the pointer enters the stage, follows it and hides when it leaves.
   // A finger or a pen touching the surface sends the dot to the spot it presses, and the dot stays. Pointer events only, so the
   // mouse events that follow a tap leave no pointer behind. A run under way is stopped first, and the dot follows the visitor after it.
+  // In Compare the pointer over either half, as a spot in that half's own frame, steers both: the real dot gets the spot in its half.
   function aimAt(e){
     if(e.isTrusted&&running())stopRun();
     [px,py]=spot(e.clientX,e.clientY);
-    aim(px,py,!!e.target.closest('[data-hover]'));
+    let on=!!e.target.closest('[data-hover]');
+    ptr=e.pointerType==='touch'?'pretend':'mouse';
+    if(mode==='compare'){const b=box();over=px<b.x||py<b.y?1:2;if(over===1){px+=b.x;py+=b.y}on=overButton(px,py)}
+    aim(px,py,on);
   }
   stage.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')aimAt(e)});
   stage.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')aimAt(e)});
@@ -231,23 +308,21 @@
   ['pointerleave','pointercancel'].forEach(type=>stage.addEventListener(type,e=>{
     if(e.pointerType==='touch')return;
     if(e.isTrusted&&running())stopRun();
-    hide();
+    idle();
   }));
 
-  // A run starts with the dot hidden and small, put there without animating: the transitions are turned off, the state is set,
-  // a reflow makes it stick, and the transitions come back.
-  function toRest(){
-    pieces.forEach(p=>p.style.setProperty('transition','none','important'));
-    hide();
-    void follower.offsetWidth;
-    pieces.forEach(p=>p.style.removeProperty('transition'));
-  }
+  // A run starts with the dot hidden and small, put there without animating: still() turns the transitions off, makes the change,
+  // makes it stick with a reflow and brings the transitions back.
+  function still(ps,fn){ps.forEach(p=>p.style.setProperty('transition','none','important'));fn();void stage.offsetWidth;ps.forEach(p=>p.style.removeProperty('transition'))}
+  function toRest(){unpose();still(pieces,hide);if(mode==='compare')mirror(true)}
   // An invisible pointer visits four spots: the middle of the first area, the button in the second, the button in the third
   // (the dot stays grown between the two) and the middle of the fourth, where it shrinks back. The dot glides after it (loop()
-  // draws it), and disappears at the end unless a real pointer rests on the stage, which then keeps its dot.
+  // draws it), and disappears at the end unless a real pointer rests on the stage, which then keeps its dot (See inside and
+  // Compare go back to their pose).
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
+    ptr='pretend';
     aim(...centre(zones[0]),false);
     later(()=>aim(...centre(buttons[0]),true),0,700);
     later(()=>aim(...centre(buttons[1]),true),0,1400);
@@ -255,24 +330,25 @@
     later(()=>{
       inside=stage.matches(':hover');
       follower.style.opacity=inside?'1':'0';
-      if(inside&&px!==null){mx=px;my=py}
+      if(inside&&px!==null){mx=px;my=py;ptr='mouse'}
+      else if(mode!=='normal')pose();
     },0,2800);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the dot follows the visitor.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
 
-  // The keyboard: Tab focuses the layer over the stage, which stops a run and puts an invisible pointer in the middle of the stage,
-  // or where the keys last left it; the arrow keys move it a step (6% of the stage's shorter side, three with Shift). It goes
-  // through aim() as the pointer does, so the dot glides after it and grows over a button. Escape, or focus leaving, hides the dot
-  // as the pointer leaving does, unless a pointer on the stage or a tap has taken it since.
+  // The keyboard: Tab focuses the layer over the stage (over the real half in Compare), which stops a run and puts an invisible pointer
+  // in the middle of the dot's box, or where the keys last left it; the arrow keys move it a step (6% of the box's shorter side, three
+  // with Shift). It goes through aim() as the pointer does, so the dot glides after it and grows over a button. Escape, or focus
+  // leaving, hides the dot as the pointer leaving does, unless a pointer on the stage or a tap has taken it since.
   const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kx=null,ky=null;
   function keyAim(dx,dy,big){
-    const W=stage.clientWidth,H=stage.clientHeight,s=Math.min(W,H)*(big?.18:.06);
+    const b=box(),W=b.w,H=b.h,s=Math.min(W,H)*(big?.18:.06);
     if(kx===null){kx=W/2;ky=H/2}
     kx=Math.min(W,Math.max(0,kx+dx*s));ky=Math.min(H,Math.max(0,ky+dy*s));
-    aim(kx,ky,buttons.some(b=>{const r=b.getBoundingClientRect(),[l,t]=spot(r.left,r.top);return kx>=l&&kx<=l+r.width&&ky>=t&&ky<=t+r.height}));
+    ptr='pretend';aim(b.x+kx,b.y+ky,overButton(b.x+kx,b.y+ky));
   }
-  function keyRest(){if(inside&&(mx===kx&&my===ky||!stage.matches(':hover')))hide()}
+  function keyRest(){const b=box();if(inside&&(kx!==null&&mx===b.x+kx&&my===b.y+ky||!stage.matches(':hover')))idle()}
   keys.addEventListener('focus',()=>{if(running())stopRun();keyAim(0,0)});
   keys.addEventListener('blur',keyRest);
   keys.addEventListener('keydown',e=>{
@@ -281,21 +357,102 @@
     else if(ARROWS[e.key]){e.preventDefault();keyAim(...ARROWS[e.key],e.shiftKey)}
   });
 
+  // See inside and Compare rest on a pose: six 60 Hz frames (a tenth of a second) after Show me's first jump, from the middle of the first
+  // area to the button in the second, the dot as far along as Lag puts it then, as far grown as the 0.2 s grow is half way through its ease
+  // (all the way under reduced motion, where it is instant) and a mark where it was at each frame; drawn without setting inside.
+  function pose(){
+    if(mode==='normal')return;
+    const S=centre(zones[0]),T=centre(buttons[0]),at=k=>{const f=1-Math.pow(1-ease,k);return[S[0]+(T[0]-S[0])*f,S[1]+(T[1]-S[1])*f]};
+    P={T,D:at(6),marks:[0,1,2,3,4,5].map(at),scale:expandOnHover?matchMedia('(prefers-reduced-motion: reduce)').matches?2.5:1+1.5*.802:1};
+    posed=true;ptr='pretend';sig='';Object.values(L).forEach(l=>l._i=null);
+    still(pieces,()=>{follower.classList.toggle('expanded',P.scale>1);pieces[0].style.transform=`translate(-50%,-50%) scale(${P.scale})`;
+      follower.style.transform=`translate(${P.D[0].toFixed(1)}px, ${P.D[1].toFixed(1)}px)`;follower.style.opacity='1'});
+    if(mode==='compare')mirror(true);
+    views(0);
+  }
+  function unpose(){if(posed){posed=false;still(pieces,()=>{pieces[0].style.removeProperty('transform');hide()});mirror(true)}}
+  // The dot hides (the pointer left, Escape): See inside and Compare go back to the pose
+  function idle(){hide();if(mode!=='normal'&&!running())pose()}
+  // The copy's dot takes the real one's look (shape, color flip, growing, the pose's size, whether it shows), at once where asked
+  function mirror(now){const c='dot-twin '+follower.className,s=pieces[0].style.transform,o=follower.style.opacity,put=()=>{dotTwin.className=c;twinPieces[0].style.transform=s;dotTwin.style.opacity=o};
+    if(dotTwin.className!==c||twinPieces[0].style.transform!==s||dotTwin.style.opacity!==o)now?still(twinPieces,put):put()}
+  // A dot on show keeps its place on the areas when the box changes (Compare moves the real areas into a half, and back)
+  function move(a,b){const m=(x,y)=>[b.x+(x-a.x)*b.w/a.w,b.y+(y-a.y)*b.h/a.h];
+    [mx,my]=m(mx,my);[fx,fy]=m(fx,fy);if(px!==null)[px,py]=m(px,py);if(kx!==null){kx*=b.w/a.w;ky*=b.h/a.h}draw()}
+  // What See inside's labels keep clear of (the areas' words, the buttons with their outline), and the labels' sizes
+  function layout(){const r=(a,s)=>{const[x,y]=spot(a.left,a.top);return[x-s,y-s,x+a.width+s,y+a.height+s]},g=document.createRange();
+    B=box();WB={words:zones.map(z=>{g.selectNodeContents(z);return r(g.getBoundingClientRect(),4)}),btns:buttons.map(b=>r(b.getBoundingClientRect(),6))};measure()}
+  function measure(){sig='';if(mode==='inside')Object.values(L).forEach(l=>{const d=l.style.display;l.style.display='';SZ.set(l,[l.offsetWidth,l.offsetHeight]);l.style.display=d})}
+  // The labels' words follow the settings: how long the catch-up takes (to 95% of the gap), the growing and the color flip
+  function say(){const s=Math.log(.05)/Math.log(1-ease)/60,flip=!follower.classList.contains('no-blend'),f=L.flip.childNodes;
+    L.gap.firstChild.textContent=`Catches up in ${s<.2?'about a tenth of a second':s<.5?'about a third of a second':'almost a second'},`;
+    L.grow.textContent=expandOnHover?'Grows two and a half times over a button':'Stays its size over buttons';
+    f[0].textContent=flip?'Flips the colors':'See-through orange,';f[2].textContent=flip?' under it':' no flip';measure()}
+  function refresh(){if(mode!=='normal'){say();if(posed)pose()}}
+  // Writes a part's transform (and opacity) only when it changes, and shows or hides it
+  function set(el,t,o){if(el._t!==t)el.style.transform=el._t=t;if(o!==undefined&&el._o!==o)el.style.opacity=el._o=o}
+  function show(el,on){const d=on?'':'none';if(el._d!==d)el.style.display=el._d=d}
+  // Draws the mode in each frame, from the dot's own numbers (the pose's while posed). See inside: the cross, the line to the dot,
+  // the marks (one where the dot set off, then one every twentieth of a second, the oldest faintest; gone once it is within a pixel
+  // of the pointer) and the labels. Compare: the copy's dot right on the spot, and an arrow in each half the pointer is not over.
+  function views(dt){
+    const on=inside||posed,[cx,cy]=posed?P.T:[mx,my],f=n=>n.toFixed(1);
+    if(mode==='compare'){const t=`translate(${f(cx-B.x)}px, ${f(cy-B.y)}px)`;
+      mirror(false);set(dotTwin,t);arrows.forEach((a,i)=>{show(a,on&&(ptr==='pretend'||over!==i+1));set(a,t)});return}
+    if(!inside||Math.hypot(mx-fx,my-fy)<1)trail=[];
+    else if(trail.length&&(tick+=dt)>=49.5){tick-=50;trail.push([fx,fy]);if(trail.length>6)trail.shift()}
+    const pts=!on?[]:posed?P.marks:trail,[dx,dy]=posed?P.D:[fx,fy],len=on?Math.hypot(cx-dx,cy-dy):0;
+    marks.forEach((m,i)=>{const p=pts[i];show(m,!!p);if(p)set(m,`translate(${f(p[0])}px,${f(p[1])}px)`,(.3+.6*(i+1)/pts.length).toFixed(2))});
+    show(gap,len>=1);if(len>=1)set(gap,`translate(${f(dx)}px,${f(dy)}px) rotate(${Math.atan2(cy-dy,cx-dx).toFixed(3)}rad) scaleX(${(len/100).toFixed(3)})`);
+    show(cross,on);set(cross,`translate(${f(cx)}px,${f(cy)}px)`);
+    labels(on,cx,cy,dx,dy,dotPx/2*(posed?P.scale:follower.classList.contains('expanded')?2.5:1),pts,len);
+  }
+  // See inside's labels, each beside the part it names, inside the box and clear of the labels placed before it, the dot, the cross,
+  // the marks, the line, the areas' words and the buttons; a label keeps its place on a tie, so it does not flicker as the dot moves
+  function labels(on,cx,cy,dx,dy,r,pts,len){
+    const s=[on,cx,cy,dx,dy,r,pts.length].map(n=>+n|0).join();if(s===sig)return;sig=s;
+    const g=6,taken=[],sq=(x,y,e)=>[x-e,y-e,x+e,y+e],join=bs=>[0,1,2,3].map(i=>(i<2?Math.min:Math.max)(...bs.map(b=>b[i])));
+    const ov=(a,b)=>Math.max(0,Math.min(a[2],b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[3],b[3])-Math.max(a[1],b[1]));
+    const dot=sq(dx,dy,r),cr=sq(cx,cy,9),btn=WB.btns.find(b=>cx>b[0]&&cx<b[2]&&cy>b[1]&&cy<b[3]),ms=pts.map(p=>sq(p[0],p[1],5)),keep=[[cr,3],...WB.words.map(w=>[w,2]),...ms.map(m=>[m,1])];
+    for(let d=12;d<len;d+=12)keep.push([sq(dx+(cx-dx)*d/len,dy+(cy-dy)*d/len,3),1]);
+    const near=q=>Math.hypot(Math.max(q[0],Math.min(dx,q[2]))-dx,Math.max(q[1],Math.min(dy,q[3]))-dy)<r+3;
+    for(const [el,a] of [[L.gap,on&&(pts.length||len>=1)?join([dot,cr,...ms]):null],[L.ptr,on?btn?join([cr,btn]):cr:null],[L.flip,on?dot:null],[L.grow,WB.btns[1]]]){
+      show(el,!!a);if(!a)continue;
+      const [w,h]=SZ.get(el)||[0,0],ax=(a[0]+a[2])/2,ay=(a[1]+a[3])/2,tries=[];
+      for(const e of [0,14])for(const x of [ax-w/2,a[0],a[2]-w,ax-w,ax,a[0]-w,a[2]])tries.push([x,a[1]-g-e-h],[x,a[3]+g+e]);
+      tries.push([a[2]+g,ay-h/2],[a[0]-g-w,ay-h/2]);
+      let best=null,bc=Infinity;
+      tries.forEach(([x,y],i)=>{x=Math.round(Math.max(4,Math.min(B.w-w-4,x)));y=Math.round(Math.max(4,Math.min(B.h-h-4,y)));
+        const q=[x,y,x+w,y+h];let c=i/100-(i===el._i?.5:0)+(near(q)?100+ov(q,dot)*3:0);
+        taken.forEach(t=>c+=ov(q,t)*100);keep.forEach(([k,wt])=>c+=ov(q,k)*wt);if(c<bc){bc=c;best=[q,i]}});
+      el._i=best[1];taken.push(best[0]);set(el,`translate(${best[0][0]}px,${best[0][1]}px)`);
+    }
+  }
+  // The mode switch: draws the mode at once. A dot on show keeps its place on the areas in the new box; otherwise See inside and
+  // Compare rest on the pose, and Normal is the page as it was. The shared script then presses Show me (not under reduced motion).
+  document.addEventListener('hb:mode',e=>{const was=B;mode=e.detail.mode;trail=[];unpose();layout();if(inside)move(was,B);
+    if(mode!=='normal'){say();if(!inside&&!running())pose();else views(0)}});
+  // A new size of the window changes the boxes; the pose is drawn again for it, as for the font arriving or reduced motion changing
+  addEventListener('resize',()=>{const was=B;layout();if(mode!=='normal'){if(inside)move(was,B);if(posed)pose()}});
+  document.fonts.ready.then(()=>{layout();if(posed)pose()});
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>{if(posed)pose()});
+
   function choices(id,pick){
     const btns=document.querySelectorAll('#'+id+' button');
     btns.forEach(b=>b.addEventListener('click',()=>{
       btns.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);refresh();
     }));
   }
   choices('lag-seg',d=>{ease=+d.ease});
-  choices('size-seg',d=>{vars.setProperty('--follower-size',d.px+'px')});
+  choices('size-seg',d=>{vars.setProperty('--follower-size',d.px+'px');dotPx=+d.px});
   choices('shape-seg',d=>{follower.classList.remove('circle','ring','square');follower.classList.add(d.shape)});
-  document.getElementById('blend-tog').addEventListener('change',e=>{follower.classList.toggle('no-blend',!e.target.checked)});
+  document.getElementById('blend-tog').addEventListener('change',e=>{follower.classList.toggle('no-blend',!e.target.checked);refresh()});
   document.getElementById('expand-tog').addEventListener('change',e=>{
     expandOnHover=e.target.checked;
-    if(!expandOnHover)follower.classList.remove('expanded');
+    if(!expandOnHover)follower.classList.remove('expanded');refresh();
   });
+  layout();
 </script>
 </body>
 </html>
