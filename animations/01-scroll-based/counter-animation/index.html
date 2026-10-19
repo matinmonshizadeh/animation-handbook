@@ -35,8 +35,7 @@
     .tile-num{font-size:min(clamp(28px,4.5vw,44px),26cqw);font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap;color:var(--ui-accent)}
     .tile-label{font-size:12px;color:#8a8a92;text-transform:uppercase;letter-spacing:1.5px}
     .ov,.cp,.pose,.shade,.sweep,.keys,.ov .nm-l,.mid{display:none}
-    /* The marks of both views live in a layer that stays fixed to the box (a zero-height sticky first child), so no mode adds
-       anything to the scroll length */
+    /* both views' marks live in a zero-height sticky layer, so no mode adds scroll length */
     .stage[data-hb-mode="inside"] .ov,.stage[data-hb-mode="compare"] .ov{display:block;position:sticky;top:0;height:0;z-index:6;pointer-events:none}
     .stage[data-hb-mode="inside"] .spacer,.stage[data-hb-mode="compare"] .spacer{color:transparent}
     .ov *{position:absolute}
@@ -47,13 +46,12 @@
     .key *{position:static;font-weight:inherit}
     .key .sw{display:block;flex:none;width:16px;height:0;border-top:2px dashed #ffd479}
     .key .sw.sh{height:10px;border:0;border-radius:2px;background:rgba(110,168,255,.7)}
-    /* See inside: the top edge of the tiles is a bright line that scrolls with them; each tile becomes a small graph of its
-       count (left edge: the first number starts, right edge: the end of the cascade; bottom: zero, dashed line: the total) with
-       a line and dot that sweep across while its number counts. The icon keeps its place, hidden, so the grid keeps its height. */
+    /* See inside: the tiles' top edge is a bright line; each tile is a graph of its count with a sweeping line and dot; the icon keeps its place, hidden */
     .stage[data-hb-mode="inside"] .ov .line{display:block}
     .stage[data-hb-mode="inside"] .k-in{display:flex}
-    .stage[data-hb-mode="inside"] #stats{position:relative}
-    .stage[data-hb-mode="inside"] #stats::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:#f4f4f2;z-index:3}
+    .stage[data-hb-mode="inside"] #stats,.stage[data-hb-mode="compare"] #stats{position:relative}
+    .stage[data-hb-mode="inside"] #stats::before,.stage[data-hb-mode="compare"] #stats::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:#f4f4f2;z-index:3}
+    .stage[data-hb-mode="compare"] #stats::before{left:50%}
     .stage[data-hb-mode="inside"] .tile{position:relative;overflow:hidden;isolation:isolate}
     .stage[data-hb-mode="inside"] .tile-icon{visibility:hidden}
     .stage[data-hb-mode="inside"] .tile-label{color:#d0d0d6}
@@ -65,14 +63,13 @@
       border-right:2px solid rgba(244,244,242,.75);pointer-events:none;z-index:1}
     .dotcol{position:absolute;top:0;bottom:0;right:0;width:0}
     .dotcol::after{content:"";position:absolute;top:0;right:-5px;width:9px;height:9px;margin-top:-4px;border-radius:50%;background:#f4f4f2}
-    /* Compare: the tiles twice, side by side in the same scroll. The grid keeps its Normal height (measured by the script), so
-       the scroll length never changes. The copy is already at its totals; the page's own tiles are the second half, and
-       while no number is counting they rest on a posed moment drawn in elements of their own over the real numbers. */
+    /* Compare: a copy at its totals, then the page's tiles (posed over their real numbers while none counts); the grid keeps its Normal height */
     .stage[data-hb-mode="compare"]{overflow-anchor:none}
     .stage[data-hb-mode="compare"] .ov .line{display:block;left:50%}
     .stage[data-hb-mode="compare"] .mid{display:block;left:50%;top:0;height:100cqh;border-left:1px solid rgba(244,244,242,.4)}
     .stage[data-hb-mode="compare"] .ov .nm-l{display:flex;position:absolute;top:8px;left:8px}
     .stage[data-hb-mode="compare"] .k-r{display:flex;left:calc(50% + 8px);max-width:calc(50% - 16px)}
+    .stage[data-hb-mode="compare"]:not(.posed) .k-r .key:last-child{visibility:hidden}
     .stage[data-hb-mode="compare"] #stats{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));
       height:var(--gh,auto);min-height:0;align-content:stretch;padding-top:52px}
     .stage[data-hb-mode="compare"] .tile{display:grid;grid-template-columns:minmax(0,1fr);align-content:center;gap:4px;
@@ -85,27 +82,15 @@
     .stage[data-hb-mode="compare"].posed .tile:not(.cp) .tile-num:not(.pose){color:transparent}
     @media(min-width:601px){
       .stage[data-hb-mode="compare"] .k-r{flex-direction:row;flex-wrap:wrap}
-      .stage[data-hb-mode="compare"] .tile:nth-child(-n+2),.stage[data-hb-mode="compare"] .tile:nth-child(5),.stage[data-hb-mode="compare"] .tile:nth-child(6){grid-row:1}
-      .stage[data-hb-mode="compare"] .tile:nth-child(3),.stage[data-hb-mode="compare"] .tile:nth-child(4),.stage[data-hb-mode="compare"] .tile:nth-child(n+7){grid-row:2}
-      .stage[data-hb-mode="compare"] .tile:nth-child(odd){grid-column:1}
-      .stage[data-hb-mode="compare"] .tile:nth-child(even){grid-column:2}
-      .stage[data-hb-mode="compare"] .tile:nth-child(n+5):nth-child(odd){grid-column:3}
-      .stage[data-hb-mode="compare"] .tile:nth-child(n+5):nth-child(even){grid-column:4}
+      .stage[data-hb-mode="compare"] .tile:is(:nth-child(4n+3),:nth-child(4n)){grid-row:2}
     }
     @media(max-width:600px){
       .key{font-size:12px;padding:3px 6px}
       .keys{gap:6px}
-      /* A half is one column of its four tiles (a 2x2 half would leave each tile too narrow for its words) */
-      .stage[data-hb-mode="compare"] #stats{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:6px}
-      .stage[data-hb-mode="compare"] #stats{padding-top:44px}
+      /* a half is one column of four tiles */
+      .stage[data-hb-mode="compare"] #stats{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));grid-auto-flow:column;gap:6px;padding-top:44px}
       .stage[data-hb-mode="compare"] .tile{gap:2px;padding:5px 8px}
       .stage[data-hb-mode="compare"] .tile-num{font-size:min(24px,26cqw)}
-      .stage[data-hb-mode="compare"] .tile:nth-child(4n+1){grid-row:1}
-      .stage[data-hb-mode="compare"] .tile:nth-child(4n+2){grid-row:2}
-      .stage[data-hb-mode="compare"] .tile:nth-child(4n+3){grid-row:3}
-      .stage[data-hb-mode="compare"] .tile:nth-child(4n){grid-row:4}
-      .stage[data-hb-mode="compare"] .tile:nth-child(-n+4){grid-column:1}
-      .stage[data-hb-mode="compare"] .tile:nth-child(n+5){grid-column:2}
     }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -319,8 +304,7 @@
   }
   const counting=()=>prog.some(p=>p!==null&&p<1);
   function setPose(on){if(on!==poseOn){poseOn=on;stage.classList.toggle('posed',on)}}
-  // Lifted while any number is between zero and its total; back about a third of a second after the last count ends (at once
-  // under reduced motion and on entering Compare). It reads the numbers' own state and never starts, stops or writes a count.
+  // Lifted while a number counts; back a third of a second after the last count (at once on entering Compare or under reduced motion)
   function syncPose(delay){
     if(mode!=='compare')return;
     if(counting()){clearTimeout(poseTimer);poseTimer=0;setPose(false);return}
@@ -398,8 +382,7 @@
   staggerTog.addEventListener('change',drawViews);
   buildObserver();
 
-  // Compare keeps the grid's Normal height, so the scroll never changes length: measured in Normal (the grid is the same height
-  // in See inside) and, when the box is resized while Compare shows, measured with the mode switched off for a moment
+  // Compare keeps the grid's Normal height: measured in Normal, or with the mode off for a moment when resized in Compare
   function pinHeight(){
     let h;
     if(mode==='compare'){
