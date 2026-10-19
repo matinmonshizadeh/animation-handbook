@@ -238,6 +238,8 @@
 <script>
   const toaster=document.getElementById('toaster'),send=document.getElementById('send');
   const reduceMotion=matchMedia('(prefers-reduced-motion:reduce)');
+  const STILL_CMP='Shown still, a moment into a change: Jumps has already moved every toast; Glides is still moving them into place.',
+    OUT_CMP='Without motion both halves show the same toasts at once; turn reduced motion off to see Glides move them.';
   let corner='tr',style='slide',dur=4,limit=4,toasts=[];
   const TYPES=[['ok','Saved','Your changes were published.'],['ok','Uploaded','profile.png finished uploading.'],
     ['err','Failed','Could not reach the server.'],['err','Rejected','Card was declined — try another.'],
@@ -400,7 +402,7 @@
       t.querySelector('.ic').textContent=ICON[m[0]];t.querySelector('.ti').textContent=m[1];t.querySelector('.ms').textContent=m[2];t.style.setProperty('--left',left[i]);t.hidden=i>=n}));
     if(top)at[0].hidden=true;
     // the faded one a fifth of a toast out to the side (so its title shows in every corner), a little smaller, or in place
-    pt[0].style.transform=style==='scale'?`scale(${top?.92:.95})`:style==='fade'?'none':`translateX(${signX()*20}%)`;
+    pt[0].style.transform=style==='scale'?`scale(${top?.92:.95})`:style==='fade'?'none':`translateX(${signX()*(signX()<0?4:20)}%)`;
     cap('move').textContent=top?'Faded: its bar ran out, so it '+{slide:'slides out',fade:'fades out',scale:'shrinks away'}[style]:'Faded: a new one '+{slide:'slides',fade:'fades',scale:'grows'}[style]+' in at the corner';
     cap('glide').textContent=top?'Arrows: the others glide up into the gap':'Arrows: the others rise to make room';
     cap('bars').textContent='Bars: each lasts '+SECS[dur];
@@ -408,6 +410,8 @@
     if(posed){const g=pt[0],h=(g.offsetHeight+(parseFloat(getComputedStyle(pose).rowGap)||0))*(top?.5:.3);
       pose.style.setProperty('--half',h+'px');pose.style.setProperty('--off',(top?-h:h)+'px');
       Object.assign(slot.style,{left:g.offsetLeft+'px',top:g.offsetTop+'px',width:g.offsetWidth+'px',height:g.offsetHeight+'px'})}
+    // Under reduced motion nothing glides: the note says the still while posed, and what a press leaves after it
+    if(reduceMotion.matches)document.querySelector('[data-hb-for="compare"]').textContent=posed?STILL_CMP:OUT_CMP;
     if(mode==='compare')return names();
     // The words: posed, on its parts; with real toasts out, the bars and the limit
     cap('move').hidden=cap('glide').hidden=!posed;
@@ -425,7 +429,9 @@
     const W=stage.clientWidth,H=stage.clientHeight,top=corner.startsWith('t'),right=corner.endsWith('r'),s=rect(send);
     const L=Math.min(...parts.map(p=>p.l)),R=Math.max(...parts.map(p=>p.r));
     const list=items.map(([k,y])=>({el:cap(k),y})).filter(c=>c.el.offsetWidth).map(c=>Object.assign(c,{w:c.el.offsetWidth,h:c.el.offsetHeight}));
-    if(W<560){let y=top?B+10:T-10-list.reduce((n,c)=>n+c.h+6,0);list.forEach(c=>{c.x=12;c.y=y;y+=c.h+6})}
+    // a block when the stage is narrow, or when any word would not fit beside the stack (stages a little over 560px wide)
+    const beside=c=>(right?L-12-c.w:W-R-12-c.w)>=6;
+    if(W<560||!list.every(beside)){let y=top?B+10:T-10-list.reduce((n,c)=>n+c.h+6,0);list.forEach(c=>{c.x=12;c.y=y;y+=c.h+6})}
     else{
       list.forEach(c=>{c.x=right?L-12-c.w:R+12;c.y-=c.h/2;if(c.x<s.r+6&&s.l-6<c.x+c.w&&c.y<s.b+6&&s.t-6<c.y+c.h)c.y=s.b+6+c.h<H?s.b+6:s.t-6-c.h});
       list.sort((a,b)=>a.y-b.y).forEach((c,i)=>{if(i&&c.y<list[i-1].y+list[i-1].h+4)c.y=list[i-1].y+list[i-1].h+4;c.y=Math.max(6,Math.min(H-6-c.h,c.y))});
@@ -452,7 +458,7 @@
   // Under reduced motion both views are still pictures, and their notes say so
   if(reduceMotion.matches){
     document.querySelector('[data-hb-for="inside"]').textContent='Inside, shown still: each toast leaves when its bar runs out, and whenever the stack changes the others move to their new places; pointing at one pauses its bar.';
-    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, a moment into a change: Jumps has already moved every toast; Glides is still moving them into place.';
+    document.querySelector('[data-hb-for="compare"]').textContent=STILL_CMP;
   }
 </script>
 </body>
