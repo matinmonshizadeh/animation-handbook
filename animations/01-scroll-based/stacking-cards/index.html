@@ -86,6 +86,39 @@
     .card__visual{overflow:hidden}
     @media(max-width:600px){.card__content{grid-template-columns:1fr;grid-template-rows:1fr}.card__visual{display:none}.card__text{gap:6px}}
     @media(prefers-reduced-motion:reduce){.card__content{animation:none!important}}
+
+    /* See inside: a comb of dashed lines across the top of the box, one where each card stops (a strip lower each time),
+       bright once that card is stuck. Behind each card a faint dashed outline of its full size sits on the card's unscaled
+       wrapper, so it sticks and is covered with its card, and the gap beside the shrunken card is the shrink.
+       Compare: a plain list beside the real deck, scrolling together; the list is no taller than the deck. */
+    .lay,.copy,.tick,.cap,.mid{display:none}
+    .lay{position:sticky;top:0;height:0;z-index:30;pointer-events:none;--n:5}
+    .tick{position:absolute;left:0;right:0;top:calc(var(--i) * var(--peek));border-top:2px dashed rgba(110,168,255,.5)}
+    .tick.on{border-top-color:#8fbcff}
+    .cap{position:absolute;padding:5px 10px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.9);color:#f4f4f2;
+      border:1px solid rgba(244,244,242,.3);font:600 13px/1.2 var(--hb-font)}
+    /* the two labels sit below the comb, at the right where the cards have no text, the wider one first */
+    .in-b{top:calc((var(--n) - 1) * var(--peek) + 10px);right:8px;border-color:#ffd27a}
+    .in-a{top:calc((var(--n) - 1) * var(--peek) + 42px);right:8px;border-color:#8fbcff}
+    .cmp-a,.cmp-b{top:6px}
+    .cmp-a{right:calc(50% + 9px)}.cmp-b{right:8px}
+    .mid{position:absolute;left:calc(50% - 1px);width:2px;top:0;height:100cqh;background:rgba(244,244,242,.35)}
+    .copy{position:absolute;top:25cqh;left:0;width:calc(50% - 1px);--numcards:5;flex-direction:column;gap:10px}
+    .copy.short .card-body{display:none}
+    .copy.short .card__text{gap:6px}
+    .card{--end:calc(1 + var(--scale-step) - var(--scale-step) * var(--reverse-index))}
+    .stage[data-hb-mode="inside"] .lay,.stage[data-hb-mode="compare"] .lay{display:block}
+    .stage[data-hb-mode="inside"] .tick,.stage[data-hb-mode="inside"] .in-a,.stage[data-hb-mode="inside"] .in-b,
+    .stage[data-hb-mode="compare"] .cap.cmp-a,.stage[data-hb-mode="compare"] .cap.cmp-b,.stage[data-hb-mode="compare"] .mid{display:block}
+    .stage[data-hb-mode="inside"] .card.covered::after{content:"";position:absolute;left:0;right:0;bottom:0;top:calc(var(--index0) * var(--peek));
+      z-index:-1;border:2px dashed rgba(255,210,122,.95);border-radius:16px;background:rgba(255,210,122,.3);pointer-events:none}
+    .stage[data-hb-mode="compare"] .copy{display:flex}
+    .stage[data-hb-mode="compare"] #cards{margin-left:50%}
+    /* Reduced motion: nothing shrinks, so each covered card shows an inner outline of the size it would shrink to */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .card.covered::after{z-index:auto;left:calc((1 - var(--end)) / 2 * 100%);right:calc((1 - var(--end)) / 2 * 100%);
+        background:none;border-color:#b87800;border-radius:12px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -108,13 +141,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A stack of project cards">
+      <div class="lay" id="lay" aria-hidden="true" inert>
+        <span class="mid"></span><span id="ticks"></span>
+        <p class="cap in-a" data-hb-caption>Where each card stops</p>
+        <p class="cap in-b" data-hb-caption id="cap-full">Full size before it shrank</p>
+        <p class="cap cmp-a" data-hb-caption>Scroll past</p>
+        <p class="cap cmp-b" data-hb-caption>Stack up</p>
+      </div>
+      <div class="copy" id="copy" aria-hidden="true" inert></div>
       <div class="spacer"></div>
       <div id="cards"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed lines mark where each card stops, a strip lower than the last, and faint outlines show each covered card's full size. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>In Scroll past, cards go by like a plain list; in Stack up, each sticks at the top and the next slides over it, leaving a strip. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -213,13 +263,11 @@
   const motionMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
   let numCards=5,scaleStep=0.10,peekPx=14,useJsFallback=!supportsSDCA,ticking=false,currentCards=[];
   let contents=[],cardsTop=0,cardsH=1,lastScales=[];
+  const lay=document.getElementById('lay'),ticksEl=document.getElementById('ticks'),copyEl=document.getElementById('copy');
+  const capFull=document.getElementById('cap-full'),notes=document.querySelectorAll('.hb-mode-notes p');
+  let mode='normal',ticks=[],lit=[],cov=[],tops=[];
 
-  function buildCards(){
-    cardsEl.innerHTML='';cardsEl.style.setProperty('--numcards',numCards);currentCards=[];
-    ALL_CARDS.slice(0,numCards).forEach((d,i)=>{
-      const el=document.createElement('div');
-      el.className='card';el.style.setProperty('--index',i+1);
-      el.innerHTML=`<div class="card__content" style="--ac:${d.ac}">
+  const face=d=>`<div class="card__content" style="--ac:${d.ac}">
         <div class="card__text">
           <div class="card-num" aria-hidden="true">${d.num}</div>
           <div class="card-title">${d.title}</div>
@@ -228,8 +276,23 @@
           <div class="card-btn" aria-hidden="true">View project →</div>
         </div>
         <div class="card__visual" style="background:${d.vis}"></div></div>`;
+
+  function buildCards(){
+    cardsEl.innerHTML='';cardsEl.style.setProperty('--numcards',numCards);currentCards=[];
+    ALL_CARDS.slice(0,numCards).forEach((d,i)=>{
+      const el=document.createElement('div');
+      el.className='card';el.style.setProperty('--index',i+1);
+      el.innerHTML=face(d);
       cardsEl.appendChild(el);currentCards.push(el);
     });
+    // the plain list for Compare and the comb for See inside are rebuilt with the cards, from the same count
+    copyEl.innerHTML='';copyEl.style.setProperty('--numcards',numCards);
+    ticksEl.innerHTML='';lay.style.setProperty('--n',numCards);lit=[];cov=[];
+    ALL_CARDS.slice(0,numCards).forEach((d,i)=>{
+      const c=document.createElement('div');c.innerHTML=face(d);copyEl.appendChild(c.firstChild);
+      const t=document.createElement('i');t.className='tick';t.style.setProperty('--i',i);ticksEl.appendChild(t);
+    });
+    ticks=[...ticksEl.children];
     // run-out lives inside #cards so the last card can stay pinned to the end
     const runOut=document.createElement('div');runOut.className='run-out';
     cardsEl.appendChild(runOut);
@@ -247,7 +310,10 @@
     cardsTop=cardsEl.getBoundingClientRect().top-stage.getBoundingClientRect().top-stage.clientTop+stage.scrollTop;
     cardsH=Math.max(1,cardsEl.offsetHeight);
     // A card is the box less its 12px foot and the strips above the deepest one; on the shortest cards the one-line text hides
-    cardsEl.classList.toggle('short',stage.clientHeight-12-(numCards-1)*peekPx<170);
+    const short=stage.clientHeight-12-(numCards-1)*peekPx<170;
+    cardsEl.classList.toggle('short',short);copyEl.classList.toggle('short',short);
+    // where each card sticks: the scroll at which its box reaches the top
+    let y=cardsTop;tops=currentCards.map(c=>{const t=y;y+=c.offsetHeight;return t});
   }
 
   function update(){
@@ -261,13 +327,43 @@
         if(s!==lastScales[i]){contents[i].style.transform=`scale(${s})`;lastScales[i]=s}
       }
     }
+    // See inside: a comb line is bright once its card is stuck
+    // and a card shows its outline once the next one lies on it
+    if(mode==='inside'){
+      const y=stage.scrollTop+1;
+      ticks.forEach((t,i)=>{const on=y>=tops[i];if(on!==lit[i]){t.classList.toggle('on',on);lit[i]=on}});
+      currentCards.forEach((c,i)=>{const on=i<tops.length-1&&y>=tops[i+1];if(on!==cov[i]){c.classList.toggle('covered',on);cov[i]=on}});
+    }
     ticking=false;
   }
+
+  // The notes: the markup's own words for the default, other words for no edge and for reduced motion
+  const WORDS=[...notes].map(n=>n.textContent);
+  const NOTES={
+    inside0:'Inside, with no edge showing every card stops on the same line and hides the last; outlines show each card\'s full size as it is covered. Scroll the box or press Play to watch.',
+    compare0:'In Scroll past, cards go by like a plain list; in Stack up, each sticks at the top and the next slides over it and hides it. Scroll the box or press Play to watch.',
+    stillIn:'Shown without shrinking: the dashed lines mark where each card stops, a strip lower than the last; the inner outlines show how small each covered card would get.',
+    stillIn0:'Shown without shrinking: with no edge showing, every card stops on the same line, and the next one hides the last completely.',
+    stillCmp:'Without shrinking: in Scroll past, cards go by like a plain list; in Stack up, each sticks at the top and the next slides over it. Scroll the box or press Play to watch.',
+    stillCmp0:'Without shrinking: in Scroll past, cards go by like a list; in Stack up, each sticks and the next slides over and hides it. Scroll the box or press Play to watch.'
+  };
+  function describe(){
+    const rm=motionMQ.matches,none=peekPx===0;
+    notes[0].textContent=rm?(none?NOTES.stillIn0:NOTES.stillIn):(none?NOTES.inside0:WORDS[0]);
+    notes[1].textContent=rm?(none?NOTES.stillCmp0:NOTES.stillCmp):(none?NOTES.compare0:WORDS[1]);
+    capFull.textContent=rm?'How small it would get':'Full size before it shrank';
+  }
+  const LABELS={normal:stage.getAttribute('aria-label'),inside:'The stack of cards with a line where each card stops and the full size of each covered card',
+    compare:'The cards twice: scrolling past as a plain list, and stacking into a deck'};
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;stage.setAttribute('aria-label',LABELS[mode]);
+    ticks.forEach(t=>t.classList.remove('on'));lit=[];cov=[];update();
+  });
 
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
   let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{measure();update()},150)});
   // switching reduced motion on must clear the fallback's inline scales, or they would sit frozen on the cards
-  motionMQ.addEventListener('change',()=>{contents.forEach(c=>c.style.removeProperty('transform'));lastScales=lastScales.map(()=>-1);update()});
+  motionMQ.addEventListener('change',()=>{describe();contents.forEach(c=>c.style.removeProperty('transform'));lastScales=lastScales.map(()=>-1);update()});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -278,14 +374,14 @@
   }
   choices('peek-seg',d=>{
     peekPx=+d.peek;document.documentElement.style.setProperty('--peek',peekPx+'px');
-    measure();update();          // peek changes each card's height, so geometry moves
+    describe();measure();update();          // peek changes each card's height, so geometry moves
   });
   choices('shrink-seg',d=>{
     scaleStep=+d.step;document.documentElement.style.setProperty('--scale-step',scaleStep);
     lastScales=lastScales.map(()=>-1);update();
   });
   choices('count-seg',d=>{numCards=+d.count;buildCards()});
-  buildCards();
+  describe();buildCards();
 </script>
 </body>
 </html>
