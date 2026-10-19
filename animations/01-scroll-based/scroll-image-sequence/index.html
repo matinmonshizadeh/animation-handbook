@@ -29,6 +29,27 @@
     .track{height:340cqh}
     .pin{position:sticky;top:0;height:100cqh}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words over the canvas, in a column at the top left, above the strip, at the top of each
+       half and in a row along the bottom; the script places the strip's words and fits the cubes between them */
+    .cap,.capcol,.capfoot{display:none;position:absolute}
+    .cap{z-index:1;padding:4px 9px;border-radius:999px;background:rgba(4,6,12,.88);color:#f2f5fa;font:600 13px/1.25 var(--hb-font);
+      white-space:nowrap;pointer-events:none}
+    .capcol{left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:6px}
+    .capfoot{left:10px;right:10px;bottom:10px;flex-wrap:wrap-reverse;gap:6px}
+    .capcol .cap,.capfoot .cap{position:relative}
+    .stage[data-hb-mode="inside"] .si,.stage[data-hb-mode="compare"] .cm{display:block}
+    .stage[data-hb-mode="inside"] .capcol.si,.stage[data-hb-mode="compare"] .capfoot.cm{display:flex}
+    .si-count{font-variant-numeric:tabular-nums}
+    .cm-first,.cm-second{top:10px;left:10px}
+    .cm-second{left:calc(50% + 10px)}
+    .cm-glide{margin-left:auto}
+    /* A small key in front of the words: the accent square of the frame on show, the dashed one of the frame the scroll points at */
+    .cap.key{padding-left:27px}
+    .cap.key::before{content:"";position:absolute;left:9px;top:calc(4px + .625em - 6px);width:12px;height:12px;
+      background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Crect x='1' y='1' width='10' height='10' fill='none' stroke='%23f2f5fa' stroke-width='1.5' stroke-dasharray='3 2'/%3E%3C/svg%3E")}
+    .si-count.key::before{background:none;border:2px solid var(--ui-accent);border-radius:2px}
+    @container (max-width:479px){.si-glide span,.si-strip span{display:block}}
+    @container (max-width:399px){.cap{font-size:12px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -51,10 +72,24 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
-    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A picture sequence that plays as you scroll"><div class="track" id="track"><div class="pin"><canvas id="c" role="img" aria-label="A wireframe cube with a smaller shape inside, turning and opening out as you scroll"></canvas></div></div></div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage" id="stage" tabindex="0" role="region" aria-label="A picture sequence that plays as you scroll"><div class="track" id="track"><div class="pin"><canvas id="c" role="img" aria-label="A wireframe cube with a smaller shape inside, turning and opening out as you scroll"></canvas>
+      <div class="capcol si"><p class="cap si si-count key" aria-hidden="true" data-hb-caption>Frame 1 of 120</p><p class="cap si si-glide key" aria-hidden="true" data-hb-caption><span>Glides to the frame</span> <span>the scroll points at</span></p></div>
+      <p class="cap si si-strip" aria-hidden="true" data-hb-caption><span>One picture</span> <span>per frame</span></p>
+      <p class="cap cm cm-first" aria-hidden="true" data-hb-caption>24 frames</p><p class="cap cm cm-second" aria-hidden="true" data-hb-caption>120 frames</p>
+      <div class="capfoot cm"><p class="cap cm cm-ghost" aria-hidden="true" data-hb-caption>Faint: the neighboring frames</p><p class="cap cm cm-glide" aria-hidden="true" data-hb-caption>Both glide</p></div>
+    </div></div></div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the strip shows the pictures in order and the scroll picks one; with gliding on, the picture eases toward the frame the scroll points at. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>24 frames steps visibly from picture to picture while 120 frames looks smooth; the faint shapes are the neighboring frames. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -130,6 +165,17 @@ let targetFrame=0;                 // frame the scroll position points at
 let shownFrame=0;                  // frame currently drawn (lerps toward target)
 let drawn=-1;                      // frame now on the canvas; -1 when it has to be drawn again
 let W=0,H=0,DPR=1;
+// See inside and Compare. Compare's first half turns the same scroll into a sequence of Few frames (the page's own choice),
+// with its own target and shown frame, which follow the page's gliding rule
+const FEW=+document.querySelector('#frames-seg button').dataset.total;
+const few={target:0,shown:0};
+let mode='normal',lay=null;
+const $=s=>document.querySelector(s);
+const capCol=$('.capcol'),capCount=$('.si-count'),capGlide=$('.si-glide'),capStrip=$('.si-strip');
+const capFirst=$('.cm-first'),capSecond=$('.cm-second'),capFoot=$('.capfoot'),capBoth=$('.cm-glide');
+const noteIn=$('[data-hb-for="inside"]'),noteCm=$('[data-hb-for="compare"]');
+const FONT=getComputedStyle(stage).fontFamily;
+const REACH=3.2;                   // the most the cube and the shape inside reach from their center, in sizes, at any frame
 
 // --- Geometry: a cube + an inner octahedron, both wireframe -----------------
 const CUBE_V=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
@@ -144,6 +190,7 @@ function resize(){
   canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
   drawn=-1;                                  // resizing clears the canvas
+  layout();
 }
 function rotate(v,ax,ay){
   let [x,y,z]=v;
@@ -157,7 +204,7 @@ function project(v,cx,cy,s){
   const d=4.5, k=d/(d-v[2]);      // simple perspective divide
   return [cx+v[0]*s*k, cy+v[1]*s*k, v[2]];
 }
-function drawShape(verts,edges,rx,ry,explode,cx,cy,s){
+function drawShape(verts,edges,rx,ry,explode,cx,cy,s,d=1){   // d thins the lines and dots of a small copy
   const p=verts.map(v=>{
     const n=Math.hypot(v[0],v[1],v[2])||1;
     const ex=[v[0]+v[0]/n*explode, v[1]+v[1]/n*explode, v[2]+v[2]/n*explode]; // push out along its own direction
@@ -167,39 +214,144 @@ function drawShape(verts,edges,rx,ry,explode,cx,cy,s){
     const za=(p[a][2]+p[b][2])/2;              // depth for shading
     const alpha=0.28+0.62*((za+2.2)/4.4);
     ctx.strokeStyle='rgba(88,166,255,'+alpha.toFixed(3)+')';
-    ctx.lineWidth=1.4;
+    ctx.lineWidth=1.4*d;
     ctx.beginPath();ctx.moveTo(p[a][0],p[a][1]);ctx.lineTo(p[b][0],p[b][1]);ctx.stroke();
   }
   ctx.fillStyle='#cfe3ff';
-  for(const q of p){ctx.beginPath();ctx.arc(q[0],q[1],1.8,0,7);ctx.fill();}
+  for(const q of p){ctx.beginPath();ctx.arc(q[0],q[1],1.8*d,0,7);ctx.fill();}
 }
-// Draw one procedural "image" for a given frame index. Deterministic: same
+// Draw one procedural "image": frame f of a sequence of n frames, centered on cx,cy at size s. Deterministic: same
 // frame index always yields the same picture, so scrubbing reverses exactly.
-function drawFrame(f){
-  const t=TOTAL>1?f/(TOTAL-1):0;             // 0..1 through the sequence
-  ctx.clearRect(0,0,W,H);
-  const cx=W/2, cy=H/2, s=Math.min(W,H)*0.24;
+function drawSeq(f,n,cx,cy,s,d){
+  const t=n>1?f/(n-1):0;                     // 0..1 through the sequence
   const ry=t*Math.PI*3, rx=t*Math.PI*1.5;
   const explode=Math.sin(t*Math.PI)*0.9;     // implode → explode → implode
-  drawShape(CUBE_V,CUBE_E,rx,ry,explode,cx,cy,s);
-  drawShape(OCT_V,OCT_E,-rx*1.3,-ry*0.7,explode*0.5,cx,cy,s*0.62);
+  drawShape(CUBE_V,CUBE_E,rx,ry,explode,cx,cy,s,d);
+  drawShape(OCT_V,OCT_E,-rx*1.3,-ry*0.7,explode*0.5,cx,cy,s*0.62,d);
+}
+function drawFrame(f){ctx.clearRect(0,0,W,H);drawSeq(f,TOTAL,W/2,H/2,Math.min(W,H)*0.24);}
+
+// See inside: the cube drawn smaller, and along the bottom a strip of numbered frames, the one on show in the middle with
+// an accent border. While it glides, a dashed box marks the frame the scroll points at; when that frame is further on than
+// the strip shows, the box waits on the end cell with an arrow pointing on.
+function drawInside(f){
+  const L=lay,mid=(L.n-1)/2,y=L.y0,c=L.c;
+  ctx.clearRect(0,0,W,H);
+  drawSeq(f,TOTAL,L.cx,L.cy,L.s);
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(let i=0;i<L.n;i++){
+    const g=f+i-mid,x=L.x0+i*(c+L.g),on=g>=0&&g<TOTAL,w=i===mid?2:1;
+    if(on){
+      ctx.fillStyle='#0b1322';ctx.fillRect(x,y,c,c);
+      ctx.save();ctx.beginPath();ctx.rect(x,y,c,c);ctx.clip();drawSeq(g,TOTAL,x+c/2,y+c/2,L.ts,.75);ctx.restore();
+      ctx.font=(i===mid?'700 ':'600 ')+L.fs+'px '+FONT;ctx.fillStyle=i===mid?'#f2f5fa':'#9fb0c8';ctx.fillText(g+1,x+c/2,y+c+4);
+    }
+    ctx.lineWidth=w;ctx.strokeStyle=i===mid?'#6ea8ff':on?'rgba(159,176,200,.45)':'rgba(159,176,200,.2)';
+    ctx.strokeRect(x+w/2,y+w/2,c-w,c-w);
+  }
+  const words='Frame '+(f+1)+' of '+TOTAL;
+  if(capCount.textContent!==words)capCount.textContent=words;
+  if(!glides())return;
+  const want=mid+aim()-f,k=Math.max(0,Math.min(L.n-1,want)),x=L.x0+k*(c+L.g);
+  ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.strokeStyle='#f2f5fa';ctx.strokeRect(x+5,y+5,c-10,c-10);ctx.setLineDash([]);
+  if(want!==k){
+    const e=want>k?1:-1,ax=x+c/2+e*(c/2-9),ay=y+c/2;
+    ctx.fillStyle='#f2f5fa';ctx.beginPath();ctx.moveTo(ax+e*4,ay);ctx.lineTo(ax-e*3,ay-6);ctx.lineTo(ax-e*3,ay+6);ctx.fill();
+  }
+}
+// Compare: one canvas split down the middle, each half clipped to itself: the first half's sequence has Few frames, the
+// second the page's own. Behind each cube its two neighboring frames are drawn faint, so the gap between them is one step:
+// the two before it, or at the start of the sequence the nearest ones after it, so the step shows with the box at the top too.
+function drawCompare(f){
+  const hw=W/2;
+  ctx.clearRect(0,0,W,H);
+  [[Math.round(few.shown),FEW],[f,TOTAL]].forEach(([g,n],side)=>{
+    const cx=side*hw+hw/2;
+    ctx.save();ctx.beginPath();ctx.rect(side*hw,0,hw,H);ctx.clip();
+    for(const h of [g-1,g-2,g+1,g+2].filter(h=>h>=0&&h<n).slice(0,2).reverse()){ctx.globalAlpha=Math.abs(h-g)>1?.22:.42;drawSeq(h,n,cx,lay.cy,lay.s);}
+    ctx.globalAlpha=1;drawSeq(g,n,cx,lay.cy,lay.s);
+    ctx.restore();
+  });
+  ctx.fillStyle='#283041';ctx.fillRect(hw-1,0,2,H);
+}
+function glides(){return smoothEl.checked&&!reduce}
+// The frame the marker sits on: the one the scroll points at, or the one on show once the glide has arrived (it stops a
+// hair short of a target half-way between two frames, which would leave the marker a cell ahead for good)
+function aim(){return Math.abs(targetFrame-shownFrame)<1e-3?Math.round(shownFrame):Math.round(targetFrame)}
+// Draws what the mode shows, only when it changed: in See inside the marker's frame counts too, in Compare the first
+// half's frame (a number either way, as Normal's, which is the frame on show alone, as before)
+function paint(){
+  const idx=Math.round(shownFrame);
+  const key=mode==='normal'?idx:idx*1000+(mode==='compare'?Math.round(few.shown):glides()?aim()+1:0);
+  if(key===drawn)return;                     // a picture already on the canvas is not drawn again
+  if(mode==='inside')drawInside(idx);else if(mode==='compare')drawCompare(idx);else drawFrame(idx);
+  drawn=key;
+}
+
+// Where the parts of See inside and Compare go, from the box's size and the words' own size: 9, 7 or 5 cells as wide as fit
+// (a fifth of the box tall at most); the cube as big as fits beside or under the words above the strip at its widest frame,
+// so it never runs under the strip; Compare's cubes between the half names and the row along the bottom
+function layout(){
+  if(mode==='normal')return;
+  const M=10,P=3,box=canvas.getBoundingClientRect(),at=el=>{const r=el.getBoundingClientRect();return{r:r.right-box.left,t:r.top-box.top,b:r.bottom-box.top}};
+  if(mode==='inside'){
+    const n=W>=600?9:W>=440?7:5,g=W>=600?6:4,c=Math.min((W-2*M-(n-1)*g)/n,H*.2),x0=(W-n*c-(n-1)*g)/2,y0=H-M-20-c;
+    capStrip.style.left=x0+'px';capStrip.style.top=y0-6-capStrip.offsetHeight+'px';
+    const now=capCount.textContent;                 // the counter keeps the width of its longest words
+    capCount.style.minWidth='';capCount.textContent='Frame '+TOTAL+' of '+TOTAL;
+    capCount.style.minWidth=Math.ceil(capCount.getBoundingClientRect().width)+'px';capCount.textContent=now;
+    const cl=at(capCol),st=at(capStrip),left=Math.max(cl.r,st.r)+8,bot=y0-6;
+    let s=Math.min((bot-M)/2-P,(W-M-left)/2-P)/REACH,cx=Math.min(Math.max(W/2,left+REACH*s+P),W-M-REACH*s-P),cy=(M+bot)/2;
+    const s2=Math.min((st.t-cl.b-12)/2-P,W/2-M-P)/REACH;
+    if(s2>s){s=s2;cx=W/2;cy=(cl.b+st.t)/2;}
+    lay={n,g,c,x0,y0,s,cx,cy,ts:(c/2-2)/REACH,fs:parseFloat(getComputedStyle(capStrip).fontSize)};
+  }else{
+    const top=Math.max(at(capFirst).b,at(capSecond).b)+6,bot=at(capFoot).t-6;
+    lay={s:Math.min((bot-top)/2-P,W/4-P-2)/REACH,cy:(top+bot)/2};
+  }
+  drawn=-1;
+}
+
+// The words of both views, their notes and the names of the stage and its picture, for the frame count, the gliding switch
+// and reduced motion; the notes' words for the default state are the markup's own
+const IN_NOTE=noteIn.textContent,
+  IN_STILL='Inside, the strip shows the pictures in order and the scroll picks one; each frame is drawn straight away, as your device asks. Scroll the box or press Play to watch.',
+  CM_NOTE=n=>`${FEW} frames steps visibly from picture to picture while ${n} frames looks smooth; the faint shapes are the neighboring frames. Scroll the box or press Play to watch.`,
+  CM_STILL=n=>`Shown without gliding: in ${FEW} frames the faint neighboring frames sit far from the cube, in ${n} frames close to it, so the first steps visibly and the second looks smooth.`,
+  CM_SAME=`Number of frames is set to Few, so both halves have ${FEW} frames and step the same. Pick Normal or Many in Try it, then scroll the box or press Play to watch.`,
+  CM_SAME_STILL=`Shown without gliding; Number of frames is set to Few, so both halves have ${FEW} frames and step the same. Pick Normal or Many in Try it to see the difference.`;
+const NAMES={normal:[stage.getAttribute('aria-label'),canvas.getAttribute('aria-label')],
+  inside:['The picture sequence with a strip of its frames and the frame number','The cube drawn smaller above a strip of numbered frames, the one on show in the middle']};
+function put(el,words){if(el.textContent!==words)el.textContent=words}
+function describe(){
+  const gl=glides(),same=TOTAL===FEW;
+  capGlide.classList.toggle('key',gl);
+  if(capGlide.textContent!==(gl?'Glides to the frame the scroll points at':'Jumps straight to each frame'))
+    capGlide.innerHTML=gl?'<span>Glides to the frame</span> <span>the scroll points at</span>':'<span>Jumps straight</span> <span>to each frame</span>';
+  put(capBoth,gl?'Both glide':'Both jump');put(capSecond,TOTAL+' frames');
+  put(noteIn,reduce?IN_STILL:IN_NOTE);
+  put(noteCm,same?(reduce?CM_SAME_STILL:CM_SAME):reduce?CM_STILL(TOTAL):CM_NOTE(TOTAL));
+  NAMES.compare=same?[`The sequence twice, both with ${FEW} frames, each with faint copies of its neighboring frames`,`Two cubes side by side, both from ${FEW} frames, each with its neighboring frames drawn faint`]
+    :[`The sequence twice: with ${FEW} frames and with ${TOTAL}, each with faint copies of its neighboring frames`,`Two cubes side by side, from ${FEW} frames on the left and ${TOTAL} on the right, each with its neighboring frames drawn faint`];
+  stage.setAttribute('aria-label',NAMES[mode][0]);canvas.setAttribute('aria-label',NAMES[mode][1]);
+  layout();
 }
 
 function updateTarget(){
   const span=track.offsetHeight-stage.clientHeight;      // the stage is the scroll box
   const p=span>0?Math.min(Math.max((stage.scrollTop-track.offsetTop)/span,0),1):0;
   targetFrame=p*(TOTAL-1);
+  few.target=p*(FEW-1);
 }
 
 const EASE=0.18,FRAME=1000/60;     // EASE: the share of the distance covered in 1/60 s, so the glide lasts as long on any screen
 let raf=null,last=0;               // last: time of the previous frame; the loop never stops, so it is kept from frame to frame
 function loop(now=0){
   const dt=last?Math.min(now-last,50):FRAME;last=now;   // a long gap, such as a hidden tab, counts as 50 ms
-  const smoothing=smoothEl.checked&&!reduce;
-  if(smoothing) shownFrame+=(targetFrame-shownFrame)*(1-Math.pow(1-EASE,dt/FRAME));
-  else shownFrame=targetFrame;
-  const idx=Math.round(shownFrame);
-  if(idx!==drawn){drawFrame(idx);drawn=idx}  // a picture already on the canvas is not drawn again
+  const smoothing=glides(),k=1-Math.pow(1-EASE,dt/FRAME);
+  if(smoothing){shownFrame+=(targetFrame-shownFrame)*k;few.shown+=(few.target-few.shown)*k}
+  else{shownFrame=targetFrame;few.shown=few.target}
+  paint();
   raf=requestAnimationFrame(loop);
 }
 
@@ -213,16 +365,20 @@ function choices(id,pick){
 choices('frames-seg',d=>{
   const t=TOTAL>1?shownFrame/(TOTAL-1):0;    // the picture stays where it is; only its steps change
   TOTAL=+d.total;shownFrame=t*(TOTAL-1);drawn=-1;
-  updateTarget();
+  updateTarget();describe();
 });
+smoothEl.addEventListener('change',describe);
 stage.addEventListener('scroll',updateTarget,{passive:true});   // scroll fires for wheel AND touch
 // Back to top, and Play starting again from the top, jump the box: the picture jumps with it instead of playing backwards
-document.addEventListener('click',e=>{if(e.target.closest('#btn-top,#btn-scroll')){updateTarget();shownFrame=targetFrame}});
+document.addEventListener('click',e=>{if(e.target.closest('#btn-top,#btn-scroll')){updateTarget();shownFrame=targetFrame;few.shown=few.target}});
 addEventListener('resize',()=>{resize();updateTarget();});
-reduceMQ.addEventListener('change',e=>{reduce=e.matches});
+reduceMQ.addEventListener('change',e=>{reduce=e.matches;describe()});   // the words and notes follow too
 document.addEventListener('visibilitychange',()=>{drawn=-1});   // a browser may drop a hidden canvas's pixels
+// The mode switch: the mode's words, names and places, then its picture at once, for the frame on show now; nothing else changes
+document.addEventListener('hb:mode',e=>{mode=e.detail.mode;drawn=-1;describe();paint();});
+if(document.fonts)document.fonts.ready.then(()=>layout());     // the site font measures the words again once it is in
 
-resize();updateTarget();shownFrame=targetFrame;loop();
+resize();updateTarget();shownFrame=targetFrame;few.shown=few.target;describe();loop();
 </script>
 </body>
 </html>
