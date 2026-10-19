@@ -211,7 +211,7 @@
   // The live spring's damping for each size (row) and speed (column); it and the stiffness above were found by running its loop so that it goes about as far past its place as the planned path does
   const DAMPING=[[12.8,19.7,33.6],[10.6,17.4,29.7],[9.5,15.2,27.2]];
   const STEP=1/120,STEPS_MAX=8; // the live spring moves in steps of 1/120 s, and takes at most 8 of them in one frame
-  let current=0,animating=false,mode='css',size=1,speed=1,rafId=0,afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,mode='css',size=1,speed=1,rafId=0,afterMove=null,wayBack=0,runFrom=null,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -354,17 +354,20 @@
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // runFrom is the page the run started from, kept until the way back ends: a Show me pressed during a run (a second press, or the
+  // one a mode press sends) goes back to it first, not to the page the run was heading for
   function showMe(){
+    if(runFrom!==null){current=runFrom;updateNav(current)}
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{runFrom=null})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){runFrom=null;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A page already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;pose()});
+  document.addEventListener('hb:input',()=>{afterMove=null;runFrom=null;cancel(wayBack);wayBack=0;pose()});
 
   // CSS's ease at a share x of a keyframe step: the curve's own t for x found by halving, then its height there
   function ease(x){const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;let lo=0,hi=1,t=x;
