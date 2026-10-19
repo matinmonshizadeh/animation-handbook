@@ -214,7 +214,7 @@
   ];
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),shade=document.getElementById('shade'),flap=document.getElementById('flap'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let current=0,animating=false,dur=1000,way='both',k=.6,raf=0,afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,dur=1000,way='both',k=.6,raf=0,afterMove=null,wayBack=0,runFrom=null,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -284,6 +284,7 @@
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    if(raf){cancelAnimationFrame(raf);raf=0;area.classList.remove('turning')}
     animating=false;
     showPage(current);
     pose();
@@ -359,30 +360,41 @@
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // runFrom is the page the run started from, kept until the way back ends: a Show me pressed during a run (a second press, or the
+  // one a mode press sends) goes back to it first, not to the page the run was heading for
   function showMe(){
+    if(runFrom!==null){current=runFrom;updateNav(current);showTwin(current)}
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{runFrom=null})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){runFrom=null;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A turn already under way finishes on its own. After a click
   // or a wheel nothing is pending, so the pose comes back (a press is followed by its click, which may start a turn).
-  document.addEventListener('hb:input',e=>{afterMove=null;cancel(wayBack);wayBack=0;if(/click|wheel/.test(e.detail.type))pose()});
+  document.addEventListener('hb:input',e=>{afterMove=null;runFrom=null;cancel(wayBack);wayBack=0;if(/click|wheel/.test(e.detail.type))pose()});
+
+  // A key or a touch that is not followed by a click leaves nothing pending too: the pose comes back when it ends (a press that starts a
+  // turn has its click in the same task, and navigate() lifts the pose before anything is drawn)
+  ['keyup','pointerup','pointercancel','touchend'].forEach(t=>document.querySelector('.stage').addEventListener(t,pose));
 
   // See inside's drawing, from the numbers curl() used (g; null when the page lies flat): the corner's path as far as the box, a ring
   // where the corner lies flat, a dot where it is now and the line between them with its middle marked, the fold through that middle
   // from edge to edge, and the flap's outline. Compare shows only the ring.
   const dot=ci.querySelector('.c-dot'),mid=ci.querySelector('.c-mid'),ring=ci.querySelector('.c-ring');
   const spot=(el,q)=>{el.setAttribute('cx',q.x.toFixed(1));el.setAttribute('cy',q.y.toFixed(1))};
-  const attrs=(cls,a)=>ci.querySelectorAll('.'+cls).forEach(el=>{for(const key in a)el.setAttribute(key,a[key])});
+  const parts={};
+  const attrs=(cls,a)=>(parts[cls]||(parts[cls]=ci.querySelectorAll('.'+cls))).forEach(el=>{for(const key in a)el.setAttribute(key,a[key])});
+  let pathFor='',pathD=''; // the corner's path changes only with the box's size
   function draw(g){
     const w=g?g.w:area.clientWidth,h=g?g.h:area.clientHeight,on=!!(g&&g.flap&&g.flap.some(q=>q.x>.5)); // a flap left of the box: flat
-    let d='';
-    for(let i=0;i<=40;i++){const q=corner(w,h,i/80).c;d+=(i?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)}
-    attrs('c-path',{d});spot(ring,{x:w,y:h});spot(dot,on?g.c:{x:w,y:h});
+    if(pathFor!==w+'x'+h){
+      pathFor=w+'x'+h;pathD='';
+      for(let i=0;i<=40;i++){const q=corner(w,h,i/80).c;pathD+=(i?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)}
+      attrs('c-path',{d:pathD});
+    }spot(ring,{x:w,y:h});spot(dot,on?g.c:{x:w,y:h});
     ci.classList.toggle('flat',!on);
     if(!on)return;
     const {c,m,n}=g,t={x:-n.y,y:n.x};
