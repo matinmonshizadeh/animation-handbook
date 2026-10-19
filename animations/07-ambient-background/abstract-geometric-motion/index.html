@@ -25,6 +25,12 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#020408}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words on a dark backing over the picture, each in a fixed place (See inside's corners follow the pattern: data-at is t or b, then l or r) */
+    .lbl{display:none;position:absolute;padding:4px 9px;border-radius:999px;background:rgba(2,4,8,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .fl,.stage[data-hb-mode="compare"] .side{display:block}
+    .fl[data-at^="t"]{top:10px}.fl[data-at^="b"]{bottom:10px}.fl[data-at$="l"]{left:10px}.fl[data-at$="r"]{right:10px}
+    .side{top:10px}.side.first{left:10px}.side.second{left:calc(50% + 10px)}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +53,25 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <p class="lbl fl one" data-at="tl" aria-hidden="true" data-hb-caption>Each shape turns at its own pace</p>
+      <p class="lbl fl two" data-at="bl" aria-hidden="true" data-hb-caption>The longer the arrow, the faster</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Starts over</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Never restarts</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each arrow shows which way a shape turns and how fast: every shape keeps its own pace, slowest in the middle and fastest outside.</p>
+      <p data-hb-for="compare" hidden>Starts over jumps back to its first picture every few seconds, as its clock restarts. Never restarts runs on one clock that only grows, so it flows on.</p>
     </div>
   </section>
 
@@ -161,6 +180,8 @@
   let rings=[],ringT=0;         // the rings on screen, and the time the last one was sent out
   let barX=0,dashPhase=0;       // how far the bars and the dashes have traveled, so a Speed change never moves them
   let PRESET=0,SPD=0.6,CX=6,PAL='cool',CONTRAST=false;
+  // See inside and Compare. S: the size of the shapes and of the rings' growth, 1 in Normal and HS in Compare's halves; rc gives a new ring its color there (Normal draws it at random); worlds: Compare's two halves; posed: they show their posed moment.
+  let mode='normal',S=1,HS=1,rc=null,worlds=null,posed=false;
   const PALETTES={
     cool:c=>`hsla(${200+c*10},70%,65%,`,
     warm:c=>`hsla(${30+c*8},80%,60%,`,
@@ -174,7 +195,7 @@
     const cx=W/2,cy=H/2;
     for(let i=0;i<CX;i++){
       const n=3+i%5; // 3 to 7 sides
-      const r=30+i*20;
+      const r=(30+i*20)*S;
       const rot=t*(0.2+i*.08)+(i%2===0?0:Math.PI);
       ctx.beginPath();
       for(let j=0;j<=n;j++){const a=j/n*Math.PI*2+rot;ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}
@@ -243,17 +264,120 @@
     t+=dt;barX+=SPD*40*dt;dashPhase+=SPD*30*dt;
     if(PRESET!==1)return;
     const m=Math.max(W,H);
-    if(t-ringT>=.5){ringT=t;rings.push({r:0,c:Math.floor(Math.random()*CX)});}
+    if(t-ringT>=.5){ringT=t;rings.push({r:0,c:rc?rc():Math.floor(Math.random()*CX)});}
     rings=rings.filter(r=>r.r<m);
-    rings.forEach(r=>{r.r+=SPD*2*k;});
+    rings.forEach(r=>{r.r+=SPD*2*k*S;});
   }
-  // The whole picture for the current t; the canvas is painted over completely, so no trace of an earlier picture stays
+  // The whole picture for the current t; the canvas is painted over completely, so no trace of an earlier picture stays. See inside adds its marks on top; Compare draws its two halves instead.
   function draw(){
+    if(mode==='compare')return drawCompare();
     ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
-    if(PRESET===0)drawPolygons();
-    else if(PRESET===1)drawRings();
-    else if(PRESET===2)drawBars();
-    else drawLines();
+    pattern();
+    if(mode==='inside')drawInside();
+  }
+  function pattern(){[drawPolygons,drawRings,drawBars,drawLines][PRESET]();}
+
+  // See inside: marks over the pattern in white and gold, drawn from the numbers the pattern draws with, so they ride every frame and follow every setting; its two captions are page text in fixed corners. head() draws an arrowhead pointing at angle a.
+  const GOLD='#ffce5a',INK='rgba(244,244,242,.85)';
+  function head(x,y,a){ctx.moveTo(x-7*Math.cos(a-.5),y-7*Math.sin(a-.5));ctx.lineTo(x,y);ctx.lineTo(x-7*Math.cos(a+.5),y-7*Math.sin(a+.5));}
+  function drawInside(){
+    const cx=W/2,cy=H/2,caps=[capA,capB].map(c=>[c.offsetLeft-5,c.offsetTop-5,c.offsetLeft+c.offsetWidth+5,c.offsetTop+c.offsetHeight+5]);
+    const room=(x,y)=>x>5&&x<W-5&&y>5&&y<H-5&&!caps.some(([l,tp,r,b])=>x>l&&x<r&&y>tp&&y<b); // in the box, clear of the captions
+    ctx.save();ctx.setLineDash([]);ctx.lineWidth=1.5;ctx.lineCap=ctx.lineJoin='round';ctx.strokeStyle=GOLD;ctx.beginPath();
+    if(PRESET===0)for(let i=0;i<CX;i++){
+      // Polygons: just outside each shape, an arrow from a corner the way it turns, as far as it turns in four seconds: from its first corner, or, where that arrow would leave the box or meet a caption, from the corner behind it (and so on round); none where no corner has room
+      const n=3+i%5,R=37+i*20,rot=t*(.2+i*.08)+(i%2===0?0:Math.PI),sw=(.2+i*.08)*SPD*2.4,m=Math.ceil(R*sw/6);
+      for(let j=0;j<n;j++){
+        const a=rot-j*2*Math.PI/n,at=f=>[cx+R*Math.cos(a+sw*f),cy+R*Math.sin(a+sw*f)];
+        let fits=true;for(let s=0;s<=m&&fits;s++)fits=room(...at(s/m));
+        if(!fits)continue;
+        ctx.moveTo(...at(0));ctx.arc(cx,cy,R,a,a+sw);head(...at(1),a+sw+Math.PI/2);break;
+      }
+    }else if(PRESET===1){
+      // Rings: on the three newest rings that have room, an arrow out toward the bottom left corner, as far as a ring grows in a third of a second (all the same length); a bar as bright as a ring of each size, from the middle to the box's side; the dot where every ring starts
+      const L=SPD*2*20,d=Math.hypot(W,H),ux=-W/d,uy=H/d,g=ctx.createLinearGradient(cx,0,W,0);
+      [...rings].sort((p,q)=>p.r-q.r).slice(0,3).forEach(r=>{const f=r.r+3,e=f+L;
+        if(room(cx+ux*e,cy+uy*e)){ctx.moveTo(cx+ux*f,cy+uy*f);ctx.lineTo(cx+ux*e,cy+uy*e);head(cx+ux*e,cy+uy*e,Math.atan2(uy,ux));}});
+      ctx.stroke();
+      g.addColorStop(0,'rgba(244,244,242,.6)');g.addColorStop(1,`rgba(244,244,242,${.6*(1-(W-cx)/Math.max(W,H))})`);
+      ctx.fillStyle=g;ctx.fillRect(cx,cy-2,W-cx,4);
+      ctx.fillStyle=GOLD;ctx.beginPath();ctx.arc(cx,cy,5,0,7);ctx.fill();ctx.beginPath();
+    }else if(PRESET===2){
+      // Bars: each bar outlined where the page draws it; an arrow as far as they slide in eight seconds; the right edge, where a bar leaves, dashed; and the way back to the left edge along the bottom
+      ctx.strokeStyle=INK;
+      for(let i=0;i<CX;i++){const x=(barX+i*(W/CX)*1.1)%W,b=W/CX*.5;ctx.moveTo(x-b*.2,0);ctx.lineTo(x+b*.8,0);ctx.lineTo(x+b*.6,H);ctx.lineTo(x-b*.4,H);ctx.closePath();}
+      ctx.stroke();
+      const L=SPD*40*SPD*.01*480,y=H-46;
+      ctx.strokeStyle=GOLD;ctx.beginPath();ctx.moveTo(cx-L/2,cy);ctx.lineTo(cx+L/2,cy);head(cx+L/2,cy,0);
+      ctx.moveTo(W-9,y);ctx.lineTo(9,y);head(9,y,Math.PI);ctx.stroke();
+      ctx.setLineDash([5,6]);ctx.beginPath();ctx.moveTo(W-9,8);ctx.lineTo(W-9,y-6);
+    }else{
+      // Lines: a top line, the middle line and a low line traced faintly in full (the low one: the lowest whose bracket fits above the caption); on the middle line, an arrowhead just ahead of each colored dash, found by walking the line with the page's dash pattern; at the left edge, brackets as tall as the top and the low line's waves
+      const n=CX*2,i=CX,line=j=>{const yj=H*(j+.5)/n,aj=15+j*3,pj=j*.4+t*.8;return x=>yj+Math.sin(x/80+pj)*aj+Math.cos(x/120+pj*.7)*aj*.5;};
+      let a=0,b=n-1,s=0,next=((dashPhase-i*20+44)%100+100)%100;
+      while(H*(a+.5)/n-15-a*3<8)a++;
+      while(b>a&&H*(b+.5)/n+15+b*3>H-44)b--;
+      ctx.strokeStyle='rgba(244,244,242,.3)';ctx.lineWidth=1;
+      for(const j of new Set([a,i,b])){const yAt=line(j);ctx.moveTo(0,yAt(0));for(let x=4;x<=W;x+=4)ctx.lineTo(x,yAt(x));}
+      ctx.stroke();
+      ctx.strokeStyle=GOLD;ctx.lineWidth=1.5;ctx.beginPath();
+      for(let x=4,yAt=line(i),py=yAt(0);x<=W;x+=4){
+        const qy=yAt(x),d=Math.hypot(4,qy-py);
+        for(;next<=s+d;next+=100){const f=(next-s)/d;head(x-4+4*f,py+(qy-py)*f,Math.atan2(qy-py,4));}
+        s+=d;py=qy;
+      }
+      ctx.stroke();
+      ctx.strokeStyle=INK;ctx.beginPath();
+      for(const j of new Set([a,b])){const yj=H*(j+.5)/n,aj=15+j*3;ctx.moveTo(17,yj-aj);ctx.lineTo(10,yj-aj);ctx.lineTo(10,yj+aj);ctx.lineTo(17,yj+aj);}
+    }
+    ctx.stroke();ctx.restore();
+  }
+
+  // Compare: two worlds of their own side by side, each drawn as if the box were half as wide (on a narrow box the shapes and the rings' growth smaller, HS, so the middle-sized pattern still fits a half) and copied from Normal's at entry: its time, both counters, the rings and when the last ring started.
+  // Both take the same step each frame; Normal's own state waits in the page's variables, untouched. inWorld runs fn with a world in those variables.
+  const LAP=1.25,POSE=1.55; // the first half starts over each time its clock has run LAP: about every 3.5 seconds at Normal
+  function inWorld(w,fn){
+    const keep={t,barX,dashPhase,rings,ringT,W};
+    ({t,barX,dashPhase,rings,ringT}=w);W/=2;S=HS;
+    rc=()=>{const f=Math.sin(++w.n*91.7)*4375.85;return Math.floor((f-Math.floor(f))*CX);}; // a new ring's color, from its number
+    fn();
+    Object.assign(w,{t,barX,dashPhase,rings,ringT});
+    ({t,barX,dashPhase,rings,ringT,W}=keep);S=1;rc=null;
+  }
+  const copy=w=>({...w,rings:w.rings.map(r=>({...r}))});
+  // Entering Compare, and after a pattern or size change there, both worlds start at a posed moment, as if POSE had run since the picture on screen, in fixed steps of a 60th: the second has run on, the first started over LAP in and has run on from there. So the halves and their graphs differ at once, playing or paused, and the pose is the same on every screen.
+  function pose(){
+    HS=Math.min(1,(Math.min(W/2,H)/2-8)/130); // 130: the largest shape's size at the middle number of shapes
+    const e={t,barX,dashPhase,ringT,n:0,rings:rings.map(r=>({r:r.r*HS,c:r.c}))};
+    worlds=[POSE-LAP,POSE].map(u=>{const w=copy(e);inWorld(w,()=>{for(let i=Math.round(u/(SPD*.01));i>0;i--)advance(1);});return w;});
+    worlds[0].e=e;posed=true;
+  }
+  // One frame of Compare: both worlds take the same step, and the first goes back to its picture at entry once its clock has run LAP
+  function stepWorlds(k){
+    worlds.forEach(w=>inWorld(w,()=>advance(k)));
+    if(worlds[0].t-worlds[0].e.t>=LAP)worlds[0]=Object.assign(copy(worlds[0].e),{e:worlds[0].e});
+    if(k>0&&posed){posed=false;words();}
+  }
+  function drawCompare(){
+    const h=W/2;
+    ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+    worlds.forEach((w,side)=>{
+      ctx.save();ctx.beginPath();ctx.rect(side*h,0,h,H);ctx.clip();ctx.translate(side*h,0);
+      inWorld(w,pattern);clock(w,side,h);
+      ctx.restore();
+    });
+    ctx.fillStyle='#2a2b33';ctx.fillRect(h-1,0,2,H);
+  }
+  // A small graph of each half's clock over the last seven seconds of play, now at its right end, as steep as Speed: the first half's climbs and drops back each time it starts over; the second half's only grows (an arrow)
+  function clock(w,side,h){
+    const gw=Math.min(h-24,200),x0=(h-gw)/2,L=x0+8,B=H-19,iw=gw-16,ih=22,V=LAP*1.25,px=iw/420,py=ih/V,sg=SPD*.01;
+    ctx.setLineDash([]);ctx.fillStyle='rgba(2,4,8,.88)';ctx.strokeStyle='rgba(244,244,242,.16)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x0,H-48,gw,36,8);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(244,244,242,.35)';ctx.beginPath();ctx.moveTo(L,B);ctx.lineTo(L+iw,B);ctx.stroke();
+    ctx.strokeStyle=GOLD;ctx.lineWidth=1.5;ctx.lineJoin=ctx.lineCap='round';ctx.beginPath();
+    if(side){const x=Math.max(0,iw-V/sg*px);ctx.moveTo(L+x,B-(V-(iw-x)/px*sg)*py);ctx.lineTo(L+iw,B-ih);head(L+iw,B-ih,Math.atan2(-sg*py,px));}
+    else{let x=iw,v=w.t-w.e.t;ctx.moveTo(L+x,B-v*py);
+      for(;;){const back=v/sg*px;if(back>=x){ctx.lineTo(L,B-(v-x/px*sg)*py);break;}x-=back;ctx.lineTo(L+x,B);ctx.lineTo(L+x,B-LAP*py);v=LAP;}}
+    ctx.stroke();
   }
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. The first frame after a start has no earlier frame to measure from, so it adds no time; a long gap between frames (a background tab) counts for at most 50 ms. At most one picture is drawn per 16 ms.
   function loop(ts){
@@ -261,7 +385,8 @@
     if(lastT!==null&&ts-lastT<16)return;
     const dt=lastT===null?0:Math.min(ts-lastT,50);
     lastT=ts;
-    advance(dt/FRAME*(slowTog.checked?1/3:1));
+    const k=dt/FRAME*(slowTog.checked?1/3:1);
+    if(mode==='compare')stepWorlds(k);else advance(k);
     draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
@@ -270,6 +395,27 @@
     paused=e.detail.paused;
     if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+    words();
+  });
+  // What the captions and the notes say: See inside's for the pattern on show (the markup holds Polygons' words), and Compare's "Shown still" words only while it is paused on its posed moment (the markup's once it has run on, and after a later Pause)
+  const capA=stage.querySelector('.fl.one'),capB=stage.querySelector('.fl.two');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const SAY=[[capA.textContent,capB.textContent,noteIn.textContent,'tl','bl'],
+    ['A new ring starts at the dot, on a steady beat','Each ring fades as it grows','Inside, a new ring starts at the center on a steady beat; every ring grows at the same pace and fades as it spreads.','tl','br'],
+    ['All bars slide together','Out on the right, back in on the left','Inside, all the bars slide together at one pace; a bar that leaves on the right comes back in on the left, so the row never ends.','tl','bl'],
+    ['The dashes slide along each line','Each line waves more than the one above','Inside, the colored dashes slide along each wavy line, and each line waves a little more than the one above it.','tr','bl']];
+  const CMP=noteCmp.textContent,STILL='Shown still: Starts over has just jumped back, while Never restarts has carried on. The small graphs show each clock: one drops back, the other keeps growing.';
+  const put=(el,s)=>{if(el.textContent!==s)el.textContent=s;};
+  function words(){
+    const [a,b,n,pa,pb]=SAY[PRESET];
+    put(capA,a);put(capB,b);put(noteIn,n);capA.dataset.at=pa;capB.dataset.at=pb;
+    put(noteCmp,paused&&posed?STILL:CMP);
+  }
+  // The mode switch draws the mode at once, playing or paused: entering Compare poses its two worlds (pressing it again keeps them), and Normal finds its own state as it left it. Nothing here scrolls, takes focus, presses a control or changes Pause.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare')pose();
+    words();draw();
   });
   // Setting the canvas size wipes it, so a real change of the stage's size draws the picture again at once, playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
   function resize(){
@@ -279,6 +425,7 @@
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(mode==='compare')pose(); // the halves are posed again for their new size
     draw();
   }
 
@@ -289,20 +436,22 @@
       pick(b.dataset);
     }));
   }
-  // A setting that changes the picture draws it again at once, so the change shows even while the loop is paused (or is paused a moment later, before the next frame). Speed changes no picture: the bars and the dashes carry on from where they are, so it needs no drawing. Pressing the choice already made does nothing.
+  // A setting that changes the picture draws it again at once, so the change shows even while the loop is paused (or is paused a moment later, before the next frame). Speed changes no picture in Normal: the bars and the dashes carry on from where they are, so it needs no drawing (See inside's arrows and Compare's graphs follow it at once). Pressing the choice already made does nothing. In Compare a new pattern poses both halves again, and a new number of shapes recolors their rings as Normal's.
   choices('pat-seg',d=>{
     if(+d.idx===PRESET)return;
     PRESET=+d.idx;
     thickSetting.hidden=PRESET===2;   // Bars are filled shapes with no lines, so Thicker lines changes nothing there; it keeps its choice
     rings=[];
     if(PRESET===1)seedRings();
-    draw();
+    if(mode==='compare')pose();
+    words();draw();   // the captions first: See inside's marks keep clear of them
   });
-  choices('speed-seg',d=>{SPD=+d.spd;});
+  choices('speed-seg',d=>{SPD=+d.spd;if(mode!=='normal')draw();});
   choices('num-seg',d=>{
     if(+d.n===CX)return;
     CX=+d.n;
     recolor();   // the rings on screen take their colors from the new count at once
+    if(mode==='compare')[...worlds,worlds[0].e].forEach(w=>inWorld(w,recolor));
     draw();
   });
   choices('pal-seg',d=>{PAL=d.pal;draw();});
