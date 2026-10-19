@@ -25,6 +25,25 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#0b0b0d;touch-action:none}
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+    /* See inside and Compare: plain words over the canvas. See inside's key sits bottom left (top left when nothing is pinned, as
+       the cloth then lies on the floor), with a small canvas of its own for the two pushes. */
+    .key,.half{display:none}
+    .stage[data-hb-mode="inside"] .key{display:flex}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    .lbl{color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .key{position:absolute;left:10px;bottom:10px;flex-direction:column;align-items:flex-start;gap:5px;padding:8px 12px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(11,11,13,.88);pointer-events:none}
+    .key.nopin{bottom:auto;top:10px}.key.nopin .red{display:none}
+    .k{display:flex;align-items:center}
+    .k::before{content:"";flex:none;width:16px;height:2px;margin-right:8px;background:#e8ebf2}
+    .k.gold::before{height:3px;background:#f4b942}
+    .k.red::before{width:8px;height:8px;margin:0 12px 0 4px;border-radius:50%;background:#f85149;box-shadow:0 0 0 2px #161618,0 0 0 3.5px #f85149}
+    .push{position:relative;width:240px;height:72px}.push canvas{position:absolute;inset:0}
+    .push .lbl{position:absolute;left:calc(34% + 10px)}.wind{top:0}.grav{top:30px}
+    .half{position:absolute;top:6px;transform:translateX(-50%);padding:2px 9px;border-radius:999px;background:rgba(11,11,13,.88)}
+    .half.first{left:25%}.half.second{left:75%}
+    /* Phones and short stages: a smaller key, so it covers less of a cloth that hangs low */
+    @media(max-width:600px),(max-height:660px){.key{gap:4px;padding:6px 10px}.k.pts{display:none}.k{max-width:200px;white-space:normal;text-wrap:balance}.push{width:150px;height:52px}.grav{top:29px}}
+    @media(max-width:600px){.lbl{font-size:12px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +66,29 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Drag the cloth to pull it, or pause it to look closely.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="A piece of cloth swaying in the wind, which you can drag with a pointer or a finger"></canvas>
+      <div class="key" aria-hidden="true">
+        <p class="lbl k pts" data-hb-caption>Points joined by links of fixed length</p>
+        <p class="lbl k gold" data-hb-caption>Gold: a stretched link pulls its points back</p>
+        <p class="lbl k red" data-hb-caption>Red: pinned, they never move</p>
+        <div class="push"><canvas></canvas><p class="lbl wind" data-hb-caption>Wind</p><p class="lbl grav" data-hb-caption>Gravity</p></div>
+      </div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>No links</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>With links</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the cloth is points joined by links: wind and gravity push every point, then each link pulls its two points back to its length (gold where stretched). Red points are pinned.</p>
+      <p data-hb-for="compare" hidden>No links: the same points, pushed by the same wind and gravity, fall away from their pins, since nothing holds them; With links: the cloth hangs and folds. Press Reset to hang both again.</p>
     </div>
   </section>
 
@@ -166,6 +202,8 @@ let COLS=24,ROWS=18,GRAVITY=0.12,WIND=0.5,ITERS=4,PIN_MODE='top-corners';
 let SHOW_VERTS=false;
 let pts=[],prev=[],pinned=[],constraints=[];
 let dragIdx=-1,dragMouse={x:0,y:0};
+// See inside and Compare: the mode on show, and Compare's two cloths (null outside Compare) with their own wind clock and age
+let mode='normal',halves=null,cT=0,cAge=0;
 
 // Phones are screens up to 600px wide, or up to 500px tall when held sideways. They start at Low detail (16 × 12 points),
 // a coarser grid that means far fewer constraint solves per frame; the visitor can still pick more. Low is the Detail choice
@@ -187,8 +225,14 @@ function resize(){
 }
 
 // Hangs a fresh cloth and draws it, so a cloth that is paused (or not yet moving) is never an empty stage. With settle, 120 silent
-// physics steps run first, so a cloth shown still (at load, or while paused) already hangs.
+// physics steps run first, so a cloth shown still (at load, or while paused) already hangs. In Compare both halves hang again too.
 function initCloth(settle){
+  hang();
+  if(settle)for(let i=0;i<120;i++){windT+=16;update();}
+  if(halves)hangHalves(settle);else draw();
+}
+// A fresh flat grid, 80% as wide and 65% as tall as the world it hangs in (W by H), pinned as Hangs from says, with its links
+function hang(){
   const w=W*.8,h=H*.65;
   const ox=W*.1,oy=H*.1;
   const sw=w/COLS,sh=h/ROWS;
@@ -211,8 +255,6 @@ function initCloth(settle){
     if(c<COLS){const rest=Math.hypot(pts[n(r,c+1)][0]-pts[n(r,c)][0],pts[n(r,c+1)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r,c+1),rest]);}
     if(r<ROWS){const rest=Math.hypot(pts[n(r+1,c)][0]-pts[n(r,c)][0],pts[n(r+1,c)][1]-pts[n(r,c)][1]);constraints.push([n(r,c),n(r+1,c),rest]);}
   }}
-  if(settle)for(let i=0;i<120;i++){windT+=16;update();}
-  draw();
 }
 
 function update(){
@@ -244,22 +286,28 @@ function update(){
 }
 
 function draw(){
-  ctx.clearRect(0,0,W,H);
-  const n=(r,c)=>r*(COLS+1)+c;
+  if(halves)return drawHalves();
+  ctx.clearRect(0,0,W,H);drawCloth();
+  if(mode==='inside')drawInside();
+}
+// The cloth: its triangles, its mesh and, with Shows the points, every point (pinned ones red). cut (Compare's No links) leaves out
+// every triangle and line that touches a pinned point: drawn, they would stretch from the pin down to the fallen sheet.
+function drawCloth(cut){
+  const n=(r,c)=>r*(COLS+1)+c,off=cut?(i,j,k=j)=>pinned[i]||pinned[j]||pinned[k]:()=>false;
   // Fill cloth triangles
   for(let r=0;r<ROWS;r++){
     for(let c=0;c<COLS;c++){
       const a=pts[n(r,c)],b=pts[n(r,c+1)],cc=pts[n(r+1,c)],d=pts[n(r+1,c+1)];
       const hue=(c/COLS*40+r/ROWS*20);
       ctx.fillStyle=`hsla(${200+hue},60%,${30+r/ROWS*20}%,0.85)`;
-      ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();
-      ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(d[0],d[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();
+      if(!off(n(r,c),n(r,c+1),n(r+1,c))){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();}
+      if(!off(n(r,c+1),n(r+1,c+1),n(r+1,c))){ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(d[0],d[1]);ctx.lineTo(cc[0],cc[1]);ctx.closePath();ctx.fill();}
     }
   }
   // Mesh edges — one path, one stroke call per frame
   ctx.strokeStyle='rgba(88,166,255,.12)';ctx.lineWidth=.5;ctx.beginPath();
-  for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);}
-  for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);}
+  for(let r=0;r<=ROWS;r++)for(let c=0;c<COLS;c++)if(!off(n(r,c),n(r,c+1))){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r,c+1)][0],pts[n(r,c+1)][1]);}
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++)if(!off(n(r,c),n(r+1,c))){ctx.moveTo(pts[n(r,c)][0],pts[n(r,c)][1]);ctx.lineTo(pts[n(r+1,c)][0],pts[n(r+1,c)][1]);}
   ctx.stroke();
   // Vertices
   if(SHOW_VERTS){
@@ -286,8 +334,15 @@ function loop(ts){
   lastT=ts;
   behind+=Math.min(dt,50);
   let steps=0;
-  while(behind>=FRAME-1&&steps<3){windT+=FRAME;update();behind-=FRAME;steps++;}
+  while(behind>=FRAME-1&&steps<3){step();behind-=FRAME;steps++;}
   if(steps)draw();
+}
+// One fixed step of Normal's cloth (See inside's too) or, in Compare, of both halves with the same wind. Without links every point
+// gets the same push and No links ends flat on the floor or a wall, so both halves hang again every 300 steps (5 s), not while held.
+function step(){
+  if(!halves){windT+=FRAME;update();return;}
+  if(halves[1].drag<0&&++cAge>300)hangHalves(false);
+  cT+=FRAME;halves.forEach(o=>inWorld(o,update));
 }
 // Hangs a fresh cloth to the size of the stage (Detail, a resize) ...
 function rebuild(settle){resize();initCloth(settle);}
@@ -302,7 +357,99 @@ document.addEventListener('hb:pause',e=>{
   paused=e.detail.paused;
   if(paused){cancelAnimationFrame(raf);raf=null;}
   else resume();
+  notes();
 });
+
+// The mode switch draws the mode at once. See inside draws over Normal's own cloth, which goes on as it is; Compare hangs two cloths
+// of its own and leaves Normal's (points, held point, wind clock) untouched until it comes back (hung again after Hangs from, Detail
+// or a size change).
+const NAMES={normal:cvs.getAttribute('aria-label'),
+  inside:'The cloth as points joined by links: each link gold where it is stretched and pulls its points back, the pinned points red, with arrows for the push of the wind and of gravity',
+  compare:'Two cloths side by side: on the left, points with no links fall away from their pins; on the right, the linked cloth hangs and sways'};
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;
+  cvs.setAttribute('aria-label',NAMES[mode]);
+  if(mode!=='compare')halves=null;
+  else if(!halves){hangHalves(true);return;}
+  draw();
+});
+// Normal's own hang(), update(), drawing and grabbing run on one of Compare's cloths by taking Normal's place for a moment (points,
+// last points, pins, links, held point, pointer, size and wind clock); Normal's are then put back exactly.
+function inWorld(o,fn){
+  const was=[pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT];
+  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT]=[o.pts,o.prev,o.pinned,o.links,o.drag,o.mouse,o.w,o.h,cT];
+  fn();
+  [o.pts,o.prev,o.pinned,o.links,o.drag,o.mouse]=[pts,prev,pinned,constraints,dragIdx,dragMouse];
+  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT]=was;
+}
+// Compare's two cloths, each a world of its own: its half (W/2 wide, from just low enough that its pins clear the half's name), the
+// same Detail and pins, one wind clock; No links is the same grid with no links at all. As on arrival, they first take the page's
+// 120 settling steps from a wind clock at zero (the same still each time); Reset, Hangs from or Detail while playing hangs them flat.
+const names=stage.querySelectorAll('.half');
+function hangHalves(settle){
+  const lb=names[0].offsetTop+names[0].offsetHeight,top=Math.max(0,(lb+9-H*.1)/.9);
+  if(settle)cT=0;
+  cAge=settle?120:0;
+  halves=[0,1].map(i=>{const o={w:W/2,h:H-top,top,drag:-1,mouse:{x:0,y:0}};inWorld(o,hang);if(!i)o.links=[];return o;});
+  if(settle)for(let i=0;i<120;i++){cT+=16;halves.forEach(o=>inWorld(o,update));}
+  draw();
+}
+// Compare: one canvas split down the middle, each half clipped, a thin line between; both mark their pinned points red
+function drawHalves(){
+  const hw=W/2;ctx.clearRect(0,0,W,H);
+  halves.forEach((o,i)=>{ctx.save();ctx.beginPath();ctx.rect(i*hw,0,hw,H);ctx.clip();ctx.translate(i*hw,o.top);inWorld(o,()=>{drawCloth(!i);pinDots(4);});ctx.restore();});
+  ctx.fillStyle='#3a3c46';ctx.fillRect(hw-1,0,2,H);
+}
+function pinDots(r){ctx.fillStyle='#f85149';pts.forEach((p,i)=>{if(pinned[i]){ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fill();}});}
+// See inside, over the real cloth dimmed to about a third: every link bold, colored by how far it is stretched past its length now
+// (pale at its length, then three golds; one path and one stroke each), free points with Shows the points, pins red and ringed.
+const BANDS=['rgba(232,235,242,.6)','#ecd28f','#f4b942','#ff8f2e'];
+function drawInside(){
+  ctx.save();ctx.fillStyle='rgba(11,11,13,.66)';ctx.fillRect(0,0,W,H);
+  const paths=BANDS.map(()=>new Path2D());
+  for(const[a,b,rest]of constraints){
+    const s=Math.hypot(pts[b][0]-pts[a][0],pts[b][1]-pts[a][1])/rest-1,p=paths[s<.003?0:s<.01?1:s<.03?2:3];
+    p.moveTo(pts[a][0],pts[a][1]);p.lineTo(pts[b][0],pts[b][1]);
+  }
+  ctx.lineWidth=COLS>=40?1:1.5;ctx.lineCap='round';
+  paths.forEach((p,i)=>{ctx.strokeStyle=BANDS[i];ctx.stroke(p);});
+  if(SHOW_VERTS){ctx.fillStyle='rgba(88,166,255,.7)';pts.forEach((p,i)=>{if(!pinned[i]){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fill();}});}
+  ctx.strokeStyle='#f85149';ctx.lineWidth=1.5;
+  pts.forEach((p,i)=>{if(pinned[i]){ctx.beginPath();ctx.arc(p[0],p[1],8,0,Math.PI*2);ctx.stroke();}});
+  pinDots(5);ctx.restore();drawPushes();
+}
+// The key's two pushes on one scale, the push a point gets each step: from the wind of this step (it grows, shrinks and turns back)
+// and from gravity. The scale fits the strongest Wind both ways in the key's own canvas.
+const key=stage.querySelector('.key'),pushCvs=key.querySelector('canvas'),pctx=pushCvs.getContext('2d'),windCap=key.querySelector('.wind');
+const WMAX=Math.max(...[...document.querySelectorAll('#wind-seg button')].map(b=>+b.dataset.wind))*.8*.04;
+function drawPushes(){
+  const w=pushCvs.clientWidth,h=pushCvs.clientHeight,dpr=Math.min(window.devicePixelRatio||1,2),cw=Math.round(w*dpr),ch=Math.round(h*dpr);
+  if(!w)return;
+  if(pushCvs.width!==cw||pushCvs.height!==ch){pushCvs.width=cw;pushCvs.height=ch;}
+  pctx.setTransform(dpr,0,0,dpr,0,0);pctx.clearRect(0,0,w,h);pctx.fillStyle=pctx.strokeStyle='#f4f4f2';pctx.lineWidth=2.5;
+  const x=w*.34,y=windCap.offsetHeight+6,S=Math.min((x-6)/(WMAX*.7),(w-x-6)/(WMAX*1.3));
+  arrow(x,y,x+WIND*(Math.sin(windT*.0005)+.3)*.8*.04*S,y);arrow(x,y,x,y+GRAVITY*.08*S);
+  pctx.beginPath();pctx.arc(x,y,4,0,Math.PI*2);pctx.fill();
+}
+function arrow(x0,y0,x1,y1){
+  const len=Math.hypot(x1-x0,y1-y0),ux=(x1-x0)/len,uy=(y1-y0)/len,hd=Math.min(9,len*.7),hw=hd*.6;if(len<1)return;
+  pctx.beginPath();pctx.moveTo(x0,y0);pctx.lineTo(x1-ux*hd,y1-uy*hd);pctx.stroke();
+  pctx.beginPath();pctx.moveTo(x1,y1);pctx.lineTo(x1-ux*hd-uy*hw,y1-uy*hd+ux*hw);pctx.lineTo(x1-ux*hd+uy*hw,y1-uy*hd-ux*hw);pctx.closePath();pctx.fill();
+}
+// The notes as the markup writes them, Compare's while nothing is pinned, and the still ones under reduced motion while paused
+const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+const NOTES={inside:noteIn.textContent,compare:noteCmp.textContent,
+  stillIn:'Inside, shown still: the cloth is points joined by links; gold links are stretched and pull their points back, red points are pinned, and the arrows show the wind and gravity.',
+  stillCmp:'Shown still: No links has slid away from its pins, since nothing holds the points to them; With links hangs from them as a cloth.',
+  none:'Hangs from is set to Nothing, so No links and With links both fall. Pick a pin in Try it to see the links hold the cloth up.'};
+function notes(){
+  const still=paused&&matchMedia('(prefers-reduced-motion: reduce)').matches,put=(el,t)=>{if(el.textContent!==t)el.textContent=t;};
+  put(noteIn,still?NOTES.stillIn:NOTES.inside);
+  put(noteCmp,PIN_MODE==='none'?NOTES.none:still?NOTES.stillCmp:NOTES.compare);
+  key.classList.toggle('nopin',PIN_MODE==='none');
+}
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',notes);
+notes();
 
 rebuild(true);resume();
 
@@ -312,16 +459,19 @@ function getClosestVertex(x,y,maxDist=30){
   pts.forEach((p,i)=>{const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd&&d<maxDist){bd=d;best=i;}});
   return best;
 }
-const localPos=e=>{const r=cvs.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+// In Compare the pointer is read over the second half only, in that half's own place (a press on the first half grabs nothing)
+const localPos=e=>{const r=cvs.getBoundingClientRect(),o=halves&&halves[1];return{x:e.clientX-r.left-(o?W/2:0),y:e.clientY-r.top-(o?o.top:0)};};
+const held=fn=>halves?inWorld(halves[1],fn):fn();
 // Only the main button or a finger grabs the cloth; a right click would otherwise leave the hold on after its menu opens.
 stage.addEventListener('pointerdown',e=>{
   if(!e.isPrimary||e.button!==0)return;
-  dragMouse=localPos(e);dragIdx=getClosestVertex(dragMouse.x,dragMouse.y);
+  const p=localPos(e);
+  held(()=>{dragMouse=p;dragIdx=halves&&p.x<0?-1:getClosestVertex(dragMouse.x,dragMouse.y);});
   try{stage.setPointerCapture(e.pointerId);}catch(_){}
 });
 // The position is only recorded; the cloth follows it on the next frame that moves on, so a paused cloth stays still.
-stage.addEventListener('pointermove',e=>{if(dragIdx<0||!e.isPrimary)return;dragMouse=localPos(e);});
-const endDrag=e=>{if(e.isPrimary)dragIdx=-1;};
+stage.addEventListener('pointermove',e=>{if(!e.isPrimary)return;const p=localPos(e);held(()=>{if(dragIdx>=0)dragMouse=p;});});
+const endDrag=e=>{if(!e.isPrimary)return;dragIdx=-1;if(halves)halves[1].drag=-1;};
 ['pointerup','pointercancel','lostpointercapture'].forEach(type=>stage.addEventListener(type,endDrag));
 
 // A phone's address bar showing or hiding changes only the window's height, not the stage's, so nothing is hung again
@@ -335,17 +485,20 @@ function choices(id,pick){
   }));
 }
 // Choosing what is already chosen must not hang a fresh cloth again
-choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;initCloth(paused);});
-choices('wind-seg',d=>{WIND=+d.wind;});
-choices('stiff-seg',d=>{ITERS=+d.iters;});
-choices('grav-seg',d=>{GRAVITY=+d.grav;});
+choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;notes();initCloth(paused);});
+// Paused, Normal keeps its still; See inside draws its arrows again, and Compare hangs its halves again under the new setting
+const changed=()=>{if(paused&&halves)hangHalves(true);else if(paused&&mode==='inside')draw();};
+choices('wind-seg',d=>{WIND=+d.wind;changed();});
+choices('stiff-seg',d=>{ITERS=+d.iters;changed();});
+choices('grav-seg',d=>{GRAVITY=+d.grav;changed();});
 choices('detail-seg',d=>{
   const n=+d.cols;
   if(n===COLS)return;
   COLS=n;ROWS=Math.round(COLS*.75);rebuild(paused);
 });
 document.getElementById('verts-tog').addEventListener('change',e=>{SHOW_VERTS=e.target.checked;if(paused)draw();});
-document.getElementById('btn-reset').addEventListener('click',()=>initCloth(paused));
+// Reset hangs the cloth on show again: in Compare both halves, and Normal's cloth stays as it is
+document.getElementById('btn-reset').addEventListener('click',()=>halves?hangHalves(paused):initCloth(paused));
 </script>
 </body>
 </html>
