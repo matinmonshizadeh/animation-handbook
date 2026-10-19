@@ -54,6 +54,49 @@
     @container (max-width:759px) and (max-height:360px){.send,.send.at-top{top:50%;bottom:auto;left:16px;right:auto;transform:translateY(-50%)}.send.at-right{left:auto;right:16px}}
     /* Reduced motion: toasts come and go without movement, and the bar is hidden but keeps counting down, so it still ends the toast and hover and focus still pause it */
     @media(prefers-reduced-motion:reduce){.toast{transition:none!important}.toast .prog{visibility:hidden}}
+    /* See inside and Compare. The real button and toaster sit in a box (.half) that fills the stage, so Normal is as before; in Compare
+       that box is the second half and an inert copy is the first. Poses, the copy and the words show only in their modes. */
+    .half{position:absolute;inset:0}
+    .half.copy,.pose,.after,.cap,.live{display:none}
+    .copy .send{display:flex;align-items:center}
+    .copy .x{display:flex;align-items:center;justify-content:center}
+    .cap{position:absolute;left:0;top:0;z-index:6;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/17px var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.cmp,.stage[data-hb-mode="inside"] .live{display:block}
+    /* A pose: up to three toasts held in the corner while no real one is out (the page's own markup, no × button). The faded one leaves (top
+       corners) or arrives (bottom corners); the others are half way into their new places. */
+    .stage[data-hb-mode="inside"].posed .pose,.stage[data-hb-mode="compare"].posed .pose,.stage[data-hb-mode="compare"].posed .after{display:flex}
+    .pose .toast,.after .toast{transition:none;pointer-events:none}
+    .pose .prog,.after .prog{animation:none;transform:scaleX(var(--left));visibility:visible}
+    .pose .go{z-index:-1;opacity:.45}
+    .pose.bl .go,.pose.br .go{opacity:.6}
+    .pose .mv{translate:0 var(--off)}
+    .slot,.live.gap{position:absolute;border:1.5px dashed rgba(244,244,242,.6);border-radius:8px}
+    .arrow{position:absolute;width:2px;background:var(--ui-accent)}
+    .arrow::before{content:"";position:absolute;left:-5px;top:-3px;border:6px solid transparent;border-top:0;border-bottom:9px solid var(--ui-accent)}
+    .arrow.down{rotate:180deg}
+    .pose .arrow{right:20px;top:50%;height:var(--half);translate:0 -50%}
+    .pose .toast:not(.mv) .arrow,.stage[data-hb-mode="compare"] .pose .arrow{display:none}
+    /* In Compare the place the faded toast leaves (or comes to) is only a faint ghost */
+    .stage[data-hb-mode="compare"] .slot{border-color:rgba(244,244,242,.3)}
+    /* See inside: thicker bars, the timers that send each toast out */
+    .stage[data-hb-mode="inside"] .prog{height:4px}
+    /* Compare: the copy (left) and the real toaster (right), each a box whose short and narrow rules follow it; Send stays at its edge */
+    .stage[data-hb-mode="compare"] .half{container-type:size;overflow:hidden}
+    .stage[data-hb-mode="compare"] .half.copy{display:block;inset:0 calc(50% + 1px) 0 0}
+    .stage[data-hb-mode="compare"] .half.real{inset:0 0 0 calc(50% + 1px)}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 1px);width:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .send{top:auto;bottom:16px;left:50%;right:auto;transform:translateX(-50%);white-space:nowrap}
+    .stage[data-hb-mode="compare"] .send.at-top{top:16px;bottom:auto}
+    /* A narrow or short half holds a full stack of compact toasts: the title only (the message is still announced) */
+    @container (max-width:323px) or (max-height:360px){
+      .stage[data-hb-mode="compare"] .toast{padding:7px 44px 7px 8px;gap:6px}
+      .stage[data-hb-mode="compare"] .toast .ic{width:18px;height:18px;font-size:11px}
+      .stage[data-hb-mode="compare"] .toast .ms{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    }
+    @container (max-width:323px){.stage[data-hb-mode="compare"] .toaster{width:calc(100% - 8px)}.stage[data-hb-mode="compare"] .send{padding:0 12px}}
+    @container (max-width:160px){.stage[data-hb-mode="compare"] .toast .ic{display:none}}
+    /* A narrow stage: the words sit past the stack's free end, and may wrap */
+    @container (max-width:559px){.cap{font-size:12px;line-height:16px;white-space:normal;max-width:calc(100% - 24px)}.stage[data-hb-mode="inside"] .cap[data-k="limit"]{display:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -76,13 +119,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Send a toast, then tap or swipe it away early, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <button class="send" id="send" type="button">Send a toast</button>
-      <div class="toaster tr" id="toaster" role="status" aria-live="polite" aria-atomic="false"></div>
+      <div class="half real">
+        <button class="send" id="send" type="button">Send a toast</button>
+        <div class="toaster tr" id="toaster" role="status" aria-live="polite" aria-atomic="false"></div>
+      </div>
+      <p class="cap in" data-k="move" aria-hidden="true" data-hb-caption>Faded: its bar ran out, so it slides out</p>
+      <p class="cap in" data-k="glide" aria-hidden="true" data-hb-caption>Arrows: the others glide up into the gap</p>
+      <p class="cap in" data-k="bars" aria-hidden="true" data-hb-caption>Bars: each lasts about four seconds</p>
+      <p class="cap in" data-k="limit" aria-hidden="true" data-hb-caption>At most four at once: the oldest makes room</p>
+      <p class="cap cmp" data-k="a" aria-hidden="true" data-hb-caption>Jumps</p>
+      <p class="cap cmp" data-k="b" aria-hidden="true" data-hb-caption>Glides</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each toast leaves when its bar runs out, and whenever the stack changes the others glide to their new places; pointing at one pauses its bar. Send a toast, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Jumps: toasts pop in and vanish, and the stack jumps; Glides: they come and go smoothly, and the others glide to their new places. Send a toast, or press Show me.</p>
     </div>
   </section>
 
@@ -197,6 +257,7 @@
       const o=prev.get(t);if(o==null)return;
       const d=o-t.getBoundingClientRect().top;if(!d)return;
       t.animate({translate:[`0 ${d}px`,'0 0']},{duration:340,easing:'cubic-bezier(.22,1,.36,1)',composite:'add'});
+      if(mode==='inside'){const x=toaster.offsetLeft+t.offsetLeft;mark('arrow'+(d<0?' down':''),{l:corner.endsWith('r')?x-12:x+t.offsetWidth+10,t:toaster.offsetTop+t.offsetTop+(t.offsetHeight-Math.abs(d))/2,w:2,h:Math.abs(d)},d)}
     });
   }
   // The Send button, the visitor's taps and Show me all bring a toast in here; without a message it picks one at random.
@@ -213,29 +274,31 @@
     el.style.opacity='0';el.style.transform=away();
     const prev=snap();
     corner.startsWith('t')?toaster.appendChild(el):toaster.insertBefore(el,toaster.firstChild);
-    toasts.push(el);wire(el);
+    toasts.push(el);wire(el);copyIn(el,type,title,text);
     play(prev); // in the bottom corners the others rise to make room; in the top corners nothing moves
     void el.offsetWidth;
     if(reduceMotion.matches){el.style.opacity='1';el.style.transform='none'}
     else requestAnimationFrame(()=>{if(el._gone)return;el.style.opacity='1';el.style.transform='none'});
+    draw();
   }
   // Toasts leave together. Each slides out from where it stands but stops taking room in the stack at once (taken out of the flow at its measured
   // place, under the others), so the others, measured first, glide into the gap at once instead of waiting for the exit. The timer only removes the node.
   function leave(going,dir){
     going=going.filter(el=>el&&!el._gone);
     if(!going.length)return;
-    going.forEach(el=>{el._gone=true;const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1)});
-    if(reduceMotion.matches){going.forEach(el=>el.remove());return}
+    going.forEach(el=>{el._gone=true;const i=toasts.indexOf(el);if(i>-1)toasts.splice(i,1);if(el._copy)el._copy.remove()});
+    if(reduceMotion.matches){going.forEach(el=>el.remove());draw();return}
     const prev=snap(),top=corner.startsWith('t'),cs=getComputedStyle(toaster),gap=parseFloat(cs.rowGap)||0;
     const stack=[...toaster.children].filter(t=>t.style.position!=='absolute');
     // a leaving toast's place is its distance from the edge the stack is anchored to (top or bottom): padding, then the toasts before it and the gaps
     const spots=going.map(el=>{let at=parseFloat(top?cs.paddingTop:cs.paddingBottom);for(const t of stack){if(t===el)break;at+=parseFloat(getComputedStyle(t).height)+gap}return [at,getComputedStyle(el).width]});
+    if(mode==='inside')going.forEach(el=>mark('gap',{l:toaster.offsetLeft+el.offsetLeft,t:toaster.offsetTop+el.offsetTop,w:el.offsetWidth,h:el.offsetHeight}));
     going.forEach((el,i)=>{const [at,w]=spots[i];
       Object.assign(el.style,{position:'absolute',zIndex:-1,left:cs.paddingLeft,width:w,top:top?at+'px':'auto',bottom:top?'auto':at+'px',pointerEvents:'none',
         transition:'transform .3s cubic-bezier(.4,0,1,1),opacity .3s',opacity:'0',transform:away(dir)});
-      el._exit=setTimeout(()=>el.remove(),300);
+      el._exit=setTimeout(()=>{el.remove();draw()},300);
     });
-    play(prev);
+    play(prev);draw();
   }
   function dismiss(el,dir){leave([el],dir)}
   // Past the limit, the oldest leave (extra: room for the toast that is about to arrive)
@@ -271,7 +334,7 @@
   // Show me starts with no toasts on the stage: every one, the ones still leaving included, is taken away at once (no exit).
   function toRest(){
     toaster.querySelectorAll('.toast').forEach(el=>{el._gone=true;clearTimeout(el._exit);el.remove()});
-    toasts=[];
+    toasts=[];mirror.textContent='';
   }
   // Show me is one press of the stage's button. It leaves no timer behind (the toast it sends counts itself down and leaves
   // like any other), so there is nothing for hb:input to stop and no run to cancel.
@@ -282,7 +345,7 @@
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);draw();
     }));
   }
   choices('corner-seg',d=>{
@@ -292,6 +355,105 @@
   choices('style-seg',d=>{style=d.style});
   choices('time-seg',d=>{dur=+d.sec});
   choices('limit-seg',d=>{limit=+d.n;enforce()});
+
+  // See inside and Compare. Compare's first half is an inert copy of the toaster with a look-alike Send, made once: spawn() and
+  // leave() add and take away the same toasts in it at once, so its stack jumps. The poses are toasts held at one moment, shown
+  // while no real toast is out: See inside's (with its outline and arrows), which is also Compare's second half, and the copy's.
+  const half=send.parentElement,stage=half.parentElement,hoverMQ=matchMedia('(hover:hover)');
+  let mode='normal';
+  const make=(cls,html,parent)=>{const d=document.createElement('div');d.className=cls;d.innerHTML=html;parent.appendChild(d);return d};
+  const CARD='<div class="toast"><span class="ic"></span><div class="body"><div class="ti"></div><div class="ms"></div></div><span class="prog"></span>';
+  const copy=make('half copy','<span class="send">Send a toast</span>',stage),copySend=copy.firstChild,mirror=make('toaster','',copy);
+  const after=make('toaster after',(CARD+'</div>').repeat(3),copy),pose=make('toaster pose','<span class="slot"></span>'+(CARD+'<span class="arrow"></span></div>').repeat(3),half);
+  [copy,pose].forEach(el=>{el.inert=true;el.setAttribute('aria-hidden','true')});
+  const pt=[...pose.querySelectorAll('.toast')],at=[...after.querySelectorAll('.toast')],slot=pose.firstChild;
+  function copyIn(el,type,title,text){
+    const c=document.createElement('div');c.className='toast '+type;c.style.setProperty('--dur',dur+'s');
+    c.innerHTML=`<span class="ic">${ICON[type]}</span><div class="body"><div class="ti">${title}</div><div class="ms">${text}</div></div><span class="x">&times;</span><span class="prog"></span>`;
+    corner.startsWith('t')?mirror.appendChild(c):mirror.insertBefore(c,mirror.firstChild);el._copy=c;
+    // its bar stops whenever the real one does: a held finger (the paused class), the pointer over the toast or the focus in it
+    const hold=()=>c.classList.toggle('paused',el.classList.contains('paused')||el.matches(':focus-within')||hoverMQ.matches&&el.matches(':hover'));
+    ['pointerenter','pointerleave','pointerdown','pointerup','pointercancel','focusin','focusout'].forEach(t=>el.addEventListener(t,()=>setTimeout(hold)));
+  }
+  // See inside, while a change runs: a dashed outline where a toast left, and an arrow beside each toast that glides, as long as its glide
+  function mark(cls,b,d){
+    const m=document.createElement('span');m.className='live '+cls;half.appendChild(m);
+    Object.assign(m.style,{left:b.l+'px',top:b.t+'px',width:b.w+'px',height:b.h+'px'});
+    if(d)m.animate({translate:[`0 ${d}px`,'0 0']},{duration:340,easing:'cubic-bezier(.22,1,.36,1)'});
+    m.animate([{opacity:1},{opacity:1,offset:.6},{opacity:0}],{duration:900}).onfinish=()=>m.remove();
+  }
+  const POSE=[['ok','Saved','Your changes were published.'],['info','Synced','3 items synced across devices.'],['ok','Uploaded','profile.png finished uploading.']];
+  const SECS={2.5:'two and a half seconds',4:'about four seconds',6.5:'six and a half seconds'},NUM={2:'two',3:'three',4:'four'};
+  const cap=k=>stage.querySelector(`.cap[data-k="${k}"]`);
+  // A box in the stage's own frame (inside its border), as drawn
+  const rect=el=>{const s=stage.getBoundingClientRect(),r=el.getBoundingClientRect(),x=s.left+stage.clientLeft,y=s.top+stage.clientTop;return{l:r.left-x,t:r.top-y,r:r.right-x,b:r.bottom-y}};
+  function draw(){
+    const top=corner.startsWith('t');
+    mirror.className='toaster '+corner;after.className='toaster after '+corner;pose.className='toaster pose '+corner;copySend.className=send.className;
+    if(mode==='normal'){stage.classList.remove('posed');return}
+    const posed=!toaster.children.length;stage.classList.toggle('posed',posed);
+    // The pose. Top corners: the oldest's bar ran out, it leaves and the others glide up into its gap. Bottom corners, where the newest
+    // sits nearest the corner (and the oldest leaves from the far end, closing no gap): a new one comes in and the others rise to make
+    // room. Bars as if each toast came a second after the one before. Never more toasts than Most at once allows.
+    const order=top?[0,1,2]:[2,1,0],left=top?[0,1/dur,2/dur]:[1,(dur-1)/dur,(dur-2)/dur],n=Math.min(3,limit);
+    [pt,at].forEach(set=>set.forEach((t,i)=>{const m=POSE[order[i]];t.className='toast '+m[0]+(set===pt?(i?' mv':' go'):'');
+      t.querySelector('.ic').textContent=ICON[m[0]];t.querySelector('.ti').textContent=m[1];t.querySelector('.ms').textContent=m[2];t.style.setProperty('--left',left[i]);t.hidden=i>=n}));
+    if(top)at[0].hidden=true;
+    // the faded one a fifth of a toast out to the side (so its title shows in every corner), a little smaller, or in place
+    pt[0].style.transform=style==='scale'?`scale(${top?.92:.95})`:style==='fade'?'none':`translateX(${signX()*20}%)`;
+    cap('move').textContent=top?'Faded: its bar ran out, so it '+{slide:'slides out',fade:'fades out',scale:'shrinks away'}[style]:'Faded: a new one '+{slide:'slides',fade:'fades',scale:'grows'}[style]+' in at the corner';
+    cap('glide').textContent=top?'Arrows: the others glide up into the gap':'Arrows: the others rise to make room';
+    cap('bars').textContent='Bars: each lasts '+SECS[dur];
+    cap('limit').textContent=`At most ${NUM[limit]} at once: the oldest makes room`;
+    if(posed){const g=pt[0],h=(g.offsetHeight+(parseFloat(getComputedStyle(pose).rowGap)||0))*(top?.5:.3);
+      pose.style.setProperty('--half',h+'px');pose.style.setProperty('--off',(top?-h:h)+'px');
+      Object.assign(slot.style,{left:g.offsetLeft+'px',top:g.offsetTop+'px',width:g.offsetWidth+'px',height:g.offsetHeight+'px'})}
+    if(mode==='compare')return names();
+    // The words: posed, on its parts; with real toasts out, the bars and the limit
+    cap('move').hidden=cap('glide').hidden=!posed;
+    // posed toasts as drawn; real ones where they stand (a new one may still be sliding in)
+    const lay=t=>{const l=toaster.offsetLeft+t.offsetLeft,y=toaster.offsetTop+t.offsetTop;return{l,t:y,r:l+t.offsetWidth,b:y+t.offsetHeight}};
+    const parts=posed?pt.slice(0,n).map(rect):toasts.map(lay);
+    cap('bars').hidden=cap('limit').hidden=!parts.length;
+    if(!parts.length)return;
+    const T=Math.min(...parts.map(p=>p.t)),B=Math.max(...parts.map(p=>p.b)),mid=p=>(p.t+p.b)/2;
+    place([...(posed?[['move',mid(parts[0])],['glide',mid(parts[1])],['bars',rect(pt[n-1].querySelector('.prog')).b]]:[['bars',parts[0].b]]),['limit',top?B+16:T-16]],parts,T,B);
+  }
+  // Each word beside the stack, on its open side, at the height of what it names (never on another word or on Send); on a narrow
+  // stage, in a block past the stack's free end
+  function place(items,parts,T,B){
+    const W=stage.clientWidth,H=stage.clientHeight,top=corner.startsWith('t'),right=corner.endsWith('r'),s=rect(send);
+    const L=Math.min(...parts.map(p=>p.l)),R=Math.max(...parts.map(p=>p.r));
+    const list=items.map(([k,y])=>({el:cap(k),y})).filter(c=>c.el.offsetWidth).map(c=>Object.assign(c,{w:c.el.offsetWidth,h:c.el.offsetHeight}));
+    if(W<560){let y=top?B+10:T-10-list.reduce((n,c)=>n+c.h+6,0);list.forEach(c=>{c.x=12;c.y=y;y+=c.h+6})}
+    else{
+      list.forEach(c=>{c.x=right?L-12-c.w:R+12;c.y-=c.h/2;if(c.x<s.r+6&&s.l-6<c.x+c.w&&c.y<s.b+6&&s.t-6<c.y+c.h)c.y=s.b+6+c.h<H?s.b+6:s.t-6-c.h});
+      list.sort((a,b)=>a.y-b.y).forEach((c,i)=>{if(i&&c.y<list[i-1].y+list[i-1].h+4)c.y=list[i-1].y+list[i-1].h+4;c.y=Math.max(6,Math.min(H-6-c.h,c.y))});
+    }
+    list.forEach(c=>{c.el.style.left=c.x+'px';c.el.style.top=c.y+'px'});
+  }
+  // Compare's half names: at the top of each half beside the stack where there is room, else by its Send button
+  function names(){
+    const H=stage.clientHeight,top=corner.startsWith('t'),right=corner.endsWith('r');
+    [[cap('a'),copy,mirror,copySend],[cap('b'),half,toaster,send]].forEach(([el,box,tb,sb])=>{
+      const h=rect(box),t=rect(tb),s=rect(sb),w=el.offsetWidth,ht=el.offsetHeight,room=h.r-h.l-(t.r-t.l)>=w+20;
+      el.style.left=(room?(right?h.l+10:h.r-10-w):(h.l+h.r-w)/2)+'px';
+      el.style.top=(room?(top?10:H-10-ht):(top?s.t-8-ht:s.b+8))+'px';
+    });
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;draw();
+    // the copy's bars were not drawn outside Compare: they take up the real bars' time
+    if(mode==='compare')toasts.forEach(el=>{const a=el.querySelector('.prog').getAnimations()[0],b=el._copy&&el._copy.querySelector('.prog').getAnimations()[0];if(a&&b)b.currentTime=a.currentTime});
+  });
+  addEventListener('resize',draw);
+  if(document.fonts)document.fonts.ready.then(draw);
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(reduceMotion.matches){
+    document.querySelector('[data-hb-for="inside"]').textContent='Inside, shown still: each toast leaves when its bar runs out, and whenever the stack changes the others move to their new places; pointing at one pauses its bar.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, a moment into a change: Jumps has already moved every toast; Glides is still moving them into place.';
+  }
 </script>
 </body>
 </html>
