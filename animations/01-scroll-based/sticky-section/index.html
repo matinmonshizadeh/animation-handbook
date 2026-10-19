@@ -44,6 +44,67 @@
     /* Text column */
     #text-col{position:relative;height:100cqh;background:var(--bg)}
     @media(max-width:600px){#sticky-inner{grid-template-columns:1fr}#vis-col{display:none}}
+    /* A layer fixed to the box (sticky and no taller than a line, at the top of the scroll content) holds the labels the two
+       views draw. None of it, and none of the bars, badges or the Compare copy, is drawn in Normal. */
+    .fx{position:sticky;top:0;height:0;z-index:5;display:none;pointer-events:none}
+    .fx-box{position:absolute;left:0;top:0;width:100%;height:100cqh;overflow:hidden}
+    .fx-box>span,.bar,.badge,.cmp{display:none}
+    .bar{position:absolute;left:0;right:0;bottom:0;height:4px;overflow:hidden;background:rgba(255,255,255,.16)}
+    .bar i{display:block;height:100%;background:var(--c);transform:scaleX(0);transform-origin:left}
+    .cap{padding:3px 8px;border-radius:6px;background:#0b0b0d;border:1px solid rgba(255,255,255,.3);color:#f4f4f2;font:600 12px/1.25 var(--hb-font)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx{display:block}
+    .stage[data-hb-mode="inside"] .state-body{display:none}
+    /* See inside: the four steps fanned out on a diagonal, step 1 top left to step 4 bottom right, the pictures the same way */
+    .stage[data-hb-mode="inside"]{--cw:58.6%;--cs:13.4%;--ps:min(27cqh,112px,12.5cqw - 6px)}
+    .stage[data-hb-mode="inside"] :is(.state,.illus){--T:14px;--B:8px;--ch:60px;--v:calc((100cqh - var(--T) - var(--B) - var(--ch))/3)}
+    .stage[data-hb-mode="inside"] :is(.state,.illus):nth-child(1){--i:0;--c:#79c0ff}
+    .stage[data-hb-mode="inside"] :is(.state,.illus):nth-child(2){--i:1;--c:#56d364}
+    .stage[data-hb-mode="inside"] :is(.state,.illus):nth-child(3){--i:2;--c:#ffa657}
+    .stage[data-hb-mode="inside"] :is(.state,.illus):nth-child(4){--i:3;--c:#d2a8ff}
+    .stage[data-hb-mode="inside"] .state{inset:auto;left:calc(6px + var(--i)*var(--cs));top:calc(var(--T) + var(--i)*var(--v));width:calc(var(--cw) - 8px);height:var(--ch);
+      justify-content:flex-start;padding:5px 10px 6px;background:#17171c;border:1px solid rgba(255,255,255,.22);border-radius:10px;opacity:.5}
+    .stage[data-hb-mode="inside"] .state.visible{opacity:1;z-index:2;outline:2px solid var(--c);outline-offset:0}
+    .stage[data-hb-mode="inside"] .state-eye{letter-spacing:1px;margin-bottom:2px;line-height:1.15}
+    .stage[data-hb-mode="inside"] .state-head{font-size:14px;line-height:1.15;margin-bottom:0}
+    .stage[data-hb-mode="inside"] .bar{display:block;border-radius:0 0 9px 9px}
+    .stage[data-hb-mode="inside"][data-held] .state.visible .badge{display:block;position:absolute;top:-12px;right:6px;z-index:3;padding:0 7px}
+    .stage[data-hb-mode="inside"] .fx-box>.lbl-frame{display:block;position:absolute;top:6px;right:8px;max-width:34%;text-align:right}
+    .stage[data-hb-mode="inside"][data-held] .fx-box>.lbl-wait{display:block;position:absolute;left:8px;bottom:8px;max-width:34%}
+    .stage[data-hb-mode="inside"] .illus{--ch:var(--ps);left:calc(12px + var(--i)*((100% - var(--ps) - 24px)/3));top:calc(var(--T) + var(--i)*var(--v));width:var(--ps);padding:6px;
+      background:#17171c;border:1px solid rgba(255,255,255,.22);border-radius:10px;opacity:.5}
+    .stage[data-hb-mode="inside"] .illus.visible{opacity:1;z-index:2;outline:2px solid var(--c)}
+    .stage[data-hb-mode="inside"] .illus svg{width:100%;height:100%}
+    @media(min-width:601px){.stage[data-hb-mode="inside"] .fx-box>.lbl-frame{right:calc(50% + 8px);max-width:18%}
+      .stage[data-hb-mode="inside"][data-held] .fx-box>.lbl-wait{max-width:18%}
+      }
+    @container (max-height:299px){.stage[data-hb-mode="inside"] :is(.state,.illus){--T:11px;--B:4px}.stage[data-hb-mode="inside"] .state{--ch:52px;padding:3px 10px 5px}
+      .stage[data-hb-mode="inside"] .state-eye{font-size:11px;margin-bottom:1px}.stage[data-hb-mode="inside"] .state-head{font-size:13px;line-height:1.1}}
+    @container (min-height:361px){.stage[data-hb-mode="inside"] .state{--ch:66px}.stage[data-hb-mode="inside"] .state-head{font-size:15px}}
+    /* Compare: the wrapper becomes two columns, the four steps as ordinary blocks (not held) on the left, the page's own held
+       frame, still sticky in its column, on the right. The wrapper keeps its height, so the scroll keeps its length. */
+    .cmp{background:#0b0b0d}
+    .blk{height:100cqh;display:grid;grid-template-columns:1fr 1fr}
+    .blk+.blk{border-top:1px solid rgba(255,255,255,.16)}
+    .blk-w{position:relative;padding:max(40px,13cqh) 14px 0;min-width:0}
+    .blk-p{background:var(--ui-bg);display:flex;justify-content:center;align-items:flex-start;padding-top:12cqh}
+    .blk-p svg{width:60%;height:auto}
+    .blk-n{position:absolute;left:14px;bottom:10px;font-size:44px;font-weight:700;line-height:1;color:var(--c);opacity:.3}
+    .stage[data-hb-mode="compare"] #sticky-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:100%}
+    .stage[data-hb-mode="compare"] #sticky-wrap::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.45)}
+    .stage[data-hb-mode="compare"] .cmp{display:block}
+    .stage[data-hb-mode="compare"] #sticky-inner{align-self:start;min-width:0}
+    .stage[data-hb-mode="compare"] .state{justify-content:flex-start;padding:max(40px,13cqh) 14px 0}
+    .stage[data-hb-mode="compare"] .state-body{display:none}
+    .stage[data-hb-mode="compare"] .state-eye{letter-spacing:1px;margin-bottom:8px}
+    .stage[data-hb-mode="compare"] .state-head{font-size:clamp(15px,1.8vw,18px);line-height:1.2;margin-bottom:0}
+    .stage[data-hb-mode="compare"] .illus{top:12cqh;width:60%}
+    .stage[data-hb-mode="compare"] .illus svg{width:100%;height:100%}
+    .stage[data-hb-mode="compare"] .fx-box>.name{display:block;position:absolute;top:6px}
+    .stage[data-hb-mode="compare"] .fx-box>.n1{left:8px}
+    .stage[data-hb-mode="compare"] .fx-box>.n2{left:calc(50% + 8px)}
+    @media(max-width:600px){.blk{grid-template-columns:1fr}.blk-p{display:none}
+      .stage[data-hb-mode="compare"] .state,.blk-w{padding:max(40px,13cqh) 10px 0}.blk-n{left:10px}}
     @media(prefers-reduced-motion:reduce){.state,.illus{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -67,7 +128,20 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A section that holds still while its content changes">
+      <div class="fx" aria-hidden="true" inert>
+        <div class="fx-box">
+          <span class="cap lbl-frame" data-hb-caption>Moves with the page</span>
+          <span class="cap lbl-wait" data-hb-caption>The others wait, hidden</span>
+          <span class="cap name n1" data-hb-caption>Scrolls past</span>
+          <span class="cap name n2" data-hb-caption>Holds still</span>
+        </div>
+      </div>
       <p class="spacer">Scroll down ↓</p>
       <div id="sticky-wrap">
         <div id="sticky-inner">
@@ -138,6 +212,10 @@
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
     </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the four steps sit stacked in the frame, only the lit one showing; each bar fills during that step's share of the scroll. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Scrolls past shows the four steps as ordinary blocks going by; Holds still keeps the frame at the top while the steps change in place. Scroll the box or press Play to watch.</p>
+    </div>
   </section>
 
   <section class="hb-step hb-prompt-step" aria-labelledby="hb-prompt-title">
@@ -181,8 +259,26 @@
 <script>
   const stage=document.getElementById('stage'),wrap=document.getElementById('sticky-wrap');
   const states=[...document.querySelectorAll('.state')],illus=[...document.querySelectorAll('.illus')];
-  let ticking=false;
+  let ticking=false,mode='normal',lastHeld=null;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  // The views' own parts are added after the two lists above are taken, so update() still lights only the real steps:
+  // a bar and a badge on each step, and Compare's left half, four ordinary blocks that are inert and have no ids
+  states.forEach(s=>s.insertAdjacentHTML('beforeend','<span class="bar" aria-hidden="true"><i></i></span><span class="cap badge" data-hb-caption aria-hidden="true">Showing now</span>'));
+  const bars=states.map(s=>s.querySelector('.bar i')),frameLbl=stage.querySelector('.lbl-frame');
+  const cmp=document.createElement('div');cmp.className='cmp';cmp.inert=true;cmp.setAttribute('aria-hidden','true');
+  states.forEach((s,i)=>{
+    const eye=s.querySelector('.state-eye');
+    cmp.insertAdjacentHTML('beforeend','<div class="blk"><div class="blk-w"><span class="blk-n">0'+(i+1)+'</span></div><div class="blk-p"></div></div>');
+    const b=cmp.lastElementChild;b.style.setProperty('--c',eye.style.color);
+    b.firstElementChild.prepend(eye.cloneNode(true),s.querySelector('.state-head').cloneNode(true));
+    b.lastElementChild.append(illus[i].firstElementChild.cloneNode(true));
+  });
+  wrap.prepend(cmp);
+  const LABELS={
+    normal:'A section that holds still while its content changes',
+    inside:'The section\'s four steps fanned out from where they sit stacked, the one showing lit, each with a bar for its share of the scroll',
+    compare:'The four steps twice: as ordinary blocks that scroll past, and in a frame that holds still while they change'
+  };
 
   function update(){
     const st=stage.scrollTop,stageH=stage.clientHeight;
@@ -191,10 +287,24 @@
     const si=Math.min(Math.floor(p*4),3);
     states.forEach((s,i)=>s.classList.toggle('visible',i===si));
     illus.forEach((il,i)=>il.classList.toggle('visible',i===si));
+    if(mode==='inside'){
+      // each bar fills during its own quarter of the held scroll; the frame is held from pinStart to the end of the wrapper
+      bars.forEach((b,i)=>{b.style.transform='scaleX('+clamp(p*4-i,0,1)+')'});
+      const held=st>=pinStart-1&&st<=pinStart+pinH-stageH+1;
+      stage.toggleAttribute('data-held',held);
+      if(held!==lastHeld){frameLbl.textContent=held?'Held at the top':'Moves with the page';lastHeld=held}
+    }
     ticking=false;
   }
   function schedule(){if(!ticking){requestAnimationFrame(update);ticking=true}}
 
+  // Draws the mode at once, for where the box stands
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;lastHeld=null;
+    if(mode!=='inside')stage.removeAttribute('data-held');
+    stage.setAttribute('aria-label',LABELS[mode]);
+    update();
+  });
   stage.addEventListener('scroll',schedule,{passive:true});
   window.addEventListener('resize',schedule);
   update();
