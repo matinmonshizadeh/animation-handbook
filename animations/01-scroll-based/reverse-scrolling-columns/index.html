@@ -43,8 +43,52 @@
     .card-label{font-size:13px;color:var(--ui-text);letter-spacing:.3px}
     .card-meta{font-size:12px;color:var(--ui-muted);margin-top:2px}
 
-    @media(max-width:600px){.col-right{display:none}}
-    @media(prefers-reduced-motion:reduce){.col-inner{will-change:auto}}
+    .half{display:contents}
+    .col{position:relative}
+    .half.twin,.zoom,.carrow,.hname{display:none}
+    /* See inside: each column zoomed out so its two copies of the cards fit the box's height and stand still, with a window as big
+       as the box would be at that scale. The script slides the window and jumps it a copy; windows and start outlines move by
+       transform only, and labels are drawn at their own size. */
+    .stage[data-hb-mode="inside"] .columns{gap:0;justify-content:safe center}
+    .stage[data-hb-mode="inside"] .col{flex:none;width:calc(var(--zsw) + 18px);overflow:visible}
+    .stage[data-hb-mode="inside"] .col-mid{margin:0 88px 0 124px}
+    .stage[data-hb-mode="inside"] .col-inner{width:var(--zcw);transform-origin:0 0;will-change:auto}
+    .stage[data-hb-mode="inside"] .zoom{display:block;position:absolute;inset:0;pointer-events:none}
+    .zoom i,.zoom .zl{position:absolute}
+    .zc{left:0;top:0;width:var(--zsw);border:1px solid rgba(244,244,242,.6);border-radius:2px}
+    .zs,.zw{left:-3px;top:0;width:calc(var(--zsw) + 6px);border-radius:3px}
+    .zs{border:2px dashed rgba(244,244,242,.45)}
+    .zw{border:2px solid var(--ui-accent);background:rgba(110,168,255,.2)}
+    .zj{left:-7px;width:calc(var(--zsw) + 14px);height:2px;background:#f4f4f2}
+    .zoom .ar{left:calc(var(--zsw) + 8px);color:var(--ui-accent)}
+    .ar{position:absolute;width:10px;color:#aeaeb6}
+    .ar::before{content:"";position:absolute;left:3.5px;width:3px;top:0;bottom:0;border-radius:2px;background:currentColor}
+    .ar::after{content:"";position:absolute;left:0;top:0;border:0 solid transparent;border-width:0 5px 8px;border-bottom-color:currentColor}
+    .ar.dn::after{top:auto;bottom:0;border-width:8px 5px 0;border-bottom-color:transparent;border-top-color:currentColor}
+    .zl,.hname{padding:2px 6px;border-radius:4px;background:rgba(11,11,13,.92);border:1px solid rgba(244,244,242,.28);color:#f4f4f2;
+      font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .zl1,.zl2,.zlj{right:100%;margin-right:10px;transform:translateY(-50%)}
+    .zlb{left:calc(100% + 24px);top:50%;transform:translateY(-50%)}
+    .zl br{display:none}
+    /* Compare: the columns twice, side by side: a copy where every column moves up, and the page itself. An arrow tops each column. */
+    .stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:0}
+    .stage[data-hb-mode="compare"] .half{display:flex;gap:8px;min-width:0;position:relative;padding:30px 8px 0}
+    .stage[data-hb-mode="compare"] .half:not(.twin)::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:rgba(244,244,242,.22)}
+    .stage[data-hb-mode="compare"] .col{container-type:inline-size;overflow:visible clip}
+    .stage[data-hb-mode="compare"] .card-label{white-space:nowrap}
+    .stage[data-hb-mode="compare"] .carrow{display:flex;position:absolute;z-index:2;top:0;left:-1px;right:-1px;height:40px;align-items:center;
+      justify-content:center;background:#0b0b0d;border-bottom:1px solid var(--ui-border)}
+    .carrow .ar{position:relative}
+    .carrow .dn{color:var(--ui-accent)}
+    .stage[data-hb-mode="compare"] .hname{display:block;position:absolute;top:0;left:8px}
+    @container (max-width:200px){.stage[data-hb-mode="compare"] .card-meta{display:none}}
+    @container (max-width:120px){.stage[data-hb-mode="compare"] .card>div:last-child{display:none}.stage[data-hb-mode="compare"] .card{justify-content:center;padding:10px 0}}
+    @media(max-width:600px){.col-right{display:none}.zl br{display:inline}
+      .stage[data-hb-mode="inside"] .col-mid{margin:0 80px 0 100px}}
+    @media(prefers-reduced-motion:reduce){.col-inner{will-change:auto}
+      /* the windows stand on their starts, so no start outline is drawn */
+      .stage[data-hb-mode="inside"] .zs{display:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -67,17 +111,24 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Three columns of project cards">
       <div class="scene">
         <div class="columns">
-          <div class="col" aria-hidden="true">
-            <div class="col-inner" id="inner-left"></div>
-          </div>
-          <div class="col">
-            <div class="col-inner" id="inner-center"></div>
-          </div>
-          <div class="col col-right" aria-hidden="true">
-            <div class="col-inner" id="inner-right"></div>
+          <div class="half">
+            <div class="col" aria-hidden="true">
+              <div class="col-inner" id="inner-left"></div>
+            </div>
+            <div class="col col-mid">
+              <div class="col-inner" id="inner-center"></div>
+            </div>
+            <div class="col col-right" aria-hidden="true">
+              <div class="col-inner" id="inner-right"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -85,6 +136,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Each column holds its cards twice, and the box is a window sliding down the middle and up the sides, then jumping a copy. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>All one way moves every column up with the scroll, like a plain page; Sides reversed sends the side columns down against it. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -200,8 +255,10 @@
   const centerInner = document.getElementById('inner-center');
   const rightInner  = document.getElementById('inner-right');
   const motionMQ    = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const phoneMQ     = window.matchMedia('(max-width: 600px)');
+  const inners      = [leftInner, centerInner, rightInner];
 
-  [leftInner, centerInner, rightInner].forEach(el => {
+  inners.forEach(el => {
     el.appendChild(makeSet());
     // The second set only repeats the first so the column can loop, and the side columns repeat the middle one: a screen reader hears the twelve cards once
     el.appendChild(makeSet()).setAttribute('aria-hidden', 'true');
@@ -209,40 +266,162 @@
 
   // Side columns: dir -1 runs them the opposite way, +1 the same way; speed is their share of the middle column's.
   let dir = -1, speed = 1, mult = -1;
-  let ticking = false;
+  let ticking = false, mode = 'normal';
 
-  // Loop period = one card-set plus the 8px col-inner gap. Re-measured after
-  // the webfont lands and on resize, because card height changes with the font.
-  let singleSetH = 0;
+  // Loop period = one card-set plus the 8px col-inner gap. Re-measured after the webfont lands, on resize and on every mode
+  // change, because card height changes with the font and with the column's width (Compare's halves are narrower).
+  let singleSetH = 1, twinSetH = 1, colW = 0;
+
+  const el = (tag, cls, html) => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
+  const hide = e => { e.setAttribute('aria-hidden', 'true'); e.inert = true; return e; };
+  const ty = v => `translate3d(0,${v}px,0)`;
+
+  // Compare's left half: a copy of the columns, built once and without ids, in which every column moves up
+  const mainHalf = stage.querySelector('.half'), twinHalf = mainHalf.cloneNode(true);
+  twinHalf.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+  twinHalf.classList.add('twin');
+  mainHalf.before(hide(twinHalf));
+  const mainCols = [...mainHalf.querySelectorAll('.col')], twinCols = [...twinHalf.querySelectorAll('.col')];
+  const twinInners = twinCols.map(c => c.firstElementChild);
+
+  // See inside, over each column: its two copies, the window, the window's start, the line it jumps from and an arrow; the
+  // middle column carries the four labels
+  const zooms = mainCols.map((col, i) => {
+    const z = hide(el('div', 'zoom', '<i class="zc"></i><i class="zc"></i><i class="zs"></i><i class="zw"></i><i class="zj"></i><i class="ar"></i>'));
+    if (i === 1) {
+      z.insertAdjacentHTML('beforeend', '<p class="zl zl1" data-hb-caption>Copy 1</p><p class="zl zl2" data-hb-caption>Copy 2, <br>the same</p><p class="zl zlj" data-hb-caption>Jumps back <br>here</p>');
+      z.querySelector('.zw').innerHTML = '<p class="zl zlb" data-hb-caption>In the box</p>';
+    }
+    col.append(z);
+    return z;
+  });
+  const wins = zooms.map(z => z.querySelector('.zw'));
+
+  // Compare: an arrow on every column and a name on each half
+  [[twinCols, 'All one way'], [mainCols, 'Sides reversed']].forEach(([cols, name]) => {
+    cols.forEach(c => c.append(hide(el('i', 'carrow', '<b class="ar"></b>'))));
+    const n = hide(el('p', 'hname', name));
+    n.setAttribute('data-hb-caption', '');
+    cols[0].parentElement.append(n);
+  });
+
+  const PAD = 14;      // room above and below a zoomed column
+  const POSE = 0.22;   // Compare under reduced motion: how far into a loop both halves stand
+  const ARROW = 22;    // Compare's arrow on the middle column; a side column's is this times its speed
+  let zk = 1;          // how much See inside shrinks a column
 
   function measure() {
+    inners.concat(twinInners).forEach(e => { e.style.transform = 'none'; });
+    colW = (stage.clientWidth - 16 - 8 * (phoneMQ.matches ? 1 : 2)) / (phoneMQ.matches ? 2 : 3);
+    stage.style.setProperty('--zcw', colW + 'px');
     singleSetH = leftInner.children[0].getBoundingClientRect().height + 8;
+    if (mode === 'compare') twinSetH = twinInners[0].children[0].getBoundingClientRect().height + 8;
     // Moving down, the side columns are pre-offset so set A sits above the box
     // and set B starts visible. Moving up they start at their own top: the
     // pre-offset would leave up to a box of empty column below the last card.
-    const pre = mult < 0 ? `-${singleSetH}px` : '0px';
-    leftInner.style.marginTop  = pre;
-    rightInner.style.marginTop = pre;
+    // See inside holds every column still, so no pre-offset there.
+    leftInner.style.marginTop = rightInner.style.marginTop = mode !== 'inside' && mult < 0 ? `-${singleSetH}px` : '0px';
+  }
+
+  // Where a set's columns stand for a scroll of st: the middle one scrolls with the input, content travelling up; the sides:
+  // magnitude = speed, sign = direction (negative = down = reverse); all wrapped at one set's height P
+  function slide(cols, st, P, m) {
+    cols[1].style.transform = ty(-(st % P));
+    const off = (st * Math.abs(m)) % P;
+    cols[0].style.transform = cols[2].style.transform = ty(m >= 0 ? -off : off);
   }
 
   function update() {
-    const st = stage.scrollTop;
     ticking = false;
-
-    // Reduced motion: columns stay put, and switching it on mid-visit sets them back at rest
-    if (motionMQ.matches) { centerInner.style.transform = leftInner.style.transform = rightInner.style.transform = ''; return; }
-
-    // Center: scrolls with the input — content travels up as you scroll down
-    centerInner.style.transform = `translate3d(0,${-(st % singleSetH)}px,0)`;
-
-    // Sides: magnitude = speed, sign = direction (negative = down = reverse)
-    const sideRaw = st * Math.abs(mult);
-    const sideOff = sideRaw % singleSetH;
-    const sideY   = mult >= 0 ? -sideOff : sideOff;
-    leftInner.style.transform  = `translate3d(0,${sideY}px,0)`;
-    rightInner.style.transform = `translate3d(0,${sideY}px,0)`;
+    const still = motionMQ.matches;
+    if (mode === 'normal') {
+      // Reduced motion: columns stay put, and switching it on mid-visit sets them back at rest
+      if (still) inners.forEach(e => { e.style.transform = ''; });
+      else slide(inners, stage.scrollTop, singleSetH, mult);
+    } else if (mode === 'inside') {
+      // Each window is where the box is on its column: the middle one slides down; a side one slides up for Opposite way
+      // (from the top of copy 2 to the top of copy 1) and down for Same way. Reduced motion leaves them on their starts.
+      wins.forEach((w, i) => {
+        const m = i === 1 ? 1 : mult, off = ((still ? 0 : stage.scrollTop) * Math.abs(m)) % singleSetH;
+        w.style.transform = ty(PAD + (m >= 0 ? off : singleSetH - off) * zk);
+      });
+    } else {
+      slide(twinInners, still ? POSE * twinSetH : stage.scrollTop, twinSetH, speed);
+      slide(inners, still ? POSE * singleSetH : stage.scrollTop, singleSetH, mult);
+    }
   }
 
+  // See inside's picture: the real columns at one scale, set so both copies fit the box's height
+  function layoutInside() {
+    const hc = stage.clientHeight - 16, P = singleSetH;
+    zk = (hc - 2 * PAD) / (2 * P - 8);
+    const zs = P * zk, copy = (P - 8) * zk, win = hc * zk;
+    stage.style.setProperty('--zsw', colW * zk + 'px');
+    inners.forEach(e => { e.style.transform = `translate3d(0,${PAD}px,0) scale(${zk})`; });
+    zooms.forEach((z, i) => {
+      const side = i !== 1, up = side && dir < 0, len = (side ? speed : 1) * zs;   // up: the window travels up
+      const q = s => z.querySelector(s), [c1, c2] = z.querySelectorAll('.zc'), a = q('.ar');
+      c1.style.cssText = `top:${PAD}px;height:${copy}px`;
+      c2.style.cssText = `top:${PAD + zs}px;height:${copy}px`;
+      q('.zs').style.cssText = `height:${win}px;transform:${ty(PAD + (up ? P : 0) * zk)}`;
+      q('.zw').style.height = win + 'px';
+      // the line the window's top edge jumps from: the top of copy 2 going down, the top of copy 1 going up
+      q('.zj').style.top = (PAD + (up ? 0 : zs) - 1) + 'px';
+      // the arrow is as long as the window goes while the middle one goes one copy, from the strip's end the window leaves
+      a.className = 'ar ' + (up ? 'up' : 'dn');
+      a.style.cssText = `height:${len}px;top:${up ? PAD + 2 * zs - 8 * zk - len : PAD}px`;
+      if (!side) {
+        q('.zl1').style.top = (PAD + copy / 2) + 'px';
+        q('.zl2').style.top = (PAD + zs + copy / 2) + 'px';
+        q('.zlj').style.top = (PAD + zs) + 'px';
+      }
+    });
+  }
+
+  // Compare's arrows: the middle column goes up; a side column goes up on the left, and on the right down for Opposite way
+  function layoutCompare() {
+    [[twinCols, () => false], [mainCols, i => i !== 1 && dir < 0]].forEach(([cols, down]) => cols.forEach((c, i) => {
+      const b = c.querySelector('.carrow b');
+      b.style.height = Math.round(ARROW * (i === 1 ? 1 : speed)) + 'px';
+      b.className = 'ar ' + (down(i) ? 'dn' : 'up');
+    }));
+  }
+
+  const LABELS = {
+    normal:  'Three columns of project cards',
+    inside:  'Each column zoomed out to its two copies of the cards, with a window for what the box shows',
+    compare: 'The columns twice: all moving one way, and with the side columns reversed',
+  };
+  const insideNote  = document.querySelector('[data-hb-for="inside"]');
+  const compareNote = document.querySelector('[data-hb-for="compare"]');
+  // The notes follow Side columns go and reduced motion, so they stay true to the picture
+  const NOTES = {
+    inside:           ['Each column holds its cards twice, and the box is a window sliding down the middle and up the sides, then jumping a copy. Scroll the box or press Play to watch.',
+                       'Each column holds its cards twice, and with Same way picked the box is a window sliding down every column, then jumping a copy. Scroll the box or press Play to watch.',
+                       'Shown still: each column holds its cards twice, and the box is a window on it; the arrows show which way each window would slide before jumping a copy.'],
+    compare:          ['All one way moves every column up with the scroll, like a plain page; Sides reversed sends the side columns down against it. Scroll the box or press Play to watch.',
+                       'Side columns go is set to Same way, so All one way and Sides reversed match. Pick Opposite way in Try it, then scroll the box or press Play to watch.',
+                       'Shown still, part of the way down the box: in All one way every column has moved up, in Sides reversed the side columns have moved down.',
+                       'Shown still, part of the way down the box; Side columns go is set to Same way, so All one way and Sides reversed match. Pick Opposite way in Try it to see the difference.'],
+  };
+  function notes() {
+    const same = dir > 0, still = motionMQ.matches;
+    insideNote.textContent  = NOTES.inside[still ? 2 : same ? 1 : 0];
+    compareNote.textContent = NOTES.compare[still ? (same ? 3 : 2) : same ? 1 : 0];
+  }
+
+  function refresh() {
+    measure();
+    if (mode === 'inside') layoutInside(); else if (mode === 'compare') layoutCompare();
+    notes();
+    update();
+  }
+
+  document.addEventListener('hb:mode', e => {
+    mode = e.detail.mode;
+    stage.setAttribute('aria-label', LABELS[mode]);
+    refresh();
+  });
   stage.addEventListener('scroll', () => {
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
@@ -254,18 +433,17 @@
       pick(b.dataset);
     }));
   }
-  choices('dir-seg', d => { dir = +d.dir; mult = dir * speed; measure(); update(); });
-  choices('speed-seg', d => { speed = +d.speed; mult = dir * speed; update(); });
+  choices('dir-seg', d => { dir = +d.dir; mult = dir * speed; refresh(); });
+  choices('speed-seg', d => { speed = +d.speed; mult = dir * speed; refresh(); });
 
-  window.addEventListener('resize', () => { measure(); update(); });
+  window.addEventListener('resize', refresh);
   // Reduced motion switched on or off mid-visit: clear the movement, or take it up again from where the box is
-  motionMQ.addEventListener('change', update);
+  motionMQ.addEventListener('change', () => { notes(); update(); });
 
-  measure();
-  update();
+  refresh();
   // The site font can land after the first measure and change the card height, so measure again once the fonts are ready
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { measure(); update(); });
+    document.fonts.ready.then(refresh);
   }
 </script>
 </body>
