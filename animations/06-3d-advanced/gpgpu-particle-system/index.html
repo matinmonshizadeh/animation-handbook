@@ -488,16 +488,18 @@ function choose(b){
   return best;
 }
 // See inside's marks on the 2D canvas over the picture, cleared every drawn frame so Trails never smear them: an arrow for the
-// rule's push at every spot of a 48px grid but under a label or the ring (longer where it pushes harder), the square's frame, and
+// rule's push at every spot of a 48px grid but under a label or the ring (or with its head under a label) (longer where it pushes harder), the square's frame, and
 // the particle followed (f): a ring around its point, an outline around its pixel in the square and a line joining them
 function marks(t,b,f){
   if(marksCvs.width!==W||marksCvs.height!==H){marksCvs.width=W;marksCvs.height=H;}
   const c=mctx,k=DPR,G=48*k,top=H-b.y-b.s,ix=b.x+f.i+.5,iy=top+b.s-f.j-.5;
+  const under=(x,y,m)=>{for(const r of f.labels)if(x>r[0]-m&&x<r[2]+m&&y>r[1]-m&&y<r[3]+m)return true;return false;};
   c.clearRect(0,0,W,H);c.lineCap=c.lineJoin='round';c.beginPath();
   for(let gy=G/2;gy<H;gy+=G)for(let gx=G/2;gx<W;gx+=G){
-    if(gx>b.x-G/2&&gy<top+b.s+G/2||Math.hypot(gx-f.x,gy-f.y)<16*k||f.labels.some(r=>gx>r[0]&&gx<r[2]&&gy>r[1]&&gy<r[3]))continue;
+    if(gx>b.x-G/2&&gy<top+b.s+G/2||Math.hypot(gx-f.x,gy-f.y)<16*k||under(gx,gy,0))continue;
     const p=push(gx/W*2-1,1-gy/H*2,t),m=Math.hypot(p[0]*W,p[1]*H)||1,ux=p[0]*W/m,uy=-p[1]*H/m;
     const len=Math.min(38,Math.max(8,17*Math.pow(Math.hypot(p[0],p[1])/1.2e-4,.7)))*k,hx=gx+ux*len/2,hy=gy+uy*len/2;
+    if(under(hx,hy,7*k))continue; // an arrow whose head would sit under a label is left out too: no head-less stubs
     c.moveTo(gx-ux*len/2,gy-uy*len/2);c.lineTo(hx,hy);
     c.moveTo(hx-(ux*.85-uy*.53)*6*k,hy-(uy*.85+ux*.53)*6*k);c.lineTo(hx,hy);c.lineTo(hx-(ux*.85+uy*.53)*6*k,hy-(uy*.85-ux*.53)*6*k);
   }
