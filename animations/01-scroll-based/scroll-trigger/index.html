@@ -83,7 +83,7 @@
     .fx-in[data-z="2"] .ring::after{content:"";position:absolute;inset:4px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #000}
     /* The bars fill with the page's own follow value (the square) or count (the dots, the card's steps) */
     .trk,.bar-dots>i,.bar-card>i{border:2px solid #f4f4f2;background:#0b0b0d;border-radius:4px;overflow:hidden}
-    .trk{left:0;top:0;width:10px;height:90px}
+    .trk{left:0;top:0;width:10px;height:48px}
     .trk>i{position:absolute;inset:0;background:var(--ui-accent);transform-origin:50% 100%;transform:scaleY(0)}
     .bar-dots{left:0;top:0;width:106px;gap:4px}
     .bar-dots>i{flex:1;height:12px}
@@ -302,7 +302,8 @@
     CX[1] = mid(swatch); CX[3] = mid(dotRow);
     outl.style.cssText = `width:${reveal.offsetWidth + 12}px;height:${TEXT_H + 12}px`;
     const card = pinStep.parentNode;
-    CARD0 = top(card, 2); CARD_H = card.offsetHeight; HELD = parseFloat(getComputedStyle(card).top) || 0;
+    // the card's own place in the flow (offsetTop would include the shift while it is held): the first thing in its zone
+    CARD0 = ZT[2] + zones[2].clientTop + parseFloat(getComputedStyle(zones[2]).paddingTop); CARD_H = card.offsetHeight; HELD = parseFloat(getComputedStyle(card).top) || 0;
     CARD_END = ZT[2] + zones[2].clientTop + zones[2].clientHeight - parseFloat(getComputedStyle(zones[2]).paddingBottom);
     BAR_X = card.offsetLeft + card.offsetWidth + 8;
   }
@@ -365,10 +366,10 @@
     set('z', z, v => { fx.dataset.z = v + 1; say.textContent = SAY[v]; });
     if (z === 0) mv(outl, reveal.offsetLeft, TEXT - st);
     else if (z === 1) {
-      mv(ring, CX[1], SQUARE - st); mv(barSq, CX[1] + 90, SQUARE - st - 45);
+      mv(ring, CX[1], SQUARE - st); mv(barSq, CX[1] + 90, SQUARE - st - 58);
       barSq.firstChild.style.transform = `scaleY(${G.p2})`;
     } else if (z === 3) {
-      mv(ring, CX[3], ROW - st); mv(barDots, CX[3] - 53, ROW - st + 20);
+      mv(ring, CX[3], ROW - st); mv(barDots, CX[3] - 53, ROW - st - 32);
       [...barDots.children].forEach((d, i) => d.classList.toggle('lit', i < G.p4));
     } else {
       // the card sits where the page keeps it: held at HELD, but never below the end of its zone
