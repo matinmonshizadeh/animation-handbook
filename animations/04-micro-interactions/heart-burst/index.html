@@ -188,7 +188,7 @@
     dpr=Math.min(window.devicePixelRatio||1,2);
     cv.width=Math.round(stage.clientWidth*dpr);cv.height=Math.round(stage.clientHeight*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    if(mode!=='normal'){draw();place();}
+    if(mode!=='normal'){place();draw();}
   }
   resize();new ResizeObserver(resize).observe(stage);
 
@@ -334,8 +334,15 @@
   function trail(p){
     const pts=pathOf(p),[x,y]=pts[pts.length-1];
     ctx.lineWidth=1.25;ctx.strokeStyle=p.hue;ctx.globalAlpha=.4;ctx.beginPath();for(const [px,py] of pts)ctx.lineTo(px,py);ctx.stroke();
+    if(cut(x,y,5))return;
     ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.stroke();
   }
+  // The words on show (relative to the box), and whether one would cut a piece at x, y that reaches r from there
+  function words(){
+    const s=stage.getBoundingClientRect();
+    return [...stage.querySelectorAll('.cap')].filter(el=>el.offsetParent).map(el=>{const b=el.getBoundingClientRect();return {l:b.left-s.left,t:b.top-s.top,r:b.right-s.left,b:b.bottom-s.top}});
+  }
+  function cut(x,y,r){return words().some(k=>x+r>k.l&&x-r<k.r&&y+r>k.t&&y-r<k.b)}
   // The canvas at rest in a mode: the still's burst POSE steps in, each piece at its strength then, over every path of it in See
   // inside, in the second half only in Compare. A look only: liked, the count and a real burst's pieces are never touched.
   function draw(){
@@ -344,7 +351,7 @@
     const plan=still();
     ctx.save();
     if(mode==='compare')half();else plan.forEach(trail);
-    for(const p of plan){for(let n=0;n<POSE;n++)step(p,1,.98);dot(p)}
+    for(const p of plan){for(let n=0;n<POSE;n++)step(p,1,.98);if(!cut(p.x,p.y,p.size))dot(p)}
     ctx.restore();
   }
   // Puts the still on or takes it off at once (its class holds the heart filled and part-way into its pop)
@@ -356,7 +363,7 @@
     clearTimeout(poseTimer);poseTimer=0;
     if(mode!=='normal'&&!raf&&!running()){if(wait)poseTimer=setTimeout(()=>settle(0),wait);else pose(true)}
   }
-  function redraw(){if(posed)draw();place()}
+  function redraw(){place();if(posed)draw()}
   // See inside's words round the heart as it is now, 8px or more inside the box: the upward flight above it on the left, the rings'
   // beside them, the time (three times as long in Slow motion) below it on the right, and gravity's under the end of the still's
   // farthest path that ends low on the left inside the box (else in the lower left corner)
@@ -364,31 +371,40 @@
     const s=STEPS*FRAME*(slowTog.checked?3:1)/1000;
     capTime.textContent='All over in about '+(s<.9?'three quarters of a second':s<1.5?'a second':s<2.5?'two seconds':'three seconds');
     if(mode!=='inside')return;
-    const W=stage.clientWidth,H=stage.clientHeight,[x,y]=origin(),R=REACH*heart.clientWidth*HIGH,m=8;
-    const put=(el,w,left,top)=>{
+    const W=stage.clientWidth,H=stage.clientHeight,[x,y]=origin(),R=REACH*heart.clientWidth*HIGH,m=8,g=6;
+    const sb=stage.getBoundingClientRect(),cb=countEl.parentElement.getBoundingClientRect();
+    // what the words keep clear of, 6px apart: the outer ring, the like count, then each word placed
+    const used=[{l:x-R,t:y-R,r:x+R,b:y+R},{l:cb.left-sb.left,t:cb.top-sb.top,r:cb.right-sb.left,b:cb.bottom-sb.top}];
+    const clear=k=>used.every(u=>k.l-g>=u.r||k.r+g<=u.l||k.t-g>=u.b||k.b+g<=u.t);
+    // each word takes the first spot of its list that is clear (else the last), kept 8px inside the box
+    const put=(el,w,spots)=>{
       el.style.setProperty('--w',Math.max(w,100)+'px');
-      const ew=el.offsetWidth,eh=el.offsetHeight;
-      el.style.left=Math.max(m,Math.min(left(ew,eh),W-m-ew))+'px';el.style.top=Math.max(m,Math.min(top(ew,eh),H-m-eh))+'px';
+      const ew=el.offsetWidth,eh=el.offsetHeight;let k;
+      for(const [left,top] of spots){
+        const l=Math.max(m,Math.min(left(ew,eh),W-m-ew)),t=Math.max(m,Math.min(top(ew,eh),H-m-eh));
+        k={l,t,r:l+ew,b:t+eh};if(clear(k))break;
+      }
+      el.style.left=k.l+'px';el.style.top=k.t+'px';used.push(k);
     };
-    put(capRings,Math.min(250,W-m-x-R-12),()=>x+R+12,(w,h)=>y-h/2);
-    put(capUp,Math.min(250,x-16-m),w=>x-16-w,()=>m);
-    put(capTime,Math.min(320,W-m-x-16),()=>x+16,(w,h)=>H-m-h);
-    const e=still().map(p=>{const pts=pathOf(p);return pts[pts.length-1]}).filter(([ex,ey])=>ex<x-R&&ex>m+20&&ey>y+R&&ey<H-m-40).sort((a,b)=>a[0]-b[0])[0];
-    put(capEnd,Math.min(280,x-m),w=>e?e[0]-w/2:m,(w,h)=>e?e[1]+10:H-m-h);
+    put(capRings,Math.min(250,W-m-x-R-12),[[()=>x+R+12,(w,h)=>y-h/2]]);
+    put(capUp,Math.min(250,x-16-m),[[w=>x-16-w,()=>m]]);
+    put(capTime,Math.min(320,W-m-x-16),[[()=>x+16,(w,h)=>H-m-h]]);
+    const ends=still().map(p=>{const pts=pathOf(p);return pts[pts.length-1]}).filter(([ex,ey])=>ex<x-R&&ex>m+20&&ey>y+R&&ey<H-m-40).sort((a,b)=>a[0]-b[0]);
+    put(capEnd,Math.min(280,x-m),[...ends.map(([ex,ey])=>[w=>ex-w/2,()=>ey+10]),[()=>m,(w,h)=>H-m-h]]);
   }
   // The mode switch: the still at once when nothing goes on, the words placed. The shared script then presses Show me (not under
   // reduced motion), which plays a like from the arrival state. So leaving Normal keeps its own state (liked, the count, copies of
   // the pieces in the air), and Normal takes the still off and puts that state back as it was, a burst going on from where it was.
   document.addEventListener('hb:mode',e=>{
     const was=mode;mode=e.detail.mode;
-    if(mode!=='normal'){if(was==='normal')kept={liked,count,pieces:particles.map(p=>({...p}))};settle(0);place();return}
-    lift();
+    if(mode!=='normal'){if(was==='normal')kept={liked,count,pieces:particles.map(p=>({...p}))};place();settle(0);return}
+    btn.classList.remove('pop');lift();
     if(!kept)return;
     stopRun();({liked,count}=kept);particles=kept.pieces;kept=null;showState();
     if(particles.length&&!raf){last=null;raf=requestAnimationFrame(tick)}
   });
-  slowTog.addEventListener('change',place);
-  document.fonts.ready.then(place);
+  slowTog.addEventListener('change',redraw);
+  document.fonts.ready.then(redraw);
 </script>
 </body>
 </html>
