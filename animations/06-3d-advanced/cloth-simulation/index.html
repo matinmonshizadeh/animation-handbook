@@ -25,24 +25,24 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#0b0b0d;touch-action:none}
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-    /* See inside and Compare: plain words over the canvas. See inside's key sits bottom left (top left when nothing is pinned, as
-       the cloth then lies on the floor), with a small canvas of its own for the two pushes. */
+    /* See inside and Compare: plain words over the canvas. See inside's key sits bottom right, where the gold links seldom are (top right when nothing is pinned and the cloth
+       is falling to the floor), with a small canvas of its own for the two pushes. */
     .key,.half{display:none}
     .stage[data-hb-mode="inside"] .key{display:flex}
     .stage[data-hb-mode="compare"] .half{display:block}
     .lbl{color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
-    .key{position:absolute;left:10px;bottom:10px;flex-direction:column;align-items:flex-start;gap:5px;padding:8px 12px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(11,11,13,.88);pointer-events:none}
-    .key.nopin{bottom:auto;top:10px}.key.nopin .red{display:none}
+    .key{position:absolute;right:10px;bottom:10px;flex-direction:column;align-items:flex-start;gap:5px;padding:8px 12px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(11,11,13,.88);pointer-events:none}
+    .key.top{bottom:auto;top:10px}.key.nopin .red{display:none}.key.still .pts{display:none}.key.still{bottom:6px}
     .k{display:flex;align-items:center}
     .k::before{content:"";flex:none;width:16px;height:2px;margin-right:8px;background:#e8ebf2}
     .k.gold::before{height:3px;background:#f4b942}
     .k.red::before{width:8px;height:8px;margin:0 12px 0 4px;border-radius:50%;background:#f85149;box-shadow:0 0 0 2px #161618,0 0 0 3.5px #f85149}
-    .push{position:relative;width:240px;height:72px}.push canvas{position:absolute;inset:0}
-    .push .lbl{position:absolute;left:calc(34% + 10px)}.wind{top:0}.grav{top:30px}
+    .push{position:relative;width:150px;height:52px}.push canvas{position:absolute;inset:0}
+    .push .lbl{position:absolute;left:calc(34% + 10px)}.wind{top:0}.grav{top:29px}
     .half{position:absolute;top:6px;transform:translateX(-50%);padding:2px 9px;border-radius:999px;background:rgba(11,11,13,.88)}
     .half.first{left:25%}.half.second{left:75%}
     /* Phones and short stages: a smaller key, so it covers less of a cloth that hangs low */
-    @media(max-width:600px),(max-height:660px){.key{gap:4px;padding:6px 10px}.k.pts{display:none}.k{max-width:200px;white-space:normal;text-wrap:balance}.push{width:150px;height:52px}.grav{top:29px}}
+    @media(max-width:600px),(max-height:660px){.key{gap:4px;padding:6px 10px}.k.pts{display:none}.k{max-width:200px;white-space:normal;text-wrap:balance}}
     @media(max-width:600px){.lbl{font-size:12px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -374,13 +374,13 @@ document.addEventListener('hb:mode',e=>{
   draw();
 });
 // Normal's own hang(), update(), drawing and grabbing run on one of Compare's cloths by taking Normal's place for a moment (points,
-// last points, pins, links, held point, pointer, size and wind clock); Normal's are then put back exactly.
+// last points, pins, links, held point, pointer, size, wind clock and columns); Normal's are then put back exactly.
 function inWorld(o,fn){
-  const was=[pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT];
-  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT]=[o.pts,o.prev,o.pinned,o.links,o.drag,o.mouse,o.w,o.h,cT];
+  const was=[pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT,COLS];
+  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT,COLS]=[o.pts,o.prev,o.pinned,o.links,o.drag,o.mouse,o.w,o.h,cT,o.cols];
   fn();
   [o.pts,o.prev,o.pinned,o.links,o.drag,o.mouse]=[pts,prev,pinned,constraints,dragIdx,dragMouse];
-  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT]=was;
+  [pts,prev,pinned,constraints,dragIdx,dragMouse,W,H,windT,COLS]=was;
 }
 // Compare's two cloths, each a world of its own: its half (W/2 wide, from just low enough that its pins clear the half's name), the
 // same Detail and pins, one wind clock; No links is the same grid with no links at all. As on arrival, they first take the page's
@@ -390,7 +390,9 @@ function hangHalves(settle){
   const lb=names[0].offsetTop+names[0].offsetHeight,top=Math.max(0,(lb+9-H*.1)/.9);
   if(settle)cT=0;
   cAge=settle?120:0;
-  halves=[0,1].map(i=>{const o={w:W/2,h:H-top,top,drag:-1,mouse:{x:0,y:0}};inWorld(o,hang);if(!i)o.links=[];return o;});
+  // On phones each half gets half the work: half the columns, so its points are as far apart as Normal's and both halves together cost what Normal does
+  const cols=PHONE.matches?Math.round(COLS/2):COLS;
+  halves=[0,1].map(i=>{const o={w:W/2,h:H-top,top,cols,drag:-1,mouse:{x:0,y:0}};inWorld(o,hang);if(!i)o.links=[];return o;});
   if(settle)for(let i=0;i<120;i++){cT+=16;halves.forEach(o=>inWorld(o,update));}
   draw();
 }
@@ -447,6 +449,7 @@ function notes(){
   put(noteIn,still?NOTES.stillIn:NOTES.inside);
   put(noteCmp,PIN_MODE==='none'?NOTES.none:still?NOTES.stillCmp:NOTES.compare);
   key.classList.toggle('nopin',PIN_MODE==='none');
+  key.classList.toggle('top',PIN_MODE==='none'&&!paused);key.classList.toggle('still',PIN_MODE==='none'&&paused); // nothing pinned: the cloth falls to the floor while playing (key on top); shown still it hangs mid-air, clear of the bottom
 }
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',notes);
 notes();
@@ -487,7 +490,8 @@ function choices(id,pick){
 // Choosing what is already chosen must not hang a fresh cloth again
 choices('pin-seg',d=>{if(d.pin===PIN_MODE)return;PIN_MODE=d.pin;notes();initCloth(paused);});
 // Paused, Normal keeps its still; See inside draws its arrows again, and Compare hangs its halves again under the new setting
-const changed=()=>{if(paused&&halves)hangHalves(true);else if(paused&&mode==='inside')draw();};
+// See inside, paused: the cloth hangs again, settled under the new value, as stiffness (and wind and gravity) act only in the steps
+const changed=()=>{if(paused&&halves)hangHalves(true);else if(paused&&mode==='inside')initCloth(true);};
 choices('wind-seg',d=>{WIND=+d.wind;changed();});
 choices('stiff-seg',d=>{ITERS=+d.iters;changed();});
 choices('grav-seg',d=>{GRAVITY=+d.grav;changed();});
