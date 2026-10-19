@@ -34,6 +34,38 @@
     .sec-body{font-size:clamp(14px,1.2vw,16px);line-height:1.7;color:#d6d6da;max-width:480px}
     /* Spacer after all sections: the last section stays on screen while it is scrolled */
     .end-spacer{height:80cqh}
+    /* See inside and Compare: the copies and labels are drawn only in their mode */
+    .hud,.cmp,.fr,.cap,.hnm,.hdiv{display:none}
+    .hud{position:sticky;top:0;height:0;z-index:10;pointer-events:none}
+    .hud-in{position:absolute;top:0;left:0;width:100cqw;height:100cqh}
+    .fr .section,.cmp .section{position:relative;top:auto;z-index:auto}
+    .fr .sec-content,.cmp .sec-content{will-change:auto}
+    .cap,.hnm{position:absolute;padding:5px 9px;border-radius:8px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the stack pulled apart. Four frames, each the box at two fifths of its size, step down a diagonal from section
+       01 at the back (top left) to section 04 in front (bottom right). Each holds an inert copy of its section, placed where
+       the real one is now (the script sets it) and cut off by the frame; the frame's edge stays when the content shrinks, so
+       the dark rim that opens is the shrink. The real sections are hidden here but keep their place in the scroll. */
+    .stage[data-hb-mode="inside"] > .section{visibility:hidden}
+    .stage[data-hb-mode="inside"] .hud,.stage[data-hb-mode="compare"] .hud{display:block}
+    .stage[data-hb-mode="inside"] .fr{display:block;position:absolute;width:38%;height:38%;left:calc(3% + 19% * var(--i));
+      top:calc(3% + 19% * var(--i));overflow:hidden;background:#050506;outline:2px solid rgba(244,244,242,.7)}
+    .fr .section{position:absolute;top:0;left:0;width:100cqw;height:100cqh;transform-origin:0 0}
+    .fr .sec-num{opacity:1}
+    .stage[data-hb-mode="inside"] .cap{display:block;max-width:36%}
+    .cap-a{top:3%;right:3%;text-align:right}
+    .cap-b{bottom:3%;left:3%}
+    /* Compare: the sections as an ordinary page on the left (a column over the first half of the scroll), the real ones on
+       the right. They are narrowed with a width and a margin, never put into a row, so they keep sticking. */
+    .stage[data-hb-mode="compare"] .cmp{display:block;position:absolute;left:0;top:0;width:50%;height:400cqh}
+    .stage[data-hb-mode="compare"] > .section{width:50%;margin-left:50%}
+    .stage[data-hb-mode="compare"] .sec-content{position:relative;padding:clamp(12px,5cqw,28px)}
+    .stage[data-hb-mode="compare"] .sec-num{position:absolute;top:clamp(8px,2.4cqw,16px);left:clamp(8px,3cqw,18px);margin:0;opacity:1;font-size:clamp(24px,5cqw,46px)}
+    .stage[data-hb-mode="compare"] .sec-title{font-size:clamp(14px,2.4cqw,22px);margin-bottom:8px}
+    @container (max-width:560px){.stage[data-hb-mode="compare"] .sec-body{display:none}}
+    .stage[data-hb-mode="compare"] .hdiv{display:block;position:absolute;left:50%;top:0;width:2px;height:100%;margin-left:-1px;background:rgba(244,244,242,.55)}
+    .stage[data-hb-mode="compare"] .hnm{display:block;top:6px;white-space:nowrap;padding:5px 8px}
+    .hnm-a{right:calc(50% + 6px)}
+    .hnm-b{right:6px}
     @media(prefers-reduced-motion:reduce){.sec-content{will-change:auto}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -56,6 +88,11 @@
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
     </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Sections that slide up over each other">
       <div class="section" style="z-index:1">
@@ -91,6 +128,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each small frame is the box with one section: it rises into its frame, sticks there, and the next lands on top while it shrinks. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>In Scrolls away the sections follow each other off the top; in Slides over each one stays put while the next slides up over it. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -169,6 +210,38 @@
   const speedSetting=document.getElementById('speed-setting'),moreOptions=document.querySelector('.hb-options');
   const sections=[...document.querySelectorAll('.section')];
   const contents=sections.map(s=>s.querySelector('.sec-content'));
+
+  // Inert copies of the sections, made once and without ids: four in the frames of See inside, four in Compare's plain column
+  const copyOf=sec=>{const c=sec.cloneNode(true);c.removeAttribute('style');return c};
+  const hud=document.createElement('div');
+  hud.className='hud';
+  hud.innerHTML='<div class="hud-in"><div class="frames" aria-hidden="true" inert></div>'+
+    '<p class="cap cap-a" data-hb-caption>Each new section lands on top</p><p class="cap cap-b" data-hb-caption></p>'+
+    '<div class="hdiv"></div><p class="hnm hnm-a" data-hb-caption>Scrolls away</p><p class="hnm hnm-b" data-hb-caption>Slides over</p></div>';
+  const cmp=document.createElement('div');
+  cmp.className='cmp';
+  cmp.setAttribute('aria-hidden','true');
+  cmp.inert=true;
+  sections.forEach((sec,i)=>{
+    const fr=document.createElement('div');
+    fr.className='fr';
+    fr.style.setProperty('--i',i);
+    fr.append(copyOf(sec));
+    hud.querySelector('.frames').append(fr);
+    cmp.append(copyOf(sec));
+  });
+  stage.prepend(cmp);
+  stage.prepend(hud);
+  const fSecs=[...hud.querySelectorAll('.fr .section')],fCons=fSecs.map(f=>f.querySelector('.sec-content'));
+  const capB=hud.querySelector('.cap-b');
+  const KF=0.38; // a frame is this share of the box
+  const insideNote=document.querySelector('[data-hb-for="inside"]'),compareNote=document.querySelector('[data-hb-for="compare"]');
+  const NOTE={inside:insideNote.textContent,compare:compareNote.textContent}; // the markup's words are the default state
+  const NAME={
+    normal:stage.getAttribute('aria-label'),
+    inside:'The four sections pulled apart into small frames, each rising into place and stacking over the last',
+    compare:'The sections twice: scrolling away as an ordinary page, and sliding up over each other'
+  };
   let scaleFloor=0.96,wipeRange=1.0,ticking=false;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b),lerp=(a,b,t)=>a+(b-a)*t;
   const reduceMQ=window.matchMedia('(prefers-reduced-motion:reduce)');
@@ -176,16 +249,26 @@
 
   function update(){
     ticking=false;
-    if(!motionOk)return;
     // the stage's own box, inside its border: a section is that tall and sticks to its top edge
     const box=stage.getBoundingClientRect();
     const sr={top:box.top+stage.clientTop,height:box.height-2*stage.clientTop};
-    sections.forEach((s,i)=>{
+    // Reduced motion: no shrink (the wipe itself is sticky placement and still happens), but See inside is still placed
+    if(motionOk)sections.forEach((s,i)=>{
       if(i===sections.length-1)return;
       const nextR=sections[i+1].getBoundingClientRect();
       const coverage=sr.height-(nextR.top-sr.top);
       const t=clamp(coverage/(sr.height*wipeRange),0,1);
       contents[i].style.transform=`scale(${lerp(1,scaleFloor,t).toFixed(4)})`;
+    });
+    place(sr.top);
+  }
+
+  // See inside: each frame's copy sits where its real section is now, and takes the real content's shrink as it is set above
+  function place(top){
+    if(stage.getAttribute('data-hb-mode')!=='inside')return;
+    sections.forEach((s,i)=>{
+      fSecs[i].style.transform=`scale(${KF}) translateY(${(s.getBoundingClientRect().top-top).toFixed(1)}px)`;
+      fCons[i].style.transform=contents[i].style.transform;
     });
   }
 
@@ -195,6 +278,22 @@
   reduceMQ.addEventListener('change',e=>{
     motionOk=!e.matches;
     if(!motionOk)contents.forEach(c=>c.style.removeProperty('transform'));
+    describe();
+    update();
+  });
+
+  // The second label and the notes follow Shrink, Shrink speed and reduced motion
+  function describe(){
+    const none=scaleFloor===1;
+    const until={1:'fully covered',0.6:'over half covered',0.3:'a third covered'}[wipeRange];
+    capB.textContent=!motionOk?'Covered: keeps its size here':none?'Covered: keeps its size':`Covered: shrinks ${scaleFloor===0.96?'a little':'a lot'}, until ${until}`;
+    insideNote.textContent=!motionOk?'Inside, each small frame is the box with one section: it rises into its frame, sticks there, and the next lands on top, without shrinking. Scroll the box or press Play to watch.'
+      :none?'Inside, each small frame is the box with one section: it rises in, sticks, and the next lands on top; Shrink is None, so nothing shrinks. Scroll the box or press Play to watch.':NOTE.inside;
+    compareNote.textContent=!motionOk?'In Scrolls away the sections follow each other off the top; in Slides over each stays put, without shrinking, while the next slides over it. Scroll the box or press Play to watch.':NOTE.compare;
+  }
+
+  document.addEventListener('hb:mode',e=>{
+    stage.setAttribute('aria-label',NAME[e.detail.mode]);
     update();
   });
 
@@ -206,8 +305,9 @@
     }));
   }
   // With no shrink there is no speed to choose, so that setting (and More options, which holds only it) is hidden.
-  choices('shrink-seg',d=>{scaleFloor=+d.floor;speedSetting.hidden=moreOptions.hidden=scaleFloor===1;update()});
-  choices('speed-seg',d=>{wipeRange=+d.range;update()});
+  choices('shrink-seg',d=>{scaleFloor=+d.floor;speedSetting.hidden=moreOptions.hidden=scaleFloor===1;describe();update()});
+  choices('speed-seg',d=>{wipeRange=+d.range;describe();update()});
+  describe();
   update();
 </script>
 </body>
