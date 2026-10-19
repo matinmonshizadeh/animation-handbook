@@ -35,6 +35,47 @@
     /* a big jump (Back to top, Play starting over) changes at once, so the old state does not linger */
     .fill-text.jump .w{transition:none}
     @media(prefers-reduced-motion:reduce){.fill-text .w{transition:none}}
+    .bar,.copy,.hname{display:none}
+    /* See inside: every word is a faint box (white once lit, the highlight color for the next one), and under the paragraph a
+       bar stands for the whole scroll. Its first part is cut into one slice per word, the rest is the stretch where every
+       word is lit and the text holds, and a marker rides the bar with the scroll. The paragraph is set smaller so the bar and
+       its labels fit under it; the pinned frame never leaves the box, so nothing captioned can leave it either. */
+    .stage[data-hb-mode="inside"] .pinned{flex-direction:column;align-items:stretch;justify-content:center;padding:clamp(12px,3cqw,28px)}
+    .stage[data-hb-mode="inside"] .fill-text{font-size:clamp(12px,min(4.6cqh,3.6cqw),20px);line-height:1.6;max-width:44em}
+    .stage[data-hb-mode="inside"] .fill-text .w{border-radius:3px;box-shadow:inset 0 0 0 1px rgba(124,124,132,.55)}
+    .stage[data-hb-mode="inside"] .fill-text .w.on{box-shadow:inset 0 0 0 1px rgba(244,244,242,.85)}
+    .stage[data-hb-mode="inside"] .fill-text .w.cursor{box-shadow:inset 0 0 0 1px var(--fill-accent,var(--ui-accent))}
+    .stage[data-hb-mode="inside"] .bar{display:block;flex:none;margin-top:clamp(10px,3cqh,18px)}
+    .bar-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px}
+    .bar-cap{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.86);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .rail{position:relative;display:flex;height:14px}
+    .slices{display:grid;gap:1px;flex:0 0 calc(var(--at,.9) * 100%)}
+    .slices i{display:block;background:rgba(124,124,132,.4)}
+    .slices i.on{background:#f4f4f2}
+    .slices i.cursor{background:var(--fill-accent,var(--ui-accent))}
+    .hold{flex:1 1 0;margin-left:2px;background:repeating-linear-gradient(135deg,rgba(124,124,132,.5) 0 2px,rgba(124,124,132,.12) 2px 5px)}
+    .hold.on{background:repeating-linear-gradient(135deg,rgba(244,244,242,.9) 0 2px,rgba(244,244,242,.4) 2px 5px)}
+    .mk{position:absolute;left:0;top:-5px;width:2px;height:24px;margin-left:-1px;background:var(--fill-accent,var(--ui-accent))}
+    .mk.plain{background:#f4f4f2}
+    .bar-under{position:relative;height:22px;margin-top:9px}
+    .bar-under .bar-cap{position:absolute;left:0;top:0}
+    .stage[data-hb-mode="inside"] .bar.none .bc2,.stage[data-hb-mode="inside"] .bar.none .hold{display:none}
+    @container (max-width:519px){
+      .stage[data-hb-mode="inside"] .bar-top{flex-direction:column-reverse;align-items:stretch;gap:8px}
+      .stage[data-hb-mode="inside"] .bc1{align-self:flex-start}
+      .stage[data-hb-mode="inside"] .bc2{align-self:flex-end}
+    }
+    /* Compare: an inert copy with every word lit beside the page's own paragraph, side by side at every width, each named */
+    .stage[data-hb-mode="compare"] .pinned{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;align-items:start;
+      align-content:center;padding:46px 12px 12px}
+    .stage[data-hb-mode="compare"] .pinned::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;
+      background:rgba(244,244,242,.3)}
+    .stage[data-hb-mode="compare"] .copy{display:block}
+    .stage[data-hb-mode="compare"] .fill-text{font-size:clamp(12px,min(3.4cqw,5.6cqh),20px);line-height:1.4;max-width:none}
+    .stage[data-hb-mode="compare"] .hname{display:block;position:absolute;z-index:2;top:10px;padding:5px 10px;border-radius:999px;
+      background:rgba(11,11,13,.86);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="compare"] .hn1{left:10px}
+    .stage[data-hb-mode="compare"] .hn2{left:calc(50% + 12px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -57,16 +98,39 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A paragraph that fills word by word as you scroll">
       <div class="track">
         <div class="pinned">
           <p class="fill-text" id="fill-text"></p>
+          <p class="hname hn1" data-hb-caption aria-hidden="true">All lit</p>
+          <p class="hname hn2" data-hb-caption aria-hidden="true">Word by word</p>
+          <div class="bar" id="bar" aria-hidden="true">
+            <div class="bar-top">
+              <p class="bar-cap bc1" data-hb-caption>One slice of the scroll per word</p>
+              <p class="bar-cap bc2" data-hb-caption>Then all lit, held a moment</p>
+            </div>
+            <div class="rail">
+              <div class="slices" id="slices"></div>
+              <div class="hold" id="hold"></div>
+              <span class="mk" id="mk"></span>
+            </div>
+            <div class="bar-under"><p class="bar-cap bc3" id="bc3" data-hb-caption>You are here</p></div>
+          </div>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each word is a piece, and the bar below is the scroll: each word owns a slice and lights once you pass it. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>All lit shows the whole paragraph at once; Word by word lights it as you scroll, so it is read at your pace. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -148,6 +212,14 @@
   const stage=document.getElementById('stage'),textEl=document.getElementById('fill-text');
   const cursorTog=document.getElementById('cursor-tog'),colorSetting=document.getElementById('color-setting');
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  const pinned=stage.querySelector('.pinned'),bar=document.getElementById('bar'),slicesEl=document.getElementById('slices');
+  const hold=document.getElementById('hold'),mk=document.getElementById('mk'),bc3=document.getElementById('bc3');
+  const LABELS={
+    normal:'A paragraph that fills word by word as you scroll',
+    inside:'The paragraph split into words, with a bar of the scroll in which each word owns a slice',
+    compare:'The paragraph twice: all lit at once, and lighting word by word as you scroll'
+  };
+  let mode='normal';
 
   const COPY="Scroll is not a play button. It is a position. Every word here watches how far you have read. "+
     "Words behind that point light up; words ahead wait in the dark. Stop anywhere and the sentence holds still. "+
@@ -160,18 +232,42 @@
   });
   const N=words.length;
 
+  // Compare's first half: a copy of the paragraph with every word lit and no cursor. It is not in `words`, it is inert and
+  // hidden from screen readers, and it is not drawn outside Compare.
+  const copy=textEl.cloneNode(true);
+  copy.removeAttribute('id');copy.classList.add('copy');copy.inert=true;copy.setAttribute('aria-hidden','true');
+  copy.querySelectorAll('.w').forEach(w=>w.classList.add('on'));
+  textEl.before(copy);
+
+  // See inside's bar: one slice per word, so the last slice lights exactly when the last word does
+  slicesEl.style.gridTemplateColumns='repeat('+N+',minmax(0,1fr))';
+  const slices=words.map(()=>slicesEl.appendChild(document.createElement('i')));
+
   let completeAt=.9,maxScroll=1,ticking=false;
-  let lastFilled=-1,lastCursor=-1;
+  let lastFilled=-1,lastCursor=-1,curP=0,barW=0,capW=0;
 
   // Layout reads live here only, never in the scroll handler. One pixel less than the box scrolls: both sizes are
   // rounded, so the true end can fall a fraction short of the measured one, and the last word must still light.
-  function measure(){maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight-1)}
+  function measure(){
+    maxScroll=Math.max(1,stage.scrollHeight-stage.clientHeight-1);
+    if(mode==='inside'){barW=slicesEl.parentNode.offsetWidth;capW=bc3.offsetWidth}
+  }
+
+  // The marker rides the bar at the scroll share; "You are here" follows it and stays inside the bar
+  function drawBar(){
+    mk.style.transform='translate3d('+(curP*barW).toFixed(1)+'px,0,0)';
+    bc3.style.transform='translate3d('+clamp(curP*barW-capW/2,0,Math.max(0,barW-capW)).toFixed(1)+'px,0,0)';
+    mk.classList.toggle('plain',!cursorTog.checked);
+  }
+  // the bar's slices end where the fill finishes; with At the end there is no held stretch
+  function setBar(){bar.style.setProperty('--at',completeAt);bar.classList.toggle('none',completeAt>=1)}
 
   function render(){
     ticking=false;
     const p=clamp(stage.scrollTop/maxScroll,0,1);
     const e=clamp(p/completeAt,0,1);
     const filled=Math.floor(e*N+1e-6);
+    curP=p;
     let jump=false;
 
     // Only touch words whose state actually changed, never rewrite all spans.
@@ -180,17 +276,26 @@
       const lo=Math.min(filled,prev),hi=Math.max(filled,prev);
       jump=hi-lo>N/4; // a jump changes at once: no fade for the lit words or for the cursor word
       if(jump)textEl.classList.add('jump');
-      for(let i=lo;i<hi;i++)words[i].classList.toggle('on',i<filled);
+      for(let i=lo;i<hi;i++){words[i].classList.toggle('on',i<filled);slices[i].classList.toggle('on',i<filled)}
+      hold.classList.toggle('on',filled>=N);
       lastFilled=filled;
     }
     const cursor=(cursorTog.checked&&filled<N&&e>0)?filled:-1;
     if(cursor!==lastCursor){
-      if(lastCursor>=0)words[lastCursor].classList.remove('cursor');
-      if(cursor>=0)words[cursor].classList.add('cursor');
+      if(lastCursor>=0){words[lastCursor].classList.remove('cursor');slices[lastCursor].classList.remove('cursor')}
+      if(cursor>=0){words[cursor].classList.add('cursor');slices[cursor].classList.add('cursor')}
       lastCursor=cursor;
     }
     if(jump){void textEl.offsetWidth;textEl.classList.remove('jump')}
+    if(mode==='inside')drawBar();
   }
+
+  // A mode press: the stage already carries the mode, so measure the bar and draw the current scroll at once
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]);
+    measure();render();
+  });
 
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(render);ticking=true}},{passive:true});
   // the box changes height under the same scroll position, so measure again and draw at once
@@ -204,12 +309,12 @@
       pick(b.dataset);
     }));
   }
-  choices('finish-seg',d=>{completeAt=+d.at;render()});
-  choices('color-sw',d=>textEl.style.setProperty('--fill-accent',d.c));
+  choices('finish-seg',d=>{completeAt=+d.at;setBar();render()});
+  choices('color-sw',d=>pinned.style.setProperty('--fill-accent',d.c));
   // With the highlight off there is no color to choose, so that setting (and More options, which holds only it) is hidden.
   const moreOptions=document.querySelector('.hb-options'); cursorTog.addEventListener('change',()=>{colorSetting.hidden=moreOptions.hidden=!cursorTog.checked;render()});
 
-  measure();render();
+  setBar();measure();render();
 </script>
 </body>
 </html>
