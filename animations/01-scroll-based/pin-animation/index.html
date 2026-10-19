@@ -42,7 +42,55 @@
     .outro{height:100cqh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-top:1px solid var(--ui-border)}
     .outro .panel-title{font-size:clamp(18px,2.5vw,24px);font-weight:700;margin-bottom:10px}
     .outro p:not(.panel-title){font-size:14px;color:var(--ui-muted);max-width:300px;line-height:1.6}
-    @media(max-width:600px){.pin-inner{gap:14px;padding:16px}.phone-wrap svg{width:72px;height:131px}#phone-icon{display:none}}
+    /* A layer fixed to the box (sticky and no taller than a line, at the top of the scroll content) holds what the two views
+       draw over it. None of it is drawn in Normal. */
+    .fx{position:sticky;top:0;height:0;z-index:5;display:none;pointer-events:none}
+    .fx-box{position:absolute;left:0;top:0;width:100%;height:100cqh;overflow:hidden}
+    .ruler,.name,.gone{display:none}
+    .pin-inner.twin{display:none}
+    /* See inside: the whole scroll as one ruler along the bottom of the box. Its parts are laid out from the measured section
+       and box; a bright line stands where the box is, the step under it is lit and the steps passed stay half lit. */
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx{display:block}
+    .stage[data-hb-mode="inside"] .ruler{display:block;position:absolute;left:8px;right:8px;bottom:6px;height:50px;overflow:hidden;
+      border-radius:8px;background:rgba(11,11,13,.94);border:1px solid rgba(255,255,255,.22)}
+    .track{position:absolute;left:8px;right:8px;top:5px;bottom:5px}
+    .part{position:absolute;top:0;bottom:0}
+    .part span{position:absolute;left:0;right:0;top:0;text-align:center;white-space:nowrap;color:#f4f4f2;font:600 12px/16px var(--hb-font)}
+    .bar{position:absolute;left:1px;right:1px;bottom:5px;height:14px;display:flex;gap:2px}
+    .bar i{flex:1;border-radius:3px;background:rgba(255,255,255,.34);opacity:.3}
+    .part:nth-child(2) i:nth-child(1){background:#58a6ff}
+    .part:nth-child(2) i:nth-child(2){background:#3fb950}
+    .part:nth-child(2) i:nth-child(3){background:#bf91f3}
+    .part:nth-child(2) i:nth-child(4){background:#ffa657}
+    .bar i.past{opacity:.55}
+    .bar i.on{opacity:1;outline:1px solid #fff;outline-offset:1px}
+    .hx{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform}
+    .hx b{position:absolute;left:-2px;top:19px;bottom:-1px;width:4px;border-radius:2px;background:#fff;box-shadow:0 0 0 1px rgba(11,11,13,.8)}
+    .stage[data-hb-mode="inside"] .intro,.stage[data-hb-mode="inside"] .outro{padding-bottom:88px}
+    .stage[data-hb-mode="inside"] .pin-inner{padding-bottom:88px}
+    @media(min-width:601px){.stage[data-hb-mode="inside"] .phone-wrap svg{height:min(200px,calc(100cqh - 150px))}}
+    @media(max-width:600px){.stage[data-hb-mode="inside"] .intro,.stage[data-hb-mode="inside"] .outro,.stage[data-hb-mode="inside"] .pin-inner{padding-bottom:72px}}
+    /* Compare: the section becomes two columns. On the left a copy of the frame that is not sticky, so it leaves with the
+       page; on the right the page's own frame, still sticky in its column. The intro and the outro are untouched. */
+    /* The copy's title changes height, which scroll anchoring would answer by moving the box: it stays off in Compare */
+    .stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .pin-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+    .stage[data-hb-mode="compare"] .pin-section::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.45)}
+    .stage[data-hb-mode="compare"] .pin-inner{align-self:start;flex-direction:column;gap:10px;padding:12px;text-align:center;min-width:0}
+    .stage[data-hb-mode="compare"] .pin-inner.twin{display:flex;position:relative}
+    .stage[data-hb-mode="compare"] .phone-wrap svg{height:min(150px,40cqh);width:auto}
+    .stage[data-hb-mode="compare"] .copy-panel{flex:none;max-width:100%}
+    .stage[data-hb-mode="compare"] .feat-desc{display:none}
+    .stage[data-hb-mode="compare"] .feat-title{font-size:clamp(14px,2vw,18px);margin-bottom:0}
+    .stage[data-hb-mode="compare"] .feat-num{margin-bottom:6px}
+    .stage[data-hb-mode="compare"] .name{display:block;position:absolute;top:8px;padding:5px 10px;
+      color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .n1{left:8px}.n2{left:calc(50% + 8px)}
+    .gone svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .stage[data-hb-mode="compare"] .gone.on{display:flex;flex-direction:column;align-items:center;gap:4px;position:absolute;left:8px;width:calc(50% - 16px);
+      top:50%;transform:translateY(-50%);padding:8px 6px;border-radius:10px;background:rgba(11,11,13,.86);color:#f4f4f2;
+      font:600 13px/1.2 var(--hb-font);text-align:center}
+    @media(max-width:600px){.pin-inner{gap:14px;padding:16px}.phone-wrap svg{width:72px;height:131px}#phone-icon,.ph-title{display:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -65,7 +113,25 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A phone that holds still while its features change">
+      <div class="fx" aria-hidden="true" inert>
+        <div class="fx-box">
+          <div class="ruler"><div class="track">
+            <div class="part"><span data-hb-caption>Arrives</span><div class="bar"><i></i></div></div>
+            <div class="part"><span data-hb-caption>Held: four equal steps</span><div class="bar"><i></i><i></i><i></i><i></i></div></div>
+            <div class="part"><span data-hb-caption>Leaves</span><div class="bar"><i></i></div></div>
+            <div class="hx"><b></b></div>
+          </div></div>
+          <span class="name n1" data-hb-caption>Not pinned</span>
+          <span class="name n2" data-hb-caption>Pinned</span>
+          <p class="gone" data-hb-caption><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Went up with the page</p>
+        </div>
+      </div>
       <div class="intro">
         <p class="panel-title">Scroll to begin</p>
         <p>The phone and its text will stop in the middle of the box and hold still while four features go by.</p>
@@ -77,7 +143,7 @@
               <rect x="2" y="2" width="106" height="196" rx="16" fill="#1a1a2a" stroke="#3a3a5a" stroke-width="1.5"/>
               <rect id="phone-screen" x="9" y="18" width="92" height="152" rx="8" fill="#0d2b3e"/>
               <text id="phone-num" x="55" y="98" text-anchor="middle" font-size="28" font-weight="bold" fill="#58a6ff">01</text>
-              <text id="phone-icon" x="55" y="118" text-anchor="middle" font-size="11" fill="#c9d1d9">Instant Wake</text>
+              <text id="phone-icon" class="ph-title" x="55" y="118" text-anchor="middle" font-size="11" fill="#c9d1d9">Instant Wake</text>
               <rect x="38" y="183" width="34" height="4" rx="2" fill="#3a3a5a"/>
             </svg>
           </div>
@@ -96,6 +162,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the bar is the whole scroll: the phone arrives, stays put through four equal steps, then leaves, and the line marks where you are. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Not pinned: the phone leaves with the page and empty space follows; Pinned: it holds still while the features change. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -149,6 +219,42 @@
   const phoneScreen=document.getElementById('phone-screen'),phoneNum=document.getElementById('phone-num'),phoneIcon=document.getElementById('phone-icon');
   let ticking=false,lastFi=-1;
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  // Compare's left side: a copy of the frame that is not sticky, so it scrolls away with the page. It loses its ids (the
+  // lines below keep what they need first), is inert and hidden from screen readers; the stage's name says what each half shows.
+  const frame=pinSec.querySelector('.pin-inner'),twin=frame.cloneNode(true);
+  const ref=id=>twin.querySelector('#'+id),T={num:ref('feat-num'),title:ref('feat-title'),desc:ref('feat-desc'),
+    screen:ref('phone-screen'),pnum:ref('phone-num'),icon:ref('phone-icon')};
+  twin.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  frame.before(twin);
+  const LABELS={
+    normal:'A phone that holds still while its features change',
+    inside:'A phone that holds still while its features change, with a bar for the whole scroll and where it is held',
+    compare:'The phone twice: scrolling away with the page, and held still while its features change',
+  };
+  const parts=[...stage.querySelectorAll('.part')],bars=[...stage.querySelectorAll('.bar i')],hx=stage.querySelector('.hx'),gone=stage.querySelector('.gone');
+  let mode='normal',lastP=-1,lastGone=null;
+  // The ruler's parts come from the measured section and box: the scroll before the hold, the hold, the scroll after it
+  function layout(){
+    const vh=stage.clientHeight,ps=pinSec.offsetTop,total=stage.scrollHeight-vh;
+    if(total<=0)return;
+    const a=ps/total,h=(pinSec.offsetHeight-vh)/total,at=[0,a,a+h],w=[a,h,1-a-h];
+    parts.forEach((el,i)=>{el.style.left=at[i]*100+'%';el.style.width=w[i]*100+'%'});
+  }
+  function paint(){
+    const st=stage.scrollTop,ps=pinSec.offsetTop,vh=stage.clientHeight,ph=pinSec.offsetHeight,total=stage.scrollHeight-vh;
+    if(mode==='inside'&&total>0){
+      hx.style.transform=`translateX(${clamp(st/total,0,1)*100}%)`;
+      // 0 arrives, 1 to 4 the held steps, 5 leaves
+      const p=st<ps?0:st>ps+ph-vh+.5?5:1+Math.min(3,Math.floor(clamp((st-ps)/(ph-vh),0,1)*4));
+      if(p!==lastP){bars.forEach((b,i)=>{b.className=i===p?'on':i<p?'past':''});lastP=p}
+    }
+    if(mode==='compare'){
+      // The copy has left the box above while the section still fills it
+      const on=st>=ps+vh-24&&st<=ps+ph-vh;
+      if(on!==lastGone){gone.classList.toggle('on',on);lastGone=on}
+    }
+  }
   function update(){
     // offsetTop and scrollTop are both measured from the stage's padding edge, so its border does not shift them
     const st=stage.scrollTop,ps=pinSec.offsetTop,ph=pinSec.offsetHeight,vh=stage.clientHeight;
@@ -162,13 +268,23 @@
       // trim to the last whole word that still fits inside the 92px phone screen
       phoneIcon.textContent=f.title.length>16?f.title.slice(0,16).replace(/\s+\S*$/,'')+'…':f.title;
       phoneIcon.setAttribute('fill',f.tcolor);
+      T.num.textContent=featNum.textContent;T.title.textContent=f.title;T.desc.textContent=f.desc;
+      T.screen.setAttribute('fill',f.color);T.pnum.setAttribute('fill',f.tcolor);T.pnum.textContent=f.num;
+      T.icon.textContent=phoneIcon.textContent;T.icon.setAttribute('fill',f.tcolor);
       lastFi=fi;
     }
+    paint();
     ticking=false;
   }
   const schedule=()=>{if(!ticking){requestAnimationFrame(update);ticking=true}};
+  // Draws the mode at once: the feature, the ruler and the message are written again for where the box stands
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;lastFi=-1;lastP=-1;lastGone=null;
+    stage.setAttribute('aria-label',LABELS[mode]);
+    layout();update();
+  });
   stage.addEventListener('scroll',schedule,{passive:true});
-  addEventListener('resize',schedule,{passive:true});
+  addEventListener('resize',()=>{layout();schedule()},{passive:true});
   update();
 </script>
 </body>
