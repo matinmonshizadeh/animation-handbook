@@ -65,6 +65,7 @@
     .side.first{left:8px}.side.second{left:calc(50% + 8px)}
     .stage[data-hb-mode="compare"] .when{display:block;bottom:9px;left:50%;transform:translateX(-50%);white-space:nowrap;visibility:hidden}
     .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"] .cap b{white-space:nowrap}
     @media(max-width:600px){
       .stage[data-hb-mode="inside"],.stage.held{grid-template-columns:58% 42%;justify-content:start}
       .stage[data-hb-mode="inside"] .deck,.stage.held .deck{height:82%;align-self:center}
@@ -417,18 +418,17 @@
     cut.textContent=cracksTog.checked?'Cut along these lines':'Breaks at once along these lines';
     grav.textContent=gravity==='none'?'No gravity: they drift straight out':gravity==='heavy'?'Heavy: they drop away':'Gravity pulls them down';
     fly.textContent='Each piece flies for about '+words(slow(ms))+', '+(tumbleTog.checked?'flipping toward you':'spinning flat');fly.hidden=phone.matches;
-    hit.style.left=Math.min(ox+p[0]+14,SW-hit.offsetWidth-4)+'px';hit.style.top=Math.max(oy+p[1]-11,4)+'px';
     const gl=.8*H*PULL[gravity][2]/4.4,out=polys.map((q,i)=>q.edge&&fl[i]&&(!phone.matches||(i%N)%2===0)?i:-1).filter(i=>i>=0);
     const room=(s,v)=>Math.min(v[0]>0?(W+inf-s[0])/v[0]:v[0]<0?(-inf-s[0])/v[0]:1e9,v[1]>0?(H+inf-s[1])/v[1]:v[1]<0?(-inf-s[1])/v[1]:1e9);
     const K=Math.min(.35,...out.map(i=>room(mid[i],[fl[i].vx,fl[i].vy]))),cutAt=far(bends[0]),nearAt=far(mid.slice(0,N));
-    const items=[[cut,oy+cutAt[1]],[near,oy+nearAt[1]],[grav,oy+H*.1+(gl||H*.8)/2],[fly,SH]].filter(it=>!it[0].hidden);
+    const items=[[cut,oy+cutAt[1]],[near,oy+nearAt[1]],[hit,oy+p[1]],[grav,oy+H*.1+(gl||H*.8)/2],[fly,SH]].filter(it=>!it[0].hidden);
     items.forEach(it=>Object.assign(it[0].style,{left:colX+'px',maxWidth:SW-colX-6+'px'}));
     let y=6,lim=SH-6;
     items.sort((a,b)=>a[1]-b[1]).forEach(it=>{it.t=Math.max(it[1]-it[0].offsetHeight/2,y);y=it.t+it[0].offsetHeight+6});
     for(let i=items.length;i--;){items[i].t=Math.min(items[i].t,lim-items[i][0].offsetHeight);lim=items[i].t-6;items[i][0].style.top=items[i].t+'px'}
     const lead=(l,a)=>{const d='M'+P([colX-ox-2,l.offsetTop+l.offsetHeight/2-oy])+'L'+P(a);
       return '<g class="ld"><path class="dk" d="'+d+'"/><path class="lt" d="'+d+'"/></g><circle cx="'+a[0]+'" cy="'+a[1]+'" r="3.5" fill="#fff" stroke="rgba(6,8,16,.6)" stroke-width="1.5"/>'};
-    mark.innerHTML=lead(cut,cutAt)+lead(near,nearAt)+out.map(i=>arrow(mid[i],[mid[i][0]+fl[i].vx*K,mid[i][1]+fl[i].vy*K])).join('')+
+    mark.innerHTML=lead(hit,[p[0]+11,p[1]])+lead(cut,cutAt)+lead(near,nearAt)+out.map(i=>arrow(mid[i],[mid[i][0]+fl[i].vx*K,mid[i][1]+fl[i].vy*K])).join('')+
       (gl?arrow([W+gx,H*.1],[W+gx,H*.1+gl]):'')+'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="10" fill="none" stroke="rgba(6,8,16,.55)" stroke-width="5"/>'+
       '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="10" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#fff"/>';
     stage.classList.add('drawn');
