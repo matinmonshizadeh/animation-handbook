@@ -43,6 +43,34 @@
        the cracking card (z-index 2) until the break and fly in front of the next card. */
     .shards{position:absolute;z-index:1;inset:0;perspective:900px;pointer-events:none}
     .shard{position:absolute;contain:layout paint;will-change:transform,opacity}.shard .card{position:absolute;box-shadow:none}
+    /* See inside and Compare. Their labels are plain words on a dark backing, above the pieces. */
+    .twin,.ov,.side,.when{display:none}
+    .lbl{position:absolute;z-index:5;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the card on the left with the plan of its next break drawn on it, the words in a column on the right (on phones
+       the card is a little smaller). The plan is hidden while a play runs and drawn again for the card then on show.
+       Normal pressed in the middle of a play keeps this layout (.held) until the play ends, so nothing jumps. */
+    .stage[data-hb-mode="inside"],.stage.held{display:grid;grid-template-columns:minmax(0,360px) minmax(0,260px);grid-template-rows:minmax(0,1fr);justify-content:center}
+    .stage[data-hb-mode="inside"] .deck,.stage.held .deck{position:relative;inset:auto}
+    .stage[data-hb-mode="inside"] .ov{display:block;position:absolute;z-index:4;inset:0;opacity:0;pointer-events:none;transition:opacity .15s}
+    .stage[data-hb-mode="inside"].drawn .ov{opacity:1}
+    .ov .cracks{inset:auto;overflow:visible}.ov .tint.dash path{stroke-dasharray:6 5}.ov .ld .dk{stroke-width:2.6}.ov .ld .lt{stroke-width:1}
+    /* Compare: a plain fade on the left, the real card on the right, each in its own clipped half with its name above and the
+       moment below. A card is capped by its half's width. */
+    .stage[data-hb-mode="compare"]{--bt:34px;--bb:40px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:var(--bt) minmax(0,1fr) var(--bb)}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;z-index:4;top:0;bottom:var(--bb);left:50%;border-left:1px solid rgba(244,244,242,.2)}
+    .stage[data-hb-mode="compare"] .deck{position:relative;inset:auto;display:grid;grid-row:2;grid-column:2;place-items:center;align-self:center;width:100%;aspect-ratio:5/7;max-height:100%;
+      clip-path:inset(calc(0px - var(--bt)) 0 calc(0px - var(--bb)) 0)}
+    .stage[data-hb-mode="compare"] .deck.twin{grid-column:1;pointer-events:none}
+    .stage[data-hb-mode="compare"] .side{display:block;top:6px}
+    .side.first{left:8px}.side.second{left:calc(50% + 8px)}
+    .stage[data-hb-mode="compare"] .when{display:block;bottom:9px;left:50%;transform:translateX(-50%);white-space:nowrap;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"] .cap b{white-space:nowrap}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"],.stage.held{grid-template-columns:58% 42%;justify-content:start}
+      .stage[data-hb-mode="inside"] .deck,.stage.held .deck{height:82%;align-self:center}
+    }
+    @media(prefers-reduced-motion:reduce){.stage[data-hb-mode="inside"] .ov{transition:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -65,6 +93,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to follow each piece as it flies.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="deck" id="deck" role="img" aria-label="A photo card breaks into pieces that fly apart while the next photo fades in">
         <div class="card on"><div class="pic night"><svg viewBox="0 0 120 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="#fff"><circle cx="12" cy="9" r=".8"/><circle cx="31" cy="19" r=".5"/><circle cx="53" cy="7" r=".6"/><circle cx="88" cy="11" r=".8"/><circle cx="105" cy="27" r=".5"/><circle cx="71" cy="31" r=".4"/><circle cx="19" cy="35" r=".5"/></g><path fill="#4ef0a8" opacity=".5" d="M-4 46C18 24 40 50 62 30S100 14 124 26V36C100 26 80 46 60 42S20 40-4 58Z"/><path fill="#7cd8ff" opacity=".35" d="M-4 34C24 18 44 36 66 22S104 8 124 14V20C104 16 86 32 66 32S26 30-4 44Z"/><path fill="#12305a" d="M-4 76L16 58L28 66L46 46L62 62L78 52L98 68L124 56V100H-4Z"/><path fill="#dbe8ff" opacity=".85" d="M46 46L51.6 51.1L48.6 50.4L46.2 52.4L43.8 50.6L40.9 51.4Z"/><path fill="#081830" d="M-4 88L20 70L36 80L58 62L82 82L104 70L124 82V100H-4Z"/></svg></div>
@@ -75,11 +108,26 @@
           <p class="cap"><b>Ocean Cove</b><span>Photo 3 of 3</span></p><svg class="cracks" aria-hidden="true"></svg></div>
         <i class="flash"></i>
       </div>
+      <div class="ov" aria-hidden="true">
+        <svg class="cracks tint"></svg><svg class="cracks mark"></svg>
+        <p class="lbl l-hit" data-hb-caption>Hit here</p>
+        <p class="lbl l-cut" data-hb-caption>Cut along these lines</p>
+        <p class="lbl l-near" data-hb-caption>Nearest pieces fly first</p>
+        <p class="lbl l-grav" data-hb-caption>Gravity pulls them down</p>
+        <p class="lbl l-fly" data-hb-caption>Each piece flies for about a second, flipping toward you</p>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Plain fade</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Shatters</p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>About a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the lines show where the card will break, the ring where it is hit, and the arrows where the pieces go; the nearest pieces fly first.</p>
+      <p data-hb-for="compare" hidden>Plain fade swaps the photos with a simple fade; Shatters breaks the old one into pieces that fly apart as the next fades in. With Loop off, both rest part way through.</p>
     </div>
   </section>
 
@@ -180,21 +228,26 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const deck=document.getElementById('deck'),cards=[...deck.querySelectorAll('.card')],flashEl=deck.querySelector('.flash');
+  // Compare's plain fade is a copy of the deck, made once: no ids, no name, out of reach of the keyboard and screen readers
+  const stage=deck.parentElement,twin=deck.cloneNode(true),whenEl=stage.querySelector('.when');
+  ['id','role','aria-label'].forEach(n=>twin.removeAttribute(n));twin.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');deck.before(twin);
+  const tw=[...twin.querySelectorAll('.card')],twFlash=twin.querySelector('.flash');
   const [loopTog,slowTog,cracksTog,tumbleTog]=['loop-tog','slow-tog','cracks-tog','tumble-tog'].map(id=>document.getElementById(id));
   const reduce=matchMedia('(prefers-reduced-motion:reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
   // Rays besides the four to the corners, and the rings that cross them, for each number of pieces
   const CUTS={few:[3,2],medium:[6,3],many:[11,4]},RINGS={2:[.45,1],3:[.24,.56,1],4:[.15,.36,.64,1]};
   // One flight, in card heights: how far the pieces burst outward, how high they are thrown and how far gravity pulls them
   const PULL={none:[1.1,0,0],normal:[.75,.6,2.3],heavy:[.55,.3,4.4]};
-  let pieces='medium',from='center',gravity='normal',ms=1100,cur=0,playing=-1,size='',seen=true,waiting=false,timers=[];
-  const later=(fn,wait)=>timers.push(setTimeout(fn,wait)),slow=v=>slowTog.checked?v*3:v,rnd=(a,b)=>a+Math.random()*(b-a),P=v=>v[0].toFixed(1)+' '+v[1].toFixed(1);
+  let rand=Math.random,mode='normal',home=null,poseT=0,pieces='medium',from='center',gravity='normal',ms=1100,cur=0,playing=-1,size='',seen=true,waiting=false,timers=[];
+  const later=(fn,wait)=>timers.push(setTimeout(fn,wait)),slow=v=>slowTog.checked?v*3:v,rnd=(a,b)=>a+rand()*(b-a),P=v=>v[0].toFixed(1)+' '+v[1].toFixed(1);
 
   // Cuts a W×H card like glass hit at one point: rays run to the edge (through the four corners, so outer pieces end exactly
   // on it, and evenly between), rings cross them, and each crack between rings bends once, at most a third of the way to the
   // nearest other crack (no piece folds over itself). A piece lies between two rays and two rings; neighbors share corners.
   function cut(box){
     const [,,W,H]=box,TAU=2*Math.PI,p=from==='center'?[W*rnd(.45,.55),H*rnd(.36,.46)]:[W*.15,H*.13];
-    const extra=pieces==='many'&&phone.matches?8:CUTS[pieces][0],f=RINGS[CUTS[pieces][1]];
+    const extra=Math.round((pieces==='many'&&phone.matches?8:CUTS[pieces][0])*(mode==='compare'&&phone.matches?.25:1)),f=RINGS[CUTS[pieces][1]]; // Compare on a phone: about half the pieces
     const corners=[[0,0],[W,0],[W,H],[0,H]].map(([x,y])=>(Math.atan2(y-p[1],x-p[0])+TAU)%TAU).sort((a,b)=>a-b);
     const rays=corners.flatMap((c,i)=>{const span=(corners[(i+1)%4]-c+TAU)%TAU,m=Math.round(extra*span/TAU);
       return [c,...[...Array(m)].map((_,j)=>c+span*(j+1+rnd(-.3,.3))/(m+1))]});
@@ -210,25 +263,46 @@
     return {p,grid,bends,polys,box};
   }
   // The cracks, ring by ring from the break outward (the card's own edge is not a crack)
-  function crackLines(card,{grid,bends,box},crack){
+  const crackSvg=({grid,bends})=>bends.map((ring,i)=>{
+    const d=ring.map((v,k)=>'M'+P(grid[i][k])+'L'+P(v)+'L'+P(grid[i+1][k])).join('')+(i<bends.length-1?'M'+grid[i+1].map(P).join('L')+'Z':'');
+    return '<g><path class="dk" d="'+d+'"/><path class="lt" d="'+d+'"/></g>';
+  }).join('');
+  function crackLines(card,plan,crack){
     const svg=card.querySelector('.cracks');
-    svg.setAttribute('viewBox','0 0 '+box[2]+' '+box[3]);
-    svg.innerHTML=bends.map((ring,i)=>{
-      const d=ring.map((v,k)=>'M'+P(grid[i][k])+'L'+P(v)+'L'+P(grid[i+1][k])).join('')+(i<bends.length-1?'M'+grid[i+1].map(P).join('L')+'Z':'');
-      return '<g><path class="dk" d="'+d+'"/><path class="lt" d="'+d+'"/></g>';
-    }).join('');
+    svg.setAttribute('viewBox','0 0 '+plan.box[2]+' '+plan.box[3]);
+    svg.innerHTML=crackSvg(plan);
     [...svg.children].forEach((g,i)=>g.animate([{opacity:0},{opacity:1}],{duration:crack*.3,delay:crack*.14*i,fill:'backwards'}));
+  }
+  // Where each piece goes, worked out before the play so that See inside can draw it: its middle, how far it is from the break, and
+  // the numbers of its flight (the push and throw, a drop, a flip toward you and the turns). Nothing but a sliver on a phone is left out.
+  function flights(plan){
+    const {p,polys,box}=plan,H=box[3],[push,lift,grav]=PULL[gravity],tumble=tumbleTog.checked;
+    const mid=plan.mid=polys.map(q=>q.reduce((m,v)=>[m[0]+v[0]/q.length,m[1]+v[1]/q.length],[0,0]));
+    const far=Math.max(...mid.map(c=>Math.hypot(c[0]-p[0],c[1]-p[1])));
+    plan.fl=polys.map((q,i)=>{
+      if(phone.matches&&Math.abs(q.reduce((s,v,j)=>s+v[0]*q[(j+1)%q.length][1]-q[(j+1)%q.length][0]*v[1],0))<8)return null; // a sliver under 4px² is not worth a layer on a phone
+      const c=mid[i],d=Math.hypot(c[0]-p[0],c[1]-p[1]),a=Math.atan2(c[1]-p[1],c[0]-p[0])+rnd(-.35,.35);
+      const v=H*push*rnd(.6,1.15)*(1.2-.45*d/far),vx=Math.cos(a)*v,vy=Math.sin(a)*v-H*lift*rnd(.6,1.2);
+      const vz=tumble?H*rnd(.1,.7):0,spin=[rnd(-420,420),rnd(-420,420),(rand()<.5?-1:1)*rnd(90,320)];
+      return {r:d/far,vx,vy,vz,spin,g:H*grav};
+    });
+  }
+  // The plan of one break of a card. In See inside and Compare it comes from a fixed seed, so the same lines and the same flights
+  // are drawn and then played; in Normal every break is new.
+  function seeded(){let s=20241013;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function mkPlan(card){
+    const r=card.getBoundingClientRect(),o=deck.getBoundingClientRect(),keep=rand; // the card's box in the deck, fractions kept, so the pieces line up exactly
+    if(mode!=='normal')rand=seeded();
+    const plan=cut([r.left-o.left,r.top-o.top,r.width,r.height]);flights(plan);rand=keep;
+    return plan;
   }
   // Every piece is a box around its polygon holding a copy of the whole card, clipped to the polygon (grown by 0.7px so
   // neighbors overlap and no seam shows), with only its own cracks drawn. Its flight is sampled into keyframes: a burst that
   // slows, an upward throw and gravity; it turns all the way and fades over its second half. It starts at the break, nearer pieces first.
-  function shatter(card,{p,polys,box:[X,Y,W,H]},start){
-    const T=slow(ms),wave=slow(ms*.16);
-    const [push,lift,grav]=PULL[gravity],tumble=tumbleTog.checked,layer=Object.assign(document.createElement('div'),{className:'shards'});
-    const mid=polys.map(q=>q.reduce((m,v)=>[m[0]+v[0]/q.length,m[1]+v[1]/q.length],[0,0]));
-    const far=Math.max(...mid.map(c=>Math.hypot(c[0]-p[0],c[1]-p[1])));
+  function shatter(card,{polys,fl,mid,box:[X,Y,W,H]},start){
+    const T=slow(ms),wave=slow(ms*.16),tumble=tumbleTog.checked,layer=Object.assign(document.createElement('div'),{className:'shards'});
     polys.forEach((q,i)=>{
-      if(phone.matches&&Math.abs(q.reduce((s,v,j)=>s+v[0]*q[(j+1)%q.length][1]-q[(j+1)%q.length][0]*v[1],0))<8)return; // a sliver under 4px² is not worth a layer on a phone
+      const f=fl[i];if(!f)return;
       const c=mid[i],pts=q.map(([x,y])=>{const l=Math.hypot(x-c[0],y-c[1])||1;return [x+(x-c[0])/l*.7,y+(y-c[1])/l*.7]});
       const xs=pts.map(v=>v[0]),ys=pts.map(v=>v[1]),bx=Math.floor(Math.min(...xs)),by=Math.floor(Math.min(...ys));
       const el=Object.assign(document.createElement('div'),{className:'shard'}),copy=card.cloneNode(true),o=q.edge?[...q.slice(3),...q.slice(0,3)]:q;
@@ -237,56 +311,66 @@
       copy.style.cssText='left:'+(-bx)+'px;top:'+(-by)+'px;width:'+W+'px;height:'+H+'px';
       if(start)copy.querySelector('.cracks').innerHTML=['dk','lt'].map(cls=>'<path class="'+cls+'" d="M'+o.map(P).join('L')+(q.edge?'':'Z')+'"/>').join('');
       el.appendChild(copy);layer.appendChild(el);
-      const d=Math.hypot(c[0]-p[0],c[1]-p[1]),a=Math.atan2(c[1]-p[1],c[0]-p[0])+rnd(-.35,.35);
-      const v=H*push*rnd(.6,1.15)*(1.2-.45*d/far),vx=Math.cos(a)*v,vy=Math.sin(a)*v-H*lift*rnd(.6,1.2),g=H*grav;
-      const vz=tumble?H*rnd(.1,.7):0,spin=[rnd(-420,420),rnd(-420,420),(Math.random()<.5?-1:1)*rnd(90,320)],frames=[];
+      const frames=[];
       for(let k=0;k<=12;k++){
-        const u=k/12,e=1-Math.pow(1-u,1.7),x=vx*e,y=vy*e+g*u*u/2;
+        const u=k/12,e=1-Math.pow(1-u,1.7),x=f.vx*e,y=f.vy*e+f.g*u*u/2;
         frames.push({opacity:u<.5?1:1-Math.pow((u-.5)*2,1.5),transform:tumble
-          ?'translate3d('+x+'px,'+y+'px,'+vz*e+'px) rotateX('+spin[0]*u+'deg) rotateY('+spin[1]*u+'deg) rotate('+spin[2]*u+'deg)'
-          :'translate('+x+'px,'+y+'px) rotate('+spin[2]*u+'deg)'});
+          ?'translate3d('+x+'px,'+y+'px,'+f.vz*e+'px) rotateX('+f.spin[0]*u+'deg) rotateY('+f.spin[1]*u+'deg) rotate('+f.spin[2]*u+'deg)'
+          :'translate('+x+'px,'+y+'px) rotate('+f.spin[2]*u+'deg)'});
       }
-      el.animate(frames,{duration:T,delay:start+wave*d/far,fill:'both'});
+      el.animate(frames,{duration:T,delay:start+wave*f.r,fill:'both'});
     });
     deck.appendChild(layer);
   }
-  // Puts every card back at rest: the pieces, cracks and running animations go, and only the card on show is visible.
-  function reset(){
-    timers.forEach(clearTimeout);timers=[];waiting=false;
-    deck.getAnimations({subtree:true}).forEach(a=>a.cancel());
-    deck.querySelectorAll('.shards').forEach(n=>n.remove());
-    cards.forEach((c,i)=>{c.classList.toggle('on',i===cur);c.style.zIndex='';c.querySelector('.cracks').textContent=''});
+  // Puts every card back at rest: the pieces, cracks and running animations go, and only the card on show is visible (in Compare's
+  // plain fade too). Timers stay.
+  function unpose(){
+    [deck,twin].forEach(d=>{d.getAnimations({subtree:true}).forEach(a=>a.cancel());d.querySelectorAll('.shards').forEach(n=>n.remove())});
+    [cards,tw].forEach(set=>set.forEach((c,i)=>{c.classList.toggle('on',i===cur);c.style.zIndex='';c.querySelector('.cracks').textContent=''}));
+    stage.classList.remove('posed','drawn');
   }
+  function reset(){timers.forEach(clearTimeout);timers=[];waiting=false;clearTimeout(poseT);unpose()}
   // One play: a flash where it is hit, the cracks, then the card breaks and flies apart while the next card fades in behind
   // the pieces. Under reduced motion the next card fades in over it instead. While Loop is on the next card holds, then
   // breaks in turn. Slow motion stretches the play, not the hold. Replay or a setting change starts it over.
-  function play(){
-    reset();
-    const old=cards[cur],next=playing=(cur+1)%cards.length,card=cards[next];
+  // Compare also fades a copy of the deck from the break to the end of the flight. With still set it builds the same play and
+  // freezes it 55% of the way through the flight (no flash), which is how Compare rests.
+  function play(still){
+    still?unpose():reset();
+    const old=cards[cur],next=(cur+1)%cards.length,card=cards[next],fade=reduce.matches&&!still;
+    const T=slow(ms),crack=cracksTog.checked?slow(ms*.32):0;
+    playing=still?-1:next;
     deck.insertBefore(card,flashEl);card.classList.add('on'); // the next card goes on top of the others
-    if(reduce.matches)card.animate([{opacity:0},{opacity:1}],{duration:500});
+    if(mode==='compare'){twin.insertBefore(tw[next],twFlash);tw[next].classList.add('on');
+      tw[next].animate([{opacity:0},{opacity:1}],fade?{duration:500}:{duration:T*1.16,delay:crack,easing:'linear',fill:'backwards'})}
+    if(fade)card.animate([{opacity:0},{opacity:1}],{duration:500});
     else{
-      const r=old.getBoundingClientRect(),o=deck.getBoundingClientRect(),T=slow(ms),crack=cracksTog.checked?slow(ms*.32):0;
-      const plan=cut([r.left-o.left,r.top-o.top,r.width,r.height]); // the card's box in the deck, fractions kept, so the pieces line up exactly
+      const plan=mkPlan(old);
       flashEl.style.left=plan.box[0]+plan.p[0]+'px';flashEl.style.top=plan.box[1]+plan.p[1]+'px';
-      flashEl.animate([{opacity:0,transform:'scale(.25)'},{opacity:.85,offset:.18},{opacity:0,transform:'scale(1.5)'}],{duration:Math.max(crack,slow(260)),easing:'ease-out'});
+      if(!still)flashEl.animate([{opacity:0,transform:'scale(.25)'},{opacity:.85,offset:.18},{opacity:0,transform:'scale(1.5)'}],{duration:Math.max(crack,slow(260)),easing:'ease-out'});
       if(crack){crackLines(old,plan,crack);old.animate([{transform:'none'},{transform:'scale(.97)',offset:.2},{transform:'none'}],{duration:crack*.7,easing:'ease-out'})}
       // The pieces are built before anything moves and wait under the card; it goes at the break by an animation, on their clock
       shatter(old,plan,crack);old.style.zIndex=2;
       old.animate([{opacity:0},{opacity:0}],{duration:0,delay:crack,fill:'forwards'});
       card.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],{duration:T*.5,delay:crack+T*.45,easing:'cubic-bezier(.2,.7,.3,1)',fill:'backwards'});
     }
+    if(still){
+      [deck,twin].forEach(d=>d.getAnimations({subtree:true}).forEach(a=>{a.pause();a.currentTime=crack+T*.55}));
+      stage.classList.add('posed');whenEl.textContent='About '+words(crack+T*.55)+' in';
+      return;
+    }
     // Once all of it has played, the next card is the one on show (a reset in between cancels the play, and this with it)
     Promise.all(deck.getAnimations({subtree:true}).map(a=>a.finished)).then(()=>settle(next),()=>{});
   }
   // Loop's next play comes a second after a play ends, or, with the stage scrolled out of view, once it is back in view
-  function settle(i){playing=-1;cur=i;reset();if(loopTog.checked&&!reduce.matches)later(()=>{if(loopTog.checked)seen?play():waiting=true},1000)}
+  function settle(i){playing=-1;cur=i;reset();stage.classList.remove('held');if(loopTog.checked&&!reduce.matches)later(()=>{if(loopTog.checked)seen?play():waiting=true},1000);rest(mode==='compare'?700:0)}
   new IntersectionObserver(es=>{seen=es[es.length-1].isIntersecting;if(seen&&waiting&&loopTog.checked&&!reduce.matches)play()}).observe(deck);
   // A play ends at once on the next card when the stage changes size (its pieces were placed for the old size) or reduced motion comes on
-  new ResizeObserver(()=>{const now=deck.offsetWidth+'x'+deck.offsetHeight;if(size&&now!==size&&playing>=0)settle(playing);size=now}).observe(deck);
-  reduce.addEventListener('change',()=>{if(reduce.matches&&playing>=0)settle(playing)});
+  new ResizeObserver(()=>{const now=deck.offsetWidth+'x'+deck.offsetHeight,moved=size&&now!==size;size=now;
+    if(moved)playing>=0?settle(playing):rest()}).observe(deck);
+  reduce.addEventListener('change',()=>{notes();if(reduce.matches&&playing>=0)settle(playing);else rest()});
 
-  document.getElementById('btn-play').addEventListener('click',play);loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  document.getElementById('btn-play').addEventListener('click',()=>play());loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -296,6 +380,76 @@
   }
   choices('count-seg',d=>{pieces=d.n});choices('from-seg',d=>{from=d.from});
   choices('grav-seg',d=>{gravity=d.g});choices('speed-seg',d=>{ms=+d.ms});
+  // ── See inside and Compare ──
+  // Each mode redraws at once on a press, a setting, a play's end or a new size. Normal keeps its photo: it comes back when Normal is pressed.
+  const NAMES={normal:deck.getAttribute('aria-label'),inside:'A photo card with the lines it will break along, where it is hit and where the pieces go',
+    compare:'The photo change twice: a plain fade, and the card breaking into pieces'};
+  const STILL={inside:'Shown still: the lines show where the card would break, the ring where it is hit and the arrows where the pieces would go; with reduced motion it fades instead.',
+    compare:'Shown still, part way through the break: Plain fade is half way between the photos, while Shatters has its pieces flying apart.'};
+  const note=k=>document.querySelector('[data-hb-for="'+k+'"]'),NOTES={inside:note('inside').textContent,compare:note('compare').textContent};
+  const notes=()=>{for(const k in STILL)note(k).textContent=reduce.matches?STILL[k]:NOTES[k]};
+  const WORDS=['half a second','a second','one and a half seconds','two seconds','two and a half seconds','three seconds','three and a half seconds',
+    'four seconds','four and a half seconds','five seconds','five and a half seconds','six seconds'];
+  const words=t=>WORDS[Math.min(WORDS.length,Math.max(1,Math.round(t/500)))-1];
+  notes();
+  // At rest: See inside draws the plan of the next break on the card on show; Compare freezes both halves part way through the break
+  // (with Loop on, between plays, the cards are plain). Nothing is drawn in Normal or while a play runs.
+  function rest(wait){
+    clearTimeout(poseT);
+    if(wait)return void(poseT=setTimeout(rest,wait));
+    if(mode==='normal'||playing>=0)return;
+    if(mode==='compare'&&(!loopTog.checked||reduce.matches))play(true);
+    else{unpose();if(mode==='inside')drawPlan()}
+  }
+  const ov=stage.querySelector('.ov'),tint=ov.querySelector('.tint'),mark=ov.querySelector('.mark'),L=k=>ov.querySelector('.l-'+k);
+  const arrow=([sx,sy],[tx,ty])=>{const a=Math.atan2(ty-sy,tx-sx),d='M'+P([sx,sy])+'L'+P([tx,ty])+[a+2.65,a-2.65].map(b=>'M'+P([tx+Math.cos(b)*7,ty+Math.sin(b)*7])+'L'+P([tx,ty])).join('');
+    return '<g><path class="dk" d="'+d+'"/><path class="lt" d="'+d+'"/></g>'};
+  // The plan: the rings tinted from the break outward, the cracks (dashed when the cracks are off), a ring where it is hit, an arrow from
+  // the middle of each outer piece as long as its push, an arrow down the side as long as the drop, and the words in a column beside.
+  function drawPlan(){
+    const card=cards[cur],plan=mkPlan(card),{p,polys,fl,mid,grid,bends,box}=plan,[,,W,H]=box,N=grid[0].length,rings=grid.length-1;
+    const sr=stage.getBoundingClientRect(),cr=card.getBoundingClientRect(),dr=deck.getBoundingClientRect(),SW=sr.width,SH=sr.height;
+    const ox=cr.left-sr.left,oy=cr.top-sr.top,gx=Math.max(4,Math.min(16,dr.right-cr.right-3)),colX=ox+W+gx+12,inf=gx-9;
+    [tint,mark].forEach(el=>{el.setAttribute('viewBox','0 0 '+W+' '+H);Object.assign(el.style,{left:ox+'px',top:oy+'px',width:W+'px',height:H+'px'})});
+    tint.style.clipPath='inset(0 round '+getComputedStyle(card).borderTopLeftRadius+')';tint.classList.toggle('dash',!cracksTog.checked);
+    tint.innerHTML=polys.map((q,i)=>'<polygon points="'+q.map(v=>v[0].toFixed(1)+','+v[1].toFixed(1)).join(' ')+'" fill="rgba(14,110,70,'+
+      (.04+.46*Math.floor(i/N)/Math.max(1,rings-1)).toFixed(2)+')"/>').join('')+crackSvg(plan);
+    const [cut,near,grav,fly,hit]=['cut','near','grav','fly','hit'].map(L),far=(pts)=>pts.reduce((b,v)=>v[0]>b[0]?v:b);
+    cut.textContent=cracksTog.checked?'Cut along these lines':'Breaks at once along these lines';
+    grav.textContent=gravity==='none'?'No gravity: they drift straight out':gravity==='heavy'?'Heavy: they drop away':'Gravity pulls them down';
+    fly.textContent='Each piece flies for about '+words(slow(ms))+', '+(tumbleTog.checked?'flipping toward you':'spinning flat');fly.hidden=phone.matches;
+    const gl=.8*H*PULL[gravity][2]/4.4,out=polys.map((q,i)=>q.edge&&fl[i]&&(!phone.matches||(i%N)%2===0)?i:-1).filter(i=>i>=0);
+    const room=(s,v)=>Math.min(v[0]>0?(W+inf-s[0])/v[0]:v[0]<0?(-inf-s[0])/v[0]:1e9,v[1]>0?(H+inf-s[1])/v[1]:v[1]<0?(-inf-s[1])/v[1]:1e9);
+    const K=Math.min(.35,...out.map(i=>room(mid[i],[fl[i].vx,fl[i].vy]))),cutAt=far(bends[0]),nearAt=far(mid.slice(0,N));
+    const items=[[cut,oy+cutAt[1]],[near,oy+nearAt[1]],[hit,oy+p[1]],[grav,oy+H*.1+(gl||H*.8)/2],[fly,SH]].filter(it=>!it[0].hidden);
+    items.forEach(it=>Object.assign(it[0].style,{left:colX+'px',maxWidth:SW-colX-6+'px'}));
+    let y=6,lim=SH-6;
+    items.sort((a,b)=>a[1]-b[1]).forEach(it=>{it.t=Math.max(it[1]-it[0].offsetHeight/2,y);y=it.t+it[0].offsetHeight+6});
+    for(let i=items.length;i--;){items[i].t=Math.min(items[i].t,lim-items[i][0].offsetHeight);lim=items[i].t-6;items[i][0].style.top=items[i].t+'px'}
+    const lead=(l,a)=>{const d='M'+P([colX-ox-2,l.offsetTop+l.offsetHeight/2-oy])+'L'+P(a);
+      return '<g class="ld"><path class="dk" d="'+d+'"/><path class="lt" d="'+d+'"/></g><circle cx="'+a[0]+'" cy="'+a[1]+'" r="3.5" fill="#fff" stroke="rgba(6,8,16,.6)" stroke-width="1.5"/>'};
+    mark.innerHTML=lead(hit,[p[0]+11,p[1]])+lead(cut,cutAt)+lead(near,nearAt)+out.map(i=>arrow(mid[i],[mid[i][0]+fl[i].vx*K,mid[i][1]+fl[i].vy*K])).join('')+
+      (gl?arrow([W+gx,H*.1],[W+gx,H*.1+gl]):'')+'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="10" fill="none" stroke="rgba(6,8,16,.55)" stroke-width="5"/>'+
+      '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="10" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#fff"/>';
+    stage.classList.add('drawn');
+  }
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    deck.setAttribute('aria-label',NAMES[mode]);notes();
+    if(mode==='normal'){ // a play under way goes on in See inside's layout until it ends; at rest the photo from before the modes comes back
+      if(playing>=0&&was==='inside')stage.classList.add('held');
+      if(playing<0){if(home!==null&&!loopTog.checked)cur=home;unpose()}
+      home=null;
+    }else{
+      stage.classList.remove('held');
+      if(was==='normal')home=cur;
+      if(!reduce.matches)size=deck.offsetWidth+'x'+deck.offsetHeight; // the press that follows plays at this size
+      rest();
+    }
+  });
+  const tryStep=document.querySelector('.hb-try');
+  tryStep.addEventListener('change',()=>rest());tryStep.addEventListener('click',e=>{if(e.target.closest('button'))rest()});
+  [slowTog,loopTog].forEach(t=>t.addEventListener('change',()=>rest()));phone.addEventListener('change',()=>rest());
 </script>
 </body>
 </html>
