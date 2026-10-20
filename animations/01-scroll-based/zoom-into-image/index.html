@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Zoom Into Image", "name": "Zoom Into Image", "description": "A small window opens up to fill the box as you scroll. Best for hero images.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/01-scroll-based/zoom-into-image/", "inLanguage": "en", "articleSection": "Scroll-Based", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Scroll-Based, Zoom Into Image"}</script>
   <style>
-    :root{--ui-accent:#6ea8ff;--br-start:16}
+    :root{--ui-accent:#6ea8ff;--br-start:16;--start:30}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow-y:auto;scrollbar-width:none;container-type:size;background:#0b0b0d}
     .stage::-webkit-scrollbar{display:none}
@@ -39,6 +39,56 @@
     #caption .cap-title{font-size:clamp(18px,3vw,28px);font-weight:700;letter-spacing:3px;text-transform:uppercase;text-align:center}
     #caption .cap-sub{font-size:11px;opacity:.6;margin-top:6px;letter-spacing:2px;text-transform:uppercase}
     @media(prefers-reduced-motion:reduce){#zoom-img{clip-path:inset(0% round 0px)!important}#caption{opacity:1!important}.frame-border{opacity:0!important}}
+    /* See inside: the whole picture is already there, shown faint behind the page's own clip, so the bright part is the window
+       that uncovers it. Compare: an ordinary picture that scrolls past on the left, the page itself on the right. Both copies
+       use the original's gradients and have no ids; the marks lie in a layer that holds still at the top of the box and
+       adds nothing to the scroll. */
+    .full,.faint,.names,.names>*{display:none}
+    .full svg,.faint svg{display:block;width:100%;height:100%}
+    .faint{position:absolute;inset:0;opacity:.3;z-index:-1}
+    .full{position:absolute;left:0;top:75cqh;width:50%;height:100cqh}
+    .names{position:sticky;top:0;height:0;z-index:6;pointer-events:none}
+    .names>*{position:absolute}
+    .tg{padding:4px 9px;border-radius:12px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:pre-line}
+    .tg-start{display:none;position:absolute;right:-1px;bottom:100%;margin-bottom:4px;white-space:nowrap}
+    .arr{left:0;top:0;width:0;height:2px;background:#f4f4f2;transform-origin:0 50%}
+    .arr::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:9px solid #f4f4f2;border-right:0}
+    .tg-all{top:8px;left:10px}
+    .tg-win{top:0;left:0;white-space:nowrap}
+    .tg-a{top:10px;left:10px;white-space:nowrap}
+    .tg-b{top:10px;left:calc(50% + 10px);white-space:nowrap}
+    .tg-gone{top:50cqh;left:25%;transform:translate(-50%,-50%);white-space:nowrap}
+    .split{top:0;left:50%;width:2px;margin-left:-1px;height:100cqh;background:rgba(244,244,242,.4)}
+    .stage[data-hb-mode="inside"] .names,.stage[data-hb-mode="compare"] .names{display:block}
+    .stage[data-hb-mode="inside"] .faint,.stage[data-hb-mode="inside"] .tg-all,.stage[data-hb-mode="inside"] .tg-win,.stage[data-hb-mode="inside"] .tg-start{display:block}
+    .stage[data-hb-mode="inside"]:not([data-held]) .tg-all,.stage[data-hb-mode="inside"]:not([data-held]) .tg-win,.stage[data-hb-mode="inside"]:not([data-held]) .tg-start,.stage[data-hb-mode="inside"]:not([data-held]) .arr{visibility:hidden}
+    .stage[data-hb-mode="inside"] #zoom-img svg{filter:brightness(1.5)}
+    .stage[data-hb-mode="inside"] .frame-border{border-style:dashed;border-color:rgba(244,244,242,.6)}
+    .stage[data-hb-mode="compare"] .full,.stage[data-hb-mode="compare"] .tg-a,.stage[data-hb-mode="compare"] .tg-b,.stage[data-hb-mode="compare"] .split{display:block}
+    .stage[data-hb-mode="compare"][data-gone] .tg-gone{display:block}
+    .stage[data-hb-mode="compare"] .spacer{padding:0 8px 0 calc(50% + 8px)}
+    .stage[data-hb-mode="compare"] #zoom-sticky{justify-content:flex-end}
+    .stage[data-hb-mode="compare"] #zoom-img{width:50%}
+    .stage[data-hb-mode="compare"] #frame,.stage[data-hb-mode="compare"] #caption{left:50%}
+    .stage[data-hb-mode="compare"] .frame-border{border-color:rgba(244,244,242,.5)}
+    .stage[data-hb-mode="compare"] #caption{padding:0 10px 26px}
+    .stage[data-hb-mode="compare"] #caption .cap-title{font-size:clamp(13px,2.2vw,22px);letter-spacing:1px}
+    /* Reduced motion: the page shows the whole picture whatever the scroll, so each mode poses its own still, over the page's
+       rules: See inside the window at its start with an arrow for how far it would open, Compare the window half open */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] #zoom-img{clip-path:inset(calc(var(--start) * 1%) round calc(var(--br-start) * 1px))!important}
+      .stage[data-hb-mode="compare"] #zoom-img{clip-path:inset(calc(var(--start) * .5%) round calc(var(--br-start) * .5px))!important}
+      .stage[data-hb-mode="inside"] #caption,.stage[data-hb-mode="compare"] #caption{opacity:0!important}
+      .stage[data-hb-mode="inside"] .frame-border,.stage[data-hb-mode="compare"] .frame-border{opacity:1!important}
+      .stage[data-hb-mode="inside"] .names .arr{display:block}
+      .stage[data-hb-mode="inside"] .tg-start{display:none}
+      /* The posed view is held for the whole scroll, so it shows wherever the box sits: the frame's section spans the box's
+         whole height (its margins cancel the spacers, so the scroll length is the same) and the spacers' words are hidden */
+      .stage[data-hb-mode="inside"] #zoom-section,.stage[data-hb-mode="compare"] #zoom-section{height:370cqh;margin:-60cqh 0}
+      .stage[data-hb-mode="inside"] .spacer,.stage[data-hb-mode="compare"] .spacer{color:transparent}
+      .stage[data-hb-mode="compare"] .full{display:none}
+      .stage[data-hb-mode="compare"] .faint{display:block;inset:0 50% 0 0;opacity:1;z-index:0}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -61,7 +111,22 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A picture that opens up as you scroll">
+      <div class="names" aria-hidden="true">
+        <i class="split"></i>
+        <p class="tg tg-a" data-hb-caption>Full picture</p>
+        <p class="tg tg-b" data-hb-caption>Window opens</p>
+        <p class="tg tg-gone" data-hb-caption>Scrolled past ↑</p>
+        <p class="tg tg-all" data-hb-caption>The whole picture,
+already there</p>
+        <p class="tg tg-win" data-hb-caption>Window: about half the box</p>
+        <i class="arr"></i>
+      </div>
       <div class="spacer">Scroll down ↓</div>
       <div id="zoom-section">
         <div id="zoom-sticky">
@@ -116,7 +181,7 @@
               <ellipse cx="600" cy="395" rx="12" ry="4" fill="#e8dca0" opacity=".12"/>
             </svg>
           </div>
-          <div id="frame"><div class="frame-border" style="inset:28%"></div></div>
+          <div id="frame"><div class="frame-border" style="inset:28%"><p class="tg tg-start" data-hb-caption>Where it started</p></div></div>
           <div id="caption"><p class="cap-title">Through the Portal</p><p class="cap-sub">Keep scrolling</p></div>
         </div>
       </div>
@@ -125,6 +190,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the faint picture is the whole image, already there, and the bright part is the window that uncovers it as you scroll; nothing grows. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Full picture is an ordinary image that scrolls past; Window opens stays in place while its window widens to fill the box. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -206,29 +275,92 @@
   const stage=document.getElementById('stage'),zoomSec=document.getElementById('zoom-section');
   const zoomImg=document.getElementById('zoom-img'),caption=document.getElementById('caption');
   const frameEl=document.getElementById('frame'),frameBorder=frameEl.querySelector('.frame-border');
-  const frameTog=document.getElementById('frame-tog');
+  const frameTog=document.getElementById('frame-tog'),zoomSticky=document.getElementById('zoom-sticky');
   const motionMQ=window.matchMedia('(prefers-reduced-motion:reduce)');
-  let startPct=30,brStart=16,ticking=false;
+  let startPct=30,brStart=16,ticking=false,mode='normal';
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b),lerp=(a,b,t)=>a+(b-a)*t;
+
+  // Two copies of the picture, made once. They have no ids of their own: their fills use the original's gradients.
+  // They are inert and hidden from screen readers, and drawn only in See inside (faint, under the page's own clip) and
+  // in Compare (the ordinary picture on the left).
+  const copyOf=cls=>{const d=document.createElement('div'),svg=zoomImg.querySelector('svg').cloneNode(true);
+    svg.removeAttribute('role');svg.removeAttribute('aria-label');svg.querySelector('defs').remove();
+    d.className=cls;d.inert=true;d.setAttribute('aria-hidden','true');d.append(svg);return d};
+  zoomSticky.prepend(copyOf('faint'));
+  zoomSec.prepend(copyOf('full'));
+  const tgGone=stage.querySelector('.tg-gone'),tgAll=stage.querySelector('.tg-all'),tgWin=stage.querySelector('.tg-win'),arrow=stage.querySelector('.arr');
+  const LABELS={
+    normal:'A picture that opens up as you scroll',
+    inside:'The whole picture shown faintly, with the bright window that uncovers it',
+    compare:'The picture twice: an ordinary picture scrolling past, and a window that opens to fill the box',
+  };
+  const NOTES={
+    moving:{
+      inside:'Inside, the faint picture is the whole image, already there, and the bright part is the window that uncovers it as you scroll; nothing grows. Scroll the box or press Play to watch.',
+      compare:'Full picture is an ordinary image that scrolls past; Window opens stays in place while its window widens to fill the box. Scroll the box or press Play to watch.',
+    },
+    still:{
+      inside:'Shown still: the bright part is the window you would see at first, and the arrow shows how far it would open as you scroll; the rest of the picture is already there.',
+      compare:'Shown still, half open: Full picture is an ordinary image; Window opens has uncovered only part of the picture, as it would halfway down the box.',
+    },
+  };
+  const insideNote=document.querySelector('[data-hb-for="inside"]'),compareNote=document.querySelector('[data-hb-for="compare"]');
+  const put=(el,text)=>{if(el.textContent!==text)el.textContent=text};
+  // The words for how wide the window is, as a share of the box
+  const widthWords=w=>w<.3?'a fifth of the box':w<.5?'two fifths of the box':w<.7?'about half the box':w<.97?'most of the box':'the whole box';
 
   function update(){
     ticking=false;
+    const st=stage.scrollTop,H=stage.clientHeight,W=stage.clientWidth;
+    const pinStart=zoomSec.offsetTop,budget=zoomSec.offsetHeight-H;
+    const raw=(st-pinStart)/budget,p=clamp(raw,0,1);
+    const still=motionMQ.matches;
     // reduced motion: the CSS rule above shows the full picture and the caption and hides the outline, whatever the scroll position
-    if(motionMQ.matches)return;
-    const st=stage.scrollTop,stageH=stage.clientHeight;
-    const pinStart=zoomSec.offsetTop,budget=zoomSec.offsetHeight-stageH;
-    const p=clamp((st-pinStart)/budget,0,1);
-    const inset=lerp(startPct,0,p);
-    const radius=lerp(brStart,0,p);
-    zoomImg.style.clipPath=`inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;
-    const cap=p>0.88?((p-0.88)/0.12).toFixed(3):'0';
-    caption.style.opacity=cap;
-    frameBorder.style.opacity=(1-cap).toFixed(3);   // the starting-frame outline fades out as the caption fades in
+    const cap=!still&&p>0.88?(p-0.88)/0.12:0;
+    if(!still){
+      const inset=lerp(startPct,0,p);
+      const radius=lerp(brStart,0,p);
+      zoomImg.style.clipPath=`inset(${inset.toFixed(2)}% round ${radius.toFixed(1)}px)`;
+      caption.style.opacity=cap.toFixed(3);
+      frameBorder.style.opacity=(1-cap).toFixed(3);   // the starting-frame outline fades out as the caption fades in
+    }
+    if(mode==='compare'){
+      // Compare: the ordinary picture scrolls by, so where less than a quarter of it is in its half a caption says where it is
+      const vT=st-pinStart,top=H*.75,seen=Math.max(0,Math.min(vT+H,top+H)-Math.max(vT,top))/H;
+      if(!still&&seen<.25){stage.setAttribute('data-gone','');put(tgGone,vT>top?'Scrolled past ↑':'Coming up ↓')}
+      else stage.removeAttribute('data-gone');
+    }
+    if(mode!=='inside')return;
+    // See inside: the marks belong to the held picture, so they show only while it is held. The window label rides the
+    // window's lower edge, below the outline, and stays above the caption; the same share draws it as draws the window.
+    stage.toggleAttribute('data-held',still||(raw>=-.001&&raw<=1.001));
+    tgAll.style.opacity=still?1:(1-cap).toFixed(3);   // it fades with the outline once the window has opened
+    const inset=still?startPct:lerp(startPct,0,p);
+    put(tgWin,still?'Window at the start':'Window: '+widthWords(1-inset/50));
+    tgWin.style.transform=`translate(${(W-tgWin.offsetWidth)/2}px,${Math.min(H*(1-inset/100)+H*.02+5,H-30).toFixed(1)}px)`;
+    if(still){   // an arrow from the window's top right corner to the box's, as long as the window would open
+      const ax=W*(1-startPct/100),ay=H*startPct/100,dx=W-12-ax,dy=12-ay;
+      arrow.style.cssText=`left:${ax.toFixed(1)}px;top:${ay.toFixed(1)}px;width:${Math.hypot(dx,dy).toFixed(1)}px;transform:rotate(${Math.atan2(dy,dx).toFixed(4)}rad)`;
+    }
   }
 
+  // The notes and the first label say what the picture shows: moving, or posed still under reduced motion
+  function describe(){
+    const n=NOTES[motionMQ.matches?'still':'moving'];
+    insideNote.textContent=n.inside;compareNote.textContent=n.compare;
+    put(tgAll,motionMQ.matches?'Rest of the picture,\nuncovered as you scroll':'The whole picture,\nalready there');
+  }
+
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]);
+    stage.removeAttribute('data-held');stage.removeAttribute('data-gone');
+    describe();update();
+  });
   stage.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(update);ticking=true}},{passive:true});
   window.addEventListener('resize',update);   // the box changes height under the same scroll position
-  motionMQ.addEventListener('change',update);
+  motionMQ.addEventListener('change',()=>{describe();update()});
+  document.getElementById('btn-top').addEventListener('click',()=>{update();requestAnimationFrame(update)});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -237,9 +369,10 @@
       pick(b.dataset);
     }));
   }
-  choices('start-seg',d=>{startPct=+d.start;frameBorder.style.inset=(startPct-2)+'%';update()});
+  choices('start-seg',d=>{startPct=+d.start;stage.style.setProperty('--start',startPct);frameBorder.style.inset=(startPct-2)+'%';update()});
   choices('corners-seg',d=>{brStart=+d.radius;stage.style.setProperty('--br-start',brStart);update()});
   frameTog.addEventListener('change',()=>{frameEl.style.opacity=frameTog.checked?'1':'0'});
+  describe();
   update();
 </script>
 </body>
