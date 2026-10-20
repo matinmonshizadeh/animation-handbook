@@ -33,7 +33,50 @@
          and costs more memory than it saves */
       will-change:transform;transform:translate3d(0,0,0);
     }
-    @media(prefers-reduced-motion:reduce){.layer{will-change:auto}}
+    /* The layers sit in a view that fills the pinned frame: one view, or two side by side in Compare */
+    .view{position:relative;width:100%;height:100%}
+    .sheet{display:contents}
+    .twin,.start,.focus,.far,.near,.side,.drop,.fl{display:none}
+    .far,.near,.fl,.side{position:absolute;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.88);color:#f4f4f2;
+      font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    /* Compare: all sharp on the left, the page itself on the right, each named at its top */
+    .stage[data-hb-mode="compare"] .pinned{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
+    .stage[data-hb-mode="compare"] .view{overflow:hidden;overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] .side{display:block}
+    .side{z-index:5;top:10px;left:10px;border-radius:999px;padding:5px 10px}
+    /* See inside: each layer is a flat sheet at about a third of its size, placed along a fan from the far sky (top left) to the
+       near front ridge (bottom right) at its depth. A sheet's frame and fill sit outside its drawing, so only the drawing blurs.
+       The Focus frame is a sheet-sized outline that rides the same fan with the eased focus. */
+    .stage[data-hb-mode="inside"]{--s:.36;--k:calc((1 - var(--s)) * 50%);--x:calc(var(--k) - 8px);--top:34px;--bot:calc(36px + 5cqh)}
+    .stage[data-hb-mode="inside"] .view{isolation:isolate}
+    .stage[data-hb-mode="inside"] :is(.sheet,.start,.focus){display:block;position:absolute;inset:0;scale:var(--s);
+      translate:calc((var(--d) * 2 - 1) * var(--x)) calc(var(--top) - var(--k) + var(--d) * (var(--k) * 2 - var(--top) - var(--bot)))}
+    .stage[data-hb-mode="inside"] .sheet{overflow:hidden;background:rgba(255,255,255,.08);will-change:transform}
+    .stage[data-hb-mode="inside"] .sheet::after{content:"";position:absolute;inset:0;outline:4px solid rgba(244,244,242,.6);outline-offset:-4px}
+    .stage[data-hb-mode="inside"] .layer{will-change:auto}
+    .stage[data-hb-mode="inside"] .start{z-index:-1;outline:4px dashed rgba(244,244,242,.45);outline-offset:-4px;pointer-events:none}
+    .stage[data-hb-mode="inside"] .focus{z-index:3;outline:8px solid #ffcf5a;outline-offset:3px;pointer-events:none}
+    .stage[data-hb-mode="inside"] :is(.far,.near,.fl){display:block}
+    .far,.near{z-index:4}
+    .far{top:5px;left:8px}
+    .near{bottom:5px;right:8px}
+    .stage[data-hb-mode="inside"] .fl{left:calc(8px / var(--s));bottom:calc(8px / var(--s));transform-origin:0 100%;scale:calc(1 / var(--s));
+      background:#ffcf5a;color:#1a1300}
+    /* The drawings lighter than at night, so they show against their sheets */
+    .stage[data-hb-mode="inside"] #l5 stop:first-child{stop-color:#2c4468}
+    .stage[data-hb-mode="inside"] #l5 stop:last-child{stop-color:#1a2840}
+    .stage[data-hb-mode="inside"] #l4 polygon{fill:#6483ad}
+    .stage[data-hb-mode="inside"] #l3 polygon{fill:#4c6c94}
+    .stage[data-hb-mode="inside"] #l2 polygon{fill:#385878}
+    .stage[data-hb-mode="inside"] #l1 polygon{fill:#264360}
+    /* Under reduced motion nothing sinks: no start outlines, and an arrow on each sheet as long as the sink it would make */
+    .drop{position:absolute;left:12%;top:9%;width:6px;height:calc(var(--len, 0) * 1px);background:#f4f4f2}
+    .drop::after{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;border:8px solid transparent;border-top:14px solid #f4f4f2;border-bottom:0}
+    @media(prefers-reduced-motion:reduce){
+      .layer,.stage[data-hb-mode="inside"] .sheet{will-change:auto}
+      .stage[data-hb-mode="inside"] .start{display:none}
+      .stage[data-hb-mode="inside"] .drop{display:block}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -56,69 +99,101 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Mountain layers that move and blur as you scroll">
       <div class="scene">
         <div class="pinned">
-
+          <div class="view" id="main">
+          <p class="side" data-hb-caption>Focus shifts</p>
+          <span class="far" data-hb-caption>Far: the sky</span>
+          <span class="near" data-hb-caption>Near: the front ridge</span>
+          <span class="start" style="--d:0" aria-hidden="true"></span>
+          <span class="start" style="--d:0.2" aria-hidden="true"></span>
+          <span class="start" style="--d:0.4" aria-hidden="true"></span>
+          <span class="start" style="--d:0.7" aria-hidden="true"></span>
+          <span class="start" style="--d:1" aria-hidden="true"></span>
           <!-- L5: Sky + stars (depth 0.0, static) -->
-          <svg class="layer" id="l5" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#141a24"/>
-                <stop offset="100%" stop-color="#0b0b0d"/>
-              </linearGradient>
-            </defs>
-            <rect width="1200" height="800" fill="url(#sky)"/>
-            <circle cx="80"   cy="55"  r="1.2" fill="#fff" opacity=".5"/>
-            <circle cx="210"  cy="28"  r="1"   fill="#fff" opacity=".4"/>
-            <circle cx="345"  cy="88"  r=".9"  fill="#fff" opacity=".6"/>
-            <circle cx="480"  cy="18"  r="1.3" fill="#fff" opacity=".3"/>
-            <circle cx="600"  cy="52"  r="1"   fill="#fff" opacity=".5"/>
-            <circle cx="720"  cy="33"  r="1.1" fill="#fff" opacity=".4"/>
-            <circle cx="865"  cy="14"  r=".8"  fill="#fff" opacity=".6"/>
-            <circle cx="950"  cy="68"  r="1.2" fill="#fff" opacity=".3"/>
-            <circle cx="1055" cy="40"  r="1"   fill="#fff" opacity=".5"/>
-            <circle cx="1150" cy="24"  r=".9"  fill="#fff" opacity=".4"/>
-            <circle cx="155"  cy="118" r=".8"  fill="#fff" opacity=".3"/>
-            <circle cx="395"  cy="138" r="1"   fill="#fff" opacity=".4"/>
-            <circle cx="672"  cy="108" r=".9"  fill="#fff" opacity=".5"/>
-            <circle cx="902"  cy="128" r="1.1" fill="#fff" opacity=".3"/>
-          </svg>
+          <div class="sheet" style="--d:0">
+            <svg class="layer" id="l5" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#141a24"/>
+                  <stop offset="100%" stop-color="#0b0b0d"/>
+                </linearGradient>
+              </defs>
+              <rect width="1200" height="800" fill="url(#sky)"/>
+              <circle cx="80"   cy="55"  r="1.2" fill="#fff" opacity=".5"/>
+              <circle cx="210"  cy="28"  r="1"   fill="#fff" opacity=".4"/>
+              <circle cx="345"  cy="88"  r=".9"  fill="#fff" opacity=".6"/>
+              <circle cx="480"  cy="18"  r="1.3" fill="#fff" opacity=".3"/>
+              <circle cx="600"  cy="52"  r="1"   fill="#fff" opacity=".5"/>
+              <circle cx="720"  cy="33"  r="1.1" fill="#fff" opacity=".4"/>
+              <circle cx="865"  cy="14"  r=".8"  fill="#fff" opacity=".6"/>
+              <circle cx="950"  cy="68"  r="1.2" fill="#fff" opacity=".3"/>
+              <circle cx="1055" cy="40"  r="1"   fill="#fff" opacity=".5"/>
+              <circle cx="1150" cy="24"  r=".9"  fill="#fff" opacity=".4"/>
+              <circle cx="155"  cy="118" r=".8"  fill="#fff" opacity=".3"/>
+              <circle cx="395"  cy="138" r="1"   fill="#fff" opacity=".4"/>
+              <circle cx="672"  cy="108" r=".9"  fill="#fff" opacity=".5"/>
+              <circle cx="902"  cy="128" r="1.1" fill="#fff" opacity=".3"/>
+            </svg>
+          </div>
 
           <!-- L4: Distant peaks (depth 0.2) -->
-          <svg class="layer" id="l4" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#33455f"
-              points="0,500 80,340 180,400 300,280 420,360 540,260
-                      660,320 780,290 900,330 1020,270 1140,310 1200,290 1200,800 0,800"/>
-          </svg>
+          <div class="sheet" style="--d:0.2">
+            <svg class="layer" id="l4" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#33455f"
+                points="0,500 80,340 180,400 300,280 420,360 540,260
+                        660,320 780,290 900,330 1020,270 1140,310 1200,290 1200,800 0,800"/>
+            </svg>
+            <i class="drop" aria-hidden="true"></i>
+          </div>
 
           <!-- L3: Mid mountains (depth 0.4) -->
-          <svg class="layer" id="l3" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#253243"
-              points="0,530 100,390 220,440 360,320 480,400 600,310
-                      720,370 840,345 960,382 1080,332 1200,360 1200,800 0,800"/>
-          </svg>
+          <div class="sheet" style="--d:0.4">
+            <svg class="layer" id="l3" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#253243"
+                points="0,530 100,390 220,440 360,320 480,400 600,310
+                        720,370 840,345 960,382 1080,332 1200,360 1200,800 0,800"/>
+            </svg>
+            <i class="drop" aria-hidden="true"></i>
+          </div>
 
           <!-- L2: Near hills (depth 0.7) -->
-          <svg class="layer" id="l2" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#18202c"
-              points="0,570 120,445 260,480 400,392 540,455 680,382
-                      820,432 960,408 1100,442 1200,422 1200,800 0,800"/>
-          </svg>
+          <div class="sheet" style="--d:0.7">
+            <svg class="layer" id="l2" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#18202c"
+                points="0,570 120,445 260,480 400,392 540,455 680,382
+                        820,432 960,408 1100,442 1200,422 1200,800 0,800"/>
+            </svg>
+            <i class="drop" aria-hidden="true"></i>
+          </div>
 
           <!-- L1: Foreground (depth 1.0) -->
-          <svg class="layer" id="l1" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-            <polygon fill="#0e1015"
-              points="0,612 160,502 320,542 480,472 640,522 800,482
-                      960,522 1120,492 1200,508 1200,800 0,800"/>
-          </svg>
-
+          <div class="sheet" style="--d:1">
+            <svg class="layer" id="l1" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill="#0e1015"
+                points="0,612 160,502 320,542 480,472 640,522 800,482
+                        960,522 1120,492 1200,508 1200,800 0,800"/>
+            </svg>
+            <i class="drop" aria-hidden="true"></i>
+          </div>
+          <div class="focus" aria-hidden="true"><span class="fl" data-hb-caption>Focus</span></div>
+        </div>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, five layers run from far to near. Scroll the box or press Play: the Focus frame slides toward you, each layer blurs by its distance from it, and dashed outlines show where they started.</p>
+      <p data-hb-for="compare" hidden>All sharp keeps every layer crisp; Focus shifts blurs each layer by its distance from a focus that slides from the sky to the front ridge. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -172,11 +247,38 @@
   const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = reduceMQ.matches;
 
+  // Compare's left half: a copy of the layers that sinks like the page's and never blurs. Its ids are gone (its sky gradient
+  // gets one of its own), and it is inert and hidden from screen readers: the stage's name says what each half shows.
+  const main = document.getElementById('main');
+  const twin = main.cloneNode(true);
+  twin.querySelectorAll('.start, .focus, .far, .near, .drop').forEach(n => n.remove());
+  twin.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  twin.removeAttribute('id');
+  twin.querySelector('linearGradient').id = 'sky-copy';
+  twin.querySelector('rect[fill="url(#sky)"]').setAttribute('fill', 'url(#sky-copy)');
+  twin.querySelector('.side').textContent = 'All sharp';
+  twin.classList.add('twin');
+  twin.inert = true;
+  twin.setAttribute('aria-hidden', 'true');
+  main.before(twin);
+  const copies = twin.querySelectorAll('.layer');
+  LAYERS.forEach((L, i) => { L.copy = copies[i]; L.sheet = L.el.parentNode; L.drop = L.sheet.querySelector('.drop'); });
+  const focus = main.querySelector('.focus');
+
   // A wheel notch arrives as one ~100px jump, so mapping scrollY straight onto the
   // layers makes them step. Easing toward the target each frame turns steps into glide.
   // EASE is the share of the distance covered in 1/60 s, so the glide lasts as long on a 30, 60 or 120Hz screen.
   const EASE = 0.14, FRAME = 1000 / 60;
   const BLUR_STEP = 0.5;
+  // See inside draws each layer as a sheet at this share of its size (the same number as --s in the styles). The sheet sinks
+  // that share as far on screen, and its drawing is blurred that much more, so the blur looks as wide as it does in Normal.
+  const SHEET = 0.36;
+  const MODES = {
+    normal:  'Mountain layers that move and blur as you scroll',
+    inside:  'The mountain scene pulled apart into five layers from far to near, with a focus frame that moves toward you as you scroll',
+    compare: 'The mountain scene twice, all sharp and with the focus shifting',
+  };
+  let mode = 'normal';
 
   let MAX_BLUR, MAX_OFFSET, maxScroll;
   // Layout reads live here only — never in the scroll handler, where each one
@@ -187,26 +289,58 @@
     MAX_BLUR = phone ? 8 : 14;
     MAX_OFFSET = stage.clientHeight * (phone ? 0.125 : 0.19);
     maxScroll = Math.max(1, stage.scrollHeight - stage.clientHeight);
+    // Under reduced motion each sheet's arrow is as long as its sink at the end of the scroll
+    LAYERS.forEach(L => { if (L.drop) L.drop.style.setProperty('--len', (L.speed * MAX_OFFSET).toFixed(1)); });
   }
 
   let target = 0, current = 0, raf = null, last = 0; // last: time of the previous frame, 0 after a restart
   const lastBlur = LAYERS.map(() => -1), lastOffset = LAYERS.map(() => NaN);
+  const lastSheet = LAYERS.map(() => NaN), lastCopy = LAYERS.map(() => NaN);
+  let lastFocus = NaN, lastFocusY = NaN;
+  function forget() { lastBlur.fill(-1); lastOffset.fill(NaN); lastSheet.fill(NaN); lastCopy.fill(NaN); lastFocus = lastFocusY = NaN; }
+
+  // The speed a layer would have at focus f, between the speeds of the layers on either side
+  function speedAt(f) {
+    for (let i = 1; i < LAYERS.length; i++) {
+      const a = LAYERS[i - 1], b = LAYERS[i];
+      if (f <= b.depth) return a.speed + (b.speed - a.speed) * (f - a.depth) / (b.depth - a.depth);
+    }
+    return LAYERS[LAYERS.length - 1].speed;
+  }
 
   function render(f) {
+    const inside = mode === 'inside';
     for (let i = 0; i < LAYERS.length; i++) {
       const layer = LAYERS[i], dist = Math.abs(layer.depth - f);
       // Snapping blur to 0.5px steps lets the compositor reuse the blurred texture
       // instead of re-rasterising five full-screen layers on every single frame.
-      const blur = Math.round(MAX_BLUR * dist / BLUR_STEP) * BLUR_STEP;
+      const step = Math.round(MAX_BLUR * dist / BLUR_STEP) * BLUR_STEP;
+      const blur = inside ? +(step / SHEET).toFixed(2) : step;
       if (blur !== lastBlur[i]) {
         layer.el.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
         lastBlur[i] = blur;
       }
       const offset = reduced ? 0 : layer.speed * f * MAX_OFFSET;
-      if (offset !== lastOffset[i]) {
-        layer.el.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
-        lastOffset[i] = offset;
+      // The drawing sinks in Normal and Compare; in See inside its whole sheet does, and the drawing stays in it
+      const own = inside ? 0 : offset, sheet = inside ? offset : 0;
+      if (own !== lastOffset[i]) {
+        layer.el.style.transform = `translate3d(0, ${own.toFixed(2)}px, 0)`;
+        lastOffset[i] = own;
       }
+      if (sheet !== lastSheet[i]) {
+        layer.sheet.style.transform = `translate3d(0, ${sheet.toFixed(2)}px, 0)`;
+        lastSheet[i] = sheet;
+      }
+      if (mode === 'compare' && offset !== lastCopy[i]) {
+        layer.copy.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+        lastCopy[i] = offset;
+      }
+    }
+    if (inside) {
+      // The Focus frame rides the fan with the eased focus and sinks like a layer at its depth would
+      const y = reduced ? 0 : speedAt(f) * f * MAX_OFFSET;
+      if (f !== lastFocus) { focus.style.setProperty('--d', f.toFixed(4)); lastFocus = f; }
+      if (y !== lastFocusY) { focus.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`; lastFocusY = y; }
     }
   }
 
@@ -229,6 +363,28 @@
     schedule();
   }
 
+  // The notes under the box: the markup holds the moving words; under reduced motion the picture stands still, so they say
+  // what the still picture shows instead of asking the visitor to watch
+  const insideNote = document.querySelector('[data-hb-for="inside"]'), compareNote = document.querySelector('[data-hb-for="compare"]');
+  const NOTES = {
+    moving: [insideNote.textContent, compareNote.textContent],
+    still: [
+      'Shown still: five flat layers from far to near, each arrow as long as its move. The Focus frame follows your scroll, and each layer blurs by its distance from it.',
+      'Both sides stand still: All sharp keeps every layer crisp, while Focus shifts blurs each layer by its distance from a focus that follows your scroll.',
+    ],
+  };
+  function words() {
+    const n = NOTES[reduced ? 'still' : 'moving'];
+    insideNote.textContent = n[0]; compareNote.textContent = n[1];
+  }
+
+  // A mode press: the stage is named for the mode and drawn at once, from the eased value, whatever the scroll position
+  document.addEventListener('hb:mode', e => {
+    mode = e.detail.mode;
+    stage.setAttribute('aria-label', MODES[mode]);
+    forget(); render(current);
+  });
+
   stage.addEventListener('scroll', onScroll, { passive: true });
   // Back to top, and Play starting again from the top, jump the box (the shared script moves it before the click reaches the document): the layers jump with it
   document.addEventListener('click', e => { if (e.target.closest('#btn-top,#btn-scroll')) { onScroll(); current = target; render(current); } });
@@ -237,13 +393,13 @@
   window.addEventListener('resize', () => {
     clearTimeout(rt);
     rt = setTimeout(() => {
-      measure(); lastBlur.fill(-1); lastOffset.fill(NaN); onScroll(); render(current);
+      measure(); forget(); onScroll(); render(current);
     }, 150);
   });
-  reduceMQ.addEventListener('change', e => { reduced = e.matches; lastOffset.fill(NaN); schedule(); });
+  reduceMQ.addEventListener('change', e => { reduced = e.matches; words(); forget(); schedule(); });
 
   // Seed from wherever the stage actually starts — no fly-in on load.
-  measure();
+  measure(); words();
   target = current = Math.min(1, Math.max(0, stage.scrollTop / maxScroll));
   render(current);
 </script>
