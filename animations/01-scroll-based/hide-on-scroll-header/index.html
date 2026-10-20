@@ -85,10 +85,10 @@
        real scroll under a bar that never moves. The real box keeps its full size and only sits half a box lower, its lower half
        cut off by the stage, so its top half fills the lower half of the stage. The real bar slides up under the top half. */
     .stage[data-hb-mode="compare"]{overflow:clip}
-    .stage[data-hb-mode="compare"] .scroller{inset:auto;left:0;right:0;top:calc(50% + 1px);height:100%}
+    .stage[data-hb-mode="compare"] .scroller{inset:auto;left:0;right:0;top:calc(50% + 1px);height:100%;scroll-margin-bottom:var(--sm,0px)} /* focus must not scroll the window to the half below the stage */
     .stage[data-hb-mode="compare"]>.topbar{top:calc(50% + 1px)}
     .stage[data-hb-mode="compare"] .scroller:focus-visible{outline:none}
-    .stage[data-hb-mode="compare"] .scroller:focus-visible+.fx::after{content:"";position:absolute;left:0;right:0;top:calc(50% + 1px);bottom:0;outline:2px solid var(--hb-accent,var(--ui-accent));outline-offset:-3px}
+    .stage[data-hb-mode="compare"] .scroller:focus-visible~.fx::after{content:"";position:absolute;left:0;right:0;top:calc(50% + 1px);bottom:0;outline:2px solid var(--hb-accent,var(--ui-accent));outline-offset:-3px}
     .h1{position:absolute;top:0;left:0;right:0;height:calc(50% - 1px);overflow:hidden;background:#0b0b0d}
     .cpage{position:absolute;left:0;right:0;top:0;padding-top:var(--bar-h);will-change:transform}
     .h1 .topbar{transition:none}
@@ -275,7 +275,7 @@
   const JITTER=6,MOVE=1100,HOLD=500; // a move under JITTER px is ignored; a Show me glide takes MOVE ms each way
   let ms=300,comeBack='any',maxY=0,nearTop=112,lastY=0,away=false,ticking=false;
   let runFrame=0,runTimers=[],runFrom=0;
-let mode='normal',dir=null,trackH=0,posed=false,posedAt=0,poseTimer=0; // dir: the last move that counted ('down', 'up' or none yet)
+let mode='normal',dir=null,trackH=0,posed=false,posedAt=0,poseTimer=0,seenY=0; // dir: the last move that counted ('down', 'up' or none yet)
 const POSE=500; // Compare: how long the box rests before the bar is posed half way again
 
 // See inside and Compare: the listener sits here, at the top level; what it draws is defined below
@@ -291,8 +291,8 @@ document.addEventListener('hb:mode',e=>{
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
 
   // Layout is read here, never in the scroll handler: at the start, after the site font loads and on resize.
-  function measure(){maxY=Math.max(0,scroller.scrollHeight-scroller.clientHeight);nearTop=bar.offsetHeight*2;fit()}
-  function setAway(on){if(on===away)return;away=on;bar.classList.toggle('away',on)}
+  function measure(){maxY=Math.max(0,scroller.scrollHeight-scroller.clientHeight);nearTop=bar.offsetHeight*2;scroller.style.setProperty('--sm',-(scroller.clientHeight/2+2)+'px');fit()}
+  function setAway(on){if(on===away)return;away=on;bar.classList.toggle('away',on);if(on&&posed){posed=false;bar.classList.remove('posed');capPose.hidden=true}} // the bar goes on from half way
 
   // Once per frame: near the top the bar always shows; below that, a move down hides it and a move up brings it back
   // (with "Only near the top", only the top does). lastY changes only on a move past JITTER, so a slow scroll still adds up.
@@ -310,7 +310,10 @@ document.addEventListener('hb:mode',e=>{
     lastY=y;
   }
   scroller.addEventListener('scroll',()=>{
-    if(mode==='compare'&&!(posed&&scroller.scrollTop===posedAt)){setPose(false);schedulePose()} // any real move lifts the pose
+    const y=scroller.scrollTop;
+    // a move up lifts the pose; a move down keeps it until the bar leaves, so the bar only ever moves one way
+    if(mode==='compare'&&!(posed&&y===posedAt)){if(posed&&y<seenY)setPose(false);schedulePose()}
+    seenY=y;
     if(!ticking){ticking=true;requestAnimationFrame(update)}
   },{passive:true});
 
@@ -342,7 +345,6 @@ document.addEventListener('hb:mode',e=>{
   // began. Under reduced motion it jumps instead: down, halfway back (where only "On any scroll up" brings the bar back), home.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     const again=running(); // pressed during a run: it begins again from the same place
-    if(mode==='compare'){setPose(false);schedulePose()}
     stopRun();measure();
     const from=again?runFrom:scroller.scrollTop,span=Math.round(scroller.clientHeight*1.5);
     const far=from+span<=maxY?from+span:Math.max(0,from-span);
@@ -393,9 +395,10 @@ document.addEventListener('hb:mode',e=>{
       rmShrink:"Shown still: Always there keeps the whole bar; Shrinks on scroll leaves only a slim strip once you scroll down, as shown here."}};
   const span=t=>t<=200?'a sixth of a second':t<=400?'a third of a second':t<=550?'half a second':t<=800?'two thirds of a second':t<=1200?'a second':'two seconds';
   function label(){
+    const gone=shrinkTog.checked?'shrinks to a strip':'slides away';
     return ['A page whose top bar slides away as you scroll down',
-      'A page whose top bar slides away as you scroll down, with a track of the page, its top zone and the last move',
-      'The page twice, one above the other: a bar that always stays, and a bar that '+(shrinkTog.checked?'shrinks to a strip':'slides away')+' as you scroll down'][['normal','inside','compare'].indexOf(mode)];
+      'A page whose top bar '+gone+' as you scroll down, with a track of the page, its top zone and the last move',
+      'The page twice, one above the other: a bar that always stays, and a bar that '+gone+' as you scroll down'][['normal','inside','compare'].indexOf(mode)];
   }
   // Every word the views write comes from the page's own state: Speed and Slow motion, Comes back, Shrinks, reduced motion, the last move
   function words(){
@@ -405,7 +408,7 @@ document.addEventListener('hb:mode',e=>{
     fxIn.dataset.dir=dir||'none';
     put(capMv,dir==='down'?'Moved down: '+how:dir==='up'?'Moved up: '+(home?(sh?'it stays a strip until the top':'it stays away until the top'):back)
       :'Example: a move down '+(rm?(sh?'leaves a strip':'fades it'):sh?'shrinks it':'hides it'));
-    put(capBot,'Moves of a few pixels do not count; '+(rm&&sh?'the strip appears at once':(sh?'it shrinks':rm?'it fades':'it slides')+' in about '+span(ms*slow())));
+    put(capBot,'Moves of a few pixels do not count; '+(rm&&sh?'the strip appears at once':(sh?'it shrinks':rm?'it fades':'it slides')+' in about '+span(ms*slow()))+'; back '+(home?'only near the top':'on any scroll up'));
     put(capN2,sh?'Shrinks on scroll':'Hides on scroll');
     put(capPose,rm?(sh?'Shrunk to a strip':'Half faded'):sh?'Half way shrunk':'Half way hidden');
     put(capRules,(rm&&sh?'At once':'Takes about '+span(ms*slow()))+'; back '+(home?'only near the top':'on any scroll up'));
