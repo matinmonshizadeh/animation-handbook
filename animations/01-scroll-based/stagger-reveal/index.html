@@ -28,7 +28,7 @@
     /* The last group ends with 80px of padding, more than the 20px an item sits low before it appears, so the hidden
        items never add to the scroll length, which Play reads once when it starts. */
     .section{padding:40px 24px;border-bottom:1px solid var(--ui-border)}
-    .section:last-child{padding-bottom:80px;border:none}
+    .section:last-of-type{padding-bottom:80px;border:none}
     .sec-head{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--ui-accent);margin-bottom:20px}
     /* Grid */
     .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -47,6 +47,58 @@
     .item.in{opacity:1;transform:translateY(0)}
     @media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media(prefers-reduced-motion:reduce){.item{transition:none!important}}
+    /* See inside and Compare. Everything they add is hidden in Normal. */
+    .lay,.stairs,.copy,.cap{display:none}
+    .cap{padding:2px 8px;border-radius:999px;background:rgba(11,11,13,.92);border:1px solid rgba(255,255,255,.2);color:#f4f4f2;
+      font:600 12px/16px var(--hb-font);white-space:nowrap}
+    /* A layer fixed to the box: sticky and zero tall, so it adds nothing to the scroll. Its bar is opaque, so items passing under
+       it never run into its words. */
+    .bar{position:absolute;left:0;right:0;height:var(--bar,30px);display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:0 12px;background:#0b0b0d;pointer-events:none}
+    .bar-top{top:0;border-bottom:1px solid rgba(255,255,255,.12)}.bar-bot{bottom:0;border-top:1px solid rgba(255,255,255,.12)}
+    .stage.snap .item:not(.in),.grp.snap .item,.copy.snap .item{transition:none!important}
+    /* See inside: every item is tinted by its turn (--k is 1 for the first, 0 for the last), behind its own text. An item that
+       is still waiting sits faint in its start place with a dashed edge. Beside each heading a bar per item, in turn order. */
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .stage[data-hb-mode="inside"] .lay-bot{display:block;position:sticky;bottom:0;height:0;z-index:6}
+    .stage[data-hb-mode="inside"] .cap-b1,.stage[data-hb-mode="inside"] .cap-b2{display:block}
+    .stage[data-hb-mode="inside"] .section{position:relative}
+    .stage[data-hb-mode="inside"] .item{position:relative;isolation:isolate}
+    .stage[data-hb-mode="inside"] .item::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+      background:rgba(110,168,255,calc(.1 + .42 * var(--k,0)))}
+    .stage[data-hb-mode="inside"] .list-row{border-radius:6px;margin:0 -8px;padding-left:8px;padding-right:8px}   /* the tint reaches past the text */
+    .stage[data-hb-mode="inside"] .list-meta{color:#d6d6de}
+    .stage[data-hb-mode="inside"] .item:not(.in){opacity:.25}
+    .stage[data-hb-mode="inside"] .item:not(.in),.stage[data-hb-mode="compare"] .item.ghost{outline:1.5px dashed rgba(244,244,242,.6);outline-offset:-1px}
+    .stage[data-hb-mode="inside"] .stairs{display:block;position:absolute;top:12px;right:24px;width:clamp(96px,32%,210px);height:48px;
+      border-left:1px solid rgba(255,255,255,.3);pointer-events:none}
+    .stairs i{position:absolute;display:block;border-radius:1px;background:var(--ui-accent)}
+    /* Compare: each group twice in one scroll, the copy that comes in all at once on the left and the page's own group on the
+       right. Each section keeps its height from Normal (measured in the script), so the scroll length never changes. */
+    .stage[data-hb-mode="compare"] .lay-top{display:block;position:sticky;top:0;height:0;z-index:6}
+    .stage[data-hb-mode="compare"] .lay-bot.posed{display:block;position:sticky;bottom:0;height:0;z-index:6}
+    .stage[data-hb-mode="compare"] .lay-bot.posed .cap-b3,.stage[data-hb-mode="compare"] .cap-l,.stage[data-hb-mode="compare"] .cap-r{display:block}
+    .stage[data-hb-mode="compare"] .bar-top{display:grid;grid-template-columns:1fr 1fr;column-gap:10px;padding:0 8px}
+    .stage[data-hb-mode="compare"] .bar-top::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.28)}
+    .stage[data-hb-mode="compare"] .bar-top .cap{justify-self:center}
+    .stage[data-hb-mode="compare"] .section{position:relative;display:grid;grid-template-columns:1fr 1fr;column-gap:10px;align-content:start;
+      height:var(--h);overflow:clip;padding-left:8px;padding-right:8px}
+    .stage[data-hb-mode="compare"] .section::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.28)}
+    .stage[data-hb-mode="compare"] .sec-head{grid-column:1/-1}
+    .stage[data-hb-mode="compare"] .grp,.stage[data-hb-mode="compare"] .copy{min-width:0;grid-row:2;grid-column:2}
+    .stage[data-hb-mode="compare"] .copy{display:block;grid-column:1}
+    .stage[data-hb-mode="compare"] .copy.grid{display:grid}
+    .stage[data-hb-mode="compare"] .copy.chips{display:flex}
+    .stage[data-hb-mode="compare"] .grid{gap:10px 6px}.stage[data-hb-mode="compare"] .grid-cell{padding:14px 2px}
+    .stage[data-hb-mode="compare"] .list-row{gap:6px;padding:14px 0}   /* a smaller dot keeps the row as tall as in Normal, 53px */
+    .stage[data-hb-mode="compare"] .avatar{width:24px;height:24px}.stage[data-hb-mode="compare"] .list-meta{display:none}
+    .stage[data-hb-mode="compare"] .list-label{min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stage[data-hb-mode="compare"] .chips{gap:4px}.stage[data-hb-mode="compare"] .chip{padding:4px 6px}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{--bar:44px}
+      .stage[data-hb-mode="inside"] .bar-bot .cap{flex:1 1 0;min-width:0;white-space:normal;text-align:center;border-radius:14px}
+      .stage[data-hb-mode="compare"] .bar-top .cap{padding:2px 6px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -69,23 +121,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play. Back to top hides the groups again.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Three groups of items">
+      <span class="lay lay-top" aria-hidden="true"><span class="bar bar-top"><span class="cap cap-l" data-hb-caption>All at once</span><span class="cap cap-r" data-hb-caption>One after another</span></span></span>
       <div class="section">
         <div class="sec-head">01 · Grid</div>
-        <div class="grid" id="grid"></div>
+        <div class="grid grp" id="grid"></div>
       </div>
       <div class="section">
         <div class="sec-head">02 · List</div>
-        <div id="list"></div>
+        <div class="grp" id="list"></div>
       </div>
       <div class="section">
         <div class="sec-head">03 · Tags</div>
-        <div class="chips" id="chips"></div>
+        <div class="chips grp" id="chips"></div>
       </div>
+      <span class="lay lay-bot" aria-hidden="true"><span class="bar bar-bot"><span class="cap cap-b1" data-hb-caption>Brighter: comes in sooner</span><span class="cap cap-b2" data-hb-caption>Each bar: one item fading in</span><span class="cap cap-b3" data-hb-caption>Half-way through</span></span></span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, brighter items come in sooner, and each group's bars show every item starting a moment after the last, overlapping into one sweep. Press Back to top, then scroll or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>All at once brings every item in together; One after another starts each a moment later, shown frozen half-way. Press Back to top, then scroll or press Play to watch.</p>
     </div>
   </section>
 
@@ -157,7 +220,20 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
-  let staggerMs=50,direction='forward',observers=[],timers=[];
+  let staggerMs=50,direction='forward',observers=[],timers=[],mode='normal';
+  const FADE=400,POSE_WAIT=700,SCALE=1300;   // an item's fade; how long Compare waits before it holds a moment; the bars' time scale (the longest start plus one fade)
+  const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  // See inside and Compare: the listener sits here, at the top level; what it draws is defined below
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.classList.add('snap');   // the faint starts come and go in one step, not over the fade
+    if(mode==='compare')measure();
+    stage.setAttribute('aria-label',NAMES[mode]);
+    GROUPS.forEach(g=>mode==='compare'?pose(g):unpose(g));
+    words();poseLabel();
+    void stage.offsetWidth;stage.classList.remove('snap');
+  });
 
   const GRID_ITEMS=['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu'];
   const LIST_ITEMS=[
@@ -205,12 +281,109 @@
     const id=setTimeout(()=>{timers=timers.filter(t=>t!==id);fn()},wait);
     timers.push(id);
   }
-  function staggerIn(items){
-    const order=getOrder(items.length);
-    items.forEach((el,i)=>later(()=>el.classList.add('in'),order[i]*staggerMs));
+
+  // Each group has its own order, worked out once per build: the play, the tints, the bars and Compare's held moment all use it.
+  // order[i] is item i's turn; items with the same turn come in together. Its copy (Compare's left half) is made here too,
+  // without ids, inert and hidden from screen readers.
+  const GROUPS=[['grid',buildGrid],['list',buildList],['chips',buildChips]].map(([id,make])=>{
+    const box=document.getElementById(id),copy=document.createElement('div');
+    copy.className=box.className.replace('grp','copy');copy.inert=true;copy.setAttribute('aria-hidden','true');box.after(copy);
+    return {make,box,copy,sec:box.parentNode,items:[],order:[],maxTurn:0,done:false,posed:false,touched:[]};
+  });
+  const share=(g,i)=>g.maxTurn?1-g.order[i]/g.maxTurn:1;   // 1 for the first turn, 0 for the last
+  function plan(g){
+    g.items=g.make();g.order=getOrder(g.items.length);g.maxTurn=Math.max(...g.order);
+    g.done=g.posed=false;g.touched=[];
+    g.items.forEach((el,i)=>el.style.setProperty('--k',share(g,i)));
+    g.copy.replaceChildren(...g.items.map(el=>el.cloneNode(true)));
+    drawBars(g);
+  }
+  // One thin bar per item, in turn order from top to bottom: it starts one Delay after the one above and is as long as a fade,
+  // on one time scale for every setting
+  function drawBars(g){
+    g.sec.querySelector('.stairs')?.remove();
+    const pitch=Math.min(4,48/g.items.length),box=document.createElement('div');
+    box.className='stairs';box.setAttribute('aria-hidden','true');
+    g.items.map((_,i)=>i).sort((a,b)=>g.order[a]-g.order[b]||a-b).forEach((i,row)=>{
+      const bar=document.createElement('i');
+      bar.style.cssText=`top:${row*pitch}px;height:${pitch-1}px;left:${g.order[i]*staggerMs/SCALE*100}%;width:${FADE/SCALE*100}%;opacity:${.3+.7*share(g,i)}`;
+      box.append(bar);
+    });
+    g.sec.append(box);
+  }
+  function staggerIn(g){
+    g.items.forEach((el,i)=>later(()=>el.classList.add('in'),g.order[i]*staggerMs));
+    later(()=>g.copy.querySelectorAll('.item').forEach(el=>el.classList.add('in')),0);   // Compare's left half: all at once
+    later(()=>{g.done=true;if(mode==='compare')later(()=>pose(g),POSE_WAIT)},g.maxTurn*staggerMs+(reduced()?0:FADE));
   }
 
-  let gridItems=buildGrid(),listItems=buildList(),chipItems=buildChips();
+  // Compare holds a group that has played at the moment half-way through the right half's sweep: both halves are drawn there
+  // with the fades off (no timer is stopped). The left items all stand at the same point of their fade; the right ones are in or
+  // part way by turn, and the ones that have not started are faint dashed ghosts in their start place.
+  const ease=x=>{const b=(t,a,c)=>3*a*t*(1-t)*(1-t)+3*c*t*t*(1-t)+t*t*t;let lo=0,hi=1;
+    for(let k=0;k<24;k++){const t=(lo+hi)/2;if(b(t,.25,.25)<x)lo=t;else hi=t}return b((lo+hi)/2,.1,1)};   // the page's "ease" curve
+  function snapped(g,fn){
+    g.box.classList.add('snap');g.copy.classList.add('snap');
+    fn();void g.box.offsetWidth;
+    g.box.classList.remove('snap');g.copy.classList.remove('snap');
+  }
+  function pose(g){
+    if(mode!=='compare'||!g.done||g.posed)return;
+    const half=g.maxTurn*staggerMs/2,rm=reduced();
+    function hold(el,start){
+      g.touched.push(el);
+      if(half<=start){el.classList.add('ghost');el.style.opacity='.25';el.style.transform='translateY(20px)';return}
+      const e=rm?1:ease(Math.min(1,(half-start)/FADE));
+      if(e<1){el.style.opacity=e;el.style.transform=`translateY(${20*(1-e)}px)`}
+    }
+    snapped(g,()=>{
+      g.copy.querySelectorAll('.item').forEach(el=>hold(el,0));
+      g.items.forEach((el,i)=>hold(el,g.order[i]*staggerMs));
+    });
+    g.posed=true;poseLabel();
+  }
+  // Leaving Compare puts back only what the pose held
+  function unpose(g){
+    if(!g.posed)return;
+    snapped(g,()=>g.touched.forEach(el=>{el.style.opacity=el.style.transform='';el.classList.remove('ghost')}));
+    g.posed=false;g.touched=[];
+  }
+  const poseBar=stage.querySelector('.lay-bot');
+  function poseLabel(){
+    const top=stage.scrollTop,bottom=top+stage.clientHeight;
+    poseBar.classList.toggle('posed',mode==='compare'&&GROUPS.some(g=>g.posed&&g.sec.offsetTop<bottom&&g.sec.offsetTop+g.sec.offsetHeight>top));
+  }
+  stage.addEventListener('scroll',()=>{if(mode==='compare')poseLabel()},{passive:true});
+
+  // Compare: every section is as tall as it is in Normal, measured with the box laid out as in Normal, so a narrower cell or a
+  // tighter chip can neither grow nor shrink the scroll length that Play reads once
+  function measure(){
+    const m=stage.getAttribute('data-hb-mode');
+    stage.style.overflowAnchor='none';
+    stage.setAttribute('data-hb-mode','normal');
+    GROUPS.forEach(g=>g.sec.style.setProperty('--h',getComputedStyle(g.sec).height));
+    stage.setAttribute('data-hb-mode',m);
+    stage.style.overflowAnchor='';
+  }
+
+  // The words of each mode: the markup holds the ones for motion; reduced motion swaps in its own
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const capFade=document.querySelector('.cap-b2');
+  const MOTION={inside:noteIn.textContent,compare:noteCmp.textContent,fade:capFade.textContent};
+  const STILL={
+    inside:'Shown without movement: brighter items come in sooner, and each group\u2019s bars show every item starting a moment after the last. Press Back to top, then scroll to see them appear in turn.',
+    compare:'Shown still, half-way through: All at once has every item in, while One after another has only its first items in. Press Back to top, then scroll to see them appear.',
+    fade:'Each bar: one item coming in'};
+  function words(){
+    const w=reduced()?STILL:MOTION;
+    noteIn.textContent=w.inside;noteCmp.textContent=w.compare;capFade.textContent=w.fade;
+  }
+  const NAMES={normal:stage.getAttribute('aria-label'),
+    inside:'Three groups of items, each tinted by when it comes in, with bars for the timing',
+    compare:'Three groups of items twice: all at once, and one after another'};
+  matchMedia('(prefers-reduced-motion:reduce)').addEventListener('change',words);
+
+  GROUPS.forEach(plan);
 
   // Each group plays once, when half of it is in the box or its bottom edge has come into the box. The observers watch the
   // group's items, not the section around them, so the cascade starts while the items are on screen. A threshold every 5%
@@ -219,23 +392,24 @@
   const STEPS=Array.from({length:21},(_,i)=>i/20);
   function attachObservers(){
     observers.forEach(o=>o.disconnect());observers=[];
-    [['grid',gridItems],['list',listItems],['chips',chipItems]].forEach(([id,items])=>{
+    GROUPS.forEach(g=>{
       const o=new IntersectionObserver(entries=>{
         const e=entries[entries.length-1];
-        if(e.isIntersecting&&(e.intersectionRatio>=.5||e.boundingClientRect.bottom<=e.rootBounds.bottom+1)){o.disconnect();staggerIn(items)}
+        if(e.isIntersecting&&(e.intersectionRatio>=.5||e.boundingClientRect.bottom<=e.rootBounds.bottom+1)){o.disconnect();staggerIn(g)}
       },{root:stage,threshold:STEPS});
-      o.observe(document.getElementById(id));observers.push(o);
+      o.observe(g.box);observers.push(o);
     });
   }
   attachObservers();
 
   // Builds the three groups again, hidden, and watches them again: a group half in the box, or with its bottom edge in it,
-  // plays at once with the current settings, the others when they scroll in
+  // plays at once with the current settings, the others when they scroll in. The copies, the bars and any held moment are
+  // made again with them.
   function rebuild(){
     timers.forEach(clearTimeout);timers=[];
-    gridItems=buildGrid();listItems=buildList();chipItems=buildChips();
+    GROUPS.forEach(plan);
     void stage.offsetWidth;
-    attachObservers();
+    attachObservers();poseLabel();
   }
 
   // Back to top, and Play pressed with the box at its end, hide the groups again. The shared script jumps the box to the top
@@ -255,6 +429,10 @@
   }
   choices('delay-seg',d=>{staggerMs=+d.ms;rebuild()});
   choices('order-seg',d=>{direction=d.dir;rebuild()});
+
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(mode==='compare')measure();poseLabel()},150)});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(mode==='compare')measure()});
+  words();
 </script>
 </body>
 </html>
