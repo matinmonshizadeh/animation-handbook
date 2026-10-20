@@ -47,6 +47,60 @@
     .zone-entry{background:rgba(63,185,80,.1)}
     .zone-label{font-size:11px;color:var(--ui-muted);padding:2px 6px;display:block}
     .zone-label-end{position:absolute;bottom:2px}
+    .cap,.mv,.ghost,.twin-list{display:none}
+    .cap{position:absolute;z-index:2;padding:3px 8px;border-radius:999px;background:rgba(11,11,13,.92);color:#f4f4f2;white-space:nowrap;
+      font:600 12px/1.25 var(--hb-font)}
+    /* See inside: the two bands always show (their tint still follows the switch), each with its inner edge dashed and a label;
+       a faint dashed outline sits at the resting place of every row inside a band, so the gap shows how far it was pushed
+       and the outline's width how much it shrank. */
+    .stage[data-hb-mode="inside"] .zone-overlay,.stage[data-hb-mode="compare"] .zone-overlay{display:block}
+    .stage[data-hb-mode="inside"] .zone-overlay:not(.visible) .zone-band,.stage[data-hb-mode="compare"] .zone-overlay:not(.visible) .zone-band{background:none}
+    .stage[data-hb-mode="inside"] .zone-label,.stage[data-hb-mode="compare"] .zone-label{display:none}
+    .stage[data-hb-mode="inside"] .zone-exit{border-bottom:2px dashed rgba(244,244,242,.6)}
+    .stage[data-hb-mode="inside"] .zone-entry{border-top:2px dashed rgba(244,244,242,.6)}
+    .stage[data-hb-mode="inside"] .cap:not(.side){display:block}
+    .cap-exit{top:6px;left:10px}
+    .cap-entry{bottom:6px;left:10px}
+    .cap-mid{right:52px;top:calc(var(--sh,300px) / 2);transform:translateY(-50%)}
+    .stage[data-hb-mode="inside"] .contact-list{isolation:isolate}
+    .stage[data-hb-mode="inside"] .ghost{display:block;position:absolute;z-index:-1;left:12px;right:12px;top:0;opacity:0;
+      border:2px dashed rgba(244,244,242,.5);border-radius:8px;pointer-events:none}
+    /* Reduced motion: rows never move, so an arrow in each band is as long as the slide they leave out, and a short bar as wide
+       as the shrink */
+    .mv i{position:absolute;right:0;display:block}
+    .mv-a{width:2px;height:var(--d,40px);background:var(--ui-accent)}
+    .mv-a::before{content:"";position:absolute;left:-4px;border:5px solid transparent}
+    .mv-s{height:2px;width:var(--sh2,24px);background:var(--ui-accent)}
+    .mv-exit{position:absolute;top:0;right:5px}
+    .mv-exit .mv-a{top:4px}
+    .mv-exit .mv-a::before{top:-6px;border-bottom-color:var(--ui-accent);border-top:0}
+    .mv-exit .mv-s{top:calc(var(--d,40px) + 10px)}
+    .mv-entry{position:absolute;top:var(--sh,300px);right:5px}
+    .mv-entry .mv-a{bottom:4px}
+    .mv-entry .mv-a::before{bottom:-6px;border-top-color:var(--ui-accent);border-bottom:0}
+    .mv-entry .mv-s{bottom:calc(var(--d,40px) + 10px)}
+    .stage[data-fx="fade"] .mv-a,.stage:not([data-fx="all"]) .mv-s{display:none}
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .mv,.stage[data-hb-mode="compare"] .mv{display:block}
+    }
+    /* Compare: the plain list on the left, the page's own list on the right, in one scroll. Both lists are compacted the same
+       way (one line a row), so every row keeps its height and the box keeps its scroll length. */
+    .stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .twin-list{display:flex;position:absolute;top:0;left:0;width:50%}
+    .stage[data-hb-mode="compare"] .contact-list{padding-left:8px;padding-right:8px}
+    .stage[data-hb-mode="compare"] .contact-list:not(.twin-list){margin-left:50%}
+    .stage[data-hb-mode="compare"] .contact-list:not(.twin-list)::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:rgba(244,244,242,.3)}
+    .stage[data-hb-mode="compare"] .row{padding-left:8px;padding-right:8px;gap:8px}
+    /* The second line stays in the row (hidden, not removed), so a row is as tall as in Normal on every screen; the name sits
+       half a line lower to look centered */
+    .stage[data-hb-mode="compare"] .row-sub{visibility:hidden;white-space:nowrap;overflow:hidden}
+    .stage[data-hb-mode="compare"] .meta-time{display:none}
+    .stage[data-hb-mode="compare"] .row-name{transform:translateY(8px)}
+    .stage[data-hb-mode="compare"] .row-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stage[data-hb-mode="compare"] .side{display:block;top:6px}
+    .side-plain{left:8px}
+    .side-fly{left:calc(50% + 10px)}
+    .twin-list .row{will-change:auto}
     @media(max-width:600px){.avatar{width:32px;height:32px;font-size:11px}}
     @media(prefers-reduced-motion:reduce){.row{will-change:auto}}
   </style>
@@ -71,16 +125,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A list of contacts">
       <div class="zone-overlay" id="zone-overlay" aria-hidden="true">
-        <div class="zone-band zone-exit" id="zone-exit"><span class="zone-label">↑ exit zone</span></div>
-        <div class="zone-band zone-entry" id="zone-entry"><span class="zone-label zone-label-end">↓ entry zone</span></div>
+        <div class="zone-band zone-exit" id="zone-exit"><span class="zone-label">↑ exit zone</span><span class="cap cap-exit" id="cap-exit" data-hb-caption>Leaving: fades, slides, shrinks</span></div>
+        <div class="zone-band zone-entry" id="zone-entry"><span class="zone-label zone-label-end">↓ entry zone</span><span class="cap cap-entry" id="cap-entry" data-hb-caption>Arriving: fades, slides, grows</span></div>
+        <span class="cap cap-mid" data-hb-caption>Rows rest here</span>
+        <span class="cap side side-plain" data-hb-caption>Plain list</span>
+        <span class="cap side side-fly" data-hb-caption>Flying rows</span>
+        <span class="mv mv-exit"><i class="mv-a"></i><i class="mv-s"></i></span>
+        <span class="mv mv-entry"><i class="mv-a"></i><i class="mv-s"></i></span>
       </div>
       <div class="contact-list" id="contact-list"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, rows leave through the top band and arrive through the bottom one; a dashed outline marks each row's resting place, so the gap shows the move. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>In Plain list, rows are cut off at the edges; in Flying rows they fade, slide and shrink as they near an edge. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -177,6 +245,15 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
+  // The mode switch (the shared script sends this on every press, and never at boot): the views are drawn at once from the
+  // page's own numbers. It is registered first so it hears the press; the functions it calls are hoisted or set by then.
+  document.addEventListener('hb:mode', e => {
+    view = e.detail.mode;
+    stage.setAttribute('aria-label', LABELS[view]);
+    describe();
+    place();
+    update(true);
+  });
   const CONTACTS = [
     {i:'SK',n:'Sara Klein',    s:'Design lead · Berlin',  t:'now', b:0,o:true },
     {i:'MR',n:'Marco Rossi',   s:'Engineering · Milan',   t:'2h',  b:3,o:false},
@@ -214,11 +291,21 @@
     return el;
   });
 
+  // Compare's left half: a copy of the list that only scrolls (no ids, inert, hidden from screen readers, never styled by the
+  // page's update). Each row also gets a dashed outline for See inside, drawn as its own element at the row's resting place.
+  const twin = list.cloneNode(true);
+  twin.removeAttribute('id');
+  twin.classList.add('twin-list');
+  twin.inert = true;
+  twin.setAttribute('aria-hidden', 'true');
+  list.after(twin);
+  const ghosts = rows.map(r => { const g = document.createElement('div'); g.className = 'ghost'; list.appendChild(g); return g; });
+
   const stage = $('stage'), zoneOverlay = $('zone-overlay'), zoneExit = $('zone-exit'), zoneEntry = $('zone-entry');
   const distSetting = $('dist-setting'), scaleSetting = $('scale-setting'), zonesTog = $('zones-tog');
   const motionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  let DIST = 40, SCALE = 0.94, Z = 0.25, mode = 'all';
+  let DIST = 40, SCALE = 0.94, Z = 0.25, mode = 'all', view = 'normal';
   let ticking = false;
   const visible = new Set();
   const io = new IntersectionObserver(entries => {
@@ -247,6 +334,7 @@
     }
     el.style.opacity   = opacity;
     el.style.transform = `translate3d(0,${ty}px,0) scale(${sc})`;
+    ghosts[rows.indexOf(el)].style.opacity = pos < Z || pos > 1 - Z ? 1 : 0;
     return top + el.offsetHeight > 0 && top < stage.clientHeight;
   }
   function updateOverlay() {
@@ -254,21 +342,61 @@
     zoneExit.style.height  = zH + 'px';
     zoneEntry.style.height = zH + 'px';
     zoneEntry.style.top    = (h - zH) + 'px';
+    zoneOverlay.style.setProperty('--sh', h + 'px');
+  }
+  // Each outline sits where its row rests (measured, not moved: the row is never asked for its place while it is pushed)
+  function place() {
+    rows.forEach((r, i) => { ghosts[i].style.height = r.offsetHeight + 'px'; ghosts[i].style.transform = `translateY(${r.offsetTop}px)`; });
+  }
+  const LABELS = {
+    normal:  'A list of contacts',
+    inside:  'The contact list with the bands where rows leave and arrive, and each moved row\'s resting place',
+    compare: 'The contact list twice: plain, and with rows that fly in and out at the edges',
+  };
+  const FX = {
+    all:       { out: 'fades, slides, shrinks', in: 'fades, slides, grows' },
+    translate: { out: 'slides up',              in: 'slides in' },
+    fade:      { out: 'fades out',              in: 'fades in' },
+  };
+  const insideNote = document.querySelector('[data-hb-for="inside"]'), compareNote = document.querySelector('[data-hb-for="compare"]');
+  // Labels, notes and the reduced-motion arrows follow the Effect, the distance, the shrink and reduced motion
+  function describe() {
+    const still = motionMQ.matches, arrows = mode !== 'fade', go = ' Scroll the box or press Play to watch.';
+    $('cap-exit').textContent  = 'Leaving: ' + (still ? 'fades' : FX[mode].out);
+    $('cap-entry').textContent = 'Arriving: ' + (still ? 'fades' : FX[mode].in);
+    stage.dataset.fx = mode;
+    stage.style.setProperty('--d', DIST + 'px');
+    stage.style.setProperty('--sh2', Math.round((1 - SCALE) * 400) + 'px');
+    if (still) {
+      insideNote.textContent = 'Shown without movement: rows only fade in the top and bottom bands, on their resting outlines' +
+        (arrows ? '; each arrow shows how far they would slide' + (mode === 'all' ? ' and each short bar how much they would shrink' : '') : '') + '.';
+      compareNote.textContent = 'Without movement: Plain list rows are cut off at the edges; Flying rows only fade' +
+        (arrows ? ', and each arrow shows how far they would slide.' : ' in the top and bottom bands.') + go;
+    } else {
+      insideNote.textContent = mode === 'all'
+        ? 'Inside, rows leave through the top band and arrive through the bottom one; a dashed outline marks each row\'s resting place, so the gap shows the move.' + go
+        : 'Inside, rows leave through the top band and arrive through the bottom one; ' + (mode === 'fade'
+          ? 'with Fade only they stay on their outlines and only fade.' : 'with Move only they slide but stay solid, away from their dashed outlines.') + go;
+      compareNote.textContent = 'In Plain list, rows are cut off at the edges; in Flying rows they ' +
+        (mode === 'all' ? 'fade, slide and shrink' : mode === 'fade' ? 'fade' : 'slide') + ' as they near an edge.' + go;
+    }
   }
 
   // A jump longer than the observer's margin (Back to top, Play starting again, a dragged scrollbar) brings in rows it has
   // not added yet, still in the style they were left with: on a jump every row is styled once. The first call is a jump.
   let lastTop = Infinity;
-  function update() {
-    const jumped = Math.abs(stage.scrollTop - lastTop) > stage.clientHeight / 2;
+  function update(all) {
+    const jumped = all === true || Math.abs(stage.scrollTop - lastTop) > stage.clientHeight / 2;
     lastTop = stage.scrollTop;
     (jumped ? rows : visible).forEach(el => applyRow(el));
     ticking = false;
   }
   function schedule() { if (!ticking) { requestAnimationFrame(update); ticking = true; } }
   stage.addEventListener('scroll', schedule, { passive: true });
-  window.addEventListener('resize', () => { updateOverlay(); schedule(); });
-  motionMQ.addEventListener('change', schedule);
+  window.addEventListener('resize', () => { updateOverlay(); place(); schedule(); });
+  motionMQ.addEventListener('change', () => { describe(); update(true); });
+  // Back to top shows its state at once, also when the box is already at the top and no scroll event follows
+  $('btn-top').addEventListener('click', () => { stage.scrollTop = 0; update(true); });
   function choices(id, pick) {
     const buttons = document.querySelectorAll('#' + id + ' button');
     buttons.forEach(b => b.addEventListener('click', () => {
@@ -277,15 +405,17 @@
     }));
   }
   // How far rows move matters unless the effect is only a fade; how much they shrink only when all three are on
-  choices('mode-seg', d => { mode = d.mode; distSetting.hidden = mode === 'fade'; scaleSetting.hidden = mode !== 'all'; update(); });
+  choices('mode-seg', d => { mode = d.mode; distSetting.hidden = mode === 'fade'; scaleSetting.hidden = mode !== 'all'; describe(); update(); });
   choices('zone-seg', d => { Z = +d.zone; updateOverlay(); update(); });
-  choices('dist-seg', d => { DIST = +d.dist; update(); });
-  choices('scale-seg', d => { SCALE = +d.scale; update(); });
+  choices('dist-seg', d => { DIST = +d.dist; describe(); update(); });
+  choices('scale-seg', d => { SCALE = +d.scale; describe(); update(); });
   zonesTog.addEventListener('change', () => zoneOverlay.classList.toggle('visible', zonesTog.checked));
   updateOverlay();
+  place();
+  describe();
   update();
   // The site font can land after the first paint and change the row heights, so style the rows again once the fonts are ready
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { place(); update(true); });
 </script>
 </body>
 </html>
