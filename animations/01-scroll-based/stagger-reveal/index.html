@@ -51,14 +51,12 @@
     .lay,.stairs,.copy,.cap{display:none}
     .cap{padding:2px 8px;border-radius:999px;background:rgba(11,11,13,.92);border:1px solid rgba(255,255,255,.2);color:#f4f4f2;
       font:600 12px/16px var(--hb-font);white-space:nowrap}
-    /* A layer fixed to the box: sticky and zero tall, so it adds nothing to the scroll. Its bar is opaque, so items passing under
-       it never run into its words. */
+    /* Layers fixed to the box: sticky and zero tall, with opaque bars, so nothing is added to the scroll */
     .bar{position:absolute;left:0;right:0;height:var(--bar,30px);display:flex;align-items:center;justify-content:center;gap:8px;
       padding:0 12px;background:#0b0b0d;pointer-events:none}
     .bar-top{top:0;border-bottom:1px solid rgba(255,255,255,.12)}.bar-bot{bottom:0;border-top:1px solid rgba(255,255,255,.12)}
     .stage.snap .item:not(.in),.grp.snap .item,.copy.snap .item{transition:none!important}
-    /* See inside: every item is tinted by its turn (--k is 1 for the first, 0 for the last), behind its own text. An item that
-       is still waiting sits faint in its start place with a dashed edge. Beside each heading a bar per item, in turn order. */
+    /* See inside: a tint by turn (--k is 1 for the first, 0 for the last), faint dashed items still waiting, a bar per item */
     .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow-anchor:none}
     .stage[data-hb-mode="inside"] .lay-bot{display:block;position:sticky;bottom:0;height:0;z-index:6}
     .stage[data-hb-mode="inside"] .cap-b1,.stage[data-hb-mode="inside"] .cap-b2{display:block}
@@ -73,8 +71,7 @@
     .stage[data-hb-mode="inside"] .stairs{display:block;position:absolute;top:12px;right:24px;width:clamp(96px,32%,210px);height:48px;
       border-left:1px solid rgba(255,255,255,.3);pointer-events:none}
     .stairs i{position:absolute;display:block;border-radius:1px;background:var(--ui-accent)}
-    /* Compare: each group twice in one scroll, the copy that comes in all at once on the left and the page's own group on the
-       right. Each section keeps its height from Normal (measured in the script), so the scroll length never changes. */
+    /* Compare: each group twice in one scroll, each section as tall as in Normal (measured in the script) */
     .stage[data-hb-mode="compare"] .lay-top{display:block;position:sticky;top:0;height:0;z-index:6}
     .stage[data-hb-mode="compare"] .lay-bot.posed{display:block;position:sticky;bottom:0;height:0;z-index:6}
     .stage[data-hb-mode="compare"] .lay-bot.posed .cap-b3,.stage[data-hb-mode="compare"] .cap-l,.stage[data-hb-mode="compare"] .cap-r{display:block}
@@ -90,7 +87,7 @@
     .stage[data-hb-mode="compare"] .copy.grid{display:grid}
     .stage[data-hb-mode="compare"] .copy.chips{display:flex}
     .stage[data-hb-mode="compare"] .grid{gap:10px 6px}.stage[data-hb-mode="compare"] .grid-cell{padding:14px 2px}
-    .stage[data-hb-mode="compare"] .list-row{gap:6px;padding:14px 0}   /* a smaller dot keeps the row as tall as in Normal, 53px */
+    .stage[data-hb-mode="compare"] .list-row{gap:4px;padding:14px 0}   /* a smaller dot keeps the row 53px */
     .stage[data-hb-mode="compare"] .avatar{width:24px;height:24px}.stage[data-hb-mode="compare"] .list-meta{display:none}
     .stage[data-hb-mode="compare"] .list-label{min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .stage[data-hb-mode="compare"] .chips{gap:4px}.stage[data-hb-mode="compare"] .chip{padding:4px 6px}
@@ -140,7 +137,7 @@
         <div class="sec-head">03 · Tags</div>
         <div class="chips grp" id="chips"></div>
       </div>
-      <span class="lay lay-bot" aria-hidden="true"><span class="bar bar-bot"><span class="cap cap-b1" data-hb-caption>Brighter: comes in sooner</span><span class="cap cap-b2" data-hb-caption>Each bar: one item fading in</span><span class="cap cap-b3" data-hb-caption>Half-way through</span></span></span>
+      <span class="lay lay-bot" aria-hidden="true"><span class="bar bar-bot"><span class="cap cap-b1" data-hb-caption>Brighter: comes in sooner</span><span class="cap cap-b2" data-hb-caption>Each bar: one item fading in</span><span class="cap cap-b3" data-hb-caption>Just after the start</span></span></span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
@@ -148,7 +145,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, brighter items come in sooner, and each group's bars show every item starting a moment after the last, overlapping into one sweep. Press Back to top, then scroll or press Play to watch.</p>
-      <p data-hb-for="compare" hidden>All at once brings every item in together; One after another starts each a moment later, shown frozen half-way. Press Back to top, then scroll or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>All at once brings every item in together; One after another starts each a moment later, shown frozen just after the start. Press Back to top, then scroll or press Play to watch.</p>
     </div>
   </section>
 
@@ -221,7 +218,7 @@
 <script>
   const stage=document.getElementById('stage');
   let staggerMs=50,direction='forward',observers=[],timers=[],mode='normal';
-  const FADE=400,POSE_WAIT=700,SCALE=1300;   // an item's fade; how long Compare waits before it holds a moment; the bars' time scale (the longest start plus one fade)
+  const FADE=400,POSE_WAIT=700,SCALE=1300,POSE_AT=75;   // an item's fade; how long Compare waits before it holds a moment; the bars' time scale (the longest start plus one fade)
   const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   // See inside and Compare: the listener sits here, at the top level; what it draws is defined below
@@ -298,8 +295,7 @@
     g.copy.replaceChildren(...g.items.map(el=>el.cloneNode(true)));
     drawBars(g);
   }
-  // One thin bar per item, in turn order from top to bottom: it starts one Delay after the one above and is as long as a fade,
-  // on one time scale for every setting
+  // One bar per item, in turn order: it starts one Delay after the one above, is as long as a fade, on one time scale
   function drawBars(g){
     g.sec.querySelector('.stairs')?.remove();
     const pitch=Math.min(4,48/g.items.length),box=document.createElement('div');
@@ -317,11 +313,9 @@
     later(()=>{g.done=true;if(mode==='compare')later(()=>pose(g),POSE_WAIT)},g.maxTurn*staggerMs+(reduced()?0:FADE));
   }
 
-  // Compare holds a group that has played at the moment half-way through the right half's sweep: both halves are drawn there
-  // with the fades off (no timer is stopped). The left items all stand at the same point of their fade; the right ones are in or
-  // part way by turn, and the ones that have not started are faint dashed ghosts in their start place.
-  const ease=x=>{const b=(t,a,c)=>3*a*t*(1-t)*(1-t)+3*c*t*t*(1-t)+t*t*t;let lo=0,hi=1;
-    for(let k=0;k<24;k++){const t=(lo+hi)/2;if(b(t,.25,.25)<x)lo=t;else hi=t}return b((lo+hi)/2,.1,1)};   // the page's "ease" curve
+  // Compare holds a played group POSE_AT ms after its start, both halves, fades off (no timer stopped): the left items all at the same
+  // point of their fade, the right ones by turn, and the ones not started yet as dashed ghosts. A fixed time, so Delay changes it.
+  const ease=x=>1-(1-x)*(1-x);   // close to the page's "ease"; the pose is a still
   function snapped(g,fn){
     g.box.classList.add('snap');g.copy.classList.add('snap');
     fn();void g.box.offsetWidth;
@@ -329,12 +323,12 @@
   }
   function pose(g){
     if(mode!=='compare'||!g.done||g.posed)return;
-    const half=g.maxTurn*staggerMs/2,rm=reduced();
+    const rm=reduced();
     function hold(el,start){
       g.touched.push(el);
-      if(half<=start){el.classList.add('ghost');el.style.opacity='.25';el.style.transform='translateY(20px)';return}
-      const e=rm?1:ease(Math.min(1,(half-start)/FADE));
-      if(e<1){el.style.opacity=e;el.style.transform=`translateY(${20*(1-e)}px)`}
+      const e=POSE_AT<=start?0:ease(Math.min(1,(POSE_AT-start)/FADE));   // 0 is a ghost; levels run from .25 up to 1
+      if(!e)el.classList.add('ghost');
+      el.style.opacity=.25+.75*e;if(!rm)el.style.transform=`translateY(${20*(1-e)}px)`;   // still, no movement, under reduced motion
     }
     snapped(g,()=>{
       g.copy.querySelectorAll('.item').forEach(el=>hold(el,0));
@@ -355,8 +349,7 @@
   }
   stage.addEventListener('scroll',()=>{if(mode==='compare')poseLabel()},{passive:true});
 
-  // Compare: every section is as tall as it is in Normal, measured with the box laid out as in Normal, so a narrower cell or a
-  // tighter chip can neither grow nor shrink the scroll length that Play reads once
+  // Compare: every section keeps its Normal height, so the scroll length that Play reads once never changes
   function measure(){
     const m=stage.getAttribute('data-hb-mode');
     stage.style.overflowAnchor='none';
@@ -372,7 +365,7 @@
   const MOTION={inside:noteIn.textContent,compare:noteCmp.textContent,fade:capFade.textContent};
   const STILL={
     inside:'Shown without movement: brighter items come in sooner, and each group\u2019s bars show every item starting a moment after the last. Press Back to top, then scroll to see them appear in turn.',
-    compare:'Shown still, half-way through: All at once has every item in, while One after another has only its first items in. Press Back to top, then scroll to see them appear.',
+    compare:'Shown still, just after the start: All at once has every item part way in, while One after another has only its first items started. Press Back to top, then scroll to see them appear.',
     fade:'Each bar: one item coming in'};
   function words(){
     const w=reduced()?STILL:MOTION;
@@ -430,8 +423,9 @@
   choices('delay-seg',d=>{staggerMs=+d.ms;rebuild()});
   choices('order-seg',d=>{direction=d.dir;rebuild()});
 
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(mode==='compare')measure();poseLabel()},150)});
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(mode==='compare')measure()});
+  const relayout=()=>{if(mode==='compare')measure();poseLabel()};
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(relayout,150)});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayout);
   words();
 </script>
 </body>
