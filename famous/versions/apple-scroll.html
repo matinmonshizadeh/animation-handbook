@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The headset that comes apart as you scroll</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--H:100vh;--g1:0 0 2em rgba(110,168,255,.25);--g2:0 0 1em rgba(63,214,196,.45);color-scheme:dark}
+@supports(height:100svh){:root{--H:100svh}}
+html.lite{--g1:0 0 #0000;--g2:0 0 #0000}
+*{box-sizing:border-box;margin:0}
+html{background:#0b0b0f;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3c3c4a #0b0b0f}
+body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+.track{--B:calc(var(--H) * .34);--rest:calc(var(--H) - 57px);--top:32px;--f:.43 .57 .43 .57 .6;--sh:calc(var(--H) - 145px);--gx:50%;--gy:calc(var(--top) + var(--sh) / 2);display:grid;height:calc(var(--H) + 5.3 * var(--B));overflow:clip}
+.stage{grid-area:1/1;align-self:start;position:sticky;top:0;height:var(--H);overflow:hidden;background:radial-gradient(circle 80vmin at var(--gx) var(--gy),rgba(110,168,255,.2),rgba(185,140,255,.08) 55%,transparent),#0b0b0f}
+.scene{--w:min(68vw,calc(var(--sh) * 1.22),520px);position:absolute;left:0;top:var(--top);width:100%;height:var(--sh);display:grid;place-items:center;font-size:calc(var(--w) / 10);perspective:32em}
+.obj{position:relative;width:10em;height:4.55em;transform-style:preserve-3d;transform:rotateY(12deg) rotateX(8deg)}
+.l{position:absolute;inset:0}
+.glass,.frame{border-radius:34% / 50%}
+.glass{--s2:linear-gradient(114deg,transparent 36%,rgba(255,255,255,.55) 37.3%,transparent 38.7%);transform:translateZ(.12em);background:var(--s2),linear-gradient(114deg,transparent 21%,rgba(255,255,255,.55) 26.3%,transparent 31.7%),linear-gradient(180deg,rgba(255,255,255,.22),transparent 48%),linear-gradient(135deg,rgba(110,168,255,.66),rgba(63,214,196,.5));box-shadow:inset 0 0 0 .07em rgba(255,255,255,.6),inset 0 -.6em 1.2em rgba(63,214,196,.3),var(--g1)}
+.frame,.band{border:solid transparent;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.frame{inset:-.28em;border-width:.5em;transform:translateZ(.08em);background:linear-gradient(135deg,#e2d2ff,#b98cff 45%,#7d57dd) border-box}
+.lens{transform:translateZ(.04em);transform-style:preserve-3d}
+.lens span{position:absolute;inset:0;backface-visibility:hidden}
+.lens .b{transform:rotateY(180deg)}
+.lens i{position:absolute;top:50%;width:2.4em;aspect-ratio:1;margin:-1.2em 0 0 -1.2em;border-radius:50%}
+.lens i:first-child{left:28%}
+.lens i:last-child{left:72%}
+.a i{background:radial-gradient(circle at 36% 30%,#4b5c93,#10142a 62%);box-shadow:inset 0 0 0 .08em rgba(63,214,196,.6)}
+.b i{background:#fff;box-shadow:inset 0 0 0 .14em #3fd6c4,inset 0 0 0 .3em #0e1226,inset 0 0 0 .44em #6ea8ff,inset 0 0 0 .6em #0e1226,inset 0 0 0 .74em #b98cff,inset 0 0 0 .96em #0e1226,var(--g2)}
+.band{inset:-.28em -1.15em;border-width:.4em;border-radius:99em;background:linear-gradient(90deg,#ff6f8b,#ff9d5c 50%,#ff6f8b) border-box}
+.floor{position:absolute;left:50%;top:50%;width:11em;height:1.5em;margin:5em 0 0 -5.5em;border-radius:50%;background:radial-gradient(closest-side,rgba(110,168,255,.4),transparent)}
+.story{grid-area:1/1;position:relative;padding-top:calc(var(--rest) - var(--B) / 2)}
+.blk{height:var(--B);display:flex;align-items:center;padding:0 16px}
+.card{width:100%;max-width:26em;margin:0 auto;padding:.62em .9em .68em;border-radius:14px;background:rgba(14,14,20,.92);border:1px solid rgba(255,255,255,.1);box-shadow:inset 3px 0 0 var(--c,#8b8b99)}
+h1,h2{font-size:clamp(19px,1.2vw + 12px,30px);line-height:1.15;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.card p{margin-top:.4em;font-size:clamp(15px,.45vw + 12px,17px);color:#c3c4d0;text-wrap:pretty}
+.stills{display:none;max-width:920px;margin:auto;padding:48px clamp(16px,4vw,40px) clamp(16px,4vw,40px)}
+.still{display:grid;gap:8px 28px;align-items:center;margin:28px 0}
+.pic .scene{position:relative;width:100%;height:calc(var(--w) * .88);--w:min(60vw,300px,calc(var(--H) * .62))}
+.still p{margin-top:.4em;color:#c3c4d0}
+@media(min-height:480px){.track{--f:.35 .9 .35 .9 0}}
+@media(min-width:640px) and (min-aspect-ratio:13/10){
+  .track{--B:calc(var(--H) * .5);--rest:calc(var(--H) / 2);--top:0px;--f:.35 .9 .35 .9 0;--sh:var(--H);--gx:28%}
+  .scene{width:56%;--w:min(38vw,calc(var(--H) * .92),540px)}
+  .story{margin-left:56%}
+  .blk{padding:0 clamp(16px,4vw,48px) 0 0}
+  .card{margin:0;max-width:22em;background:none;border:0;border-radius:0;padding:.1em 0 .1em 1.1em}
+}
+@media(min-width:640px){.still{grid-template-columns:1fr 1fr}}
+.lite .glass{--s2:linear-gradient(#0000,#0000)}
+.lite .floor{display:none}
+@media(prefers-reduced-motion:reduce){.track{display:none}.stills{display:block}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<main class="track">
+  <div class="stage">
+    <div class="scene" role="img" aria-label="A wide, rounded visor drawn in four layers: a blue and teal glass front, a violet frame, two round lenses and a soft coral band. Scrolling lifts the layers apart, then tips the visor up to show its lenses.">
+      <div class="obj">
+        <div class="l glass"></div>
+        <div class="l frame"></div>
+        <div class="l lens"><span class="a"><i></i><i></i></span><span class="b"><i></i><i></i></span></div>
+        <div class="l band"></div>
+      </div>
+      <div class="floor"></div>
+    </div>
+  </div>
+  <div class="story">
+    <div class="blk"><div class="card"><h1>Scroll to take it apart <span aria-hidden="true">↓</span></h1></div></div>
+    <div class="blk" style="--c:#6ea8ff"><div class="card"><h2>Glass up front</h2><p>One smooth curved pane covers the face and catches the light.</p></div></div>
+    <div class="blk" style="--c:#b98cff"><div class="card"><h2>A frame that holds it</h2><p>A ring of violet metal grips the glass and gives the visor its shape.</p></div></div>
+    <div class="blk" style="--c:#3fd6c4"><div class="card"><h2>Two round lenses</h2><p>They sit on the inside, each wrapped in its own rings of light.</p></div></div>
+    <div class="blk" style="--c:#ff9d5c"><div class="card"><h2>A soft band behind</h2><p>It wraps around the back and keeps everything snug.</p></div></div>
+    <div class="blk"><div class="card"><h2>Scroll back up to put it together <span aria-hidden="true">↑</span></h2></div></div>
+  </div>
+</main>
+<section class="stills">
+  <h1>The visor in four pictures</h1>
+  <figure class="still"><div class="pic" data-alt="The visor whole, with its four layers fitted together"></div><figcaption><h2>All in one piece</h2><p>A glass front, a violet frame, two lenses and a soft band, fitted together.</p></figcaption></figure>
+  <figure class="still"><div class="pic" data-alt="The visor with its four layers lifted apart, one above the other"></div><figcaption><h2>Taken apart</h2><p>The glass lifts away first, then the frame, the lenses and the band, each on its own layer.</p></figcaption></figure>
+  <figure class="still"><div class="pic" data-alt="The visor tipped up so its back shows the two round lenses"></div><figcaption><h2>Tipped up</h2><p>Turned over, the back shows the two round lenses, each wrapped in rings of light.</p></figcaption></figure>
+  <figure class="still"><div class="pic" data-alt="The visor back together"></div><figcaption><h2>Back together</h2><p>Everything fits back into place, ready to be taken apart again.</p></figcaption></figure>
+</section>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const ss = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, UMAX = 5.3;
+const Z0 = [.12, .08, .04, 0], Z1 = [3.35, .85, -1.25, -3.35], WIN = [[.45, 1.5], [1.5, 2.5], [2.5, 3.5], [3.5, 4.3]];
+const parts = r => ({ ls: [...r.querySelectorAll('.l')], o: r.firstElementChild, f: r.querySelector('.floor') });
+
+function pose(p, u) {
+  const lift = ss(.2, 1.5, u), tip = ss(4.3, 5.1, u), spread = 1 - .7 * ss(.25, 1, tip);
+  p.ls.forEach((el, i) => {
+    const e = ss(WIN[i][0], WIN[i][1], u);
+    el.style.transform = `translateZ(${((Z0[i] + (Z1[i] - Z0[i]) * e) * spread).toFixed(3)}em)`;
+  });
+  p.o.style.transform = `rotateY(${(12 + 8 * lift - 6 * tip).toFixed(2)}deg) rotateX(${(8 + 60 * lift + 120 * tip).toFixed(2)}deg)`;
+  p.f.style.transform = `scaleX(${(1 + .3 * lift).toFixed(3)})`;
+  p.f.style.opacity = (.9 - .5 * lift).toFixed(3);
+}
+
+const main = parts($('.scene')), cards = $$('.card'), blks = $$('.blk');
+let B = 1, END = 0, F = [.35, .9, .35, .9, 0], cur = 0, tgt = 0, raf = 0, lastT = null, playing = false, pos = 0, acted = false;
+
+function measure() {
+  const s = getComputedStyle(blks[0]);
+  B = blks[0].offsetHeight || 1; END = document.documentElement.scrollHeight - innerHeight;
+  F = s.getPropertyValue('--f').trim().split(/\s+/).map(Number);
+}
+function paint(y) {
+  pose(main, cur);
+  cards.forEach((c, i) => {
+    const d = y / B - i, k = d < 0 ? 0 : 2, o = i === 5 && d > 0 ? 1 : 1 - ss(F[k], F[k + 1], Math.abs(d));
+    c.style.opacity = o < .02 ? 0 : o.toFixed(3);
+    if (F[4]) c.style.transform = `translateY(${((y - i * B) * F[4]).toFixed(1)}px)`;
+  });
+}
+function snap() { cur = tgt = clamp(scrollY / B, 0, UMAX); if (!reduce.matches) paint(scrollY); }
+
+function tick(ts) {
+  raf = 0;
+  const first = lastT === null, dt = first ? 0 : Math.min(ts - lastT, 50);
+  lastT = ts;
+  if (playing) {
+    pos = Math.min(END, pos + dt * END / 6000);
+    scrollTo({ top: pos, behavior: 'instant' });
+    if (pos >= END) playing = false;
+  }
+  const y = scrollY;
+  if (playing && Math.abs(y - pos) > 3) playing = false;
+  tgt = clamp(y / B, 0, UMAX);
+  if (Math.abs(tgt - cur) > 1.5) cur = tgt;
+  cur += (tgt - cur) * (1 - Math.pow(1 - .14, (first ? FRAME : dt) / FRAME));
+  if (Math.abs(tgt - cur) < .0008) cur = tgt;
+  if (!reduce.matches) paint(y);
+  if (playing || cur !== tgt) raf = requestAnimationFrame(tick); else lastT = null;
+}
+const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
+
+function play() {
+  measure();
+  if (END <= 0) return;
+  if (scrollY >= END - 2) scrollTo({ top: 0, behavior: 'instant' });
+  pos = scrollY; playing = true; lastT = null; wake();
+}
+function toTop() { playing = false; scrollTo({ top: 0, behavior: 'instant' }); snap(); }
+
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'play') { acted = true; play(); } else if (e.data.fx === 'top') { acted = true; toTop(); }
+});
+['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; playing = false; } }, { passive: true, capture: true }));
+addEventListener('scroll', () => { if (!reduce.matches) wake(); }, { passive: true });
+addEventListener('resize', () => { measure(); snap(); });
+document.addEventListener('visibilitychange', () => { lastT = null; });
+reduce.addEventListener('change', () => { measure(); snap(); });
+
+$$('.pic').forEach((pic, i) => {
+  const c = $('.scene').cloneNode(true);
+  c.setAttribute('aria-label', pic.dataset.alt);
+  pic.append(c);
+  pose(parts(c), [0, 4.3, 5.1, 0][i]);
+  if (i === 3) c.firstElementChild.style.transform = 'rotateY(-14deg) rotateX(8deg)';
+});
+measure(); snap();
+addEventListener('load', () => {
+  measure(); snap();
+  setTimeout(() => { if (!acted && !reduce.matches && scrollY < 2) play(); }, 700);
+});
+</script>
+</body>
+</html>
