@@ -31,13 +31,10 @@
     .card-icon{font-size:32px;margin-bottom:14px;opacity:.6}
     .card-title{font-size:clamp(16px,2.4vw,21px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
-    /* See inside and Compare. Their labels are plain words on a dark backing. */
     .stage{position:relative}
     .half,.fig,.side,.when{display:none}
     .cap{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
-    /* See inside: the card (its hinge line drawn on it) beside a small drawing of the swing, with its words under it. The drawing is
-       made of the page's own numbers: the card as a thick line turning on a dot, its start dashed, an arc to flat with a tick for each
-       tenth of the time (the Feel's own curve), and an eye whose distance follows 3D depth. The thick line turns with the card. */
+    /* See inside: the card (hinge line on it) beside a drawing of the swing made from the page's numbers, its words under it. */
     .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr);
       align-items:center;gap:clamp(8px,3vw,28px);padding:clamp(8px,2vw,20px)}
     .stage[data-hb-mode="inside"] .card{position:relative;justify-self:center;width:min(280px,100%)}
@@ -54,9 +51,7 @@
     .blade{stroke:var(--ui-accent);stroke-width:6;stroke-linecap:round;transform:rotate(var(--ba,-90deg));transform-origin:115px 100px;
       transition:transform var(--dur) var(--ease)}
     .blade.in{transform:rotate(0deg)}
-    /* Compare: No depth, a copy of the card in a box with no 3D space, so its turn is a flat squash; With depth, the card itself, whose
-       3D space is the stage's (its vanishing point set to the card's middle by the script). Between plays both are held a fifth of a
-       second in, with those words under them (their row is kept while hidden, so the cards do not move when they show). */
+    /* Compare: No depth is a copy in a box with no 3D space (a flat squash); With depth is the card itself, held part-way through. */
     .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto;
       align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:44px clamp(8px,2vw,24px) 8px}
     .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:42px;left:50%;border-left:1px solid rgba(244,244,242,.12)}
@@ -68,7 +63,6 @@
     .stage[data-hb-mode="compare"].posed .when{visibility:visible}
     .stage[data-hb-mode="compare"].posed .card{transform:rotateY(var(--py)) rotateX(var(--px))!important;opacity:var(--po)!important;transition:none!important}
     @media(max-width:600px){.fig-tk{display:none}.side.first{left:8px}.side.second{left:calc(50% + 8px)}}
-    /* Phones and short boxes (a window up to 640px tall gives a box of 310px or less): compact cards, icon and title only */
     @media(max-width:600px),(max-height:640px){
       .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:14px 16px;width:min(100%,150px)}
       .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
@@ -252,8 +246,7 @@
   const fadeTog=document.getElementById('fade-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let axis='Y',origin='center',ms=600,rot=90,persp='1000px',ease='ease-out',timers=[];
-  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own), the moment Compare holds,
-  // the card's length in the drawing, the drawing's middle (the hinge) and how far the eye sits for each 3D depth.
+  // The Feel choices as speed-curve numbers, the held moment, the card's length, the hinge dot and the eye's distance per 3D depth.
   const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1],'cubic-bezier(.34,1.56,.64,1)':[.34,1.56,.64,1]};
   const POSE_MS=200,L=84,CX=115,CY=100,EYE={'2000px':84,'1000px':64,'400px':44};
   const $=id=>document.getElementById(id),svgBox=$('fsvg').parentElement,blade=$('bl');
@@ -262,7 +255,6 @@
   twin.removeAttribute('id');twin.inert=true;twin.setAttribute('aria-hidden','true');
   stage.querySelector('.half').append(twin);
   let mode='normal',poseOn=false,VB=[230,204];
-
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
     const ry=axis==='X'?'0deg':rot+'deg';
@@ -276,7 +268,6 @@
     [card,twin].forEach(c=>c.style.opacity=fadeTog.checked?'':'1');
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
-  // the card, its copy and the drawing's thick line turn together
   function setIn(on){[card,twin,blade].forEach(e=>e.classList.toggle('in',on))}
   function flipIn(){
     // snap back to the starting pose without a transition so every play starts from the beginning
@@ -287,9 +278,7 @@
   }
   // Compare's held moment comes back once a play is over (the reduced fade is 300ms), if Compare is still on show
   function holdLater(){later(()=>{if(mode==='compare')pose(true)},(motionOk?dur():300)+700)}
-  // One play flips in. While Loop is on it then holds, flips out, waits and plays again;
-  // switching Loop off lets the card finish facing forward. Slow motion stretches the flips, not the waits.
-  // A play lifts Compare's hold (under reduced motion too: it plays the short fade), which comes back after it.
+  // One play flips in; with Loop on it holds, flips out, waits and repeats. Slow motion stretches the flips, not the waits.
   function cycle(){
     apply();pose(!motionOk&&mode==='compare');
     const falling=loopTog.checked&&motionOk;
@@ -302,7 +291,6 @@
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
-
   document.getElementById('btn-play').addEventListener('click',play);
   // Loop off: a play in its hold ends there (and in Compare is then held); one flipping out or waiting plays on, flips in once more
   loopTog.addEventListener('change',()=>{
@@ -326,7 +314,6 @@
   choices('persp-seg',d=>{persp=d.persp});
   choices('feel-seg',d=>{ease=d.ease});
   apply();
-
   // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
   function curveAt([a,b,c,e],x){
     const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
@@ -335,11 +322,10 @@
     return at(b,e,t);
   }
   function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
-  // Compare's still moment: a fifth of a second in, then eased so the turn always shows: a big turn is pulled in toward 55 degrees
-  // (well before edge-on) and a nearly finished one held at 14, and the card is never less than a third solid.
+  // Compare's still moment: a fifth of a second in, kept clear of edge-on (at most 70, 55 or 30 degrees) and of facing you (a fifth of the turn).
   function moment(){
     const p=curveAt(CURVES[ease],Math.min(1,POSE_MS/dur())),raw=rot*(1-p);
-    return {p:Math.max(p,.35),a:Math.max(14,raw<=50?raw:50+(raw-50)*.1)};
+    return {p:Math.max(p,.35),a:Math.min(rot===180?70:rot===90?55:30,Math.max(rot/5,raw))};
   }
   function pose(on){
     poseOn=on;stage.classList.toggle('posed',on);
@@ -347,6 +333,7 @@
     const {p,a}=moment(),v=stage.style;
     v.setProperty('--py',(axis==='X'?0:a)+'deg');v.setProperty('--px',(axis==='Y'?0:a)+'deg');
     v.setProperty('--po',fadeTog.checked?Math.min(1,p).toFixed(3):1);
+    $('f-when').textContent={45:'A little turn',90:'A quarter turn',180:'A half turn'}[rot]+', part-way';
   }
   // The drawing, from the page's own numbers: seen from above (the side for Up and down) the card is a line swinging on its hinge dot.
   function drawFig(){
@@ -357,7 +344,6 @@
     let ticks='';
     for(let i=1;i<=10;i++){const t=rot*(1-curveAt(CURVES[ease],i/10))*Math.PI/180;ticks+=`M${pt(s*(r+4),t)}L${pt(s*(r+10),t)}`}
     $('frot').setAttribute('transform',side?`rotate(-90 ${CX} ${CY})`:'');
-    // the drawing's window closes in on what it holds: the card's farthest reach (and the ticks) and the eye
     const R=r+12;VB=side?[R+e+12,2*R]:[2*R,R+e+12];
     $('fsvg').setAttribute('viewBox',`${CX-R} ${CY-R} ${VB[0]} ${VB[1]}`);
     $('fsvg').style.setProperty('--ba',-rot+'deg');
@@ -365,7 +351,6 @@
     $('fx').innerHTML=`<path class="fa" d="M${pt(s*r,T)}A${r} ${r} 0 0 1 ${CX+s*r} ${CY}"/><path class="fs" d="${[-5,5].map(o=>`M${pt(a,T,o)}L${pt(b,T,o)}`).join('')}"/>`+
       `<path class="ft" d="${ticks}"/><path class="fc" d="M${CX+a} ${CY}L${CX} ${CY+e}L${CX+b} ${CY}"/>`+
       `<g transform="translate(${CX} ${CY+e})"><path class="fe" d="M-11 0Q0-10 11 0Q0 10-11 0Z"/><circle class="fe" r="3.5"/></g>`;
-    // the true hinge line on the card
     card.toggleAttribute('data-hv',!side);card.toggleAttribute('data-hh',axis!=='Y');
     card.style.setProperty('--hx',/^left/.test(origin)?'0%':'50%');
     card.style.setProperty('--hy',/^top/.test(origin)?'0%':/^bottom/.test(origin)?'100%':'50%');
@@ -393,7 +378,6 @@
     stage.style.perspectiveOrigin=mode==='normal'?'':`${card.offsetLeft+card.offsetWidth/2}px ${card.offsetTop+card.offsetHeight/2}px`;
   }
   function refresh(){drawFig();notes();fit();if(poseOn)pose(true)}
-
   // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
   document.addEventListener('hb:mode',e=>{
     const was=mode;mode=e.detail.mode;
@@ -405,7 +389,6 @@
     pose(mode==='compare'&&!(loopTog.checked&&motionOk));
     refresh();
   });
-  // The box changes size with the window, and its words with the site font once it has loaded
   const redraw=new ResizeObserver(fit);redraw.observe(stage);redraw.observe(svgBox);
   refresh();
 </script>
