@@ -110,13 +110,13 @@
     <div class="stage hb-dots hb-grow">
       <div id="text-target" class="splitting" data-anim="fade-up"></div>
       <div class="clock" aria-hidden="true">
-        <div class="strip"><div class="ticks"></div><i class="end"></i><div class="ph"><p class="lbl now" data-hb-caption>A third of a second in</p></div></div>
+        <div class="strip"><div class="ticks"></div><i class="end"></i><div class="ph"><p class="lbl now" data-hb-caption>Half a second in</p></div></div>
         <ul class="key"><li class="lbl k1" data-hb-caption>One mark per word, in reading order</li><li class="lbl k2" data-hb-caption>All words in after about one and a half seconds</li><li class="lbl k3" data-hb-caption>Pause between sentences</li></ul>
       </div>
       <div class="cmp-text splitting" aria-hidden="true" inert></div>
       <p class="lbl half first" aria-hidden="true" data-hb-caption>All at once</p>
       <p class="lbl half second" aria-hidden="true" data-hb-caption>Word by word</p>
-      <p class="lbl moment" aria-hidden="true" data-hb-caption>A third of a second in</p>
+      <p class="lbl moment" aria-hidden="true" data-hb-caption>Half a second in</p>
       <div class="hold" aria-hidden="true" inert><div class="cmp-text"></div></div>
     </div>
     <div class="hb-player">
@@ -126,7 +126,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the strip under the text is the reading clock: one mark per word, and words appear as the playhead passes their marks.</p>
-      <p data-hb-for="compare" hidden>All at once shows every word together; Word by word brings them in one after another, a moment apart. With Loop off, both rest a third of a second in.</p>
+      <p data-hb-for="compare" hidden>All at once shows every word together; Word by word brings them in one after another, a moment apart. With Loop off, both rest half a second in.</p>
     </div>
   </section>
 
@@ -318,10 +318,10 @@ Software made with care.</textarea>
   document.querySelector('.hb-try').addEventListener('click',refresh);
   slowTog.addEventListener('change',refresh);
   // ── See inside and Compare ──
-  // With Loop off, and always under reduced motion, both views rest a third of a second into the play
+  // With Loop off, and always under reduced motion, both views rest half a second into the play
   const stage=document.querySelector('.stage'),clock=stage.querySelector('.clock'),strip=clock.querySelector('.strip'),ticks=strip.querySelector('.ticks'),
     ph=strip.querySelector('.ph'),now=ph.querySelector('.now'),endm=strip.querySelector('.end'),cmp=stage.querySelector('.cmp-text'),hold=stage.querySelector('.hold'),
-    holdBox=hold.firstElementChild,notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent),POSE_MS=333;
+    holdBox=hold.firstElementChild,notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent),POSE_MS=500;
   let view='normal',posed=false,busyUntil=0,sig='',T=2000;
   const setIn=v=>{target.classList.toggle('in',v);cmp.classList.toggle('in',v)};
   const delays=()=>[...target.querySelectorAll('.word')].map(w=>(parseFloat(w.style.getPropertyValue('--i'))||0)*stag());
@@ -344,7 +344,7 @@ Software made with care.</textarea>
     target.querySelectorAll('.word').forEach((w,i)=>poseWord(w,eased((POSE_MS-dl[i])/d),1));
     cmp.querySelectorAll('.word').forEach(w=>poseWord(w,eased(POSE_MS/d),0));
     ticks.querySelectorAll('i').forEach((e,i)=>e.classList.toggle('lit',dl[i]<=POSE_MS));
-    if(view==='inside')place(POSE_MS,'A third of a second in');
+    if(view==='inside')place(POSE_MS,'Half a second in');
     posed=true;stage.classList.add('posed');describe();
   }
   function unpose(){ // the text is shown as it now is, at once (only posed words snap)
@@ -356,7 +356,7 @@ Software made with care.</textarea>
   function restPose(){if(view!=='normal'&&!posed&&!(loopTog.checked&&motionOk)&&performance.now()>=busyUntil-5)pose()}
   // The playhead is a full-width strip moved by a share of its own width, so a resize never throws it off; its label slides back by the
   // same share of its own width, which keeps it inside the strip at both ends
-  function place(ms,txt){strip.classList.remove('run');ph.style.setProperty('--x',ms/T*100+'%');now.textContent=txt}
+  function place(ms,txt){strip.classList.remove('run','go');ph.style.setProperty('--x',ms/T*100+'%');now.textContent=txt}
   function clockRun(len){
     if(view!=='inside')return;
     place(0,'Now');void ph.offsetWidth;
@@ -393,12 +393,12 @@ Software made with care.</textarea>
   }
   // The notes say what the box shows now; a "shown still" note only while the box rests under reduced motion
   function describe(){
-    const still=!motionOk&&posed,S='Shown still, a third of a second in: ',bl=anim==='blur';
+    const still=!motionOk&&posed,S='Shown still, half a second in: ',bl=anim==='blur';
     const words=[
       still?S+'the strip is the reading clock, one mark per word, and the first words are in.'
         :punctTog.checked?'Inside, the strip under the text is the reading clock: one mark per word, with a longer gap between sentences, and words appear as the playhead passes.':marked[0],
       still?S+'All at once has every word equally far in'+(bl?', without the blur':'')+', while Word by word has only its first words in.'
-        :bl?'All at once fades every word in together, without the blur; Word by word blurs them in one after another. With Loop off, both rest a third of a second in.':marked[1]];
+        :bl?'All at once fades every word in together, without the blur; Word by word blurs them in one after another. With Loop off, both rest half a second in.':marked[1]];
     notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
   }
   function draw(){ // rebuilds both views from the page's state
