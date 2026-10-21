@@ -43,6 +43,39 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important;animation:none!important}}
+    /* See inside and Compare. The small site sits in a box; in Compare a copy of it, the twin, sits beside it. Labels are plain words
+       on a dark backing. In both views the page area's own ground is hatched, so the gap a page leaves off its place shows. */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.trace,.lbl{display:none}.twin .nav-btn{display:inline-flex;align-items:center}
+    .lbl{position:absolute;z-index:5;padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .page-area,.stage[data-hb-mode="compare"] .page-area{background:repeating-linear-gradient(135deg,#2e2642 0 2px,var(--bg) 2px 7px)}
+    /* See inside: under the page area, the graph of the new page's place over time (drawTrace); at rest the page is held at its farthest point */
+    .stage[data-hb-mode="inside"] .trace,.stage[data-hb-mode="inside"] .trace .lbl,.stage[data-hb-mode="inside"].posed .past{display:block}
+    .stage[data-hb-mode="inside"] .pc{gap:8px}.stage[data-hb-mode="inside"] .pgrid{display:none}
+    .trace{position:relative;flex:none;height:100px;background:#111114;border-top:1px solid var(--ui-border)}
+    .trace svg{position:absolute;left:0;top:26px;width:100%;height:calc(100% - 32px)}
+    .place{fill:none;stroke:rgba(244,244,242,.6);stroke-width:1.5;stroke-dasharray:5 4}.tip{fill:var(--ui-accent)}.dot{fill:#f4f4f2}
+    .curve{fill:none;stroke:var(--ui-accent);stroke-width:2.5;stroke-linejoin:round}
+    .past{right:calc(var(--past,0%) + 6px);bottom:8px}.at{right:6px}
+    /* Compare: the copy, whose new page stops at its place, then the real site, which goes past it; at rest both are held at the
+       moment the real page is furthest past its place. The half names sit at the bottom middle, under the labels and off the gaps. */
+    .stage[data-hb-mode="compare"]{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}.stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"].posed .past,.stage[data-hb-mode="compare"].posed .at{display:block}
+    .stage[data-hb-mode="compare"] .past,.stage[data-hb-mode="compare"] .at{bottom:36px}
+    .side{bottom:10px;transform:translateX(-50%)}.side.first{left:25%}.side.second{left:75%}
+    @media(max-width:600px){.stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}.stage[data-hb-mode="compare"] .ph{font-size:16px}.stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}}
+    /* Phones and short windows (a phone held sideways too): a shorter strip, and the pages keep only their eyebrow and heading */
+    @media(max-width:600px),(max-height:700px){.trace{height:80px}
+      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pstat,.stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack: a half is short, so its page text starts at the top, its labels sit in its bottom row and its
+       name at the right end of its nav row */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}.stage[data-hb-mode="compare"] .past,.stage[data-hb-mode="compare"] .at{bottom:10px}
+      .stage[data-hb-mode="compare"] .side{left:auto;right:10px;bottom:auto;top:19px;transform:none}.stage[data-hb-mode="compare"] .side.second{top:calc(50% + 20px)}
+    }
   </style>
   <style id="kf-style"></style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -66,14 +99,28 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area"><span class="lbl past" aria-hidden="true" data-hb-caption>Past its place</span></div>
+      </div>
+      <div class="trace" aria-hidden="true"><svg><path class="place"/><path class="curve"/><path class="tip" d="M-6 -5L6 0L-6 5Z"/><circle class="dot" r="5"/></svg><span class="lbl way" data-hb-caption>A planned path</span><span class="lbl here" data-hb-caption>Its place</span><span class="lbl ends" data-hb-caption>Settles</span></div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Stops dead</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Springs back</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the graph traces the new page's place over time: it comes in from the side, goes past its place, springs back and settles. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Stops dead slides the new page in and stops at its place; Springs back goes a little past and bounces back before settling. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -164,7 +211,7 @@
   // The live spring's damping for each size (row) and speed (column); it and the stiffness above were found by running its loop so that it goes about as far past its place as the planned path does
   const DAMPING=[[12.8,19.7,33.6],[10.6,17.4,29.7],[9.5,15.2,27.2]];
   const STEP=1/120,STEPS_MAX=8; // the live spring moves in steps of 1/120 s, and takes at most 8 of them in one frame
-  let current=0,animating=false,mode='css',size=1,speed=1,rafId=0,afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,mode='css',size=1,speed=1,rafId=0,afterMove=null,wayBack=0,runFrom=null,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -172,6 +219,23 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+  // Compare's first half: the same small site, whose new page slides in and stops at its place. A copy built from the same pages,
+  // with no ids and no buttons, out of the Tab order and hidden from screen readers; every change of the real site plays on it too.
+  const box=document.getElementById('box'),stage=box.parentElement,twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}<span class="lbl at" data-hb-caption>At its place</span></div>`;
+  box.before(twin);
+  const tp=[...twin.querySelectorAll('.page')],tn=[...twin.querySelectorAll('.nav-btn')],atLbl=twin.querySelector('.at');
+  // See inside's graph: 1.6 s across (slow motion aside); up and down, from 8% of the width short of its place to 16% past it; 26px down
+  const trace=stage.querySelector('.trace'),svg=trace.querySelector('svg'),[placeEl,curveEl,tipEl]=svg.querySelectorAll('path');
+  const dot=svg.querySelector('.dot'),[wayLbl,hereLbl,endsLbl]=trace.querySelectorAll('.lbl'),SPAN=1600,TOP=8,BOTTOM=-16,SVG_TOP=26;
+  // look: the mode on show; posed: held at the farthest point (pose); run: the change under way, as drawn; tw: the copy's spring
+  let look='normal',posed=false,run=null,tw=null,dotRaf=0,G={W:0,k:0};
+  if(!motionOk){ // under reduced motion both views are still pictures, and their notes say so
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still at its farthest point: the new page has gone past its place, and the graph traces how it comes in, overshoots and settles.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still at the moment Springs back is furthest past its place: Stops dead has not gone past it.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -226,6 +290,7 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    views();
   }
   // Stops everything at once (timers, the spring's frames, the run's next step) and shows the resting state for `current`
   function settle(){
@@ -233,17 +298,23 @@
     if(rafId){cancelAnimationFrame(rafId);rafId=0}
     animating=false;
     showPage(current);
+    views();
   }
 
   function navigate(next,then){
     if(next===current||animating)return;
+    unpose();
     const prev=current;current=next;updateNav(next);
     afterMove=then||null;
     if(!motionOk){showPage(next);finish();return}
     animating=true;
     const k=slowTog.checked?3:1; // read when the transition starts; slow motion triples its movements and the timers that wait for them
+    run={way:mode,size,speed};
     if(mode==='css')doCSS(pages[prev],pages[next],OVERSHOOT[size],DURATION[speed]*k);
     else doSpring(pages[prev],pages[next],k,STIFFNESS[speed],DAMPING[size][speed]);
+    // The views: in Compare the copy plays the same change its own way; in See inside the dot rides the curve
+    if(look==='compare')twinGo(prev,next,k);
+    ride();
   }
 
   // Planned path: the old page's keyframes carry it away, the new page's carry it in past its place and back; d is their length in ms
@@ -263,47 +334,131 @@
     const out=300*k;
     o.style.transition=`transform ${out}ms ease-in, opacity ${out}ms ease-in`;
     o.style.transform='translateX(-40%)';o.style.opacity='0';
-    let pos=100,before=pos,vel=0,target=0,acc=0,lastTime=null;
+    let pos=100,before=pos,vel=0,target=0,acc=0,lastTime=null,steps=0;
     n.style.transform=`translateX(${pos}%)`;n.classList.add('active');
     function tick(now){
       if(lastTime!==null)acc+=Math.min(now-lastTime,50)/1000/k; // the 50ms limit first, then a third of the time in slow motion; the first frame adds none
       lastTime=now;
       for(let i=0;acc>0&&i<STEPS_MAX;i++){
         before=pos;vel+=(-stiffness*(pos-target)-damping*vel)*STEP;pos+=vel*STEP;acc-=STEP;
+        steps++;if(tw)twinStep(); // in Compare the copy's spring takes the same step
         if(Math.abs(pos-target)<0.5&&Math.abs(vel)<0.5){rafId=0;rest(o,false);rest(n,true);finish();return}
       }
       if(acc>0)acc=0; // the step limit was reached: drop the time left, so the page is never drawn ahead of the last step
       const shown=pos+(before-pos)*(-acc/STEP);
       n.style.transform=`translateX(${shown.toFixed(2)}%)`;
+      springDrawn(steps*STEP+acc,shown,-acc/STEP);
       rafId=requestAnimationFrame(tick);
     }
     later(()=>{rafId=requestAnimationFrame(tick)},100*k);
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // runFrom is the page the run started from, kept until the way back ends: a Show me pressed during a run (a second press, or the
+  // one a mode press sends) goes back to it first, not to the page the run was heading for
   function showMe(){
+    if(runFrom!==null){current=runFrom;updateNav(current)}
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{runFrom=null})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){runFrom=null;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A page already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;runFrom=null;cancel(wayBack);wayBack=0;pose()});
+
+  // CSS's ease at a share x of a keyframe step: the curve's own t for x found by halving, then its height there
+  function ease(x){const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(.25,.25,t)<x)lo=t;else hi=t}return at(.1,1,t)}
+  // The planned path as buildKF writes it, [share of the time, place in % of the width] at each keyframe, and the place at share u
+  const keys=T=>[[0,100],[.55,-12*T],[.75,4*T],[.88,-1.5*T],[1,0]];
+  function along(K,u){let i=1;while(i<K.length-1&&u>K[i][0])i++;const[a,p]=K[i-1],[b,q]=K[i];return p+(q-p)*ease((u-a)/(b-a))}
+  // The live spring run ahead with doSpring's own steps and settle test: the real page's place after each step, and the copy's,
+  // whose spring is damped just enough not to go past its place (twice the square root of the stiffness)
+  function springRun(st,da){const P=[100],C=[100],dc=2*Math.sqrt(st);let p=100,v=0,c=100,w=0;
+    do{v+=(-st*p-da*v)*STEP;p+=v*STEP;w+=(-st*c-dc*w)*STEP;c+=w*STEP;P.push(p);C.push(c)}while(!(Math.abs(p)<0.5&&Math.abs(v)<0.5));return{P,C}}
+  // The change the views draw: the one under way, else the next one as the settings stand. pts: [ms, place] (slow motion aside);
+  // dip: how far it goes (minus: past its place), at ms `at`; twin: where the copy is then; ends: when it settles
+  function plan(){
+    const r=run||{way:mode,size,speed},T=OVERSHOOT[r.size]/100,d=DURATION[r.speed],K=keys(T),pts=[];
+    if(r.way==='css'){for(let i=0;i<=200;i++)pts.push([d*i/200,along(K,i/200)]);return{pts,dip:-12*T,at:.55*d,twin:0,ends:d}}
+    const{P,C}=springRun(STIFFNESS[r.speed],DAMPING[r.size][r.speed]),ms=i=>100+i*STEP*1000,end=ms(P.length-1);let m=0;
+    P.forEach((p,i)=>{if(p<P[m])m=i});
+    return{pts:[[0,100],...P.map((p,i)=>[ms(i),p]),[end,0]],dip:P[m],at:ms(m),twin:C[m],ends:end};
+  }
+  const gx=t=>8+(G.W-16)*t/SPAN,gy=v=>(TOP-v)*G.k;
+  function dotAt(t,v){dot.style.transform=`translate(${gx(t).toFixed(1)}px,${gy(v).toFixed(1)}px)`}
+  // The graph in the strip's own pixels: across is time, down is past its place; an arrow 10px down the slide coming in from the top.
+  // Its words keep off the curve: the way it bounces in the top row, "Its place" over the line's right end, "Settles" under it.
+  function drawTrace(){
+    const W=trace.clientWidth,H=trace.clientHeight-SVG_TOP-6;if(!W)return;
+    const p=plan(),pt=([t,v])=>gx(t).toFixed(1)+' '+gy(v).toFixed(1);G={W,k:H/(TOP-BOTTOM)};
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);placeEl.setAttribute('d',`M0 ${gy(0).toFixed(1)}H${W}`);curveEl.setAttribute('d','M'+p.pts.map(pt).join('L')+'H'+W);
+    const vA=TOP-10/G.k,i=p.pts.findIndex(([,v])=>v<vA),[t1,v1]=p.pts[i-1],[t2,v2]=p.pts[i],a=Math.atan2(gy(v2)-gy(v1),gx(t2)-gx(t1));
+    tipEl.setAttribute('transform',`translate(${gx(t1+(t2-t1)*(v1-vA)/(v1-v2)).toFixed(1)} 10) rotate(${(a*180/Math.PI).toFixed(1)})`);
+    wayLbl.textContent=(run||{way:mode}).way==='css'?'A planned path':'A live spring';
+    const put=(el,l,t)=>{el.style.left=Math.max(4,Math.min(l,W-el.offsetWidth-4))+'px';el.style.top=t.toFixed(1)+'px'},line=SVG_TOP+gy(0);
+    put(wayLbl,4,3);put(hereLbl,W,line-hereLbl.offsetHeight-4);put(endsLbl,gx(p.ends)+4,line+4);if(posed)dotAt(p.at,p.dip);
+  }
+  // In See inside the dot rides the curve during a change: a planned path's at the animation's own time; a spring's from the start,
+  // then wherever the spring's frames draw the page (springDrawn)
+  function ride(){
+    cancelAnimationFrame(dotRaf);dotRaf=0;if(look!=='inside'||!animating)return;
+    const a=run.way==='css'&&pages[current].getAnimations()[0],u=(a&&a.effect.getComputedTiming().progress)||0;
+    dotAt(u*DURATION[run.speed],a?along(keys(OVERSHOOT[run.size]/100),u):100);if(a)dotRaf=requestAnimationFrame(ride);
+  }
+  // Each step and frame of the real spring (doSpring): the copy's spring takes the same step and is drawn at the same moment, between
+  // its last two steps, and the dot goes to the real page's drawn place
+  function twinStep(){tw.before=tw.pos;tw.vel+=(-tw.st*tw.pos-tw.da*tw.vel)*STEP;tw.pos+=tw.vel*STEP}
+  function springDrawn(s,shown,f){if(tw)tw.n.style.transform=`translateX(${(tw.pos+(tw.before-tw.pos)*f).toFixed(2)}%)`;if(look==='inside')dotAt(100+s*1000,shown)}
+  // A change on the copy: the planned path without its bounce (the same start and ease, at its place by 55% of the time, where the real
+  // page is furthest past; the old page leaves with a plain slide), or the same spring damped not to go past, stepped in doSpring's loop
+  function twinGo(a,b,k){
+    const o=tp[a],n=tp[b],d=DURATION[run.speed]*k,st=STIFFNESS[run.speed];
+    tn.forEach((s,i)=>s.classList.toggle('active',i===b));n.classList.add('active');n.style.transform='translateX(100%)';
+    if(run.way==='css'){
+      kfStyle.textContent+='@keyframes stops-in{0%{transform:translateX(100%);opacity:0}5%{opacity:1}55%{transform:translateX(0)}100%{transform:translateX(0);opacity:1}}'+
+        '@keyframes stops-out{0%{transform:translateX(0);opacity:1}100%{transform:translateX(-100%);opacity:0}}';
+      void n.offsetWidth;o.style.animation=`stops-out ${d}ms ease forwards`;n.style.animation=`stops-in ${d}ms ease forwards`;
+    }else{
+      o.style.transition=`transform ${300*k}ms ease-in, opacity ${300*k}ms ease-in`;o.style.transform='translateX(-40%)';o.style.opacity='0';
+      tw={n,st,da:2*Math.sqrt(st),pos:100,before:100,vel:0};
+    }
+  }
+  // The copy at rest on the page the real site shows: its spring stopped, its animations gone
+  function twinRest(){tw=null;tn.forEach((s,i)=>s.classList.toggle('active',i===current));
+    tp.forEach((el,i)=>{el.classList.toggle('active',i===current);el.style.animation=el.style.transition=el.style.transform=el.style.opacity=''})}
+  // At rest in See inside and Compare the page is held still at the moment its change goes furthest past its place, and the copy at
+  // that moment; a change, and Normal, lift the pose, and the page is back at its place before a change starts from there
+  function pose(){
+    if(look==='normal'||animating||wayBack){unpose();return}const p=plan();
+    pages[current].style.transform=`translateX(${p.dip.toFixed(2)}%)`;tp[current].style.transform=`translateX(${p.twin.toFixed(2)}%)`;
+    stage.style.setProperty('--past',(-p.dip).toFixed(2)+'%');atLbl.textContent=p.twin>0.5?'Not there yet':'At its place';
+    stage.classList.add('posed');posed=true;dotAt(p.at,p.dip);
+  }
+  function unpose(){if(posed){posed=false;stage.classList.remove('posed');pages[current].style.transform=tp[current].style.transform='';void stage.offsetWidth}}
+  // After a change, or once everything is stopped: the copy at rest, the graph for the next change, and the pose
+  function views(){twinRest();run=null;if(look==='inside')drawTrace();pose()}
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  // Leaving Compare stops only the copy: a change of the real site goes on as it was.
+  document.addEventListener('hb:mode',e=>{look=e.detail.mode;if(look!=='compare')twinRest();drawTrace();pose();ride()});
+  // The graph is drawn in pixels: a new size of the strip (a phone turned), or of its words once the site font has loaded, draws it again
+  const redraw=new ResizeObserver(()=>{if(look==='inside')drawTrace()});redraw.observe(trace);redraw.observe(wayLbl);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      if(look==='inside')drawTrace();pose(); // the views follow the setting at once
     }));
   }
   choices('mode-seg',d=>{mode=d.mode});
   choices('size-seg',d=>{size=+d.size});
   choices('speed-seg',d=>{speed=+d.speed});
-  showPage(0);
+  showPage(0);twinRest();
 </script>
 </body>
 </html>

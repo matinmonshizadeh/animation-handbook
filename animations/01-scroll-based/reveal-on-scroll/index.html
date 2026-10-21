@@ -62,7 +62,61 @@
     .stagger-chip{background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:6px;padding:6px 12px;font-size:12px}
     /* Back to top hides every card at once, so for that one step the transitions are off */
     .scroller.resetting .card,.scroller.resetting .card .stagger-child{transition:none!important}
-    @media(prefers-reduced-motion:reduce){.card,.card .stagger-child{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.card,.card .stagger-child,.settle{transition:none!important}}
+    /* See inside and Compare. Everything they add is hidden in Normal. */
+    .tint,.divider,.names,.cap,.settle,.cards-copy{display:none}
+    .cap{position:absolute;z-index:11;padding:2px 8px;border-radius:999px;background:rgba(11,11,13,.92);border:1px solid rgba(255,255,255,.18);
+      color:#f4f4f2;font:600 12px/16px var(--hb-font);white-space:nowrap;pointer-events:none}
+    .settle{position:absolute;border:2px dashed rgba(244,244,242,.6);border-radius:10px;pointer-events:none;z-index:-1;transition:opacity .4s ease}
+    .settle.chip{border-radius:6px;z-index:1}   /* chips sit inside a card that is not faint, so their outlines lie above it */
+    .settle svg{position:absolute;left:14px;top:50%;width:56px;height:12px;margin-top:-6px;fill:none;stroke:rgba(244,244,242,.75);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .settle.gone{opacity:0}
+    .scroller.posing .card:not(.revealed),.scroller.posing .card:not(.revealed) .stagger-child,.scroller.posing .settle{transition:none!important}
+    /* See inside: a card below the line waits faintly in its own hidden start (only its see-through value changes, so the
+       move, the blur and the clip stay) over a dashed outline of the place where it will settle. The part of the box at or
+       above the line is tinted, inset so a keyboard focus ring on the box is never covered. */
+    .stage[data-hb-mode="inside"] .scroller{isolation:isolate;overflow-anchor:none}
+    .stage[data-hb-mode="inside"] .card[data-fx]:not(.revealed):not([data-fx="mask"]):not([data-fx="stagger"]){opacity:.5}
+    .stage[data-hb-mode="inside"] .card[data-fx="stagger"]:not(.revealed) .stagger-child{opacity:.5}
+    .stage[data-hb-mode="inside"] .settle{display:block}
+    .stage[data-hb-mode="inside"] .tint{display:block;position:absolute;z-index:2;left:6px;right:6px;top:var(--bar);height:max(0px,calc(var(--line,0px) - var(--bar)));
+      border-radius:6px;background:rgba(110,168,255,.11);pointer-events:none}
+    .cap-below{right:8px;top:calc(var(--line,0px) + 4px)}
+    /* A bar across the top holds the labels that name no spot, so scrolling cards never run under their words. In See inside
+       its two labels sit side by side (two lines each on phones); in Compare it holds the half names. */
+    .names{position:absolute;z-index:4;left:0;right:0;top:0;height:var(--bar,30px);background:#0b0b0d;border-bottom:1px solid rgba(255,255,255,.12);pointer-events:none}
+    .names .cap{position:static}
+    .stage[data-hb-mode="inside"]{--bar:30px}
+    .stage[data-hb-mode="inside"] .names{display:flex;align-items:center;gap:8px;padding:0 12px}
+    .stage[data-hb-mode="inside"] .cap-above,.stage[data-hb-mode="inside"] .cap-dash,.stage[data-hb-mode="inside"] .cap-below{display:block}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{--bar:44px}
+      .stage[data-hb-mode="inside"] .names .cap{flex:1 1 0;min-width:0;white-space:normal;text-align:center;border-radius:14px}
+    }
+    /* The bar would cover the top of the box's keyboard focus ring, so in these two modes the ring is drawn by the stage, above it */
+    .stage[data-hb-mode="inside"] .scroller:focus-visible,.stage[data-hb-mode="compare"] .scroller:focus-visible{outline:none}
+    .stage[data-hb-mode="inside"]:has(.scroller:focus-visible)::after,.stage[data-hb-mode="compare"]:has(.scroller:focus-visible)::after{
+      content:"";position:absolute;inset:0;z-index:20;border-radius:inherit;outline:2px solid var(--hb-accent);outline-offset:-3px;pointer-events:none}
+    /* Compare: the cards always shown on the left, the page's own cards on the right, in one scroll. Each row is as tall as
+       that card is in Normal (measured in the script), so the scroll length and the moment a card crosses the line stay. */
+    .stage[data-hb-mode="compare"] .scroller{overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .cards-list{margin-left:50%;padding:40px 12px 200px 5px;overflow-x:clip}
+    .stage[data-hb-mode="compare"] .cards-copy{display:flex;flex-direction:column;gap:18px;position:absolute;top:0;left:0;width:50%;padding:40px 5px 0 12px}
+    .stage[data-hb-mode="compare"] .card{height:var(--h);flex:none}
+    /* In the narrow columns a card keeps its tag and title, and its chips tighten */
+    @media(max-width:760px){
+      .stage[data-hb-mode="compare"] .card{padding:10px}
+      .stage[data-hb-mode="compare"] .card-tag{letter-spacing:1px}
+      .stage[data-hb-mode="compare"] .card-body{display:none}
+      .stage[data-hb-mode="compare"] .stagger-row{gap:5px;margin-top:6px}
+      .stage[data-hb-mode="compare"] .stagger-chip{padding:3px 7px}
+    }
+    .stage[data-hb-mode="compare"] .names{display:block}
+    .stage[data-hb-mode="compare"] .divider{display:block;position:absolute;z-index:5;top:0;bottom:0;left:50%;width:1px;background:rgba(255,255,255,.28);pointer-events:none}
+    .stage[data-hb-mode="compare"] .cap-left,.stage[data-hb-mode="compare"] .cap-right{display:block}
+    .names .cap-left,.names .cap-right{position:absolute;top:5px}
+    .cap-left{left:12px}
+    .cap-right{left:calc(50% + 6px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -85,15 +139,33 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play. Back to top hides the cards again.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="scroller" id="scroller" data-hb-scroller tabindex="0" role="region" aria-label="Seven cards that appear as you scroll">
         <div class="cards-list" id="cards-list"></div>
       </div>
       <div id="trigger-line" aria-hidden="true"><div id="trigger-label">trigger</div></div>
+      <div class="tint" aria-hidden="true"></div>
+      <div class="names" aria-hidden="true">
+        <span class="cap cap-above" data-hb-caption>At or above the line: shown</span>
+        <span class="cap cap-dash" data-hb-caption>Dashed: where it settles</span>
+        <span class="cap cap-left" data-hb-caption>Always shown</span>
+        <span class="cap cap-right" id="cap-right" data-hb-caption>Shown once</span>
+      </div>
+      <div class="divider" aria-hidden="true"></div>
+      <span class="cap cap-below" id="cap-below" data-hb-caption aria-hidden="true">Below: hidden until it crosses</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each card below the line waits faintly in its hidden start; past the line it settles on its dashed outline and stays. Press Play to watch, or press Back to top and scroll.</p>
+      <p data-hb-for="compare" hidden>Always shown has every card in place from the start; Shown once keeps each card hidden until it rises past the dashed line. Press Play to watch, or press Back to top and scroll.</p>
     </div>
   </section>
 
@@ -167,9 +239,9 @@
     {fx:'mask',      title:'Mask Reveal',    body:'Uncovered from left to right.',                    tag:'Technique 06'},
     {fx:'stagger',   title:'Stagger Group',                                                            tag:'Technique 07'},
   ];
-  const scroller=document.getElementById('scroller');
+  const scroller=document.getElementById('scroller'),stage=scroller.parentNode;
   const repeatTog=document.getElementById('repeat-tog'),triggerLine=document.getElementById('trigger-line');
-  let observer,threshold=70,resetTimer;
+  let observer,threshold=70,resetTimer,mode='normal';
 
   // Build cards
   const cardEls=CARDS.map(c=>{
@@ -182,6 +254,63 @@
     el.innerHTML=inner;
     document.getElementById('cards-list').appendChild(el);
     return el;
+  });
+
+  // See inside and Compare. Copies and marks are made once, have no ids, and are hidden from screen readers (and the copies
+  // are inert); none of it is drawn in Normal.
+  const list=document.getElementById('cards-list');
+  const copyList=document.createElement('div');
+  copyList.className='cards-copy';copyList.inert=true;copyList.setAttribute('aria-hidden','true');
+  const copyEls=cardEls.map(el=>{const c=el.cloneNode(true);c.removeAttribute('data-fx');return c});
+  copyList.append(...copyEls);scroller.append(copyList);
+  // Each waiting card, or each chip of the Stagger Group (the card itself never moves), gets a dashed outline of its settled
+  // place as its own element, so it does not move or shrink with the card. The Mask card's outline carries an arrow.
+  const ARROW='<svg viewBox="0 0 56 12"><path d="M2 6h50M46 1l6 5-6 5"/></svg>';
+  const marks=new Map(cardEls.map(el=>[el,(el.dataset.fx==='stagger'?[...el.querySelectorAll('.stagger-chip')]:[el]).map(part=>{
+    const mark=document.createElement('div');
+    mark.className='settle'+(part===el?'':' chip');mark.setAttribute('aria-hidden','true');
+    if(el.dataset.fx==='mask')mark.innerHTML=ARROW;
+    list.append(mark);return {part,mark};
+  })]));
+  const setMarks=(el,waiting)=>marks.get(el).forEach(m=>m.mark.classList.toggle('gone',!waiting));
+  // Placed from layout offsets, which a card's move, scale or blur does not change, so they are right at any scroll position
+  function placeMarks(){
+    marks.forEach(ms=>ms.forEach(({part,mark})=>{
+      let x=0,y=0;
+      for(let n=part;n&&n!==scroller;n=n.offsetParent){x+=n.offsetLeft;y+=n.offsetTop}
+      Object.assign(mark.style,{left:x+'px',top:y+'px',width:part.offsetWidth+'px',height:part.offsetHeight+'px'});
+    }));
+  }
+  // Compare: every row is as tall as its card is in Normal, measured with the box laid out as in Normal
+  function measureRows(){
+    scroller.style.overflowAnchor='none';   // the box must not follow a card while the layout is briefly Normal's
+    stage.setAttribute('data-hb-mode','normal');
+    cardEls.forEach((el,i)=>{
+      const h=getComputedStyle(el).height;
+      el.style.setProperty('--h',h);copyEls[i].style.setProperty('--h',h);
+    });
+    stage.setAttribute('data-hb-mode','compare');
+    scroller.style.overflowAnchor='';
+  }
+  function relayout(){
+    updateLine();
+    if(mode==='inside')placeMarks();
+    if(mode==='compare')measureRows();
+  }
+  const NAMES={normal:scroller.getAttribute('aria-label'),
+    inside:'Seven cards that appear as you scroll, with each waiting card\u2019s hidden start and where it will settle',
+    compare:'Seven cards twice: always shown, and appearing as they cross the line'};
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    // Compare's row heights come first: laid out before they are set, the narrow cards are shorter, the scroll length
+    // shrinks and the box would jump back
+    if(mode==='compare')measureRows();
+    scroller.classList.add('posing');   // the faint starts come and go in one step, not over the reveal's 0.6 s
+    scroller.setAttribute('aria-label',NAMES[mode]);
+    updateLine();
+    if(mode==='inside')placeMarks();
+    void scroller.offsetWidth;
+    scroller.classList.remove('posing');
   });
 
   // The top edge is unbounded on purpose. With a 0px top margin a card that has
@@ -213,13 +342,15 @@
 
   // The class alone drives every effect, stagger included — see the transition-delay
   // rules above. Nothing here schedules work that could outlive the state that started it.
-  function reveal(el){el.classList.add('revealed')}
-  function hide(el){el.classList.remove('revealed')}
+  function reveal(el){el.classList.add('revealed');setMarks(el,false)}
+  function hide(el){el.classList.remove('revealed');setMarks(el,true)}
 
   // Depends only on the threshold and the scroller's height — neither changes while
   // scrolling, so this runs on threshold change and resize, never per scroll event.
   function updateLine(){
-    triggerLine.style.top=(scroller.clientTop+threshold/100*scroller.clientHeight)+'px';
+    const y=scroller.clientTop+threshold/100*scroller.clientHeight;
+    triggerLine.style.top=y+'px';
+    stage.style.setProperty('--line',y+'px');   // the tint and the labels follow the line
   }
 
   // Back to top, and Play pressed at the end (which starts again from the top), hide every card and arm the reveals again.
@@ -246,11 +377,26 @@
     }));
   }
   choices('line-seg',d=>{threshold=+d.line;updateLine();buildObserver()});
-  repeatTog.addEventListener('change',buildObserver);
+  // The words for Plays every time, in the labels and the notes; the markup holds the words for the default
+  const capBelow=document.getElementById('cap-below'),capRight=document.getElementById('cap-right');
+  const insideNote=document.querySelector('[data-hb-for="inside"]'),compareNote=document.querySelector('[data-hb-for="compare"]');
+  const WORDS={
+    once:{below:'Below: hidden until it crosses',right:'Shown once',
+      inside:insideNote.textContent,compare:compareNote.textContent},
+    every:{below:'Below: hidden, every time',right:'Shown each time',
+      inside:'Inside, each card below the line waits faintly in its hidden start; past the line it settles on its dashed outline, and below it hides again. Scroll the box or press Play to watch.',
+      compare:'Always shown has every card in place; Shown each time hides a card below the dashed line and shows it again each time it rises past. Scroll the box or press Play to watch.'},
+  };
+  function describe(){
+    const w=WORDS[repeatTog.checked?'every':'once'];
+    capBelow.textContent=w.below;capRight.textContent=w.right;
+    insideNote.textContent=w.inside;compareNote.textContent=w.compare;
+  }
+  repeatTog.addEventListener('change',()=>{buildObserver();describe()});
 
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(updateLine,150)});
-  updateLine();buildObserver();
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(updateLine);
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(relayout,150)});
+  updateLine();buildObserver();describe();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayout);
 </script>
 </body>
 </html>

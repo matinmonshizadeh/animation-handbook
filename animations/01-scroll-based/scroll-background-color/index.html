@@ -33,6 +33,56 @@
     /* White text on the dark colors, black on the light ones: the script sets .light once the background is light enough */
     .num,.stage h3,.stage p{color:#fff}
     .stage.light .num,.stage.light h3,.stage.light p{color:#000}
+
+    /* See inside and Compare draw in one zero-tall layer that sticks to the top of the box, so the chapters keep their heights.
+       It ignores the pointer, so a wheel turn or a touch over it still scrolls the box. */
+    .fx,.fx-in,.fx-cmp,.cm-copy{display:none}
+    .fx{position:sticky;top:0;height:0;z-index:6;pointer-events:none}
+    .fx-box{position:absolute;left:0;top:0;width:100%;height:100cqh;overflow:hidden}
+    .fx-in,.fx-cmp{position:absolute;inset:0}
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx,.stage[data-hb-mode="inside"] .fx-in,.stage[data-hb-mode="compare"] .fx-cmp{display:block}
+    .cap{position:absolute;padding:2px 6px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.95);color:#f4f4f2;
+      border:1px solid rgba(244,244,242,.3);font:600 12.5px/1.3 var(--hb-font)}
+    .band,.sw,.mk{position:absolute}
+    .band{left:0;right:0;border-radius:4px;box-shadow:0 0 0 1px #fff,0 0 0 2px #000}
+    .mk{width:8px;margin-left:-4px;border:2px solid #fff;border-radius:4px;box-shadow:0 0 0 1px #000;left:0}
+    /* See inside: only the chapters' text is dimmed (the box's own focus ring keeps full contrast), and the strip stands for the whole scroll */
+    .stage[data-hb-mode="inside"]>section{opacity:.35}
+    .in-pan{position:absolute;left:0;right:0;bottom:0;height:98px;background:rgba(11,11,13,.92)}
+    .fx-in.flip .in-pan{height:134px}
+    .in-trk{position:absolute;left:26px;right:26px;bottom:40px;height:24px}
+    .in-trk .band{top:3px;bottom:3px}
+    .sw{top:0;width:24px;height:24px;margin-left:-12px;border:2px solid #fff;border-radius:5px;box-shadow:0 0 0 1px #000}
+    .in-trk .mk{top:-6px;height:36px}
+    .in-brks{position:absolute;left:26px;right:26px;bottom:68px;height:0}
+    .brk{position:absolute;bottom:0;height:8px;border:2px solid #fff;border-bottom:0;box-shadow:0 0 0 1px #000}
+    .in-me{bottom:10px;left:0}
+    .in-b{left:0;bottom:80px}
+    .in-a1{left:8px;bottom:72px}
+    .in-a2{right:8px;bottom:72px}
+    .fx-in.flip .in-a1,.fx-in.flip .in-a2{bottom:108px}
+    .fx-in:not(.flip) .in-b,.fx-in:not(.flip) .in-brks{display:none}
+    /* Compare: the chapters twice, in two columns of the same scroll. The copy on the left keeps one color; the real chapters sit on the right.
+       Every chapter keeps its Normal height (--h, measured), and the words are set smaller to fit the narrower halves. */
+    .stage[data-hb-mode="compare"] .cm-copy{display:block;position:absolute;left:0;top:0;width:50%;z-index:1}
+    .stage[data-hb-mode="compare"]>section{margin-left:50%}
+    .stage[data-hb-mode="compare"] section{height:var(--h);min-height:0;padding:clamp(10px,2.4cqw,28px)}
+    .stage[data-hb-mode="compare"] .num{font-size:11px;letter-spacing:1px}
+    .stage[data-hb-mode="compare"] h3{font-size:clamp(15px,3cqw,28px);margin:6px 0 8px}
+    .stage[data-hb-mode="compare"] p{font-size:12px;line-height:1.45;max-width:none}
+    .stage[data-hb-mode="compare"] .cm-copy .num,.stage[data-hb-mode="compare"] .cm-copy h3,.stage[data-hb-mode="compare"] .cm-copy p{color:#fff}
+    .cm-div{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#f4f4f2}
+    /* a dark band on top (the half's name) and one below (its strip): the chapters scroll under them, so nothing they say is half hidden by a label */
+    .cm-top,.cm-bot{position:absolute;left:0;right:0;background:rgba(11,11,13,.94)}
+    .cm-top{top:0;height:32px}
+    .cm-bot{bottom:0;height:42px}
+    .cm-n1{top:4px;left:5px}
+    .cm-n2{top:4px;left:calc(50% + 5px)}
+    .cm-t{position:absolute;bottom:14px;height:14px}
+    .cm-t1{left:8px;right:calc(50% + 8px)}
+    .cm-t2{left:calc(50% + 8px);right:8px}
+    .cm-t .band{top:0;bottom:0}
+    .cm-t .mk{top:-5px;height:24px}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -55,10 +105,19 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="Sections whose background color blends as you scroll"></div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the strip is the whole scroll: each chapter's color, how they meet and, on light colors, where the text turns dark. The marker shows your place; scroll the box or press Play.</p>
+      <p data-hb-for="compare" hidden>One color keeps the background the same throughout; Changes by chapter moves from each chapter's color to the next as you scroll. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -131,6 +190,19 @@
   const stage=document.getElementById('stage');
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
 
+  // The switch above the box: the page draws the mode at once (lastBg='' forces a full redraw)
+  let mode='normal';
+  const LABELS={
+    normal:'Sections whose background color blends as you scroll',
+    inside:'Sections whose background changes as you scroll, with a strip of every chapter\'s color, how they meet and, on light colors, where the text turns dark',
+    compare:'The sections twice: on one color, and changing color from chapter to chapter'
+  };
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]||LABELS.normal);
+    lastBg='';remeasure();
+  });
+
   const THEMES={
     dusk:    [[13,17,36],[28,36,84],[70,44,120],[122,52,98],[88,40,34]],
     daylight:[[18,26,48],[86,138,198],[235,228,214],[248,214,160],[40,52,72]],
@@ -143,8 +215,30 @@
     ['Descent','Each section has a color of its own,','and the change happens as you move between them.'],
     ['Arrival','The last color stays','as you reach the end.']
   ];
-  stage.innerHTML=CHAPTERS.map((c,i)=>
-    `<section><div class="num">CHAPTER ${String(i+1).padStart(2,'0')}</div><h3>${c[0]}</h3><p>${c[1]} ${c[2]}</p></section>`).join('');
+  const chapter=(c,i)=>
+    `<section><div class="num">CHAPTER ${String(i+1).padStart(2,'0')}</div><h3>${c[0]}</h3><p>${c[1]} ${c[2]}</p></section>`;
+  // The layer for See inside and Compare, and the left column's copy of the chapters (made once, no ids, inert), come before the real chapters
+  stage.innerHTML=`<div class="fx" aria-hidden="true"><div class="fx-box">
+      <div class="fx-in">
+        <i class="in-pan"></i>
+        <div class="in-brks"></div>
+        <div class="in-trk"><div class="band"></div><i class="sw" style="left:0"></i><i class="sw" style="left:25%"></i><i class="sw" style="left:50%"></i><i class="sw" style="left:75%"></i><i class="sw" style="left:100%"></i><i class="mk"></i></div>
+        <span class="cap in-a1" data-hb-caption>Chapter colors</span><span class="cap in-a2" data-hb-caption></span>
+        <span class="cap in-b" data-hb-caption>Dark text from here</span><span class="cap in-me" data-hb-caption>You are here</span>
+      </div>
+      <div class="fx-cmp">
+        <i class="cm-top"></i><i class="cm-bot"></i><i class="cm-div"></i>
+        <span class="cap cm-n1" data-hb-caption>One color</span><span class="cap cm-n2" data-hb-caption>Changes by chapter</span>
+        <div class="cm-t cm-t1"><div class="band"></div><i class="mk"></i></div>
+        <div class="cm-t cm-t2"><div class="band"></div><i class="mk"></i></div>
+      </div>
+    </div></div>
+    <div class="cm-copy" aria-hidden="true" inert>${CHAPTERS.map(chapter).join('')}</div>`+CHAPTERS.map(chapter).join('');
+  const secs=[...stage.querySelectorAll(':scope>section')],copy=stage.querySelector('.cm-copy'),copySecs=[...copy.children];
+  const $=q=>stage.querySelector(q);
+  const swatches=[...stage.querySelectorAll('.sw')],inBand=$('.in-trk .band'),inBrks=$('.in-brks'),inLay=$('.fx-in');
+  const inMk=$('.in-trk .mk'),inMe=$('.in-me'),inB=$('.in-b'),inA2=$('.in-a2');
+  const cmBand1=$('.cm-t1 .band'),cmBand2=$('.cm-t2 .band'),cmMk1=$('.cm-t1 .mk'),cmMk2=$('.cm-t2 .mk');
 
   let PAL=THEMES.dusk,WIN=1,SNAP=false;
   let maxScroll=1,lastBg='',isLight=false,ticking=false;
@@ -155,28 +249,83 @@
   // Relative luminance of the blended color: white and black text read equally well at 0.18, so the text flips there
   const lin=c=>(c/=255)<=0.03928?c/12.92:((c+0.055)/1.055)**2.4;
 
+  // The blended color at a share p of the whole scroll: one place for the page, the See inside strip and Compare's strips
+  const shape=t=>{
+    if(SNAP)return t<.5?0:1;
+    t=clamp((t-(1-WIN)/2)/WIN,0,1); // remap into the blend window around the boundary
+    return t*t*(3-2*t);             // smoothstep
+  };
+  function mixAt(i,t){
+    const a=PAL[i],b=PAL[i+1];
+    return [0,1,2].map(k=>Math.round(a[k]+(b[k]-a[k])*t));
+  }
+  function colorAt(p){
+    const seg=p*(PAL.length-1),i=Math.min(Math.floor(seg),PAL.length-2);
+    return mixAt(i,shape(seg-i));
+  }
+  const isLightRGB=c=>0.2126*lin(c[0])+0.7152*lin(c[1])+0.0722*lin(c[2])>0.18;
+  const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+
   function update(){
     const p=clamp(stage.scrollTop/maxScroll,0,1);
-    const seg=p*(PAL.length-1);
-    const i=Math.min(Math.floor(seg),PAL.length-2);
-    let t=seg-i;
-    if(SNAP){t=t<.5?0:1}
-    else{
-      t=clamp((t-(1-WIN)/2)/WIN,0,1); // remap into the blend window around the boundary
-      t=t*t*(3-2*t);                  // smoothstep
-    }
-    const a=PAL[i],b=PAL[i+1];
-    const r=Math.round(a[0]+(b[0]-a[0])*t),
-          g=Math.round(a[1]+(b[1]-a[1])*t),
-          bl=Math.round(a[2]+(b[2]-a[2])*t);
-    const css=`rgb(${r},${g},${bl})`;
+    const c=colorAt(p),css=rgb(c);
     if(css!==lastBg){                  // guard: skip identical writes
       lastBg=css;
       stage.style.background=css;
-      const lum=0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(bl);
-      const light=lum>0.18;
+      const light=isLightRGB(c);
       if(light!==isLight){isLight=light;stage.classList.toggle('light',light)}
+      inMk.style.background=cmMk2.style.background=css;
     }
+    place(p);                          // the markers follow the scroll even while the color holds
+  }
+
+  // See inside and Compare: each strip stands for the whole scroll, left to right, and is drawn from the page's own palette, blend and flip point
+  let TW=0,CW=0,BW=0,meW=0;
+  function measureFx(){
+    BW=stage.clientWidth;TW=Math.max(1,BW-52);CW=Math.max(1,BW/2-16);meW=inMe.offsetWidth;
+  }
+  function place(p){
+    if(mode==='inside'){
+      inMk.style.transform=`translateX(${p*TW}px)`;
+      inMe.style.transform=`translateX(${clamp(26+p*TW-meW/2,6,BW-6-meW)}px)`;
+    }else if(mode==='compare'){
+      cmMk1.style.transform=cmMk2.style.transform=`translateX(${p*CW}px)`;
+    }
+  }
+  function gradient(){
+    const n=PAL.length,stops=[],at=(i,t,c)=>stops.push(`${rgb(c)} ${((i+t)/(n-1)*100).toFixed(2)}%`);
+    for(let i=0;i<n-1;i++){
+      if(SNAP){at(i,0,PAL[i]);at(i,.5,PAL[i]);at(i,.5,PAL[i+1]);at(i,1,PAL[i+1]);continue}
+      const lo=(1-WIN)/2,hi=(1+WIN)/2,ts=[0,lo];
+      for(let k=1;k<10;k++)ts.push(lo+(hi-lo)*k/10);
+      ts.push(hi,1);
+      ts.forEach(t=>at(i,t,mixAt(i,shape(t))));
+    }
+    return `linear-gradient(90deg,${stops.join(',')})`;
+  }
+  function drawFx(){
+    if(mode==='normal')return;
+    measureFx();
+    const grad=gradient();
+    inBand.style.background=cmBand2.style.background=grad;
+    cmBand1.style.background=copy.style.background=rgb(PAL[0]);
+    swatches.forEach((el,i)=>{el.style.background=rgb(PAL[i])});
+    inA2.textContent=SNAP?'Switches at the boundary':'Blends between them';
+    // where the text turns dark: the stretches of the scroll whose blended color is light enough
+    const runs=[];let from=-1;
+    for(let k=0;k<=400;k++){
+      const on=isLightRGB(colorAt(k/400));
+      if(on&&from<0)from=k;
+      if((!on||k===400)&&from>=0){runs.push([from/400,(on?k:k-1)/400]);from=-1}
+    }
+    inLay.classList.toggle('flip',runs.length>0);
+    inBrks.innerHTML=runs.map(r=>`<i class="brk" style="left:${r[0]*TW}px;width:${Math.max(4,(r[1]-r[0])*TW)}px"></i>`).join('');
+    if(runs.length){
+      const w=inB.offsetWidth;
+      inB.style.left=clamp(26+runs[0][0]*TW,6,BW-6-w)+'px';
+    }
+    meW=inMe.offsetWidth;
+    place(clamp(stage.scrollTop/maxScroll,0,1));
   }
 
   stage.addEventListener('scroll',()=>{
@@ -190,16 +339,25 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
-      lastBg='';update();              // a new palette or blend is drawn at once, where the box is
+      lastBg='';drawFx();update();     // a new palette or blend is drawn at once, where the box is
     }));
   }
   choices('pal-seg',d=>{PAL=THEMES[d.pal]});
   choices('blend-seg',d=>{SNAP=d.blend==='cut';if(!SNAP)WIN=+d.blend});
 
+  // Compare keeps every chapter at exactly its Normal height: measure them with Normal's rules, then put the mode back
+  function fit(){
+    const m=stage.getAttribute('data-hb-mode');
+    stage.setAttribute('data-hb-mode','normal');
+    const H=secs.map(el=>el.getBoundingClientRect().height);
+    if(m)stage.setAttribute('data-hb-mode',m);else stage.removeAttribute('data-hb-mode');
+    secs.forEach((el,i)=>{el.style.setProperty('--h',H[i]+'px');copySecs[i].style.setProperty('--h',H[i]+'px')});
+    copy.style.height=H.reduce((x,y)=>x+y,0)+'px';
+  }
   // The box changes size with the window, and the site font can change the height of a section: measure again and draw at once
-  function remeasure(){measure();update()}
+  function remeasure(){fit();measure();drawFx();update()}
   window.addEventListener('resize',remeasure);
-  measure();update();
+  remeasure();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(remeasure);
 </script>
 </body>

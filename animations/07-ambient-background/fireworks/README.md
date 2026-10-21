@@ -71,3 +71,4 @@ At Rarely and Sometimes the sky between bursts ends up clean. At Often, where bu
 - [Snow / Rain](../snow-rain/) — particles over the same kind of dark scene, falling instead of bursting
 - [Flow Field](../flow-field/) — particles that leave fading trails with the same see-through cover
 - [Starfield / Space Particles](../starfield/) — short trails from a cover that is the same on every screen
+- [Fire Effect](../fire-effect/) — flames from a grid of heat, with sparks that rise and fade

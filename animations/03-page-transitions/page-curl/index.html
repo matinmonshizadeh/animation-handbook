@@ -45,6 +45,42 @@
     .pstat span{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+    /* See inside and Compare. The small site (its nav over its page area) sits in a box of its own, laid out as before; Compare
+       puts a copy of it, the twin, beside it. See inside draws over the page area from curl()'s own numbers: the corner's path
+       (dashed), the line from where the corner lies flat (ringed) to where it is now, its middle marked, the fold through that
+       middle and the flap's outline, each on a dark edge so it shows on the light flap too; the page's own words step back. The
+       script places the labels. */
+    .site{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.ci,.cap{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .cap{position:absolute;z-index:6;padding:2px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .c-path-l{left:8px;top:8px;border-left:3px solid #ffce5a}.c-fold-l{border-left:3px solid #fff}.c-flap-l{border-left:3px solid #b98cff}
+    .c-len{position:static;align-self:center;margin-left:auto;white-space:normal;text-align:right}
+    .ci{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
+    .ci *{fill:none;stroke-linecap:round;stroke-linejoin:round}.ci .halo>*{stroke:rgba(5,6,10,.7)}
+    .c-path{stroke-dasharray:7 7}.ink .c-path{stroke:#ffce5a;stroke-width:2}.halo .c-path{stroke-width:5}
+    .ink .c-flap{stroke:#b98cff;stroke-width:2}.halo .c-flap{stroke-width:5}.ink .c-thin{stroke:#f4f4f2;stroke-width:1.5}.halo .c-thin{stroke-width:4}
+    .ink .c-fold{stroke:#fff;stroke-width:3}.halo .c-fold{stroke-width:7}.ci .c-ring{stroke:#f4f4f2;stroke-width:2.5}
+    .ci .c-mid{fill:#f4f4f2;stroke:#05060a;stroke-width:2}.ci .c-dot{fill:#ffce5a;stroke:#05060a;stroke-width:2}
+    .ci.flat .c-flap,.ci.flat .c-thin,.ci.flat .c-fold,.ci.flat .c-mid{display:none}.ci.flat~.c-fold-l,.ci.flat~.c-flap-l{visibility:hidden}
+    .stage[data-hb-mode="inside"] .ci,.stage[data-hb-mode="inside"] .ci-l{display:block}
+    .stage[data-hb-mode="inside"] .pc{opacity:.55}
+    /* Compare: the twin on the left changes page at once, the real site on the right turns. At rest the real site holds part way
+       through the next turn, with a faint ring at the corner where its page lies flat. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .ci{display:block}
+    .stage[data-hb-mode="compare"] .ci>:not(.c-ring){display:none}
+    .stage[data-hb-mode="compare"] .c-ring{opacity:.6}
+    /* Phones: the length words on two lines, a tighter nav (the real buttons keep 44px), and in Compare each page shows only its
+       eyebrow and heading */
+    @media(max-width:600px){.c-len span{display:block}.stage[data-hb-mode="inside"] .mini-nav,.stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="inside"] .nav-btn,.stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}.stage[data-hb-mode="compare"] .ph{font-size:16px}}
+    @media(max-width:600px),(max-height:650px){.stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}}
+    /* From 360px down the halves stack */
+    @media(max-width:360px){.stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -67,14 +103,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"><div class="shade" id="shade"></div><div class="flap" id="flap"></div></div>
+      <div class="site" id="site">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"><span class="cap ci-l c-len" id="c-len" aria-hidden="true" data-hb-caption><span>One turn takes</span> <span>about a second</span></span></nav>
+        <div class="page-area" id="page-area"><div class="shade" id="shade"></div><div class="flap" id="flap"></div>
+          <svg class="ci" id="ci" aria-hidden="true"><g class="halo"><path class="c-path"/><polygon class="c-flap"/><line class="c-thin"/><line class="c-fold"/></g><g class="ink"><path class="c-path"/><polygon class="c-flap"/><line class="c-thin"/><line class="c-fold"/></g><circle class="c-ring" r="18"/><circle class="c-mid" r="4"/><circle class="c-dot" r="6"/></svg>
+          <span class="cap ci-l c-path-l" aria-hidden="true" data-hb-caption>The corner's path</span>
+          <span class="cap ci-l c-fold-l" id="c-fold" aria-hidden="true" data-hb-caption>The fold: halfway along the line</span>
+          <span class="cap ci-l c-flap-l" id="c-flap" aria-hidden="true" data-hb-caption>Flap: the lifted part, folded over</span>
+          <span class="cap side" id="c-side" aria-hidden="true" data-hb-caption>Turns like paper</span>
+        </div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>The corner travels along the dashed path, and the fold sits halfway between it and where it lies flat; past the fold the page is flipped over. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once simply changes page; Turns like paper folds a page over by its corner to change it. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -161,7 +214,7 @@
   ];
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),shade=document.getElementById('shade'),flap=document.getElementById('flap'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let current=0,animating=false,dur=1000,way='both',k=.6,raf=0,afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,dur=1000,way='both',k=.6,raf=0,afterMove=null,wayBack=0,runFrom=null,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -169,6 +222,24 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+  // See inside and Compare: the mode on show, whether the next turn is posed (pose, below), See inside's drawing and words, Compare's names
+  let mode='normal',posed=false;
+  const ci=document.getElementById('ci'),lenCap=document.getElementById('c-len'),foldCap=document.getElementById('c-fold'),flapCap=document.getElementById('c-flap'),side=document.getElementById('c-side');
+  nav.append(lenCap); // the length words go after the page buttons
+  // Compare's first half: the same small site, changing page at once. A copy built from the same pages, with no ids and no buttons,
+  // inert and hidden from screen readers, and with no flap or shadow (it never turns); it changes page the moment a change of the real
+  // site starts (a click, Show me, Reset), so one input drives both halves.
+  const twin=document.createElement('div');twin.className='site twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}<span class="cap side" data-hb-caption>Switches at once</span></div>`;
+  document.getElementById('site').before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')],twinSide=twin.querySelector('.side');
+  function showTwin(n){twinPages.forEach((el,i)=>el.classList.toggle('active',i===n));twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still, part way through a turn: the corner on its dashed path, the fold halfway between it and where it lies flat, and the flap folded over.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still: Switches at once simply changes page; Turns like paper is caught part way, its corner lifted and folded over.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -194,11 +265,12 @@
     el.inert=!on;
     el.style.clipPath='';el.style.zIndex='';el.style.transition='';el.style.opacity='';
   }
-  // The resting state for page n, at once: no turn or fade left running
+  // The resting state for page n, at once: no turn or fade left running, no pose, and See inside's drawing lying flat
   function showPage(n){
-    cancelAnimationFrame(raf);raf=0;area.classList.remove('turning');
+    cancelAnimationFrame(raf);raf=0;area.classList.remove('turning');posed=false;
     pages.forEach((el,i)=>{rest(el,i===n);el.getAnimations().forEach(a=>a.cancel())});
-    updateNav(n);
+    updateNav(n);showTwin(n);
+    if(mode!=='normal')draw(null);
   }
 
   // Ends a change: the demo is idle again, and a Show me run goes on to its next step
@@ -206,12 +278,16 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    if(mode!=='normal')draw(null);
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    if(raf){cancelAnimationFrame(raf);raf=0;area.classList.remove('turning')}
     animating=false;
     showPage(current);
+    pose();
   }
 
   // The part of polygon `pts` where side(point) >= 0: one edge of a Sutherland-Hodgman clip
@@ -226,27 +302,36 @@
   }
   const poly=pts=>pts.length<3?'polygon(0 0,0 0,0 0)':'polygon('+pts.map(q=>q.x.toFixed(1)+'px '+q.y.toFixed(1)+'px').join(',')+')';
 
-  // The sheet on top at progress p (0 flat, 1 turned away to the left). Its bottom-right corner moves to C, rising on the way;
-  // the fold is the line halfway between where the corner was and C. What lies past the fold is mirrored over it: the flap.
+  const ease=t=>t<.5?4*t*t*t:1-Math.pow(2-2*t,3)/2;
+  // The sheet's bottom-right corner at progress p (0 flat, 1 turned away to the left) in a w by h page area: it moves to c,
+  // rising on the way; m is the middle of the line from where it lies flat (w,h) to c, and n that line's direction
+  function corner(w,h,p){
+    const c={x:w-2*w*p,y:h-.8*h*Math.sin(Math.PI*p)},dx=w-c.x,dy=h-c.y,len=Math.hypot(dx,dy);
+    return{w,h,c,len,n:{x:dx/len,y:dy/len},m:{x:(w+c.x)/2,y:(h+c.y)/2}};
+  }
+  // The sheet on top at progress p. The fold is the line through m, square to n: halfway between where the corner was and c.
+  // What lies past the fold is mirrored over it: the flap. Returns its numbers, with the flap's corners, for See inside's drawing.
   function curl(sheet,p){
-    const w=area.clientWidth,h=area.clientHeight,c={x:w-2*w*p,y:h-.8*h*Math.sin(Math.PI*p)};
-    const dx=w-c.x,dy=h-c.y,len=Math.hypot(dx,dy),box=[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}];
-    if(len<.5){sheet.style.clipPath='';flap.style.clipPath=shade.style.clipPath=poly([]);return}
-    const n={x:dx/len,y:dy/len},m={x:(w+c.x)/2,y:(h+c.y)/2},past=q=>(q.x-m.x)*n.x+(q.y-m.y)*n.y;
+    const g=corner(area.clientWidth,area.clientHeight,p),{w,h,len,n,m}=g,box=[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}];
+    if(len<.5){sheet.style.clipPath='';flap.style.clipPath=shade.style.clipPath=poly([]);return g}
+    const past=q=>(q.x-m.x)*n.x+(q.y-m.y)*n.y;
     const lifted=cut(box,past);
     sheet.style.clipPath=poly(cut(box,q=>-past(q)));
-    flap.style.clipPath=poly(lifted.map(q=>({x:q.x-2*past(q)*n.x,y:q.y-2*past(q)*n.y})));
+    g.flap=lifted.map(q=>({x:q.x-2*past(q)*n.x,y:q.y-2*past(q)*n.y}));
+    flap.style.clipPath=poly(g.flap);
     shade.style.clipPath=poly(lifted);
     // Gradients that start at the fold: its distance along a gradient line at this angle, and how far the flap reaches
     const deg=Math.atan2(n.x,-n.y)*180/Math.PI,line=Math.abs(w*n.x)+Math.abs(h*n.y),at=(m.x-w/2)*n.x+(m.y-h/2)*n.y+line/2;
     const f=line-at,reach=Math.max(...box.map(past)),dark=a=>`rgba(0,0,0,${(a*k).toFixed(3)})`;
     flap.style.backgroundImage=`linear-gradient(${deg+180}deg,${dark(.5)} ${f}px,${dark(0)} ${f+Math.min(reach*.35,70)}px,rgba(255,255,255,${(.25*k).toFixed(3)}) ${f+reach*.7}px,${dark(.18)} ${f+reach}px)`;
     shade.style.backgroundImage=`linear-gradient(${deg}deg,${dark(.7*Math.sqrt(Math.sin(Math.PI*p)))} ${at}px,${dark(0)} ${at+Math.min(w,h)*.22}px)`;
+    return g;
   }
 
   function navigate(next,then){
     if(next===current||animating)return;
-    const prev=current;current=next;updateNav(next);
+    if(posed)showPage(current);
+    const prev=current;current=next;updateNav(next);showTwin(next);
     afterMove=then||null;animating=true;
     const oldEl=pages[prev],newEl=pages[next];
     newEl.classList.add('active'); // both pages are on show while the sheet turns
@@ -267,37 +352,114 @@
     // The turn moves by elapsed time (eased in and out), so it takes d ms at any frame rate
     const frame=ts=>{
       if(start===null)start=ts;
-      const t=Math.min((ts-start)/d,1),e=t<.5?4*t*t*t:1-Math.pow(2-2*t,3)/2;
-      curl(sheet,fwd?e:1-e);
+      const t=Math.min((ts-start)/d,1),e=ease(t),g=curl(sheet,fwd?e:1-e);
+      if(mode!=='normal')draw(g);
       if(t<1)raf=requestAnimationFrame(frame);else{raf=0;area.classList.remove('turning');rest(oldEl,false);rest(newEl,true);finish()}
     };
     raf=requestAnimationFrame(frame);
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // runFrom is the page the run started from, kept until the way back ends: a Show me pressed during a run (a second press, or the
+  // one a mode press sends) goes back to it first, not to the page the run was heading for
   function showMe(){
+    if(runFrom!==null){current=runFrom;updateNav(current);showTwin(current)}
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{runFrom=null})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){runFrom=null;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
-  // The visitor took over: cancel what the run has not started yet. A turn already under way finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  // The visitor took over: cancel what the run has not started yet. A turn already under way finishes on its own. After a click
+  // or a wheel nothing is pending, so the pose comes back (a press is followed by its click, which may start a turn).
+  document.addEventListener('hb:input',e=>{afterMove=null;runFrom=null;cancel(wayBack);wayBack=0;if(/click|wheel/.test(e.detail.type))pose()});
+
+  // A key or a touch that is not followed by a click leaves nothing pending too: the pose comes back when it ends (a press that starts a
+  // turn has its click in the same task, and navigate() lifts the pose before anything is drawn)
+  ['keyup','pointerup','pointercancel','touchend'].forEach(t=>document.querySelector('.stage').addEventListener(t,pose));
+
+  // See inside's drawing, from the numbers curl() used (g; null when the page lies flat): the corner's path as far as the box, a ring
+  // where the corner lies flat, a dot where it is now and the line between them with its middle marked, the fold through that middle
+  // from edge to edge, and the flap's outline. Compare shows only the ring.
+  const dot=ci.querySelector('.c-dot'),mid=ci.querySelector('.c-mid'),ring=ci.querySelector('.c-ring');
+  const spot=(el,q)=>{el.setAttribute('cx',q.x.toFixed(1));el.setAttribute('cy',q.y.toFixed(1))};
+  const parts={};
+  const attrs=(cls,a)=>(parts[cls]||(parts[cls]=ci.querySelectorAll('.'+cls))).forEach(el=>{for(const key in a)el.setAttribute(key,a[key])});
+  let pathFor='',pathD=''; // the corner's path changes only with the box's size
+  function draw(g){
+    const w=g?g.w:area.clientWidth,h=g?g.h:area.clientHeight,on=!!(g&&g.flap&&g.flap.some(q=>q.x>.5)); // a flap left of the box: flat
+    if(pathFor!==w+'x'+h){
+      pathFor=w+'x'+h;pathD='';
+      for(let i=0;i<=40;i++){const q=corner(w,h,i/80).c;pathD+=(i?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)}
+      attrs('c-path',{d:pathD});
+    }spot(ring,{x:w,y:h});spot(dot,on?g.c:{x:w,y:h});
+    ci.classList.toggle('flat',!on);
+    if(!on)return;
+    const {c,m,n}=g,t={x:-n.y,y:n.x};
+    let a=-Infinity,b=Infinity;
+    [[m.x,t.x,w],[m.y,t.y,h]].forEach(([o,v,L])=>{if(v){const s=-o/v,u=(L-o)/v;a=Math.max(a,Math.min(s,u));b=Math.min(b,Math.max(s,u))}});
+    attrs('c-fold',{x1:m.x+a*t.x,y1:m.y+a*t.y,x2:m.x+b*t.x,y2:m.y+b*t.y});attrs('c-thin',{x1:w,y1:h,x2:c.x,y2:c.y});spot(mid,m);
+    attrs('c-flap',{points:g.flap.map(q=>q.x.toFixed(1)+','+q.y.toFixed(1)).join(' ')});
+  }
+  // The words sit where the pose (its corner at the same place both ways) leaves room, clear of the flap, the lines and each other.
+  // See inside: the flap's in the bottom row, ending short of the flap's lower edge; the fold's past the fold's foot, under the line
+  // to the corner, else beside the fold's top; shorter words where neither fits. Compare: each half's name at the same spot, the
+  // bottom corner before the flap, else the one past the fold.
+  const FLAP=['Flap: the lifted part, folded over','The flap'],FOLD=['The fold: halfway along the line','The fold'];
+  function place(){
+    const w=area.clientWidth,h=area.clientHeight,{c,m,n}=corner(w,h,ease(.45)),E=8,G=10;
+    const foldX=y=>m.x-(y-m.y)*n.y/n.x,edgeX=y=>c.x+(foldX(h)-c.x)*(y-c.y)/(h-c.y),past=(x,y)=>(x-m.x)*n.x+(y-m.y)*n.y;
+    // Each wording in turn at each spot ([left, top, fits]); where none fits, the first spot with the last wording
+    const put=(els,words,spots)=>{
+      let r;
+      for(const t of words){
+        if(t)els[0].textContent=t;
+        const W=Math.max(...els.map(el=>el.offsetWidth)),H=els[0].offsetHeight,all=spots.map(s=>s(W,H));
+        if((r=all.find(s=>s[2])||all[0])[2])break;
+      }
+      els.forEach(el=>{el.style.left=r[0]+'px';el.style.top=r[1]+'px'});
+    };
+    if(mode==='inside'){
+      put([flapCap],FLAP,[(W,H)=>{const y=h-E-H,x=edgeX(y)-G-W;return[x,y,x>=E]}]);
+      put([foldCap],FOLD,[(W,H)=>{const y=h-E-H,x=foldX(y)+G;return[x,y,x+W<=Math.min(w-E,w-(h-y+G)*(w-c.x)/(h-c.y))]},
+        (W,H)=>{const x=foldX(E)+G;return[x,E,x+W<=w-E]}]);
+    }else if(mode==='compare')put([side,twinSide],[null],[(W,H)=>{const y=h-E-H;return[E,y,foldX(h)>0&&E+W+G<=edgeX(y)]},
+      (W,H)=>{const y=h-E-H,x=w-E-6-W;return[x,y,past(x,y)>=G]}]);
+  }
+  // At rest in See inside and Compare the next turn (to the page Show me visits, the way the setting says) holds part way: a turn
+  // forward at 45% of its time, a turn back at 55%, where its corner stands at the same place inside the box. A change lifts the
+  // pose, and it comes back when nothing is pending; Normal is never posed.
+  function pose(){
+    if(mode==='normal'||animating||wayBack){if(posed)showPage(current);return}
+    showPage(current);
+    const next=(current+1)%PAGES.length,fwd=way==='fwd'||(way==='both'&&next>current),sheet=pages[fwd?current:next],under=pages[fwd?next:current];
+    under.classList.add('active');under.style.zIndex='1';sheet.classList.add('active');sheet.style.zIndex='3';
+    flap.style.backgroundColor=PAGES[fwd?current:next].back;area.classList.add('turning');
+    draw(curl(sheet,fwd?ease(.45):1-ease(.55)));posed=true;
+  }
+  // See inside's length words: one turn, three times as long in slow motion
+  const SAY={650:'about two thirds of a second',1000:'about a second',1500:'a second and a half',1950:'about two seconds',3000:'three seconds',4500:'four and a half seconds'};
+  function say(){lenCap.innerHTML='<span>One turn takes</span> <span>'+SAY[dur*(slowTog.checked?3:1)]+'</span>'}
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(mode!=='normal'){place();if(!animating)draw(null)}pose()});
+  // The words and the pose are placed in pixels, so a new size of the window (a phone turned) places them again
+  addEventListener('resize',()=>{if(mode!=='normal'){place();if(!animating&&!posed)draw(null);pose()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);say();pose();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
   choices('way-seg',d=>{way=d.way});
   choices('shade-seg',d=>{k=+d.k});
+  slowTog.addEventListener('change',say);
   showPage(0);
+  say();
 </script>
 </body>
 </html>

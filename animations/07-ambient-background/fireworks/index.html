@@ -27,6 +27,24 @@
     .stage{position:relative;overflow:hidden;background:linear-gradient(#02030a,#0b0c22 55%,#221640);background-origin:border-box}
     canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
     .city{position:absolute;left:0;bottom:0;width:100%;height:24%;display:block}
+    /* See inside: a second canvas over the fireworks and a key at the bottom right. Compare: the skyline once in each half, a
+       thin divider and a name over each half. Normal shows none of them. */
+    .over,.twins,.key,.half{display:none}
+    .over,.twins{pointer-events:none}
+    .twins{position:absolute;inset:0}
+    .twins::after{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 1px);width:2px;background:rgba(244,244,242,.45)}
+    .twin{position:absolute;left:0;bottom:0;width:50%;height:24%;display:block}
+    .twin+.twin{left:50%}
+    .cap{color:#f4f4f2;font:600 13px/17px var(--hb-font);white-space:nowrap}
+    .half{position:absolute;top:8px;padding:4px 9px;border-radius:999px;background:rgba(2,3,10,.86)}
+    .half.first{left:8px}
+    .half.second{left:calc(50% + 8px)}
+    .key{position:absolute;right:8px;bottom:8px;padding:5px 10px;border-radius:10px;background:rgba(2,3,10,.86)}
+    .key .cap{display:flex;align-items:center;gap:7px}
+    .key svg{flex:none;width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round}
+    .stage[data-hb-mode="inside"] .over,.stage[data-hb-mode="inside"] .key,.stage[data-hb-mode="compare"] .twins,.stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="compare"] .city{display:none}
+    @media(max-width:600px){.cap{font-size:12px;line-height:16px}.key{padding:4px 8px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -49,16 +67,35 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
       <svg class="city" viewBox="0 0 1000 60" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <path fill="#05060d" d="M0 60V46H12V28H35V39H65V26H78V30H93V37H122V30H136V45H166V33H193V20H216V37H235V24H265V41H279V41H292V21H306V30H333V18H345V33H365V20H384V39H401V27H415V22H431V39H459V42H479V42H508V46H525V32H538V42H559V39H590V22H602V14H604V22H615V28H643V42H664V44H689V33H709V23H732V22H750V48H758V40H760V48H768V40H798V33H825V24H849V46H879V27H892V18H919V28H934V43H950V18H972V29H988V30H1000V60Z"/>
         <path fill="#f3c26a" fill-opacity=".6" d="M20 44h2v2h-2zM68 42h2v2h-2zM159 49h2v2h-2zM149 55h2v2h-2zM179 43h2v2h-2zM174 49h2v2h-2zM211 24h2v2h-2zM201 36h2v2h-2zM243 46h2v2h-2zM282 51h2v2h-2zM295 25h2v2h-2zM309 34h2v2h-2zM404 31h2v2h-2zM409 37h2v2h-2zM418 26h2v2h-2zM444 43h2v2h-2zM449 55h2v2h-2zM497 52h2v2h-2zM528 48h2v2h-2zM533 48h2v2h-2zM572 43h2v2h-2zM562 55h2v2h-2zM593 26h2v2h-2zM608 26h2v2h-2zM598 38h2v2h-2zM603 44h2v2h-2zM646 46h2v2h-2zM646 52h2v2h-2zM722 39h2v2h-2zM791 50h2v2h-2zM811 37h2v2h-2zM811 49h2v2h-2zM838 28h2v2h-2zM895 28h2v2h-2zM910 34h2v2h-2zM968 22h2v2h-2zM953 34h2v2h-2zM963 46h2v2h-2zM958 52h2v2h-2z"/>
       </svg>
+      <div class="twins" inert aria-hidden="true"></div>
+      <canvas class="over" aria-hidden="true"></canvas>
+      <div class="key" aria-hidden="true">
+        <p class="cap" data-hb-caption><svg viewBox="0 0 16 16"><path d="M8 16v-6" stroke-dasharray="2 2" stroke-linecap="butt"/><path d="m5 1.5 6 6m0-6-6 6"/></svg>Rocket: bursts where it stops rising</p>
+        <p class="cap" data-hb-caption><svg viewBox="0 0 16 16"><path d="M3 13 13 3M7 3h6v6"/></svg>Sparks fly out and slow down</p>
+        <p class="cap" data-hb-caption><svg viewBox="0 0 16 16"><path stroke="#ffce5a" stroke-width="2.2" d="M8 1.5v12M4 9.5l4 4 4-4"/></svg>Gravity pulls them down</p>
+        <p class="cap" data-hb-caption><svg viewBox="0 0 16 16"><path stroke-width="1.2" d="M5.5 1.5h5v13h-5z"/><path fill="#fff" stroke="none" d="M5.5 8h5v6.5h-5z"/></svg>They fade as they age</p>
+      </div>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>Hangs in place</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>Falls and fades</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed line is a rocket's climb: it bursts where it stops rising. Arrows show sparks flying out and slowing, gravity pulling them down, and each bar how much glow is left.</p>
+      <p data-hb-for="compare" hidden>Hangs in place has no gravity and no fading: its sparks stop in midair, fully lit, then go out together. Falls and fades pulls them down while they dim.</p>
     </div>
   </section>
 
@@ -163,20 +200,29 @@
   const STILL=[[.5,.3,24],[.24,.38,40],[.77,.22,12]]; // the still picture's bursts: where (shares of the stage) and how old
   let W=0,H=0,U=1,D=1,raf=null,lastT=null,fa=0,paused=false,wait=0; // U: the stage's height in 400ths; D: device pixels per CSS pixel
   let OFTEN='sometimes',PAL='many',TRAIL='long',SHAPE='round',rockets=[],bursts=[],marks=[]; // marks: faded patches to wipe
+  // See inside draws on its own canvas (over); Compare keeps Normal's picture on a shelf and its state in saved, and runs two
+  // worlds, Hangs in place then Falls and fades. X0 and HW: the part of the canvas the world in play owns (all of it in Normal);
+  // FALL: whether its sparks fall and fade; rnd: where launches, bursts and the crackle take their random numbers (seeded in Compare).
+  const over=document.querySelector('.over'),octx=over.getContext('2d'),shelf=document.createElement('canvas'),sctx=shelf.getContext('2d');
+  const SEED=7,worlds=[{fall:false},{fall:true}];
+  for(let i=0;i<2;i++){const c=document.querySelector('.city').cloneNode(true);c.setAttribute('class','twin');document.querySelector('.twins').append(c);} // the same skyline under each half
+  let mode='normal',saved=null,X0=0,HW=0,FALL=true,rnd=Math.random,seed=0;
+  const rand=()=>{let t=seed=seed+0x6D2B79F5|0;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};
   // A rocket leaves the bottom (sx) just fast enough for gravity to stop it at the height where it bursts
   function launch(){
-    const x=W*(.15+Math.random()*.7),top=H*(.2+Math.random()*.26),g=.07*U;
-    rockets.push({x,y:H,px:x,py:H,sx:x,vx:(Math.random()-.5)*.5*U,vy:-Math.sqrt(2*g*(H-top)),g});
+    const x=X0+HW*(.15+rnd()*.7),top=H*(.2+rnd()*.26),g=.07*U;
+    rockets.push({x,y:H,px:x,py:H,sx:x,vx:(rnd()-.5)*.5*U,vy:-Math.sqrt(2*g*(H-top)),g});
   }
   // A burst keeps its sparks in one typed array: x, y, speed across, speed down, and where the spark was when the frame began.
   // Round spreads the speeds like a ball seen from the side, thickest at the rim; ring gives every spark nearly the top speed;
   // willow sparks start slower, droop more and last longer. box is the patch of sky the burst has lit, its flash included.
+  // In Compare's Hangs in place (FALL off) the sparks have no gravity, and hang marks them to keep their glow (see paint).
   function burst(x,y,sx){
-    const c=PALETTES[PAL][Math.floor(Math.random()*PALETTES[PAL].length)],willow=SHAPE==='willow';
+    const c=PALETTES[PAL][Math.floor(rnd()*PALETTES[PAL].length)],willow=SHAPE==='willow';
     const n=phone.matches?50:90,top=(willow?2.8:4.2)*U,P=new Float32Array(n*6),m=60*U;
-    for(let i=0;i<n;i++){const a=Math.random()*6.283,u=Math.random()*2-1,v=top*(SHAPE==='ring'?.93+Math.random()*.07:.08+.92*Math.sqrt(1-u*u));
+    for(let i=0;i<n;i++){const a=rnd()*6.283,u=rnd()*2-1,v=top*(SHAPE==='ring'?.93+rnd()*.07:.08+.92*Math.sqrt(1-u*u));
       P.set([x,y,Math.cos(a)*v,Math.sin(a)*v,x,y],i*6);}
-    bursts.push({P,n,c,x,y,sx,box:[x-m,y-m,x+m,y+m],age:0,life:willow?125:70+Math.random()*20,drag:willow?.972:.955,g:(willow?.05:.032)*U,flash:true});
+    bursts.push({P,n,c,x,y,sx,box:[x-m,y-m,x+m,y+m],age:0,life:willow?125:70+rnd()*20,drag:willow?.972:.955,g:FALL?(willow?.05:.032)*U:0,hang:!FALL,flash:true});
   }
   const column=(sx,x,y)=>[Math.min(sx,x)-4,y-4,Math.max(sx,x)+4,H]; // the path a rocket has drawn
   // The parts of rectangle a that none of the rectangles in list covers, each of those taken 4 px wider on every side
@@ -204,9 +250,10 @@
     for(const r of rockets){r.px=r.x;r.py=r.y;}for(const b of bursts)for(let i=0;i<b.n*6;i+=6){b.P[i+4]=b.P[i];b.P[i+5]=b.P[i+1];}
   }
   // k is how many 60 Hz frames this step stands for, at most one (the loop splits longer ones): speeds fade by drag to the
-  // power k and gravity adds k times its pull. A burst that has died leaves its patch to wipe half a second later.
+  // power k and gravity adds k times its pull. A burst that has died leaves its patch to wipe half a second later. A Compare
+  // half (HW half of W) keeps half the sparks in the air.
   function step(k,launching){
-    if(launching&&(wait-=k)<=0){if(bursts.reduce((s,b)=>s+b.n,0)<(phone.matches?300:900))launch();wait=EVERY[OFTEN]*(.5+Math.random());}
+    if(launching&&(wait-=k)<=0){if(bursts.reduce((s,b)=>s+b.n,0)<(phone.matches?300:900)*HW/W)launch();wait=EVERY[OFTEN]*(.5+rnd());}
     for(const r of rockets){r.vy+=r.g*k;r.x+=r.vx*k;r.y+=r.vy*k;if(r.vy>=0){burst(r.x,r.y,r.sx);r.done=true;}}
     rockets=rockets.filter(r=>!r.done);
     for(const b of bursts){
@@ -223,7 +270,8 @@
   }
   // nf covers wear the old picture down toward see-through (with no trails one cover takes it all), then everything is drawn
   // added on top, so sparks that cross glow brighter. A burst is one stroke: its sparks share a color, start white-hot, then
-  // fade and crackle as it ages; on its first frame it also lights a soft glow, which the covers fade with the trails.
+  // fade and crackle as it ages; on its first frame it also lights a soft glow, which the covers fade with the trails. A
+  // hanging burst (Compare) neither fades nor crackles: it goes out when its time is up, and the covers take its picture away.
   function paint(nf){
     ctx.globalCompositeOperation='destination-out';ctx.fillStyle='rgba(0,0,0,'+WASH[TRAIL]+')';
     for(let i=0;i<nf;i++)ctx.fillRect(0,0,W,H);
@@ -237,19 +285,62 @@
         const r=60*U,g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,r);b.flash=false;
         g.addColorStop(0,hsl+l+'%,.3)');g.addColorStop(1,hsl+l+'%,0)');ctx.fillStyle=g;ctx.fillRect(b.x-r,b.y-r,2*r,2*r);
       }
-      ctx.strokeStyle=hsl+(t<.1?90:l)+'%,'+Math.min(1,(1-t)*1.3)+')';ctx.beginPath();
-      for(let i=0;i<b.n*6;i+=6){if(t>.55&&Math.random()<.35)continue;ctx.moveTo(P[i+4],P[i+5]);ctx.lineTo(P[i],P[i+1]);}
+      ctx.strokeStyle=hsl+(t<.1?90:l)+'%,'+(b.hang?1:Math.min(1,(1-t)*1.3))+')';ctx.beginPath();
+      for(let i=0;i<b.n*6;i+=6){if(t>.55&&!b.hang&&rnd()<.35)continue;ctx.moveTo(P[i+4],P[i+5]);ctx.lineTo(P[i],P[i+1]);}
       ctx.stroke();
     }
     ctx.globalCompositeOperation='source-over';
   }
   // The still picture: at the start, after a resize and when a setting changes while paused. One, two or three bursts (as
   // How often asks) at set places and ages are played forward a 60th of a second at a time, so their trails build up as live.
-  function paintStill(){
+  function paintStill(older=0){
     rockets=[];bursts=[];marks=[];ctx.clearRect(0,0,W,H);
-    const shots=STILL.slice(0,{rarely:1,sometimes:2,often:3}[OFTEN]),T=Math.max(...shots.map(s=>s[2]));
-    for(let t=0;t<=T;t++){for(const [x,y,age] of shots)if(T-t===age)burst(W*x,H*y,W*x);keep();step(1,false);paint(1);}
+    const shots=STILL.slice(0,{rarely:1,sometimes:2,often:3}[OFTEN]),T=older+Math.max(...shots.map(s=>s[2]));
+    for(let t=0;t<=T;t++){for(const [x,y,age] of shots)if(T-t===age+older)burst(X0+HW*x,H*y,X0+HW*x);keep();step(1,false);paint(1);}
     wait=EVERY[OFTEN]*.5;
+  }
+  // The still picture for the mode on show. Compare's is the same plan in both halves from one fixed seed, so it is always the
+  // same picture; paused, each burst is 16 sixtieths older, when one half's sparks hang still and the other's have drooped and
+  // dimmed (playing, the bursts get there within a second).
+  function still(){if(mode==='compare'){seed=SEED;each(()=>paintStill(paused?16:0));}else paintStill();peek();}
+  // Compare: runs fn once for each half's world, clipped to that half (drawing, covers and wipes), with that world's own rockets,
+  // bursts and wipes. Both start from the same random series and launch timer, so the same rockets rise in both, at the same
+  // share of each half, and burst into the same sparks.
+  function each(fn){
+    const s=seed,w=wait;HW=W/2;rnd=rand;
+    worlds.forEach((v,i)=>{({rockets=[],bursts=[],marks=[]}=v);X0=i*HW;FALL=v.fall;seed=s;wait=w;
+      ctx.save();ctx.beginPath();ctx.rect(X0,0,HW,H);ctx.clip();fn();ctx.restore();Object.assign(v,{rockets,bursts,marks});});
+    X0=0;HW=W;FALL=true;rnd=Math.random;
+  }
+  // See inside, on its own canvas over the fireworks (their trails stay on theirs): each rocket's climb as a dashed curve from where
+  // it left to where its own gravity stops it (worked out from its speed now), crossed there, and each burst's climb the same; on
+  // each burst, eight of its sparks with an arrow for their speed now (where 12 more frames would take them), a gold arrow as long
+  // as its pull beside its middle, and a bar for the glow left. Drawn after every frame, and at once on a mode or setting change.
+  function peek(){
+    const o=octx,climb=new Path2D(),cross=new Path2D(),fly=new Path2D(),pull=new Path2D(),bars=[];
+    o.setTransform(1,0,0,1,0,0);o.clearRect(0,0,over.width,over.height);
+    if(mode!=='inside')return;
+    if(over.width!==cvs.width||over.height!==cvs.height){over.width=cvs.width;over.height=cvs.height;} // sized when first shown
+    o.setTransform(D,0,0,D,0,0);o.lineCap=o.lineJoin='round';
+    const arrow=(p,x,y,dx,dy)=>{const l=Math.hypot(dx,dy),h=Math.min(6,l/2),a=Math.atan2(dy,dx);if(l<1)return;
+      p.moveTo(x,y);p.lineTo(x+=dx,y+=dy);p.moveTo(x-h*Math.cos(a-.5),y-h*Math.sin(a-.5));p.lineTo(x,y);p.lineTo(x-h*Math.cos(a+.5),y-h*Math.sin(a+.5));};
+    const up=(sx,x,y)=>{climb.moveTo(sx,H);climb.quadraticCurveTo((sx+x)/2,y,x,y);cross.moveTo(x-4,y-4);cross.lineTo(x+4,y+4);cross.moveTo(x+4,y-4);cross.lineTo(x-4,y+4);};
+    for(const r of rockets)up(r.sx,r.x-r.vx*r.vy/r.g,r.y-r.vy*(r.vy+r.g)/(2*r.g)); // where its steps of a 60th end
+    for(const b of bursts){
+      const P=b.P,N=b.n*6;let cx=0,cy=0,mx=0,my=0;
+      for(let i=0;i<N;i+=6){cx+=P[i];cy+=P[i+1];mx+=P[i+2];my+=P[i+3];}
+      cx/=b.n;cy/=b.n;mx/=b.n;my/=b.n;
+      // picked once: the sparks nearest eight even directions, measured from the burst's shared drift, so they keep their places
+      b.pick=b.pick||[0,1,2,3,4,5,6,7].map(j=>{let best=-2,at=0;for(let i=0;i<N;i+=6){const c=Math.cos(Math.atan2(P[i+3]-my,P[i+2]-mx)-j*Math.PI/4);if(c>best){best=c;at=i;}}return at;});
+      up(b.sx,b.x,b.y);
+      for(const i of b.pick)arrow(fly,P[i],P[i+1],P[i+2]*12,P[i+3]*12);
+      arrow(pull,cx+9,cy,0,b.g*800);
+      bars.push([cx-14,cy-11,Math.min(1,(1-b.age/b.life)*1.3)]); // the glow the strokes are drawn with
+    }
+    for(const halo of [1,0])for(const [p,c,w,d] of [[climb,'#fff',1.5,[5,5]],[cross,'#fff',1.5,[]],[fly,'#fff',1.5,[]],[pull,'#ffce5a',2.5,[]]]){
+      o.setLineDash(d);o.lineWidth=w+3*halo;o.strokeStyle=halo?'rgba(2,3,10,.6)':c;o.stroke(p);}
+    o.setLineDash([]);o.lineWidth=1;o.strokeStyle='#fff';
+    for(const [x,y,f] of bars){o.fillStyle='rgba(2,3,10,.8)';o.fillRect(x-1.5,y-1.5,8,25);o.fillStyle='#fff';o.fillRect(x,y+22*(1-f),5,22*f);o.strokeRect(x+.5,y+.5,4,21);}
   }
   // loop() keeps one frame requested in raf. A drawn frame stands for the time since the last drawn one (n, at most 50 ms) and
   // covers once per whole 60th, fa carrying the rest; with no cover due nothing is drawn and the time carries on, which also
@@ -262,8 +353,9 @@
     const f=fa+(Math.abs(n-w)<.05?w:n),nf=Math.round(f+.05); // within 5% of a whole number counts as it; .05 keeps a tie off the edge
     if(!nf)return;fa=f-nf;lastT=ts;
     const k=n*(slowTog.checked?1/3:1),parts=Math.ceil(k-.05);
-    keep();for(let i=0;i<parts;i++)step(k/parts,true);
-    paint(nf);
+    const run=()=>{keep();for(let i=0;i<parts;i++)step(k/parts,true);paint(nf);};
+    if(mode==='compare')each(run);else run();
+    if(mode==='inside')peek();
   }
   function start(){if(raf)return;lastT=null;fa=0;raf=requestAnimationFrame(loop);}
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the loop on
@@ -271,12 +363,27 @@
   document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(paused){cancelAnimationFrame(raf);raf=null;}else start();});
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
+  // The mode switch draws the mode at once, playing or paused. Compare shelves Normal's picture and keeps all its state (rockets,
+  // bursts, wipes, launch timer), then draws the still plan in both halves, from which they play on; leaving it puts Normal back as
+  // it was (or draws its still, after a setting or size change). See inside draws over Normal as it is.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare'){
+      shelf.width=cvs.width;shelf.height=cvs.height;sctx.drawImage(cvs,0,0);saved={rockets,bursts,marks,wait};still();return;
+    }
+    if(was==='compare'&&mode!=='compare'){
+      if(saved){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cvs.width,cvs.height);ctx.drawImage(shelf,0,0);ctx.restore();({rockets,bursts,marks,wait}=saved);}
+      else paintStill();
+      saved=null;
+    }
+    peek();
+  });
   // Sizing the canvas wipes it, so a real resize draws the still picture at once; one that leaves the stage as it was does nothing
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;if(w===W&&h===H)return;
-    W=w;H=h;U=H/400;D=Math.min(window.devicePixelRatio||1,2);
+    W=HW=w;H=h;U=H/400;D=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*D);cvs.height=Math.round(H*D);ctx.setTransform(D,0,0,D,0,0);
-    paintStill();
+    saved=null;still();
   }
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -288,7 +395,7 @@
   }
   // Paused, a change draws a new still picture, so it shows at once. Playing, trails change at once, How often from the next
   // launch, and a new color or shape sends the next rocket up within a fifth of a second.
-  function changed(soon){if(paused)paintStill();else if(soon)wait=Math.min(wait,12);}
+  function changed(soon){saved=null;if(paused)still();else if(soon)wait=Math.min(wait,12);} // a shelved Normal would be out of date
   choices('often-seg',d=>{OFTEN=d.often;wait=Math.min(wait,EVERY[OFTEN]);changed(false);});
   choices('pal-seg',d=>{PAL=d.pal;changed(true);});
   choices('trail-seg',d=>{TRAIL=d.trail;changed(false);});

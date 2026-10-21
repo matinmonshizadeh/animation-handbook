@@ -29,6 +29,12 @@ The main steps of Animation Handbook, newest first, with the number of animation
   and Compare from the start.
 - A new animation, Audio Visualizer (173 in all): bars dance to the music, from bass to treble, silent until Hear it is
   pressed, with See inside and Compare from the start.
+- A new animation, Ken Burns Effect (174 in all): photos slowly zoom and pan, then fade into the next, with See inside and
+  Compare from the start.
+- A new animation, Fire Effect (175 in all): flames flicker and rise as heat climbs and cools, with See inside and Compare
+  from the start.
+- A new animation, Lightning (176 in all): jagged bolts strike from the clouds and light up the sky, with See inside and
+  Compare from the start.
 
 ## 1.0.0 — 2026-10-10
 

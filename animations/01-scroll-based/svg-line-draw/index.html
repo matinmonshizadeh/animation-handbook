@@ -43,8 +43,44 @@
     .wp.on .pop{opacity:1;transform:scale(1)}
     /* a jump (Back to top, Play starting again) changes the stops at once, so none lingers after its line has gone */
     .jump .pop{transition:none}
-    .no-wps #wps{display:none}
+    .no-wps .wps{display:none}
     @media(prefers-reduced-motion:reduce){.pop{transition:none}}
+
+    /* See inside and Compare draw in one zero-tall layer that sticks to the top of the box, so the scroll length never changes.
+       It ignores the pointer, so a wheel turn or a touch over it still scrolls the box. The ticks and the pen tip are drawn
+       inside the route's own drawing, so they scroll with it. */
+    .fx,.fx-in,.fx-cmp,.cp,.ticks,.tip{display:none}
+    .fx{position:sticky;top:0;height:0;z-index:6;pointer-events:none}
+    .fx-box{position:absolute;left:0;top:0;width:100%;height:var(--bh,300px);overflow:hidden}
+    .fx-in,.fx-cmp{position:absolute;inset:0}
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx,.stage[data-hb-mode="inside"] .fx-in,.stage[data-hb-mode="compare"] .fx-cmp{display:block}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow-anchor:none}
+    .cap{position:absolute;padding:2px 7px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.95);color:#f4f4f2;
+         border:1px solid rgba(244,244,242,.3);font:600 12.5px/1.3 var(--hb-font)}
+    /* See inside: the route cut into tenths, the pen tip, and a gauge of two bars that share one length */
+    .stage[data-hb-mode="inside"] .ticks,.stage[data-hb-mode="inside"] .tip{display:inline}
+    .ticks line{stroke:#f4f4f2;stroke-width:2.5;stroke-linecap:round;vector-effect:non-scaling-stroke}
+    .tip circle{fill:#fff;stroke:var(--ui-accent);stroke-width:3.5}
+    .gauge{position:absolute;left:8px;top:8px;width:130px;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+    @media(min-width:601px){.gauge{width:160px}}
+    .gauge .cap{position:static}
+    .gauge .cap+.bar{margin-bottom:5px}
+    .bar{align-self:stretch;height:8px;border-radius:4px;overflow:hidden;background:rgba(11,11,13,.95);box-shadow:0 0 0 1px rgba(244,244,242,.4)}
+    .bar i{display:block;height:100%;transform-origin:left;transform:scaleX(0)}
+    .bar-s i{background:#b8b8c0}
+    .bar-d i{background:var(--ui-accent)}
+    .gauge .cap-tk{display:flex;align-items:center;gap:6px;border-radius:10px;padding:3px 7px}
+    .cap-tk i{width:15px;height:14px;flex:none;background:repeating-linear-gradient(90deg,#f4f4f2 0 2px,transparent 2px 6.5px)}
+    /* Compare: an inert copy of the drawing lies exactly over the real one, clipped to the left half of the box: every part of
+       the route solid, every stop shown. It adds no height, and the real drawing shows through on the right. */
+    .stage[data-hb-mode="compare"] .scene{position:relative}
+    .stage[data-hb-mode="compare"] .cp{display:block;position:absolute;inset:0;z-index:1;pointer-events:none;background:var(--bg);
+      padding:clamp(10px,2vw,20px);clip-path:inset(0 50% 0 0)}
+    .cp .pop{transition:none}
+    .cm-top{position:absolute;left:0;right:0;top:0;height:34px;background:rgba(11,11,13,.96)}
+    .cm-div{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#f4f4f2}
+    .cm-n1{top:8px;left:8px}
+    .cm-n2{top:8px;left:calc(50% + 8px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -67,19 +103,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage" tabindex="0" role="region" aria-label="A route that draws itself as you scroll">
+      <div class="fx" inert aria-hidden="true"><div class="fx-box">
+        <div class="fx-in"><div class="gauge">
+          <span class="cap" data-hb-caption>Scrolled</span><i class="bar bar-s"><i></i></i>
+          <span class="cap" data-hb-caption>Line drawn</span><i class="bar bar-d"><i></i></i>
+          <span class="cap cap-tk" data-hb-caption><i></i><span>Ticks: every tenth<br>of the route</span></span>
+        </div></div>
+        <div class="fx-cmp"><i class="cm-top"></i><i class="cm-div"></i>
+          <span class="cap cm-n1" data-hb-caption>Already drawn</span><span class="cap cm-n2" data-hb-caption>Draws on scroll</span>
+        </div>
+      </div></div>
       <div class="scene">
         <svg id="map" viewBox="0 0 600 2200" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
           <!-- faint dashed guide shows the full route before it is drawn -->
           <path class="guide" d="M 300 80 C 510 160 530 300 340 400 C 150 500 90 620 260 730 C 440 840 520 960 340 1080 C 160 1200 100 1310 290 1410 C 490 1510 510 1650 310 1760 C 110 1870 150 2020 300 2120"/>
           <path id="trail" class="trail" d="M 300 80 C 510 160 530 300 340 400 C 150 500 90 620 260 730 C 440 840 520 960 340 1080 C 160 1200 100 1310 290 1410 C 490 1510 510 1650 310 1760 C 110 1870 150 2020 300 2120"/>
-          <g id="wps">
+          <g id="wps" class="wps">
             <g class="wp" data-f="0.05"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="-20" y="1" text-anchor="end">Depart</text><text class="wp-sub" x="-20" y="17" text-anchor="end">km 0 — trailhead</text></g></g>
             <g class="wp" data-f="0.27"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">River crossing</text><text class="wp-sub" x="20" y="17">km 12 — footbridge</text></g></g>
             <g class="wp" data-f="0.50"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">Basecamp</text><text class="wp-sub" x="20" y="17">km 27 — overnight</text></g></g>
             <g class="wp" data-f="0.73"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="-20" y="1" text-anchor="end">Summit ridge</text><text class="wp-sub" x="-20" y="17" text-anchor="end">km 39 — 2 410 m</text></g></g>
             <g class="wp" data-f="0.95"><g class="pop"><circle class="dot" r="7"/><text class="wp-label" x="20" y="1">Arrive</text><text class="wp-sub" x="20" y="17">km 46 — journey's end</text></g></g>
           </g>
+          <g class="tip"><circle r="7"/></g>
+          <g class="ticks"><line/><line/><line/><line/><line/><line/><line/><line/><line/></g>
         </svg>
         <div class="scene-cap">— end of route —</div>
       </div>
@@ -87,6 +140,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, ticks cut the route into tenths and the bright dot is the pen tip; the bars compare how far you scrolled with how much is drawn. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>Already drawn shows the whole route from the start; Draws on scroll draws the line as you go. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -169,17 +226,48 @@
   const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
   const EASES={linear:t=>t,out:t=>1-Math.pow(1-t,3)};
 
+  // See inside and Compare. The mode is drawn at once, wherever the box is; nothing here scrolls, moves focus or presses a control.
+  let mode='normal',easeMode='linear',completeAt=1;
+  const LABELS={
+    normal:'A route that draws itself as you scroll',
+    inside:'A route that draws itself as you scroll, cut into tenths, with its pen tip and bars for how far you scrolled and how much is drawn',
+    compare:'The route split down the middle: already drawn on the left, drawing as you scroll on the right'
+  };
+  const compareNote=document.querySelector('[data-hb-for="compare"]'),COMPARE_NOTE=compareNote.textContent;
+  const AHEAD_NOTE='Here the line runs ahead of the box, so Already drawn and Draws on scroll often match where you look. Pick Even and At the end in Try it to see the tip.';
+  function setNote(){compareNote.textContent=easeMode==='linear'&&completeAt===1?COMPARE_NOTE:AHEAD_NOTE}
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.setAttribute('aria-label',LABELS[mode]);
+    setNote();measure();update();
+  });
+
   // Waypoints are placed AT known fractions of the path, so their trigger points are
   // just LEN * fraction — no per-scroll geometry lookups ever.
   const wps=[...document.querySelectorAll('.wp')].map(g=>({g,f:parseFloat(g.dataset.f),len:0,y:0,on:false}));
 
-  let easeMode='linear',completeAt=1;
 
   // Layout reads live here only — at init, after the fonts load and on resize, never per scroll.
   // k is how many drawing units make one pixel on screen: every stop is scaled by it, so its dot and labels keep the same
   // size on every screen while the route itself scales. One pixel less than the box scrolls: both sizes are rounded, so the
   // true end can fall a fraction short of the measured one, and the line must still finish there.
   // w.y is where each stop's dot sits in the scrolling content, measured from the inside of the box's border.
+  // Compare's copy of the drawing is made once: no ids, inert, hidden from screen readers, every stop shown and none popping
+  const cp=document.createElement('div');
+  cp.className='cp';cp.setAttribute('inert','');cp.setAttribute('aria-hidden','true');
+  const copy=map.cloneNode(true);
+  copy.removeAttribute('id');
+  copy.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  copy.querySelectorAll('.ticks,.tip').forEach(el=>el.remove());
+  const copyWps=[...copy.querySelectorAll('.wp')];
+  copyWps.forEach(g=>g.classList.add('on'));
+  // the copy's opaque half also holds the end caption, so each half shows it whole
+  cp.append(copy,document.querySelector('.scene-cap').cloneNode(true));map.parentNode.append(cp);
+
+  // The tip and the ticks come from points sampled along the route here, once, so a scroll only reads a table
+  const ticks=[...map.querySelectorAll('.ticks line')],tip=map.querySelector('.tip'),NS=240;
+  const gauge=stage.querySelector('.gauge'),barS=gauge.querySelector('.bar-s i'),barD=gauge.querySelector('.bar-d i');
+  let PTS=[];
   let LEN=1,MAXS=1,BOX=1,k=1;
   function measure(){
     LEN=trail.getTotalLength();
@@ -189,12 +277,23 @@
     BOX=stage.clientHeight;
     const svgTop=rect.top-stage.getBoundingClientRect().top-stage.clientTop+stage.scrollTop;
     trail.style.strokeDasharray=LEN;
-    for(const w of wps){
+    stage.style.setProperty('--bh',BOX+'px');
+    wps.forEach((w,i)=>{
       w.len=LEN*w.f;
       const pt=trail.getPointAtLength(w.len);
       w.y=svgTop+pt.y/k;
-      w.g.setAttribute('transform',`translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) scale(${k.toFixed(4)})`);
-    }
+      const place=`translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) scale(${k.toFixed(4)})`;
+      w.g.setAttribute('transform',place);
+      copyWps[i].setAttribute('transform',place);
+    });
+    PTS=[];
+    for(let i=0;i<=NS;i++){const pt=trail.getPointAtLength(LEN*i/NS);PTS.push(pt.x,pt.y)}
+    ticks.forEach((ln,i)=>{
+      const at=LEN*(i+1)/10,a=trail.getPointAtLength(at-1),b=trail.getPointAtLength(at+1),c=trail.getPointAtLength(at);
+      const dx=b.x-a.x,dy=b.y-a.y,n=Math.hypot(dx,dy)||1,h=17*k;
+      ln.setAttribute('x1',(c.x+dy/n*h).toFixed(1));ln.setAttribute('y1',(c.y-dx/n*h).toFixed(1));
+      ln.setAttribute('x2',(c.x-dy/n*h).toFixed(1));ln.setAttribute('y2',(c.y+dx/n*h).toFixed(1));
+    });
   }
 
   let ticking=false,jumped=false,lastTop=0;
@@ -203,12 +302,19 @@
     // a jump is a click on Back to top or Play, or any move of more than half a box in one frame
     const jump=jumped||Math.abs(top-lastTop)>BOX/2;
     jumped=false;lastTop=top;
-    const p=EASES[easeMode](clamp(top/MAXS,0,1));
+    const scrolled=clamp(top/MAXS,0,1),p=EASES[easeMode](scrolled);
     // By default the line finishes as the scroll does, so its tip stays in the box while it is drawn. A smaller completeAt
     // finishes it earlier and puts the tip ahead of the box: the rest of the scroll shows the finished route.
     // Clamp, don't gate: jumping to the end draws everything, back to top erases it.
     const drawn=clamp(LEN*p/completeAt,0,LEN);
     trail.style.strokeDashoffset=LEN-drawn;
+    if(mode==='inside'){
+      // both bars and the tip come from the same drawn length and share, so a jump draws them at once
+      barS.style.transform=`scaleX(${scrolled})`;
+      barD.style.transform=`scaleX(${drawn/LEN})`;
+      const f=drawn/LEN*NS,i=Math.min(NS-1,Math.floor(f)),t=f-i;
+      tip.setAttribute('transform',`translate(${(PTS[2*i]+(PTS[2*i+2]-PTS[2*i])*t).toFixed(1)} ${(PTS[2*i+1]+(PTS[2*i+3]-PTS[2*i+1])*t).toFixed(1)}) scale(${k.toFixed(4)})`);
+    }
 
     if(jump)map.classList.add('jump');
     // A stop shows once the line has reached it and it has come into view, so its pop happens where the visitor is looking:
@@ -237,9 +343,9 @@
       pick(b.dataset);
     }));
   }
-  choices('feel-seg',d=>{easeMode=d.ease;update()});
-  choices('finish-seg',d=>{completeAt=+d.at;update()});
-  wpTog.addEventListener('change',()=>map.classList.toggle('no-wps',!wpTog.checked));
+  choices('feel-seg',d=>{easeMode=d.ease;setNote();update()});
+  choices('finish-seg',d=>{completeAt=+d.at;setNote();update()});
+  wpTog.addEventListener('change',()=>{map.classList.toggle('no-wps',!wpTog.checked);copy.classList.toggle('no-wps',!wpTog.checked)});
 
   measure();update();
 </script>

@@ -44,6 +44,44 @@
     .hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:3px 12px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:#111114;font-size:12px;letter-spacing:1px;color:#8a8a92;white-space:nowrap;pointer-events:none}
     label.hb-switch-row:has(input:disabled){opacity:.45;cursor:not-allowed}
     label.hb-switch-row:has(input:disabled) .hb-switch{cursor:not-allowed}
+    /* See inside and Compare, drawn from the page's own target and current. See inside: the rail becomes a wider track with three
+       marks as tall as the box's share of the cards (dashed where you asked to go, solid where the cards are, faint where the glide
+       began) and an arrow across the gap. Compare: an inert copy of the cards over the top half, scrolled the browser's own way
+       (straight to where you asked), above the real box's lower half, which glides; the box keeps its size, so input reaches both. */
+    .views,.twin,.cap{display:none}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="compare"] .twin{display:block}
+    .views{position:absolute;inset:0;pointer-events:none}
+    .track{position:absolute;top:10px;right:10px;bottom:10px;width:18px;border-radius:5px;background:rgba(255,255,255,.1)}
+    .mk{position:absolute;top:0;left:2px;right:2px;border-radius:4px}
+    .mk.was,.sw.was{background:rgba(110,168,255,.2);border:1.5px solid rgba(110,168,255,.65)}
+    .mk.now,.sw.now{background:var(--ui-accent)}
+    .mk.goal,.sw.goal{border:2px dashed #f4f4f2}
+    .gap{position:absolute;top:0;right:34px;width:5px;height:1px;transform-origin:0 0;background:linear-gradient(90deg,#0b0b0d 1px,#f4f4f2 1px 4px,#0b0b0d 4px)}
+    .head{position:absolute;top:0;right:30px;width:13px;height:9px;fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .stage[data-hb-mode="compare"] .track,.stage[data-hb-mode="compare"] .gap,.stage[data-hb-mode="compare"] .head,.stage[data-hb-mode="inside"] > .rail{display:none}
+    .cap{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.93);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap}
+    .cap>span{display:block}
+    .cap>.c-eg{display:none}
+    .c-eg{color:#a9cbff}
+    .sw{display:inline-block;width:10px;height:14px;margin-right:6px;border-radius:3px;vertical-align:-2px}
+    .c-key,.c-rule{right:50px}
+    .c-key{top:10px}
+    .c-rule{bottom:44px}
+    .stage[data-hb-mode="inside"] .c-in,.stage[data-hb-mode="inside"].posed .c-eg,.stage[data-hb-mode="compare"] .c-cmp,.stage[data-hb-mode="compare"].posed .c-pose{display:block}
+    .c-one,.c-two,.c-pose{right:26px;text-align:right}
+    .c-one{top:10px}
+    .c-two{top:calc(50% + 10px)}
+    .c-pose{top:calc(50% + 39px)}
+    .twin{position:absolute;top:0;left:0;right:0;height:50%;overflow:hidden;background:#111114;pointer-events:none;box-shadow:0 1px 0 rgba(244,244,242,.3)}
+    .twin-box{height:200%;overflow:hidden;container-type:size}
+    .stage[data-hb-mode="compare"] > .rail{top:calc(50% + 10px)}
+    /* the cards' numbers, brighter in both halves, show at a glance which card each half has reached */
+    .stage[data-hb-mode="compare"] .card-num{opacity:.3}
+    /* the copy covers the top half of the box's focus ring, so in Compare the ring is drawn over everything */
+    .stage[data-hb-mode="compare"]:has(.viewport:focus-visible)::after{content:"";position:absolute;inset:1px;border:2px solid var(--hb-accent);pointer-events:none}
+    /* under reduced motion the box scrolls the normal way, and its chip would contradict the posed Glides half */
+    @media(prefers-reduced-motion:reduce){.stage[data-hb-mode="compare"] .hint{display:none}}
+    @media(max-width:600px){.track{width:14px}.gap{right:30px}.head{right:26px}.c-key,.c-rule{right:46px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,6 +104,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll or drag inside the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="viewport" id="viewport" tabindex="0" role="region" aria-label="Cards that glide as you scroll">
         <div class="content" id="content">
@@ -79,10 +122,23 @@
       </div>
       <div class="rail" aria-hidden="true"><div class="rail-fill" id="fill"></div></div>
       <div class="hint" id="hint" aria-hidden="true">Drag or scroll ↑↓</div>
+      <div class="views" aria-hidden="true">
+        <div class="track"><i class="mk was"></i><i class="mk now"></i><i class="mk goal"></i></div>
+        <i class="gap"></i><svg class="head" viewBox="0 0 13 9"><path d="M1 1H12L6.5 8Z"/></svg>
+        <span class="cap c-in c-key" data-hb-caption><span class="c-eg">Example: half way through a glide</span><span><i class="sw goal"></i>Dashed: where you asked to go</span><span><i class="sw now"></i>Solid: where it is now</span><span><i class="sw was"></i>Faint: where it started</span></span>
+        <span class="cap c-in c-rule" data-hb-caption><span>60 times a second, it moves</span><span>about a tenth of the way</span></span>
+        <span class="cap c-cmp c-one" data-hb-caption>Browser's own</span>
+        <span class="cap c-cmp c-two" data-hb-caption>Glides</span>
+        <span class="cap c-pose" data-hb-caption><span>Half way through a glide</span><span>that takes about half a second</span></span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed mark is where you asked to go, the solid one where the content is; each step closes part of the gap, so it eases in. Scroll, drag or press Show me.</p>
+      <p data-hb-for="compare" hidden>Browser's own jumps straight to where you asked; Glides follows and eases in, shown at rest half way through a glide. Scroll, drag or press Show me.</p>
     </div>
   </section>
 
@@ -165,10 +221,12 @@
 
   // Layout reads live here: at the start, after the site font loads (the cards' height depends on it) and on resize.
   function measure(){viewH=viewport.clientHeight;maxScroll=Math.max(0,content.scrollHeight-viewH);target=clamp(target,0,maxScroll)}
-  // The rail's fill rides a transform, so painting it costs no layout
+  // The rail's fill rides a transform, so painting it costs no layout. In Compare the rail spans the lower half; See inside and
+  // Compare are drawn again with it.
   function paint(pos){
     const p=maxScroll>0?clamp(pos/maxScroll,0,1):0;
-    fill.style.transform=`translateY(${(p*(viewH-44)).toFixed(1)}px)`;
+    fill.style.transform=`translateY(${(p*(viewH*(view==='compare'?.5:1)-44)).toFixed(1)}px)`;
+    if(view!=='normal')drawViews();
   }
   function draw(pos){content.style.transform=`translate3d(0,${(-pos).toFixed(2)}px,0)`;paint(pos)}
 
@@ -183,9 +241,9 @@
     if(Math.abs(target-current)<0.1)current=target;
     draw(current);
     if(current!==target)raf=requestAnimationFrame(loop);
-    else returning=false;
+    else{returning=false;settleLater()}
   }
-  function kick(){if(!raf&&mode==='smooth'){last=0;raf=requestAnimationFrame(loop)}}
+  function kick(){if(!raf&&mode==='smooth'){last=0;glideFrom=current;raf=requestAnimationFrame(loop)}}
 
   function onWheel(e){
     e.preventDefault();
@@ -198,7 +256,7 @@
     viewport.classList.add('dragging');viewport.setPointerCapture(e.pointerId);
   }
   function onMove(e){if(!dragging)return;target=clamp(startTarget-(e.clientY-startY),0,maxScroll);kick()}
-  function onUp(){dragging=false;viewport.classList.remove('dragging')}
+  function onUp(){dragging=false;viewport.classList.remove('dragging');settleLater()}
   // Keys move the same target, since the browser has nothing to scroll in this mode
   function onKey(e){
     if(e.ctrlKey||e.altKey||e.metaKey)return;
@@ -267,7 +325,7 @@
 
   // Show me: one flick and back. The content goes one and a half boxes away (up instead when it is past the middle), and
   // after a beat returns to where it began. In the glide mode that sets the target; with Normal scrolling it jumps.
-  function sendTo(pos){if(mode==='smooth'){target=pos;kick()}else viewport.scrollTop=pos}
+  function sendTo(pos){if(mode==='smooth'){glideFrom=current;target=pos;kick()}else viewport.scrollTop=pos}
   document.getElementById('btn-demo').addEventListener('click',()=>{
     const again=showTimer; // pressed during a flick: it begins again from the same place
     clearTimeout(showTimer);returning=false;
@@ -284,6 +342,89 @@
     paint(0);
   });
 
+  // See inside and Compare. view is the mode on show; glideFrom is where the content was when the glide under way began (the
+  // faint mark). posed: an example glide shows (See inside's marks half way through one, Compare's copy three quarters of a box
+  // ahead), at once when a mode is drawn at rest; any input or run lifts it, and it comes back a second after the content
+  // settles. Under reduced motion (the page then locks Normal scrolling on) it always shows, since no glide ever runs. It never
+  // moves the real content.
+  const stage=document.getElementById('stage'),views=stage.querySelector('.views'),$=s=>views.querySelector(s);
+  const mk=[$('.mk.was'),$('.mk.now'),$('.mk.goal')],gap=$('.gap'),head=$('.head'),rule=$('.c-rule');
+  const notes=[...document.querySelectorAll('[data-hb-for]')];
+  const NOTES={glide:notes.map(n=>n.textContent),
+    native:['Inside, with Normal scrolling on the content goes straight where you ask, so the two marks stay together. Turn it off in Try it to see the glide.',
+      "Normal scrolling is on, so Browser's own and Normal scrolling move the same. Turn it off in Try it, then scroll or press Show me."],
+    still:['Shown still: as your device asks, the box scrolls the normal way; the marks show a glide half way, dashed where you asked to go, solid where the content would be.',
+      "Shown still: Browser's own is already where you asked, while Glides would be only half way there. As your device asks, the box scrolls the normal way."]};
+  const NAMES={normal:viewport.getAttribute('aria-label'),inside:'Cards that glide, with marks for where you asked to go and where the content is',
+    compare:"The cards twice, one above the other: the browser's own scroll, and the glide"};
+  // Each Glide as a beginner says it: the share it moves in a 60th of a second, and how long a whole glide takes
+  const WORDS={0.05:['a twentieth','about a second'],0.09:['a tenth','about half a second'],0.16:['a sixth','about a third of a second']};
+  let view='normal',glideFrom=0,posed=false,poseTimer=0,twin=null,twinContent=null,twinFill=null,thumbH=0;
+
+  function calm(){return!raf&&!dragging&&!showTimer&&!returning}
+  function lift(){posed=false;clearTimeout(poseTimer);poseTimer=0}
+  function settleLater(){
+    if(view==='normal'||mode!=='smooth'||!calm())return;
+    clearTimeout(poseTimer);
+    poseTimer=setTimeout(()=>{poseTimer=0;if(view!=='normal'&&mode==='smooth'&&calm()){posed=true;drawViews()}},1000);
+  }
+  // The words that follow the settings and reduced motion (the markup holds Medium's, gliding)
+  function words(){
+    const still=nativeChk.disabled,nat=mode==='native'&&!still,w=WORDS[ease],say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+    say(rule.children[0],nat?'Normal scrolling:':'60 times a second, it moves');say(rule.children[1],nat?'jumps straight there':`about ${w[0]} of the way`);
+    say($('.c-two'),nat?'Normal scrolling':'Glides');say($('.c-pose').children[1],'that takes '+w[1]);
+    $('.c-key').lastElementChild.style.display=nat?'none':''; // no faint mark with Normal scrolling, so no entry for it
+    notes.forEach((n,i)=>say(n,NOTES[still?'still':nat?'native':'glide'][i]));
+  }
+  // Compare's copy, made once on first entry: the cards and a rail of their own, without ids, inert and hidden from screen readers
+  function makeTwin(){
+    twin=document.createElement('div');twin.className='twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+    const box=document.createElement('div');box.className='twin-box';
+    twinContent=content.cloneNode(true);twinContent.removeAttribute('id');
+    const rail=fill.parentNode.cloneNode(true);twinFill=rail.firstElementChild;twinFill.removeAttribute('id');
+    box.append(twinContent);twin.append(box,rail);stage.insertBefore(twin,views);
+  }
+  // Draws the mode on show from target, current and where the glide began, or from the example. See inside: the marks on the
+  // track (the cards' whole length shrunk to it) and the arrow across the gap. Compare: the copy where the browser's own scroll
+  // would be, which is where you asked to go, showing the same lines as the lower half (each half a box down). Transforms only.
+  function drawViews(){
+    if(view==='normal')return;
+    const H=viewH,G=H*.75,pose=nativeChk.disabled||posed&&mode==='smooth',dir=current+G<=maxScroll?1:-1; // toward the side with room
+    let was=glideFrom,now=current,goal=target;
+    if(pose){if(current-dir*G>=0&&current-dir*G<=maxScroll){was=current-dir*G;goal=current+dir*G}else{was=current;now=current+dir*G;goal=now+dir*G}}
+    stage.classList.toggle('posed',pose);
+    if(view==='compare'){
+      if(!twin)makeTwin();
+      const T=pose?clamp(current+dir*G,0,maxScroll):target,p=maxScroll>0?T/maxScroll:0;
+      twinContent.style.transform=`translate3d(0,${(-T-H/2).toFixed(2)}px,0)`;
+      twinFill.style.transform=`translateY(${(p*(H/2-44)).toFixed(1)}px)`;
+      return;
+    }
+    const k=(H-20)/(maxScroll+H),y=v=>clamp(v,0,maxScroll)*k;
+    if(Math.abs(H*k-thumbH)>.05){thumbH=H*k;mk.forEach(m=>m.style.height=thumbH.toFixed(1)+'px')}
+    [was,now,goal].forEach((v,i)=>mk[i].style.transform=`translateY(${y(v).toFixed(1)}px)`);
+    const open=pose||mode==='smooth'&&Math.abs(target-current)>=.5,y0=y(now)+thumbH/2+10,y1=y(goal)+thumbH/2+10,len=Math.abs(y1-y0),down=y1>y0;
+    mk[0].style.opacity=open?'':'0';
+    gap.style.opacity=head.style.opacity=open&&len>=14?'':'0';
+    gap.style.transform=`translateY(${(down?y0:y1+9).toFixed(1)}px) scaleY(${Math.max(len-9,0).toFixed(1)})`;
+    head.style.transform=`translateY(${(down?y1-9:y1).toFixed(1)}px)${down?'':' scaleY(-1)'}`;
+  }
+  // The mode switch: draws the mode at once (at rest, with the example) and names the picture for it; it moves nothing. The shared
+  // script then presses Show me (not under reduced motion), which lifts the example until the content settles again.
+  document.addEventListener('hb:mode',e=>{
+    view=e.detail.mode;lift();
+    viewport.setAttribute('aria-label',NAMES[view]);
+    if(view==='normal')stage.classList.remove('posed');
+    else{posed=mode==='smooth'&&calm();words()}
+    paint(current);
+  });
+  // Any input or run lifts the example; it comes back a second after the content settles (the loop's end, a drag let go)
+  document.addEventListener('hb:input',()=>{if(view!=='normal'){lift();drawViews();settleLater()}});
+  document.getElementById('btn-demo').addEventListener('click',()=>{if(view!=='normal'){lift();drawViews()}});
+  document.getElementById('btn-reset').addEventListener('click',()=>{if(view!=='normal'){lift();drawViews();settleLater()}});
+  function redo(){if(view!=='normal'){lift();words();paint(current)}}
+  nativeChk.addEventListener('change',redo);motionMQ.addEventListener('change',redo);
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -291,7 +432,7 @@
       pick(b.dataset);
     }));
   }
-  choices('glide-seg',d=>{ease=+d.ease});
+  choices('glide-seg',d=>{ease=+d.ease;words();drawViews()});
 
   function relayout(){measure();paint(current);kick()}
   window.addEventListener('resize',relayout);

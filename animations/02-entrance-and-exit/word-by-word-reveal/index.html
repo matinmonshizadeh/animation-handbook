@@ -24,7 +24,7 @@
     :root{--ui-accent:#5fd88a;--dur:450ms;--ease:cubic-bezier(.2,.7,.3,1);--stagger:80ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;padding:clamp(20px,4vw,48px)}
-    #text-target{font-size:clamp(18px,3vw,28px);font-weight:bold;text-align:center;line-height:1.55;max-width:520px}
+    #text-target,.cmp-text{font-size:clamp(18px,3vw,28px);font-weight:bold;text-align:center;line-height:1.55;max-width:520px}
     .word{display:inline-block;
       opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger)),filter var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
     [data-anim="fade-up"] .word{transform:translateY(0.4em)}
@@ -34,7 +34,52 @@
     [data-anim="fade"] .word{transform:none}
     .splitting.in .word{opacity:1;transform:none;filter:none}
     .sent-break{display:block;height:0.4em}
-    @media(prefers-reduced-motion:reduce){.word{transition:opacity 300ms linear!important;transform:none!important;filter:none!important}}
+    /* See inside and Compare */
+    .stage{position:relative}
+    .clock,.cmp-text,.half,.moment,.hold{display:none}
+    .lbl{padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .half,.moment{white-space:nowrap}
+    .clock{--c:rgba(244,244,242,.3);--gold:#f2c14e}
+    .strip{position:relative;height:22px;margin-top:32px}
+    .strip::before{content:'';position:absolute;left:0;right:0;top:11px;border-top:1px solid var(--c)}
+    .ticks i,.ticks b,.end,.ph::before,.ph::after{position:absolute}
+    .ticks i{top:5px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:var(--ui-accent);opacity:.3}
+    .ticks b{top:18px;height:4px;border:1.5px solid var(--gold);border-top:0}
+    .end{top:0;bottom:0;border-left:1px dashed var(--c)}
+    .strip.go .ticks i{opacity:1;transition:opacity .15s linear calc(var(--i)*var(--stagger))}
+    .stage.posed .ticks i.lit{opacity:1;transition:none}
+    .ph{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;transform:translateX(var(--x,0%))}
+    .ph::before{content:'';left:-1px;top:0;bottom:0;width:2px;background:#f4f4f2}
+    .ph::after{content:'';left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#f4f4f2}
+    .now{position:absolute;left:0;bottom:calc(100% + 8px);white-space:nowrap;transform:translateX(calc(var(--x,0%)*-1))}
+    .strip.run :is(.ph,.now){transition:transform var(--len) linear}
+    .key{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;margin-top:8px}
+    .key li{display:inline-flex;align-items:center;gap:8px}
+    .key li::before{content:'';flex:none;width:2px;height:12px;background:var(--ui-accent)}
+    .key .k2::before{width:0;background:none;border-left:1px dashed var(--c)}
+    .key .k3::before{width:12px;height:5px;background:none;border:1.5px solid var(--gold);border-top:0}
+    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(8px,2vw,16px);padding:clamp(12px,2.5vw,24px) clamp(20px,4vw,48px)}
+    .stage[data-hb-mode="inside"] #text-target{font-size:var(--fs);flex:none}
+    .stage[data-hb-mode="inside"] .clock{display:block;width:100%;max-width:640px}
+    .stage[data-hb-mode="compare"]{--nr:34px;--px:clamp(6px,2vw,18px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:var(--nr) minmax(0,1fr) var(--nr);align-items:center;padding:0;overflow-anchor:none}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:var(--nr);left:50%;border-left:1px solid rgba(244,244,242,.22)}
+    .stage[data-hb-mode="compare"]>.cmp-text,.stage[data-hb-mode="compare"] #text-target{display:block;font-size:var(--fs);max-width:min(520px,calc(100% - 2*var(--px)));justify-self:center}
+    .stage[data-hb-mode="compare"]>.cmp-text{grid-area:2/1}.stage[data-hb-mode="compare"] #text-target{grid-area:2/2}
+    .stage[data-hb-mode="compare"] .cmp-text[data-anim="blur"] .word{filter:none}
+    .stage[data-hb-mode="compare"] :is(.half,.moment){display:block}
+    .stage[data-hb-mode="compare"] .half{justify-self:start;margin-left:8px}
+    .stage[data-hb-mode="compare"] .half.first{grid-area:1/1}.stage[data-hb-mode="compare"] .half.second{grid-area:1/2}
+    .stage[data-hb-mode="compare"] .moment{grid-area:3/1/4/3;justify-self:center}
+    .stage[data-hb-mode="compare"]:not(.posed) .moment{visibility:hidden}
+    .stage[data-hb-mode="inside"] .hold,.stage[data-hb-mode="compare"] .hold{display:flex;position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px)}
+    .hold .cmp-text{display:block}
+    @media(max-width:600px){
+      .lbl{font-size:12.5px;padding:3px 6px}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:var(--nr) minmax(0,1fr) var(--nr) minmax(0,1fr) var(--nr)}
+      .stage[data-hb-mode="compare"]::after{top:calc(50% - var(--nr)/2);bottom:auto;left:0;right:0;border-left:0;border-top:1px solid rgba(244,244,242,.22)}
+      .stage[data-hb-mode="compare"] .half.second{grid-area:3/1}.stage[data-hb-mode="compare"] #text-target{grid-area:4/1}.stage[data-hb-mode="compare"] .moment{grid-area:5/1}
+    }
+    @media(prefers-reduced-motion:reduce){.word{transition:opacity 300ms linear!important;transform:none!important;filter:none!important}.ticks i,.ph,.now{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -57,13 +102,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div id="text-target" class="splitting" data-anim="fade-up"></div>
+      <div class="clock" aria-hidden="true">
+        <div class="strip"><div class="ticks"></div><i class="end"></i><div class="ph"><p class="lbl now" data-hb-caption>Half a second in</p></div></div>
+        <ul class="key"><li class="lbl k1" data-hb-caption>One mark per word, in reading order</li><li class="lbl k2" data-hb-caption>All words in after about one and a half seconds</li><li class="lbl k3" data-hb-caption>Pause between sentences</li></ul>
+      </div>
+      <div class="cmp-text splitting" aria-hidden="true" inert></div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>All at once</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>Word by word</p>
+      <p class="lbl moment" aria-hidden="true" data-hb-caption>Half a second in</p>
+      <div class="hold" aria-hidden="true" inert><div class="cmp-text"></div></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the strip under the text is the reading clock: one mark per word, and words appear as the playhead passes their marks.</p>
+      <p data-hb-for="compare" hidden>All at once shows every word together; Word by word brings them in one after another, a moment apart. With Loop off, both rest half a second in.</p>
     </div>
   </section>
 
@@ -205,6 +268,7 @@ Software made with care.</textarea>
       });
       if(si<sentences.length-1){const br=document.createElement('span');br.className='sent-break';target.appendChild(br);}
     });
+    if(view!=='normal')draw();
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
   // The last word's --i times the current --stagger, plus the settle duration: how long a full play takes.
@@ -216,25 +280,28 @@ Software made with care.</textarea>
   function revealIn(){
     // rebuild the words hidden, then show them after a reflow, so every play reveals them from the start
     buildWords();void target.offsetWidth;
-    target.classList.add('in');
+    setIn(true);
   }
   // One play reveals the words in turn. While Loop is on it then holds, hides them again, waits and
   // plays again; switching Loop off lets the words finish shown. Slow motion stretches the reveal and
   // the stagger, not the hold or the wait.
   function cycle(){
-    apply();revealIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();posed=false;stage.classList.remove('posed');revealIn();
     const len=playLen();
+    busyUntil=motionOk?performance.now()+len:0;
+    if(!motionOk){if(view!=='normal')pose();return}
+    clockRun(len);
+    if(!loopTog.checked){later(restPose,len+700);return}
     later(()=>{
       if(!loopTog.checked)return;
-      target.classList.remove('in');
+      setIn(false);if(view==='inside')drawClock();
       later(cycle,len+400);
     },len+1000);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else later(restPose,Math.max(0,busyUntil-performance.now())+700)});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -248,6 +315,106 @@ Software made with care.</textarea>
   choices('feel-seg',d=>{ease=d.ease});
   punctTog.addEventListener('change',buildWords);
   txtIn.addEventListener('input',buildWords);
+  document.querySelector('.hb-try').addEventListener('click',refresh);
+  slowTog.addEventListener('change',refresh);
+  // ── See inside and Compare ──
+  // With Loop off, and always under reduced motion, both views rest half a second into the play
+  const stage=document.querySelector('.stage'),clock=stage.querySelector('.clock'),strip=clock.querySelector('.strip'),ticks=strip.querySelector('.ticks'),
+    ph=strip.querySelector('.ph'),now=ph.querySelector('.now'),endm=strip.querySelector('.end'),cmp=stage.querySelector('.cmp-text'),hold=stage.querySelector('.hold'),
+    holdBox=hold.firstElementChild,notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent),POSE_MS=500;
+  let view='normal',posed=false,busyUntil=0,sig='',T=2000;
+  const setIn=v=>{target.classList.toggle('in',v);cmp.classList.toggle('in',v)};
+  const delays=()=>[...target.querySelectorAll('.word')].map(w=>(parseFloat(w.style.getPropertyValue('--i'))||0)*stag());
+  const NUM=['','one','two','three','four','five','six','seven','eight','nine','ten'];
+  function say(ms){const n=Math.max(.5,Math.round(ms/500)/2),w=Math.floor(n);return n<1?'half a second':(NUM[w]||w)+(n%1?' and a half':'')+(n>1?' seconds':' second')}
+  function eased(x){ // how far a word has come, by the chosen feel
+    x=Math.max(0,Math.min(1,x));if(ease==='linear')return x;
+    const [a,b,c,d]=ease.match(/[\d.]+/g).map(Number),bz=(p,q,t)=>3*p*t*(1-t)**2+3*q*t*t*(1-t)+t**3;
+    let lo=0,hi=1,t=x;for(let i=0;i<30;i++){t=(lo+hi)/2;if(bz(a,c,t)<x)lo=t;else hi=t}
+    return bz(b,d,t);
+  }
+  function poseWord(w,p,blur){ // a blur is drawn on the real text only
+    const set=(k,v)=>w.style.setProperty(k,v,'important'),a=anim;
+    set('transition','none');set('opacity',Math.min(1,p).toFixed(3));
+    set('transform',a==='fade-up'?`translateY(${(.4*(1-p)).toFixed(3)}em)`:a==='scale'?`scale(${(.6+.4*p).toFixed(3)})`:a==='rotate'?`rotateX(${(90*(1-p)).toFixed(1)}deg)`:'none');
+    set('filter',a==='blur'&&blur?`blur(${(8*Math.max(0,1-p)).toFixed(2)}px)`:'none');
+  }
+  function pose(){
+    const d=dur(),dl=delays();
+    target.querySelectorAll('.word').forEach((w,i)=>poseWord(w,eased((POSE_MS-dl[i])/d),1));
+    cmp.querySelectorAll('.word').forEach(w=>poseWord(w,eased(POSE_MS/d),0));
+    ticks.querySelectorAll('i').forEach((e,i)=>e.classList.toggle('lit',dl[i]<=POSE_MS));
+    if(view==='inside')place(POSE_MS,'Half a second in');
+    posed=true;stage.classList.add('posed');describe();
+  }
+  function unpose(){ // the text is shown as it now is, at once (only posed words snap)
+    if(!posed)return;posed=false;stage.classList.remove('posed');
+    const all=[...target.querySelectorAll('.word'),...cmp.querySelectorAll('.word')];
+    all.forEach(w=>['opacity','transform','filter'].forEach(k=>w.style.removeProperty(k)));
+    void target.offsetWidth;all.forEach(w=>w.style.removeProperty('transition'));describe();
+  }
+  function restPose(){if(view!=='normal'&&!posed&&!(loopTog.checked&&motionOk)&&performance.now()>=busyUntil-5)pose()}
+  // The playhead is a full-width strip moved by a share of its own width, so a resize never throws it off; its label slides back by the
+  // same share of its own width, which keeps it inside the strip at both ends
+  function place(ms,txt){strip.classList.remove('run','go');ph.style.setProperty('--x',ms/T*100+'%');now.textContent=txt}
+  function clockRun(len){
+    if(view!=='inside')return;
+    place(0,'Now');void ph.offsetWidth;
+    ph.style.setProperty('--len',len+'ms');strip.classList.add('run','go');ph.style.setProperty('--x',len/T*100+'%');
+  }
+  // One mark per word where that word starts: its own --i times the delay (which already holds the sentence pauses)
+  function drawClock(){
+    const ws=[...target.querySelectorAll('.word')].map(w=>parseFloat(w.style.getPropertyValue('--i'))||0),s=stag(),len=playLen(),gaps=[];
+    T=Math.max(2000,len);strip.classList.remove('go');
+    ticks.replaceChildren(...ws.map((v,i)=>{
+      const e=document.createElement('i');e.style.cssText=`left:${v*s/T*100}%;--i:${v}`;
+      if(i&&v-ws[i-1]>1.01){const g=document.createElement('b');g.style.cssText=`left:${ws[i-1]*s/T*100}%;width:${(v-ws[i-1])*s/T*100}%`;gaps.push(g)}
+      return e;
+    }));
+    ticks.append(...gaps);endm.style.left=len/T*100+'%';
+    clock.querySelector('.k2').textContent='All words in after about '+say(len);
+    clock.querySelector('.k3').style.display=gaps.length?'':'none';
+    place(0,'Now');
+  }
+  // Copies are clones of the real words without ids; "All at once" has no delay
+  function fill(el,flat){
+    el.replaceChildren(...[...target.childNodes].map(n=>{const c=n.cloneNode(true);if(flat&&c.style)c.style.setProperty('--i',0);return c}));
+    el.dataset.anim=anim;
+  }
+  // A hidden copy at Normal's size gives the box Normal's height; the text is drawn as large as fits the room each view leaves
+  function fit(){
+    const cs=getComputedStyle(stage),bw=stage.offsetHeight-stage.clientHeight,H=Math.max(parseFloat(cs.minHeight)||0,hold.offsetHeight+bw);
+    stage.style.height=H+'px';
+    const room=view==='compare'?parseFloat(cs.gridTemplateRows.split(' ')[1]):H-bw-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-parseFloat(cs.rowGap)-clock.offsetHeight;
+    let lo=7,hi=parseFloat(getComputedStyle(holdBox).fontSize);
+    const at=f=>{stage.style.setProperty('--fs',f+'px');return target.offsetHeight<=room};
+    if(!at(hi)){for(let i=0;i<8;i++){const m=(lo+hi)/2;if(at(m))lo=m;else hi=m}at(lo)}
+    sig=stage.clientWidth+'/'+hold.offsetHeight;
+  }
+  // The notes say what the box shows now; a "shown still" note only while the box rests under reduced motion
+  function describe(){
+    const still=!motionOk&&posed,S='Shown still, half a second in: ',bl=anim==='blur';
+    const words=[
+      still?S+'the strip is the reading clock, one mark per word, and the first words are in.'
+        :punctTog.checked?'Inside, the strip under the text is the reading clock: one mark per word, with a longer gap between sentences, and words appear as the playhead passes.':marked[0],
+      still?S+'All at once has every word equally far in'+(bl?', without the blur':'')+', while Word by word has only its first words in.'
+        :bl?'All at once fades every word in together, without the blur; Word by word blurs them in one after another. With Loop off, both rest half a second in.':marked[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  function draw(){ // rebuilds both views from the page's state
+    if(view==='normal'){['height','--fs'].forEach(k=>stage.style.removeProperty(k));cmp.replaceChildren();holdBox.replaceChildren();return}
+    fill(cmp,true);fill(holdBox);cmp.classList.toggle('in',target.classList.contains('in'));
+    if(view==='inside')drawClock();else ticks.replaceChildren();
+    fit();posed?pose():describe();
+  }
+  function refresh(){if(view!=='normal'&&performance.now()>=busyUntil)draw()}
+  document.addEventListener('hb:mode',e=>{
+    view=e.detail.mode;
+    if(view==='normal')unpose();
+    draw();restPose();
+  });
+  new ResizeObserver(()=>{if(view!=='normal'&&sig!==stage.clientWidth+'/'+hold.offsetHeight){fit();if(posed)pose()}}).observe(stage);
+  document.fonts&&document.fonts.ready.then(draw);
   apply();buildWords();
 </script>
 </body>

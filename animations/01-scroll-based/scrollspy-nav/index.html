@@ -51,6 +51,51 @@
       .sec{padding:80px 20px 36px}
     }
     @media(prefers-reduced-motion:reduce){.spy-ind,.spy-link{transition:none!important}}
+
+    /* See inside and Compare draw their labels and lines in one layer of the stage, outside the scroller, that ignores the
+       pointer: the box still scrolls and the links still take presses, and nothing captioned scrolls away. */
+    .fx,.fx-in,.fx-cmp,.cm-copy,.cm-rail{display:none}
+    .fx{position:absolute;inset:0;z-index:3;pointer-events:none}
+    .stage[data-hb-mode="inside"] .fx,.stage[data-hb-mode="compare"] .fx,.stage[data-hb-mode="inside"] .fx-in,.stage[data-hb-mode="compare"] .fx-cmp{display:block}
+    .cap{position:absolute;padding:2px 8px;border-radius:999px;white-space:nowrap;background:rgba(11,11,13,.95);color:#f4f4f2;
+      border:1px solid rgba(244,244,242,.3);font:600 12.5px/1.3 var(--hb-font)}
+    .cap.wrap{white-space:normal;border-radius:10px}
+    @media(max-width:600px){.cap{padding:2px 6px}}
+    /* See inside: the reading line, every section's top edge as a thin rule, the current section outlined (the page's own
+       classes, written where setActive() writes) and, while a link press glides the box, the destination dashed */
+    .ln{position:absolute;right:0;height:0;border-top:2px dashed var(--ui-accent);filter:drop-shadow(0 0 1px #000)}
+    .c-line{right:8px}
+    .c-press{right:8px;bottom:8px}
+    .stage[data-hb-mode="inside"] .sec{position:relative}
+    .stage[data-hb-mode="inside"] .sec::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:rgba(244,244,242,.55)}
+    .stage[data-hb-mode="inside"] .sec.cur{box-shadow:inset 0 0 0 2px var(--ui-accent),inset 0 0 0 2000px rgba(255,255,255,.06)}
+    .stage[data-hb-mode="inside"] .sec.dest::after{content:"";position:absolute;inset:0;border:2px dashed var(--ui-accent)}
+    /* Compare: the sections twice, in two columns of the same scroll. The copy on the left has a menu that never lights;
+       the real sections and menu sit on the right. Every section keeps its Normal height (--h, measured), so the tops the
+       page compares with stay Normal's and the scroll is as long. */
+    .stage[data-hb-mode="compare"] .doc{overflow-anchor:none}
+    .stage[data-hb-mode="compare"] .cm-copy{display:block;position:absolute;left:0;top:0;width:50%}
+    .stage[data-hb-mode="compare"] .cm-rail{display:block}
+    .stage[data-hb-mode="compare"] #content{margin-left:50%}
+    .stage[data-hb-mode="compare"] .sec{height:var(--h);min-height:0;overflow:hidden;padding:40px 12px 12px 160px}
+    .stage[data-hb-mode="compare"] .sec h3{font-size:15px;margin-bottom:8px}
+    .stage[data-hb-mode="compare"] .sec p{font-size:12px;line-height:1.55;margin-bottom:8px}
+    .stage[data-hb-mode="compare"] .spy-nav{top:38px;left:calc(50% + 12px)}
+    .stage[data-hb-mode="compare"] .cm-rail .spy-nav{left:12px;background:rgba(17,17,20,.95);backdrop-filter:none}
+    @media(min-width:601px){.stage[data-hb-mode="compare"] .spy-link{padding:0 10px}}
+    /* The names take the top of both halves, so the menus start lower: on a short window the links are smaller, or the menu scrolls */
+    @media(min-width:601px) and (max-height:760px) and (pointer:fine){.stage[data-hb-mode="compare"] .spy-link{min-height:32px}}
+    @media(min-width:601px) and (max-height:760px) and (pointer:coarse){.stage[data-hb-mode="compare"] .spy-nav{max-height:calc(100cqh - 46px);overflow-y:auto;scrollbar-width:none}}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .spy-nav{top:36px;left:calc(50% + 4px);right:4px}
+      .stage[data-hb-mode="compare"] .cm-rail .spy-nav{left:4px;right:calc(50% + 4px)}
+      .stage[data-hb-mode="compare"] .sec{padding:98px 8px 8px}
+      .stage[data-hb-mode="compare"] .sec h3{font-size:14px}
+    }
+    .cm-band{position:absolute;left:3px;right:3px;top:3px;height:29px;background:rgba(11,11,13,.95)}
+    .cm-div{position:absolute;left:50%;top:3px;bottom:3px;width:2px;margin-left:-1px;background:#f4f4f2}
+    .cm-n1{top:8px;left:10px}
+    .cm-n2{top:8px;left:calc(50% + 10px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -73,16 +118,38 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box or pick a section in the menu, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="doc" id="doc" data-hb-scroller tabindex="0" role="region" aria-label="Documentation sections">
         <div class="spy-rail"><nav class="spy-nav" id="spy-nav" aria-label="Section navigation"><div class="spy-ind" id="spy-ind" aria-hidden="true"></div></nav></div>
         <div id="content"></div>
         <div class="runout"></div>
       </div>
+      <div class="fx" aria-hidden="true">
+        <div class="fx-in">
+          <i class="ln"></i>
+          <span class="cap c-line" data-hb-caption>Reading line</span>
+          <span class="cap c-lit" data-hb-caption>Lit: the last section top above the line</span>
+          <span class="cap c-press" data-hb-caption>A pressed link glides to its section</span>
+        </div>
+        <div class="fx-cmp">
+          <i class="cm-band"></i><i class="cm-div"></i>
+          <span class="cap cm-n1" data-hb-caption>Never lights</span>
+          <span class="cap cm-n2" data-hb-caption>Lights your section</span>
+        </div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed line is the reading line: the menu lights the last section whose top edge has passed above it. Scroll the box or press Play to watch.</p>
+      <p data-hb-for="compare" hidden>In Never lights the menu stays plain, so you cannot tell where you are; in Lights your section it marks the section you are reading. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -173,6 +240,30 @@
   });
   const links=[...nav.querySelectorAll('.spy-link')];
 
+  // Compare's left half: a copy of the sections and of the menu, made once, without ids, inert and hidden from screen readers.
+  // Its links are never lit and it has no marker.
+  const stage=document.querySelector('.stage'),rail=doc.querySelector('.spy-rail');
+  const cmCopy=document.createElement('div'),cmRail=rail.cloneNode(true);
+  cmCopy.className='cm-copy';secEls.forEach(el=>cmCopy.appendChild(el.cloneNode(true)));
+  cmRail.classList.add('cm-rail');
+  cmRail.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  cmRail.querySelector('.spy-ind').remove();cmRail.querySelector('nav').removeAttribute('aria-label');
+  [cmCopy,cmRail].forEach(el=>{el.inert=true;el.setAttribute('aria-hidden','true')});
+  rail.after(cmRail);doc.appendChild(cmCopy);
+
+  // The switch above the box: the page draws the mode at once
+  let mode='normal';
+  const LABELS={
+    normal:'Documentation sections',
+    inside:'Documentation sections with the reading line drawn and the current section outlined',
+    compare:'The documentation twice: with a menu that never lights, and with a menu that lights the section you are reading'
+  };
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    doc.setAttribute('aria-label',LABELS[mode]||LABELS.normal);
+    refit();
+  });
+
   // Cache tops in the scroller's content coordinates, measured against the scroller's own rect (the stage's border sits outside it).
   // offsetTop would depend on what sits between a section and the scroller.
   function measure(){
@@ -193,11 +284,15 @@
     if(nav.scrollWidth>nav.clientWidth)nav.scrollLeft=l.offsetLeft-(nav.clientWidth-l.offsetWidth)/2;
     if(nav.scrollHeight>nav.clientHeight)nav.scrollTop=l.offsetTop-(nav.clientHeight-l.offsetHeight)/2;
   }
+  // See inside outlines the current section, or the destination (dashed) while a link press holds the menu
+  function paint(){
+    secEls.forEach((el,i)=>{el.classList.toggle('cur',i===active&&targetLock<0);el.classList.toggle('dest',i===targetLock)});
+  }
   function setActive(i,instant){
     if(i===active)return;                 // guard: write DOM only on change
     if(instant)nav.classList.add('jump');
     if(active>-1){links[active].classList.remove('on');links[active].removeAttribute('aria-current')}
-    links[i].classList.add('on');links[i].setAttribute('aria-current','true');active=i;
+    links[i].classList.add('on');links[i].setAttribute('aria-current','true');active=i;paint();
     moveInd(i);showInMenu(i);
     if(instant){void nav.offsetWidth;nav.classList.remove('jump')}
   }
@@ -218,10 +313,10 @@
 
   // A link press glides the box to its section by setting scrollTop on every frame (not the browser's own smooth scroll),
   // so Play, Back to top and the visitor can end the glide at once
-  function stopGlide(){cancelAnimationFrame(glideFrame);glideFrame=0;targetLock=-1}
+  function stopGlide(){cancelAnimationFrame(glideFrame);glideFrame=0;targetLock=-1;paint()}
   function endGlide(){if(targetLock>-1){stopGlide();spy()}}   // the marker follows the scroll position again
   function glideTo(i,to){
-    stopGlide();targetLock=i;
+    stopGlide();targetLock=i;paint();
     const from=doc.scrollTop,dist=to-from,dur=Math.min(700,Math.max(250,Math.abs(dist)/2));
     let t0=0,written=from;
     function step(now){
@@ -263,13 +358,63 @@
       pick(b.dataset);
     }));
   }
-  choices('act-seg',d=>{activation=+d.act;spy()});
+  choices('act-seg',d=>{activation=+d.act;spy();drawFx()});
+  smoothTog.addEventListener('change',drawFx);
+  reduced.addEventListener('change',drawFx);
 
   // Sizes change with the window and once the site font has loaded: measure again and forget the cached marker height
   function remeasure(){
+    if(mode==='compare')fit();
     measure();indH=-1;
     if(active>-1){moveInd(active);showInMenu(active)}
-    spy();
+    spy();drawFx();
+  }
+
+  // Compare keeps every section at exactly its Normal height: measure them with Normal's rules, then put the mode back
+  function fit(){
+    const m=stage.getAttribute('data-hb-mode');
+    stage.setAttribute('data-hb-mode','normal');
+    const H=secEls.map(el=>el.getBoundingClientRect().height);
+    stage.setAttribute('data-hb-mode',m);
+    secEls.forEach((el,i)=>{el.style.setProperty('--h',H[i]+'px');cmCopy.children[i].style.setProperty('--h',H[i]+'px')});
+  }
+  // A new mode changes the menu's size: measure the tops again and put the marker where it belongs without sliding it
+  function refit(){
+    if(mode==='compare')fit();
+    measure();
+    nav.classList.add('jump');indH=-1;
+    if(active>-1){moveInd(active);showInMenu(active)}
+    void nav.offsetWidth;nav.classList.remove('jump');
+    paint();drawFx();
+  }
+
+  // See inside: the reading line sits where the page compares the headings with, at the setting's share of the box's height
+  // (on a phone no higher than just under the strip), and the labels sit around it in the layer outside the scroller
+  const $=q=>stage.querySelector(q);
+  const ln=$('.ln'),cLine=$('.c-line'),cLit=$('.c-lit'),cPress=$('.c-press');
+  function drawFx(){
+    if(mode!=='inside')return;
+    const H=doc.clientHeight,r=doc.getBoundingClientRect(),nr=nav.getBoundingClientRect();
+    const phone=matchMedia('(max-width:600px)').matches;
+    const navB=Math.min(nr.bottom-r.top,H),navR=nr.right-r.left;
+    const y=Math.max(H*activation,phone?navB+8:0);
+    ln.style.top=y+'px';ln.style.left=(phone?0:navR+10)+'px';
+    cPress.textContent=smoothTog.checked&&!reduced.matches?'A pressed link glides to its section':'A pressed link jumps to its section';
+    cLit.classList.remove('wrap');cLit.style.width='';
+    if(phone){
+      cLine.style.top=(y+4)+'px';
+      cLit.style.left='8px';
+      const top=navB+6;
+      cLit.style.top=(top+cLit.offsetHeight>y-6?y+8+cLine.offsetHeight:top)+'px';
+      return;
+    }
+    cLine.style.top=Math.max(y-cLine.offsetHeight-4,2)+'px';
+    cLit.classList.add('wrap');cLit.style.width=nr.width+'px';cLit.style.left=(nr.left-r.left)+'px';
+    if(navB+8+cLit.offsetHeight<=H-8)cLit.style.top=(navB+8)+'px';
+    else{
+      cLit.classList.remove('wrap');cLit.style.width='';
+      cLit.style.left=(navR+10)+'px';cLit.style.top=(y+8)+'px';
+    }
   }
   addEventListener('resize',remeasure);
   measure();spy();

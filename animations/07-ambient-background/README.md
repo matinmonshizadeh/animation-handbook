@@ -29,6 +29,9 @@ Passive, looping effects that hold visual interest without demanding attention. 
 | [Topographic Lines](topographic-lines/) | Lines like those on a hiking map slowly bend and drift. Best for outdoor brands. |
 | [Light Rays](light-rays/) | Soft beams of light fall from above and slowly sweep across. Best for hero intros. |
 | [Game of Life](game-of-life/) | Cells live and die by their neighbors, and patterns grow. Best for tech sites. |
+| [Ken Burns Effect](ken-burns/) | Photos slowly zoom and pan, then fade into the next. Best for hero slideshows. |
+| [Fire Effect](fire-effect/) | Flames flicker and rise as heat climbs and cools. Best for game and event pages. |
+| [Lightning](lightning/) | Jagged bolts strike from the clouds and light up the sky. Best for dramatic intros. |
 
 ## The ambient mindset
 
@@ -46,10 +49,10 @@ Passive, looping effects that hold visual interest without demanding attention. 
 
 | Approach | Used by |
 |----------|---------|
-| Pure CSS keyframes | Animated gradient, mesh gradient, aurora, breathing glow, scanline, wave layers |
+| Pure CSS keyframes | Animated gradient, mesh gradient, aurora, breathing glow, scanline, wave layers, Ken Burns (the script only sets each photo's start and end framing) |
 | CSS transition + JS timers | Light leak (random timing) |
 | JS moving elements with `transform` | Floating elements, grid parallax (pointer events and a slow drift) |
-| Canvas 2D | Grain (or an SVG noise filter), starfield, ambient ripple, abstract geometric, particle constellation, flow field, synthwave grid, matrix rain, plasma, snow and rain, fireworks, topographic lines, light rays, game of life |
+| Canvas 2D | Grain (or an SVG noise filter), starfield, ambient ripple, abstract geometric, particle constellation, flow field, synthwave grid, matrix rain, plasma, snow and rain, fireworks, topographic lines, light rays, game of life, fire effect, lightning |
 
 ## See also
 - [06 — 3D & Advanced](../06-3d-advanced/) — GPU-intensive effects; WebGL shaders and particles
