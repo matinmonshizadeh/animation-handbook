@@ -31,7 +31,51 @@
     .card-icon{font-size:32px;margin-bottom:14px;opacity:.6}
     .card-title{font-size:clamp(16px,2.4vw,21px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
-    @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important;transform:none!important}}
+    /* See inside and Compare. Their labels are plain words on a dark backing. */
+    .stage{position:relative}
+    .half,.fig,.side,.when{display:none}
+    .cap{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the card (its hinge line drawn on it) beside a small drawing of the swing, with its words under it. The drawing is
+       made of the page's own numbers: the card as a thick line turning on a dot, its start dashed, an arc to flat with a tick for each
+       tenth of the time (the Feel's own curve), and an eye whose distance follows 3D depth. The thick line turns with the card. */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr);
+      align-items:center;gap:clamp(8px,3vw,28px);padding:clamp(8px,2vw,20px)}
+    .stage[data-hb-mode="inside"] .card{position:relative;justify-self:center;width:min(280px,100%)}
+    .stage[data-hb-mode="inside"] .card::before,.stage[data-hb-mode="inside"] .card::after{content:'';position:absolute;z-index:-1;opacity:.75;background:var(--ui-accent);display:none}
+    .stage[data-hb-mode="inside"] .card[data-hv]::before{display:block;top:-6px;bottom:-6px;left:var(--hx);width:2px;margin-left:-1px}
+    .stage[data-hb-mode="inside"] .card[data-hh]::after{display:block;left:-6px;right:-6px;top:var(--hy);height:2px;margin-top:-1px}
+    .stage[data-hb-mode="inside"] .fig{display:flex;flex-direction:column;align-items:flex-start;gap:4px;height:100%;min-height:0;min-width:0}
+    .fig-box{flex:1 1 0;min-height:0;align-self:stretch;position:relative}
+    .fig-box svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);overflow:visible}
+    .fig-r::before{content:'';display:inline-block;width:14px;border-top:2px solid var(--ui-accent);margin-right:7px;vertical-align:middle}
+    .fig-r[data-k="start"]::before{border-top:2px dashed #f4f4f2}.fig-r[data-k="ticks"]::before{border-top:3px dotted #f4f4f2}.fig-r[data-k="eye"]::before{display:none}
+    .fa,.fs,.ft,.fc,.fe{fill:none;stroke:#f4f4f2}.fa{stroke-opacity:.45;stroke-width:1.5}.fs{stroke-width:1.5;stroke-dasharray:4 4}
+    .ft,.fe{stroke-width:2;stroke-linecap:round}.fc{stroke-opacity:.3;stroke-dasharray:2 4}.fdot{fill:#f4f4f2}
+    .blade{stroke:var(--ui-accent);stroke-width:6;stroke-linecap:round;transform:rotate(var(--ba,-90deg));transform-origin:115px 100px;
+      transition:transform var(--dur) var(--ease)}
+    .blade.in{transform:rotate(0deg)}
+    /* Compare: No depth, a copy of the card in a box with no 3D space, so its turn is a flat squash; With depth, the card itself, whose
+       3D space is the stage's (its vanishing point set to the card's middle by the script). Between plays both are held a fifth of a
+       second in, with those words under them (their row is kept while hidden, so the cards do not move when they show). */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto;
+      align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:44px clamp(8px,2vw,24px) 8px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .half{display:flex;grid-area:1/1;justify-content:center;width:100%}
+    .stage[data-hb-mode="compare"] .card{grid-area:1/2}
+    .stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .when{display:block}
+    .side{position:absolute;top:10px}.side.first{left:12px}.side.second{left:calc(50% + 12px)}
+    .when{grid-area:2/1/3/3;margin-top:8px;text-align:center;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .card{transform:rotateY(var(--py)) rotateX(var(--px))!important;opacity:var(--po)!important;transition:none!important}
+    @media(max-width:600px){.fig-tk{display:none}.side.first{left:8px}.side.second{left:calc(50% + 8px)}}
+    /* Phones and short boxes (a window up to 640px tall gives a box of 310px or less): compact cards, icon and title only */
+    @media(max-width:600px),(max-height:640px){
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:14px 16px;width:min(100%,150px)}
+      .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
+      .stage[data-hb-mode="inside"] .card-icon,.stage[data-hb-mode="compare"] .card-icon{font-size:22px;margin-bottom:6px}
+      .cap{font-size:12px;padding:2px 6px}
+    }
+    @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important;transform:none!important}.blade{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -54,17 +98,38 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="half" aria-hidden="true"></div>
       <div class="card" id="card">
         <div class="card-icon">⬡</div>
         <div class="card-title">3D Flip</div>
         <div class="card-sub">The depth comes from the space around the card. Without it, the turn looks like a flat squash.</div>
       </div>
+      <div class="fig" aria-hidden="true">
+        <p class="cap fig-t" id="f-title" data-hb-caption>From above</p>
+        <div class="fig-box"><svg id="fsvg" viewBox="0 0 230 204"><g id="frot"><g id="fx"></g><line class="blade" id="bl" y1="100" y2="100"/><circle class="fdot" cx="115" cy="100" r="5.5"/></g></svg></div>
+        <p class="cap fig-r" data-k="hinge" id="f-hinge" data-hb-caption>Hinge: through the middle</p>
+        <p class="cap fig-r" data-k="start" id="f-start" data-hb-caption>Starts a quarter turn away, see-through</p>
+        <p class="cap fig-r" data-k="eye" id="f-eye" data-hb-caption>Your eye: at arm's length</p>
+        <p class="cap fig-r fig-tk" data-k="ticks" id="f-ticks" data-hb-caption>Ticks: each tenth of the time; it turns in about half a second</p>
+      </div>
+      <p class="cap side first" aria-hidden="true" data-hb-caption>No depth</p>
+      <p class="cap side second" aria-hidden="true" data-hb-caption>With depth</p>
+      <p class="cap when" id="f-when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the small drawing shows the card from above: it starts turned away and swings on its hinge to face you. The closer your eye, the deeper the turn looks.</p>
+      <p data-hb-for="compare" hidden>No depth has no 3D space around it, so its turn is a flat squash; With depth swings in real depth. With Loop off, both rest a fifth of a second in.</p>
     </div>
   </section>
 
@@ -181,12 +246,22 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
-  const card=document.getElementById('card');
+  const card=document.getElementById('card'),stage=card.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const fadeTog=document.getElementById('fade-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let axis='Y',origin='center',ms=600,rot=90,persp='1000px',ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own), the moment Compare holds,
+  // the card's length in the drawing, the drawing's middle (the hinge) and how far the eye sits for each 3D depth.
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1],'cubic-bezier(.34,1.56,.64,1)':[.34,1.56,.64,1]};
+  const POSE_MS=200,L=84,CX=115,CY=100,EYE={'2000px':84,'1000px':64,'400px':44};
+  const $=id=>document.getElementById(id),svgBox=$('fsvg').parentElement,blade=$('bl');
+  // Compare's first card: a copy of the card, out of reach of the keyboard and screen readers, in a box with no 3D space
+  const twin=card.cloneNode(true);
+  twin.removeAttribute('id');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  stage.querySelector('.half').append(twin);
+  let mode='normal',poseOn=false,falling=false,VB=[230,204];
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -198,36 +273,50 @@
     vars.setProperty('--dur',dur()+'ms');
     vars.setProperty('--ease',ease);
     vars.setProperty('--persp',persp);
-    card.style.opacity=fadeTog.checked?'':'1';
+    [card,twin].forEach(c=>c.style.opacity=fadeTog.checked?'':'1');
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  // the card, its copy and the drawing's thick line turn together
+  function setIn(on){[card,twin,blade].forEach(e=>e.classList.toggle('in',on))}
   function flipIn(){
     // snap back to the starting pose without a transition so every play starts from the beginning
-    card.style.setProperty('transition','none','important');
-    card.classList.remove('in');void card.offsetWidth;
-    card.style.removeProperty('transition');
-    card.classList.add('in');
+    [card,twin,blade].forEach(e=>e.style.setProperty('transition','none','important'));
+    setIn(false);void card.offsetWidth;
+    [card,twin,blade].forEach(e=>e.style.removeProperty('transition'));
+    setIn(true);
   }
+  // Compare's held moment comes back once a play is over (the reduced fade is 300ms), if Compare is still on show
+  function holdLater(){later(()=>{if(mode==='compare')pose(true)},(motionOk?dur():300)+700)}
   // One play flips in. While Loop is on it then holds, flips out, waits and plays again;
   // switching Loop off lets the card finish facing forward. Slow motion stretches the flips, not the waits.
+  // A play lifts Compare's hold (under reduced motion too: it plays the short fade), which comes back after it.
   function cycle(){
-    apply();flipIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();pose(false);
+    falling=loopTog.checked&&motionOk;
+    flipIn();
+    if(!falling){if(mode==='compare')holdLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  // Loop off: a play in its hold ends there (and in Compare is then held); one flipping out or waiting plays on, flips in once more
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(card.classList.contains('in')){falling=false;if(mode==='compare')holdLater()}
+    refresh();
+  });
+  slowTog.addEventListener('change',refresh);fadeTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('axis-seg',d=>{axis=d.axis});
@@ -237,6 +326,94 @@
   choices('persp-seg',d=>{persp=d.persp});
   choices('feel-seg',d=>{ease=d.ease});
   apply();
+
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
+  // Compare's still moment: a fifth of a second in. Where the card would then be close to edge-on (within 25 degrees) or nearly
+  // facing you (under 12), the squash and the depth would not show: it is held instead at the first moment it is 45 degrees from
+  // facing you (30 for a little turn). p is the share of the swing done by then; turn is that angle, or 0 for the fifth of a second.
+  function moment(){
+    const cv=CURVES[ease],ang=x=>rot*(1-curveAt(cv,x));
+    let x=Math.min(1,POSE_MS/dur()),a=ang(x),turn=Math.abs(a-90)<25||a<12?(rot>45?45:30):0;
+    if(turn)for(x=0;x<1&&ang(x)>turn;x+=.005);
+    return {p:curveAt(cv,x),when:{0:'a fifth of a second in',45:'an eighth of a turn from facing you',30:'a twelfth of a turn from facing you'}[turn]};
+  }
+  function pose(on){
+    poseOn=on;stage.classList.toggle('posed',on);
+    if(!on)return;
+    const {p,when}=moment(),k=1-p,v=stage.style;
+    v.setProperty('--py',(axis==='X'?0:rot*k)+'deg');v.setProperty('--px',(axis==='Y'?0:rot*k)+'deg');
+    v.setProperty('--po',fadeTog.checked?Math.min(1,Math.max(0,p)).toFixed(3):1);
+    $('f-when').textContent=when[0].toUpperCase()+when.slice(1);
+  }
+  // The drawing, in its own numbers. Seen from above (Sideways, Diagonal) the card is a line along the page and swings away from you;
+  // seen from the side (Up and down) the same picture is turned a quarter, so the card's top is the end that swings away. The hinge
+  // sits where the page's hinge line is: a middle line, or the left, top or bottom edge. The eye is at one of three distances.
+  function drawFig(){
+    const side=axis==='X',diag=axis==='both';
+    const f=side?(/^top/.test(origin)?1:/^bottom/.test(origin)?0:.5):(/^left/.test(origin)?0:.5);
+    const a=-L*f,b=L*(1-f),s=b>=-a?1:-1,r=Math.max(-a,b),T=rot*Math.PI/180,e=EYE[persp],n=v=>v.toFixed(1);
+    const pt=(l,t,o=0)=>n(CX+l*Math.cos(t)+o*Math.sin(t))+' '+n(CY-l*Math.sin(t)+o*Math.cos(t));
+    let ticks='';
+    for(let i=1;i<=10;i++){const t=rot*(1-curveAt(CURVES[ease],i/10))*Math.PI/180;ticks+=`M${pt(s*(r+4),t)}L${pt(s*(r+10),t)}`}
+    $('frot').setAttribute('transform',side?`rotate(-90 ${CX} ${CY})`:'');
+    // the drawing's window closes in on what it holds: the card's farthest reach (and the ticks) and the eye
+    const R=r+12;VB=side?[R+e+12,2*R]:[2*R,R+e+12];
+    $('fsvg').setAttribute('viewBox',`${CX-R} ${CY-R} ${VB[0]} ${VB[1]}`);
+    $('fsvg').style.setProperty('--ba',-rot+'deg');
+    blade.setAttribute('x1',CX+a);blade.setAttribute('x2',CX+b);
+    $('fx').innerHTML=`<path class="fa" d="M${pt(s*r,T)}A${r} ${r} 0 0 1 ${CX+s*r} ${CY}"/><path class="fs" d="${[-5,5].map(o=>`M${pt(a,T,o)}L${pt(b,T,o)}`).join('')}"/>`+
+      `<path class="ft" d="${ticks}"/><path class="fc" d="M${CX+a} ${CY}L${CX} ${CY+e}L${CX+b} ${CY}"/>`+
+      `<g transform="translate(${CX} ${CY+e})"><path class="fe" d="M-11 0Q0-10 11 0Q0 10-11 0Z"/><circle class="fe" r="3.5"/></g>`;
+    // the true hinge line on the card
+    card.toggleAttribute('data-hv',!side);card.toggleAttribute('data-hh',axis!=='Y');
+    card.style.setProperty('--hx',/^left/.test(origin)?'0%':'50%');
+    card.style.setProperty('--hy',/^top/.test(origin)?'0%':/^bottom/.test(origin)?'100%':'50%');
+    const edge=side?(f===1?'top':f===0?'bottom':''):(f===0?'left':'');
+    $('f-title').textContent=side?'From the side':diag?'From above (it also tips forward)':'From above';
+    $('f-hinge').textContent=diag?'Hinge: both lines it turns on':'Hinge: '+(edge?`the card's ${edge} edge`:'through the middle');
+    $('f-start').textContent=['Starts turned a little','Starts a quarter turn away','Starts facing away'][rot===45?0:rot===90?1:2]+(fadeTog.checked?', see-through':', solid');
+    $('f-eye').textContent='Your eye: '+{'2000px':'far away, a gentle turn','1000px':"at arm's length",'400px':'close up, a deep turn'}[persp];
+    $('f-ticks').textContent='Ticks: each tenth of the time; it turns in '+words(dur());
+  }
+  // The notes say what the box shows now (the markup's own words for the defaults); under reduced motion they say it is still
+  function notes(){
+    const view=axis==='X'?'the side':'above',when=moment().when;
+    document.querySelector('[data-hb-for="inside"]').textContent=motionOk
+      ?`Inside, the small drawing shows the card from ${view}: it starts turned away and swings on its hinge to face you. The closer your eye, the deeper the turn looks.`
+      :`Shown still: the small drawing shows the card from ${view}, turned away at the start and swinging on its hinge to face you; the eye marks how close you are.`;
+    document.querySelector('[data-hb-for="compare"]').textContent=motionOk
+      ?`No depth has no 3D space around it, so its turn is a flat squash; With depth swings in real depth. With Loop off, both rest ${when}.`
+      :`Shown still, ${when}: No depth is a flat, squashed card, while With depth leans back in real depth.`;
+  }
+  // The drawing fills the room it has; the stage's vanishing point follows the card (Normal keeps the middle, where the card is)
+  function fit(){
+    const W=svgBox.clientWidth,H=svgBox.clientHeight,k=Math.min(W/VB[0],H/VB[1],1.5),sv=$('fsvg').style;
+    if(W&&H){sv.width=VB[0]*k+'px';sv.height=VB[1]*k+'px'}
+    stage.style.perspectiveOrigin=mode==='normal'?'':`${card.offsetLeft+card.offsetWidth/2}px ${card.offsetTop+card.offsetHeight/2}px`;
+  }
+  function refresh(){drawFig();notes();fit();if(poseOn)pose(true)}
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    // Leaving Compare's held moment shows the cards as they now are, at once, with no turn (a play under way goes on)
+    if(was==='compare'&&mode!=='compare'&&poseOn){
+      [card,twin].forEach(c=>c.style.setProperty('transition','none','important'));pose(false);void card.offsetWidth;
+      [card,twin].forEach(c=>c.style.removeProperty('transition'));
+    }
+    pose(mode==='compare'&&!(loopTog.checked&&motionOk));
+    refresh();
+  });
+  // The box changes size with the window, and its words with the site font once it has loaded
+  const redraw=new ResizeObserver(fit);redraw.observe(stage);redraw.observe(svgBox);
+  refresh();
 </script>
 </body>
 </html>
