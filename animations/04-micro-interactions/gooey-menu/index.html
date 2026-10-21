@@ -31,7 +31,7 @@
     .gm{position:absolute;left:50%;top:50%;transform:translate(var(--mx),var(--my));transition:transform var(--dur) cubic-bezier(.65,0,.35,1)}
     .gm-goo{position:absolute;left:var(--bx);top:var(--by);width:var(--bw);height:var(--bh);filter:url(#gm-f)}
     .gm-o{position:absolute;left:calc(var(--bx)*-1);top:calc(var(--by)*-1)}
-    .gm-goo i,.gm-main,.gm-it{position:absolute;--h:calc(var(--s)/-2);left:var(--h);top:var(--h);width:var(--s);height:var(--s);border-radius:50%}
+    .gm-goo i,.gm-rings i,.gm-main,.gm-it{position:absolute;--h:calc(var(--s)/-2);left:var(--h);top:var(--h);width:var(--s);height:var(--s);border-radius:50%}
     .gm-mb,.gm-main{--s:var(--d);transition:scale .2s}
     .gm-goo i{background:var(--goo)}
     .gm-b,.gm-t,.gm-it{--out:calc(var(--i)*var(--stag));--back:calc((2 - var(--i))*var(--stag))}
@@ -68,12 +68,54 @@
     .gm-say::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--goo)}.gm-say.show{opacity:1;transform:translate(-50%,0);transition-delay:calc(var(--dur)*.6)}
     .gm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.gm-defs{position:absolute;width:0;height:0}
     .gm-still,.gm-still *{transition:none!important}
+    /* See inside and Compare rest on a pose while the menu is closed and idle: caught part way out, each drop a little past half way
+       (--pf: further in the arc, whose drops part sideways) and a little smaller and its tail a third of the way, so the necks show
+       in a still picture. The script snaps it in and out; it lifts the moment the menu opens, and the drops pop on out from there. */
+    .stage[data-hb-mode="inside"] .gm-pose :is(.gm-b,.gm-it),.stage[data-hb-mode="compare"] .gm-pose :is(.gm-b,.gm-it){transform:translate(calc(var(--x)*var(--pf)),calc(var(--y)*var(--pf))) scale(.8)}
+    .stage[data-hb-mode="inside"] .gm-pose .gm-t,.stage[data-hb-mode="compare"] .gm-pose .gm-t{transform:translate(calc(var(--x)*.33),calc(var(--y)*.33)) scale(.5)}
+    /* See inside: the liquid at half strength, and over it the plain circles as rings, the tails dashed: a copy of the circles inside
+       the menu, so the same classes move it in step. A key the script places beside the menu, or above it. */
+    .gm-rings,.gm-copy,.gm-key,.gm-name{display:none}
+    .gm-rings{position:absolute;left:var(--bx);top:var(--by);pointer-events:none}
+    .gm-rings i{border:2.5px solid rgba(244,244,242,.9)}.gm-rings .gm-t{border-style:dashed}
+    .stage[data-hb-mode="inside"] .gm-rings{display:block}
+    .stage[data-hb-mode="inside"] .gm-goo{opacity:.5}
+    .stage[data-hb-mode="inside"]::before{background:radial-gradient(circle at var(--gx) var(--gy),color-mix(in srgb,var(--goo) 16%,transparent),transparent 58%)}
+    .stage[data-hb-mode="inside"] .gm-key{display:flex}
+    .gm-key{position:absolute;flex-direction:column;align-items:flex-start;gap:6px}
+    .gm-lbl,.gm-lbl>span{padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.9)}.gm-lbl{color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* A label with two wordings (the second while the buttons only fade in, under reduced motion) keeps the size of the longer one,
+       so the key never changes size when the menu opens or closes */
+    .gm-lbl:has(>span){display:grid;padding:0;background:none}.gm-lbl>span{grid-area:1/1;justify-self:start;align-self:start}.gm-lbl>span:last-child,.gm-lbl.alt>span:first-child{visibility:hidden}.gm-lbl.alt>span:last-child{visibility:visible}
+    /* Compare: No goo, a copy of the menu with no filter and no tails (inert, moved by the same classes as the real one) in the first
+       half, the real menu in the second; side by side, or one over the other where a half is too narrow for the layout */
+    .stage[data-hb-mode="compare"] .gm-copy,.stage[data-hb-mode="compare"] .gm-name{display:block}
+    .gm-copy .gm-goo{filter:none}.stage:not(.gm-xray) .gm-copy .gm-goo .gm-t{display:none}
+    .gm-name{position:absolute;left:10px;top:10px;white-space:nowrap}.gm-name.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="compare"].gm-stack .gm-name.second{left:10px;top:calc(50% + 10px)}
+    /* Stacked, the pill that says Liked is slimmer, so it stays clear of the top drop of the posed menu below it */
+    .stage[data-hb-mode="compare"].gm-stack .gm-say{padding:4px 12px 4px 10px;font-size:13px}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.16)}
+    .stage[data-hb-mode="compare"].gm-stack::after{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px}
+    .stage[data-hb-mode="compare"]::before{background:radial-gradient(circle,color-mix(in srgb,var(--goo) 16%,transparent),transparent 58%) 0 0/50% 100% no-repeat,
+      radial-gradient(circle,color-mix(in srgb,var(--goo) 16%,transparent),transparent 58%) 100% 0/50% 100% no-repeat}
+    .stage[data-hb-mode="compare"].gm-stack::before{background-size:100% 50%;background-position:0 0,0 100%}
+    /* A hover or a press on a real button reaches the copy's circle too */
+    @media(hover:hover){.stage[data-hb-mode="compare"]:has(#gm [data-k="m"]:hover) .gm-copy [data-k="m"],.stage[data-hb-mode="compare"]:has(#gm [data-k="0"]:hover) .gm-copy [data-k="0"],
+      .stage[data-hb-mode="compare"]:has(#gm [data-k="1"]:hover) .gm-copy [data-k="1"],.stage[data-hb-mode="compare"]:has(#gm [data-k="2"]:hover) .gm-copy [data-k="2"]{scale:1.08}}
+    .stage[data-hb-mode="compare"]:has(#gm [data-k="m"]:is(.down,:active)) .gm-copy [data-k="m"],.stage[data-hb-mode="compare"]:has(#gm [data-k="0"]:is(.down,:active)) .gm-copy [data-k="0"],
+    .stage[data-hb-mode="compare"]:has(#gm [data-k="1"]:is(.down,:active)) .gm-copy [data-k="1"],.stage[data-hb-mode="compare"]:has(#gm [data-k="2"]:is(.down,:active)) .gm-copy [data-k="2"]{scale:.9}
+    @media(max-width:600px){.gm-lbl,.gm-lbl>span{padding:2px 7px}.gm-lbl{font-size:12px}}
     /* Reduced motion: nothing travels. The circles and buttons wait at their places and fade in and out, with no filter and no tails. */
     @media(prefers-reduced-motion:reduce){
       .gm,.gm-main svg,.stage::before{transition:none}.gm-goo{filter:none}.gm-t{display:none}.gm-mb{animation:none!important}[data-k]{scale:none!important}
       .gm-b,.gm-it,.open :is(.gm-b,.gm-it){transform:translate(var(--x),var(--y))}
       .gm-b,.gm-it{opacity:0;transition:opacity .2s,visibility 0s .2s}.open :is(.gm-b,.gm-it){opacity:1;transition:opacity .2s}
       .gm-say,.gm-say.show{transform:translate(-50%,0);transition:opacity .25s .15s}.gm-say{transition-delay:0s}
+      /* The views' pose keeps the filter (never the copy's), the tails and the drops, so the still picture shows the liquid */
+      .stage[data-hb-mode="inside"]:not(.gm-xray) .gm-pose:not(.gm-copy)>.gm-goo,.stage[data-hb-mode="compare"]:not(.gm-xray) .gm-pose:not(.gm-copy)>.gm-goo{filter:url(#gm-f)}
+      .stage[data-hb-mode="inside"] .gm-pose .gm-t,.stage[data-hb-mode="compare"] .gm-pose .gm-t{display:block}
+      .stage[data-hb-mode="inside"] .gm-pose .gm-b,.stage[data-hb-mode="compare"] .gm-pose .gm-b{opacity:1}
     }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -97,6 +139,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the round button to open the menu and again to close it, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage">
       <div class="gm" id="gm">
         <div class="gm-goo" aria-hidden="true"><div class="gm-o">
@@ -114,10 +161,17 @@
       <p class="gm-say" id="gm-say" aria-hidden="true"></p>
       <p class="gm-sr" id="gm-sr" role="status"></p>
       <svg class="gm-defs" aria-hidden="true" focusable="false"><filter id="gm-f" color-interpolation-filters="sRGB"><feGaussianBlur id="gm-blur" stdDeviation="9"/><feColorMatrix id="gm-cm" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter></svg>
+      <div class="gm-key" aria-hidden="true"><span class="gm-lbl" data-hb-caption>Rings: plain circles move underneath</span><span class="gm-lbl" data-hb-caption><span>Dashed rings: tails trail behind</span><span>Tails: hidden while buttons fade in</span></span><span class="gm-lbl" data-hb-caption><span>Medium blur, then sharpened: touching circles melt</span><span>No blur while the buttons fade in, so nothing melts</span></span><span class="gm-lbl" data-hb-caption>Pops out in about half a second</span></div>
+      <p class="gm-lbl gm-name" aria-hidden="true" data-hb-caption>No goo</p>
+      <p class="gm-lbl gm-name second" aria-hidden="true" data-hb-caption>Gooey</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the rings are the plain circles that move underneath; a blur and then a sharpen melt the ones that touch into one liquid shape. Press the round button, or Show me.</p>
+      <p data-hb-for="compare" hidden>No goo: the same circles pop out as separate dots; Gooey: where they touch they melt together and stretch like liquid. Press the round button, or Show me.</p>
     </div>
   </section>
 
@@ -218,35 +272,77 @@
 <script>
   const $=id=>document.getElementById(id),set=(el,name,v)=>el.style.setProperty(name,v),root=document.documentElement;
   const stage=$('stage'),gm=$('gm'),main=$('gm-main'),mb=$('gm-mb'),group=$('gm-items'),say=$('gm-say'),slowTog=$('slow-tog');
-  const items=[...stage.querySelectorAll('.gm-it')],blobs=[...stage.querySelectorAll('.gm-b')],tails=[...stage.querySelectorAll('.gm-t')];
+  const items=[...stage.querySelectorAll('.gm-it')];
   const reduceMq=matchMedia('(prefers-reduced-motion:reduce)'),phoneMq=matchMedia('(max-width:600px),(max-height:500px)');
   // Where each small button settles, from the round button's center, in units of a menu with a 64-unit round button, 50-unit small
   // ones and 20-unit gaps (77 = 32 + 20 + 25 to the first, 70 = 50 + 20 to each next one; the arc's radius is 84).
   const PLACES={row:[[77,0],[147,0],[217,0]],arc:[[-72.7,-42],[0,-84],[72.7,-42]],col:[[0,-77],[0,-147],[0,-217]]};
   let lay='arc',goo=9,dur=600,stag=60,flip=false,moving=null,runTimers=[],sayTimer=0,boxTimer=0;
+  // See inside and Compare: the mode on show, the mode place() last drew for, and two copies made once, with no ids, names or buttons,
+  // inert and hidden from screen readers: See inside's rings (the goo layer's circles, unfiltered, inside the menu so the same classes
+  // move them in step) and Compare's No goo (the whole menu, its buttons turned into plain shapes with the same classes and places).
+  let mode='normal',placed='normal',poseTimer=0;
+  const copy=gm.cloneNode(true),rings=gm.querySelector('.gm-goo').cloneNode(true);
+  rings.className='gm-rings';gm.querySelector('.gm-goo').after(rings);copy.classList.add('gm-copy');
+  copy.querySelectorAll('button').forEach(b=>{const s=document.createElement('span');s.className=b.className;s.style.cssText=b.style.cssText;s.dataset.k=b.dataset.k;s.append(...b.childNodes);b.replaceWith(s)});
+  [copy,rings].forEach(c=>{[c,...c.querySelectorAll('*')].forEach(el=>[...el.attributes].forEach(a=>{if(/^(id|role|inert|aria-|data-said)/.test(a.name))el.removeAttribute(a.name)}));c.inert=true;c.setAttribute('aria-hidden','true')});
+  gm.before(copy);
+  // Each small button's circle, tail and button in the menu and in both copies (place() gives them their spot), the big circles, the key
+  const parts=[0,1,2].map(i=>[...stage.querySelectorAll('.gm-b,.gm-t,.gm-it')].filter(el=>el.style.getPropertyValue('--i').trim()===String(i)));
+  const bigs=[...stage.querySelectorAll('.gm-mb')],keys=[...stage.querySelectorAll('.gm-key .gm-lbl')];
+  const still=el=>el.style.setProperty('transition','none','important'),go=el=>el.style.removeProperty('transition');
   // The open menu's box around the round button's center, in units: [left, right, top, bottom]
   const extent=name=>PLACES[name].reduce((b,[x,y])=>[Math.min(b[0],x-25),Math.max(b[1],x+25),Math.min(b[2],y-25),Math.max(b[3],y+25)],[-32,32,-32,32]);
+  // The unit k (Normal's own, from the stage) and, in the views, where the menu stands (px of the stage; none: the middle, as in Normal)
+  // and where the pill that says Liked goes. The views draw the menu as large as its box allows, up to 1.5. See inside: the key on the
+  // left and the menu beside it, or on a narrow stage the key above the menu (Column: on its left). Compare: the copy in the first half,
+  // the real menu in the second, side by side or, where a half is too narrow for the layout, one over the other; a narrow half keeps
+  // a strip at its top for its name.
+  function frame(){
+    const W=stage.clientWidth,H=stage.clientHeight,[l,r,t,b]=extent(lay),fit=(w,h)=>Math.min(1.5,(w-40)/(r-l),(h-40)/(b-t));
+    if(mode==='compare'){
+      const stack=lay!=='col'&&W/2<(r-l)*.88+28,top=!stack&&W/2<200?30:0;
+      stage.classList.toggle('gm-stack',stack);
+      return stack?{k:fit(W,H/2),c:[W/2,H*.75],q:[W/2,H/4],s:[W/2,H/2+8]}:{k:fit(W/2,H-top),c:[W*.75,(H+top)/2],q:[W/4,(H+top)/2],s:[W*.75,top?40:14]};
+    }
+    if(mode!=='inside')return{k:Math.min(1.2,(Math.min(W,H)-28)/274)};
+    const key=keys[0].parentElement,at=(x,y,w)=>{key.style.maxWidth=w+'px';key.style.left=x+'px';key.style.top=(y??(H-key.offsetHeight)/2)+'px'};
+    if(W>=540){at(12,null,Math.min(360,W*.4));const x=key.offsetWidth+24;return{k:fit(W-x,H),c:[(x+W)/2,H/2],s:[(x+W)/2,14]}}
+    if(lay==='col'){const k=fit(W,H),sw=(r-l)*Math.max(.88,k)+44;at(12,null,W-sw-24);return{k,c:[W-sw/2,H/2],s:[W-sw/2,14]}}
+    at(12,10,W-24);const kh=key.offsetHeight+20;
+    return{k:fit(W,H-kh),c:[W/2,kh+(H-kh)/2],s:[W/2,kh+4]};
+  }
   // A unit is k px: the longest layout (274 units) fits the stage with 14px to spare, from 0.88 (44px small buttons) to 1.2. The round button
   // sits where the open menu is centered. The filter works on the open menu's box and 22 units around it (on the old and the new layout's
   // boxes while the buttons move between them). The blur grows with the menu, a fifth lighter on phones; a bigger one gets a steeper alpha (m).
   function place(prev){
-    const k=Math.min(1.2,Math.max(.88,(Math.min(stage.clientWidth,stage.clientHeight)-28)/274)),px=v=>(v*k).toFixed(1)+'px';
+    const f=frame(),k=Math.max(.88,f.k),px=v=>(v*k).toFixed(1)+'px';
     if(prev&&prev!==lay){moving=[...new Set([...(moving||[]),prev,lay])];clearTimeout(boxTimer);boxTimer=setTimeout(()=>{moving=null;place()},travel(1.35)*(slowTog.checked?3:1)+200)}
     const e=extent(lay),blur=goo*k*(phoneMq.matches?.8:1),m=Math.max(20,blur*2.2);
     const r=(moving||[lay]).map(extent).reduce((a,c)=>[Math.min(a[0],c[0]),Math.max(a[1],c[1]),Math.min(a[2],c[2]),Math.max(a[3],c[3])]);
-    set(gm,'--d',px(64));set(gm,'--s',px(50));set(gm,'--mx',px(-(e[0]+e[1])/2));set(gm,'--my',px(-(e[2]+e[3])/2));
-    set(gm,'--bx',px(r[0]-22));set(gm,'--by',px(r[2]-22));set(gm,'--bw',px(r[1]-r[0]+44));set(gm,'--bh',px(r[3]-r[2]+44));
-    PLACES[lay].forEach(([x,y],i)=>[items[i],blobs[i],tails[i]].forEach(el=>{set(el,'--x',px(x));set(el,'--y',px(y))}));
+    // The menu glides to a new place only in Normal: in the views, and on the way back to Normal, it is there at once, as is a pose
+    const snap=[...(mode!=='normal'||placed!==mode?[gm,copy]:[]),...(gm.classList.contains('gm-pose')?stage.querySelectorAll('.gm-b,.gm-t,.gm-it'):[])];
+    placed=mode;snap.forEach(still);
+    [gm,copy].forEach(g=>{set(g,'--d',px(64));set(g,'--s',px(50));set(g,'--mx',px(-(e[0]+e[1])/2));set(g,'--my',px(-(e[2]+e[3])/2));
+      set(g,'--bx',px(r[0]-22));set(g,'--by',px(r[2]-22));set(g,'--bw',px(r[1]-r[0]+44));set(g,'--bh',px(r[3]-r[2]+44));set(g,'--pf',lay==='arc'?'.68':'.62')});
+    PLACES[lay].forEach(([x,y],i)=>parts[i].forEach(el=>{set(el,'--x',px(x));set(el,'--y',px(y))}));
+    [[gm,f.c],[copy,f.q],[say,f.s]].forEach(([el,p])=>{if(p){el.style.left=p[0]+'px';el.style.top=p[1]+'px'}else{el.style.removeProperty('left');el.style.removeProperty('top')}});
+    if(f.c){set(stage,'--gx',f.c[0]+'px');set(stage,'--gy',f.c[1]+'px')}
     $('gm-blur').setAttribute('stdDeviation',blur.toFixed(1));
     $('gm-cm').setAttribute('values','1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 '+m.toFixed(1)+' '+(.5-.475*m).toFixed(2));
+    if(snap.length){void stage.offsetWidth;snap.forEach(go)}
   }
   const isOpen=()=>gm.classList.contains('open');
   // The round button and Show me open and close the menu here. Closed, the small buttons are inert at once, so neither Tab nor a click
   // reaches one while it fades; the big circle swells once each time (p1 and p2 restart it).
   function setOpen(on){
     if(isOpen()===on)return;
-    gm.classList.toggle('open',on);group.inert=!on;main.setAttribute('aria-expanded',String(on));main.setAttribute('aria-label',on?'Close menu':'Open menu');
-    mb.classList.remove('p1','p2');mb.classList.add((flip=!flip)?'p1':'p2');if(on)hideSay();
+    // The copy follows; in the views the pose lifts as the menu opens and comes back, snapping, once the circles are back in
+    clearTimeout(poseTimer);if(on)[gm,copy].forEach(g=>g.classList.remove('gm-pose'));
+    gm.classList.toggle('open',on);copy.classList.toggle('open',on);group.inert=!on;main.setAttribute('aria-expanded',String(on));main.setAttribute('aria-label',on?'Close menu':'Open menu');
+    const p=(flip=!flip)?'p1':'p2';bigs.forEach(b=>{b.classList.remove('p1','p2');b.classList.add(p)});
+    if(on)hideSay();else if(mode!=='normal')poseTimer=setTimeout(pose,travel(1.35)*(slowTog.checked?3:1));
+    if(mode!=='normal')texts();
   }
   function hideSay(){clearTimeout(sayTimer);say.classList.remove('show')}
   // A small button does its job (here it only says so) and the menu closes; the focus, if it was on that button, goes back to the round one.
@@ -272,11 +368,13 @@
   const travel=f=>reduceMq.matches?200:dur*f+2*stag;
   // A run starts closed, put there without animating: the transitions go off, the menu closes, a reflow makes it stick, they come back
   function toRest(){
-    const els=[gm,main,...stage.querySelectorAll('.gm-goo i,.gm-it,.gm svg,.gm-say')];
+    const els=[gm,main,...stage.querySelectorAll('.gm-goo i,.gm-rings i,.gm-it,.gm svg,.gm-say')];
     els.forEach(el=>el.style.setProperty('transition','none','important'));
-    gm.classList.remove('open');group.inert=true;main.setAttribute('aria-expanded','false');main.setAttribute('aria-label','Open menu');
-    mb.classList.remove('p1','p2');hideSay();void stage.offsetWidth;
+    gm.classList.remove('open');copy.classList.remove('open');group.inert=true;main.setAttribute('aria-expanded','false');main.setAttribute('aria-label','Open menu');
+    // In the views the run starts from the pose
+    bigs.forEach(b=>b.classList.remove('p1','p2'));hideSay();clearTimeout(poseTimer);[gm,copy].forEach(g=>g.classList.toggle('gm-pose',mode!=='normal'));void stage.offsetWidth;
     els.forEach(el=>el.style.removeProperty('transition'));
+    if(mode!=='normal')texts();
   }
   // The round button is pressed at 250ms and opens the menu at 370ms. Once the drops are in place and 600ms have passed, Like is
   // pressed, the menu closes and says Liked. At Normal speed the stage is back at rest at about 3.8 s.
@@ -290,6 +388,49 @@
   // The visitor pressed, typed, scrolled, touched or tabbed into the stage: the run stops and the menu stays as it is
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
   stage.addEventListener('focusin',()=>{if(running())stopRun()});
+  // The views rest on the pose while the menu is closed (a run starts from it); it snaps in and out (no transitions for a moment)
+  function pose(){
+    clearTimeout(poseTimer);
+    const on=mode!=='normal'&&!isOpen();
+    if(on!==gm.classList.contains('gm-pose')){
+      const els=[...stage.querySelectorAll('.gm-b,.gm-t,.gm-it')];
+      els.forEach(still);[gm,copy].forEach(g=>g.classList.toggle('gm-pose',on));void stage.offsetWidth;els.forEach(go);
+    }
+    texts();
+  }
+  // The words that follow the settings: the key's blur and speed, and the notes while Shows the plain circles is on or the device asks
+  // for reduced motion (shown still while posed; the buttons fading in place while open); the markup's own words otherwise
+  const BLUR={5:'Light',9:'Medium',13:'Strong'};
+  const SAYS={950:['almost a second','almost three seconds'],600:['about half a second','almost two seconds'],380:['about a third of a second','over a second']};
+  const notes=[...document.querySelectorAll('[data-hb-for]')],NOTES=notes.map(n=>n.textContent);
+  const XRAY=['Inside, the rings are the plain circles that move underneath; Shows the plain circles is on, so the blur that melts them is off. Press the round button, or Show me.',
+    'Shows the plain circles is on, so No goo and Gooey look the same. Turn it off under More options to see the liquid.'];
+  const STILL=['Inside, shown still: the rings are the plain circles underneath, caught part way out; a blur and then a sharpen melt the ones that touch into one liquid shape.',
+    'Shown still: No goo has separate dots; Gooey has its drops caught part way out, melted together where they touch.'];
+  const FADES=['Inside, with reduced motion the buttons fade in at their places, so no liquid joins the rings. Close the menu to see them caught part way out.',
+    'With reduced motion the buttons fade in at their places, so No goo and Gooey look the same. Close the menu to see the drops caught part way out.'];
+  function texts(){
+    const xr=$('xray-tog').checked,rm=reduceMq.matches,posed=gm.classList.contains('gm-pose'),w=xr?XRAY:!rm?NOTES:posed?STILL:FADES,fade=rm&&!posed;
+    // While the buttons only fade in (no tails, no blur) the two labels about them say so; both wordings are in the label
+    const two=(k,a,b,alt)=>{const [x,y]=k.children;x.textContent=a;y.textContent=b;k.classList.toggle('alt',alt)};
+    keys[0].textContent=rm?'Rings: the plain circles underneath':'Rings: plain circles move underneath';
+    two(keys[1],'Dashed rings: tails trail behind','Tails: hidden while buttons fade in',fade);
+    const melt=xr?'Filter off: the circles stay apart':BLUR[goo]+' blur, then sharpened: touching circles melt';
+    two(keys[2],melt,xr?melt:'No blur while the buttons fade in, so nothing melts',fade&&!xr);
+    keys[3].textContent=(rm?'With motion on, pops out in ':'Pops out in ')+SAYS[dur][slowTog.checked?1:0];
+    notes.forEach((n,i)=>{if(n.textContent!==w[i])n.textContent=w[i]});
+  }
+  // The mode switch: the menu takes its place for the mode and the views their pose, at once (the copies' big circles drop a swell they
+  // kept while hidden). The shared script then presses Show me (not under reduced motion), which plays it from there.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    bigs.forEach(b=>{if(b!==mb)b.classList.remove('p1','p2')});
+    texts();place();pose();
+  });
+  // A setting, Slow motion or the device's motion setting changed while a view shows: its words and places follow at once
+  const follow=()=>{if(mode!=='normal'){texts();place()}};
+  ['click','change'].forEach(t=>document.querySelector('.hb-try').addEventListener(t,follow));
+  slowTog.addEventListener('change',follow);reduceMq.addEventListener('change',follow);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
