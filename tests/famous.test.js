@@ -418,9 +418,9 @@ const stems = s => new Set((s.toLowerCase().match(/[a-z]{5,}/g) || []).map(w => 
 // The player of each kind of entry: its buttons as [data-fx-cmd, label]. A loop's one button swaps between Pause and Play.
 const PLAYER = { loop: [['pause', 'Pause']], load: [['replay', 'Replay']], hover: [['show', 'Show me']], press: [['show', 'Show me']], scroll: [['play', 'Play'], ['top', 'Back to top']] };
 for (const e of ENTRIES) {
-  test(`${e.id}: its parts come in the template's order, with its chips, Good to know and the link to the real page`, () => {
+  test(`${e.id}: its parts come in the template's order, with its chips, What you see, Good to know and the link to the real page`, () => {
     const b = e.body, hasVersion = b.includes('<div class="fx-version">');
-    const order = ['<p class="fx-seen">', '<h2 ', '<p class="fx-chips">', hasVersion && '<div class="fx-version">', '<p class="fx-what">', '<h3 class="fx-sub">Good to know</h3>', '<dl class="fx-know">',
+    const order = ['<p class="fx-seen">', '<h2 ', '<p class="fx-chips">', hasVersion && '<div class="fx-version">', '<h3 class="fx-sub">What you see</h3>', '<p class="fx-what">', '<h3 class="fx-sub">Good to know</h3>', '<dl class="fx-know">',
       '<h3 class="fx-sub">Build it with these animations</h3>', '<div class="fx-cards">', '<h3 class="fx-sub">A prompt to build something similar</h3>', '<div class="fx-pbox">', '<button type="button" class="copy"', '<a class="fx-real"'].filter(Boolean);
     let last = -1;
     for (const part of order) {
@@ -429,6 +429,7 @@ for (const e of ENTRIES) {
       assert.equal(count(b, part), 1, `${part} is there once`);
       last = at;
     }
+    assert.ok(b.includes('<h3 class="fx-sub">What you see</h3>\n    <p class="fx-what">'), 'What you see is the heading right before what you see');
     const chips = b.match(/<p class="fx-chips"><span class="fx-chip">([^<]+)<\/span><span class="fx-chip">([^<]+)<\/span><\/p>/);
     assert.ok(chips, 'two chips');
     assert.equal(chips[1], START_CHIPS[e.start], 'what starts it');
