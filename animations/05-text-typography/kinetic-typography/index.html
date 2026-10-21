@@ -73,6 +73,10 @@
        tenth of a second into A MOMENT on copies of their own (the live boxes wait unseen), its resting box outlined below. */
     .stage[data-hb-mode="compare"]{container-type:size}
     .stage[data-hb-mode="compare"] #phrase{top:50%;bottom:0;overflow:hidden}
+    /* On phones a word wide enough to reach a half name fades out under it, in that corner only, instead of sliding beneath it
+       (both bands alike) */
+    @media(max-width:600px){.stage[data-hb-mode="compare"] #phrase,.stage[data-hb-mode="compare"] .kt-copy{
+      -webkit-mask-image:linear-gradient(90deg,#0000 108px,#000 124px),linear-gradient(#0000 28px,#000 42px);mask-image:linear-gradient(90deg,#0000 108px,#000 124px),linear-gradient(#0000 28px,#000 42px)}}
     .stage[data-hb-mode="compare"] .kw{white-space:nowrap}
     .stage[data-hb-mode="compare"] .kw:not(.sub){font-size:min(clamp(40px,8vw,90px),calc((50cqh - 68px) / 1.9),calc(50cqh - 94px),calc((100cqw - 24px) / 9))}
     .stage[data-hb-mode="compare"] .kt-band,.stage[data-hb-mode="compare"] .kt-half{display:block}
@@ -330,11 +334,12 @@
     for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
     return at(b,e,t);
   }
-  // Compare's held moment, a tenth of a second into A MOMENT at the current pace: on top as solid as the plain fade has made it,
-  // below as solid and as big as its drop has made it (its keyframes go from see-through and two and a half times big)
+  // Compare's held moment, a tenth of a second into A MOMENT at the Speed setting's pace (never Slow motion's: the still stays the
+  // same): on top as solid as the plain fade has made it, below as solid and as big as its drop has made it (its keyframes go from
+  // see-through and two and a half times big)
   function pose(on){
     if(!stage.classList.toggle('kt-posed',on))return;
-    const k=slowFactor()/speed,m=MOVES[big.enter],drop=curveAt(BIG,Math.min(1,POSE_MS/(m.ms*k)));
+    const k=1/speed,m=MOVES[big.enter],drop=curveAt(BIG,Math.min(1,POSE_MS/(m.ms*k)));
     stage.style.setProperty('--kt-fade',curveAt(FADE,Math.min(1,POSE_MS/(FADE_MS*k))).toFixed(3));
     stage.style.setProperty('--kt-drop',Math.min(1,drop).toFixed(3));
     stage.style.setProperty('--kt-big',(m.s+(1-m.s)*drop).toFixed(3));
