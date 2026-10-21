@@ -30,7 +30,9 @@
 <script>
 // The theme is the visitor's own pick (ah-theme), else the system's, as on the home page.
 function setTheme(t){document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#0e0e11':'#f8f7f4';}
-(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();</script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{t=localStorage.getItem('ah-theme')||t;}catch(e){}setTheme(t);})();
+// With scripts and a browser that has the dialog, the entries open in a pop-up (the js class hides their list); otherwise they stay on the page.
+if(window.HTMLDialogElement&&HTMLDialogElement.prototype.showModal)document.documentElement.classList.add('js');</script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Schibsted Grotesk';src:url('../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -83,15 +85,13 @@ button{font:inherit;color:inherit}
 .foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 24px;padding:36px 0 44px}
 .foot-t{font-size:15px;color:var(--muted)}
 
-/* one centered column: the head, the jump row, the entries and the suggestion */
-.fx-page{width:min(1040px,calc(100% - 2 * var(--gut)));margin-inline:auto}
+/* one centered column: the head, the gallery and, without scripts, the entries */
+.fx-page{width:min(1120px,calc(100% - 2 * var(--gut)));margin-inline:auto;padding-bottom:clamp(20px,4vw,48px)}
 .fx-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:clamp(16px,4vw,48px)}
 .pill{display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--ink-2)}
 .h1{margin-top:22px;font-size:clamp(34px,5.2vw,64px);font-weight:800;line-height:1.04;letter-spacing:-.035em}
 .fx-lede{margin-top:18px;max-width:640px;font-size:clamp(16px,1.4vw,19px);line-height:1.55;color:var(--ink-2)}
 .fx-legal{margin-top:14px;max-width:640px;font-size:14px;line-height:1.55;color:var(--muted)}
-.fx-jump{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:clamp(24px,3vw,36px)}
-.fx-jump a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}
 
 /* an entry: seen on, the title, what you see, the cards, the prompt and Copy prompt */
 .fx{margin-top:clamp(36px,5vw,56px);padding-top:clamp(36px,5vw,56px);border-top:1px solid var(--line);scroll-margin-top:16px}
@@ -120,12 +120,8 @@ button{font:inherit;color:inherit}
 .title a::after{content:"";position:absolute;inset:0;z-index:2;border-radius:20px}
 .desc{flex:1;margin-top:6px;font-size:15px;line-height:1.5;color:var(--ink-2)}
 
-/* Seen one we should add? */
-.fx-more{display:flex;flex-direction:column;align-items:center;margin-top:clamp(36px,5vw,56px);padding-top:clamp(36px,5vw,56px);border-top:1px solid var(--line);text-align:center}
-.fx-more h2{font-size:clamp(24px,2.6vw,30px);font-weight:800;line-height:1.15;letter-spacing:-.02em}
-.fx-more p{margin-top:10px;max-width:560px;font-size:16px;line-height:1.55;color:var(--ink-2)}
+/* Seen one we should add?: the last tile of the gallery (see below) */
 .fx-suggest{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:18px;padding:0 24px;border-radius:999px;border:1.5px solid var(--ink);font-size:16px;font-weight:700;text-decoration:none;transition:background .2s,color .2s}
-.fx-more .fx-note{margin-top:18px;font-size:14px;color:var(--muted)}
 
 /* the message after a copy: the home page's */
 .toast{position:fixed;z-index:60;left:50%;bottom:24px;display:flex;align-items:center;gap:10px;min-height:52px;width:max-content;max-width:calc(100% - 32px);padding:0 18px;border-radius:16px;background:var(--ink);color:var(--bg);font-size:15px;font-weight:600;box-shadow:0 12px 32px rgba(22,22,27,.28);opacity:0;transform:translate(-50%,16px);pointer-events:none;transition:opacity .25s,transform .25s var(--ease)}
@@ -135,13 +131,17 @@ button{font:inherit;color:inherit}
 
 @media(hover:hover){
   .lnk:hover,.icon-btn:hover{color:var(--ink);background:var(--line-2)}
-  .gh:hover,.fx-jump a:hover{border-color:var(--ink);color:var(--ink)}
+  .gh:hover{border-color:var(--ink);color:var(--ink)}
   .fx-seen a:hover{text-decoration-color:currentColor}
   .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-2)}
   .card:hover .pv{transform:scale(1.04)}
   .copy:hover{background:var(--brand);color:var(--bg)}
   .copy.done:hover{background:var(--ok);color:#fff}
   .fx-suggest:hover{background:var(--ink);color:var(--bg)}
+  .tile:not(.tile-more):hover{transform:translateY(-4px);box-shadow:var(--shadow-2)}
+  .t-site:hover,.fx-real:hover{text-decoration-color:currentColor}
+  .fx-pbtn:hover{background:var(--brand);border-color:var(--brand);color:var(--bg)}
+  .fx-dbtn:hover{border-color:var(--ink)}
 }
 /* two cards across below 761px; from 760px down the GitHub button is a round star, as on the home page */
 @media(max-width:760px){
@@ -157,8 +157,6 @@ button{font:inherit;color:inherit}
   .brand{gap:10px;font-size:15px}
   .mark{width:28px;height:28px}
   .pill{padding:7px 13px;font-size:13px}
-  .fx-jump{flex-wrap:nowrap;justify-content:flex-start;width:calc(100% + 2 * var(--gut));margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);overflow-x:auto;scrollbar-width:none;padding-block:6px;margin-block:18px -6px} /* the row scrolls, so it keeps 6px above and below its links for the focus ring; its margins (24px less those 6px) leave everything where it was */
-  .fx-jump a{flex:none}
   .fx-what{font-size:16px;line-height:1.6}
   .fx-what a{padding-block:14px} /* a link inside a sentence: its touch area grows to 44px without moving the lines */
   .fx-pbox{padding:16px 18px}
@@ -181,9 +179,321 @@ button{font:inherit;color:inherit}
 @media(max-width:359px){.gh{display:none}}
 /* reduced motion: the cards do not lift and the message fades in place (the previews hold still: see the block below) */
 @media(prefers-reduced-motion:reduce){
-  .card,.card:hover,.card:hover .pv{transform:none;transition:none}
+  .card,.card:hover,.card:hover .pv,.tile,.tile:hover{transform:none;transition:none}
   .toast{transform:translate(-50%,0);transition:opacity .25s}
 }
+
+/* the gallery: one tile per effect, in page order, then the suggestion tile */
+.fx-gallery{margin-top:clamp(28px,4vw,48px)}
+.fx-grid{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2vw,24px)}
+.tile{position:relative;display:flex;flex-direction:column;padding:10px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow);transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
+.t-stage{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:#08080a;container-type:size}
+.t-tags{position:absolute;z-index:3;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:6px;pointer-events:none}
+.t-tag{padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap}
+.t-start{background:rgba(8,8,10,.78);color:#f4f4f2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.24)}
+.t-meta{display:flex;flex-direction:column;flex:1;padding:14px 8px 2px}
+.t-title{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.t-title a{text-decoration:none;outline:none}
+.t-title a::after{content:"";position:absolute;inset:0;border-radius:20px}
+.t-title a:focus-visible::after{outline:3px solid var(--brand);outline-offset:3px}
+.t-desc{flex:1;margin-top:6px;font-size:15px;line-height:1.5;color:var(--ink-2)}
+.t-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 14px;margin-top:4px;font-size:14px;color:var(--muted)}
+.t-site{position:relative;z-index:1;display:inline-flex;align-items:center;gap:.3em;min-height:44px;color:var(--ink-2);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:5px}
+.t-count{font-variant-numeric:tabular-nums}
+
+/* Seen one we should add? */
+.tile-more{align-items:center;justify-content:center;text-align:center;padding:28px 22px;background:transparent;box-shadow:none;border:1.5px dashed var(--line)}
+.tile-more h3{font-size:clamp(20px,2vw,24px);font-weight:800;line-height:1.15;letter-spacing:-.02em}
+.tile-more p{margin-top:10px;max-width:34ch;font-size:15px;line-height:1.55;color:var(--ink-2)}
+.tile-more .fx-note{margin-top:16px;font-size:14px;color:var(--muted)}
+
+/* the tiles' pictures: our own light loops in the site's colors, moved with transform and opacity only. Each picture is drawn at
+   rest (the still frame that reduced motion keeps); where motion is allowed the loops below move it. A tile outside the window, and
+   every tile behind the pop-up, holds still. */
+.gp{position:absolute;inset:0;overflow:hidden}
+.gp i{position:absolute;display:block}
+.js .tile:not(.playing) .gp *,.js .tile:not(.playing) .gp *::before,.js .tile:not(.playing) .gp *::after,
+.fx-open .tile .gp *,.fx-open .tile .gp *::before,.fx-open .tile .gp *::after{animation-play-state:paused!important}
+
+/* the twisting ribbon: soft bands of light crossing, with fine strands */
+.gp-ribbon{background:radial-gradient(90% 100% at 50% 45%,#10163a,#08080a 72%);isolation:isolate}
+.gp-ribbon i{left:-18cqw;width:136cqw;border-radius:50%;mix-blend-mode:screen}
+.gp-ribbon .rb{height:22cqh;filter:blur(8px);opacity:.85}
+.gp-ribbon .rb1{top:26cqh;background:linear-gradient(90deg,var(--c1),var(--c6));transform:rotate(-12deg) translateY(-18%) scaleY(.8)}
+.gp-ribbon .rb2{top:42cqh;background:linear-gradient(90deg,var(--c3),var(--c1));transform:rotate(-3deg) translateY(6%) scaleY(1.1)}
+.gp-ribbon .rb3{top:56cqh;background:linear-gradient(90deg,var(--c5),var(--c3));transform:rotate(7deg) translateY(22%) scaleY(.6)}
+.gp-ribbon .rs{height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#fff 35%,var(--c1) 75%,transparent);opacity:.85}
+.gp-ribbon .rs1{top:38cqh;transform:rotate(-9deg)}
+.gp-ribbon .rs2{top:46cqh;transform:rotate(-5deg)}
+.gp-ribbon .rs3{top:54cqh;transform:rotate(-1deg)}
+.gp-ribbon .rs4{top:62cqh;transform:rotate(4deg);background:linear-gradient(90deg,transparent,#fff 35%,var(--c5) 75%,transparent)}
+.gp-ribbon .rs5{top:70cqh;transform:rotate(8deg);background:linear-gradient(90deg,transparent,#fff 35%,var(--c3) 75%,transparent)}
+
+/* the headset: a visor of our own layers that rises apart one by one, tips back and comes together */
+.gp-visor{background:radial-gradient(70% 90% at 50% 55%,#111631,#08080a 72%);perspective:90cqw}
+.vz{position:absolute;left:22cqw;top:17.5cqw;width:56cqw;height:28cqw;transform-origin:50% 100%}
+.v-band{left:-9cqw;right:-9cqw;top:8cqw;bottom:8cqw;border-radius:999px;background:linear-gradient(90deg,var(--c5),var(--c4) 50%,var(--c5));opacity:.92;--lift:0cqw}
+.v-frame{inset:0;border-radius:9cqw;border:1.1cqw solid var(--c3);box-shadow:0 0 4cqw rgba(185,140,255,.4);--lift:-4.5cqw}
+.v-glass{left:5cqw;right:5cqw;top:3cqw;bottom:3cqw;border-radius:7cqw;background:linear-gradient(110deg,var(--c1),var(--c6));opacity:.88;--lift:-9.5cqw}
+.v-lens{top:8.5cqw;width:11cqw;height:11cqw;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d4e4ff 16%,#6a8fe8 46%,#121b3a);box-shadow:0 0 0 .5cqw rgba(255,255,255,.4);--lift:-15cqw}
+.v-lens.l1{left:11cqw}
+.v-lens.l2{right:11cqw}
+
+/* the liquid reveal: a soft round window onto a second picture; the second picture is moved the other way, so it stays put */
+.gp-reveal{background:#0a0c14}
+.rv-a,.rv-b{position:absolute;left:0;top:0;width:100cqw;height:100cqh}
+.rv-a{background:repeating-linear-gradient(112deg,transparent 0 6cqw,rgba(110,168,255,.17) 6cqw 11cqw),linear-gradient(160deg,#151a2e,#0b0d16 70%)}
+.rv-b{background:repeating-linear-gradient(112deg,transparent 0 6cqw,rgba(255,255,255,.26) 6cqw 11cqw),linear-gradient(160deg,var(--c4),var(--c5));transform:translate(-34cqw,-22cqh)}
+.rv-blob{position:absolute;left:0;top:0;width:36cqw;height:36cqw;transform:translate(34cqw,22cqh);-webkit-mask-image:radial-gradient(circle closest-side,#000 62%,transparent);mask-image:radial-gradient(circle closest-side,#000 62%,transparent)}
+
+/* the headline that comes in line by line */
+.gp-intro{background:radial-gradient(70% 90% at 28% 22%,#171c34,#08080a 70%)}
+.gp-intro i{left:12cqw;height:9.5cqh;border-radius:1.6cqh;background:#e9ebf3}
+.gp-intro .n1{top:20cqh;width:66cqw}
+.gp-intro .n2{top:33cqh;width:52cqw}
+.gp-intro .n3{top:46cqh;width:58cqw}
+.gp-intro .n4{top:63cqh;width:40cqw;height:4.4cqh;background:#6c7287}
+.gp-intro .n5{top:75cqh;width:19cqw;height:9cqh;border-radius:999px;background:var(--c1)}
+
+/* the menu that opens: its button turns into an X while the links drop in */
+.gp-menu{background:radial-gradient(80% 100% at 50% 20%,#12162a,#08080a 70%)}
+.mn-bar{position:absolute;left:8cqw;right:8cqw;top:22cqh;height:15cqh;border-radius:999px;background:#171a25;border:1px solid #2a2f40}
+.mn-dot{left:4cqw;top:50%;width:5cqw;height:5cqw;margin-top:-2.5cqw;border-radius:50%;background:var(--c1)}
+.mn-btn{position:absolute;right:4.4cqw;top:50%;width:6cqw;height:4cqw;margin-top:-2cqw}
+.mn-btn i{left:0;right:0;height:.8cqw;min-height:2px;border-radius:2px;background:#e9ebf3}
+.mn-btn i:nth-child(1){top:.6cqw;transform:translateY(1.05cqw) rotate(45deg)}
+.mn-btn i:nth-child(2){bottom:.6cqw;transform:translateY(-1.05cqw) rotate(-45deg)}
+.mn-panel{position:absolute;left:8cqw;right:8cqw;top:41cqh;bottom:6cqh;border-radius:2.6cqw;background:#12141d;border:1px solid #232838}
+.mn-panel i{left:6cqw;height:5.6cqh;border-radius:1cqh;background:#cdd2e0}
+.mn-panel i:nth-child(1){top:6cqh;width:42cqw}
+.mn-panel i:nth-child(2){top:19cqh;width:30cqw}
+.mn-panel i:nth-child(3){top:32cqh;width:36cqw}
+
+/* link previews: a pointer rests on a link and a small card rises above it */
+.gp-wiki{background:radial-gradient(80% 90% at 60% 70%,#111627,#08080a 72%)}
+.gp-wiki .tx{left:10cqw;height:3.6cqh;border-radius:1cqh;background:#2a3042}
+.gp-wiki .tx1{top:29cqh;width:78cqw}
+.gp-wiki .tx2{top:40cqh;width:68cqw}
+.gp-wiki .tx3{top:59cqh;width:26cqw}
+.gp-wiki .tx4{top:59cqh;left:39cqw;width:20cqw;background:var(--c1)}
+.gp-wiki .tx5{top:59cqh;left:61cqw;width:27cqw}
+.gp-wiki .tx6{top:70cqh;width:56cqw}
+.gp-wiki .tx7{top:81cqh;width:70cqw}
+.wk-card{position:absolute;left:33cqw;top:23cqh;width:46cqw;height:29cqh;border-radius:2.2cqw;background:#1b2030;border:1px solid #343c54;box-shadow:0 1.5cqw 4cqw rgba(0,0,0,.45)}
+.wk-card i{border-radius:1cqw}
+.wk-card .im{left:2.6cqw;top:2.6cqw;width:12cqw;height:12cqw;background:linear-gradient(135deg,var(--c6),var(--c1))}
+.wk-card .l1{left:17cqw;top:3.4cqw;width:25cqw;height:2cqw;background:#e9ebf3}
+.wk-card .l2{left:17cqw;top:7.6cqw;width:20cqw;height:1.6cqw;background:#7b839b}
+.wk-card .l3{left:17cqw;top:11cqw;width:23cqw;height:1.6cqw;background:#7b839b}
+.wk-ptr{left:45cqw;top:65cqh;width:4.4cqw;height:4.4cqw;border-radius:50%;background:rgba(255,255,255,.95);box-shadow:0 0 0 1cqw rgba(255,255,255,.22)}
+
+/* the color that sweeps across a headline: a bright band, clipped to the bars */
+.gp-sweep{background:radial-gradient(80% 90% at 50% 50%,#12141f,#08080a)}
+.gp-sweep .sw{left:11cqw;height:16cqh;border-radius:2.6cqh;overflow:hidden;background:#242938}
+.gp-sweep .w1{top:33cqh;width:76cqw}
+.gp-sweep .w2{top:57cqh;width:52cqw}
+.gp-sweep .sw i{left:0;top:0;bottom:0;width:200%;border-radius:0;transform:translateX(-60%);background:linear-gradient(90deg,#eef0f8 0 76%,var(--c1) 82%,var(--c3) 88%,var(--c5) 94%,transparent)}
+
+/* the cards: the middle card lightens and a round play button rises into its corner */
+.gp-cards{background:#08080a}
+.gp-cards .cd{position:absolute;top:18cqw;width:26.6cqw;height:34cqw;border-radius:2.4cqw;background:#13161f;border:1px solid #232734}
+.gp-cards .ca{left:5.4cqw}
+.gp-cards .cb{left:36.7cqw}
+.gp-cards .cc{left:68cqw}
+.gp-cards .cv{left:1.5cqw;top:1.5cqw;width:23cqw;height:23cqw;border-radius:1.6cqw}
+.gp-cards .ca .cv{background:linear-gradient(135deg,var(--c3),var(--c1))}
+.gp-cards .cb .cv{background:linear-gradient(135deg,var(--c4),var(--c5))}
+.gp-cards .cc .cv{background:linear-gradient(135deg,var(--c6),var(--c2))}
+.gp-cards .cd .t1{left:1.5cqw;top:26.4cqw;width:17cqw;height:1.9cqw;border-radius:1cqw;background:#d5d9e6}
+.gp-cards .cd .t2{left:1.5cqw;top:29.8cqw;width:11cqw;height:1.6cqw;border-radius:1cqw;background:#5d6580}
+.gp-cards .cb::before{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.08)}
+.gp-cards .play{right:1.8cqw;bottom:1.8cqw;width:7.6cqw;height:7.6cqw;border-radius:50%;background:var(--c2)}
+.gp-cards .play::after{content:"";position:absolute;left:31%;top:24%;width:42%;height:52%;background:#07150d;clip-path:polygon(0 0,100% 50%,0 100%)}
+
+/* gray shapes that fill in: a sheen passes over each, then the content takes their places */
+.gp-load{background:#0a0b10}
+.gp-load .ld{position:absolute;top:19.5cqw;width:26.6cqw;height:25cqw}
+.gp-load .l-a{left:5.4cqw}
+.gp-load .l-b{left:36.7cqw}
+.gp-load .l-c{left:68cqw}
+.gp-load .ld i{background:#282d3b;overflow:hidden}
+.gp-load .ld i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.16) 50%,transparent 70%);transform:translateX(-100%)}
+.gp-load .th{left:0;top:0;width:100%;height:15cqw;border-radius:1.6cqw}
+.gp-load .av{left:0;top:17.4cqw;width:5.6cqw;height:5.6cqw;border-radius:50%}
+.gp-load .m1{left:7.2cqw;top:17.6cqw;width:19cqw;height:2cqw;border-radius:1cqw}
+.gp-load .m2{left:7.2cqw;top:21.4cqw;width:13cqw;height:1.7cqw;border-radius:1cqw}
+.gp-load .ld i b{position:absolute;inset:0;opacity:0}
+.gp-load .l-a .th b{background:linear-gradient(135deg,var(--c3),var(--c1))}
+.gp-load .l-b .th b{background:linear-gradient(135deg,var(--c4),var(--c5))}
+.gp-load .l-c .th b{background:linear-gradient(135deg,var(--c6),var(--c2))}
+.gp-load .l-a .av b{background:var(--c1)}
+.gp-load .l-b .av b{background:var(--c5)}
+.gp-load .l-c .av b{background:var(--c2)}
+.gp-load .m1 b{background:#d5d9e6}
+.gp-load .m2 b{background:#7b839b}
+
+/* the chart that changes step by step as the text goes by */
+.gp-chart{background:radial-gradient(80% 90% at 70% 60%,#10152a,#08080a 72%)}
+.gp-chart .tl{left:8cqw;height:2.2cqw;border-radius:1cqw;background:#2a3042}
+.gp-chart .tl1{top:14cqw;width:25cqw}
+.gp-chart .tl2{top:20cqw;width:21cqw}
+.gp-chart .tl3{top:26cqw;width:26cqw}
+.gp-chart .tl4{top:32cqw;width:19cqw}
+.gp-chart .tl5{top:38cqw;width:24cqw}
+.gp-chart .mk{left:5.4cqw;top:13.2cqw;width:.8cqw;height:3.8cqw;border-radius:1cqw;background:var(--c1);transform:translateY(6cqw)}
+.gp-chart .bar{bottom:9cqw;width:6.2cqw;height:38cqw;border-radius:1.2cqw 1.2cqw .4cqw .4cqw;background:#323a52;transform-origin:50% 100%;transform:scaleY(var(--b))}
+.gp-chart .k1{left:44cqw;--a:.35;--b:.55;--c:.3}
+.gp-chart .k2{left:52.4cqw;--a:.5;--b:.4;--c:.65}
+.gp-chart .k3{left:60.8cqw;--a:.3;--b:.8;--c:.55;background:var(--c1)}
+.gp-chart .k4{left:69.2cqw;--a:.65;--b:.5;--c:.9}
+.gp-chart .k5{left:77.6cqw;--a:.45;--b:.7;--c:.4;background:var(--c4)}
+.gp-chart .k6{left:86cqw;--a:.25;--b:.35;--c:.6}
+
+/* the top bar that slides away while the page scrolls down and comes back when it scrolls up: a page that rises from the bottom edge */
+.gp-bar{background:radial-gradient(80% 90% at 50% 100%,#12162a,#08080a 72%)}
+.tb-frame{position:absolute;left:14cqw;right:14cqw;top:21cqh;bottom:-8cqh;border-radius:2.2cqw 2.2cqw 0 0;overflow:hidden;background:#0f121b;border:1px solid #262c3d}
+.tb-page{position:absolute;left:7cqw;right:7cqw;top:21cqh;display:flex;flex-direction:column;gap:3.4cqh;transform:translateY(-6cqh)}
+.tb-page i{position:static;height:3cqh;border-radius:1cqh;background:#2a3042}
+.tb-page i:nth-child(4n+2){width:86%}
+.tb-page i:nth-child(4n+3){width:72%}
+.tb-page i:nth-child(4n){width:92%}
+.tb-page .im{height:15cqh;border-radius:1.6cqh;background:linear-gradient(135deg,rgba(110,168,255,.45),rgba(63,214,196,.3))}
+.tb-bar{position:absolute;left:0;right:0;top:0;height:15cqh;background:#1a1e2a;border-bottom:1px solid #2c3243}
+.tb-bar i{top:50%}
+.tb-bar .d{left:5cqw;width:4.4cqw;height:4.4cqw;margin-top:-2.2cqw;border-radius:50%;background:var(--c1)}
+.tb-bar .t{left:12cqw;width:22cqw;height:2cqw;margin-top:-1cqw;border-radius:1cqw;background:#5d6580}
+.tb-bar .m{right:5cqw;width:4.6cqw;height:3.2cqw;margin-top:-1.6cqw;background:linear-gradient(#5d6580 0 .7cqw,transparent .7cqw 1.25cqw,#5d6580 1.25cqw 1.95cqw,transparent 1.95cqw 2.5cqw,#5d6580 2.5cqw)}
+
+@keyframes g-rib{from{transform:rotate(-16deg) translateY(-30%) scaleY(.5)}to{transform:rotate(10deg) translateY(30%) scaleY(1.3)}}
+@keyframes g-rs{from{transform:rotate(-14deg) translateY(-12cqh) scaleX(.92)}to{transform:rotate(11deg) translateY(12cqh) scaleX(1.06)}}
+@keyframes g-lift{0%,12%{transform:none}30%,78%{transform:translateY(var(--lift))}94%,100%{transform:none}}
+@keyframes g-tip{0%,42%{transform:rotateX(0)}58%,68%{transform:rotateX(38deg)}82%,100%{transform:rotateX(0)}}
+@keyframes g-blob{0%,100%{transform:translate(14cqw,14cqh)}25%{transform:translate(48cqw,8cqh)}50%{transform:translate(52cqw,30cqh)}75%{transform:translate(22cqw,32cqh)}}
+@keyframes g-blob-i{0%,100%{transform:translate(-14cqw,-14cqh)}25%{transform:translate(-48cqw,-8cqh)}50%{transform:translate(-52cqw,-30cqh)}75%{transform:translate(-22cqw,-32cqh)}}
+@keyframes g-line{0%,6%{opacity:0;transform:translateY(5cqh)}24%,80%{opacity:1;transform:none}92%,100%{opacity:0;transform:translateY(-2cqh)}}
+@keyframes g-x1{0%,14%{transform:none}28%,72%{transform:translateY(1.05cqw) rotate(45deg)}86%,100%{transform:none}}
+@keyframes g-x2{0%,14%{transform:none}28%,72%{transform:translateY(-1.05cqw) rotate(-45deg)}86%,100%{transform:none}}
+@keyframes g-panel{0%,14%{opacity:0;transform:translateY(-3cqh)}28%,72%{opacity:1;transform:none}86%,100%{opacity:0;transform:translateY(-2cqh)}}
+@keyframes g-drop{0%,22%{opacity:0;transform:translateY(-4cqh)}36%,72%{opacity:1;transform:none}84%,100%{opacity:0;transform:translateY(-2cqh)}}
+@keyframes g-ptr{0%,8%{transform:translate(30cqw,12cqh)}24%,80%{transform:none}94%,100%{transform:translate(30cqw,12cqh)}}
+@keyframes g-card{0%,38%{opacity:0;transform:translateY(5cqh)}50%,76%{opacity:1;transform:none}88%,100%{opacity:0;transform:translateY(2cqh)}}
+@keyframes g-sweep{0%,10%{transform:translateX(-100%);opacity:1}46%{transform:translateX(0);opacity:1}82%{transform:translateX(0);opacity:1}94%,100%{transform:translateX(0);opacity:0}}
+@keyframes g-glow{0%,16%{opacity:0}28%,70%{opacity:1}84%,100%{opacity:0}}
+@keyframes g-play{0%,16%{opacity:0;transform:translateY(2.6cqw)}28%,70%{opacity:1;transform:none}84%,100%{opacity:0;transform:translateY(1.6cqw)}}
+@keyframes g-sheen{0%{transform:translateX(-100%)}17%{transform:translateX(100%)}18%{transform:translateX(-100%)}35%,100%{transform:translateX(100%)}}
+@keyframes g-fill{0%,40%{opacity:0}52%,86%{opacity:1}97%,100%{opacity:0}}
+@keyframes g-bars{0%,26%{transform:scaleY(var(--a))}36%,62%{transform:scaleY(var(--b))}72%,92%{transform:scaleY(var(--c))}100%{transform:scaleY(var(--a))}}
+@keyframes g-mark{0%,26%{transform:none}36%,62%{transform:translateY(6cqw)}72%,92%{transform:translateY(12cqw)}100%{transform:none}}
+@keyframes g-page{0%,10%{transform:translateY(-6cqh)}38%,56%{transform:translateY(-40cqh)}70%,92%{transform:translateY(-32cqh)}100%{transform:translateY(-6cqh)}}
+@keyframes g-slide{0%,14%{transform:none}24%,58%{transform:translateY(-105%)}68%,92%{transform:none}100%{transform:none}}
+/* each loop starts part way in (--x), at a frame that shows the effect, so a tile that is not playing still shows it; the delays of the
+   parts that follow one another (--d) are counted from there */
+@media(prefers-reduced-motion:no-preference){
+  .gp-ribbon .rb{animation:g-rib 8s ease-in-out infinite alternate backwards}
+  .gp-ribbon .rb2{animation-duration:10s;animation-delay:-3s}
+  .gp-ribbon .rb3{animation-duration:12s;animation-delay:-6s}
+  .gp-ribbon .rs{animation:g-rs 9s ease-in-out infinite alternate backwards}
+  .gp-ribbon .rs2{animation-duration:11s;animation-delay:-4s}
+  .gp-ribbon .rs3{animation-duration:13s;animation-delay:-7s}
+  .gp-ribbon .rs4{animation-duration:10s;animation-delay:-2s}
+  .gp-ribbon .rs5{animation-duration:12s;animation-delay:-5s}
+  .gp-visor{--x:3.5s}
+  .gp-visor .vz{animation:g-tip 9s ease-in-out infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-visor .vz i{animation:g-lift 9s ease-in-out infinite backwards;animation-delay:calc(var(--d,0s) - var(--x))}
+  .gp-visor .vz .v-frame{--d:.22s}
+  .gp-visor .vz .v-glass{--d:.44s}
+  .gp-visor .vz .v-lens{--d:.66s}
+  .rv-blob{animation:g-blob 9s ease-in-out infinite backwards}
+  .rv-b{animation:g-blob-i 9s ease-in-out infinite backwards}
+  .gp-intro{--x:2.6s}
+  .gp-intro i{animation:g-line 6s var(--ease) infinite backwards;animation-delay:calc(var(--d,0s) - var(--x))}
+  .gp-intro .n2{--d:.16s}
+  .gp-intro .n3{--d:.32s}
+  .gp-intro .n4{--d:.52s}
+  .gp-intro .n5{--d:.68s}
+  .gp-menu{--x:2.6s}
+  .mn-btn i:nth-child(1){animation:g-x1 6s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .mn-btn i:nth-child(2){animation:g-x2 6s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .mn-panel{animation:g-panel 6s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .mn-panel i{animation:g-drop 6s var(--ease) infinite backwards;animation-delay:calc(var(--d,0s) - var(--x))}
+  .mn-panel i:nth-child(2){--d:.14s}
+  .mn-panel i:nth-child(3){--d:.28s}
+  .gp-wiki{--x:4s}
+  .wk-ptr{animation:g-ptr 6.5s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .wk-card{animation:g-card 6.5s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-sweep{--x:1.5s}
+  .gp-sweep .sw i{animation:g-sweep 6s cubic-bezier(.5,0,.3,1) infinite backwards;animation-delay:calc(var(--d,0s) - var(--x))}
+  .gp-sweep .w2 i{--d:.2s}
+  .gp-cards{--x:2.3s}
+  .gp-cards .cb::before{animation:g-glow 4.6s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-cards .play{animation:g-play 4.6s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-load{--x:1.5s}
+  .gp-load .ld i::after{animation:g-sheen 7s ease-in-out infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-load .ld i b{animation:g-fill 7s var(--ease) infinite backwards;animation-delay:calc(var(--d,0s) - var(--x))}
+  .gp-load .l-b i b{--d:.14s}
+  .gp-load .l-c i b{--d:.28s}
+  .gp-chart{--x:3.2s}
+  .gp-chart .bar{animation:g-bars 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-chart .mk{animation:g-mark 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-bar{--x:.4s}
+  .tb-page{animation:g-page 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .tb-bar{animation:g-slide 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+}
+@media(max-width:960px){.fx-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .fx-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+  .tile{padding:8px;border-radius:18px}
+  .t-title a::after{border-radius:18px}
+  .t-tags{left:8px;right:8px;top:8px}
+  .t-meta{padding:12px 6px 0}
+  .t-title{font-size:17px}
+  .tile-more{padding:24px 18px}
+}
+
+/* with scripts the entries wait in their list, out of sight, and open one at a time in the pop-up */
+.js .fx-list{display:none}
+
+/* an entry's new parts: the chips, Our version with its player, Good to know and the link to the real page */
+.fx-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.fx-chip{display:inline-flex;align-items:center;min-height:32px;padding:0 13px;border-radius:999px;background:var(--line-2);border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--ink-2)}
+.fx-version{display:none;margin-top:22px}
+.js .fx-version{display:block}
+.fx-stage{position:relative;height:420px;border-radius:16px;overflow:hidden;background:#08080a;border:1px solid var(--line)}
+.fx-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#08080a}
+.fx-vlabel{position:absolute;z-index:2;left:12px;top:12px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.94);color:#16161b;font-size:12px;font-weight:700;line-height:1.2;pointer-events:none}
+.fx-player{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:12px}
+.fx-pbtn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 22px;border-radius:999px;border:1.5px solid var(--ink);background:none;color:var(--ink);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,color .2s}
+.fx-pbtn:first-child{background:var(--ink);color:var(--bg)}
+.fx-phint{flex:1 1 220px;font-size:14px;line-height:1.5;color:var(--muted)}
+.fx-know{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fx-know>div{padding:14px 16px;border-radius:14px;background:var(--bg);border:1px solid var(--line)}
+.fx-know dt{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.fx-know dd{margin-top:4px;font-size:15px;line-height:1.5;color:var(--ink-2)}
+.fx-real{display:flex;align-items:center;gap:.3em;width:fit-content;min-width:44px;min-height:44px;margin-top:8px;color:var(--ink);font-size:16px;font-weight:700;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:5px}
+
+/* the pop-up: one native dialog that shows one entry at a time (the entry's section is moved in, and back when it closes) */
+.fx-dlg{position:fixed;inset:0;margin:auto;width:min(980px,calc(100% - 2 * var(--gut)));max-width:none;height:fit-content;max-height:calc(100vh - 2 * var(--gut));max-height:calc(100dvh - 2 * var(--gut));padding:0;border:1px solid var(--line);border-radius:24px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-2);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.fx-dlg::backdrop{background:rgba(8,8,12,.62)}
+.fx-dlg[open]{animation:fx-in .26s var(--ease)}
+.fx-dlg[open]::backdrop{animation:fx-fade .26s ease-out}
+@keyframes fx-in{from{opacity:0;transform:translateY(12px)}}
+@keyframes fx-fade{from{opacity:0}}
+html.fx-open{overflow:hidden;padding-right:var(--fx-gap,0px)} /* the page does not scroll behind the pop-up, and keeps its width where its scrollbar was */
+.fx-dbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:6px;padding:10px clamp(12px,2.4vw,20px);background:var(--surface);border-bottom:1px solid var(--line)}
+.fx-dbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.fx-dclose{margin-left:auto}
+.fx-dlg .fx h2{width:fit-content;max-width:100%}
+.fx-dlg .fx{margin:0;padding:clamp(14px,2.2vw,24px) clamp(18px,4vw,40px) clamp(28px,4vw,44px);border-top:0;scroll-margin-top:65px}
+@media(max-width:600px),(max-height:500px){
+  .fx-dlg{width:100%;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none}
+  .fx-stage{height:300px}
+  .fx-dlg .copy{position:sticky;bottom:12px;z-index:4;box-shadow:0 8px 20px rgba(22,22,27,.3)}
+  .fx-dlg .toast{bottom:76px}
+  .fx-dlg .fx-what a{padding-block:14px} /* a link inside a sentence: its touch area grows to 44px without moving the lines */
+}
+@media(max-width:600px){.fx-dlg .copy{box-shadow:0 0 0 12px var(--surface),0 -16px 16px 4px var(--surface)}} /* full width: the page's own color around it hides the text that scrolls past */
+@media(max-width:760px){.fx-know{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.fx-dlg[open],.fx-dlg[open]::backdrop{animation:none}}
 
 /* ── previews: written by tools/make-famous.mjs from the home page; run it again, never edit by hand ── */
 /* the base: each category's accent color, the preview box, and its animations paused unless its card plays */
@@ -349,7 +659,7 @@ button{font:inherit;color:inherit}
 </style>
 </head>
 <body>
-<a class="skip" href="#stripe-ribbon">Skip to the first effect</a>
+<a class="skip" href="#fx-gallery">Skip to the effects</a>
 <header class="wrap top" id="top">
   <a class="brand" href="../"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="ring" cx="11.16" cy="20.84" r="6.1"/><circle class="ring" cx="15.12" cy="16.88" r="6.1"/><circle class="ring" cx="18.51" cy="13.49" r="6.1"/><circle class="ball" cx="21.2" cy="10.8" r="6.6"/></svg><span>Animation Handbook</span></a>
   <nav class="nav" aria-label="Site">
@@ -370,24 +680,151 @@ button{font:inherit;color:inherit}
     <p class="fx-lede">Effects people admire on well-known websites, the handbook animations that make something similar, and a prompt to build your own.</p>
     <p class="fx-legal">The Animation Handbook is not connected to any of these sites or their owners, and none of them has reviewed or approved this page. Each effect is described in our own words and shown only with the handbook's own demos.</p>
   </div>
-  <nav class="fx-jump" aria-label="Effects on this page">
-    <a href="#stripe-ribbon">Stripe · ribbon</a>
-    <a href="#apple-scroll">Apple · headset</a>
-    <a href="#landonorris-reveal">Lando Norris · reveal</a>
-    <a href="#linear-intro">Linear · headline</a>
-    <a href="#apple-menu">Apple · menu</a>
-    <a href="#wikipedia-previews">Wikipedia · previews</a>
-    <a href="#apple-sweep">Apple · sweep</a>
-    <a href="#spotify-cards">Spotify · cards</a>
-    <a href="#youtube-loading">YouTube · loading</a>
-    <a href="#pudding-chart">The Pudding · chart</a>
-    <a href="#medium-top-bar">Medium · top bar</a>
-  </nav>
+  <section class="fx-gallery" id="fx-gallery" aria-labelledby="fx-gallery-t">
+    <h2 class="sr" id="fx-gallery-t">All effects</h2>
+    <ul class="fx-grid" role="list">
+      <li class="tile" data-fx-tile="stripe-ribbon">
+        <div class="t-stage">
+          <div class="gp gp-ribbon" aria-hidden="true"><i class="rb rb1"></i><i class="rb rb2"></i><i class="rb rb3"></i><i class="rs rs1"></i><i class="rs rs2"></i><i class="rs rs3"></i><i class="rs rs4"></i><i class="rs rs5"></i></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">Loops</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#stripe-ribbon">The twisting ribbon of light</a></h3>
+          <p class="t-desc">A ribbon of glowing strands slowly twists behind the headline.</p>
+          <p class="t-foot"><a class="t-site" href="https://stripe.com/" target="_blank" rel="noopener">Seen on stripe.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">3 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="apple-scroll">
+        <div class="t-stage">
+          <div class="gp gp-visor" aria-hidden="true"><div class="vz"><i class="v-band"></i><i class="v-frame"></i><i class="v-glass"></i><i class="v-lens l1"></i><i class="v-lens l2"></i></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On scroll</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#apple-scroll">The headset that comes apart as you scroll</a></h3>
+          <p class="t-desc">It stays in the middle while its parts rise out, layer by layer.</p>
+          <p class="t-foot"><a class="t-site" href="https://www.apple.com/apple-vision-pro/" target="_blank" rel="noopener">Seen on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">2 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="landonorris-reveal">
+        <div class="t-stage">
+          <div class="gp gp-reveal" aria-hidden="true"><div class="rv-a"></div><div class="rv-blob"><div class="rv-b"></div></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On hover</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#landonorris-reveal">The liquid reveal under the pointer</a></h3>
+          <p class="t-desc">A soft liquid shape follows the pointer and shows a second picture.</p>
+          <p class="t-foot"><a class="t-site" href="https://landonorris.com/" target="_blank" rel="noopener">Seen on landonorris.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">3 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="linear-intro">
+        <div class="t-stage">
+          <div class="gp gp-intro" aria-hidden="true"><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="n4"></i><i class="n5"></i></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On load</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#linear-intro">The headline that comes into focus</a></h3>
+          <p class="t-desc">The headline comes in line by line, sharpening out of a soft blur.</p>
+          <p class="t-foot"><a class="t-site" href="https://linear.app/" target="_blank" rel="noopener">Seen on linear.app <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">3 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="apple-menu">
+        <div class="t-stage">
+          <div class="gp gp-menu" aria-hidden="true"><div class="mn-bar"><i class="mn-dot"></i><div class="mn-btn"><i></i><i></i></div></div><div class="mn-panel"><i></i><i></i><i></i></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On press</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#apple-menu">The menu that drops in, link by link</a></h3>
+          <p class="t-desc">Press the menu button and the links drop in one after another.</p>
+          <p class="t-foot"><a class="t-site" href="https://www.apple.com/" target="_blank" rel="noopener">Seen on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">3 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="wikipedia-previews">
+        <div class="t-stage">
+          <div class="gp gp-wiki" aria-hidden="true"><i class="tx tx1"></i><i class="tx tx2"></i><i class="tx tx3"></i><i class="tx tx4"></i><i class="tx tx5"></i><i class="tx tx6"></i><i class="tx tx7"></i><div class="wk-card"><i class="im"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i></div><i class="wk-ptr"></i></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On hover</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#wikipedia-previews">Link previews</a></h3>
+          <p class="t-desc">Rest the pointer on a link and a small card with the article's first lines appears.</p>
+          <p class="t-foot"><a class="t-site" href="https://en.wikipedia.org/wiki/Animation" target="_blank" rel="noopener">Seen on en.wikipedia.org <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">2 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="apple-sweep">
+        <div class="t-stage">
+          <div class="gp gp-sweep" aria-hidden="true"><i class="sw w1"><i></i></i><i class="sw w2"><i></i></i></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On scroll</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#apple-sweep">The color that sweeps across the headline</a></h3>
+          <p class="t-desc">A band of color sweeps across the headline as it comes into view.</p>
+          <p class="t-foot"><a class="t-site" href="https://www.apple.com/iphone-18-pro/" target="_blank" rel="noopener">Seen on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">1 animation</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="spotify-cards">
+        <div class="t-stage">
+          <div class="gp gp-cards" aria-hidden="true"><div class="cd ca"><i class="cv"></i><i class="t1"></i><i class="t2"></i></div><div class="cd cb"><i class="cv"><i class="play"></i></i><i class="t1"></i><i class="t2"></i></div><div class="cd cc"><i class="cv"></i><i class="t1"></i><i class="t2"></i></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On hover</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#spotify-cards">The play button that rises</a></h3>
+          <p class="t-desc">Point at a card and it lightens while a round play button rises into view.</p>
+          <p class="t-foot"><a class="t-site" href="https://open.spotify.com/" target="_blank" rel="noopener">Seen on open.spotify.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">2 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="youtube-loading">
+        <div class="t-stage">
+          <div class="gp gp-load" aria-hidden="true"><div class="ld l-a"><i class="th"><b></b></i><i class="av"><b></b></i><i class="m1"><b></b></i><i class="m2"><b></b></i></div><div class="ld l-b"><i class="th"><b></b></i><i class="av"><b></b></i><i class="m1"><b></b></i><i class="m2"><b></b></i></div><div class="ld l-c"><i class="th"><b></b></i><i class="av"><b></b></i><i class="m1"><b></b></i><i class="m2"><b></b></i></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On load</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#youtube-loading">Gray shapes while it loads</a></h3>
+          <p class="t-desc">Gray boxes hold each video's place until it loads.</p>
+          <p class="t-foot"><a class="t-site" href="https://www.youtube.com/" target="_blank" rel="noopener">Seen on youtube.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">1 animation</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="pudding-chart">
+        <div class="t-stage">
+          <div class="gp gp-chart" aria-hidden="true"><i class="tl tl1"></i><i class="tl tl2"></i><i class="tl tl3"></i><i class="tl tl4"></i><i class="tl tl5"></i><i class="mk"></i><i class="bar k1"></i><i class="bar k2"></i><i class="bar k3"></i><i class="bar k4"></i><i class="bar k5"></i><i class="bar k6"></i></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On scroll</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#pudding-chart">The chart that changes as you read</a></h3>
+          <p class="t-desc">As you read on, the chart stays in view and changes step by step.</p>
+          <p class="t-foot"><a class="t-site" href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">Seen on pudding.cool <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">2 animations</span></p>
+        </div>
+      </li>
+      <li class="tile" data-fx-tile="medium-top-bar">
+        <div class="t-stage">
+          <div class="gp gp-bar" aria-hidden="true"><div class="tb-frame"><div class="tb-page"><i class="im"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="im"></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="tb-bar"><i class="d"></i><i class="t"></i><i class="m"></i></div></div></div>
+          <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On scroll</span></div>
+        </div>
+        <div class="t-meta">
+          <h3 class="t-title"><a href="#medium-top-bar">The top bar that hides while you read</a></h3>
+          <p class="t-desc">Scroll down and the top bar slides away; scroll up and it comes back.</p>
+          <p class="t-foot"><a class="t-site" href="https://medium.com/" target="_blank" rel="noopener">Seen on medium.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">1 animation</span></p>
+        </div>
+      </li>
+      <li class="tile tile-more">
+        <h3 id="fx-more-t">Seen one we should add?</h3>
+        <p>Seen an effect on a well-known site that you want explained?</p>
+        <a class="fx-suggest" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=famous_effect.yml" target="_blank" rel="noopener">Suggest it on GitHub<span class="sr"> (opens in a new tab)</span></a>
+        <p class="fx-note">Each entry was checked on its live site in the year shown; a site may have changed since.</p>
+      </li>
+    </ul>
+  </section>
 
+  <div class="fx-list">
   <section class="fx" id="stripe-ribbon" aria-labelledby="stripe-ribbon-t" data-fx-site="Stripe" data-fx-start="loop">
     <p class="fx-seen">Seen on <a href="https://stripe.com/" target="_blank" rel="noopener">stripe.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="stripe-ribbon-t" tabindex="-1">The twisting ribbon of light</h2>
+    <p class="fx-chips"><span class="fx-chip">Loops</span><span class="fx-chip">Made from 3 animations</span></p>
     <p class="fx-what">Behind the headline, a wide ribbon made of fine strands of glowing color slowly twists in depth, some strands sharp and others soft, as if filmed by a camera, under a fine grain. Before 2026 the same place held a flat band of blended colors that flowed like slow paint, the look <a href="../animations/07-ambient-background/mesh-gradient/">Mesh Gradient Animation</a> makes.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>It moves on its own, and pauses when it is off screen.</dd></div>
+      <div><dt>On phones</dt><dd>A lighter version is drawn.</dd></div>
+      <div><dt>Reduced motion</dt><dd>A still picture of the ribbon is shown.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c7" data-slug="aurora"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The soft light</span></div><div class="meta"><h4 class="title"><a href="../animations/07-ambient-background/aurora/">Aurora / Northern Lights</a></h4><p class="desc">Blurred bands of light sway like the northern lights. Best for dark backgrounds.</p></div></article>
@@ -397,12 +834,31 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a slowly twisting ribbon of colored light behind <mark>[the heading at the top of your page]</mark>. Draw one wide ribbon of fine strands in three or four of your own colors that drifts and turns in depth, so some strands come into sharp focus while others blur, like a camera with a shallow focus, and lay a fine grain over it so the colors feel printed rather than flat. Keep the movement slow and the heading readable on every color it passes. Draw it on the graphics chip, show a still picture of it until it is ready, and pause it when it is off screen. On phones, draw a lighter version. If the visitor has reduced motion turned on, show the still picture.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The twisting ribbon of light"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://stripe.com/" target="_blank" rel="noopener">Watch the real one on stripe.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="apple-scroll" aria-labelledby="apple-scroll-t" data-fx-site="Apple" data-fx-start="scroll">
     <p class="fx-seen">Seen on <a href="https://www.apple.com/apple-vision-pro/" target="_blank" rel="noopener">apple.com/apple-vision-pro<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="apple-scroll-t" tabindex="-1">The headset that comes apart as you scroll</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on scroll</span><span class="fx-chip">Made from 2 animations</span></p>
+    <div class="fx-version">
+      <div class="fx-stage">
+        <iframe title="Our version: The headset that comes apart as you scroll" data-src="versions/apple-scroll.html"></iframe>
+        <span class="fx-vlabel" aria-hidden="true">Our version</span>
+      </div>
+      <div class="fx-player">
+        <button type="button" class="fx-pbtn" data-fx-cmd="play">Play</button>
+        <button type="button" class="fx-pbtn" data-fx-cmd="top">Back to top</button>
+        <p class="fx-phint">Built from the prompt below. Scroll inside the box, or press Play.</p>
+      </div>
+    </div>
     <p class="fx-what">About two thirds of the way down the page, the headset stays in the middle of the screen while you scroll: its parts rise out of it layer by layer, then it tips up to show its lenses, and scrolling back puts it together.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Scrolling plays it, forward and back.</dd></div>
+      <div><dt>On phones</dt><dd>Touch scrolling drives it the same way.</dd></div>
+      <div><dt>Reduced motion</dt><dd>A few still pictures with their text are shown instead.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c1" data-slug="scrub-animation"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">Scroll plays it</span></div><div class="meta"><h4 class="title"><a href="../animations/01-scroll-based/scrub-animation/">Scrub Animation</a></h4><p class="desc">Scroll plays it forward and back, like dragging a video. Best for product tours.</p></div></article>
@@ -411,12 +867,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a scroll-driven product reveal to <mark>[your product section]</mark>. Pin the product in the middle of the screen while the visitor scrolls through a section a few screens tall, and let the scroll play a short video or a series of pictures of it, so it turns or comes apart as they scroll down and goes back together as they scroll up. Let a short headline and a paragraph about each part scroll by as usual. Show a still picture until the video or pictures are ready, and give the product a text description for screen readers. Touch scrolling drives it the same way. If the visitor has reduced motion turned on, show a few still pictures with their text instead.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The headset that comes apart as you scroll"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://www.apple.com/apple-vision-pro/" target="_blank" rel="noopener">Watch the real one on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="landonorris-reveal" aria-labelledby="landonorris-reveal-t" data-fx-site="Lando Norris" data-fx-start="hover">
     <p class="fx-seen">Seen on <a href="https://landonorris.com/" target="_blank" rel="noopener">landonorris.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="landonorris-reveal-t" tabindex="-1">The liquid reveal under the pointer</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on hover</span><span class="fx-chip">Made from 3 animations</span></p>
     <p class="fx-what">A large portrait stands in the middle of the screen. Wherever the pointer moves across his head, a soft, liquid-looking blob shows a second picture through it, his racing helmet, as if the portrait were being wiped away.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Moving the pointer over the picture.</dd></div>
+      <div><dt>On phones</dt><dd>A finger dragged across the picture does the same.</dd></div>
+      <div><dt>Reduced motion</dt><dd>A plain circle shows at the pointer, without the wobble or the lag.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c4" data-slug="cursor-follower"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">Follows the pointer</span></div><div class="meta"><h4 class="title"><a href="../animations/04-micro-interactions/cursor-follower/">Cursor Follower</a></h4><p class="desc">A dot trails your pointer and flips the colors under it. Best for portfolios.</p></div></article>
@@ -426,12 +890,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a liquid reveal to <mark>[the picture at the top of your page, with a second picture hidden under it]</mark>. Stack the two pictures exactly. Wherever the pointer goes, a soft, round blob follows a little behind it, wobbling and stretching with its speed, and the hidden picture shows through the blob, as if the top picture were being wiped away. Let the blob shrink away when the pointer stops or leaves. Draw the mask on the graphics chip or with a clip, never by resizing the pictures, so it stays smooth. On touch screens, let a finger dragged across the picture do the same. If the visitor has reduced motion turned on, show a plain circle at the pointer, without the wobble or the lag.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The liquid reveal under the pointer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://landonorris.com/" target="_blank" rel="noopener">Watch the real one on landonorris.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="linear-intro" aria-labelledby="linear-intro-t" data-fx-site="Linear" data-fx-start="load">
     <p class="fx-seen">Seen on <a href="https://linear.app/" target="_blank" rel="noopener">linear.app<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="linear-intro-t" tabindex="-1">The headline that comes into focus</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on load</span><span class="fx-chip">Made from 3 animations</span></p>
     <p class="fx-what">As the page opens, the headline comes in line by line, each line fading in while it rises a little and sharpens out of a soft blur; the short line under it and a small link follow the same way, then a large flat picture of the app fades in below.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>As the page opens. The whole opening is over in about a second.</dd></div>
+      <div><dt>On phones</dt><dd>Less blur is used, because it costs more there.</dd></div>
+      <div><dt>Reduced motion</dt><dd>Everything shows at once.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c2" data-slug="split-text-reveal"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">Lines in turn</span></div><div class="meta"><h4 class="title"><a href="../animations/02-entrance-and-exit/split-text-reveal/">Split Text Reveal</a></h4><p class="desc">Text breaks into pieces that appear one after another. Best for headlines.</p></div></article>
@@ -441,12 +913,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a focus-in opening to <mark>[the headline, the line under it and the main picture at the top of your page]</mark>. As the page opens, show the headline line by line, each line fading in while it rises a little and sharpens out of a soft blur; then let the line under it, and any small link or button below, follow the same way, and fade the main picture in last. Keep each step short, so the whole opening is over in about a second and nobody waits to read. Animate only fading, blur and small moves, and use less blur on phones, where it costs more. If the visitor has reduced motion turned on, show everything at once.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The headline that comes into focus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://linear.app/" target="_blank" rel="noopener">Watch the real one on linear.app <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="apple-menu" aria-labelledby="apple-menu-t" data-fx-site="Apple" data-fx-start="press">
     <p class="fx-seen">Seen on <a href="https://www.apple.com/" target="_blank" rel="noopener">apple.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="apple-menu-t" tabindex="-1">The menu that drops in, link by link</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on press</span><span class="fx-chip">Made from 3 animations</span></p>
     <p class="fx-what">On a phone, the two-line menu button folds into an X while the menu fills the screen and its links drop into place one after another. On a computer, pointing at a top item opens a panel that grows down from the bar, its links appearing in turn, while the page behind blurs.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>A tap on the menu button. On computers, pointing at a top item or reaching it with the keyboard.</dd></div>
+      <div><dt>On phones</dt><dd>A tap on the menu button opens the menu over the whole screen.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The menus show and hide at once.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c4" data-slug="hamburger-menu-toggle"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The button</span></div><div class="meta"><h4 class="title"><a href="../animations/04-micro-interactions/hamburger-menu-toggle/">Hamburger Menu Toggle</a></h4><p class="desc">Three lines turn into an X as the menu opens. Best for mobile menus.</p></div></article>
@@ -456,12 +936,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a menu that opens in steps to <mark>[the main menu in your site's header]</mark>. On phones, a tap on the menu button folds its lines into an X while the menu opens to fill the screen, and its links drop a few pixels into place one after another. On computers, pointing at a top item, or reaching it with the keyboard, opens a panel below it the same way while the page behind blurs. Keep the wait between links tiny, so the whole menu is there in about half a second, and close it faster than it opens. Make every opener a real button that tells screen readers whether its menu is open. If the visitor has reduced motion turned on, show and hide the menus at once.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The menu that drops in, link by link"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://www.apple.com/" target="_blank" rel="noopener">Watch the real one on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="wikipedia-previews" aria-labelledby="wikipedia-previews-t" data-fx-site="Wikipedia" data-fx-start="hover">
     <p class="fx-seen">Seen on <a href="https://en.wikipedia.org/wiki/Animation" target="_blank" rel="noopener">en.wikipedia.org/wiki/Animation<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="wikipedia-previews-t" tabindex="-1">Link previews</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on hover</span><span class="fx-chip">Made from 2 animations</span></p>
     <p class="fx-what">On any article, rest the pointer on a link and, after a short pause, a small card with the linked article's first lines and picture fades in under the link, rising slightly into place; move away and it fades out.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Resting the pointer on a link for a moment, or reaching it with the keyboard.</dd></div>
+      <div><dt>On phones</dt><dd>There is no hover, so a tap opens the link as usual.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The card shows and hides without movement.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c4" data-slug="tooltip-reveal"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The pause</span></div><div class="meta"><h4 class="title"><a href="../animations/04-micro-interactions/tooltip-reveal/">Tooltip Reveal</a></h4><p class="desc">A small label fades in after a short pause. Best for icon buttons.</p></div></article>
@@ -470,12 +958,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add link previews to <mark>[the links in your articles that point to other pages]</mark>. When the pointer rests on a link for a moment, a small card with the linked page's title, first sentences and picture fades in just below the link while rising a little into place; when the pointer leaves, it fades away. The wait keeps cards from flashing while the pointer only passes by, and a card that would fall off the screen opens above the link instead. Show the same card when keyboard focus reaches the link. On touch screens, where there is no hover, let a tap open the link as usual. If the visitor has reduced motion turned on, show and hide the card without movement.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for Link previews"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://en.wikipedia.org/wiki/Animation" target="_blank" rel="noopener">Watch the real one on en.wikipedia.org <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="apple-sweep" aria-labelledby="apple-sweep-t" data-fx-site="Apple" data-fx-start="scroll">
     <p class="fx-seen">Seen on <a href="https://www.apple.com/iphone-18-pro/" target="_blank" rel="noopener">apple.com/iphone-18-pro<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="apple-sweep-t" tabindex="-1">The color that sweeps across the headline</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on scroll</span><span class="fx-chip">Made from 1 animation</span></p>
     <p class="fx-what">Far down the page, as the large headline of the section about the chip comes into view, a band of bright color sweeps across its letters once, from one end to the other, and the words settle into their plain color, as if a light had passed over them.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>When the headline first comes into view. It plays once.</dd></div>
+      <div><dt>On phones</dt><dd>Touch scrolling brings it into view the same way.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The headline shows in its normal color, with no sweep.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c5" data-slug="text-gradient-animation"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The color sweep</span></div><div class="meta"><h4 class="title"><a href="../animations/05-text-typography/text-gradient-animation/">Text Gradient Animation</a></h4><p class="desc">Colors flow through the letters while the text stays still. Best for headlines.</p></div></article>
@@ -483,12 +979,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a one-time color sweep to <mark>[the main headline of your section]</mark>. When the headline first comes into view, let a band of bright color travel across its letters once, from the start of the line to its end, and leave the text in its normal color. Paint the band as a gradient inside the letters and move only the gradient, so the words never shift or blur. Keep the sweep short, about a second, and never repeat it while the visitor reads. Keep the text readable before, during and after the sweep. Touch scrolling brings it into view the same way. If the visitor has reduced motion turned on, show the headline in its normal color with no sweep.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The color that sweeps across the headline"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://www.apple.com/iphone-18-pro/" target="_blank" rel="noopener">Watch the real one on apple.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="spotify-cards" aria-labelledby="spotify-cards-t" data-fx-site="Spotify" data-fx-start="hover">
     <p class="fx-seen">Seen on <a href="https://open.spotify.com/" target="_blank" rel="noopener">open.spotify.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="spotify-cards-t" tabindex="-1">The play button that rises</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on hover</span><span class="fx-chip">Made from 2 animations</span></p>
     <p class="fx-what">Point at an album or playlist card and the card lightens a shade while a round green play button fades in, rising a few pixels into the cover's bottom corner.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Resting the pointer on a card, or reaching it with the keyboard.</dd></div>
+      <div><dt>On phones</dt><dd>There is no hover, so the play button is always shown.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The button shows and hides without movement.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c4" data-slug="hover-state"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The card lightens</span></div><div class="meta"><h4 class="title"><a href="../animations/04-micro-interactions/hover-state/">Hover State Animation</a></h4><p class="desc">Six ways a card can react when you point at it. Best for buttons and cards.</p></div></article>
@@ -497,12 +1001,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a hover effect to <mark>[the album or playlist cards in your grid]</mark>. When the pointer rests on a card, its background lightens a little and a round play button rises a few pixels into place at the bottom corner of the picture while it fades in; when the pointer leaves, both go back. Use only fading and transforms, and keep it quick, so moving across the grid feels light. Show the play button when a card gets keyboard focus too, and on touch screens, where there is no hover, show it all the time. Give the button a name that says what it plays. If the visitor has reduced motion turned on, show and hide the button without movement.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The play button that rises"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://open.spotify.com/" target="_blank" rel="noopener">Watch the real one on open.spotify.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="youtube-loading" aria-labelledby="youtube-loading-t" data-fx-site="YouTube" data-fx-start="load">
     <p class="fx-seen">Seen on <a href="https://www.youtube.com/" target="_blank" rel="noopener">youtube.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="youtube-loading-t" tabindex="-1">Gray shapes while it loads</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on load</span><span class="fx-chip">Made from 1 animation</span></p>
     <p class="fx-what">Before the videos appear, gray boxes and bars in the shapes of thumbnails, round channel pictures and titles fill the page; then the real content takes their places.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>While the content loads. It stops when the content arrives.</dd></div>
+      <div><dt>On phones</dt><dd>Fewer shapes are shown.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The shapes stay still.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c4" data-slug="skeleton-loader"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">Gray shapes</span></div><div class="meta"><h4 class="title"><a href="../animations/04-micro-interactions/skeleton-loader/">Skeleton Loader</a></h4><p class="desc">Gray shapes hold the place of content while it loads. Best for feeds and cards.</p></div></article>
@@ -510,12 +1022,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a loading state to <mark>[the grid or feed whose content loads]</mark>. While the content loads, show gray shapes in the sizes of what is coming, such as a picture box, a round avatar and two lines of text, and let them pulse gently between lighter and darker. When the content arrives, put it exactly where the shapes were and fade it in, so nothing on the page jumps. Show only as many shapes as fit the screen, fewer on phones, and stop the pulse as soon as the content is in. Tell screen readers that the content is loading. If the visitor has reduced motion turned on, keep the shapes still.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for Gray shapes while it loads"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://www.youtube.com/" target="_blank" rel="noopener">Watch the real one on youtube.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="pudding-chart" aria-labelledby="pudding-chart-t" data-fx-site="The Pudding" data-fx-start="scroll">
     <p class="fx-seen">Seen on <a href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">pudding.cool/2025/11/democracy<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="pudding-chart-t" tabindex="-1">The chart that changes as you read</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on scroll</span><span class="fx-chip">Made from 2 animations</span></p>
     <p class="fx-what">A chart of dots stays on screen while short paragraphs scroll past. As you scroll, the years go by and each year's dots pile up into the chart, the ones the story is about in bright color, and at some paragraphs the dots slide into a new chart; scrolling back undoes each step.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Each time a new block of text reaches the middle of the screen.</dd></div>
+      <div><dt>On phones</dt><dd>The chart stays at the top and the text scrolls over it on cards.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The steps switch without animating.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c1" data-slug="scrollytelling"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The steps</span></div><div class="meta"><h4 class="title"><a href="../animations/01-scroll-based/scrollytelling/">Scrollytelling</a></h4><p class="desc">A picture beside the story changes as you read down. Best for data stories.</p></div></article>
@@ -524,12 +1044,20 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a scrollytelling layout to <mark>[your story or data article]</mark>. Keep a chart or picture fixed on the screen while short blocks of text scroll past it, and change the chart each time a new block reaches the middle of the screen: light up the dots or bars the text talks about and fade the rest, so the words and the chart tell the story together. Change it smoothly, and let scrolling back undo each step. On phones, keep the chart at the top and let the text scroll over it on cards. Keep every step readable without the chart for screen readers. If the visitor has reduced motion turned on, switch between the steps without animating.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The chart that changes as you read"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">Watch the real one on pudding.cool <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
 
   <section class="fx" id="medium-top-bar" aria-labelledby="medium-top-bar-t" data-fx-site="Medium" data-fx-start="scroll">
     <p class="fx-seen">Seen on <a href="https://medium.com/" target="_blank" rel="noopener">medium.com<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
     <h2 id="medium-top-bar-t" tabindex="-1">The top bar that hides while you read</h2>
+    <p class="fx-chips"><span class="fx-chip">Starts on scroll</span><span class="fx-chip">Made from 1 animation</span></p>
     <p class="fx-what">On a phone, scroll down into an article and the top bar moves up out of the way with the text; scroll up a little and it comes back down.</p>
+    <h3 class="fx-sub">Good to know</h3>
+    <dl class="fx-know">
+      <div><dt>Starts</dt><dd>Scrolling down hides the bar; scrolling up, even a little, brings it back.</dd></div>
+      <div><dt>On phones</dt><dd>Touch scrolling works the same way.</dd></div>
+      <div><dt>Reduced motion</dt><dd>The bar fades out and in instead of sliding.</dd></div>
+    </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
     <div class="fx-cards">
       <article class="card c1" data-slug="hide-on-scroll-header"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The whole effect</span></div><div class="meta"><h4 class="title"><a href="../animations/01-scroll-based/hide-on-scroll-header/">Hide-on-Scroll Header</a></h4><p class="desc">Scrolling down hides the top bar; scrolling up shows it. Best for mobile pages.</p></div></article>
@@ -537,14 +1065,9 @@ button{font:inherit;color:inherit}
     <h3 class="fx-sub">A prompt to build something similar</h3>
     <div class="fx-pbox"><p class="fx-prompt">Add a hide-on-scroll top bar to <mark>[the header of your article pages]</mark>. When the reader scrolls down into the text, slide the bar up out of view, so the words get the whole screen; the moment they scroll up, even a little, slide it back. Always show it near the top of the page. Tell the direction by comparing each scroll position with the last one, ignore tiny moves so the bar never flickers, and move it only with a transform. Touch scrolling works the same way, and keyboard focus moving into the bar brings it back. If the visitor has reduced motion turned on, fade the bar out and in instead of sliding it.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The top bar that hides while you read"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
+    <a class="fx-real" href="https://medium.com/" target="_blank" rel="noopener">Watch the real one on medium.com <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
-
-  <section class="fx-more" aria-labelledby="fx-more-t">
-    <h2 id="fx-more-t">Seen one we should add?</h2>
-    <p>Seen an effect on a well-known site that you want explained?</p>
-    <a class="fx-suggest" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=famous_effect.yml" target="_blank" rel="noopener">Suggest it on GitHub<span class="sr"> (opens in a new tab)</span></a>
-    <p class="fx-note">Each entry was checked on its live site in the year shown; a site may have changed since.</p>
-  </section>
+  </div>
 </main>
 
 <footer class="wrap foot">
@@ -553,6 +1076,14 @@ button{font:inherit;color:inherit}
   <nav class="nav" aria-label="Footer"><a class="lnk" href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">GitHub</a><a class="lnk" href="#top">Back to top</a></nav>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"><span class="ok" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="toast-t"></span></div>
+<dialog class="fx-dlg" id="fx-dlg">
+  <div class="fx-dbar">
+    <button type="button" class="icon-btn fx-dbtn" data-fx-nav="prev" aria-label="Previous effect"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="icon-btn fx-dbtn" data-fx-nav="next" aria-label="Next effect"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="icon-btn fx-dbtn fx-dclose" data-fx-close aria-label="Close"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="fx-dbody"></div>
+</dialog>
 
 <script>
 // The GitHub star count, as on the home page: kept for five minutes, so the page asks GitHub at most once in that time.
@@ -570,6 +1101,7 @@ button{font:inherit;color:inherit}
     setTheme(next);try{localStorage.setItem('ah-theme',next);}catch(e){}});})();
 
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const dlg=document.getElementById('fx-dlg');
 
 // Opened from disk, a link to a folder shows the browser's list of its files, so there every link to a folder names its
 // index.html (the logo, Browse all, this page's own link and the cards), as on the home page.
@@ -626,18 +1158,13 @@ document.querySelectorAll('.fx .card[data-slug]').forEach(card=>{
   if(io)io.observe(card);else card.classList.add('playing');
 });
 
-// A link to an entry (the jump row, the skip link) brings the entry into view and gives its heading keyboard focus; under
-// reduced motion it jumps instead of gliding. The address names the entry, with a step in the history only when it named
-// another one. A click with Ctrl, Cmd, Shift or Alt, or another button, is left to the browser.
-document.addEventListener('click',e=>{
-  const a=e.target.closest('a[href^="#"]');
-  if(!a||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
-  const entry=document.getElementById(a.getAttribute('href').slice(1));
-  if(!entry||!entry.matches('section.fx'))return;
-  e.preventDefault();
-  entry.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
-  entry.querySelector('h2').focus({preventScroll:true});
-  if(location.hash!=='#'+entry.id)try{history.pushState(null,'','#'+entry.id);}catch(err){}
+// The gallery's tiles play their picture while they are in the window (on phones, in the middle of it) and while one holds keyboard
+// focus, as the recipe cards do. The pictures are drawn at rest and the style moves them only where motion is allowed, so reduced
+// motion needs nothing here.
+document.querySelectorAll('.tile[data-fx-tile]').forEach(tile=>{
+  if(reduce)return;
+  tile.addEventListener('focusin',()=>tile.classList.add('playing'));
+  if(io)io.observe(tile);else tile.classList.add('playing');
 });
 
 // The prompts: on phones each shows five lines and "Show the full prompt", as on the animation pages.
@@ -686,7 +1213,7 @@ function copyThroughTextBox(text,btn){
   box.style.position='fixed';
   box.style.top='-1000px';
   box.style.opacity='0';
-  document.body.appendChild(box);
+  (dlg.open?dlg:document.body).appendChild(box); // a modal dialog makes the rest of the page inert, and an inert text box cannot copy
   box.focus({preventScroll:true});
   box.select();
   box.setSelectionRange(0,box.value.length);
@@ -715,6 +1242,155 @@ document.querySelectorAll('.fx .copy').forEach(btn=>btn.addEventListener('click'
   const clip=navigator.clipboard;
   if(clip&&clip.writeText)clip.writeText(text).then(copied,fallback);else fallback();
 }));
+
+// The pop-up. A press on a tile opens its entry in one native dialog: the entry's section is moved into the dialog and put back in the
+// list when the dialog closes or another entry takes its place, so its Copy prompt and its prompt toggle keep working. Without scripts,
+// or in a browser with no dialog, the list stays on the page and a tile is a link to its entry (the head sets the js class).
+(function(){
+  const root=document.documentElement;
+  if(!root.classList.contains('js'))return;
+  const holder=dlg.querySelector('.fx-dbody'),list=document.querySelector('.fx-list');
+  const entries=[...list.querySelectorAll(':scope > section.fx')],byId=new Map(entries.map(s=>[s.id,s])),slots=new Map();
+  const toastHome={parent:toastEl.parentNode,next:toastEl.nextSibling};
+  // An address this page pushed (not one the visitor arrived at) carries fxPushed, so Close can go back one step.
+  const pushed=()=>!!(history.state&&history.state.fxPushed);
+  let current=null,fromHistory=false,downOnBackdrop=false;
+
+  // Under reduced motion each recipe card holds one clear frame. A card moved into the dialog starts again, so it is held again.
+  function holdCards(entry){
+    if(!reduce)return;
+    entry.querySelectorAll('.card[data-slug]').forEach(card=>{const p=PREVIEWS[card.dataset.slug];if(p)hold(card,p.still);});
+  }
+
+  // An entry's version loads only while its entry is open, in a fresh frame each time (a used frame keeps steps of history).
+  function post(frame,cmd){frame.contentWindow.postMessage({fx:cmd},'*');}
+  function command(frame,cmd){
+    if(frame.dataset.ready==='1')post(frame,cmd);
+    else if(frame.hasAttribute('src'))frame._queued=cmd;
+  }
+  function setToggle(btn,cmd){btn.dataset.fxCmd=cmd;btn.textContent=cmd==='pause'?'Pause':'Play';}
+  function startVersion(entry){
+    const frame=entry.querySelector('.fx-version iframe');
+    if(!frame)return;
+    // a loop's one button is Pause while it runs and Play while it is held (a version of a loop starts held under reduced motion)
+    if(entry.dataset.fxStart==='loop')entry.querySelectorAll('.fx-player [data-fx-cmd]').forEach(btn=>setToggle(btn,reduce?'play':'pause'));
+    frame.addEventListener('load',()=>{
+      frame.dataset.ready='1';
+      if(frame._queued){post(frame,frame._queued);frame._queued=null;}
+      try{frame.contentWindow.addEventListener('keydown',e=>{if(e.key==='Escape')dlg.close();});}catch(err){}
+    },{once:true});
+    frame.src=frame.dataset.src;
+  }
+  function stopVersion(entry){
+    const frame=entry.querySelector('.fx-version iframe');
+    if(!frame||!frame.hasAttribute('src'))return;
+    const fresh=frame.cloneNode(false);
+    fresh.removeAttribute('src');
+    frame.replaceWith(fresh);
+  }
+
+  function mount(entry){
+    const slot=document.createComment(entry.id);
+    entry.before(slot);
+    slots.set(entry.id,slot);
+    holder.append(entry);
+  }
+  function unmount(entry){
+    stopVersion(entry);
+    const slot=slots.get(entry.id);
+    if(slot){slot.replaceWith(entry);slots.delete(entry.id);}
+  }
+
+  // how: 'push' (a press on a tile: a new step in the history), 'replace' (Previous and Next: the same step) or 'none' (the address
+  // already names the entry: arriving at it, or Back and Forward landing on it).
+  function openEntry(id,how){
+    const entry=byId.get(id);
+    if(!entry)return;
+    const same=entry===current;
+    if(!same){
+      if(current)unmount(current);
+      current=entry;
+      mount(entry);
+    }
+    if(how==='push'){try{history.pushState({fxPushed:true},'','#'+id);}catch(err){}}
+    else if(how==='replace'){try{history.replaceState({fxPushed:pushed()},'','#'+id);}catch(err){}}
+    dlg.setAttribute('aria-labelledby',id+'-t');
+    if(!dlg.open){
+      root.style.setProperty('--fx-gap',Math.max(0,innerWidth-root.clientWidth)+'px'); // the width of the scrollbar the lock takes away
+      root.classList.add('fx-open');
+      dlg.append(toastEl);
+      dlg.showModal();
+    }
+    dlg.scrollTop=0;
+    if(!same){holdCards(entry);startVersion(entry);}
+    entry.querySelector('h2').focus({preventScroll:true});
+  }
+  function go(step){
+    const at=entries.indexOf(current);
+    openEntry(entries[(at+step+entries.length)%entries.length].id,'replace');
+  }
+
+  // Every way of closing (Close, Escape, a press on the backdrop, Back) ends here.
+  dlg.addEventListener('close',()=>{
+    const entry=current;
+    if(!entry)return;
+    const goBack=pushed();
+    unmount(entry);
+    current=null;
+    root.classList.remove('fx-open');
+    root.style.removeProperty('--fx-gap');
+    toastHome.parent.insertBefore(toastEl,toastHome.next);
+    if(!fromHistory){
+      if(goBack)history.back();
+      else try{history.replaceState(null,'',location.pathname+location.search);}catch(err){}
+    }
+    fromHistory=false;
+    const tile=document.querySelector('.fx-grid a[href="#'+entry.id+'"]');
+    if(tile)tile.focus();
+  });
+
+  // The address decides what shows: an entry's name opens it, anything else closes the pop-up.
+  function sync(){
+    const id=location.hash.slice(1);
+    if(byId.has(id)){if(byId.get(id)!==current){openEntry(id,'none');setTimeout(keepFocus,0);}}
+    else if(dlg.open){fromHistory=true;dlg.close();}
+  }
+  addEventListener('popstate',sync);
+  addEventListener('hashchange',sync);
+
+  // A plain press on a link to an entry opens it; a press with Ctrl, Cmd, Shift or Alt, or another button, is left to the browser.
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href^="#"]');
+    if(!a||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+    const id=a.getAttribute('href').slice(1);
+    if(!byId.has(id))return;
+    e.preventDefault();
+    openEntry(id,location.hash==='#'+id?'none':'push');
+  });
+
+  const outside=e=>{const r=dlg.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;};
+  dlg.addEventListener('pointerdown',e=>{downOnBackdrop=e.target===dlg&&outside(e);});
+  dlg.addEventListener('click',e=>{
+    const nav=e.target.closest('[data-fx-nav]');
+    if(nav){go(nav.dataset.fxNav==='prev'?-1:1);return;}
+    if(e.target.closest('[data-fx-close]')){dlg.close();return;}
+    const btn=e.target.closest('.fx-player [data-fx-cmd]');
+    if(btn){
+      const cmd=btn.dataset.fxCmd;
+      command(btn.closest('.fx-version').querySelector('iframe'),cmd);
+      if(btn.closest('section.fx').dataset.fxStart==='loop')setToggle(btn,cmd==='pause'?'play':'pause');
+      return;
+    }
+    if(e.target===dlg&&downOnBackdrop&&outside(e))dlg.close();
+    downOnBackdrop=false;
+  });
+
+  // An address that names an entry opens it at once. The browser then moves focus to the address's target, which is not a focus
+  // target (and, on arrival, sits in a modal dialog), so focus is put back on the heading once that is done.
+  function keepFocus(){if(current&&dlg.open&&!dlg.contains(document.activeElement))current.querySelector('h2').focus({preventScroll:true});}
+  sync();
+  if(document.readyState!=='complete')addEventListener('load',keepFocus,{once:true});
+})();
 </script>
 </body>
 </html>

@@ -1,5 +1,6 @@
-// Checks the Famous effects page (famous/index.html) and the tool that writes its previews (tools/make-famous.mjs), from
-// docs/superpowers/specs/2026-10-13-famous-effects-design.md: first the tool on a small stand-in home page, then the page.
+// Checks the Famous effects page (famous/index.html), its versions (famous/versions/*.html) and the tool that writes its previews
+// (tools/make-famous.mjs), from docs/superpowers/specs/2026-10-13-famous-effects-design.md and, where it differs,
+// docs/superpowers/specs/2026-10-22-famous-gallery-popup-design.md: first the tool on a small stand-in home page, then the page.
 // Run from the repo root: node --test "tests/*.test.js"
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -170,17 +171,24 @@ test('the light and dark colors and the theme switch are the home page\'s', () =
   assert.ok(PAGE.includes(HOME.match(/function setTheme\(t\)\{[^\n]*\}/)[0]), 'the same setTheme as the home page');
 });
 
-test('the not-connected line is on the page once, word for word, above the jump row and every entry', () => {
+test('the not-connected line is on the page once, word for word, in the hero above the gallery and every entry', () => {
   assert.equal(count(PAGE, LEGAL), 1, 'once');
   assert.ok(PAGE.includes(`<p class="fx-legal">${LEGAL}</p>`), 'in its own paragraph');
+  assert.ok(between(PAGE, '<div class="fx-head">', '</div>').includes(LEGAL), 'in the hero');
   const at = PAGE.indexOf(LEGAL);
-  assert.ok(at < PAGE.indexOf('<nav class="fx-jump"'), 'above the jump row');
+  assert.ok(at < PAGE.indexOf('<section class="fx-gallery"'), 'above the gallery');
   assert.ok(PAGE.indexOf('<section class="fx"') < 0 || at < PAGE.indexOf('<section class="fx"'), 'above the first entry');
 });
 
 test('the page loads nothing from elsewhere, uses only the site\'s font in its own style and shows no code', async () => {
   const { CSS_START, CSS_END } = await tool();
-  for (const bad of ['<img', '<video', '<iframe', '<picture', '<object', '<embed', '@import', 'url(http']) assert.ok(!PAGE.includes(bad), bad);
+  for (const bad of ['<img', '<video', '<picture', '<object', '<embed', '@import', 'url(http']) assert.ok(!PAGE.includes(bad), bad);
+  // the only frames are the entries' versions, which are files of this repository; the page gives a frame its src (from data-src)
+  // only while its entry is open, so the markup has none
+  for (const [tag] of PAGE.matchAll(/<iframe\b[^>]*>/g)) {
+    assert.ok(!/\ssrc=/.test(tag), `a frame with a src: ${tag}`);
+    assert.match(tag, /^<iframe title="Our version: [^"]+" data-src="versions\/[a-z0-9-]+\.html">$/, `a frame is titled and names its version: ${tag}`);
+  }
   assert.ok(!/demo-page\.(css|js)/.test(PAGE), 'it links neither shared file');
   for (const [, src] of PAGE.matchAll(/\ssrc="([^"]*)"/g)) assert.ok(isRepoFile(src), `src ${src}`);
   for (const [tag] of PAGE.matchAll(/<link\b[^>]*>/g)) {
@@ -284,7 +292,7 @@ test('every entry is written as the template says, so the tests below see it', (
   assert.ok(ENTRIES.length > 0, 'the page has entries');
   assert.equal(ENTRIES.length, count(PAGE, '<section class="fx"'), 'each <section class="fx"> has its id, aria-labelledby, data-fx-site and data-fx-start in that order');
   assert.equal(new Set(ENTRIES.map(e => e.id)).size, ENTRIES.length, 'every id is unique');
-  assert.ok(PAGE.indexOf('<nav class="fx-jump"') < PAGE.indexOf('<section class="fx"'), 'the entries come after the jump row');
+  assert.ok(PAGE.indexOf('<section class="fx-gallery"') < PAGE.indexOf('<section class="fx"'), 'the entries come after the gallery');
 });
 
 for (const e of ENTRIES) {
@@ -347,13 +355,99 @@ for (const e of ENTRIES) {
   });
 }
 
-test('the jump row links each entry once, in page order, each chip starting with its site, and the skip link leads to the first entry', () => {
-  const nav = between(PAGE, '<nav class="fx-jump" aria-label="Effects on this page">', '</nav>');
-  const links = [...nav.matchAll(/<a href="#([a-z0-9-]+)">([^<]+)<\/a>/g)];
-  assert.deepEqual(links.map(m => m[1]), ENTRIES.map(e => e.id), 'one chip per entry, in order');
-  for (const [, id, label] of links) assert.ok(decode(label).startsWith(`${ENTRIES.find(e => e.id === id).site} · `), `${id}: "${label}" starts with its site`);
-  assert.ok(PAGE.includes(`<a class="skip" href="#${ENTRIES[0].id}">Skip to the first effect</a>`), 'the skip link');
+// ---------- The gallery ----------
+const GALLERY = between(PAGE, '<section class="fx-gallery"', '</section>');
+const TILES = [...GALLERY.matchAll(/<li class="tile" data-fx-tile="([a-z0-9-]+)">([\s\S]*?)<\/li>/g)].map(m => ({ id: m[1], body: m[2] }));
+const START_TAGS = { loop: 'Loops', load: 'On load', scroll: 'On scroll', hover: 'On hover', press: 'On press' };
+const START_CHIPS = { loop: 'Loops', load: 'Starts on load', scroll: 'Starts on scroll', hover: 'Starts on hover', press: 'Starts on press' };
+const hostOf = href => new URL(href).hostname.replace(/^www\./, '');
+const seenHref = e => e.body.match(/<p class="fx-seen">Seen on <a href="([^"]+)"/)[1];
+const h2Of = e => decode(e.body.match(/<h2 [^>]*>([^<]+)<\/h2>/)[1]);
+const cardCount = e => count(e.body, '<article class="card ');
+const animations = n => `${n} ${n === 1 ? 'animation' : 'animations'}`;
+
+test('the gallery replaces the jump row: one tile per entry in page order, then the Seen one we should add? tile, and the skip link leads to it', () => {
+  assert.ok(!PAGE.includes('fx-jump'), 'no jump row is left');
+  assert.ok(PAGE.includes('<section class="fx-gallery" id="fx-gallery" aria-labelledby="fx-gallery-t">'), 'the gallery section');
+  assert.ok(GALLERY.includes('<h2 class="sr" id="fx-gallery-t">All effects</h2>'), 'a heading only screen readers see names it');
+  assert.ok(GALLERY.includes('<ul class="fx-grid" role="list">'), 'a list');
+  assert.deepEqual(TILES.map(tile => tile.id), ENTRIES.map(e => e.id), 'one tile per entry, in page order');
+  const items = [...GALLERY.matchAll(/<li class="([^"]*)"/g)].map(m => m[1]);
+  assert.equal(items.length, ENTRIES.length + 1, 'and one more');
+  assert.equal(items.at(-1), 'tile tile-more', 'the last tile is the suggestion');
+  const more = between(GALLERY, '<li class="tile tile-more">', '</li>');
+  assert.ok(more.includes('<h3 id="fx-more-t">Seen one we should add?</h3>'), 'its heading');
+  assert.ok(more.includes('<p>Seen an effect on a well-known site that you want explained?</p>'), 'its question');
+  assert.ok(PAGE.includes(`<a class="skip" href="#fx-gallery">Skip to the effects</a>`), 'the skip link leads to the gallery');
+  assert.ok(PAGE.indexOf('<a class="skip"') < PAGE.indexOf('<header class="wrap top"'), 'and is the first thing on the page');
+  assert.ok(PAGE.indexOf('<section class="fx-gallery"') < PAGE.indexOf('<div class="fx-list">'), 'the entries come after it');
 });
+
+for (const e of ENTRIES) {
+  test(`${e.id}: its tile has the entry's title as a link to it, one line of ours, its start, its site and its cards, over a picture tagged Our version`, () => {
+    const tile = TILES.find(x => x.id === e.id);
+    assert.ok(tile, 'a tile');
+    const link = tile.body.match(/<h3 class="t-title"><a href="#([^"]+)">([^<]+)<\/a><\/h3>/);
+    assert.ok(link, 'the title is an h3 with a link');
+    assert.equal(link[1], e.id, 'to the entry');
+    assert.equal(decode(link[2]), h2Of(e), "the entry's own heading");
+    const line = tile.body.match(/<p class="t-desc">([^<]+)<\/p>/);
+    assert.ok(line, 'one line');
+    const text = decode(line[1]);
+    assert.ok(text.length >= 25 && text.length <= 90, `the line has ${text.length} characters, not 25 to 90`);
+    assert.ok(/[.]$/.test(text) && !/["“”]/.test(text), 'it ends with a full stop and quotes nothing');
+    for (const other of ENTRIES) for (const w of siteWords(other)) assert.ok(!names(text, w), `the line names "${w}"`);
+    const href = seenHref(e);
+    assert.ok(tile.body.includes(`<p class="t-foot"><a class="t-site" href="${href}" target="_blank" rel="noopener">Seen on ${hostOf(href)} <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a><span class="t-count">${animations(cardCount(e))}</span></p>`),
+      "the foot: the entry's own site address in a new tab (host without www.), and the number of its cards");
+    assert.ok(tile.body.includes(`<div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">${START_TAGS[e.start]}</span></div>`), 'tagged Our version and with what starts it');
+    assert.match(tile.body, /<div class="t-stage">\s*<div class="gp gp-[a-z]+" aria-hidden="true">/, "its picture: ours, hidden from screen readers (the tags and the title say it all)");
+    assert.equal(count(tile.body, '<a '), 2, 'two links: the entry and its site');
+  });
+}
+
+test('the entries are all in one wrapper after the gallery, in page order, so the page still reads as a list without scripts', () => {
+  assert.equal(count(PAGE, '<div class="fx-list">'), 1, 'one wrapper');
+  const wrapped = between(PAGE, '<div class="fx-list">', '</main>');
+  assert.equal(count(wrapped, '<section class="fx"'), ENTRIES.length, 'every entry is inside it');
+  assert.deepEqual([...wrapped.matchAll(/<section class="fx" id="([a-z0-9-]+)"/g)].map(m => m[1]), ENTRIES.map(e => e.id), 'in page order');
+  assert.ok(!wrapped.includes('<dialog'), 'the pop-up is not in it');
+});
+
+const stems = s => new Set((s.toLowerCase().match(/[a-z]{5,}/g) || []).map(w => w.slice(0, 5)));
+// The player of each kind of entry: its buttons as [data-fx-cmd, label]. A loop's one button swaps between Pause and Play.
+const PLAYER = { loop: [['pause', 'Pause']], load: [['replay', 'Replay']], hover: [['show', 'Show me']], press: [['show', 'Show me']], scroll: [['play', 'Play'], ['top', 'Back to top']] };
+for (const e of ENTRIES) {
+  test(`${e.id}: its parts come in the template's order, with its chips, Good to know and the link to the real page`, () => {
+    const b = e.body, hasVersion = b.includes('<div class="fx-version">');
+    const order = ['<p class="fx-seen">', '<h2 ', '<p class="fx-chips">', hasVersion && '<div class="fx-version">', '<p class="fx-what">', '<h3 class="fx-sub">Good to know</h3>', '<dl class="fx-know">',
+      '<h3 class="fx-sub">Build it with these animations</h3>', '<div class="fx-cards">', '<h3 class="fx-sub">A prompt to build something similar</h3>', '<div class="fx-pbox">', '<button type="button" class="copy"', '<a class="fx-real"'].filter(Boolean);
+    let last = -1;
+    for (const part of order) {
+      const at = b.indexOf(part);
+      assert.ok(at > last, `${part} is there, after the part before it`);
+      assert.equal(count(b, part), 1, `${part} is there once`);
+      last = at;
+    }
+    const chips = b.match(/<p class="fx-chips"><span class="fx-chip">([^<]+)<\/span><span class="fx-chip">([^<]+)<\/span><\/p>/);
+    assert.ok(chips, 'two chips');
+    assert.equal(chips[1], START_CHIPS[e.start], 'what starts it');
+    assert.equal(chips[2], `Made from ${animations(cardCount(e))}`, 'and how many animations it is made from');
+    const know = b.match(/<dl class="fx-know">([\s\S]*?)<\/dl>/)[1];
+    const pairs = [...know.matchAll(/<div><dt>([^<]+)<\/dt><dd>([^<]+)<\/dd><\/div>/g)];
+    assert.equal(count(know, '<dt>'), 3, 'exactly three pairs');
+    assert.deepEqual(pairs.map(p => p[1]), ['Starts', 'On phones', 'Reduced motion'], 'Starts, On phones, Reduced motion');
+    const prompt = textOf(b.match(/<div class="fx-pbox"><p class="fx-prompt">([\s\S]*?)<\/p><\/div>/)[1]), promptStems = stems(prompt);
+    for (const [, label, line] of pairs) {
+      const n = words(decode(line));
+      assert.ok(n >= 2 && n <= 20 && !/["“”`]/.test(line), `${label}: "${line}" is one short plain line`);
+      assert.ok([...stems(line)].some(s => promptStems.has(s)), `${label}: "${line}" is taken from the entry's prompt`);
+    }
+    const href = seenHref(e);
+    assert.ok(b.includes(`<a class="fx-real" href="${href}" target="_blank" rel="noopener">Watch the real one on ${hostOf(href)} <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>`),
+      'Watch the real one: the same address as Seen on, in a new tab');
+  });
+}
 
 test('two different animations on the page never share a preview', async () => {
   const { homeConst } = await tool();
@@ -462,4 +556,164 @@ test('hover effects only where hover exists, the message fades in place under re
   assert.match(block('@media(prefers-reduced-motion:reduce)'), /\.toast\{transform:translate\(-50%,0\);transition:opacity \.25s\}/, 'the message does not slide');
   assert.match(block('@media(max-width:600px)'), /\.fx-prompt\.is-clamped\{[^}]*-webkit-line-clamp:5/, 'five lines on phones');
   assert.ok(SCRIPT.includes("p.classList.add('is-clamped');"), 'each prompt starts shortened');
+});
+
+// ---------- The pop-up, the pictures of the tiles and Our version (docs/superpowers/specs/2026-10-22-famous-gallery-popup-design.md) ----------
+const CSS_BLOCKS = cssBlocks(OWN_CSS);
+const blockBody = head => (CSS_BLOCKS.find(b => b.head === head) || { body: '' }).body;
+const rule = (blocks, selector) => (blocks.find(b => b.head === selector) || { body: '' }).body;
+// The style of one @media block, as its own blocks.
+const inner = head => cssBlocks(blockBody(head));
+const PHONE = '@media(max-width:600px),(max-height:500px)';
+
+test('the gallery has three columns from 961px, two from 601px and one below, with smaller gaps on phones', () => {
+  assert.match(rule(CSS_BLOCKS, '.fx-grid'), /display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);gap:clamp\(\d+px,[\d.]+vw,\d+px\)/, 'three columns from 961px');
+  assert.match(rule(inner('@media(max-width:960px)'), '.fx-grid'), /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, 'two columns from 601px to 960px');
+  const phone = rule(CSS_BLOCKS.filter(b => b.head === '@media(max-width:600px)').flatMap(b => cssBlocks(b.body)), '.fx-grid');
+  assert.match(phone, /grid-template-columns:minmax\(0,1fr\);gap:\d+px/, 'one column below, with a smaller gap');
+  assert.match(rule(CSS_BLOCKS, '.t-stage'), /aspect-ratio:16\/10/, 'a 16:10 picture');
+});
+
+test('each tile picture is drawn at rest and moves only where motion is allowed, only inside the window, with transform and opacity alone', () => {
+  const pictures = [...new Set([...GALLERY.matchAll(/<div class="gp (gp-[a-z]+)" aria-hidden="true">/g)].map(m => m[1]))];
+  assert.equal(pictures.length, ENTRIES.length, 'one picture for each entry, no two alike');
+  // the part of each picture the loop moves
+  const moved = { 'gp-ribbon': '.gp-ribbon .rb', 'gp-visor': '.gp-visor .vz', 'gp-reveal': '.rv-blob', 'gp-intro': '.gp-intro i', 'gp-menu': '.mn-panel', 'gp-wiki': '.wk-card',
+    'gp-sweep': '.gp-sweep .sw i', 'gp-cards': '.gp-cards .play', 'gp-load': '.gp-load .ld i b', 'gp-chart': '.gp-chart .bar', 'gp-bar': '.tb-page' };
+  const motion = blockBody('@media(prefers-reduced-motion:no-preference)');
+  assert.ok(motion, 'the loops are inside @media(prefers-reduced-motion:no-preference)');
+  for (const name of pictures) {
+    assert.ok(OWN_CSS.includes(`.${name}{`), `${name} is drawn`);
+    assert.ok(moved[name], `the test knows what ${name} moves`);
+    assert.ok(new RegExp(`${escapeRe(moved[name])}\\{[^}]*animation:g-`).test(motion), `${name}: ${moved[name]} moves where motion is allowed`);
+  }
+  for (const { head, body } of CSS_BLOCKS) {
+    if (!head.startsWith('@') && /animation\s*:/.test(body)) assert.ok(head.startsWith('.fx-dlg[open]'), `${head} moves outside the no-preference block (only the pop-up's fade does, and reduced motion switches that off)`);
+  }
+  const names = [...OWN_CSS.matchAll(/animation:([a-z-]+) /g)].map(m => m[1]);
+  assert.ok(names.length >= pictures.length, 'every picture has a loop');
+  for (const name of new Set(names)) assert.ok(CSS_BLOCKS.some(b => b.head === `@keyframes ${name}`), `@keyframes ${name} exists`);
+  const frames = CSS_BLOCKS.filter(b => b.head.startsWith('@keyframes '));
+  assert.ok(frames.length >= 20, 'the loops have their keyframes');
+  for (const { head, body } of frames) {
+    const props = [...body.matchAll(/\{([^{}]*)\}/g)].flatMap(m => m[1].split(';').map(d => d.split(':')[0].trim()).filter(Boolean));
+    for (const prop of props) assert.ok(prop === 'transform' || prop === 'opacity', `${head} animates ${prop}, not only transform and opacity`);
+  }
+  assert.ok(OWN_CSS.includes('.js .tile:not(.playing) .gp *{animation-play-state:paused!important}') || /\.js \.tile:not\(\.playing\) \.gp \*,[^{]*\{animation-play-state:paused!important\}/.test(OWN_CSS), 'a tile that is not playing holds still');
+  assert.ok(/\.fx-open \.tile \.gp \*,[^{]*\{animation-play-state:paused!important\}/.test(OWN_CSS), 'and so does every tile behind the pop-up');
+  assert.ok(SCRIPT.includes("tile.classList.add('playing')") && SCRIPT.includes('io.observe(tile)'), 'the page script plays a tile while it is in the window or holds focus');
+});
+
+test('the pop-up is one native dialog with a top bar of three 44px icon buttons, and the list of entries waits out of sight while scripts run', () => {
+  assert.equal(count(MARKUP, '<dialog'), 1, 'one dialog');
+  const html = between(PAGE, '<dialog class="fx-dlg" id="fx-dlg">', '</dialog>');
+  const buttons = [...html.matchAll(/<button type="button" class="icon-btn fx-dbtn[^"]*" data-fx-([a-z]+(?:="[a-z]+")?) aria-label="([^"]+)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="[^"]+"\/><\/svg><\/button>/g)];
+  assert.deepEqual(buttons.map(m => m[2]), ['Previous effect', 'Next effect', 'Close'], 'Previous, Next and Close, each an icon with a name');
+  assert.ok(html.indexOf('class="fx-dbar"') < html.indexOf('class="fx-dbody"'), 'the bar, then the body that holds the entry');
+  assert.ok(!html.includes('<section'), 'the entries are moved in by the script');
+  assert.match(rule(CSS_BLOCKS, '.icon-btn'), /width:44px;height:44px/, 'the buttons are 44px');
+  assert.match(rule(CSS_BLOCKS, '.fx-dbar'), /position:sticky;top:0/, 'the bar stays at the top while the entry scrolls');
+  assert.ok(rule(CSS_BLOCKS, '.js .fx-list') === 'display:none', 'scripts hide the list');
+  assert.ok(/classList\.add\('js'\)/.test(between(PAGE, '<script>', '</script>')) && between(PAGE, '<script>', '</script>').includes('HTMLDialogElement.prototype.showModal'), 'the js class is set at the start, in a browser that has the dialog');
+  assert.ok(MARKUP.indexOf('<dialog') > MARKUP.indexOf('id="toast"'), 'after the message box');
+});
+
+test('the pop-up is a rounded card in the page\'s surface and line colors, dimmed behind, fading in with a 12px rise, locking the page, and full screen on phones', () => {
+  const dlg = rule(CSS_BLOCKS, '.fx-dlg');
+  assert.match(dlg, /width:min\(980px,/, 'at most 980px wide');
+  assert.match(dlg, /border:1px solid var\(--line\)/, "the page's line");
+  assert.match(dlg, /border-radius:24px/, '24px corners');
+  assert.match(dlg, /background:var\(--surface\)/, "the page's surface");
+  assert.match(dlg, /margin:auto/, 'centered (the page resets margins)');
+  assert.match(dlg, /overflow:auto/, 'the dialog itself scrolls');
+  assert.match(rule(CSS_BLOCKS, '.fx-dlg::backdrop'), /background:rgba\(/, 'a dim backdrop');
+  assert.match(rule(CSS_BLOCKS, '.fx-dlg[open]'), /animation:fx-in /, 'it fades in');
+  assert.match(blockBody('@keyframes fx-in'), /from\{opacity:0;transform:translateY\(12px\)\}/, 'with a 12px rise');
+  assert.match(rule(CSS_BLOCKS, 'html.fx-open'), /overflow:hidden/, 'the page behind does not scroll');
+  const calm = CSS_BLOCKS.filter(b => b.head === '@media(prefers-reduced-motion:reduce)').map(b => b.body).join('\n');
+  assert.match(calm, /\.fx-dlg\[open\],\.fx-dlg\[open\]::backdrop\{animation:none\}/, 'under reduced motion it appears at once');
+  const phone = inner(PHONE);
+  assert.match(rule(phone, '.fx-dlg'), /width:100%;height:100%;max-height:none;border:0;border-radius:0/, 'on phones it fills the screen');
+  assert.match(rule(phone, '.fx-dlg .copy'), /position:sticky;bottom:\d+px/, "on phones the entry's own Copy prompt sticks to the bottom");
+  assert.match(rule(CSS_BLOCKS, '.fx-stage'), /height:420px/, 'Our version is 420px tall');
+  assert.match(rule(phone, '.fx-stage'), /height:300px/, 'and 300px on phones');
+  assert.match(rule(CSS_BLOCKS, '.fx-stage'), /background:#08080a/, 'always dark');
+});
+
+test('the pop-up\'s script: it opens a tile\'s entry with showModal, pushes the address, replaces it for Previous and Next, and closes every way through one handler', () => {
+  for (const part of ['dlg.showModal()', 'history.pushState({fxPushed:true},\'\',\'#\'+id)', 'history.replaceState({fxPushed:pushed()},\'\',\'#\'+id)', 'history.back()',
+    "addEventListener('popstate',sync)", "dlg.addEventListener('close',", "e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey", "(at+step+entries.length)%entries.length", 'dlg.setAttribute(\'aria-labelledby\',id+\'-t\')',
+    "entry.querySelector('h2').focus({preventScroll:true})", "tile.focus()", "root.classList.add('fx-open')", "root.classList.remove('fx-open')"]) {
+    assert.ok(SCRIPT.includes(part), `the script has ${part}`);
+  }
+  assert.ok(SCRIPT.includes("history.replaceState(null,'',location.pathname+location.search)"), 'a close that did not push goes back to the page address');
+  assert.ok(SCRIPT.includes('holder.append(entry)') && SCRIPT.includes('slot.replaceWith(entry)'), "the entry's section is moved in and put back where it was");
+});
+
+test('an entry\'s version loads from data-src only while its entry is open, in a fresh frame, and its player sends the command with postMessage', () => {
+  assert.ok(SCRIPT.includes('frame.src=frame.dataset.src'), 'the frame gets its src from data-src');
+  assert.ok(SCRIPT.includes('const fresh=frame.cloneNode(false)') && SCRIPT.includes("fresh.removeAttribute('src')") && SCRIPT.includes('frame.replaceWith(fresh)'), 'and is replaced by an empty one when its entry closes or changes');
+  assert.ok(/startVersion\(entry\)/.test(SCRIPT) && /unmount\(entry\)\{\s*stopVersion\(entry\)/.test(SCRIPT), 'started with its entry, stopped when it goes back to the list');
+  assert.ok(SCRIPT.includes("frame.contentWindow.postMessage({fx:cmd},'*')"), 'a player button sends {fx: command} to the frame');
+  assert.ok(SCRIPT.includes('.fx-player [data-fx-cmd]') && SCRIPT.includes("dataset.fxStart==='loop'"), 'any player button works by its data-fx-cmd, and a loop\'s Pause and Play swap');
+  assert.ok(!/<iframe[^>]*\ssrc=/.test(PAGE), 'no frame has a src in the markup');
+});
+
+// ---------- Our version: the frames of the entries and the files they load ----------
+const VERSIONS = ENTRIES.filter(e => e.body.includes('<div class="fx-version">'));
+// The words a version shows: its markup without scripts and styles, with the words of its labels (title, aria-label, alt, data-alt).
+const versionText = html => spaced(html.replace(/<script\b[\s\S]*?<\/script>/g, ' ').replace(/<style\b[\s\S]*?<\/style>/g, ' ')
+  + ' ' + [...html.matchAll(/\s(?:aria-label|alt|data-alt|title)="([^"]*)"/g)].map(m => m[1]).join(' '));
+const ALL_SITES = ENTRIES.map(e => e.site.replace(/^The /, ''));
+
+test('at least one entry shows Our version', () => assert.ok(VERSIONS.length > 0, 'a .fx-version block'));
+
+for (const e of VERSIONS) {
+  test(`${e.id}: its Our version block holds the frame, the label and the player for what starts it`, () => {
+    const block = e.body.match(/<div class="fx-version">\s*<div class="fx-stage">\s*<iframe title="Our version: ([^"]+)" data-src="(versions\/[a-z0-9-]+\.html)"><\/iframe>\s*<span class="fx-vlabel" aria-hidden="true">Our version<\/span>\s*<\/div>\s*<div class="fx-player">([\s\S]*?)<\/div>\s*<\/div>/);
+    assert.ok(block, 'the stage with its frame and its label, then the player');
+    assert.equal(decode(block[1]), h2Of(e), "the frame is titled with the entry's own title");
+    assert.equal(block[2], `versions/${e.id}.html`, 'it loads the version of this entry');
+    assert.ok(e.body.indexOf('<div class="fx-version">') > e.body.indexOf('<p class="fx-chips">') && e.body.indexOf('<div class="fx-version">') < e.body.indexOf('<p class="fx-what">'), 'right after the chips');
+    const buttons = [...block[3].matchAll(/<button type="button" class="fx-pbtn" data-fx-cmd="([a-z]+)">([^<]+)<\/button>/g)].map(m => [m[1], m[2]]);
+    assert.deepEqual(buttons, PLAYER[e.start], `the player for a ${e.start} entry`);
+    assert.equal(count(block[3], '<button'), buttons.length, 'no other button');
+    const hint = block[3].match(/<p class="fx-phint">([^<]+)<\/p>/);
+    assert.ok(hint, 'a hint');
+    if (e.start === 'scroll') assert.equal(hint[1], 'Built from the prompt below. Scroll inside the box, or press Play.', 'the hint for a scroll entry');
+  });
+
+  test(`${e.id}: its version file exists, loads nothing from elsewhere but the site font, is not indexed, has its title, a reduced-motion rule and a message handler that trusts only its parent, and shows no site name`, () => {
+    const src = e.body.match(/data-src="(versions\/[a-z0-9-]+\.html)"/)[1];
+    const file = path.join(ROOT, 'famous', src);
+    assert.ok(fs.existsSync(file), `${src} exists`);
+    const html = read(file);
+    assert.ok(html.includes('<meta name="robots" content="noindex">'), 'noindex');
+    assert.ok(html.includes(`<title>Our version: ${h2Of(e)}</title>`), 'titled Our version: and the entry\'s title');
+    // loads nothing from elsewhere: every address in it is a font of the repository (or a data: picture, or a place in the page itself)
+    const refs = [...html.matchAll(/\b(?:src|href|srcset|poster|action|data|formaction)\s*=\s*["']([^"']*)["']/g)].map(m => m[1])
+      .concat([...html.matchAll(/url\(\s*(["']?)([^"')]*)\1\s*\)/g)].map(m => m[2]));
+    for (const ref of refs) assert.ok(ref.startsWith('../../assets/fonts/') || ref.startsWith('data:') || ref.startsWith('#'), `${src} loads ${ref}`);
+    for (const ref of refs.filter(r => r.startsWith('../../assets/fonts/'))) assert.ok(fs.existsSync(path.resolve(ROOT, 'famous', 'versions', ref)), `the font ${ref} exists`);
+    assert.ok(!/@import|<link\b|<img\b|<iframe\b|<video\b|<audio\b|<object\b|<embed\b|https?:\/\//i.test(html.replace(/\/\*[\s\S]*?\*\//g, '')), 'no import, link, picture, frame or web address');
+    const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    assert.ok(!/\b(fetch|XMLHttpRequest|sendBeacon|EventSource|WebSocket|importScripts|import)\s*\(|new\s+(Worker|SharedWorker)\b/.test(script), 'its script makes no request');
+    assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html) || /matchMedia\(\s*['"]\(prefers-reduced-motion\s*:\s*reduce\)['"]/.test(script), 'a reduced-motion rule');
+    assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html), 'in its style');
+    assert.ok(/addEventListener\(\s*['"]message['"]/.test(script), 'a message listener');
+    assert.ok(/\.source\s*(?:!==|===|!=|==)\s*(?:window\.)?parent\b/.test(script) || /\b(?:window\.)?parent\s*(?:!==|===|!=|==)\s*\w+\.source\b/.test(script), 'that checks the message comes from its parent');
+    const text = versionText(html);
+    assert.ok(text.length > 40, 'it shows words');
+    for (const name of ALL_SITES) assert.ok(!names(text, name), `${src} shows the site name "${name}"`);
+    for (const phrase of SITE_PHRASES) assert.ok(!names(text, phrase), `${src} shows "${phrase}"`);
+  });
+}
+
+test('every entry has its own version', { todo: 'versions come one at a time' }, () => {
+  for (const e of ENTRIES) {
+    const m = e.body.match(/<iframe title="Our version: [^"]+" data-src="(versions\/[a-z0-9-]+\.html)"/);
+    assert.ok(m, `${e.id} has no Our version block yet`);
+    assert.equal(m[1], `versions/${e.id}.html`, `${e.id} loads its own file`);
+    assert.ok(fs.existsSync(path.join(ROOT, 'famous', m[1])), `${m[1]} exists`);
+  }
 });
