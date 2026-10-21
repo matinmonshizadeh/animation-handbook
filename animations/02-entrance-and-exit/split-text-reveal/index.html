@@ -24,7 +24,7 @@
     :root{--ui-accent:#5fd88a;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1);--stagger:30ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;padding:clamp(20px,4vw,48px)}
-    #text-target{font-size:clamp(24px,4.5vw,48px);font-weight:bold;text-align:center;line-height:1.35;max-width:560px;word-break:break-word}
+    #text-target,.blk-text{font-size:clamp(24px,4.5vw,48px);font-weight:bold;text-align:center;line-height:1.35;max-width:560px;word-break:break-word}
     /* shared unit styles — animation-type overrides below */
     .unit{display:inline-block;
       opacity:0;
@@ -43,6 +43,50 @@
     /* Letters mode: the letters of one word sit in one box that never breaks, so lines break only between words */
     .unit-word{display:inline-block;white-space:nowrap}
     [data-mode="chars"] .unit{margin-right:0.01em}
+    /* See inside and Compare */
+    .stage{position:relative}
+    .key,.ghosts,.blk-text,.half,.moment,.hold{display:none}
+    .lbl{padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap}
+    .blk-text .pc{display:inline-block}
+    .blk-text[data-mode="lines"] .pc{display:block}
+    .blk-text[data-mode="chars"] .pc{margin-right:0.01em}
+    .blk-text>.unit{display:block;margin:0}
+    /* See inside: the text with each piece outlined where it lands, and a column of words under it. Each outline is a box placed
+       by the script (so nothing reflows); the pieces show where they are a tenth of a second into the entrance. */
+    .ghosts{position:absolute;inset:0;pointer-events:none}
+    .ghosts i{position:absolute;box-sizing:border-box;border:1.5px solid rgba(95,216,138,.75);border-radius:4px}
+    .key{list-style:none;justify-items:start;gap:4px}
+    .key-row{display:inline-flex;align-items:center;gap:8px}
+    .sw{flex:none;box-sizing:border-box;display:inline-flex;gap:3px;align-items:flex-end;justify-content:center;width:22px;height:18px}
+    .sw-box,.sw-fill,.sw-steps b{border:1.5px solid rgba(95,216,138,.85);border-radius:3px;background:linear-gradient(to top,rgba(95,216,138,.6) var(--f,0%),transparent var(--f,0%))}
+    .sw-box,.sw-fill{width:14px;margin:0 4px}
+    .sw-fill{--f:55%}
+    .sw-steps b{display:block;width:6px;height:18px}
+    .sw-steps b:nth-child(1){--f:75%}.sw-steps b:nth-child(2){--f:40%}.sw-steps b:nth-child(3){--f:10%}
+    .sw-dial{width:16px;height:16px;margin:0 3px;border:1.5px solid rgba(95,216,138,.85);border-radius:50%;background:conic-gradient(rgba(95,216,138,.8) 0 36deg,transparent 0)}
+    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(10px,2.5vw,18px);padding:clamp(12px,2.5vw,24px) clamp(20px,4vw,48px)}
+    .stage[data-hb-mode="inside"] #text-target{position:relative;font-size:var(--fs,clamp(24px,4.5vw,48px))}
+    .stage[data-hb-mode="inside"] .ghosts{display:block}
+    .stage[data-hb-mode="inside"] .key{display:grid}
+    .stage[data-hb-mode="inside"]:not(.posed) .k4{visibility:hidden}
+    /* Compare: One block on the left, the real text (In pieces) on the right, side by side at every width. The box keeps the height
+       Normal has (the script sets it from a hidden copy at Normal's size) and the text is drawn smaller in both halves when it needs. */
+    .stage[data-hb-mode="compare"]{--nr:34px;--px:clamp(6px,2vw,18px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:var(--nr) minmax(0,1fr) var(--nr);align-items:center;padding:0}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:var(--nr);left:50%;border-left:1px solid rgba(244,244,242,.22)}
+    .stage[data-hb-mode="compare"] #text-target,.stage[data-hb-mode="compare"] .blk-text{display:block;font-size:var(--fs,24px);max-width:none;min-width:0;margin:0 var(--px)}
+    .stage[data-hb-mode="compare"] .blk-text{grid-area:2/1}
+    .stage[data-hb-mode="compare"] #text-target{grid-area:2/2}
+    .stage[data-hb-mode="compare"] .half,.stage[data-hb-mode="compare"] .moment{display:block}
+    .stage[data-hb-mode="compare"] .half.first{grid-area:1/1;justify-self:start;margin-left:8px}
+    .stage[data-hb-mode="compare"] .half.second{grid-area:1/2;justify-self:start;margin-left:8px}
+    .stage[data-hb-mode="compare"] .moment{grid-area:3/1/4/3;justify-self:center}
+    .stage[data-hb-mode="compare"]:not(.posed) .moment{visibility:hidden}
+    .stage[data-hb-mode="compare"] .hold,.stage[data-hb-mode="inside"] .hold{display:flex;position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;
+      align-items:center;justify-content:center;padding:clamp(20px,4vw,48px)}
+    .stage[data-hb-mode="compare"] .hold .blk-text,.stage[data-hb-mode="inside"] .hold .blk-text{display:block;font-size:clamp(24px,4.5vw,48px);max-width:560px;margin:0}
+    @media(min-width:760px){.stage[data-hb-mode="inside"] .key{grid-template-columns:repeat(2,auto);gap:6px 20px}}
+    @media(max-width:600px){.lbl{font-size:12.5px;padding:3px 6px}}
     @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}[data-mode="lines"] .unit{opacity:0}.splitting.in .unit{opacity:1}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -66,13 +110,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div id="text-target" class="splitting" data-mode="words" data-anim="fade-up">Design beyond the obvious</div>
+      <div class="ghosts" aria-hidden="true"></div>
+      <ul class="key" aria-hidden="true">
+        <li class="lbl key-row k1" data-hb-caption><i class="sw sw-box"></i><span>Each word is a piece of its own</span></li>
+        <li class="lbl key-row k2" data-hb-caption><i class="sw sw-fill"></i><span>Each fades up into its outline</span></li>
+        <li class="lbl key-row k3" data-hb-caption><span class="sw sw-steps"><b></b><b></b><b></b></span><span>Each starts a moment after the last</span></li>
+        <li class="lbl key-row k4" data-hb-caption><i class="sw sw-dial"></i><span>A tenth of a second in</span></li>
+      </ul>
+      <div class="blk-text splitting" aria-hidden="true" inert data-mode="words" data-anim="fade-up"></div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>One block</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>In pieces</p>
+      <p class="lbl moment" aria-hidden="true" data-hb-caption>A tenth of a second in</p>
+      <div class="hold" aria-hidden="true" inert><div class="blk-text splitting"></div></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each outline is one piece of the headline, where it lands. Every piece plays the same small entrance, each a moment after the one before.</p>
+      <p data-hb-for="compare" hidden>One block plays the entrance once for the whole headline; In pieces plays it for every piece, a moment apart. With Loop off, both rest a tenth of a second in.</p>
     </div>
   </section>
 
@@ -197,7 +262,7 @@
   // Rebuilds the split pieces, hidden, from the current mode and text. Runs at the start of every play,
   // and at once when Split into or Your text changes so the stage never shows a stale split.
   function split(){
-    target.classList.remove('in');
+    setIn(false);
     const text=txtIn.value||'Design beyond the obvious';
     target.dataset.mode=mode;target.dataset.anim=anim;
     target.innerHTML='';
@@ -225,36 +290,38 @@
         if(mode==='words'&&i<units.length-1)target.appendChild(document.createTextNode(' '));
       });
     }
+    viewSplit();
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
   function playLen(){return target.querySelectorAll('.unit').length*stag()+dur()}
   function revealIn(){
     // rebuild the pieces hidden, then show them after a reflow, so every play reveals them from the start
-    split();void target.offsetWidth;
-    target.classList.add('in');
+    unpose();split();void target.offsetWidth;
+    setIn(true);
   }
   // One play reveals the pieces. While Loop is on it then holds, hides them again, waits and plays
   // again; switching Loop off lets the pieces finish shown. Slow motion stretches the reveal and the
   // stagger, not the waits.
   function cycle(){
     apply();revealIn();
-    if(!loopTog.checked||!motionOk)return;
     const len=playLen();
+    busyUntil=performance.now()+(motionOk?len:300);
+    if(!loopTog.checked||!motionOk){later(restPose,busyUntil-performance.now()+700);return}
     later(()=>{
       if(!loopTog.checked)return;
-      target.classList.remove('in');
+      setIn(false);
       later(cycle,len+400);
     },len+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else later(restPose,Math.max(0,busyUntil-performance.now())+700)});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);refresh();
     }));
   }
   choices('mode-seg',d=>{mode=d.mode;split()});
@@ -263,6 +330,132 @@
   choices('speed-seg',d=>{ms=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
   txtIn.addEventListener('input',split);
+
+  // ── See inside and Compare ──
+  // See inside outlines every piece where it lands and shows each at its own stage of the same entrance; Compare puts One block
+  // (an inert copy of the text as a single piece, no delay) beside the real text. With Loop off, and always under reduced motion,
+  // both rest a tenth of a second into the entrance (every piece's progress is worked out from the speed, delay and feel);
+  // a play lifts that, and it comes back through later().
+  const stage=document.querySelector('.stage'),ghosts=stage.querySelector('.ghosts'),blk=stage.querySelector('.blk-text');
+  const key=stage.querySelector('.key'),hold=stage.querySelector('.hold'),holdBox=hold.querySelector('.blk-text');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent);
+  const CURVES={'cubic-bezier(.2,.7,.3,1)':[.2,.7,.3,1],'cubic-bezier(.34,1.56,.64,1)':[.34,1.56,.64,1],linear:null};
+  const POSE_MS=100;
+  let view='normal',posed=false,busyUntil=0,sig='';
+
+  function setIn(on){target.classList.toggle('in',on);blk.classList.toggle('in',on)}
+  // How far in a piece is after share x of its time: the Feel's curve (its t found by halving)
+  function progress(x){
+    const c=CURVES[ease];if(x<=0)return 0;x=Math.min(1,x);if(!c)return x;
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(c[0],c[2],t)<x)lo=t;else hi=t}
+    return at(c[1],c[3],t);
+  }
+  function poseOne(el,p){
+    const q=1-p,set=(e,k,v)=>e.style.setProperty(k,v,'important');
+    set(el,'transition','none');
+    set(el,'transform',anim==='fade-up'?`translateY(${(.5*q).toFixed(3)}em)`:anim==='scale'?`scale(${(.5+.5*p).toFixed(3)})`:anim==='rotate'?`rotateY(${(90*q).toFixed(1)}deg)`:'none');
+    set(el,'opacity',mode==='lines'?'1':Math.min(1,Math.max(0,p)).toFixed(3));
+    const inner=el.querySelector(':scope > .unit-inner');
+    if(inner){set(inner,'transition','none');set(inner,'transform',`translateY(${(100*q).toFixed(1)}%)`)}
+  }
+  function poseNow(){
+    const d=dur(),s=stag();
+    target.querySelectorAll('.unit').forEach(u=>poseOne(u,progress((POSE_MS-u.style.getPropertyValue('--i')*s)/d)));
+    const one=blk.querySelector('.unit');if(one)poseOne(one,progress(POSE_MS/d));
+    posed=true;stage.classList.add('posed');describe();
+  }
+  // Leaving the rest: the text is shown as it now is, at once (only posed pieces snap)
+  function unpose(){
+    if(!posed)return;
+    posed=false;stage.classList.remove('posed');
+    const all=[...target.querySelectorAll('.unit,.unit-inner'),...blk.querySelectorAll('.unit,.unit-inner')];
+    all.forEach(u=>{u.style.removeProperty('opacity');u.style.removeProperty('transform')});
+    void target.offsetWidth;
+    all.forEach(u=>u.style.removeProperty('transition'));
+    describe();
+  }
+  function restPose(){
+    if(view==='normal'||(loopTog.checked&&motionOk)||!target.classList.contains('in')||performance.now()<busyUntil-5)return;
+    poseNow();
+  }
+  // One block: the text as it is now, kept in one piece that plays the entrance with no delay (the same shapes as the real pieces)
+  function buildBlock(){
+    const c=target.cloneNode(true);
+    c.querySelectorAll('.unit-inner').forEach(n=>n.replaceWith(...n.childNodes));
+    c.querySelectorAll('.unit').forEach(n=>{n.className='pc';n.removeAttribute('style')});
+    const piece=document.createElement('div');piece.className='unit';piece.style.setProperty('--i',0);
+    let host=piece;
+    if(mode==='lines'){host=document.createElement('div');host.className='unit-inner';piece.appendChild(host)}
+    host.append(...c.childNodes);
+    blk.dataset.mode=holdBox.dataset.mode=mode;blk.dataset.anim=anim;
+    blk.classList.toggle('in',target.classList.contains('in'));
+    blk.replaceChildren(piece);holdBox.replaceChildren(piece.cloneNode(true));
+  }
+  function drawGhosts(){
+    ghosts.replaceChildren();
+    if(view!=='inside')return;
+    const ox=target.offsetLeft,oy=target.offsetTop;
+    target.querySelectorAll('.unit').forEach(u=>{
+      const g=document.createElement('i');
+      g.style.cssText=`left:${ox+u.offsetLeft}px;top:${oy+u.offsetTop}px;width:${u.offsetWidth}px;height:${u.offsetHeight}px`;
+      ghosts.appendChild(g);
+    });
+  }
+  // Both views keep the height Normal has (a hidden copy at Normal's size says what that is) and draw the text as large as fits, never
+  // under half of Normal's: Compare in both halves, See inside above its key.
+  function layoutFit(){
+    const cmp=view==='compare',cs=getComputedStyle(stage),bw=stage.offsetHeight-stage.clientHeight;
+    const H=Math.max(parseFloat(cs.minHeight)||0,hold.offsetHeight+bw);
+    stage.style.height=H+'px';
+    const fn=parseFloat(getComputedStyle(holdBox).fontSize);
+    const avail=cmp?H-bw-2*parseFloat(cs.getPropertyValue('--nr')):H-bw-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-parseFloat(cs.rowGap)-key.offsetHeight;
+    let f=fn;
+    for(let i=0;i<16;i++){
+      stage.style.setProperty('--fs',f.toFixed(2)+'px');
+      if(![target,...(cmp?[blk]:[])].some(el=>el.offsetHeight>avail||el.scrollWidth>el.clientWidth+1)||f<=fn/2)break;
+      f=Math.max(fn/2,f*.94);
+    }
+    sig=stage.clientWidth+'/'+hold.offsetHeight;
+    if(!cmp)drawGhosts();
+  }
+  const wordFor={'fade-up':'fades up into','fade':'fades into',scale:'grows into',rotate:'turns into'};
+  function labels(){
+    const t=[mode==='lines'?'Each line has its own hidden edge':`Each ${mode==='chars'?'letter':'word'} is a piece of its own`,
+      mode==='lines'?'Each slides up from behind its edge':`Each ${wordFor[anim]} its outline`];
+    stage.querySelectorAll('.key-row span:not(.sw)').forEach((e,i)=>{if(t[i]&&e.textContent!==t[i])e.textContent=t[i]});
+  }
+  // The notes say what the box shows now: Lines and the still under reduced motion have their own words (a still note only while
+  // the box rests; after a play it says the markup's words until the pose is back)
+  function describe(){
+    const lines=mode==='lines',still=!motionOk&&posed,what=lines?'line of the headline with its own hidden edge':'piece of the headline, where it lands';
+    const words=[still?`Shown still, a tenth of a second in: each outline is one ${what}; each ${lines?'line':'piece'} is a step behind the one before.`
+      :lines?'Inside, each outline is one line of the headline with its own hidden edge. Every line slides up from behind it, a moment after the one before.':marked[0],
+      still?'Shown still, a tenth of a second in: One block is part way in all at once, while In pieces has each piece a step behind the one before.':marked[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  function layout(){
+    if(view==='normal'){stage.style.removeProperty('height');ghosts.replaceChildren();return}
+    buildBlock();labels();describe();
+    layoutFit();
+  }
+  function viewSplit(){if(view==='normal')return;layout();if(posed)poseNow()}
+  function refresh(){if(view==='normal')return;blk.dataset.anim=anim;labels();describe();if(posed)poseNow();layoutFit()}
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    view=e.detail.mode;
+    if(view==='normal'){unpose();layout();return}
+    layout();
+    if(posed)poseNow();else restPose();
+  });
+  const refit=()=>{if(view!=='normal'&&sig!==stage.clientWidth+'/'+hold.offsetHeight)layoutFit()};
+  new ResizeObserver(refit).observe(stage);
+  new ResizeObserver(refit).observe(hold);
+  new ResizeObserver(()=>{if(view==='inside')drawGhosts()}).observe(target);
+  document.fonts&&document.fonts.ready.then(()=>{if(view!=='normal')layout()});
+  slowTog.addEventListener('change',()=>{if(posed)poseNow()});
   apply();split();
 </script>
 </body>
