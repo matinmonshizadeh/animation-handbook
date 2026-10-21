@@ -64,8 +64,8 @@
     .sw-steps b{display:block;width:6px;height:18px}
     .sw-steps b:nth-child(1){--f:75%}.sw-steps b:nth-child(2){--f:40%}.sw-steps b:nth-child(3){--f:10%}
     .sw-dial{width:16px;height:16px;margin:0 3px;border:1.5px solid rgba(95,216,138,.85);border-radius:50%;background:conic-gradient(rgba(95,216,138,.8) 0 36deg,transparent 0)}
-    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(10px,2.5vw,18px);padding:clamp(12px,2.5vw,24px)}
-    .stage[data-hb-mode="inside"] #text-target{position:relative}
+    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(10px,2.5vw,18px);padding:clamp(12px,2.5vw,24px) clamp(20px,4vw,48px)}
+    .stage[data-hb-mode="inside"] #text-target{position:relative;font-size:var(--fs,clamp(24px,4.5vw,48px))}
     .stage[data-hb-mode="inside"] .ghosts{display:block}
     .stage[data-hb-mode="inside"] .key{display:grid}
     .stage[data-hb-mode="inside"]:not(.posed) .k4{visibility:hidden}
@@ -82,9 +82,9 @@
     .stage[data-hb-mode="compare"] .half.second{grid-area:1/2;justify-self:start;margin-left:8px}
     .stage[data-hb-mode="compare"] .moment{grid-area:3/1/4/3;justify-self:center}
     .stage[data-hb-mode="compare"]:not(.posed) .moment{visibility:hidden}
-    .stage[data-hb-mode="compare"] .hold{display:flex;position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;
+    .stage[data-hb-mode="compare"] .hold,.stage[data-hb-mode="inside"] .hold{display:flex;position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;
       align-items:center;justify-content:center;padding:clamp(20px,4vw,48px)}
-    .stage[data-hb-mode="compare"] .hold .blk-text{font-size:clamp(24px,4.5vw,48px);max-width:560px;margin:0}
+    .stage[data-hb-mode="compare"] .hold .blk-text,.stage[data-hb-mode="inside"] .hold .blk-text{display:block;font-size:clamp(24px,4.5vw,48px);max-width:560px;margin:0}
     @media(min-width:760px){.stage[data-hb-mode="inside"] .key{grid-template-columns:repeat(2,auto);gap:6px 20px}}
     @media(max-width:600px){.lbl{font-size:12.5px;padding:3px 6px}}
     @media(prefers-reduced-motion:reduce){.unit,.unit-inner{transition:opacity 300ms linear!important;transform:none!important}[data-mode="lines"] .unit{opacity:0}.splitting.in .unit{opacity:1}}
@@ -337,7 +337,7 @@
   // both rest a tenth of a second into the entrance (every piece's progress is worked out from the speed, delay and feel);
   // a play lifts that, and it comes back through later().
   const stage=document.querySelector('.stage'),ghosts=stage.querySelector('.ghosts'),blk=stage.querySelector('.blk-text');
-  const hold=stage.querySelector('.hold'),holdBox=hold.querySelector('.blk-text');
+  const key=stage.querySelector('.key'),hold=stage.querySelector('.hold'),holdBox=hold.querySelector('.blk-text');
   const notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent);
   const CURVES={'cubic-bezier(.2,.7,.3,1)':[.2,.7,.3,1],'cubic-bezier(.34,1.56,.64,1)':[.34,1.56,.64,1],linear:null};
   const POSE_MS=100;
@@ -403,20 +403,22 @@
       ghosts.appendChild(g);
     });
   }
-  // Compare keeps the height Normal has (a hidden copy at Normal's size says what that is) and draws both halves' text at one size,
-  // as large as fits, never under half of Normal's
-  function layoutCompare(){
-    const bw=stage.offsetHeight-stage.clientHeight;
-    const H=Math.max(parseFloat(getComputedStyle(stage).minHeight)||0,hold.offsetHeight+bw);
+  // Both views keep the height Normal has (a hidden copy at Normal's size says what that is) and draw the text as large as fits, never
+  // under half of Normal's: Compare in both halves, See inside above its key.
+  function layoutFit(){
+    const cmp=view==='compare',cs=getComputedStyle(stage),bw=stage.offsetHeight-stage.clientHeight;
+    const H=Math.max(parseFloat(cs.minHeight)||0,hold.offsetHeight+bw);
     stage.style.height=H+'px';
-    const fn=parseFloat(getComputedStyle(holdBox).fontSize),avail=H-bw-2*parseFloat(getComputedStyle(stage).getPropertyValue('--nr'));
+    const fn=parseFloat(getComputedStyle(holdBox).fontSize);
+    const avail=cmp?H-bw-2*parseFloat(cs.getPropertyValue('--nr')):H-bw-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-parseFloat(cs.rowGap)-key.offsetHeight;
     let f=fn;
     for(let i=0;i<16;i++){
       stage.style.setProperty('--fs',f.toFixed(2)+'px');
-      if(![target,blk].some(el=>el.offsetHeight>avail||el.scrollWidth>el.clientWidth+1)||f<=fn/2)break;
+      if(![target,...(cmp?[blk]:[])].some(el=>el.offsetHeight>avail||el.scrollWidth>el.clientWidth+1)||f<=fn/2)break;
       f=Math.max(fn/2,f*.94);
     }
     sig=stage.clientWidth+'/'+hold.offsetHeight;
+    if(!cmp)drawGhosts();
   }
   const wordFor={'fade-up':'fades up into','fade':'fades into',scale:'grows into',rotate:'turns into'};
   function labels(){
@@ -436,10 +438,10 @@
   function layout(){
     if(view==='normal'){stage.style.removeProperty('height');ghosts.replaceChildren();return}
     buildBlock();labels();describe();
-    if(view==='compare')layoutCompare();else{stage.style.removeProperty('height');drawGhosts()}
+    layoutFit();
   }
   function viewSplit(){if(view==='normal')return;layout();if(posed)poseNow()}
-  function refresh(){if(view==='normal')return;blk.dataset.anim=anim;labels();describe();if(posed)poseNow();if(view==='compare')layoutCompare()}
+  function refresh(){if(view==='normal')return;blk.dataset.anim=anim;labels();describe();if(posed)poseNow();layoutFit()}
 
   // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
   document.addEventListener('hb:mode',e=>{
@@ -448,11 +450,9 @@
     layout();
     if(posed)poseNow();else restPose();
   });
-  new ResizeObserver(()=>{
-    if(view==='inside')drawGhosts();
-    else if(view==='compare'){const k=stage.clientWidth+'/'+hold.offsetHeight;if(k!==sig){sig=k;layoutCompare()}}
-  }).observe(stage);
-  new ResizeObserver(()=>{if(view==='compare'&&!sig.endsWith('/'+hold.offsetHeight))layoutCompare()}).observe(hold);
+  const refit=()=>{if(view!=='normal'&&sig!==stage.clientWidth+'/'+hold.offsetHeight)layoutFit()};
+  new ResizeObserver(refit).observe(stage);
+  new ResizeObserver(refit).observe(hold);
   new ResizeObserver(()=>{if(view==='inside')drawGhosts()}).observe(target);
   document.fonts&&document.fonts.ready.then(()=>{if(view!=='normal')layout()});
   slowTog.addEventListener('change',()=>{if(posed)poseNow()});
