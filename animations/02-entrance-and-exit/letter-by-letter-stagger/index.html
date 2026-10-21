@@ -24,7 +24,7 @@
     :root{--ui-accent:#5fd88a;--dur:400ms;--ease:ease-out;--stagger:35ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;padding:clamp(20px,4vw,48px)}
-    #text-target{font-size:clamp(26px,5vw,56px);font-weight:bold;text-align:center;line-height:1.2;max-width:560px;word-break:break-word;position:relative}
+    #text-target,.cmp-text{font-size:clamp(26px,5vw,56px);font-weight:bold;text-align:center;line-height:1.2;max-width:560px;word-break:break-word;position:relative}
     /* cascade mode */
     .char{display:inline-block}
     [data-mode="cascade"] .char{opacity:0;transition:opacity var(--dur) var(--ease) calc(var(--i)*var(--stagger)),transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
@@ -33,13 +33,55 @@
     [data-mode="cascade"][data-anim="rotate"] .char{transform:rotateY(90deg)}
     [data-mode="cascade"].done .char{opacity:1;transform:none}
     /* typewriter mode: typed text keeps a typewriter font */
-    #text-target[data-mode="typewriter"]{font-family:monospace}
+    #text-target[data-mode="typewriter"],.cmp-text[data-mode="typewriter"]{font-family:monospace}
     [data-mode="typewriter"] .char{opacity:0}
     [data-mode="typewriter"] .char.visible{opacity:1}
     .cursor{display:inline-block;width:3px;height:0.85em;background:var(--ui-accent);vertical-align:text-bottom;margin-left:2px;animation:blink 1s step-end infinite}
     .cursor.hidden{display:none}
     @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
-    @media(prefers-reduced-motion:reduce){.char{transition:none!important;opacity:1!important;transform:none!important}}
+    /* See inside and Compare */
+    .stage{position:relative}
+    .key,.bars,.cmp-text,.half,.moment,.hold{display:none}
+    .lbl{padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .half,.moment{white-space:nowrap}
+    .cursor.still{animation:none}
+    .cmp-text .cursor{visibility:hidden;animation:none}
+    /* See inside: a short bar under each letter (placed from the letter's own box) fills as that letter arrives; the key explains it */
+    .bars{position:absolute;inset:0;pointer-events:none}
+    .bars i{position:absolute;height:4px;border-radius:2px;overflow:hidden;background:rgba(244,244,242,.22)}
+    .bars b{display:block;height:100%;background:var(--ui-accent);transform:scaleX(0);transform-origin:0 50%}
+    .key{list-style:none;justify-items:start;gap:4px}
+    .key-row{display:inline-flex;align-items:center;gap:8px}
+    .sw{flex:none;display:inline-flex;gap:2px;align-items:center;justify-content:center;width:26px}
+    .sw b{display:block;width:7px;height:4px;border-radius:2px;background:linear-gradient(to right,var(--ui-accent) var(--f),rgba(244,244,242,.3) var(--f))}
+    .sw-one b{width:20px}
+    .sw-dial{flex:none;width:16px;height:16px;margin:0 5px;border:1.5px solid var(--ui-accent);border-radius:50%;background:conic-gradient(var(--ui-accent) 0 72deg,transparent 0)}
+    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(8px,2vw,16px);padding:clamp(12px,2.5vw,24px) clamp(20px,4vw,48px)}
+    .stage[data-hb-mode="inside"] #text-target{z-index:1;font-size:var(--fs);width:calc(var(--tw)*1em);max-width:none;flex:none}
+    .stage[data-hb-mode="inside"] .bars{display:block}
+    .stage[data-hb-mode="inside"] .bars.go b{transform:none;transition:transform var(--dur) var(--ease) calc(var(--i)*var(--stagger))}
+    .stage[data-hb-mode="inside"] .bars .on b{transform:none}
+    .stage[data-hb-mode="inside"] .key{display:grid}
+    .stage[data-hb-mode="inside"]:not(.posed) .k4{visibility:hidden}
+    /* Compare: All at once (an inert copy, no delay) beside the real phrase, side by side at every width. Both views keep Normal's height
+       and line breaks: a hidden copy at Normal's size gives the box height and the phrase's width in em, and the text is drawn smaller. */
+    .stage[data-hb-mode="compare"]{--nr:34px;--px:clamp(6px,2vw,18px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:var(--nr) minmax(0,1fr) var(--nr);align-items:center;padding:0}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:var(--nr);left:50%;border-left:1px solid rgba(244,244,242,.22)}
+    .stage[data-hb-mode="compare"]>.cmp-text,.stage[data-hb-mode="compare"] #text-target{display:block;font-size:var(--fs);width:calc(var(--tw)*1em);max-width:none;min-width:0;margin:0 var(--px);justify-self:center}
+    .stage[data-hb-mode="compare"]>.cmp-text{grid-area:2/1}
+    .stage[data-hb-mode="compare"] #text-target{grid-area:2/2}
+    .stage[data-hb-mode="compare"] .half,.stage[data-hb-mode="compare"] .moment{display:block}
+    .stage[data-hb-mode="compare"] .half.first{grid-area:1/1;justify-self:start;margin-left:8px}
+    .stage[data-hb-mode="compare"] .half.second{grid-area:1/2;justify-self:start;margin-left:8px}
+    .stage[data-hb-mode="compare"] .moment{grid-area:3/1/4/3;justify-self:center}
+    .stage[data-hb-mode="compare"]:not(.posed) .moment{visibility:hidden}
+    .stage[data-hb-mode="inside"] .hold,.stage[data-hb-mode="compare"] .hold{display:flex;position:absolute;left:0;right:0;top:0;visibility:hidden;pointer-events:none;
+      align-items:center;justify-content:center;padding:clamp(20px,4vw,48px)}
+    .hold .cmp-text{display:block}
+    @media(min-width:760px){.stage[data-hb-mode="inside"] .key{grid-template-columns:repeat(2,minmax(0,auto));gap:6px 20px}}
+    @media(max-width:600px){.lbl{font-size:12.5px;padding:3px 6px}}
+    @media(prefers-reduced-motion:reduce){.char{transition:none!important;opacity:1!important;transform:none!important}.bars b{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -62,13 +104,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div id="text-target" data-mode="cascade" data-anim="fade-up">Hello, world.</div>
+      <div class="bars" aria-hidden="true"></div>
+      <ul class="key" aria-hidden="true">
+        <li class="lbl key-row k1" data-hb-caption><span class="sw"><b style="--f:100%"></b><b style="--f:60%"></b><b style="--f:20%"></b></span><span>Each letter waits a little longer than the one before</span></li>
+        <li class="lbl key-row k2" data-hb-caption><span class="sw sw-one"><b style="--f:55%"></b></span><span>Bars: how far each letter has come</span></li>
+        <li class="lbl key-row k3" data-hb-caption><span class="sw sw-one"><b style="--f:0%"></b></span><span>Still waiting</span></li>
+        <li class="lbl key-row k4" data-hb-caption><i class="sw-dial"></i><span>A fifth of a second in</span></li>
+      </ul>
+      <div class="cmp-text" aria-hidden="true" inert></div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>All at once</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>Letter by letter</p>
+      <p class="lbl moment" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
+      <div class="hold" aria-hidden="true" inert><div class="cmp-text"></div></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the bar under each letter fills as that letter arrives. Each one starts a little after the one before, so the bars fill like a wave.</p>
+      <p data-hb-for="compare" hidden>All at once plays every letter together; Letter by letter starts each a moment after the last, so the phrase builds up. With Loop off, both rest a fifth of a second in.</p>
     </div>
   </section>
 
@@ -177,6 +240,11 @@
   const cursorTog=document.getElementById('cursor-tog'),txtIn=document.getElementById('txt-in');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let mode='cascade',anim='fade-up',ms=400,stagger=35,timers=[];
+  const stage=document.querySelector('.stage'),bars=stage.querySelector('.bars'),cmp=stage.querySelector('.cmp-text'),key=stage.querySelector('.key');
+  const hold=stage.querySelector('.hold'),holdBox=hold.firstElementChild;
+  const notes=[...document.querySelectorAll('[data-hb-for]')],marked=notes.map(n=>n.textContent);
+  const POSE_MS=200;
+  let view='normal',posed=false,busyUntil=0,sig='';
 
   function dur(){return slowTog.checked?ms*3:ms}
   function stag(){return slowTog.checked?stagger*3:stagger}
@@ -188,7 +256,7 @@
   // text. Runs at the start of every Cascade play and when the Loop clears the phrase, and at once when
   // Style, Blinking cursor or Your text changes so the stage never shows a stale phrase.
   function buildSpans(){
-    target.classList.remove('done');
+    target.classList.remove('done');cmp.classList.remove('done');bars.classList.remove('go');
     const text=txtIn.value||'Hello, world.';
     target.dataset.mode=mode;target.dataset.anim=anim;
     target.innerHTML='';
@@ -202,6 +270,7 @@
       const cur=document.createElement('span');cur.className='cursor hidden';cur.id='cursor';
       target.appendChild(cur);
     }
+    viewBuild();
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
   function playLen(){
@@ -211,7 +280,7 @@
   function playCascade(){
     // rebuild the letters hidden, then show them after a reflow, so every play settles them in from the start
     buildSpans();void target.offsetWidth;
-    target.classList.add('done');
+    target.classList.add('done');cmp.classList.add('done');bars.classList.add('go');
   }
   function playTypewriter(){
     if(!motionOk){
@@ -222,7 +291,12 @@
     const cur=target.querySelector('.cursor');
     chars.forEach(c=>c.classList.remove('visible'));
     if(cur)cur.classList.remove('hidden');
-    chars.forEach((c,i)=>later(()=>c.classList.add('visible'),i*stag()));
+    chars.forEach((c,i)=>later(()=>{c.classList.add('visible');if(bars.children[i])bars.children[i].classList.add('on')},i*stag()));
+    if(view!=='normal'){
+      const all=[...cmp.querySelectorAll('.char')];
+      all.forEach(c=>c.classList.remove('visible'));[...bars.children].forEach(b=>b.classList.remove('on'));
+      later(()=>all.forEach(c=>c.classList.add('visible')),60);
+    }
     later(()=>{if(cur)cur.classList.add('hidden')},chars.length*stag());
   }
   // One play reveals the phrase, either as a cascade or typed out. While Loop is on it then holds,
@@ -230,10 +304,11 @@
   // switching Loop off lets the phrase finish shown. Slow motion stretches the reveal and the
   // per-letter delays, not the hold or the wait.
   function cycle(){
-    apply();
+    apply();unpose();
     if(mode==='cascade')playCascade();else playTypewriter();
-    if(!loopTog.checked||!motionOk)return;
     const len=playLen();
+    busyUntil=performance.now()+(motionOk?len:300);
+    if(!loopTog.checked||!motionOk){later(restPose,busyUntil-performance.now()+(motionOk?700:100));return}
     later(()=>{
       if(!loopTog.checked)return;
       buildSpans();
@@ -243,7 +318,7 @@
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else later(restPose,Math.max(0,busyUntil-performance.now())+700)});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -263,6 +338,141 @@
   choices('speed-seg',d=>{ms=+d.ms});
   cursorTog.addEventListener('change',buildSpans);
   txtIn.addEventListener('input',buildSpans);
+  document.querySelector('.hb-try').addEventListener('click',refresh);
+  slowTog.addEventListener('change',refresh);
+
+  // ── See inside and Compare ──
+  // See inside draws a bar under each letter that fills as that letter arrives (Typewriter: snaps full when typed); Compare puts
+  // All at once (an inert copy, every letter on the same beat) beside the real phrase. With Loop off, and always under reduced
+  // motion, both rest a fifth of a second in (each letter's progress is worked out from the speed, delay and style); a play lifts
+  // that and it comes back through later().
+  const set=(e,k,v)=>e.style.setProperty(k,v,'important');
+  const bez=(a,b,t)=>3*a*t*(1-t)**2+3*b*t*t*(1-t)+t**3;
+  // How far a letter has come after share x of its time on the page's curve (ease-out; t found by halving)
+  function progress(x){
+    if(x<=0)return 0;
+    x=Math.min(1,x);let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(bez(0,.58,t)<x)lo=t;else hi=t}
+    return bez(0,1,t);
+  }
+  function poseOne(el,p){
+    set(el,'transition','none');
+    if(mode==='typewriter'){set(el,'opacity',p?'1':'0');return}
+    set(el,'opacity',p.toFixed(3));
+    set(el,'transform',anim==='fade-up'?`translateY(${(.4*(1-p)).toFixed(3)}em)`:anim==='scale'?`scale(${(.3+.7*p).toFixed(3)})`:anim==='rotate'?`rotateY(${(90*(1-p)).toFixed(1)}deg)`:'none');
+  }
+  function poseNow(){
+    const d=dur(),s=stag(),tw=mode==='typewriter';
+    const share=i=>tw?(i*s<=POSE_MS?1:0):progress((POSE_MS-i*s)/d);
+    target.querySelectorAll('.char').forEach((c,i)=>poseOne(c,share(i)));
+    cmp.querySelectorAll('.char').forEach(c=>poseOne(c,tw?1:progress(POSE_MS/d)));
+    [...bars.children].forEach((b,i)=>{set(b.firstChild,'transition','none');set(b.firstChild,'transform',`scaleX(${share(i)})`)});
+    const cur=target.querySelector('.cursor');
+    if(cur){cur.classList.remove('hidden');cur.classList.add('still')}
+    posed=true;stage.classList.add('posed');describe();
+  }
+  // Leaving the rest: the phrase is shown as it now is, at once (only posed letters snap)
+  function unpose(){
+    if(!posed)return;
+    posed=false;stage.classList.remove('posed');
+    const all=[...target.querySelectorAll('.char'),...cmp.querySelectorAll('.char'),...bars.querySelectorAll('b')];
+    all.forEach(e=>{e.style.removeProperty('opacity');e.style.removeProperty('transform')});
+    void target.offsetWidth;
+    all.forEach(e=>e.style.removeProperty('transition'));
+    const cur=target.querySelector('.cursor');
+    if(cur){cur.classList.remove('still');cur.classList.add('hidden')}
+    describe();
+  }
+  function restPose(){
+    if(view==='normal'||posed||(loopTog.checked&&motionOk)||performance.now()<busyUntil-5)return;
+    poseNow();
+  }
+  // The copies are clones of the real letters (no ids; the cursor becomes an unseen space of its size so both phrases wrap alike)
+  function fillCopy(el,flat){
+    el.dataset.mode=mode;el.dataset.anim=anim;
+    el.replaceChildren(...[...target.children].map(c=>{
+      const n=c.cloneNode(true);n.removeAttribute('id');
+      if(c.classList.contains('cursor'))n.className='cursor';
+      else if(flat)n.style.setProperty('--i',0);
+      return n;
+    }));
+  }
+  function viewBuild(){
+    if(view==='normal')return;
+    fillCopy(cmp,true);fillCopy(holdBox,false);
+    cmp.classList.toggle('done',target.classList.contains('done'));
+    layoutFit();
+    if(posed)poseNow();
+  }
+  function drawBars(){
+    bars.replaceChildren();
+    if(view!=='inside')return;
+    const ox=target.offsetLeft,oy=target.offsetTop;
+    bars.classList.toggle('go',mode==='cascade'&&target.classList.contains('done'));
+    [...target.querySelectorAll('.char')].forEach((c,i)=>{
+      const b=document.createElement('i');
+      b.style.cssText=`left:${ox+c.offsetLeft+1}px;top:${oy+c.offsetTop+c.offsetHeight+1}px;width:${Math.max(2,c.offsetWidth-2)}px;--i:${i}`;
+      b.hidden=c.textContent==='\u00a0';
+      b.classList.toggle('on',mode==='typewriter'&&c.classList.contains('visible'));
+      b.appendChild(document.createElement('b'));
+      bars.appendChild(b);
+    });
+  }
+  // Both views keep the height and the line breaks Normal has: the hidden copy at Normal's size gives the box height and the phrase's
+  // width (in em, so the breaks stay when the text is drawn smaller); the text is drawn as large as fits, in the halves or above the key.
+  function layoutFit(){
+    const cmpv=view==='compare',cs=getComputedStyle(stage),bw=stage.offsetHeight-stage.clientHeight;
+    const H=Math.max(parseFloat(cs.minHeight)||0,hold.offsetHeight+bw);
+    stage.style.height=H+'px';
+    const fn=parseFloat(getComputedStyle(holdBox).fontSize),wn=holdBox.offsetWidth,hn=holdBox.offsetHeight;
+    stage.style.setProperty('--tw',(wn/fn+.01).toFixed(4));
+    const availH=cmpv?H-bw-2*parseFloat(cs.getPropertyValue('--nr')):H-bw-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-parseFloat(cs.rowGap)-key.offsetHeight;
+    const availW=cmpv?stage.clientWidth/2-2*parseFloat(getComputedStyle(target).marginLeft):wn;
+    stage.style.setProperty('--fs',(fn*Math.max(.3,Math.min(1,availH/hn,availW/wn))).toFixed(2)+'px');
+    sig=stage.clientWidth+'/'+hold.offsetHeight;
+    drawBars();
+  }
+  function labels(){
+    const e=stage.querySelector('.k2 span:not(.sw)'),t=mode==='typewriter'?'Typed one at a time: each letter just appears':'Bars: how far each letter has come';
+    if(e.textContent!==t)e.textContent=t;
+  }
+  // The notes say what the box shows now: Typewriter, no cursor and the still under reduced motion have their own words (a still note
+  // only while the box rests; after a play it says the markup's words until the pose is back)
+  function describe(){
+    const tw=mode==='typewriter',still=!motionOk&&posed;
+    const cur=tw&&cursorTog.checked?', and the cursor waits at the end.':'.';
+    const words=[
+      still?(tw?'Shown still, a fifth of a second in: the first letters are typed, their bars full'+cur:'Shown still, a fifth of a second in: the bar under each letter shows how far it has come, each a little behind the one before.')
+        :tw?'Inside, each letter is typed in turn: its bar fills at once when it appears'+cur:marked[0],
+      still?(tw?'Shown still, a fifth of a second in: All at once shows the whole phrase, while Letter by letter has typed only its first letters.'
+        :'Shown still, a fifth of a second in: All at once has every letter part way, while Letter by letter has its first letters part way and the rest waiting.')
+        :tw?'All at once shows the whole phrase together; Letter by letter types it one letter at a time. With Loop off, both rest a fifth of a second in.':marked[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  function layout(){
+    if(view==='normal'){
+      ['height','--fs','--tw'].forEach(k=>stage.style.removeProperty(k));
+      bars.replaceChildren();cmp.replaceChildren();holdBox.replaceChildren();return;
+    }
+    viewBuild();labels();describe();
+  }
+  function refresh(){
+    if(view==='normal')return;
+    cmp.dataset.anim=holdBox.dataset.anim=anim;labels();describe();
+    if(posed)poseNow();
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    view=e.detail.mode;
+    if(view==='normal'){unpose();layout();return}
+    layout();
+    if(!posed)restPose();
+  });
+  const refit=()=>{if(view!=='normal'&&sig!==stage.clientWidth+'/'+hold.offsetHeight){layoutFit();if(posed)poseNow()}};
+  new ResizeObserver(refit).observe(stage);
+  new ResizeObserver(refit).observe(hold);
+  document.fonts&&document.fonts.ready.then(()=>{if(view!=='normal')layout()});
   buildSpans();
 </script>
 </body>
