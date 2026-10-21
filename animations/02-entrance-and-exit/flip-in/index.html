@@ -59,7 +59,7 @@
        second in, with those words under them (their row is kept while hidden, so the cards do not move when they show). */
     .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto;
       align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:44px clamp(8px,2vw,24px) 8px}
-    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:42px;left:50%;border-left:1px solid rgba(244,244,242,.12)}
     .stage[data-hb-mode="compare"] .half{display:flex;grid-area:1/1;justify-content:center;width:100%}
     .stage[data-hb-mode="compare"] .card{grid-area:1/2}
     .stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .when{display:block}
@@ -120,7 +120,7 @@
       </div>
       <p class="cap side first" aria-hidden="true" data-hb-caption>No depth</p>
       <p class="cap side second" aria-hidden="true" data-hb-caption>With depth</p>
-      <p class="cap when" id="f-when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
+      <p class="cap when" id="f-when" aria-hidden="true" data-hb-caption>Part-way through the turn</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
@@ -129,7 +129,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the small drawing shows the card from above: it starts turned away and swings on its hinge to face you. The closer your eye, the deeper the turn looks.</p>
-      <p data-hb-for="compare" hidden>No depth has no 3D space around it, so its turn is a flat squash; With depth swings in real depth. With Loop off, both rest a fifth of a second in.</p>
+      <p data-hb-for="compare" hidden>No depth has no 3D space around it, so its turn is a flat squash; With depth swings in real depth. With Loop off, both rest part-way through the turn.</p>
     </div>
   </section>
 
@@ -261,7 +261,7 @@
   const twin=card.cloneNode(true);
   twin.removeAttribute('id');twin.inert=true;twin.setAttribute('aria-hidden','true');
   stage.querySelector('.half').append(twin);
-  let mode='normal',poseOn=false,falling=false,VB=[230,204];
+  let mode='normal',poseOn=false,VB=[230,204];
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -291,8 +291,8 @@
   // switching Loop off lets the card finish facing forward. Slow motion stretches the flips, not the waits.
   // A play lifts Compare's hold (under reduced motion too: it plays the short fade), which comes back after it.
   function cycle(){
-    apply();pose(false);
-    falling=loopTog.checked&&motionOk;
+    apply();pose(!motionOk&&mode==='compare');
+    const falling=loopTog.checked&&motionOk;
     flipIn();
     if(!falling){if(mode==='compare')holdLater();return}
     later(()=>{
@@ -307,7 +307,7 @@
   // Loop off: a play in its hold ends there (and in Compare is then held); one flipping out or waiting plays on, flips in once more
   loopTog.addEventListener('change',()=>{
     if(loopTog.checked)play();
-    else if(card.classList.contains('in')){falling=false;if(mode==='compare')holdLater()}
+    else if(card.classList.contains('in')&&mode==='compare')holdLater();
     refresh();
   });
   slowTog.addEventListener('change',refresh);fadeTog.addEventListener('change',refresh);
@@ -335,26 +335,20 @@
     return at(b,e,t);
   }
   function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
-  // Compare's still moment: a fifth of a second in. Where the card would then be close to edge-on (within 25 degrees) or nearly
-  // facing you (under 12), the squash and the depth would not show: it is held instead at the first moment it is 45 degrees from
-  // facing you (30 for a little turn). p is the share of the swing done by then; turn is that angle, or 0 for the fifth of a second.
+  // Compare's still moment: a fifth of a second in, then eased so the turn always shows: a big turn is pulled in toward 55 degrees
+  // (well before edge-on) and a nearly finished one held at 14, and the card is never less than a third solid.
   function moment(){
-    const cv=CURVES[ease],ang=x=>rot*(1-curveAt(cv,x));
-    let x=Math.min(1,POSE_MS/dur()),a=ang(x),turn=Math.abs(a-90)<25||a<12?(rot>45?45:30):0;
-    if(turn)for(x=0;x<1&&ang(x)>turn;x+=.005);
-    return {p:curveAt(cv,x),when:{0:'a fifth of a second in',45:'an eighth of a turn from facing you',30:'a twelfth of a turn from facing you'}[turn]};
+    const p=curveAt(CURVES[ease],Math.min(1,POSE_MS/dur())),raw=rot*(1-p);
+    return {p:Math.max(p,.35),a:Math.max(14,raw<=50?raw:50+(raw-50)*.1)};
   }
   function pose(on){
     poseOn=on;stage.classList.toggle('posed',on);
     if(!on)return;
-    const {p,when}=moment(),k=1-p,v=stage.style;
-    v.setProperty('--py',(axis==='X'?0:rot*k)+'deg');v.setProperty('--px',(axis==='Y'?0:rot*k)+'deg');
-    v.setProperty('--po',fadeTog.checked?Math.min(1,Math.max(0,p)).toFixed(3):1);
-    $('f-when').textContent=when[0].toUpperCase()+when.slice(1);
+    const {p,a}=moment(),v=stage.style;
+    v.setProperty('--py',(axis==='X'?0:a)+'deg');v.setProperty('--px',(axis==='Y'?0:a)+'deg');
+    v.setProperty('--po',fadeTog.checked?Math.min(1,p).toFixed(3):1);
   }
-  // The drawing, in its own numbers. Seen from above (Sideways, Diagonal) the card is a line along the page and swings away from you;
-  // seen from the side (Up and down) the same picture is turned a quarter, so the card's top is the end that swings away. The hinge
-  // sits where the page's hinge line is: a middle line, or the left, top or bottom edge. The eye is at one of three distances.
+  // The drawing, from the page's own numbers: seen from above (the side for Up and down) the card is a line swinging on its hinge dot.
   function drawFig(){
     const side=axis==='X',diag=axis==='both';
     const f=side?(/^top/.test(origin)?1:/^bottom/.test(origin)?0:.5):(/^left/.test(origin)?0:.5);
@@ -384,7 +378,7 @@
   }
   // The notes say what the box shows now (the markup's own words for the defaults); under reduced motion they say it is still
   function notes(){
-    const view=axis==='X'?'the side':'above',when=moment().when;
+    const view=axis==='X'?'the side':'above',when='part-way through the turn';
     document.querySelector('[data-hb-for="inside"]').textContent=motionOk
       ?`Inside, the small drawing shows the card from ${view}: it starts turned away and swings on its hinge to face you. The closer your eye, the deeper the turn looks.`
       :`Shown still: the small drawing shows the card from ${view}, turned away at the start and swinging on its hinge to face you; the eye marks how close you are.`;
