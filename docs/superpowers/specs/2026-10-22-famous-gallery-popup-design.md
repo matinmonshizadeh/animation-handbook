@@ -45,7 +45,8 @@ prompt, in the handbook's look, with nothing taken from the site.
   (the existing generated recipe cards), the prompt with Copy prompt, and "Watch the real one on <host> ↗".
 - Address: opening pushes `#<id>` (Back closes the pop-up); Previous and Next replace it; Close goes back. Arriving at
   `famous/#<id>` opens that entry. Without JavaScript, `#<id>` scrolls to the entry in the list.
-- Phones (≤600px or ≤500px tall): the pop-up fills the screen; Copy prompt and Next stay in a bar at the bottom.
+- Phones (≤600px or ≤500px tall): the pop-up fills the screen; its top bar (Previous, Next, Close) stays at the top
+  while the entry scrolls, and the entry's own Copy prompt sticks to the bottom (no control is shown twice).
 - Reduced motion: the pop-up appears without sliding. Light and dark themes both work; the stage is always dark.
 
 ## Our versions (`famous/versions/<id>.html`, one per entry)

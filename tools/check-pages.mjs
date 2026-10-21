@@ -279,7 +279,7 @@ function stopChrome() {
 // so a Chrome left over from an earlier run can never be picked up by mistake.
 // No LCD text: text that gets its own layer during a transition (even one that does not move it) would
 // otherwise be drawn with different antialiasing, and the stage comparisons would see a change nobody can see.
-const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
+const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
   '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 const chromeExited = new Promise(resolve => chrome.once('exit', resolve));
 chrome.once('error', async err => {
