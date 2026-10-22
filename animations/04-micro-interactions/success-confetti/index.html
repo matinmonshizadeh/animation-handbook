@@ -403,7 +403,8 @@
     G.R=y-m;
     [G.fill,G.edge]=[[.36,.1],[.8,.3]].map(([a,z])=>{const f=ctx.createRadialGradient(x,y,0,x,y,G.R);f.addColorStop(0,`rgba(255,157,92,${a})`);f.addColorStop(1,`rgba(255,157,92,${z})`);return f});
     // the pull, as one block at the bottom: three arrows (as long as the pull) with the pull's words and the path's words stacked beside
-    // them. The block takes the first spot from the left that is clear and that no sample path crosses, else the one crossed least.
+    // them. The block takes the first spot from the left that is clear and whose arrows no sample path crosses, else the one whose
+    // arrows are crossed least (the words may cover the lower end of an arch).
     const len=gravity*160,hits=k=>G.paths.reduce((n,pts)=>n+pts.filter(([px,py])=>px>k.l-4&&px<k.r+4&&py>k.t-4&&py<k.b+4).length,0);
     let blk=null,score=0;
     for(const l0 of [x-330,x-240,m,m+26,m+52,m+78]){
@@ -418,7 +419,7 @@
     capPull.style.top=blk.t+'px';capPath.style.top=blk.t+blk.ph+6+'px';
     used.push(blk);
     // the spin: the posed pieces from the one nearest the fan's left side outward, the first with room for a ring and its words
-    capSpin.style.display='block';   // it has no size to measure while the still is off
+    capSpin.hidden=false;capSpin.style.display='block';   // it has no size to measure while the still is off or no spot was found
     const [sw,sh]=fit(capSpin,240),ring=p=>({l:p.x-16,t:p.y-16,r:p.x+16,b:p.y+16});
     capSpin.style.display='';
     const hf=spreadDeg*Math.PI/360,tx=x-Math.sin(hf)*.55*G.R,ty=y-Math.cos(hf)*.55*G.R,away=p=>Math.hypot(p.x-tx,p.y-ty);
@@ -437,7 +438,8 @@
   document.addEventListener('hb:mode',e=>{
     const was=mode;mode=e.detail.mode;
     if(mode!=='normal'){
-      if(was==='normal')kept={done:!running()&&btn.classList.contains('done'),pieces:particles.map(p=>({...p}))};
+      // a Show me run that waits ends with the button back and no piece left, so that is the state kept; else the look and the pieces
+      if(was==='normal')kept={done:!running()&&btn.classList.contains('done'),pieces:running()?[]:particles.map(p=>({...p}))};
       plan();settle(0);return;
     }
     if(was==='normal'||!kept)return;
