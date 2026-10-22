@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The menu that drops in, link by link</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--c1:#6ea8ff;--c2:#5fd88a;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--c6:#3fd6c4;--bh:56px;--gx:clamp(16px,5vw,44px);--e:cubic-bezier(.4,0,.2,1);color-scheme:dark}
+/* inside the pop-up the "Our version" label sits over the left end of the bar (--gx), so the bar and its panels start after it */
+.framed{--gx:112px}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+html{background:#0b0b0f;overflow:hidden}
+body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+.stage{position:relative;height:100%;overflow:hidden;background:#0b0b0f}
+/* the page behind the menu: a heading, a line and three cards, so the blur has something to blur */
+.page{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(var(--bh) + 16px) clamp(16px,5vw,44px) 0}
+h1{font-size:clamp(24px,5.2vw,44px);line-height:1.1;font-weight:700;letter-spacing:-.025em}
+.page p{margin-top:8px;max-width:30em;color:#b9bccd;font-size:clamp(14px,2.2vw,17px)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);flex:1;gap:clamp(8px,2vw,16px);margin-top:clamp(12px,3vh,24px)}
+.cards i{border-radius:16px 16px 0 0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);background:linear-gradient(150deg,var(--a),var(--b))}
+.cards i:nth-child(1){--a:var(--c1);--b:var(--c3)}
+.cards i:nth-child(2){--a:var(--c4);--b:var(--c5)}
+.cards i:nth-child(3){--a:var(--c6);--b:var(--c2)}
+/* the veil over the page: it is there at once when a menu opens, and on closing it rolls up and away */
+.veil{position:absolute;inset:0;z-index:1;visibility:hidden;opacity:0;transform:translateY(-100%);pointer-events:none;background:rgba(11,11,15,.6);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transition:transform .33s cubic-bezier(.4,0,.6,1) .13s,opacity 0s linear .46s,visibility 0s linear .46s}
+.stage:not([data-open=""]) .veil{visibility:visible;opacity:1;transform:none;transition:opacity .06s linear,transform 0s,visibility 0s}
+.lite .veil{background:rgba(11,11,15,.86);-webkit-backdrop-filter:none;backdrop-filter:none}
+/* the top bar */
+.bar{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:clamp(4px,2vw,16px);height:var(--bh);padding:0 clamp(6px,2vw,20px) 0 var(--gx)}
+.mark{position:relative;z-index:1;display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;transition:opacity .12s linear .1s}
+.mark i{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c3))}
+.top{display:none;height:100%;margin-left:clamp(4px,3vw,28px);transition:opacity .12s linear .1s}
+.grp{display:flex;align-items:center;height:100%}
+.op{position:relative;z-index:1;min-width:44px;min-height:44px;padding:0 14px;border:0;border-radius:99px;background:none;color:#e9ebf3;font:inherit;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+.op[aria-expanded="true"]{background:rgba(255,255,255,.12);color:#fff}
+@media(hover:hover){.op:hover{background:rgba(255,255,255,.12);color:#fff}}
+@media(min-width:601px){.top{display:flex}}
+.stage[data-open="menu"] .mark,.stage[data-open="menu"] .top{opacity:0;pointer-events:none;transition-delay:.15s}
+/* the menu button: three lines. Opening, the outer two slide to the middle, the middle one goes, then the pair turns into an X. Closing is the same backward, quicker. */
+.burger{position:relative;z-index:1;margin-left:auto;width:44px;height:44px;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.burger::before{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.14);opacity:0;transform:scale(.7);transition:opacity .12s,transform .12s}
+.burger.tap::before,.burger:active::before{opacity:1;transform:none}
+@media(hover:hover){.burger:hover::before{opacity:1;transform:none}}
+.burger i{position:absolute;left:11px;top:50%;width:22px;height:2px;margin-top:-1px;border-radius:2px;background:#f4f4f2;transition:rotate .07s cubic-bezier(.4,0,1,1) .05s,translate .075s cubic-bezier(0,0,.3,1) .12s,opacity .04s linear .1s}
+.burger i:nth-child(1){translate:0 -8px}
+.burger i:nth-child(3){translate:0 8px}
+.burger[aria-expanded="true"] i{transition:translate .065s cubic-bezier(.4,0,1,1) .05s,rotate .105s cubic-bezier(0,0,.2,1) .135s,opacity .04s linear .11s}
+.burger[aria-expanded="true"] i:nth-child(1){translate:0 0;rotate:45deg}
+.burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] i:nth-child(3){translate:0 0;rotate:-45deg}
+.op:focus-visible,.burger:focus-visible,.panel a:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.burger:focus-visible{outline-offset:1px}
+/* a menu: its sheet fades in, then its links drop 8px into place one after another (20ms apart); on closing they fade together */
+.panel{position:absolute;left:0;right:0;top:0;visibility:hidden;transition:visibility 0s linear .3s}
+.panel.on{visibility:visible;transition-delay:0s}
+#menu{bottom:0;z-index:2}
+.drop{max-height:100vh}
+.panel::before{content:"";position:absolute;inset:0;background:rgba(12,13,19,.8);opacity:0;transition:opacity .06s linear .12s}
+.panel.on::before{opacity:1;transition:opacity .4s cubic-bezier(.4,0,.6,1) .03s}
+.lite .panel::before{background:rgba(12,13,19,.97)}
+.panel ul{position:relative;max-height:100%;overflow-y:auto;padding:calc(var(--bh) + 4px) 0 10px;list-style:none}
+.drop ul{max-height:100vh}
+.panel li{opacity:0;transform:translateY(-8px);transition:opacity .2s ease-out .06s,transform .2s ease-out .06s}
+.panel.on li{opacity:1;transform:none;transition:opacity .2s var(--e) calc(.245s + var(--i) * .02s),transform .2s var(--e) calc(.245s + var(--i) * .02s)}
+.panel a{display:flex;align-items:center;min-height:clamp(44px,6.2vh,48px);padding:0 clamp(20px,6vw,44px);color:#f4f4f2;font-size:clamp(20px,5.6vw,28px);font-weight:650;letter-spacing:-.015em;text-decoration:none}
+.drop a{padding-left:var(--gx);font-size:20px;font-weight:600}
+@media(hover:hover){.panel a:hover{color:var(--c1)}}
+@media(max-width:480px){.cards{grid-template-columns:repeat(2,1fr)}.cards i:nth-child(3){display:none}}
+/* a short stage (a laptop's pop-up): the rows go two across, so an open menu always fits and never needs to scroll */
+@media(max-height:289px){#menu ul{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:minmax(0,1fr);padding-bottom:6px}}
+@media(max-height:245px){.drop ul{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:minmax(0,1fr);padding-bottom:6px}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+  document.documentElement.classList.toggle('framed', window.parent !== window);
+}
+</script>
+</head>
+<body>
+<div class="stage" id="stage" data-open="">
+  <main class="page">
+    <h1>Your page</h1>
+    <p>Press the menu button and its links drop in, one after another, over a blurred page.</p>
+    <div class="cards" aria-hidden="true"><i></i><i></i><i></i></div>
+  </main>
+  <div class="veil" aria-hidden="true"></div>
+  <header class="bar">
+    <span class="mark"><i aria-hidden="true"></i>Your logo</span>
+    <nav class="top" aria-label="Sections">
+      <div class="grp"><button type="button" class="op" aria-expanded="false" aria-controls="d1">Products</button>
+        <div class="panel drop" id="d1"><ul><li><a href="#">Explore all</a></li><li><a href="#">New arrivals</a></li><li><a href="#">Compare models</a></li><li><a href="#">Accessories</a></li></ul></div></div>
+      <div class="grp"><button type="button" class="op" aria-expanded="false" aria-controls="d2">Learn</button>
+        <div class="panel drop" id="d2"><ul><li><a href="#">Guides</a></li><li><a href="#">Tutorials</a></li><li><a href="#">Webinars</a></li><li><a href="#">Community</a></li></ul></div></div>
+      <div class="grp"><button type="button" class="op" aria-expanded="false" aria-controls="d3">Support</button>
+        <div class="panel drop" id="d3"><ul><li><a href="#">Help center</a></li><li><a href="#">Contact us</a></li><li><a href="#">Service status</a></li><li><a href="#">Downloads</a></li></ul></div></div>
+    </nav>
+    <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="menu"><i></i><i></i><i></i></button>
+  </header>
+  <nav class="panel" id="menu" aria-label="Menu"><ul><li><a href="#">Products</a></li><li><a href="#">Learn</a></li><li><a href="#">Support</a></li><li><a href="#">Stories</a></li><li><a href="#">Contact</a></li></ul></nav>
+</div>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)'), wide = matchMedia('(min-width:601px)');
+const stage = $('#stage'), burger = $('#burger'), ops = $$('[aria-controls]');
+let cur = null, acted = false, quiet = false, timers = [], hov = 0;
+$$('.panel ul').forEach(ul => [...ul.children].forEach((li, i) => li.style.setProperty('--i', i)));
+
+// One menu is open at a time: the full menu from the button, or the panel of a top item. Everything else follows from the markup's state.
+function set(btn) {
+  cur = btn;
+  ops.forEach(b => { const on = b === btn; b.setAttribute('aria-expanded', on); $('#' + b.getAttribute('aria-controls')).classList.toggle('on', on); });
+  stage.dataset.open = btn ? (btn === burger ? 'menu' : 'drop') : '';
+}
+ops.forEach(b => b.addEventListener('click', () => set(cur === b ? null : b)));
+
+// Top items (wide boxes): the pointer opens a panel after a short pause, a key reaching the item opens it at once, a press opens or closes it (touch).
+$$('.grp').forEach(g => {
+  const b = g.querySelector('.op'), later = (open, ms) => { clearTimeout(hov); hov = setTimeout(() => { if (open) set(b); else if (cur === b) set(null); }, ms); };
+  g.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { if (e.isTrusted) { acted = true; stop(); } later(true, cur ? 0 : 100); } });
+  g.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') later(false, 80); });
+  g.addEventListener('focusin', () => { if (!quiet && cur !== b && b.matches(':focus-visible')) set(b); });
+  g.addEventListener('focusout', e => { if (cur === b && !g.contains(e.relatedTarget)) set(null); });
+});
+wide.addEventListener('change', () => set(null));
+document.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
+
+// Escape shuts the open menu; if focus was inside it, focus goes back to its button. With nothing open it passes on (the pop-up closes).
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !cur) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  const b = cur, inside = $('#' + b.getAttribute('aria-controls')).contains(document.activeElement);
+  set(null);
+  if (inside) { quiet = true; b.focus(); quiet = false; }
+}, true);
+
+// Show me: the button is pressed (a ring shows), the menu opens, rests a moment, and a second press closes it. A press, a touch, a key or a real hover
+// of a top item stops it; a pointer that only crosses the stage does not. While it runs, timers is not empty.
+const stop = () => { timers.forEach(clearTimeout); timers = []; burger.classList.remove('tap'); };
+function show() {
+  stop(); set(null);
+  const press = (t, fn) => timers.push(setTimeout(() => { burger.classList.add('tap'); timers.push(setTimeout(() => burger.classList.remove('tap'), 170)); fn(); }, t));
+  press(250, () => set(burger)); press(2150, () => set(null));
+  timers.push(setTimeout(() => { timers = []; }, 2900));
+}
+['pointerdown', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; stop(); } }, { capture: true, passive: true }));
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'show') { acted = true; show(); }
+});
+reduce.addEventListener('change', () => { if (timers.length) { stop(); set(null); } });
+addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
+</script>
+</body>
+</html>

@@ -259,21 +259,44 @@ rules or keyframes, its `STILL` point) or that page's cards means running `node 
 test (`tests/famous.test.js`) fails until then.
 
 ## Famous effects page
-`famous/index.html` shows effects people admire on well-known websites: what you see, in plain words; the handbook
-animations that make something similar, as cards with their moving previews; and one prompt to build it
-(`docs/superpowers/specs/2026-10-13-famous-effects-design.md`). It is one page in the home page's look and colors (a test
-compares them); it links neither shared file, and its own script copies, shows the message, falls back to the copy keys and
-shortens prompts on phones in the animation pages' words. Its two marked blocks, the previews' CSS and the `PREVIEWS`
-object, are written by `node tools/make-famous.mjs` from the home page, never by hand.
+`famous/index.html` shows effects people admire on well-known websites as a gallery: one tile per effect, and a press opens
+the whole entry in a pop-up with **our version**, a working demo built from the entry's own prompt
+(`docs/superpowers/specs/2026-10-13-famous-effects-design.md`, then `2026-10-22-famous-gallery-popup-design.md`, which wins).
+It is one page in the home page's look and colors (a test compares them); it links neither shared file, and its own script
+copies, shows the message, falls back to the copy keys and shortens prompts on phones in the animation pages' words. Its two
+marked blocks, the previews' CSS and the `PREVIEWS` object, are written by `node tools/make-famous.mjs` from the home page,
+never by hand.
+
+**The gallery** (`ul.fx-grid`) holds one tile per entry in page order, then the "Seen one we should add?" tile. A tile has a
+16:10 picture of our version (a light CSS loop with transform and opacity, playing only in view, a still frame under reduced
+motion) tagged "Our version" and with what starts it; the entry's title as a link to `#<id>` stretched over the tile; one
+line in our words (at most 90 characters); "Seen on <host> ↗" (the entry's address, in a new tab) and "N animations".
+**The pop-up** is one native `<dialog class="fx-dlg">`: a tile press, or arriving at `famous/#<id>`, moves that entry into
+it (and back to its place on close), focuses its heading, loads its version and pushes `#<id>` (Back closes it; Previous and
+Next replace it). Its bar holds Previous, Next, Close and a short not-connected note. Without JavaScript the entries read as
+a plain list under the gallery (`div.fx-list`).
 
 **An entry** is a `section.fx` with an id (`site-what`, as `stripe-ribbon`), `data-fx-site` (the site's name) and
 `data-fx-start` (`loop`, `load`, `scroll`, `hover` or `press`), then, in order: "Seen on" and the site's address as a link
 (`https://`, in a new tab, its text the address without `https://` or `www.`, its name ending "(opens in a new tab)") and
-the year in a `<time>` whose `datetime` is the day it was checked; the plain title as an `h2` with `tabindex="-1"`; what
-you see, 25 to 70 words; "Build it with these animations" and one to three cards (the card's `CATS` name and line, its page's
-link and `data-slug`, and on its preview a label of one to three words saying what that animation makes here; two different
+the year in a `<time>` whose `datetime` is the day it was checked; the plain title as an `h2` with `tabindex="-1"`; the chip
+row (what starts it, "Made from N animations"); the Our version block (`div.fx-version`: the stage with an `iframe` titled
+"Our version: <title>" whose `data-src` is `versions/<id>.html`, the "Our version" label, and the player bar with
+`data-fx-cmd` buttons: Pause for loop, Replay for load, Show me for hover and press, Play and Back to top for scroll); "What
+you see" and what you see, 25 to 70 words; "Good to know" (`dl.fx-know`: Starts, On phones and Reduced motion, each a line
+from its prompt); "Build it with these animations" and one to three cards (the card's `CATS` name and line, its page's link
+and `data-slug`, and on its preview a label of one to three words saying what that animation makes here; two different
 animations on the page never share a preview); "A prompt to build something similar" and Copy prompt, which names its
-entry. Copy a neighbor entry's markup, add its chip to the jump row and count it in the pill.
+entry; "Watch the real one on <host> ↗". Copy a neighbor entry's markup and tile, and count it in the pill.
+
+**Our version** (`famous/versions/<id>.html`) is a self-contained page of under about 300 lines, loaded in the stage only
+while its pop-up is open: `noindex`, only the site font loaded, and the demo rules of this file (fluid down to 280px, 44px
+targets, keyboard and touch, transform and opacity, frame loops by elapsed time, a lighter version when the parent page is a
+phone, reduced motion as its prompt says, `overscroll-behavior: contain` on its own scroller and nowhere else; a version whose prompt makes a finger drag over it drive the effect keeps that finger with `touch-action: none` and says so with `data-fx-touch="drag"` on its html, and every other version leaves the wheel and a finger free to scroll the pop-up). It does everything its prompt says and moves as
+close to the real effect as it can (the same steps, order, timing and distances), while all you see in it is ours: shapes,
+pictures, words and the handbook palette. It obeys only its parent's messages `{fx: 'pause' | 'play' | 'replay' | 'show' |
+'top'}` and runs its arrival once on load (a loop runs, a load plays, Show me or Play is pressed once), never under reduced
+motion.
 
 **Its prompt** follows "The copyable prompt" above, but the page has no settings, so it never ends "Match the settings
 listed below.": 60 to 130 words, starting "Add a … to [what the reader fills in]" with each bracketed part in a `<mark>`; it
@@ -285,19 +308,21 @@ the effect starts on hover or press, what touch does. It never names a site of t
 - The site is named in plain text, in the page's own font and colors (no logo, icon, brand color or typeface), and linked
   to its public page.
 - Shown only with the handbook's own demos and previews; nothing from the site in the repository or in posts about the
-  page: no code, screenshots, videos, pictures, icons or logos.
-- The line saying the handbook is not connected to these sites stays on the page, above the first entry, on the first
-  screen.
+  page: no code, screenshots, videos, pictures, icons or logos. Our versions copy how an effect moves, never how the site
+  looks: no brand colors, product shapes, typefaces or words of the site.
+- The line saying the handbook is not connected to these sites stays on the page, above the gallery, on the first screen,
+  and its short form stays in the pop-up's bar.
 - Nothing implies approval or partnership: no "official", "approved", "partner", "as used by"; no company name in the
   page's title, description or social card; the prompt names no company.
 - "Seen on <site> in <year>", with the day checked in `datetime`.
 - A site owner who asks for an entry to be changed or removed gets it done promptly (the Suggest link is the contact).
 
 **Adding or checking an entry again.** Watch the effect on the live site, logged out, and write what you see in your own
-words; add the entry, its chip and its count in the pill; run `node tools/make-famous.mjs`, `node tools/update-sitemap.mjs`,
-the tests and the page check's `famous` target. Every entry is checked again on its site before each release of the page
-and at least once a year: an effect that changed is described again from what shows now, one that has gone stays true as
-a past sighting or is replaced, and its `datetime` takes the day of the check.
+words; add the entry, its tile, its version and its count in the pill; run `node tools/make-famous.mjs`,
+`node tools/update-sitemap.mjs`, the tests and the page check's `famous` target. Every entry is checked again on its site
+before each release of the page and at least once a year: an effect that changed is described again from what shows now
+(its prompt, Good to know, tile line and version with it), one that has gone stays true as a past sighting or is replaced,
+and its `datetime` takes the day of the check (and `RECHECKED` in `tests/famous.test.js` with it).
 
 ## When asked to refactor
 - Preserve every demo's behavior exactly. Visual parity matters more than
@@ -326,10 +351,12 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   Start over, Show all, the Not here? link and the ways in, and its reduced-motion run checks that every How picture holds a still.
   Run it after changing any page's settings or prompt.
 - **Famous effects:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> famous` checks `famous/` at the same six
-  setups (six `ok` lines): the first screen, overflow and touch targets; its desktop run presses each jump link, watches
-  each entry's previews and presses each Copy prompt (twice more with the clipboard refused or missing); its
-  reduced-motion run checks that nothing moves, that every preview holds a still frame that shows something and that
-  Copy prompt's message does not slide. Run it after changing that page, its cards or a preview it shows.
+  setups (six `ok` lines): the first screen, overflow and touch targets, and one pop-up opened by the keyboard (focus,
+  address, fit, its note, its version, and Escape back to its tile); its desktop run opens every entry, presses each
+  version's player buttons, watches the tile and card previews, presses each Copy prompt (twice more with the clipboard
+  refused or missing) and tries Previous, Next, Close, Back and arriving at `#<id>`; its reduced-motion run opens every
+  pop-up and checks that nothing moves, that every preview holds a still frame that shows something and that Copy
+  prompt's message does not slide. Run it after changing that page, its cards, a version or a preview it shows.
 
 ## Out of scope
 - Backend code, databases, APIs.
