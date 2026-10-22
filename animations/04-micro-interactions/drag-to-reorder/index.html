@@ -67,6 +67,7 @@
     .stage[data-hb-mode="compare"] .twin{display:block}.stage[data-hb-mode="compare"] .list{width:calc(100% - 2*var(--m));max-width:360px;clip-path:inset(-80px calc(-1*var(--m)))}
     @media(max-width:600px){:root{--col:136px}.cap{font-size:12px}
       .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{gap:6px;padding-right:8px}.stage[data-hb-mode="inside"] .grip,.stage[data-hb-mode="compare"] .grip{margin-left:0}}
+    @media(max-width:359px){:root{--col:116px}}   /* a narrower caption column keeps a few more letters of each task */
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -231,6 +232,7 @@
   }
   // Compare puts a shorter row in a box too short for the half names above the lists
   function measure(){
+    const was=G.s;   // a new slot height (Compare's shorter rows) means the pose is made again at the new height
     stage.classList.remove('tight');
     stage.classList.toggle('tight',mode==='compare'&&(stage.clientHeight-list.offsetHeight)/2<30);
     const s=slotPx(),h=START[0].offsetHeight,x=list.offsetLeft,y=list.offsetTop,w=list.offsetWidth;
@@ -239,6 +241,7 @@
     NUMS.forEach((e,j)=>{e.style.transform=`translate(${x-24}px,${y+j*s+(h-18)/2}px)`});
     CAPS.forEach(c=>{c._s=0;c.hidden=true});
     if(mode==='compare')[[cOne,twin],[cTwo,list]].forEach(([c,l])=>{const [cw,ch]=fit(c);c.style.transform=`translate(${Math.round(l.offsetLeft+(l.offsetWidth-cw)/2)}px,${Math.round((l.offsetTop-ch)/2)}px)`});
+    if(drag&&drag.by==='pose'&&G.s!==was){unpose();poseNow()}
   }
   // A callout at x, as near the height `at` (the middle of what it names) as the ones put before it leave room; its pointer shows `at`
   function put(c,text,at,x,taken,right){
@@ -327,7 +330,7 @@
     view();
   }
   // Keyboard and reduced motion: the held row itself slides (or jumps) one slot.
-  function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to);view()}
+  function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to);drag.y=to*slotPx();view()}
   // Moving a row in the document ends the slide it is in the middle of: it would be drawn in its slot at once. So each moved row is
   // first read where it is drawn, given that place back as a still transform after the move, and let go, so its slide carries on.
   function keepSlides(rows,move){
@@ -352,9 +355,10 @@
   list.addEventListener('pointerdown',e=>{
     const row=e.target.closest('.row'),onGrip=!!e.target.closest('.grip');
     if(!row||press||(drag&&drag.by==='pointer')||(e.pointerType==='mouse'&&e.button!==0)||(byGrip&&!onGrip))return;
-    unpose();
-    if(drag)drop(true);   // a row picked up with the keyboard is put down where it is
-    if(e.pointerType==='touch'&&!onGrip)press={pid:e.pointerId,row,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{const p=press;press=null;grab(p.row,p.pid,p.y)},300)};
+    const wait=e.pointerType==='touch'&&!onGrip;   // a finger on a row's body may be a swipe: the pose is lifted only once the press is long enough
+    if(!wait)unpose();
+    if(drag&&drag.by!=='pose')drop(true);   // a row picked up with the keyboard is put down where it is
+    if(wait)press={pid:e.pointerId,row,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{const p=press;press=null;unpose();grab(p.row,p.pid,p.y)},300)};
     else grab(row,e.pointerId,e.clientY);
   });
   list.addEventListener('pointermove',e=>{
