@@ -70,7 +70,7 @@
     .pt path{fill:var(--ui-text);stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
     .gh{opacity:.7}
     .trail{fill:none;stroke:rgba(244,244,242,.6);stroke-width:2;stroke-dasharray:3 5}
-    .tip-ol{color:transparent;background:transparent;border:1px dashed rgba(255,157,92,.85);--tip-bg:rgba(255,157,92,.8);transition:none;z-index:9;user-select:none}
+    .tip-ol{color:transparent;background:rgba(28,28,34,.78);border:1px dashed rgba(255,157,92,.85);--tip-bg:rgba(255,157,92,.8);transition:none;z-index:9;user-select:none}
     .strip{padding:6px 10px 7px;background:#111114;border:1px solid var(--ui-border);border-radius:8px}
     .tl{position:relative;height:24px}
     .f-wait{--edge:1px dashed rgba(244,244,242,.6)}
@@ -282,7 +282,7 @@
   const strip=stage.querySelector('.strip'),tl=strip.querySelector('.tl'),mk=$('mk'),barEls=[1,2,3,4,5].map(n=>$('b'+n));
   const pt=$('pt'),gh=$('gh'),trails=[$('tr0'),$('tr1')],capOl=$('l-ol'),capPass=$('l-pass');
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),narrowMQ=matchMedia('(max-width:720px)'),phoneMQ=matchMedia('(max-width:600px)');
-  const compareNote=document.querySelector('[data-hb-for="compare"]'),COMPARE_NOTE=compareNote.textContent;
+  const compareNote=document.querySelector('[data-hb-for="compare"]'),COMPARE_NOTE=compareNote.textContent,insideNote=document.querySelector('[data-hb-for="inside"]');
   const NONE_NOTE='Delay before showing is set to None, so Shows at once and Waits a moment both flash every tip the pointer passes. Pick another delay in Try it.';
   let mode='normal',cur=0,M={i:-1,ph:'rest'},K=0,X=[],D=[],rp=-1,posed=false,passed=[],mouse=null,mouseIn=false,markRaf=0;
   const copies=[],ols=[];
@@ -351,7 +351,7 @@
       const t0=performance.now();
       if(kind==='show'){cur=i;M={i,ph:was?'stay':'in',t0,off:showDelay-delay}}
       else if(i===M.i)M=cut?{i:-1,ph:'rest'}:was?{i,ph:'out',t0,off:hideDelay-delay}:M;
-      outline();ride();
+      ride();
     }
     sync();
   }
@@ -389,7 +389,8 @@
     path.forEach((i,k)=>{
       const go=()=>{
         if(k)wraps[path[k-1]].hide();
-        if(mode!=='normal'){rp=i;if(k<path.length-1)passed.push(i)}
+        if(k<path.length-1)passed.push(i);
+        rp=i;
         wraps[i].show();
         if(mode!=='normal')pointers();
       };
@@ -451,7 +452,7 @@
   // The dashed outline of the tip shown last (the gear's at rest), and its words beside it where there is room
   function outline(){
     ols.forEach((o,k)=>o.classList.toggle('on',k===cur));
-    capOl.hidden=mode!=='inside'||phoneMQ.matches;
+    capOl.hidden=mode!=='inside'||phoneMQ.matches||tips[cur].classList.contains('visible');
     if(capOl.hidden)return;
     const o=box(ols[cur]),W=stage.clientWidth,H=stage.clientHeight,w=capOl.offsetWidth,h=capOl.offsetHeight,y=(o.t+o.b-h)/2;
     const others=[strip,...wraps.filter(v=>v.offsetParent)].map(box);
@@ -481,6 +482,7 @@
     const was=posed;
     posed=mode==='compare'&&!running()&&!mouseIn&&!stage.matches(':focus-within')&&![...tips,...copies.map(c=>c.tip)].some(t=>t.classList.contains('visible'));
     if(mode==='normal'&&!was&&rp<0)return;
+    if(mode==='inside')outline();
     const p=posed?ease(Math.min(1,100/fadeMs)):0;
     stage.style.setProperty('--po',p);stage.style.setProperty('--ps',.95+.05*p);
     copies[1].tip.classList.toggle('pose',posed);
@@ -496,14 +498,18 @@
       stage.style.setProperty('--half',W/4+'px');stage.style.setProperty('--tw',Math.min(200,W/2-16)+'px');
       copies.forEach((c,i)=>{c.wrap.style.top=wraps[i].offsetTop+'px';c.wrap.style.left=W/4-c.wrap.offsetWidth/2+'px'});
       if(mode==='inside')barsDraw();
-      outline();ride();
+      ride();
     }
+    write(insideNote,'Inside, the dashed box is the hidden tip; the bars are its life: it '+(showDelay?'waits, fades in':'fades in')+', stays while you point, then '+(hideDelay?'waits and fades out':'fades out')+'. Point at an item, or press Show me.');
     write(compareNote,showDelay===0?NONE_NOTE:COMPARE_NOTE);
     sync();
   }
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;
     copies.forEach(c=>{clearTimeout(c.t);c.tip.classList.remove('visible')});
+    // A run goes on across a mode press, so the marker and the outline start from the tip showing now, if one shows
+    const live=tips.findIndex(t=>t.classList.contains('visible'));
+    if(mode==='inside'){M=live<0?{i:-1,ph:'rest'}:{i:live,ph:'stay'};if(live>=0)cur=live}
     layout();
   });
   addEventListener('resize',layout);
