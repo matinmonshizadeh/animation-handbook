@@ -46,6 +46,57 @@
     @keyframes kExitShrink{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.3)}}
     @keyframes kExitRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(80px)}}
     @media(prefers-reduced-motion:reduce){.kw{animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important}}
+    /* See inside and Compare. Their labels are plain words on a dark backing, above what they cross. */
+    .kt-ghost,.kt-moves,.kt-strip,.kt-band,.kt-half,.kt-when{display:none}
+    .kt-cap{margin:0;padding:3px 7px;border-radius:5px;background:rgba(4,6,12,.9);color:#f4f4f2;font:600 13px/1.3 var(--hb-font)}
+    .kt-moves,.kt-half,.kt-when{position:absolute;z-index:2;top:10px;left:10px;white-space:nowrap}
+    /* See inside: the phrase between the caption, which names both moves (the one under way brighter), and the strip, the play in
+       time (a block per phrase, its moves paler at the ends, a marker riding it). A dashed outline marks the word's own box where
+       its move in starts, or once it leaves, where its move out ends. */
+    .stage[data-hb-mode="inside"] #phrase{top:56px;bottom:var(--kt-room,64px);padding:0 32px}
+    .stage[data-hb-mode="inside"] .kt-ghost,.stage[data-hb-mode="inside"] .kt-moves{display:block}
+    .stage[data-hb-mode="inside"] .kt-strip{display:flex}
+    .kt-ghost,.kt-rest::before{border:2px dashed rgba(244,244,242,.8);border-radius:6px;outline:1px solid rgba(4,6,12,.7)}
+    .kt-ghost{position:absolute}
+    .kt-ghost.wipe::before{content:'';position:absolute;left:0;bottom:-11px;width:40%;height:2px;background:rgba(244,244,242,.8)}
+    .kt-ghost.wipe::after{content:'';position:absolute;left:40%;bottom:-15px;border:5px solid transparent;border-right:0;border-left:9px solid rgba(244,244,242,.8)}
+    .kt-moves span{display:block;color:#8f96a1}
+    .kt-moves:not(.out) .kt-in,.kt-moves.out .kt-out{color:#f4f4f2}
+    .kt-strip{position:absolute;left:12px;right:12px;bottom:10px;flex-direction:column;align-items:flex-start;gap:7px}
+    .kt-total span{display:inline-block;white-space:nowrap}
+    .kt-row{position:relative;align-self:stretch;height:12px;margin-bottom:5px}
+    .kt-block{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.38}
+    .kt-block.on{opacity:1}
+    .kt-mark{position:absolute;left:-1px;top:-5px;bottom:-5px;width:2px;border-radius:1px;background:#f4f4f2}
+    /* Compare: two bands, each clipping its own phrase: on top a copy the chain fills at the same moments, every phrase only fading
+       in where it stands and out; below the phrase itself, both drawn smaller to clear the half names. Between plays both hold a
+       tenth of a second into A MOMENT on copies of their own (the live boxes wait unseen), its resting box outlined below. */
+    .stage[data-hb-mode="compare"]{container-type:size}
+    .stage[data-hb-mode="compare"] #phrase{top:50%;bottom:0;overflow:hidden}
+    /* On phones a word wide enough to reach a half name fades out under it, in that corner only, instead of sliding beneath it
+       (both bands alike) */
+    @media(max-width:600px){.stage[data-hb-mode="compare"] #phrase,.stage[data-hb-mode="compare"] .kt-copy{
+      -webkit-mask-image:linear-gradient(90deg,#0000 108px,#000 124px),linear-gradient(#0000 28px,#000 42px);mask-image:linear-gradient(90deg,#0000 108px,#000 124px),linear-gradient(#0000 28px,#000 42px)}}
+    .stage[data-hb-mode="compare"] .kw{white-space:nowrap}
+    .stage[data-hb-mode="compare"] .kw:not(.sub){font-size:min(clamp(40px,8vw,90px),calc((50cqh - 68px) / 1.9),calc(50cqh - 94px),calc((100cqw - 24px) / 9))}
+    .stage[data-hb-mode="compare"] .kt-band,.stage[data-hb-mode="compare"] .kt-half{display:block}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;left:0;right:0;top:calc(50% - 1px);height:2px;background:rgba(244,244,242,.14)}
+    .kt-band{position:absolute;top:0;left:0;right:0;height:50%;overflow:hidden}
+    .kt-band.second{top:50%}
+    .kt-copy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
+    .kt-copy.kt-pose{display:none}
+    .kt-fade-in{animation:kPlainIn calc(500ms / var(--spd)) ease-out forwards}
+    .kt-fade-out{animation:kExitFade calc(500ms / var(--spd)) ease-in forwards}
+    @keyframes kPlainIn{from{opacity:0}to{opacity:1}}
+    .stage[data-hb-mode="compare"].kt-posed .kt-pose{display:flex}
+    .stage[data-hb-mode="compare"].kt-posed .kt-when{display:block}
+    .stage[data-hb-mode="compare"].kt-posed .kt-live,.stage[data-hb-mode="compare"].kt-posed #phrase{opacity:0}
+    .stage[data-hb-mode="compare"] .kt-pose .kw{animation:none!important;opacity:var(--kt-fade)!important;transform:none!important}
+    .stage[data-hb-mode="compare"] .second .kt-pose .kw{opacity:var(--kt-drop)!important;transform:scale(var(--kt-big))!important}
+    .kt-rest{position:relative}
+    .kt-rest::before{content:'';position:absolute;inset:0}
+    .kt-half.second{top:calc(50% + 10px)}
+    .kt-when{top:auto;left:auto;right:10px;bottom:10px}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -68,13 +119,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div id="phrase" aria-live="polite"></div>
+      <div class="kt-band" aria-hidden="true" inert><div class="kt-copy kt-live"></div><div class="kt-copy kt-pose"></div></div>
+      <div class="kt-band second" aria-hidden="true" inert><div class="kt-copy kt-pose"><span class="kt-rest"></span></div></div>
+      <div class="kt-ghost" aria-hidden="true"></div>
+      <p class="kt-cap kt-moves" aria-hidden="true" data-hb-caption><span class="kt-in"></span><span class="kt-out"></span></p>
+      <div class="kt-strip" aria-hidden="true"><p class="kt-cap kt-total" data-hb-caption><span>Six phrases, one after another:</span> <span class="kt-secs">about 16 seconds</span></p><div class="kt-row"><i class="kt-mark"></i></div></div>
+      <p class="kt-cap kt-half" aria-hidden="true" data-hb-caption>Same for all</p>
+      <p class="kt-cap kt-half second" aria-hidden="true" data-hb-caption>Its own way</p>
+      <p class="kt-cap kt-when" aria-hidden="true" data-hb-caption>A tenth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each phrase has its own way in and out: the dashed outline shows where it comes from or goes to, and the strip shows the six phrases one after another.</p>
+      <p data-hb-for="compare" hidden>Same for all fades every phrase alike, so nothing stands out. Its own way gives each phrase a move that fits its word, like A MOMENT dropping in from big.</p>
     </div>
   </section>
 
@@ -149,29 +217,56 @@
     {text:'IN MOTION',sub:'it becomes',enter:'enter-clip',exit:'exit-up',hold:1600,color:'#56d364'},
     {text:'MEANING.',sub:null,enter:'enter-scale',exit:'exit-fade',hold:2200,color:'#ffa657'},
   ];
+  // See inside and Compare. Each move as its keyframes have it (how long at Normal, how far it travels, how big it starts or
+  // ends) and in words; A MOMENT's speed curve, the plain fade's curve and length, and the moment Compare holds (ms)
+  const MOVES={'enter-scale':{ms:600,s:.5,say:'grows from half size'},'enter-slide':{ms:500,x:-60,say:'slides in from the left'},
+    'enter-fade':{ms:400,y:20,say:'rises a little'},'enter-big':{ms:700,s:2.5,say:'drops in from big'},
+    'enter-clip':{ms:600,wipe:1,say:'is wiped in from the left'},'exit-up':{ms:400,y:-50,say:'lifts up and fades'},
+    'exit-fade':{ms:300,say:'fades where it is'},'exit-shrink':{ms:500,s:.3,say:'shrinks away'},'exit-right':{ms:400,x:80,say:'slides off to the right'}};
+  const BIG=[.2,1.1,.4,1],FADE=[0,0,.58,1],FADE_MS=500,POSE_MS=100,stage=phraseEl.parentElement,q=s=>stage.querySelector(s);
+  const ghost=q('.kt-ghost'),moves=q('.kt-moves'),strip=q('.kt-strip'),row=q('.kt-row'),mark=q('.kt-mark'),secs=q('.kt-secs');
+  const blocks=PHRASES.map(()=>row.insertBefore(Object.assign(document.createElement('i'),{className:'kt-block'}),mark));
+  // Compare's copies, out of reach of the keyboard and screen readers: Same for all, and A MOMENT on each band for the held moment
+  const live=q('.kt-live'),big=PHRASES.find(p=>p.enter==='enter-big');
+  fill(q('.kt-pose'),big);fill(q('.kt-rest'),big);
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: the dashed outline marks where the phrase would come from or go to, and the strip shows the six phrases one after another, each held as long as its word needs.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still when a play ends, a tenth of a second into A MOMENT: faint at its own size in Same for all, dropping in from big in Its own way.';
+  }
+  // cur: the phrase on show (-1 before the first play); phase: in (coming in and holding) or out (leaving); t0: when it came on;
+  // running: a play is under way (until the last phrase's hold ends with Loop off)
+  let mode='normal',cur=-1,phase='in',t0=0,running=false,raf=0,parts=[],total=1,rowW=0;
 
   function slowFactor(){return slowTog.checked?3:1}
   function ms(n){return Math.round(n/speed)}
   function apply(){vars.setProperty('--spd',String(slowTog.checked?speed/3:speed))}
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
 
-  // Rebuilds the phrase hidden (word, then its sub-line if it has one), forces a reflow, then starts the
-  // word's own entrance; the sub-line starts its entrance 200ms later (scaled by slow motion and Speed).
-  function showPhrase(i){
-    const p=PHRASES[i];
-    phraseEl.innerHTML='';
+  // Fills a box with a phrase, hidden: its word, then its sub-line if it has one
+  function fill(box,p){
+    box.innerHTML='';
     const w=document.createElement('span');
     w.className='kw';w.style.color=p.color;w.textContent=p.text;
-    phraseEl.appendChild(w);
+    box.appendChild(w);
     let s=null;
-    if(p.sub){s=document.createElement('span');s.className='kw sub';s.textContent=p.sub;phraseEl.appendChild(s);}
+    if(p.sub){s=document.createElement('span');s.className='kw sub';s.textContent=p.sub;box.appendChild(s);}
+    return [w,s];
+  }
+  // Rebuilds the phrase hidden, and Compare's copy with it, forces a reflow, then starts the word's own entrance (the copy's
+  // plain fade); the sub-line starts its entrance 200ms later (scaled by slow motion and Speed).
+  function showPhrase(i){
+    const p=PHRASES[i],[w,s]=fill(phraseEl,p),[cw,cs]=fill(live,p);
     void phraseEl.offsetWidth;
-    w.classList.add(p.enter);
-    if(s)later(()=>s.classList.add(p.enter),ms(200*slowFactor()));
+    w.classList.add(p.enter);cw.classList.add('kt-fade-in');
+    if(s)later(()=>{s.classList.add(p.enter);cs.classList.add('kt-fade-in')},ms(200*slowFactor()));
+    shown(i,'in');
   }
   function exitPhrase(i,done){
     const p=PHRASES[i];
     phraseEl.querySelectorAll('.kw').forEach(w=>{w.classList.remove(p.enter);w.classList.add(p.exit)});
+    live.querySelectorAll('.kw').forEach(w=>{w.classList.remove('kt-fade-in');w.classList.add('kt-fade-out')});
+    shown(i,'out');
     later(done,ms(520*slowFactor()));
   }
 
@@ -182,7 +277,7 @@
     showPhrase(i);
     later(()=>{
       const last=i===PHRASES.length-1;
-      if(last&&(!loopTog.checked||!motionOk))return;
+      if(last&&(!loopTog.checked||!motionOk)){ended();return}
       exitPhrase(i,()=>{
         if(last)later(()=>step(0),ms(800));
         else later(()=>step(i+1),ms(120));
@@ -191,13 +286,84 @@
   }
   function play(){timers.forEach(clearTimeout);timers=[];step(0)}
 
+  // A phrase has come on (in) or begun to leave (out), or the play has ended: the views follow
+  function shown(i,ph){cur=i;phase=ph;if(ph==='in'){t0=performance.now();if(!i){running=true;pose(false)}}drawInside()}
+  function ended(){running=false;pose(mode==='compare');drawInside()}
+  // See inside as the play stands. Its parts in ms, from the chain's own numbers: each phrase from its start to the next one's, with
+  // its move in, the time it stays (move in and hold) and its move out (none when it stays); a block per phrase, lit while on show.
+  function drawInside(){
+    if(mode!=='inside')return;
+    const f=slowFactor(),n=PHRASES.length,loop=loopTog.checked&&motionOk,pc=v=>(v*100).toFixed(2)+'%';let at=0;
+    parts=PHRASES.map((p,i)=>{
+      const stays=i===n-1&&!loop,stay=ms(500*f+p.hold),len=stays?stay:stay+ms(520*f)+ms(i===n-1?800:120);
+      at+=len;return {at:at-len,len,stay,in:Math.min(stay,MOVES[p.enter].ms*f/speed),out:stays?0:MOVES[p.exit].ms*f/speed};
+    });total=at;
+    parts.forEach((b,i)=>{
+      const c=PHRASES[i].color,a=pc(b.in/b.len),h=pc(b.stay/b.len),o=pc((b.stay+b.out)/b.len),el=blocks[i];
+      el.style.left=pc(b.at/total);el.style.width=pc(b.len/total);
+      el.style.background=`linear-gradient(90deg,${c}80 0 ${a},${c} ${a} ${h},${c}80 ${h} ${o},transparent ${o})`;
+      el.classList.toggle('on',i===cur);
+    });
+    secs.textContent='about '+Math.round(total/1000)+' seconds';
+    stage.style.setProperty('--kt-room',strip.offsetHeight+16+'px');
+    rowW=row.clientWidth;
+    // The outline: the word's own box (its layout, not its moved picture) where its move in starts or its move out ends
+    const w=phraseEl.firstChild,p=PHRASES[cur];
+    ghost.style.visibility=moves.style.visibility=w&&p?'':'hidden';
+    if(w&&p){
+      const m=MOVES[phase==='in'?p.enter:p.exit],s=m.s||1,W=w.offsetWidth,H=w.offsetHeight;
+      Object.assign(ghost.style,{left:phraseEl.offsetLeft+w.offsetLeft+W*(1-s)/2+(m.x||0)+'px',width:W*s+'px',
+        top:phraseEl.offsetTop+w.offsetTop+H*(1-s)/2+(m.y||0)+'px',height:H*s+'px'});
+      ghost.classList.toggle('wipe',!!m.wipe);
+      moves.firstChild.textContent='Comes in: '+MOVES[p.enter].say;
+      moves.lastChild.textContent='Leaves: '+(cur===n-1&&!loop?'stays on screen at the end':MOVES[p.exit].say);
+      moves.classList.toggle('out',phase==='out');
+    }
+    if(placeMark()&&!raf)ride();
+  }
+  // The marker: at the time since the play began, counted from the phrase on show (a late timer never puts it in the wrong block);
+  // at the lit block's end when nothing glides (the play over, or reduced motion). Says whether it still glides.
+  function placeMark(){
+    const b=parts[cur],t=!b?0:b.at+(running&&motionOk?Math.min(performance.now()-t0,b.len):b.len);
+    mark.style.transform=`translateX(${(t/total*rowW).toFixed(1)}px)`;return running&&motionOk;
+  }
+  function ride(){const tick=()=>{raf=placeMark()&&mode==='inside'?requestAnimationFrame(tick):0};cancelAnimationFrame(raf);tick()}
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // Compare's held moment, a tenth of a second into A MOMENT at the Speed setting's pace (never Slow motion's: the still stays the
+  // same): on top as solid as the plain fade has made it, below as solid and as big as its drop has made it (its keyframes go from
+  // see-through and two and a half times big)
+  function pose(on){
+    if(!stage.classList.toggle('kt-posed',on))return;
+    const k=1/speed,m=MOVES[big.enter],drop=curveAt(BIG,Math.min(1,POSE_MS/(m.ms*k)));
+    stage.style.setProperty('--kt-fade',curveAt(FADE,Math.min(1,POSE_MS/(FADE_MS*k))).toFixed(3));
+    stage.style.setProperty('--kt-drop',Math.min(1,drop).toFixed(3));
+    stage.style.setProperty('--kt-big',(m.s+(1-m.s)*drop).toFixed(3));
+  }
+  function refresh(){drawInside();if(stage.classList.contains('kt-posed'))pose(true)}
+
+  // The mode switch: draws the mode at once (Compare between plays holds its moment); the shared script then presses Replay
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;cancelAnimationFrame(raf);raf=0;
+    pose(mode==='compare'&&!running);drawInside();
+  });
+  // The box changes size with the window, and the words with the site font once it has loaded
+  new ResizeObserver(refresh).observe(stage);
+  if(document.fonts)document.fonts.ready.then(refresh);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();refresh()});
+  slowTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('speed-seg',d=>{speed=+d.speed});
