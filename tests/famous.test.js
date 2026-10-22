@@ -489,7 +489,7 @@ const SITE_PHRASES = [
 const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'apple-sweep', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
 const CHECKED_DAY = '2026-10-13';
 // Entries checked again on their site before the gallery release, and the day of that check.
-const RECHECKED = { 'apple-scroll': '2026-10-22', 'landonorris-reveal': '2026-10-22', 'linear-intro': '2026-10-22', 'stripe-ribbon': '2026-10-22' };
+const RECHECKED = { 'apple-menu': '2026-10-22', 'apple-scroll': '2026-10-22', 'landonorris-reveal': '2026-10-22', 'linear-intro': '2026-10-22', 'stripe-ribbon': '2026-10-22' };
 
 // The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
 // slogan at the end of a card label would run into the card's name and go unseen).
@@ -736,7 +736,10 @@ for (const e of VERSIONS) {
     assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html) || /matchMedia\(\s*['"]\(prefers-reduced-motion\s*:\s*reduce\)['"]/.test(script), 'a reduced-motion rule');
     assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html), 'in its style');
     assert.ok(/matchMedia\(\s*['"]\(prefers-reduced-motion\s*:\s*reduce\)['"]\s*\)/.test(script), 'it asks matchMedia about reduced motion');
-    assert.ok(/overscroll-behavior\s*:\s*contain/.test(html), 'its scroller keeps the scroll to itself (overscroll-behavior: contain)');
+    const start = (MARKUP.match(new RegExp(`<section class="fx" id="${e.id}"[^>]*data-fx-start="([a-z]+)"`)) || [])[1];
+    const rootRules = [...html.matchAll(/(?:^|[}\s])(?:html|body)\s*(?:,\s*(?:html|body)\s*)*\{([^}]*)\}/g)].map(m => m[1]).join(';');
+    if (start === 'scroll') assert.ok(/overscroll-behavior\s*:\s*contain/.test(html), 'its scroller keeps the scroll to itself (overscroll-behavior: contain)');
+    else assert.ok(!/overscroll-behavior\s*:\s*contain/.test(rootRules), 'it does not scroll, so html and body leave the wheel and a finger free to scroll the pop-up (no overscroll-behavior: contain there)');
     if (/requestAnimationFrame/.test(script)) {
       assert.ok(/\bFRAME\s*=\s*1000\s*\/\s*60\b/.test(script) && /Math\.min\(\s*ts\s*-\s*lastT\s*,\s*50\s*\)/.test(script) && /\bdt\s*\)?\s*\/\s*FRAME\b/.test(script), 'its frame loop steps by elapsed time (dt / FRAME), not by a fixed amount a frame');
     }

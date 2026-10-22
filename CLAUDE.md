@@ -292,7 +292,7 @@ entry; "Watch the real one on <host> ↗". Copy a neighbor entry's markup and ti
 **Our version** (`famous/versions/<id>.html`) is a self-contained page of under about 300 lines, loaded in the stage only
 while its pop-up is open: `noindex`, only the site font loaded, and the demo rules of this file (fluid down to 280px, 44px
 targets, keyboard and touch, transform and opacity, frame loops by elapsed time, a lighter version when the parent page is a
-phone, reduced motion as its prompt says, `overscroll-behavior: contain`). It does everything its prompt says and moves as
+phone, reduced motion as its prompt says, `overscroll-behavior: contain` on its own scroller and nowhere else). It does everything its prompt says and moves as
 close to the real effect as it can (the same steps, order, timing and distances), while all you see in it is ours: shapes,
 pictures, words and the handbook palette. It obeys only its parent's messages `{fx: 'pause' | 'play' | 'replay' | 'show' |
 'top'}` and runs its arrival once on load (a loop runs, a load plays, Show me or Play is pressed once), never under reduced

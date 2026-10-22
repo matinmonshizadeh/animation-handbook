@@ -10,11 +10,12 @@
 @font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-html{background:#0b0b0f;color-scheme:dark;overflow:hidden;overscroll-behavior:contain}
+html{background:#0b0b0f;color-scheme:dark;overflow:hidden}
 body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif}
 /* The stage holds two pictures of the same scene, stacked exactly: the night picture, and the day picture that shows only through the blob. */
 .stage{position:relative;width:100%;height:100%;min-height:160px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.stage:focus-visible{outline:3px solid #fff;outline-offset:-8px}
+.stage:focus-visible{outline:none}
+.stage:focus-visible::after{content:"";position:absolute;inset:6px;border:3px solid #fff;border-radius:8px;box-shadow:0 0 0 1px rgba(11,11,15,.8),inset 0 0 0 1px rgba(11,11,15,.8);pointer-events:none}
 .pic{position:absolute;inset:0;pointer-events:none}
 .pic svg{display:block;width:100%;height:100%}
 .day{visibility:hidden}
@@ -43,7 +44,7 @@ body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system
 <script>
 const $ = s => document.querySelector(s), clamp = (v, a, b) => Math.min(Math.max(v, a), b), root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, LITE = root.classList.contains('lite');
-const stage = $('#stage'), dayEl = $('#day'), dot = $('#dot'), LIFE = LITE ? 700 : 900, MAXD = LITE ? 42 : 96;
+const stage = $('#stage'), dayEl = $('#day'), dot = $('#dot'), LIFE = LITE ? 700 : 900, MAXD = LITE ? 60 : 120;
 
 // Our own picture, drawn in shapes: the same moon, hills and pines at night and by day. The shapes are written once; each picture gives them its colors.
 const NIGHT = { i: 'n', sky: ['#0b0a22', '#1c1952', '#432f82'], halo: '#b98cff', orb: ['#f8f3ff', '#c9b9ff'], far: ['#34307f', '#221f5c'], mid: ['#1f1c53', '#161440'], near: ['#14123a', '#0c0a26'], tree: '#0b0922', haze: '#7b5cd6' };
@@ -74,7 +75,7 @@ $('#night').innerHTML = scene(NIGHT, true); dayEl.innerHTML = scene(DAY, false);
 
 // The blob is a trail of discs. Each frame the head, which follows the pointer a little behind it, leaves a disc; its size grows with the head's speed
 // and with how lately the pointer moved, and every disc shrinks away with age. The union of the discs is the clip that lets the day picture through.
-let W = 1, H = 1, U = 1, T = 0, lastT = null, raf = 0, tx = 0, ty = 0, hx = 0, hy = 0, sp = 0, pres = 0, moved = -1e9, hold = false, trail = [];
+let W = 1, H = 1, U = 1, T = 0, lastT = null, raf = 0, tx = 0, ty = 0, hx = 0, hy = 0, sp = 0, pres = 0, moved = -1e9, hold = false, trail = [], acc = 0, lx = 0, ly = 0, lt = -1e9;
 let run = null, acted = false, seen = null, kx = 0, ky = 0, timers = [];
 const PATHS = !window.CSS || !CSS.supports || CSS.supports('clip-path', "path('M0 0h1v1z')");
 const measure = () => { const r = stage.getBoundingClientRect(); W = Math.max(r.width, 1); H = Math.max(r.height, 1); U = Math.min(W, H); };
@@ -86,11 +87,11 @@ function hull([x1, y1, r1], x2, y2, r2) {
   const ph = Math.atan2(dy, dx), al = Math.acos((r1 - r2) / dd), a = ph + al, b = ph - al, P = (x, y, r, t) => `${(x + r * Math.cos(t)).toFixed(1)} ${(y + r * Math.sin(t)).toFixed(1)}`;
   return `M${P(x1, y1, r1, a)}L${P(x2, y2, r2, a)}L${P(x2, y2, r2, b)}L${P(x1, y1, r1, b)}z`;
 }
-function draw(f) {
+function draw(f, R) {
   let d = '', dist = 0, px = hx, py = hy, n = 0, prev = null, head = null;
-  const reach = 1.1 * U, A = .07 + .09 * f;
-  for (let i = trail.length - 1; i >= 0; i--) {
-    const [tx0, ty0, rb, born] = trail[i], age = T - born, life = 1 - age / LIFE;
+  const reach = 1.1 * U, A = .07 + .09 * f, all = R > .6 ? trail.concat([[hx, hy, R, T]]) : trail; // the head is drawn as the newest disc, at the pointer's pace
+  for (let i = all.length - 1; i >= 0; i--) {
+    const [tx0, ty0, rb, born] = all[i], age = T - born, life = 1 - age / LIFE;
     if (life <= 0) break;
     dist += Math.hypot(tx0 - px, ty0 - py); px = tx0; py = ty0;
     if (dist > reach) break;
@@ -120,13 +121,19 @@ function frame(ts) {
   pres += ((act ? 1 : 0) - pres) * k(.09);
   if (!act && pres < .01) pres = 0;
   const R = U * (.105 + .1 * f) * pres;
-  if (R > .6) {
-    const m = clamp(Math.ceil(Math.hypot(hx - ox, hy - oy) / (R * (LITE ? .35 : .22))), 1, 6);
-    for (let j = 1; j <= m; j++) trail.push([ox + (hx - ox) * j / m, oy + (hy - oy) * j / m, R, T - dt * (m - j) / m]);
-    if (trail.length > MAXD) trail.splice(0, trail.length - MAXD);
+  if (R > .6) { // discs are laid once every 60th of a second, so the trail is the same at 60, 90 or 120 Hz
+    if (T - lt > 100) { lx = ox; ly = oy; lt = T - dt; acc = 0; }
+    acc += dt;
+    if (acc >= FRAME - 1) { // (a millisecond of slack, and the rest carried over, keep the pace at 60 a second whatever the frame times)
+      acc = Math.min(acc - FRAME, FRAME);
+      const m = clamp(Math.ceil(Math.hypot(hx - lx, hy - ly) / (R * (LITE ? .35 : .22))), 1, 6);
+      for (let j = 1; j <= m; j++) trail.push([lx + (hx - lx) * j / m, ly + (hy - ly) * j / m, R, lt + (T - lt) * j / m]);
+      lx = hx; ly = hy; lt = T;
+      if (trail.length > MAXD) trail.splice(0, trail.length - MAXD);
+    }
   }
   while (trail.length && T - trail[0][3] > LIFE) trail.shift();
-  draw(f);
+  draw(f, R);
   if (act || pres || trail.length || run) raf = requestAnimationFrame(frame); else lastT = null;
 }
 const wake = () => { if (!raf && !reduce.matches) { lastT = null; raf = requestAnimationFrame(frame); } };

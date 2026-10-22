@@ -10,7 +10,7 @@
 @font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-html{background:#0b0b0f;color-scheme:dark;overflow:hidden;overscroll-behavior:contain}
+html{background:#0b0b0f;color-scheme:dark;overflow:hidden}
 body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
 /* the still picture: soft bands of the ribbon's colors, shown until the first drawn frame is ready */
 .hero{position:relative;height:100%;min-height:160px;overflow:hidden;display:grid;place-items:center;background:radial-gradient(70% 38% at 24% 76%,rgba(63,214,196,.3),transparent 72%),radial-gradient(64% 40% at 74% 26%,rgba(185,140,255,.34),transparent 72%),radial-gradient(60% 30% at 50% 52%,rgba(110,168,255,.3),transparent 72%),#0b0b0f}
@@ -41,7 +41,7 @@ p{margin:.6em 0 0;font-size:clamp(14px,.8vw + 11px,18px);text-wrap:balance}
 <script>
 const $ = s => document.querySelector(s), frac = x => x - Math.floor(x), smooth = x => { x = Math.min(Math.max(x, 0), 1); return x * x * (3 - 2 * x); };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, root = document.documentElement;
-const LITE = root.classList.contains('lite'), NS = LITE ? 48 : 80, STILL = 3, scale = LITE ? .6 : Math.min(devicePixelRatio || 1, 1.25);
+const LITE = root.classList.contains('lite'), NS = LITE ? 48 : 80, STILL = 3;
 const PAL = [[63, 214, 196], [110, 168, 255], [185, 140, 255], [255, 111, 139]]; // teal, blue, violet, a touch of coral
 // The ribbon's shape is four short formulas (u runs along it, ts is the 60 s loop from 0 to 1): the shader has them below, the Canvas 2D fallback the same ones in JS.
 const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -89,7 +89,7 @@ void main(){
   gl_FragColor = vec4(col, 1.);
 }`;
 const cv = $('#gl'), c2 = $('#c2'), wrap = $('.hero');
-let gl, U, g2, pat, W = 1, H = 1, ax = [1, 0], T = STILL, paused = reduce.matches, vis = true, lastT = null, raf = 0;
+let gl, U, g2, pat, W = 1, H = 1, scale = 1, ax = [1, 0], T = STILL, paused = reduce.matches, vis = true, lastT = null, raf = 0;
 
 function initGL() {
   try { gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true }); } catch (e) {}
@@ -151,6 +151,8 @@ function draw() {
 }
 function size() {
   const r = wrap.getBoundingClientRect(), a = Math.atan2(r.height, r.width) * .85;
+  // at most about 250,000 canvas pixels (the shader's cost grows with them) and 1.25 a CSS pixel; a phone draws at 0.6
+  scale = LITE ? .6 : Math.min(devicePixelRatio || 1, 1.25, Math.sqrt(2.5e5 / Math.max(r.width * r.height, 1)));
   cv.width = c2.width = W = Math.max(1, Math.round(r.width * scale)); cv.height = c2.height = H = Math.max(1, Math.round(r.height * scale));
   ax = [Math.cos(a), Math.sin(a)]; draw();
 }
@@ -172,7 +174,7 @@ addEventListener('message', e => {
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) halt(); else kick(); });
 cv.addEventListener('webglcontextlost', e => { e.preventDefault(); useFallback(); });
-reduce.addEventListener('change', () => { if (reduce.matches) { setPaused(true); T = STILL; draw(); } else setPaused(false); });
+reduce.addEventListener('change', () => { if (reduce.matches) { setPaused(true); T = STILL; draw(); } }); // turning it off resumes nothing: only Play does
 try { new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis) kick(); else halt(); }).observe(wrap); } catch (e) {}
 if (!initGL()) useFallback(); else size();
 new ResizeObserver(size).observe(wrap);
