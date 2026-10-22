@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The top bar that hides while you read</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--bg:#0b0b0f;--ink:#f4f4f2;--text:#c3c4d0;--mut:#a3a4b4;--c1:#6ea8ff;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--bh:clamp(48px,15vh,56px);--col:680px;--lx:16px;--cw:min(var(--col),calc(100% - 2 * var(--lx)));color-scheme:dark}
+.framed{--lx:112px}   /* inside the pop-up the page's "Our version" label sits over the top left corner, so the bar's mark (and the text, from 600px wide) starts after it */
+@media(max-width:599px){.framed{--cw:min(var(--col),calc(100% - 32px))}}
+.framed::after{content:"";position:fixed;left:0;top:0;width:150px;height:60px;z-index:2;pointer-events:none;background:radial-gradient(150px 60px at 0 0,var(--bg) 56%,#0b0b0f00)}   /* text passing the label fades out around it */
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg);overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3c3c4a var(--bg)}
+body{color:var(--text);font:400 clamp(16px,.35vw + 14.6px,18px)/1.7 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+
+/* the bar sits at the top of the page and is moved only by the scroll: up with the text going down, down with the text going up */
+.bar{position:sticky;top:0;z-index:3;height:var(--bh);background:#151823;border-bottom:1px solid #2a2f40;will-change:transform}
+.bar.ease{transition:transform .25s cubic-bezier(.2,.7,.3,1)}   /* only when keyboard focus calls it back */
+.in{display:flex;align-items:center;justify-content:space-between;gap:8px;height:100%;padding:0 max(0px,calc((100% - var(--cw)) / 2 - 8px)) 0 max(var(--lx),calc((100% - var(--cw)) / 2))}
+.brand{display:flex;align-items:center;gap:6px;min-width:0;font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--ink)}
+.mark{flex:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c3))}
+.acts{display:flex;flex:none}
+.btn{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:#e9ebf3;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn::before{content:"";position:absolute;inset:4px;border-radius:50%;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:background .15s}
+.btn svg{position:relative;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.b2{color:#0b0b0f}
+.b2::before{background:var(--c1);box-shadow:none}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+@media(hover:hover){.btn:hover::before{background:rgba(255,255,255,.16)}.b2:hover::before{background:#8fbcff}}
+@media(min-width:600px){.brand{gap:10px;font-size:16px}.mark{width:26px;height:26px}}
+@media(max-width:308px){.framed .b1{display:none}}
+
+.art{width:var(--cw);margin:0 auto;padding:clamp(22px,5vh,38px) 0 clamp(56px,12vh,96px)}
+.kick{font-size:13px;line-height:1.3;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c1)}
+h1{margin-top:10px;font-size:clamp(26px,3vw + 14px,42px);line-height:1.12;font-weight:800;letter-spacing:-.025em;color:var(--ink);text-wrap:balance}
+h2{margin:1.6em 0 .4em;font-size:clamp(20px,1.2vw + 15px,25px);line-height:1.25;font-weight:700;letter-spacing:-.015em;color:var(--ink);text-wrap:balance}
+.by{display:flex;align-items:center;gap:12px;margin:18px 0 24px;font-size:14px;line-height:1.3;color:var(--mut)}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--c4),var(--c5))}
+.by b{display:block;font-size:15px;color:var(--ink)}
+.cover{aspect-ratio:16/7;border-radius:14px;background:radial-gradient(circle at 76% 34%,#ffe9b8 0 5%,rgba(255,206,90,.5) 5.5%,transparent 17%),linear-gradient(160deg,#27407f,#5a3a99 58%,#8a3d6a)}
+p{text-wrap:pretty}
+.art p+p{margin-top:1em}
+@media(max-width:599px){.x{display:none}}   /* a shorter article on phones, so Play is not a blur */
+
+/* reduced motion: the bar does not move; it fades out going down and back in going up (its buttons stay in the tab order, and focusing one brings it back) */
+@media(prefers-reduced-motion:reduce){
+  .bar{will-change:auto;transition:opacity .3s linear}
+  .bar.away{opacity:0;pointer-events:none}
+}
+</style>
+<script>document.documentElement.classList.toggle('framed', parent !== window);</script>
+</head>
+<body>
+<header class="bar"><div class="in">
+  <p class="brand"><i class="mark" aria-hidden="true"></i><span>Your logo</span></p>
+  <div class="acts">
+    <button type="button" class="btn b1" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
+    <button type="button" class="btn b2" aria-label="Save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-4-6 4V5.5a1 1 0 0 1 1-1z"/></svg></button>
+  </div>
+</div></header>
+<main class="art">
+  <p class="kick">Everyday habits</p>
+  <h1>Five small habits for a slower morning</h1>
+  <div class="by"><i class="av" aria-hidden="true"></i><p><b>Sam Ellery</b>About five minutes</p></div>
+  <div class="cover" aria-hidden="true"></div>
+  <h2>Start with a glass of water</h2>
+  <p>Most mornings start in a rush. The alarm goes off, the phone lights up, and the day is already asking for answers before the kettle has boiled. A glass of water changes the pace. It tells the body the day has begun, and it gives your hands something to do while your head catches up.</p>
+  <h2>Open a window</h2>
+  <p>Fresh air and a little daylight wake you more gently than a bright screen does. If the weather is bad, stand near the glass for a minute and watch the street come to life.</p>
+  <h2>Leave the phone alone</h2>
+  <p>Keep it in another room, or at least face down. Most of what waits there can wait another half hour. When the first thing you read is your own thoughts, the morning feels longer and calmer.</p>
+  <p class="x">If the phone is your alarm, a cheap clock will do the same job and remove the best excuse for picking it up.</p>
+  <h2>Make one small thing</h2>
+  <p>Boil an egg, brew tea or fold the laundry. A small task with a clear end gives an early feeling of progress, and that feeling carries into harder work later. The goal is not to be productive. It is to begin without a fight.</p>
+  <h2 class="x">Go outside for ten minutes</h2>
+  <p class="x">A short walk around the block does more than most people expect. At an easy pace, ten minutes loosens the shoulders and clears the head. Stretching in the kitchen works too, on days when the weather wins.</p>
+  <h2>Keep what helps</h2>
+  <p>None of this has to be done perfectly, or every day. Some mornings will still be rushed. After a week, look back and keep the habits that helped. A good morning is not a strict routine. It is a few calm minutes that belong to you, set aside before everyone else asks for your time.</p>
+</main>
+<script>
+const bar = document.querySelector('.bar'), reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60;
+const UP = 130, REST = 700;   // when the run reaches the end it rests 0.7 s with the bar away, then goes 130px back up, slowly enough to see the bar return
+let H = 56, END = 0, lastY = 0, ty = 0, away = false, anchor = 0, shown = '';
+let rm = reduce.matches;      // kept by the change listener below: a scroll handler never reads the query itself
+let raf = 0, lastT = null, run = null, acted = false;
+
+function draw() {
+  const t = rm || !ty ? '' : `translate3d(0,${ty.toFixed(2)}px,0)`;
+  if (t !== shown) bar.style.transform = shown = t;
+  bar.classList.toggle('away', rm && away);
+}
+function measure() { H = Math.ceil(bar.getBoundingClientRect().height) || 56; END = Math.max(0, document.documentElement.scrollHeight - innerHeight); ty = Math.max(ty, -H); }
+
+// On every scroll step, in the same frame: the bar moves by exactly as far as the page did, held between fully away and fully in place.
+// Reduced motion: a move of 6px or more decides whether the bar is faded out (going down) or in (going up); at the very top it shows.
+function follow() {
+  const y = Math.min(Math.max(scrollY, 0), END), dy = y - lastY;
+  lastY = y;
+  if (!rm) ty = Math.min(0, Math.max(-H, -y, ty - dy));      // near the top the bar goes with the page: never more than y away, and whole at y 0
+  else if (y < 2) { away = false; anchor = y; }
+  else if (Math.abs(y - anchor) >= 6) { away = y > anchor; anchor = y; }
+  draw();
+}
+
+function tick(ts) {
+  raf = 0;
+  const dt = lastT === null ? 0 : Math.min(ts - lastT, 50);
+  lastT = ts;
+  if (run) {
+    if (Math.abs(scrollY - run.pos) > 3) run = null;                                            // the visitor moved the page
+    else if (run.rest === null) { run.t += dt; run.pos = Math.min(END, run.pos + END / 360 * (dt / FRAME) * Math.min(1, run.t / 450)); if (run.pos >= END) { run.rest = REST; run.floor = Math.max(0, END - UP); } }   // about 6 s down, easing in so the bar's leaving is seen
+    else if (run.rest > 0) run.rest -= dt;
+    else { run.pos = Math.max(run.floor, run.pos - 2.2 * (dt / FRAME)); if (run.pos <= run.floor) { scrollTo({ top: run.floor, behavior: 'instant' }); follow(); run = null; } }
+    if (run) { scrollTo({ top: run.pos, behavior: 'instant' }); follow(); }
+  }
+  if (run) raf = requestAnimationFrame(tick); else lastT = null;
+}
+const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
+function play() {
+  measure();
+  if (END <= 0) return;
+  if (scrollY >= END - UP - 4) { scrollTo({ top: 0, behavior: 'instant' }); follow(); }          // already at the end: start from the top
+  run = { pos: scrollY, rest: null, floor: 0, t: 0 }; lastT = null; wake();
+}
+function toTop() { run = null; scrollTo({ top: 0, behavior: 'instant' }); ty = 0; away = false; follow(); }   // the whole bar is shown at once
+
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'play') { acted = true; play(); } else if (e.data.fx === 'top') { acted = true; toTop(); }
+});
+['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; run = null; } }, { passive: true, capture: true }));
+addEventListener('scroll', follow, { passive: true });
+addEventListener('resize', () => { measure(); follow(); });
+document.addEventListener('visibilitychange', () => { lastT = null; });
+bar.addEventListener('focusin', () => {                  // keyboard focus moving into the bar brings it back
+  if (rm) away = false;
+  else if (ty < 0) { bar.classList.add('ease'); ty = 0; setTimeout(() => bar.classList.remove('ease'), 300); }
+  anchor = lastY; draw();
+});
+reduce.addEventListener('change', e => {                 // never half way: the bar settles shown or away
+  rm = e.matches;
+  if (rm) away = ty < -H / 2; else ty = away ? -H : 0;
+  anchor = lastY; follow();                               // follow() keeps the bar to what the scroll position allows
+});
+
+measure(); lastY = Math.min(scrollY, END); ty = -Math.min(lastY, H); away = lastY > 2; anchor = lastY; draw();
+if (document.fonts) document.fonts.ready.then(() => { measure(); follow(); });                  // the text may change height once the font is in
+addEventListener('load', () => {
+  measure(); follow();
+  setTimeout(() => { if (!acted && !rm && scrollY < 2) play(); }, 700);
+});
+</script>
+</body>
+</html>

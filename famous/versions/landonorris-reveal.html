@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" data-fx-touch="drag">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The liquid reveal under the pointer</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{background:#0b0b0f;color-scheme:dark;overflow:hidden}
+body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif}
+/* The stage holds two pictures of the same scene, stacked exactly: the night picture, and the day picture that shows only through the blob. */
+.stage{position:relative;width:100%;height:100%;min-height:160px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.stage:focus-visible{outline:none}
+.stage:focus-visible::after{content:"";position:absolute;inset:6px;border:3px solid #fff;border-radius:8px;box-shadow:0 0 0 1px rgba(11,11,15,.8),inset 0 0 0 1px rgba(11,11,15,.8);pointer-events:none}
+.pic{position:absolute;inset:0;pointer-events:none}
+.pic svg{display:block;width:100%;height:100%}
+.day{visibility:hidden}
+.glow{filter:drop-shadow(0 0 16px rgba(255,157,92,.4))}
+.lite .glow{filter:none}
+/* the demo's pointer: a dot with a dark ring, so it shows on both pictures */
+.dot{position:absolute;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(11,11,15,.85),0 3px 12px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .22s}
+.dot.on{opacity:1}
+@media(prefers-reduced-motion:reduce){.dot{transition:none}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<div class="stage" id="stage" tabindex="0" role="group" aria-label="A night landscape of hills and pine trees under a pale moon and stars. Move the pointer over it, or press the arrow keys, and a soft blob follows a little behind and shows the same landscape by day, in coral, amber and teal.">
+  <div class="pic" id="night" aria-hidden="true"></div>
+  <div class="pic glow" aria-hidden="true"><div class="pic day" id="day"></div></div>
+  <i class="dot" id="dot" aria-hidden="true"></i>
+</div>
+<script>
+const $ = s => document.querySelector(s), clamp = (v, a, b) => Math.min(Math.max(v, a), b), root = document.documentElement;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, LITE = root.classList.contains('lite');
+const stage = $('#stage'), dayEl = $('#day'), dot = $('#dot'), LIFE = LITE ? 700 : 900, MAXD = LITE ? 60 : 120;
+
+// Our own picture, drawn in shapes: the same moon, hills and pines at night and by day. The shapes are written once; each picture gives them its colors.
+const NIGHT = { i: 'n', sky: ['#0b0a22', '#1c1952', '#432f82'], halo: '#b98cff', orb: ['#f8f3ff', '#c9b9ff'], far: ['#34307f', '#221f5c'], mid: ['#1f1c53', '#161440'], near: ['#14123a', '#0c0a26'], tree: '#0b0922', haze: '#7b5cd6' };
+const DAY = { i: 'd', sky: ['#ff6f8b', '#ff9d5c', '#ffd873'], halo: '#fff0a8', orb: ['#fffbe3', '#ffce5a'], far: ['#4be0cb', '#2cb5a3'], mid: ['#25b09e', '#178a7f'], near: ['#14867d', '#0d6460'], tree: '#0b524f', haze: '#ffe9a3' };
+function scene(p, night) {
+  let s = 11; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647, f = n => n.toFixed(0);
+  const lg = (k, c) => `<linearGradient id="${p.i}${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c[0]}"/>${c[2] ? `<stop offset=".42" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/>` : ''}<stop offset="1" stop-color="${c[c.length - 1]}"/></linearGradient>`;
+  const pine = (x, y, h) => { const w = h * .3; return `<path d="M${f(x)} ${f(y - h)}L${f(x + w * .55)} ${f(y - h * .6)}H${f(x + w * .3)}L${f(x + w * .8)} ${f(y - h * .27)}H${f(x + w * .45)}L${f(x + w)} ${f(y)}H${f(x - w)}L${f(x - w * .45)} ${f(y - h * .27)}H${f(x - w * .8)}L${f(x - w * .3)} ${f(y - h * .6)}H${f(x - w * .55)}Z"/>`; };
+  let deco = '';
+  if (night) {
+    for (let k = 0; k < (LITE ? 34 : 80); k++) { const x = rnd() * 1600, y = rnd() * 500; if (Math.hypot(x - 880, y - 250) > 150) deco += `<circle cx="${f(x)}" cy="${f(y)}" r="${(.8 + rnd() * 1.7).toFixed(1)}" fill="#e9e4ff" fill-opacity="${(.35 + rnd() * .65).toFixed(2)}"/>`; }
+    deco += [[300, 150], [610, 290], [1330, 190], [1470, 360], [110, 380]].map(([x, y]) => `<path fill="#fff" fill-opacity=".85" d="M${x} ${y - 9}L${x + 2} ${y - 2}L${x + 9} ${y}L${x + 2} ${y + 2}L${x} ${y + 9}L${x - 2} ${y + 2}L${x - 9} ${y}L${x - 2} ${y - 2}Z"/>`).join('');
+  } else {
+    deco = [[170, 190, 220], [470, 110, 160], [1210, 140, 230], [1390, 300, 170], [650, 330, 130]].map(([x, y, w]) => `<g fill="#fff" opacity=".5"><rect x="${x}" y="${y}" width="${w}" height="${w * .2}" rx="${w * .1}"/><rect x="${x + w * .16}" y="${y - w * .1}" width="${w * .52}" height="${w * .22}" rx="${w * .11}"/><rect x="${x + w * .5}" y="${y - w * .05}" width="${w * .34}" height="${w * .16}" rx="${w * .08}"/></g>`).join('');
+    deco += [[300, 150], [610, 270], [1330, 330], [1470, 420], [110, 360]].map(([x, y]) => `<path fill="none" stroke="#0b524f" stroke-opacity=".75" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" d="M${x - 15} ${y}q8 -11 15 0q7 -11 15 0"/>`).join('');
+  }
+  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>${lg('s', p.sky)}${lg('f', p.far)}${lg('m', p.mid)}${lg('n', p.near)}${lg('h', ['#0000', p.haze])}
+<radialGradient id="${p.i}o" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="${p.orb[0]}"/><stop offset="1" stop-color="${p.orb[1]}"/></radialGradient>
+<radialGradient id="${p.i}g"><stop offset="0" stop-color="${p.halo}" stop-opacity=".42"/><stop offset="1" stop-color="${p.halo}" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="900" fill="url(#${p.i}s)"/>${deco}<circle cx="880" cy="250" r="330" fill="url(#${p.i}g)"/><circle cx="880" cy="250" r="98" fill="url(#${p.i}o)"/>${night ? '<g fill="#7d6bd0" fill-opacity=".22"><circle cx="845" cy="226" r="22"/><circle cx="912" cy="282" r="15"/><circle cx="870" cy="296" r="9"/></g>' : ''}
+<path fill="url(#${p.i}f)" d="M0 610C90 560 160 470 250 470S390 560 470 560 620 430 740 430 900 560 1010 560 1170 470 1270 470 1440 570 1520 560 1590 540 1600 535V900H0Z"/>
+<rect y="500" width="1600" height="220" fill="url(#${p.i}h)" fill-opacity=".55"/>
+<path fill="url(#${p.i}m)" d="M0 660C180 610 330 630 520 676S820 700 980 660 1300 610 1600 680V900H0Z"/>
+<g fill="${p.tree}">${pine(1180, 780, 150)}${pine(1260, 790, 210)}${pine(1350, 790, 170)}${pine(1440, 790, 240)}${pine(1530, 780, 160)}${pine(150, 770, 190)}${pine(240, 770, 250)}${pine(330, 780, 150)}${pine(420, 770, 120)}${pine(60, 760, 130)}</g>
+<path fill="url(#${p.i}n)" d="M0 760C240 700 520 730 800 780S1330 790 1600 740V900H0Z"/></svg>`;
+}
+$('#night').innerHTML = scene(NIGHT, true); dayEl.innerHTML = scene(DAY, false);
+
+// The blob is a trail of discs. Each frame the head, which follows the pointer a little behind it, leaves a disc; its size grows with the head's speed
+// and with how lately the pointer moved, and every disc shrinks away with age. The union of the discs is the clip that lets the day picture through.
+let W = 1, H = 1, U = 1, T = 0, lastT = null, raf = 0, tx = 0, ty = 0, hx = 0, hy = 0, sp = 0, pres = 0, moved = -1e9, hold = false, trail = [], acc = 0, lx = 0, ly = 0, lt = -1e9;
+let run = null, acted = false, seen = null, kx = 0, ky = 0, timers = [];
+const PATHS = !window.CSS || !CSS.supports || CSS.supports('clip-path', "path('M0 0h1v1z')");
+const measure = () => { const r = stage.getBoundingClientRect(); W = Math.max(r.width, 1); H = Math.max(r.height, 1); U = Math.min(W, H); };
+
+// The band between two discs, drawn along their outer tangents and wound like the circles, so that a union fills the gap and the tail stays smooth.
+function hull([x1, y1, r1], x2, y2, r2) {
+  const dx = x2 - x1, dy = y2 - y1, dd = Math.hypot(dx, dy);
+  if (dd <= Math.abs(r1 - r2) + .01) return '';
+  const ph = Math.atan2(dy, dx), al = Math.acos((r1 - r2) / dd), a = ph + al, b = ph - al, P = (x, y, r, t) => `${(x + r * Math.cos(t)).toFixed(1)} ${(y + r * Math.sin(t)).toFixed(1)}`;
+  return `M${P(x1, y1, r1, a)}L${P(x2, y2, r2, a)}L${P(x2, y2, r2, b)}L${P(x1, y1, r1, b)}z`;
+}
+function draw(f, R) {
+  let d = '', dist = 0, px = hx, py = hy, n = 0, prev = null, head = null;
+  const reach = 1.1 * U, A = .07 + .09 * f, all = R > .6 ? trail.concat([[hx, hy, R, T]]) : trail; // the head is drawn as the newest disc, at the pointer's pace
+  for (let i = all.length - 1; i >= 0; i--) {
+    const [tx0, ty0, rb, born] = all[i], age = T - born, life = 1 - age / LIFE;
+    if (life <= 0) break;
+    dist += Math.hypot(tx0 - px, ty0 - py); px = tx0; py = ty0;
+    if (dist > reach) break;
+    const wob = 1 + A * Math.sin(age / 90 + T / 230) + .6 * A * Math.sin(age / 53 - T / 170 + 2);
+    const r = rb * life * life * (3 - 2 * life) * Math.min(1, (1 - dist / reach) * 2.2) * wob;
+    if (r < .6) continue;
+    const x = tx0 + r * .2 * Math.sin(age / 120 + T / 260 + 1.3), y = ty0 + r * .2 * Math.cos(age / 100 - T / 210); // the discs drift a little, so the edge keeps wobbling even when the pointer rests
+    d += `M${(x + r).toFixed(1)} ${y.toFixed(1)}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(-2 * r).toFixed(1)} 0a${r.toFixed(1)} ${r.toFixed(1)} 0 1 0 ${(2 * r).toFixed(1)} 0z`; n++;
+    if (prev && Math.hypot(x - prev[0], y - prev[1]) > .5 * Math.min(r, prev[2])) d += hull(prev, x, y, r); // discs far apart for their size are joined
+    prev = [x, y, r]; head = head || prev;
+  }
+  dayEl.style.visibility = n ? 'visible' : 'hidden';
+  if (n) dayEl.style.clipPath = PATHS ? `path('${d}')` : `circle(${head[2].toFixed(1)}px at ${head[0].toFixed(1)}px ${head[1].toFixed(1)}px)`; // a browser without path() clips to the head
+  if (run) dot.style.transform = `translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
+}
+
+// The loop steps by elapsed time and runs only while something moves: the pointer, a run of the demo, or a blob still shrinking away.
+function frame(ts) {
+  raf = 0;
+  const dt = lastT === null ? 0 : Math.min(ts - lastT, 50), k = a => 1 - Math.pow(1 - a, dt / FRAME);
+  lastT = ts; T += dt;
+  if (run) follow(dt);
+  const ox = hx, oy = hy;
+  hx += (tx - hx) * k(.075); hy += (ty - hy) * k(.075);
+  sp += ((dt ? Math.hypot(hx - ox, hy - oy) * 1000 / dt : 0) - sp) * k(.12);
+  const act = hold || T - moved < 140, f = 1 - Math.exp(-sp / (.9 * U));
+  pres += ((act ? 1 : 0) - pres) * k(.09);
+  if (!act && pres < .01) pres = 0;
+  const R = U * (.105 + .1 * f) * pres;
+  if (R > .6) { // discs are laid once every 60th of a second, so the trail is the same at 60, 90 or 120 Hz
+    if (T - lt > 100) { lx = ox; ly = oy; lt = T - dt; acc = 0; }
+    acc += dt;
+    if (acc >= FRAME - 1) { // (a millisecond of slack, and the rest carried over, keep the pace at 60 a second whatever the frame times)
+      acc = Math.min(acc - FRAME, FRAME);
+      const m = clamp(Math.ceil(Math.hypot(hx - lx, hy - ly) / (R * (LITE ? .35 : .22))), 1, 6);
+      for (let j = 1; j <= m; j++) trail.push([lx + (hx - lx) * j / m, ly + (hy - ly) * j / m, R, lt + (T - lt) * j / m]);
+      lx = hx; ly = hy; lt = T;
+      if (trail.length > MAXD) trail.splice(0, trail.length - MAXD);
+    }
+  }
+  while (trail.length && T - trail[0][3] > LIFE) trail.shift();
+  draw(f, R);
+  if (act || pres || trail.length || run) raf = requestAnimationFrame(frame); else lastT = null;
+}
+const wake = () => { if (!raf && !reduce.matches) { lastT = null; raf = requestAnimationFrame(frame); } };
+
+// Reduced motion: a plain circle exactly at the pointer, with no lag, no wobble and no trail.
+const plain = (x, y) => { dayEl.style.visibility = 'visible'; dayEl.style.clipPath = `circle(${(U * .15).toFixed(1)}px at ${x.toFixed(1)}px ${y.toFixed(1)}px)`; };
+const unplain = () => { dayEl.style.visibility = 'hidden'; };
+function aim(x, y) {
+  tx = x; ty = y; moved = T;
+  if (reduce.matches) return plain(x, y);
+  if (pres < .02 && !trail.length) { hx = x; hy = y; }
+  wake();
+}
+function leave() { seen = null; moved = -1e9; if (reduce.matches && !hold) unplain(); wake(); }
+
+// Show me: a dot moves along a short path (steered through the same aim as a real pointer), rests, and goes; the blob shrinks away after it.
+const PATH = [[0, .1, .68], [.6, .21, .6], [1.2, .4, .34], [1.65, .62, .28], [2.05, .82, .5], [2.55, .7, .7], [3.05, .5, .66], [3.35, .44, .62]], HOLD = .35;
+function at(s) {
+  const P = PATH, n = P.length; let i = 0; while (i < n - 2 && s > P[i + 1][0]) i++;
+  const u = clamp((s - P[i][0]) / (P[i + 1][0] - P[i][0]), 0, 1), a = P[Math.max(i - 1, 0)], b = P[i], c = P[i + 1], d = P[Math.min(i + 2, n - 1)];
+  const cr = j => .5 * (2 * b[j] + (c[j] - a[j]) * u + (2 * a[j] - 5 * b[j] + 4 * c[j] - d[j]) * u * u + (3 * b[j] - a[j] - 3 * c[j] + d[j]) * u * u * u);
+  return [cr(1) * W, cr(2) * H];
+}
+function follow(dt) {
+  run.t += dt / 1000;
+  [tx, ty] = at(Math.min(run.t, PATH[PATH.length - 1][0])); moved = T;
+  if (run.t > PATH[PATH.length - 1][0] + HOLD) { run = null; moved = -1e9; dot.classList.remove('on'); if (hold) { tx = kx; ty = ky; } }
+}
+function stopRun() { timers.forEach(clearTimeout); timers = []; run = null; dot.classList.remove('on'); }
+function show() {
+  stopRun(); measure(); const [x, y] = at(0);
+  dot.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; dot.classList.add('on');
+  if (reduce.matches) { // a few spots, one after another: the circle jumps between them
+    [0, .95, 1.85, 2.75].forEach((s, j) => timers.push(setTimeout(() => { const [a, b] = at(s); dot.style.transform = `translate(${a.toFixed(1)}px,${b.toFixed(1)}px)`; plain(a, b); }, j * 700)));
+    timers.push(setTimeout(() => { dot.classList.remove('on'); if (!hold) unplain(); }, 3000));
+    return;
+  }
+  run = { t: 0 }; tx = x; ty = y; if (pres < .02 && !trail.length) { hx = x; hy = y; } wake();
+}
+
+// The visitor's own pointer, touch or key stops a run and takes over. A pointer that has not moved says nothing, and neither does a first sighting.
+stage.addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; seen = seen || [x, y];
+  if (e.pointerType === 'mouse' && e.movementX === 0 && e.movementY === 0) return;
+  if (e.isTrusted && Math.hypot(x - seen[0], y - seen[1]) >= 5) { acted = true; stopRun(); }
+  if (e.isTrusted) hold = false;
+  kx = x; ky = y;
+  if (!run) aim(x, y);
+});
+stage.addEventListener('pointerdown', e => {
+  const r = stage.getBoundingClientRect(); if (e.isTrusted) { acted = true; stopRun(); hold = false; }
+  aim(kx = e.clientX - r.left, ky = e.clientY - r.top);
+});
+['pointerleave', 'pointercancel'].forEach(t => stage.addEventListener(t, leave));
+stage.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') leave(); });
+// Keyboard: focus puts the blob in the middle and keeps it there; the arrow keys move it (a bigger step with Shift); leaving the stage lets it shrink away.
+const keys = () => { acted = true; stopRun(); if (!hold) { measure(); hold = true; aim(kx, ky); } };
+const visibleFocus = () => { try { return stage.matches(':focus-visible'); } catch (e) { return true; } };
+stage.addEventListener('focus', () => { if (visibleFocus()) { measure(); kx = W / 2; ky = H / 2; keys(); } });
+stage.addEventListener('blur', () => { hold = false; leave(); });
+stage.addEventListener('keydown', e => {
+  const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+  if (!d || e.altKey || e.ctrlKey || e.metaKey) return;
+  e.preventDefault(); keys();
+  const s = U * (e.shiftKey ? .18 : .06); kx = clamp(kx + d[0] * s, 0, W); ky = clamp(ky + d[1] * s, 0, H); aim(kx, ky);
+});
+
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'show') { acted = true; show(); }
+});
+document.addEventListener('visibilitychange', () => { lastT = null; });
+reduce.addEventListener('change', () => { cancelAnimationFrame(raf); raf = 0; lastT = null; trail = []; pres = 0; stopRun(); unplain(); });
+new ResizeObserver(() => { measure(); trail = []; }).observe(stage); measure(); kx = W / 2; ky = H / 2;
+addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
+</script>
+</body>
+</html>

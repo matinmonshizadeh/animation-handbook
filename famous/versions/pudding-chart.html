@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The chart that changes as you read</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--H:100vh;--bg:#0b0b0f;--ink:#f4f4f2;--mut:#a3a4b4;--dot:#8d93ad;--c1:#6ea8ff;--c4:#ff9d5c;color-scheme:dark}
+@supports(height:100svh){:root{--H:100svh}}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg);overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3c3c4a var(--bg)}
+body{color:var(--ink);font:400 15px/1.45 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+body::after{content:"";position:fixed;left:0;top:0;width:min(23em,40%);height:72px;z-index:3;pointer-events:none;background:linear-gradient(var(--bg) 40px,#0b0b0f00)}  /* cards leave through a soft edge, clear of the page's Our version label */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tag{position:fixed;z-index:4;right:14px;top:12px;padding:6px 11px;border-radius:999px;background:#171a27;border:1px solid #2b3047;font-size:12px;line-height:1;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c3c4d0}
+
+/* the chart is pinned for the whole scroll; the text cards scroll over it. Every mark (dot, label, axis) is moved with transform and opacity only. */
+.stage{position:sticky;top:0;height:var(--H);overflow:hidden}
+.panel{position:absolute;border-radius:16px;background:#10131d;border:1px solid #1f2436}
+.ct{position:absolute;font-size:13px;line-height:1.2;font-weight:600;color:#d6d8e4}
+.ct span{position:absolute;left:0;top:0;white-space:nowrap}
+.m{position:absolute;left:0;top:0;transition:transform 1.5s cubic-bezier(.22,.7,.2,1) var(--dl,0s),opacity .5s ease var(--dl,0s)}
+.d{width:var(--d);height:var(--d);border-radius:50%;background:var(--dot)}
+.d::before,.d::after{content:"";position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .5s ease var(--dl,0s)}
+.d::before{background:var(--c1);box-shadow:0 0 calc(var(--d) * .7) rgba(110,168,255,.5)}
+.d::after{background:var(--c4);box-shadow:0 0 calc(var(--d) * .7) rgba(255,157,92,.45)}
+.d.a::before,.d.b::after{opacity:1}
+.l{width:max-content;translate:-50% 0;font-size:12px;line-height:1;font-style:normal;color:var(--mut)}
+.ax{height:1px;background:#3a4058}
+.ct span,.l,.ax{opacity:0;transition:opacity .45s ease}
+[data-ch="1"] :is(.ax,.ct span:first-child),:is([data-k="1"],[data-k="2"]) .l.w,[data-k="3"] .l.v,[data-ch="2"] :is(.l.g,.ct span:last-child){opacity:1;transition-delay:.55s}   /* labels come back after the dots have mostly arrived, and leave at once */
+.tiny .ct{display:none}
+.snap *,.snap *::before,.snap *::after{transition:none!important}   /* on the page itself, so a jump (Back to top) shows its step, cards included, at once */
+.lite .d::before,.lite .d::after{box-shadow:none}
+
+.steps{position:relative;z-index:2;display:flow-root;list-style:none;width:min(23em,40%);margin-top:calc(var(--H) * -1);padding:0 12px 0 clamp(14px,3vw,30px)}
+.card{position:relative;padding:13px 15px 14px;border-radius:14px;background:#151722;border:1px solid #2b3047;transition:opacity .3s ease}   /* opaque, so the chart never shows through a card */
+.card+.card{margin-top:calc(var(--H) * .46)}
+.end{height:var(--endh,0px)}   /* room after the last card, so it ends just above the middle (on phones, so it can stay put at the middle) */
+.card b,.card p{opacity:.62;transition:opacity .4s ease}
+.card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--c1);opacity:0;transition:opacity .4s ease}
+.card.on b,.card.on p,.card.on::before{opacity:1}
+.card b{display:block;margin-bottom:4px;font-size:12px;line-height:1.2;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#d0d2de}
+.card p{text-wrap:pretty}
+/* phones (the script sets .phone by the size of the box): the chart is at the top; each card slides up below it, stops at the middle and stays until the next card slides over it */
+.phone .steps{width:100%;padding-left:14px;padding-right:14px}
+.phone .card{position:sticky;top:var(--stick,50vh);padding:11px 14px 12px}
+.phone .card.past{opacity:0;transition-delay:.12s}
+.phone body::after{display:none}
+/* boxes too short for the cards at full size (.micro): smaller cards without the step label, and smaller numbers under the chart on phones */
+.micro .card{padding:7px 11px 8px;font-size:13px;line-height:1.3}
+.micro .card b{display:none}
+.micro.phone .l{font-size:10px}
+@media(prefers-reduced-motion:reduce){*,::before,::after{transition:none!important}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+  document.documentElement.classList.toggle('phone', innerWidth < 480 || (innerWidth < 640 && innerHeight >= 330));
+}
+</script>
+</head>
+<body>
+<h1 class="sr">A chart that changes as you read</h1>
+<p class="tag">Example data</p>
+<main>
+  <div class="stage" role="img" aria-label=""><div class="panel"></div><p class="ct"><span>Samples per week</span><span>Samples per group</span></p></div>
+  <ol class="steps">
+    <li class="card"><b>Step 1 of 4</b><p>Each dot is one made-up sample. Keep scrolling, and the loose dots pile up into eight weeks.</p></li>
+    <li class="card"><b>Step 2 of 4</b><p>Three weeks were busier than the rest. Their dots light up while the others fade back.</p></li>
+    <li class="card"><b>Step 3 of 4</b><p>Sort the weeks from busiest to quietest, and the bright ones slide to the front.</p></li>
+    <li class="card"><b>Step 4 of 4</b><p>Group the dots instead: the three busy weeks make one bar, and the other five make another.</p></li>
+    <li class="end" aria-hidden="true"></li>
+  </ol>
+</main>
+<script>
+const $ = s => document.querySelector(s), root = document.documentElement;
+const stage = $('.stage'), panel = $('.panel'), steps = $('.steps'), cards = [...document.querySelectorAll('.card')], N = cards.length;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60;
+const COUNTS = [2, 4, 7, 9, 8, 5, 3, 2], BUSY = [2, 3, 4], NW = COUNTS.length;   // made-up samples per week; the three busiest weeks
+const ORDER = COUNTS.map((_, c) => c).sort((a, b) => COUNTS[b] - COUNTS[a] || a - b), SLOT = COUNTS.map((_, c) => ORDER.indexOf(c));
+const SAY = ['Example chart: loose dots scattered across the box.', 'Example chart: the dots piled up into eight columns, one for each week.',
+  'Example chart: three busy weeks lit in blue, the other dots faded.', 'Example chart: the weeks sorted from busiest to quietest, the three busy ones first.',
+  'Example chart: the dots grouped into two bars, the busy weeks in blue and the other weeks in orange.'];
+let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+const mk = (cls, text) => { const e = document.createElement('i'); e.className = 'm ' + cls; if (text) e.textContent = text; stage.append(e); return e; };
+const ax = mk('ax'), wl = COUNTS.map((_, c) => mk('l w', c + 1)), vl = ORDER.map(c => mk('l v', c + 1)), gl = ['Busy weeks', 'Other weeks'].map(t => mk('l g', t)), ct = $('.ct');
+const dots = []; let jb = 0, jo = 0;
+COUNTS.forEach((n, c) => { for (let r = 0; r < n; r++) { const busy = BUSY.includes(c); dots.push({ c, r, busy, j: busy ? jb++ : jo++, fx: rnd(), fy: rnd(), dl: rnd(), e: mk('d') }); } });
+const cells = dots.map((_, i) => i);   // each dot gets its own cell of the scattered grid, so no two dots land on each other
+for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+dots.forEach((d, i) => { d.cell = cells[i]; });
+
+// Where everything sits at this size: the chart goes to the right of the cards, or on phones to the top above them. The dots form 1 or 2 sub-columns
+// per week, whichever lets them be biggest.
+let G = {}, phone = false, stick = 0;
+function geo() {
+  const W = innerWidth, H = stage.clientHeight, tall = () => Math.max(...cards.map(c => c.offsetHeight));
+  phone = W < 480 || (W < 640 && H >= 330);   // chart above the cards only when the box is narrow and tall enough for both
+  root.classList.toggle('phone', phone); root.classList.remove('micro');
+  if (tall() + H * .5 > H - 4) root.classList.add('micro');
+  const micro = root.classList.contains('micro'), mp = phone && micro, tiny = H < 330, TOP = tiny ? 8 : 30, LB = mp ? 5 : 9, BOT = LB + (mp ? 10 : 12) + 9;
+  stick = Math.round(Math.min(H * (micro ? .6 : .5), H - tall() - 6));   // on phones, the middle: where a card stops
+  const ax0 = phone ? 14 : Math.round(Math.min(W * .43, 440)), ax1 = W - (phone ? 14 : 22), ay0 = mp ? 40 : 46, ay1 = phone ? stick - 8 : H - 14;
+  const cx0 = ax0 + 14, cx1 = ax1 - 14, fit = [1, 2].map(s => { const rows = Math.ceil(9 / s); return { s, rows, u: Math.max(4, Math.min((ay1 - ay0 - TOP - BOT) / (rows + .4), (cx1 - cx0) / (NW * (s + .9)), 44)) }; }).sort((a, b) => b.u - a.u)[0];
+  const { s, rows, u } = fit, ph = rows * u + TOP + BOT, top = phone ? ay0 : ay0 + Math.max(0, (ay1 - ay0 - ph) / 2);
+  const cw = Math.min((cx1 - cx0) / NW, (s + 1.4) * u);
+  G = { s, u, cw, cx0, cx1, top, lb: LB, ry: top + TOP, base: top + TOP + rows * u, x0: (cx0 + cx1) / 2 - NW * cw / 2, bc: Math.max(4, Math.ceil(24 / rows)) };
+  stage.classList.toggle('tiny', tiny);
+  panel.style.cssText = `left:${ax0}px;top:${top}px;width:${ax1 - ax0}px;height:${ph}px`;
+  ct.style.cssText = `left:${ax0 + 14}px;top:${top + 10}px`;
+  ax.style.width = NW * cw + 8 + 'px';
+  stage.style.setProperty('--d', (u * .8).toFixed(1) + 'px');
+}
+function at(d, k) {   // a dot's place in step k: scattered, in its week, in its sorted week, or in its group's block
+  const { s, u, cw, x0, cx0, cx1, ry, base, bc } = G;
+  if (k === 0) return [cx0 + (d.cell % NW + .25 + .5 * d.fx) * (cx1 - cx0) / NW, ry + 4 + (Math.floor(d.cell / NW) + .25 + .5 * d.fy) * (base - ry - 8) / (dots.length / NW)];
+  if (k < 4) return [x0 + ((k === 3 ? SLOT[d.c] : d.c) + .5) * cw + (d.r % s - (s - 1) / 2) * u, base - (Math.floor(d.r / s) + .5) * u];
+  return [cx0 + (cx1 - cx0) * (d.busy ? .28 : .72) + (d.j % bc - (bc - 1) / 2) * u, base - (Math.floor(d.j / bc) + .5) * u];
+}
+const px = (x, y) => `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+function show(k, snap) {
+  if (snap) root.classList.add('snap');
+  stage.dataset.k = k; stage.dataset.ch = k ? (k < 4 ? 1 : 2) : 0; stage.setAttribute('aria-label', SAY[k]);
+  const r = G.u * .4, lag = c => ((c / (NW - 1)) * .45).toFixed(2) + 's';   // the weeks fill one after another, left to right
+  dots.forEach(d => {
+    const [x, y] = at(d, k), e = d.e, fade = (k === 2 || k === 3) && !d.busy;
+    e.style.setProperty('--dl', snap ? '0s' : (parseFloat(lag(d.c)) + d.dl * .12).toFixed(2) + 's');
+    e.style.transform = px(x - r, y - r); e.style.opacity = k === 0 ? .7 : fade ? .26 : 1;
+    e.classList.toggle('a', k > 1 && d.busy); e.classList.toggle('b', k === 4 && !d.busy);
+  });
+  [wl, vl].forEach(set => set.forEach((e, i) => { e.style.transform = px(G.x0 + (i + .5) * G.cw, G.base + G.lb); }));   // the weeks' numbers, and the same numbers in sorted order
+  gl.forEach((e, i) => { e.style.transform = px(G.cx0 + (G.cx1 - G.cx0) * (i ? .72 : .28), G.base + G.lb); });
+  ax.style.transform = px(G.x0 - 4, G.base + 1);
+  cards.forEach((c, i) => { c.classList.toggle('on', i === k - 1); c.classList.toggle('past', i < k - 1); });
+  if (snap) { void stage.offsetWidth; root.classList.remove('snap'); }
+}
+
+// The step is the last card that has reached the middle of the box, so scrolling back undoes each step at the same place.
+let cur = -1, trig = [], END = 0, lastY = 0, raf = 0, lastT = null, playing = false, pos = 0, acted = false;
+function measure() {
+  const H = innerHeight, TL = phone ? stick : H * .5, cN = cards[N - 1].offsetHeight;   // TL: where a card's top must be to start its step
+  let y = Math.max(TL + 3, Math.min(H * .64, H - cards[0].offsetHeight - 8));            // the first card waits below that line, fully in view when it fits
+  steps.style.paddingTop = y + 'px';
+  steps.style.setProperty('--stick', stick + 'px');
+  steps.style.setProperty('--endh', (phone ? Math.max(0, H - cN - stick) + H * .1 : Math.max(0, H * .54 - cN)) + 'px');
+  END = Math.max(0, document.documentElement.scrollHeight - H);
+  trig = cards.map((c, i) => { if (i) y += parseFloat(getComputedStyle(c).marginTop); const t = y - TL; y += c.offsetHeight; return t; });   // where each card would be if nothing stuck
+}
+function check(snap) {
+  const y = scrollY; let k = 0;
+  while (k < N && y >= trig[k]) k++;
+  if (k !== cur) show(cur = k, snap || Math.abs(y - lastY) > innerHeight * .9);   // a jump (Back to top, the scrollbar, End) shows the new step at once
+  lastY = y;
+}
+
+function tick(ts) {
+  raf = 0;
+  const dt = lastT === null ? 0 : Math.min(ts - lastT, 50);
+  lastT = ts;
+  if (playing && Math.abs(scrollY - pos) > 2) playing = false;       // the visitor moved it
+  if (playing) {
+    pos = Math.min(END, pos + END / 360 * (dt / FRAME));             // the whole scroll in 6 s
+    scrollTo({ top: pos, behavior: 'instant' });
+    if (pos >= END) playing = false;
+  }
+  if (playing) raf = requestAnimationFrame(tick); else lastT = null;
+}
+function toTop() { playing = false; scrollTo({ top: 0, behavior: 'instant' }); check(true); }
+function play() {
+  measure();
+  if (END <= 0) return;
+  if (scrollY >= END - 2) toTop();
+  pos = scrollY; playing = true; lastT = null;
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'play') { acted = true; play(); } else if (e.data.fx === 'top') { acted = true; toTop(); }
+});
+['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; playing = false; } }, { passive: true, capture: true }));
+addEventListener('scroll', () => check(false), { passive: true });
+addEventListener('resize', () => { geo(); measure(); cur = -1; check(true); });
+document.addEventListener('visibilitychange', () => { lastT = null; });
+geo(); measure(); check(true);
+if (document.fonts) document.fonts.ready.then(() => { geo(); measure(); cur = -1; check(true); });   // the cards may change height once the font is in
+addEventListener('load', () => {
+  measure(); check(false);
+  setTimeout(() => { if (!acted && !reduce.matches && scrollY < 2) play(); }, 700);
+});
+</script>
+</body>
+</html>

@@ -7,13 +7,27 @@
 //   the search box and the place tiles on the first screen, the tile counts and the eight Start cards. The desktop run
 //   also tries the tiles, the search and Show all and compares Copy prompt with every page's own; the phone run tries a
 //   tile, the slim bar and long words; the reduced-motion run checks that nothing moves.
-//   node tools/check-pages.mjs famous   checks the Famous effects page (famous/) at the same six setups: overflow, small
-//   targets on phones (every link, chip, card and button), room for the focus ring in the scrolling jump row, and the title,
-//   the lede and the not-connected line shown, and on the first screen. The desktop run also presses each jump link (the last
-//   one twice), watches each entry's previews move and presses each Copy prompt, then twice more with the clipboard refused
-//   or missing (the hidden text box copies; when it fails too, the prompt is selected); the reduced-motion run checks that
-//   nothing moves, that every preview holds a still frame that shows something, that a jump does not glide and that Copy
-//   prompt shows its message without a slide. Like home, it stores a star count first.
+//   node tools/check-pages.mjs famous   checks the Famous effects page (famous/), a gallery of tiles whose entries open one at a
+//   time in a pop-up (a native dialog), at the same six setups. Every setup checks overflow, small targets on phones (the top bar,
+//   the tile links, the Seen on links, the suggestion link), one tile for each entry in the entries' order, and the title, the
+//   lede and the not-connected line shown and on the first screen. Every setup also opens an entry by the keyboard (its tile's
+//   link takes focus, then Enter; the first entry with an Our version block, else the first): the pop-up is open, the address is
+//   #<id> and focus is on the entry's heading; inside it nothing overflows, every button and link is at least 44px on phones, the
+//   not-connected note shows on its first screen and, in a window at least 700px tall, so do the stage and the player bar of Our
+//   version; the frame of Our version loads an Our version page that fits it (no wider than the frame, and, unless the entry starts
+//   on scroll, no taller, so nothing in it scrolls), and, unless the entry starts on scroll, a real wheel turn over the middle of
+//   its stage (a finger dragged over it on the phones) scrolls the pop-up; then Escape closes it and focus is back on the
+//   tile's link, with the tile in view, the address plain again and the frame unloaded. The desktop run does this for every entry
+//   in turn and adds: the tile pictures behind the pop-up hold still; the frame logs no console error or warning (the console
+//   listener below hears a frame of this site); each player button visibly changes the stage (a loop's Pause holds it still and
+//   Play sets it moving again); each recipe card's preview moves; Copy prompt, pressed for real, puts exactly that entry's prompt
+//   on the clipboard (the first entry again with the clipboard refused and the second with none: the hidden text box copies, or
+//   the prompt is selected and Ctrl+C is asked for); Next and Previous replace the address and put focus on the heading; Close
+//   returns focus to the tile. It also watches each tile's picture move while it is on screen, opens famous/#<id> as a new visit
+//   and presses the browser's Back on a pop-up that a tile opened. The reduced-motion phone run (every entry's pop-up too)
+//   checks that nothing in the gallery moves, that every tile picture and recipe card preview holds a still frame that shows
+//   something, that the stage of Our version holds still (two pictures 1.5 s apart are equal) and that Copy prompt shows its
+//   message without a slide. Like home, it stores a star count first.
 // A folder with no index.html of its own stands for the page folders inside it. Each page is loaded at six screen
 // setups and prints one line for each (ok or FAIL); problems are printed and screenshots saved, by default into
 // a folder of its own in the temp folder, whose path is printed. Console warnings count as problems too (the page
@@ -176,29 +190,33 @@ const homeCheck = firstScreen => `(() => {
   return { problems };
 })()`;
 
-// Runs inside the Famous effects page (famous/). Returns its problems: overflow, small targets on phones (every link, chip,
-// card and button, the site links and the link inside a sentence too), a jump row that scrolls sideways (phones) with less
-// than 6px above or below its links, where their focus ring (3px, 3px out) would be cut off, and the title, the lede and the
-// not-connected line shown at every setup (hidden is a problem: the not-connected line is a legal requirement) and on the
-// first screen (the setups marked firstScreen: 1280×800 and 375×812). A page with no entries is a problem of its own, so the
-// desktop steps never pass on an empty page.
+// Runs inside the Famous effects page (famous/). Returns its problems: overflow, small targets on phones (the top bar, every link of
+// the gallery (a tile's stretched link counts as its tile), the Seen on links, the suggestion link and the footer's), one gallery
+// tile for each entry, in the entries' order and each linking to its entry, and the title, the lede and the not-connected line
+// shown at every setup (hidden is a problem: the not-connected line is a legal requirement) and on the first screen (the setups
+// marked firstScreen: 1280×800 and 375×812). A page with no entries is a problem of its own, so the steps below never pass on an
+// empty page.
 const famousCheck = firstScreen => `(() => {
   const r = el => el.getBoundingClientRect();
   const phone = innerWidth <= 600;
   const problems = [];
-  if (!document.querySelector('section.fx')) problems.push('no entries (section.fx): not the Famous effects page, or not built yet');
+  const entries = [...document.querySelectorAll('section.fx')];
+  if (!entries.length) problems.push('no entries (section.fx): not the Famous effects page, or not built yet');
   if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
+  const tiles = [...document.querySelectorAll('.fx-grid .tile[data-fx-tile]')];
+  if (entries.length && tiles.length !== entries.length) problems.push('the gallery has ' + tiles.length + ' tiles for ' + entries.length + ' entries');
+  else tiles.forEach((tile, i) => {
+    const id = entries[i].id, link = tile.querySelector('.t-title a');
+    if (tile.dataset.fxTile !== id || !link || link.getAttribute('href') !== '#' + id) problems.push('tile ' + (i + 1) + ' is for ' + tile.dataset.fxTile + ' and links to ' + (link ? link.getAttribute('href') : 'nothing') + ', not to #' + id + ' (the tiles follow the entries, in order)');
+    else if (!tile.getClientRects().length || !r(tile).width || !r(tile).height) problems.push('the tile of ' + id + ' is hidden');
+  });
   if (phone) {
-    const small = [...document.querySelectorAll('.top a, .top button, .fx-jump a, .fx-seen a, .fx-what a, .fx .card, .fx .copy, .fx-toggle, .fx-suggest, .foot a')]
+    const small = [...new Set([...document.querySelectorAll('.top a, .top button, .fx-grid a, .foot a')]
       .filter(el => el.getClientRects().length)
+      .map(el => el.matches('.t-title a') ? el.closest('.tile') : el))]
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
       .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
     if (small.length) problems.push('small targets: ' + small.join(', '));
-  }
-  const jump = document.querySelector('.fx-jump'), chip = jump && jump.querySelector('a');
-  if (chip && getComputedStyle(jump).overflowX !== 'visible') {
-    const room = [r(chip).top - r(jump).top, r(jump).bottom - r(chip).bottom].map(Math.round);
-    if (Math.min(...room) < 6) problems.push('the jump row scrolls but leaves ' + room.join('px above and ') + 'px below its links: their focus ring is cut off');
   }
   for (const [what, el] of [['title', document.querySelector('h1')], ['lede', document.querySelector('.fx-lede')], ['not-connected line', document.querySelector('.fx-legal')]]) {
     if (!el) problems.push('no ' + what);
@@ -279,7 +297,7 @@ function stopChrome() {
 // so a Chrome left over from an earlier run can never be picked up by mistake.
 // No LCD text: text that gets its own layer during a transition (even one that does not move it) would
 // otherwise be drawn with different antialiasing, and the stage comparisons would see a change nobody can see.
-const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
+const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', '--disable-gpu', '--hide-scrollbars', '--disable-lcd-text',
   '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 const chromeExited = new Promise(resolve => chrome.once('exit', resolve));
 chrome.once('error', async err => {
@@ -1748,149 +1766,419 @@ async function finderMotionProblems() {
 }
 
 // Famous effects: every scroll the steps below make themselves is instant (behavior: 'instant'), so a page with CSS smooth
-// scrolling is never still moving when a position is read. Only the page's own jump is left to glide or not.
+// scrolling is never still moving when a position is read. Everything about the gallery and its pop-up is done the way a visitor
+// meets it (a key press, a mouse press, an address) and read afterwards from the page.
 
-// Famous effects: waits until the page holds still (scrollY the same over three checks 100 ms apart, for up to 3 s).
-const scrollSettled = () => evaluate(`new Promise(done => { let last = scrollY, same = 0, left = 30;
-  const tick = () => { same = scrollY === last ? same + 1 : 0; last = scrollY; if (same >= 3 || !--left) done(); else setTimeout(tick, 100); };
-  setTimeout(tick, 100); })`);
-
-// Famous effects, desktop run: each link of the jump row, pressed as the keyboard presses it (focus, then activate) from the
-// top of the page, brings its entry's heading fully into the window, gives that heading keyboard focus and names the entry in
-// the address. Pressed again while the address names its entry, the last link adds no step to the history.
-async function famousJumpProblems() {
-  const hrefs = await evaluate(`[...document.querySelectorAll('.fx-jump a')].map(a => a.getAttribute('href'))`);
-  if (!hrefs.length) return ['no links in the jump row'];
-  const problems = [];
-  for (const href of hrefs) {
-    await evaluate(`(() => { scrollTo({ top: 0, behavior: 'instant' }); const a = document.querySelector('.fx-jump a[href="${href}"]'); a.focus(); a.click(); })()`);
-    await scrollSettled();
-    const got = await evaluate(`(() => { const s = document.querySelector('${href}'), h = s && s.querySelector('h2');
-      if (!h) return null;
-      const b = h.getBoundingClientRect();
-      return { top: Math.round(b.top), shown: b.top >= 0 && b.bottom <= innerHeight, focus: document.activeElement === h, hash: location.hash }; })()`);
-    if (!got) problems.push(`jump to ${href}: no entry with that id, or no heading in it`);
-    else if (!got.shown || !got.focus || got.hash !== href) problems.push(`jump to ${href}: ${JSON.stringify(got)}`);
-  }
-  const last = hrefs[hrefs.length - 1];
-  const again = await evaluate(`(() => { const before = history.length, a = document.querySelector('.fx-jump a[href="${last}"]'); a.focus(); a.click();
-    return { hash: location.hash, before, after: history.length }; })()`);
-  await scrollSettled();
-  if (again.hash !== last || again.after !== again.before) problems.push(`jump to ${last} again: ${JSON.stringify(again)} (expected the address ${last} and the same number of history steps)`);
-  return problems;
+// Famous effects: a real key press, which goes to whatever has keyboard focus.
+async function famousKey(name, code, keyCode, text) {
+  await send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', key: name, code, text, windowsVirtualKeyCode: keyCode });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key: name, code, windowsVirtualKeyCode: keyCode });
 }
 
-// Famous effects: a PNG (base64) of the stage of a card (an expression that finds the card in the page), where the page is
-// scrolled now.
-async function famousStageShot(card) {
-  const box = await evaluate(`(() => { const b = ${card}.querySelector('.stage').getBoundingClientRect();
+// Famous effects: waits, looking every 50 ms for up to ms, until an expression run in the page is true. Says whether it was.
+async function famousWait(expression, ms) {
+  for (const end = Date.now() + ms; ; await sleep(50)) {
+    if (await evaluate(expression)) return true;
+    if (Date.now() >= end) return false;
+  }
+}
+
+// Famous effects: the problems an expression run in the page returns (a list of texts). A script error in it is a problem too.
+async function famousList(expression) {
+  const found = await evaluate(expression);
+  return Array.isArray(found) ? found : ['the check did not run (a script error in the page)'];
+}
+
+// Famous effects: opens an address as a new visit would. Says whether the page finished loading in time.
+async function famousLoad(url) {
+  let onLoad;
+  const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+  await send('Page.navigate', { url });
+  try { await withTimeout(loaded, LOAD_TIMEOUT); return true; } catch { return false; } finally { listeners.delete(onLoad); }
+}
+
+// Famous effects: a PNG (base64) of the box of an element (an expression that finds it in the page), where the page is scrolled
+// now.
+async function famousShot(el) {
+  const box = await evaluate(`(() => { const b = ${el}.getBoundingClientRect();
     return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height }; })()`);
   return (await send('Page.captureScreenshot', { format: 'png', clip: { ...box, scale: 1 } })).data;
 }
 
-// Famous effects, desktop run: with an entry's cards in the middle of the window, each card's preview moves (its picture
-// changes within 3 s); once the last entry is in view, the first entry's previews have stopped, since a preview plays only
-// while it is on screen.
-async function famousPreviewProblems() {
-  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
-  if (!ids.length) return ['no entries to play'];
-  const problems = [];
-  for (const id of ids) {
-    const cards = await evaluate(`(async () => { const s = document.getElementById('${id}'), row = s.querySelector('.fx-cards');
-      if (!row) return 0;
-      row.scrollIntoView({ block: 'center', behavior: 'instant' });
-      await new Promise(r => setTimeout(r, 400));
-      return s.querySelectorAll('.card').length; })()`);
-    if (!cards) { problems.push(`${id}: no cards`); continue; }
-    for (let i = 0; i < cards; i++) {
-      const card = `document.querySelectorAll('#${id} .card')[${i}]`;
-      const first = await famousStageShot(card);
-      let moved = false;
-      for (const end = Date.now() + 3000; !moved && Date.now() < end;) { await sleep(200); moved = (await famousStageShot(card)) !== first; }
-      if (!moved) problems.push(`${id}: the preview of ${await evaluate(`${card}.dataset.slug`)} does not move while on screen`);
-    }
+// Famous effects: whether the picture in a box changes within ms milliseconds, from the picture it shows now (or from `base`, one
+// taken earlier).
+async function famousMoves(el, ms, base) {
+  const first = base ?? await famousShot(el);
+  for (const end = Date.now() + ms; Date.now() < end;) {
+    await sleep(150);
+    if (await famousShot(el) !== first) return true;
   }
-  const still = await evaluate(`document.querySelector('section.fx').querySelectorAll('.card.playing').length`);
-  if (ids.length > 1 && still) problems.push(`the first entry's previews keep playing while it is off screen (${still} cards)`);
-  return problems;
+  return false;
 }
 
-// Famous effects: presses an entry's Copy prompt for real at its center (scrolled into view, the pointer moved onto it, then a
-// mouse press and release). Returns what went wrong, or ''.
-async function famousPressCopy(id) {
-  const spot = await evaluate(`(() => { const btn = document.querySelector('#${id} .copy'); if (!btn) return null;
-    btn.scrollIntoView({ block: 'center', behavior: 'instant' });
-    const b = btn.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
-    return { x, y, covered: btn.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
-  if (!spot) return 'no Copy prompt button';
-  if (spot.covered) return `Copy prompt is covered by ${spot.covered} at its center`;
+// Famous effects: the picture in a box once it has come to rest: captures 250 ms apart until it has stayed the same for 750 ms,
+// for up to max milliseconds. still says whether it came to rest; when it did not, shot is only the last frame of a movement.
+async function famousRest(el, max) {
+  let shot = await famousShot(el), same = 0;
+  for (const end = Date.now() + max; Date.now() < end;) {
+    await sleep(250);
+    const next = await famousShot(el);
+    if (next !== shot) { shot = next; same = 0; continue; }
+    if (++same === 3) return { shot, still: true };
+  }
+  return { shot, still: false };
+}
+
+// Famous effects: presses an element for real at its center: scrolled into view as scroll says ('center', 'nearest' or '' for not
+// at all), the pointer moved onto it, then a mouse press and release. Returns what went wrong, or ''.
+async function famousClick(selector, scroll = 'center') {
+  const spot = await evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return null;
+    ${scroll ? `el.scrollIntoView({ block: '${scroll}', behavior: 'instant' });` : ''}
+    const b = el.getBoundingClientRect(), x = b.left + b.width / 2, y = b.top + b.height / 2, hit = document.elementFromPoint(x, y);
+    return { x, y, covered: el.contains(hit) ? '' : hit ? hit.tagName.toLowerCase() + (hit.getAttribute('class') ? '.' + hit.getAttribute('class').split(' ')[0] : '') : 'nothing' }; })()`);
+  if (!spot) return `no ${selector}`;
+  if (spot.covered) return `${selector} is covered by ${spot.covered} at its center`;
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
   for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
   return '';
 }
 
-// Famous effects, desktop run: each entry's Copy prompt, pressed for real, puts exactly that entry's prompt on the clipboard
-// (stubbed: a headless run cannot grant it), reads "Copied", says so in its name and shows the message. Then the browser
-// refuses the clipboard: the first entry's press copies through the hidden text box (its copy command stubbed to report what
-// is selected), so the button reads "Copied" with the message, the text box is gone and keyboard focus is back on the button.
-// Last, with no clipboard and the copy command failing, the second entry's press (the first's again on a page of one) selects
-// its prompt and asks for Ctrl+C.
-async function famousCopyProblems() {
-  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
-  if (!ids.length) return ['no entries to copy'];
+// Famous effects: what the pop-up and the page show now, as a script reads it: whether the pop-up is open, the address, the
+// entries inside it, where keyboard focus is (a short name, and the link it is on), the length of the history, whether the page
+// is locked behind it and how many frames of Our version are loaded.
+const famousState = () => evaluate(`(() => {
+  const d = document.getElementById('fx-dlg'), a = document.activeElement;
+  const name = el => !el ? 'nothing' : el === document.body ? 'the page' : el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '');
+  return { open: d.open, hash: location.hash, shown: [...d.querySelectorAll('section.fx')].map(s => s.id), focus: name(a), focusId: a ? a.id : '', href: a && a.getAttribute ? a.getAttribute('href') : null,
+    steps: history.length, locked: document.documentElement.classList.contains('fx-open'), frames: document.querySelectorAll('.fx-version iframe[src]').length };
+})()`);
+
+// Closes the pop-up from the page, whatever state it is in (after a step failed), and waits for it to be gone.
+const famousShut = async () => {
+  await evaluate(`(() => { const d = document.getElementById('fx-dlg'); if (d.open) d.close(); })()`);
+  await sleep(500);
+};
+
+// Famous effects: opens an entry as a visitor with a keyboard does (its tile's link takes focus, then Enter) and checks what
+// follows: the pop-up is open and shows that entry alone, the address names it (#id) and keyboard focus is on its heading. Adds
+// what is wrong to problems and says whether the pop-up shows the entry.
+async function famousOpen(id, problems) {
+  if (await evaluate(`document.getElementById('fx-dlg').open`)) { problems.push('the pop-up of the step before is still open'); await famousShut(); }
+  const focused = await evaluate(`(() => { const a = document.querySelector('.fx-grid a[href="#${id}"]'); if (!a) return false; a.focus(); return document.activeElement === a; })()`);
+  if (!focused) { problems.push('its tile has no link that takes keyboard focus'); return false; }
+  await famousKey('Enter', 'Enter', 13, '\r');
+  await famousWait(`document.getElementById('fx-dlg').open`, 3000);
+  await sleep(350); // the pop-up slides in for 260 ms
+  const s = await famousState();
+  if (!s.open) { problems.push('Enter on its tile did not open the pop-up'); return false; }
+  if (s.shown.join() !== id) { problems.push(`the pop-up shows ${s.shown.join(', ') || 'no entry'}, not this one`); return false; }
+  if (s.hash !== '#' + id) problems.push(`the address is ${s.hash || 'empty'} while it is open, not #${id}`);
+  if (s.focusId !== id + '-t') problems.push(`keyboard focus is on ${s.focus} after it opens, not on its heading`);
+  return true;
+}
+
+// Runs inside the Famous effects page with an entry's pop-up open. Returns its problems: the pop-up fits the window, nothing
+// overflows (in the pop-up, or on the page behind it), on phones every button and link is at least 44px (a recipe card's
+// stretched links count as the card), the not-connected note shows on the first screen of the pop-up and says so, and where the
+// entry has Our version, its stage and player bar are on that first screen too (a window under 700px tall can not hold them
+// under a heading of two or three lines: the pop-up scrolls there).
+const famousPopupCheck = id => `(() => {
+  const r = el => el.getBoundingClientRect();
   const problems = [];
-  const press = famousPressCopy;
-  const prompt = id => `document.querySelector('#${id} .fx-prompt').textContent.replace(/\\s+/g, ' ').trim()`;
-  await evaluate(`(() => { navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; })()`);
-  for (const id of ids) {
-    // The message of the entry before is put away first, so this press has to show its own.
-    await evaluate(`(() => { window.__clipboardGot = null; const t = document.getElementById('toast'); t.classList.remove('show'); t.querySelector('.toast-t').textContent = ''; })()`);
-    const trouble = await press(id);
-    if (trouble) { problems.push(`${id}: ${trouble}`); continue; }
+  const dlg = document.getElementById('fx-dlg'), entry = document.getElementById('${id}');
+  if (!dlg.open || !dlg.contains(entry)) return ['the pop-up is not showing this entry'];
+  const box = r(dlg), room = Math.min(box.bottom, innerHeight);
+  if (box.top < -1 || box.left < -1 || box.right > innerWidth + 1 || box.bottom > innerHeight + 1) problems.push('the pop-up does not fit the window (' + [box.left, box.top, box.right, box.bottom].map(Math.round).join(', ') + ' in ' + innerWidth + '×' + innerHeight + ')');
+  if (dlg.scrollWidth > dlg.clientWidth + 1) problems.push('horizontal overflow in the pop-up (' + dlg.scrollWidth + 'px in ' + dlg.clientWidth + 'px)');
+  if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow of the page behind the pop-up');
+  if (innerWidth <= 600) {
+    const small = [...new Set([...dlg.querySelectorAll('button, a')].filter(el => el.getClientRects().length).map(el => el.closest('.card') || el))]
+      .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
+      .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
+    if (small.length) problems.push('small targets in the pop-up: ' + small.join(', '));
+  }
+  const note = dlg.querySelector('.fx-dnote'), n = note && r(note);
+  if (!note || !note.getClientRects().length || !n.width || !n.height) problems.push('the not-connected note is hidden in the pop-up');
+  else if (!/not connected/i.test(note.textContent)) problems.push('the note at the top of the pop-up does not say it is not connected: "' + note.textContent.trim().slice(0, 60) + '"');
+  else if (n.top < box.top - 1 || n.bottom > room + 1 || n.left < box.left - 1 || n.right > box.right + 1) problems.push('the not-connected note is outside the first screen of the pop-up');
+  if (entry.querySelector('.fx-version') && innerHeight >= 700) {
+    for (const [what, el] of [['stage', entry.querySelector('.fx-stage')], ['player bar', entry.querySelector('.fx-player')]]) {
+      if (!el || !el.getClientRects().length) problems.push('Our version shows no ' + what);
+      else if (r(el).bottom > room + 1) problems.push('the ' + what + ' of Our version is below the first screen of the pop-up (it ends at ' + Math.round(r(el).bottom) + 'px, the screen at ' + Math.round(room) + 'px)');
+    }
+  }
+  return problems;
+})()`;
+
+// Famous effects: the frame of Our version in an entry's open pop-up loads: it was given a page to load, finishes loading it within
+// 6 s and the page is an Our version page. Whatever the page logs as it starts is collected with the page's own messages (the frame
+// is a page of this site, so it runs in the page's process and the console listener below hears it). Once the page has settled
+// (700 ms), it is no wider than its frame and, unless the entry starts on scroll (that version scrolls inside its box on purpose),
+// no taller: nothing in it scrolls or is cut. Returns the problems, and whether the frame loaded.
+async function famousFrameProblems(id, start) {
+  const got = await evaluate(`(async () => {
+    const f = document.querySelector('#${id} .fx-version iframe');
+    if (!f) return null;
+    const doc = () => { try { return f.contentDocument; } catch (err) { return null; } };
+    const ready = () => { const d = doc(); return !!d && d.URL !== 'about:blank' && d.readyState === 'complete'; };
+    for (let i = 0; i < 120 && f.hasAttribute('src') && !ready(); i++) await new Promise(r => setTimeout(r, 50));
+    const d = doc();
+    return { src: f.hasAttribute('src'), ready: ready(), title: d ? d.title : null };
+  })()`);
+  if (!got) return { problems: ['Our version has no frame'], loaded: false };
+  if (!got.src) return { problems: ['the Our version frame was never given a page to load (it has no src)'], loaded: false };
+  if (!got.ready) return { problems: ['the Our version frame did not finish loading its page within 6 s'], loaded: false };
+  const problems = [];
+  if (!/^Our version/.test(got.title || '')) problems.push(`the Our version frame loaded a page titled "${got.title}", not an Our version page`);
+  await sleep(700); // what the page logs as it starts is in the console by now, and the page has laid itself out
+  const size = await evaluate(`(() => { try { const d = document.querySelector('#${id} .fx-version iframe').contentDocument.documentElement;
+    return { w: d.scrollWidth, cw: d.clientWidth, h: d.scrollHeight, ch: d.clientHeight }; } catch (err) { return null; } })()`);
+  if (size) {
+    if (size.w > size.cw + 1) problems.push(`its version is ${size.w}px wide in a ${size.cw}px frame, so it scrolls inside its box`);
+    if (start !== 'scroll' && size.h > size.ch + 1) problems.push(`its version is ${size.h}px tall in a ${size.ch}px frame, so it scrolls inside its box`);
+  }
+  return { problems, loaded: true };
+}
+
+// Famous effects: with an entry's pop-up open and able to scroll, the version of an entry that does not start on scroll leaves the
+// scroll to the pop-up: a real wheel turn over the middle of its stage (touch false: the desktop, laptop and tablet runs) or a
+// finger dragged up over it (touch true: the phones) moves the pop-up (its scrollTop grows), where the page of a version could
+// hold it (an overscroll-behavior that does not chain, a box that scrolls on its own, a finger it keeps for itself). Touch is
+// switched on for the drag only. A version whose prompt makes a finger dragged over it drive the effect marks its html with
+// data-fx-touch="drag" and keeps the finger: the drag is not tried there. Returns the problems.
+async function famousScrollProblems(id, touch) {
+  const spot = await evaluate(`(() => {
+    const d = document.getElementById('fx-dlg'), s = document.querySelector('#${id} .fx-version .fx-stage');
+    d.scrollTop = 0;
+    if (!s || d.scrollHeight <= d.clientHeight + 1) return null;
+    const f = s.querySelector('iframe'), doc = f && f.contentDocument;
+    const b = s.getBoundingClientRect(), bar = d.querySelector('.fx-dbar').getBoundingClientRect();
+    const top = Math.max(b.top, bar.bottom), bottom = Math.min(b.bottom, d.getBoundingClientRect().bottom, innerHeight);
+    return bottom - top < 40 ? null : { x: b.left + b.width / 2, y: (top + bottom) / 2, drag: !!(doc && doc.documentElement.dataset.fxTouch === 'drag') };
+  })()`);
+  if (!spot) return []; // nothing to scroll, or no room to put a pointer on the stage
+  if (touch && spot.drag) return [];
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+  if (touch) {
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    try {
+      await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: spot.x, y: spot.y + 60 }] });
+      for (let i = 1; i <= 8; i++) {
+        await send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: spot.x, y: spot.y + 60 - i * 15 }] });
+        await sleep(20);
+      }
+      await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    } finally {
+      await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+    }
+  } else {
+    await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: spot.x, y: spot.y, deltaX: 0, deltaY: 120 });
+  }
+  const moved = await famousWait(`document.getElementById('fx-dlg').scrollTop > 2`, 1500);
+  await evaluate(`document.getElementById('fx-dlg').scrollTop = 0`);
+  return moved ? [] : ['the wheel (or a finger) over its version does not scroll the pop-up'];
+}
+
+// Famous effects, desktop run: plays Our version in an entry's open pop-up and presses each player button for real. Each button
+// visibly changes the stage: the picture of the stage differs within 3.5 s of the press from the one before it, taken once the
+// stage is at rest (the run that Our version makes on arrival ends first, and so does the run of the press before; a stage that
+// does not come to rest within 14 s is judged by the press alone). Play comes before Back to top, so Back to top starts from a
+// stage that has scrolled. A loop moves on its own, Pause holds it (it comes to rest within 4 s), Play moves it again, and the
+// one button reads Pause, then Play, then Pause.
+async function famousVersionProblems(id, start) {
+  const problems = [];
+  const stage = `document.querySelector('#${id} .fx-version .fx-stage')`;
+  const button = cmd => `#${id} .fx-player [data-fx-cmd="${cmd}"]`;
+  const label = sel => evaluate(`document.querySelector('${sel}').textContent.trim()`);
+  const cmds = await evaluate(`[...document.querySelectorAll('#${id} .fx-player [data-fx-cmd]')].map(b => b.dataset.fxCmd)`);
+  if (!cmds.length) return ['Our version has no player buttons'];
+  await evaluate(`document.getElementById('fx-dlg').scrollTop = 0`);
+  if (start === 'loop') {
+    const toggle = `#${id} .fx-player [data-fx-cmd]`;
+    if (!await famousMoves(stage, 3000)) return ['the loop does not move on its own'];
+    if (await label(toggle) !== 'Pause') problems.push(`the button reads "${await label(toggle)}" while the loop runs, not "Pause"`);
+    let trouble = await famousClick(toggle, 'nearest');
+    if (trouble) return [...problems, trouble];
+    const held = await famousRest(stage, 4000);
+    if (!held.still) problems.push('Pause does not hold the stage still');
+    if (await label(toggle) !== 'Play') problems.push(`after Pause the button reads "${await label(toggle)}", not "Play"`);
+    trouble = await famousClick(toggle, 'nearest');
+    if (trouble) return [...problems, trouble];
+    if (!await famousMoves(stage, 3000, held.shot)) problems.push('Play does not set the stage moving again');
+    if (await label(toggle) !== 'Pause') problems.push(`after Play the button reads "${await label(toggle)}", not "Pause"`);
+    return problems;
+  }
+  const order = ['replay', 'show', 'play', 'top'];
+  let arriving = true;
+  for (const cmd of [...cmds].sort((a, b) => order.indexOf(a) - order.indexOf(b))) {
+    const name = await label(button(cmd));
+    // The run that Our version makes on arrival starts within a second or two of the frame loading (later on a busy machine), so
+    // the first rest is judged only after the stage has been seen to move (or has not moved for 2.5 s).
+    if (arriving) await famousMoves(stage, 2500);
+    arriving = false;
+    const rest = await famousRest(stage, 14000);
+    const trouble = await famousClick(button(cmd), 'nearest');
+    if (trouble) { problems.push(`${name}: ${trouble}`); continue; }
+    if (!await famousMoves(stage, 3500, rest.shot)) problems.push(`${name} does not visibly change the stage`);
+  }
+  return problems;
+}
+
+// Famous effects, desktop run: with an entry's pop-up open, the tile pictures of the gallery behind it hold still.
+const famousBehindProblems = () => famousList(`(() => {
+  const running = document.getAnimations().filter(a => a.animationName && a.playState === 'running' && a.effect && a.effect.target && a.effect.target.closest('.fx-grid'));
+  return running.length ? [running.length + ' animations of the gallery tiles keep running behind the pop-up'] : [];
+})()`);
+
+// Famous effects, desktop run: with an entry's cards scrolled into the middle of the window one by one, each card's preview moves
+// (its picture changes within 3 s).
+async function famousCardProblems(id) {
+  const problems = [];
+  const cards = await evaluate(`document.querySelectorAll('#${id} .card').length`);
+  if (!cards) return ['no recipe cards'];
+  for (let i = 0; i < cards; i++) {
+    const card = `document.querySelectorAll('#${id} .card')[${i}]`;
+    await evaluate(`(async () => { ${card}.querySelector('.stage').scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => setTimeout(r, 400)); })()`);
+    if (!await famousMoves(`${card}.querySelector('.stage')`, 3000)) problems.push(`the preview of ${await evaluate(`${card}.dataset.slug`)} does not move while on screen`);
+  }
+  return problems;
+}
+
+// Famous effects, desktop run: an entry's Copy prompt, pressed for real in its pop-up, puts exactly that entry's prompt on the
+// clipboard (stubbed: a headless run cannot grant it), reads "Copied", says so in its name and shows the message. With extra
+// 'refused' the browser refuses the clipboard next: the press copies through the hidden text box (its copy command stubbed to
+// report what is selected), so the button reads "Copied" with the message, the text box is gone and keyboard focus is back on
+// the button. With extra 'missing' there is no clipboard at all and the copy command fails: the press selects the prompt and
+// asks for Ctrl+C.
+async function famousCopyProblems(id, extra) {
+  const problems = [];
+  const copy = `#${id} .copy`;
+  const prompt = `document.querySelector('#${id} .fx-prompt').textContent.replace(/\\s+/g, ' ').trim()`;
+  const title = `document.querySelector('#${id} h2').textContent`;
+  const message = `document.getElementById('toast').classList.contains('show') && document.querySelector('#toast .toast-t').textContent === 'Prompt copied. Paste it into your AI assistant.'`;
+  // Before a press the button reads Copy prompt again (its Copied lasts about two seconds), the message of the press before is put
+  // away and nothing is selected, so the press has to bring its own.
+  const idle = () => evaluate(`(async () => { const btn = document.querySelector('${copy}');
+    for (let i = 0; i < 100 && btn.textContent.trim() !== 'Copy prompt'; i++) await new Promise(r => setTimeout(r, 50));
+    window.__clipboardGot = null; window.__boxGot = null;
+    const t = document.getElementById('toast'); t.classList.remove('show'); t.querySelector('.toast-t').textContent = ''; getSelection().removeAllRanges(); })()`);
+  const press = async what => {
+    await idle();
+    const trouble = await famousClick(copy);
+    if (trouble) problems.push(`${what}: ${trouble}`);
+    return !trouble;
+  };
+  // What a press must leave: the copied text is this entry's prompt, the button reads Copied and names the entry, the message shows.
+  const verdict = (what, got, more = []) => {
+    const wrong = [...more];
+    if (!got.same) wrong.push(got.got === null ? 'nothing was copied' : 'the copied text is not this entry\'s prompt');
+    if (got.label !== 'Copied') wrong.push(`the button reads "${got.label}", not "Copied"`);
+    if (!got.named) wrong.push('the button\'s name does not say Copied the prompt for the entry');
+    if (!got.shown) wrong.push('the message did not show');
+    if (wrong.length) problems.push(`${what}: ${wrong.join('; ')}`);
+  };
+  await evaluate(`(() => { Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { window.__clipboardGot = text; } }, configurable: true }); })()`);
+  if (await press('Copy prompt')) {
     const got = await evaluate(`(async () => {
       for (let i = 0; i < 60 && window.__clipboardGot === null; i++) await new Promise(r => setTimeout(r, 50));
       await new Promise(r => setTimeout(r, 50));
-      const btn = document.querySelector('#${id} .copy'), title = document.querySelector('#${id} h2').textContent;
-      return { same: window.__clipboardGot === ${prompt(id)}, label: btn.textContent.trim(), named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + title,
-        toast: document.getElementById('toast').classList.contains('show') && document.querySelector('#toast .toast-t').textContent === 'Prompt copied. Paste it into your AI assistant.' };
+      const btn = document.querySelector('${copy}');
+      return { got: window.__clipboardGot, same: window.__clipboardGot === ${prompt}, label: btn.textContent.trim(),
+        named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + ${title}, shown: ${message} };
     })()`);
-    if (!got.same || got.label !== 'Copied' || !got.named || !got.toast) problems.push(`${id}: Copy prompt ${JSON.stringify(got)}`);
+    verdict('Copy prompt', got);
   }
-  // Before each of the two presses below, the button is back to "Copy prompt" (its "Copied" lasts about two seconds) and the
-  // message is put away, so the press has to bring its own.
-  const idle = id => evaluate(`(async () => { const btn = document.querySelector('#${id} .copy');
-    for (let i = 0; i < 100 && btn.textContent.trim() !== 'Copy prompt'; i++) await new Promise(r => setTimeout(r, 50));
-    const t = document.getElementById('toast'); t.classList.remove('show'); t.querySelector('.toast-t').textContent = ''; getSelection().removeAllRanges(); })()`);
-  await evaluate(`(() => { navigator.clipboard.writeText = async () => { throw new DOMException('denied', 'NotAllowedError'); };
-    window.__boxGot = null;
-    document.execCommand = command => { const el = document.activeElement;
-      if (command === 'copy' && el && el.tagName === 'TEXTAREA') window.__boxGot = el.value.slice(el.selectionStart, el.selectionEnd);
-      return command === 'copy'; }; })()`);
-  await idle(ids[0]);
-  const trouble = await press(ids[0]);
-  if (trouble) problems.push(`${ids[0]}, clipboard refused: ${trouble}`);
-  else {
-    const boxed = await evaluate(`(async () => { const btn = document.querySelector('#${ids[0]} .copy'), title = document.querySelector('#${ids[0]} h2').textContent;
-      for (let i = 0; i < 60 && window.__boxGot === null; i++) await new Promise(r => setTimeout(r, 50));
-      await new Promise(r => setTimeout(r, 50));
-      return { same: window.__boxGot === ${prompt(ids[0])}, label: btn.textContent.trim(), named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + title,
-        toast: document.getElementById('toast').classList.contains('show') && document.querySelector('#toast .toast-t').textContent === 'Prompt copied. Paste it into your AI assistant.',
-        boxGone: !document.querySelector('textarea'), focus: document.activeElement === btn }; })()`);
-    if (!boxed.same || boxed.label !== 'Copied' || !boxed.named || !boxed.toast || !boxed.boxGone || !boxed.focus) {
-      problems.push(`${ids[0]}, clipboard refused: ${JSON.stringify(boxed)} (expected the hidden text box to copy the prompt, "Copied" and the message)`);
+  if (extra === 'refused') {
+    await evaluate(`(() => { Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new DOMException('denied', 'NotAllowedError'); } }, configurable: true });
+      document.execCommand = command => { const el = document.activeElement;
+        if (command === 'copy' && el && el.tagName === 'TEXTAREA') window.__boxGot = el.value.slice(el.selectionStart, el.selectionEnd);
+        return command === 'copy'; }; })()`);
+    if (await press('Copy prompt, clipboard refused')) {
+      const got = await evaluate(`(async () => { const btn = document.querySelector('${copy}');
+        for (let i = 0; i < 60 && window.__boxGot === null; i++) await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 50));
+        return { got: window.__boxGot, same: window.__boxGot === ${prompt}, label: btn.textContent.trim(),
+          named: (btn.getAttribute('aria-label') || '') === 'Copied the prompt for ' + ${title}, shown: ${message},
+          boxGone: !document.querySelector('textarea'), focus: document.activeElement === btn }; })()`);
+      verdict('Copy prompt, clipboard refused', got, [...got.boxGone ? [] : ['the hidden text box is still there'], ...got.focus ? [] : ['keyboard focus is not back on the button']]);
     }
   }
-  const last = ids[1] || ids[0];
-  await evaluate(`(() => { Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }); document.execCommand = () => false; })()`);
-  await idle(last);
-  const trouble2 = await press(last);
-  if (trouble2) problems.push(`${last}, no clipboard: ${trouble2}`);
-  else {
-    const keys = await evaluate(`(async () => { const btn = document.querySelector('#${last} .copy');
-      for (let i = 0; i < 60 && !btn.textContent.includes('Ctrl+C'); i++) await new Promise(r => setTimeout(r, 50));
-      return { label: btn.textContent.trim(), selected: getSelection().toString().replace(/\\s+/g, ' ').trim() === ${prompt(last)} }; })()`);
-    if (keys.label !== 'Press Ctrl+C to copy' || !keys.selected) problems.push(`${last}, no clipboard and the text box failing: ${JSON.stringify(keys)} (expected "Press Ctrl+C to copy" and the prompt selected)`);
+  if (extra === 'missing') {
+    await evaluate(`(() => { Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }); document.execCommand = () => false; })()`);
+    if (await press('Copy prompt, no clipboard')) {
+      const keys = await evaluate(`(async () => { const btn = document.querySelector('${copy}');
+        for (let i = 0; i < 60 && !btn.textContent.includes('Ctrl+C'); i++) await new Promise(r => setTimeout(r, 50));
+        return { label: btn.textContent.trim(), selected: getSelection().toString().replace(/\\s+/g, ' ').trim() === ${prompt} }; })()`);
+      if (keys.label !== 'Press Ctrl+C to copy' || !keys.selected) problems.push(`Copy prompt, no clipboard and the text box failing: ${JSON.stringify(keys)} (expected "Press Ctrl+C to copy" and the prompt selected)`);
+    }
   }
+  return problems;
+}
+
+// Famous effects, desktop run: in an entry's open pop-up, Next shows the next entry (the last one's Next shows the first) and
+// Previous comes back, each replacing the address (#id, no new step in the history) and putting keyboard focus on the heading.
+async function famousStepProblems(id, ids) {
+  const problems = [];
+  const steps = await evaluate(`history.length`);
+  for (const [name, dir, to] of [['Next', 'next', ids[(ids.indexOf(id) + 1) % ids.length]], ['Previous', 'prev', id]]) {
+    const trouble = await famousClick(`#fx-dlg [data-fx-nav="${dir}"]`, '');
+    if (trouble) { problems.push(`${name}: ${trouble}`); break; }
+    await famousWait(`location.hash === '#${to}'`, 2000);
+    await sleep(300);
+    const s = await famousState();
+    if (s.shown.join() !== to) problems.push(`${name} shows ${s.shown.join(', ') || 'no entry'}, not ${to}`);
+    else {
+      if (s.hash !== '#' + to) problems.push(`after ${name} the address is ${s.hash || 'empty'}, not #${to}`);
+      if (s.steps !== steps) problems.push(`${name} added history steps (${steps} before, ${s.steps} after): it should replace the address`);
+      if (s.focusId !== to + '-t') problems.push(`after ${name} keyboard focus is on ${s.focus}, not on the heading of ${to}`);
+    }
+  }
+  return problems;
+}
+
+// Famous effects: closes an entry's open pop-up with Escape or the Close button (how) and checks what is left: the pop-up is
+// closed, keyboard focus is on the link of the entry's tile with the tile at least half in view, the address is plain again, the
+// page is unlocked, the entry is back in its list and no frame of Our version is loaded.
+async function famousCloseProblems(id, how) {
+  const problems = [];
+  if (how === 'Escape') await famousKey('Escape', 'Escape', 27);
+  else {
+    const trouble = await famousClick('#fx-dlg [data-fx-close]', '');
+    if (trouble) problems.push(`Close: ${trouble}`);
+  }
+  if (!await famousWait(`!document.getElementById('fx-dlg').open`, 3000)) {
+    problems.push(`${how} did not close the pop-up`);
+    await famousShut();
+    return problems;
+  }
+  await famousWait(`location.hash === ''`, 2000); // a pop-up that a tile opened goes back one step in the history
+  await sleep(300);
+  const s = await famousState();
+  const seen = await evaluate(`(() => { const t = document.querySelector('.fx-grid a[href="#${id}"]').closest('.tile'), b = t.getBoundingClientRect();
+    return Math.max(0, Math.min(b.bottom, innerHeight) - Math.max(b.top, 0)) / b.height; })()`);
+  if (s.href !== '#' + id) problems.push(`after ${how} keyboard focus is on ${s.focus}, not on the link of its tile`);
+  else if (seen < .5) problems.push(`after ${how} its tile is only ${Math.round(seen * 100)}% in view`);
+  if (s.hash) problems.push(`after ${how} the address is still ${s.hash}`);
+  if (s.shown.length) problems.push(`after ${how} ${s.shown.join(', ')} is still in the pop-up`);
+  else if (!await evaluate(`!!document.querySelector('.fx-list > section.fx#${id}')`)) problems.push(`after ${how} the entry is not back in its list`);
+  if (s.locked) problems.push(`after ${how} the page is still locked behind the pop-up`);
+  if (s.frames) problems.push(`after ${how} a frame of Our version is still loaded`);
+  return problems;
+}
+
+// Famous effects, desktop run: with each tile scrolled into the middle of the window, its picture moves (it changes within 4 s);
+// once the last tile is in view, the first tile's picture has stopped, since a tile plays only while it is on screen.
+async function famousTilePictureProblems() {
+  const ids = await evaluate(`[...document.querySelectorAll('.fx-grid .tile[data-fx-tile]')].map(t => t.dataset.fxTile)`);
+  if (!ids.length) return ['no tiles to play'];
+  const problems = [];
+  for (const id of ids) {
+    const tile = `document.querySelector('.fx-grid .tile[data-fx-tile="${id}"]')`;
+    await evaluate(`(async () => { ${tile}.scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => setTimeout(r, 400)); })()`);
+    if (!await famousMoves(`${tile}.querySelector('.t-stage')`, 4000)) problems.push(`${id}: the picture of its tile does not move while on screen`);
+  }
+  const playing = await evaluate(`document.querySelector('.fx-grid .tile[data-fx-tile]').classList.contains('playing')`);
+  if (ids.length > 1 && playing) problems.push('the first tile keeps playing while it is off screen');
   return problems;
 }
 
@@ -1912,59 +2200,180 @@ const changedShare = (a, b) => evaluate(`new Promise(done => {
   });
 })`);
 
-// Famous effects, reduced-motion phone run: nothing runs (every animation in the page is paused), neither at once nor once
-// every card has been on screen; every preview holds a still frame that shows something (the home check's pixel test: the
-// stage captured with the preview and again with the preview's contents hidden must differ in at least 0.3% of its pixels,
-// inside a box of at least 1% of it); a jump does not glide: two frames after the press, the entry's heading is in the
-// window; and the first entry's Copy prompt, pressed for real, copies (the clipboard stubbed), reads "Copied" and shows the
-// message where it stands: no change of position runs on it and it is not offset.
-async function famousMotionProblems() {
-  const problems = [];
-  const running = when => evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
-    const t = a.effect && a.effect.target, card = t && t.closest && t.closest('.card');
-    return (a.animationName || a.transitionProperty || 'an animation') + ' on ' + (card ? card.dataset.slug : t ? t.tagName.toLowerCase() : 'the page');
-  })`).then(found => { if (found.length) problems.push(`reduced motion: ${found.length} animations run ${when} (${[...new Set(found)].slice(0, 8).join(', ')})`); });
-  await running('at once');
+// Famous effects, reduced-motion run: the animations that run in the page now (when says when). None may: the tile pictures and the
+// recipe card previews are held, and the pop-up opens without sliding.
+const famousRunning = when => evaluate(`document.getAnimations().filter(a => a.playState === 'running').map(a => {
+  const t = a.effect && a.effect.target, card = t && t.closest && t.closest('.card'), tile = t && t.closest && t.closest('.tile[data-fx-tile]');
+  return (a.animationName || a.transitionProperty || 'an animation') + ' on ' + (card ? card.dataset.slug : tile ? tile.dataset.fxTile : t ? t.tagName.toLowerCase() : 'the page');
+})`).then(found => (found.length ? [`reduced motion: ${found.length} animations run ${when} (${[...new Set(found)].slice(0, 8).join(', ')})`] : []));
+
+// Famous effects, reduced-motion run: a picture holds a still frame that shows something (the home check's pixel test): the box
+// captured as it is and again with the contents of its picture hidden (its dark box stays) must differ in at least 0.3% of its
+// pixels, inside a box of at least 1% of it. box and picture are expressions that find the two in the page. Says what it found,
+// or '' when the picture shows something.
+async function famousStillShows(box, picture) {
   const frames = n => `new Promise(done => { let left = ${n}; const tick = () => (--left ? requestAnimationFrame(tick) : done()); requestAnimationFrame(tick); })`;
-  const cards = await evaluate(`document.querySelectorAll('section.fx .card').length`);
-  if (!cards) return [...problems, 'reduced motion: no cards'];
+  await evaluate(`(async () => { ${box}.scrollIntoView({ block: 'center', behavior: 'instant' }); await ${frames(2)}; })()`);
+  const drawn = await famousShot(box);
+  await evaluate(`(async () => { for (const el of ${picture}.children) el.style.visibility = 'hidden'; await ${frames(2)}; })()`);
+  const bare = await famousShot(box);
+  await evaluate(`{ for (const el of ${picture}.children) el.style.visibility = ''; }`);
+  const seen = await changedShare(drawn, bare);
+  return seen.share < .003 || seen.wide * seen.tall < .01 ? `${(seen.share * 100).toFixed(2)}% of the stage, in a box of ${Math.round(seen.wide * 100)}% × ${Math.round(seen.tall * 100)}%` : '';
+}
+
+// Famous effects, reduced-motion phone run, in the gallery: nothing runs (every animation in the page is paused), neither at once
+// nor once every tile has been on screen, and every tile picture holds a still frame that shows something.
+async function famousTileStillProblems() {
+  const problems = [...await famousRunning('at once')];
+  const ids = await evaluate(`[...document.querySelectorAll('.fx-grid .tile[data-fx-tile]')].map(t => t.dataset.fxTile)`);
+  if (!ids.length) return [...problems, 'reduced motion: no tiles'];
+  const empty = [];
+  for (const id of ids) {
+    const tile = `document.querySelector('.fx-grid .tile[data-fx-tile="${id}"]')`;
+    const found = await famousStillShows(`${tile}.querySelector('.t-stage')`, `${tile}.querySelector('.gp')`);
+    if (found) empty.push(`${id} (${found})`);
+  }
+  if (empty.length) problems.push(`reduced motion: ${empty.length} tile pictures show nothing: ${empty.join(', ')}`);
+  problems.push(...await famousRunning('once every tile has been on screen'));
+  return problems;
+}
+
+// Famous effects, reduced-motion phone run, in an entry's pop-up: each recipe card holds a still frame that shows something, and
+// nothing runs once every card has been on screen.
+async function famousCardStillProblems(id) {
+  const cards = await evaluate(`document.querySelectorAll('#${id} .card').length`);
+  if (!cards) return ['reduced motion: no recipe cards'];
   const empty = [];
   for (let i = 0; i < cards; i++) {
-    const card = `document.querySelectorAll('section.fx .card')[${i}]`;
-    await evaluate(`(async () => { ${card}.querySelector('.stage').scrollIntoView({ block: 'center', behavior: 'instant' }); await ${frames(2)}; })()`);
-    const drawn = await famousStageShot(card);
-    await evaluate(`(async () => { for (const el of ${card}.querySelector('.pv').children) el.style.visibility = 'hidden'; await ${frames(2)}; })()`);
-    const bare = await famousStageShot(card);
-    await evaluate(`{ for (const el of ${card}.querySelector('.pv').children) el.style.visibility = ''; }`);
-    const seen = await changedShare(drawn, bare);
-    if (seen.share < .003 || seen.wide * seen.tall < .01) {
-      empty.push(`${await evaluate(`${card}.dataset.slug`)} (${(seen.share * 100).toFixed(2)}% of the stage, in a box of ${Math.round(seen.wide * 100)}% × ${Math.round(seen.tall * 100)}%)`);
+    const card = `document.querySelectorAll('#${id} .card')[${i}]`;
+    const found = await famousStillShows(`${card}.querySelector('.stage')`, `${card}.querySelector('.pv')`);
+    if (found) empty.push(`${await evaluate(`${card}.dataset.slug`)} (${found})`);
+  }
+  return [...empty.length ? [`reduced motion: ${empty.length} previews show nothing: ${empty.join(', ')}`] : [], ...await famousRunning('in the pop-up once every card has been on screen')];
+}
+
+// Famous effects, reduced-motion phone run: the stage of Our version in an entry's open pop-up holds still: two pictures of it
+// 1.5 s apart are equal (taken once the frame has loaded; under reduced motion Our version makes no run on arrival, and a loop
+// starts held).
+async function famousVersionStillProblems(id) {
+  const stage = `document.querySelector('#${id} .fx-version .fx-stage')`;
+  await evaluate(`document.getElementById('fx-dlg').scrollTop = 0`);
+  await sleep(500);
+  const first = await famousShot(stage);
+  await sleep(1500);
+  return await famousShot(stage) === first ? [] : ['reduced motion: the stage of Our version moves (two pictures 1.5 s apart differ)'];
+}
+
+// Famous effects, reduced-motion phone run: an entry's Copy prompt, pressed for real in its pop-up, copies (the clipboard stubbed),
+// reads "Copied" and shows the message where it stands: no change of position runs on it and it is not offset.
+async function famousCopyMotionProblems(id) {
+  await evaluate(`(() => { window.__clipboardGot = null; Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { window.__clipboardGot = text; } }, configurable: true }); })()`);
+  const trouble = await famousClick(`#${id} .copy`);
+  if (trouble) return [`reduced motion, Copy prompt: ${trouble}`];
+  const copy = await evaluate(`(async () => { const t = document.getElementById('toast');
+    for (let i = 0; i < 60 && !t.classList.contains('show'); i++) await new Promise(r => setTimeout(r, 50));
+    return { label: document.querySelector('#${id} .copy').textContent.trim(), copied: window.__clipboardGot !== null, shown: t.classList.contains('show'),
+      sliding: t.getAnimations().filter(a => a.transitionProperty === 'transform' || a.animationName).length, offset: Math.round(new DOMMatrix(getComputedStyle(t).transform).m42) }; })()`);
+  if (copy.label !== 'Copied' || !copy.copied || !copy.shown || copy.sliding || copy.offset) {
+    return [`reduced motion, Copy prompt: ${JSON.stringify(copy)} (expected "Copied" and the message shown in place, with no slide)`];
+  }
+  return [];
+}
+
+// Famous effects: everything the run checks about one entry, in its pop-up, opened from its tile by the keyboard. Every setup:
+// the open state, the layout of the pop-up, the frame of Our version (loads, logs nothing, nothing in it scrolls), where the entry
+// does not start on scroll the wheel (or, on phones, a finger) over it scrolling the pop-up, and Escape. The desktop run (setup.moves)
+// adds the tiles behind it holding still, Our version's player, the recipe card previews, Copy prompt (the first entry again with
+// the clipboard refused, the second with none), Next and Previous, and Close in place of Escape (but for the first entry with Our
+// version, which keeps Escape). The reduced-motion run adds the held recipe cards, the held stage of Our version and Copy prompt's
+// message in place (the first entry's).
+async function famousEntryProblems(id, ids, first, setup) {
+  const problems = [];
+  if (!await famousOpen(id, problems)) return problems;
+  const entry = await evaluate(`({ start: document.getElementById('${id}').dataset.fxStart, version: !!document.querySelector('#${id} .fx-version iframe') })`);
+  problems.push(...await famousList(famousPopupCheck(id)));
+  const frame = entry.version ? await famousFrameProblems(id, entry.start) : null;
+  if (frame) problems.push(...frame.problems);
+  const playable = !!frame && frame.loaded && !frame.problems.length;
+  // The wheel (or finger) over the stage comes last of the steps that look at the stage: a pointer or a finger on it is something
+  // the version answers (a card, a note, a trail), and its answer must not count as a stage that moves.
+  const scrolls = !!frame && frame.loaded && entry.start !== 'scroll';
+  if (setup.moves) {
+    problems.push(...await famousBehindProblems());
+    if (playable) problems.push(...await famousVersionProblems(id, entry.start));
+    problems.push(...await famousCardProblems(id));
+    const at = ids.indexOf(id);
+    problems.push(...await famousCopyProblems(id, at === 0 ? 'refused' : at === 1 ? 'missing' : ''));
+    if (scrolls) problems.push(...await famousScrollProblems(id, false));
+    problems.push(...await famousStepProblems(id, ids));
+  }
+  if (setup.reduce) {
+    if (playable) problems.push(...await famousVersionStillProblems(id));
+    problems.push(...await famousCardStillProblems(id));
+    if (id === ids[0]) problems.push(...await famousCopyMotionProblems(id));
+  }
+  if (scrolls && !setup.moves) problems.push(...await famousScrollProblems(id, !!setup.mobile));
+  problems.push(...await famousCloseProblems(id, setup.moves && id !== first ? 'Close' : 'Escape'));
+  return problems;
+}
+
+// Famous effects: the pop-up of the entries (see famousEntryProblems): every entry in the desktop and the reduced-motion runs, at
+// the other setups the first entry with an Our version block, else the first. A step that throws fails that entry alone.
+async function famousPopupProblems(setup) {
+  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
+  if (!ids.length) return ['no entries to open'];
+  const first = await evaluate(`(document.querySelector('section.fx:has(.fx-version)') || document.querySelector('section.fx')).id`);
+  const problems = [];
+  for (const id of setup.moves || setup.reduce ? ids : [first]) {
+    let found;
+    try { found = await famousEntryProblems(id, ids, first, setup); }
+    catch (err) { found = [`check failed: ${err.message}`]; await famousShut(); }
+    problems.push(...found.map(p => `${id}: ${p}`));
+  }
+  return problems;
+}
+
+// Famous effects, the gallery itself: the desktop run watches each tile's picture move; the reduced-motion run checks that
+// nothing moves and every picture holds a still frame.
+async function famousGalleryProblems(setup) {
+  if (setup.moves) return famousTilePictureProblems();
+  if (setup.reduce) return famousTileStillProblems();
+  return [];
+}
+
+// Famous effects, desktop run: the browser's Back closes a pop-up that a tile opened (focus returns to the tile, the address is
+// plain again); an address with an entry's name, opened as a new visit (famous/#<id>, the last entry's), opens that entry with
+// keyboard focus on its heading, and closing it leaves the plain address.
+async function famousArrivalProblems() {
+  const problems = [];
+  const ids = await evaluate(`[...document.querySelectorAll('section.fx')].map(s => s.id)`);
+  if (!ids.length) return ['no entries to arrive at'];
+  const first = ids[0], last = ids[ids.length - 1];
+  const opening = [];
+  if (!await famousOpen(first, opening)) problems.push(`Back: ${first} did not open (${opening.join('; ')})`);
+  else {
+    await evaluate(`history.back()`);
+    if (!await famousWait(`!document.getElementById('fx-dlg').open`, 3000)) {
+      problems.push('the browser Back did not close the pop-up');
+      await famousShut();
+    } else {
+      await sleep(300);
+      const s = await famousState();
+      if (s.hash) problems.push(`after the browser Back the address is still ${s.hash}`);
+      if (s.href !== '#' + first) problems.push(`after the browser Back keyboard focus is on ${s.focus}, not on the link of its tile`);
+      if (s.shown.length || s.locked || s.frames) problems.push('after the browser Back the pop-up left something behind (an entry, the page lock or a frame)');
     }
   }
-  if (empty.length) problems.push(`reduced motion: ${empty.length} previews show nothing: ${empty.join(', ')}`);
-  await running('once every card has been on screen');
-  const jump = await evaluate(`(async () => { scrollTo({ top: 0, behavior: 'instant' }); const links = document.querySelectorAll('.fx-jump a'), a = links[links.length - 1];
-    if (!a) return null;
-    a.focus(); a.click(); await ${frames(2)};
-    const href = a.getAttribute('href'), h = document.querySelector(href + ' h2');
-    if (!h) return { href, missing: true };
-    const b = h.getBoundingClientRect();
-    return { href, shown: b.top >= 0 && b.bottom <= innerHeight, top: Math.round(b.top) }; })()`);
-  if (!jump) problems.push('reduced motion: no links in the jump row');
-  else if (jump.missing) problems.push(`reduced motion: the last link of the jump row (${jump.href}) has no entry with a heading`);
-  else if (!jump.shown) problems.push(`reduced motion: the jump to ${jump.href} glides (two frames after the press its heading is at ${jump.top}px)`);
-  const first = await evaluate(`(() => { const s = document.querySelector('section.fx'); if (!s) return null;
-    window.__clipboardGot = null; navigator.clipboard.writeText = async text => { window.__clipboardGot = text; }; return s.id; })()`);
-  const trouble = first ? await famousPressCopy(first) : 'no entry';
-  if (trouble) problems.push(`reduced motion, Copy prompt: ${trouble}`);
+  await famousLoad('about:blank');
+  if (!await famousLoad(`${BASE}/famous/#${last}`)) problems.push(`famous/#${last} did not finish loading`);
+  await famousWait(`document.getElementById('fx-dlg').open`, 3000);
+  await sleep(600); // the page puts keyboard focus on the heading once it has loaded
+  const s = await famousState();
+  if (!s.open || s.shown.join() !== last) problems.push(`arriving at famous/#${last} ${s.open ? `shows ${s.shown.join(', ') || 'no entry'}` : 'did not open the pop-up'}`);
   else {
-    const copy = await evaluate(`(async () => { const t = document.getElementById('toast');
-      for (let i = 0; i < 60 && !t.classList.contains('show'); i++) await new Promise(r => setTimeout(r, 50));
-      return { label: document.querySelector('#${first} .copy').textContent.trim(), copied: window.__clipboardGot !== null, shown: t.classList.contains('show'),
-        sliding: t.getAnimations().filter(a => a.transitionProperty === 'transform' || a.animationName).length, offset: Math.round(new DOMMatrix(getComputedStyle(t).transform).m42) }; })()`);
-    if (copy.label !== 'Copied' || !copy.copied || !copy.shown || copy.sliding || copy.offset) {
-      problems.push(`reduced motion, Copy prompt of ${first}: ${JSON.stringify(copy)} (expected "Copied" and the message shown in place, with no slide)`);
-    }
+    if (s.focusId !== last + '-t') problems.push(`arriving at famous/#${last} leaves keyboard focus on ${s.focus}, not on its heading`);
+    problems.push(...(await famousCloseProblems(last, 'Escape')).map(p => `arriving at famous/#${last}: ${p}`));
   }
   return problems;
 }
@@ -2079,12 +2488,9 @@ try {
           if (setup.reduce) problems.push(...await finderMotionProblems());
         }
         if (famous) {
-          if (setup.moves) {
-            problems.push(...await famousJumpProblems());
-            problems.push(...await famousPreviewProblems());
-            problems.push(...await famousCopyProblems());
-          }
-          if (setup.name === 'phone-reduced') problems.push(...await famousMotionProblems());
+          problems.push(...await famousGalleryProblems(setup));
+          problems.push(...await famousPopupProblems(setup));
+          if (setup.moves) problems.push(...await famousArrivalProblems());
         }
       } catch (err) {
         problems.push(`check failed: ${err.message}`);

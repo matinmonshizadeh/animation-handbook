@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The twisting ribbon of light</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{background:#0b0b0f;color-scheme:dark;overflow:hidden}
+body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+/* the still picture: soft bands of the ribbon's colors, shown until the first drawn frame is ready */
+.hero{position:relative;height:100%;min-height:160px;overflow:hidden;display:grid;place-items:center;background:radial-gradient(70% 38% at 24% 76%,rgba(63,214,196,.3),transparent 72%),radial-gradient(64% 40% at 74% 26%,rgba(185,140,255,.34),transparent 72%),radial-gradient(60% 30% at 50% 52%,rgba(110,168,255,.3),transparent 72%),#0b0b0f}
+.art{position:absolute;inset:0}
+canvas{display:block;width:100%;height:100%;opacity:0;transition:opacity .8s}
+canvas[hidden]{display:none}
+.ready canvas{opacity:1}
+.copy{position:relative;z-index:1;width:min(32em,100%);padding:0 clamp(16px,6vw,40px);text-align:center;text-shadow:0 0 20px rgba(8,8,12,.8),0 1px 2px rgba(8,8,12,.5)}
+.copy::before{content:"";position:absolute;z-index:-1;inset:-34px -8px;border-radius:60px;background:rgba(8,8,12,.8);filter:blur(24px)}
+h1{margin:0;font-size:clamp(28px,4.2vw + 10px,56px);line-height:1.08;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+p{margin:.6em 0 0;font-size:clamp(14px,.8vw + 11px,18px);text-wrap:balance}
+@media(prefers-reduced-motion:reduce){canvas{transition:none}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<main class="hero">
+  <div class="art" role="img" aria-label="A wide ribbon of fine glowing strands in blue, teal and violet, twisting slowly in depth behind the headline. Strands near you are sharp and those far away are soft, under a fine grain."><canvas id="gl"></canvas><canvas id="c2" hidden></canvas></div>
+  <div class="copy"><h1>Your headline</h1><p>A short line of text sits here, in front of the ribbon.</p></div>
+</main>
+<script>
+const $ = s => document.querySelector(s), frac = x => x - Math.floor(x), smooth = x => { x = Math.min(Math.max(x, 0), 1); return x * x * (3 - 2 * x); };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, root = document.documentElement;
+const LITE = root.classList.contains('lite'), NS = LITE ? 48 : 80, STILL = 3;
+const PAL = [[63, 214, 196], [110, 168, 255], [185, 140, 255], [255, 111, 139]]; // teal, blue, violet, a touch of coral
+// The ribbon's shape is four short formulas (u runs along it, ts is the 60 s loop from 0 to 1): the shader has them below, the Canvas 2D fallback the same ones in JS.
+const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 R, A; uniform float ts, G;
+const int NS = ${NS}; const float TAU = 6.2831853;
+${PAL.map((c, i) => `const vec3 C${i} = vec3(${c.map(v => (v / 255).toFixed(3))});`).join('\n')}
+float th(float u){return 2.2*u+.35+.2*sin(TAU*3.*ts-1.7*u)+.35*sin(TAU*ts+.9*u+1.);}
+float wd(float u){return .31*(1.+.18*sin(1.9*u+TAU*3.*ts));}
+float bd(float u){return .16*sin(1.7*u+TAU*2.*ts)+.06*sin(3.1*u-TAU*3.*ts+2.);}
+float zd(float u){return .22*sin(1.5*u+TAU*2.*ts+.6)-.3*u;}
+vec3 pal(float x){ vec3 c = mix(C0, C1, smoothstep(0., .34, x)); c = mix(c, C2, smoothstep(.3, .64, x)); return mix(c, C3, smoothstep(.8, 1., x) * .9); }
+float hash(vec2 p){ vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+void main(){
+  float m = min(R.x, R.y), px = 1. / m;
+  vec2 p = (gl_FragCoord.xy - .5 * R) / m;
+  float u = dot(p, A) / (.56 * length(R) / m), d = dot(p, vec2(-A.y, A.x));
+  float t0 = th(u), w = wd(u), b0 = bd(u), z0 = zd(u), ct = cos(t0), st = sin(t0);
+  vec3 sum = vec3(0.);
+  if (abs(d - b0) < 1.5 * (w + .09) + .06) {
+    for (int i = 0; i < NS; i++) {
+      float k = float(i), n = float(NS);
+      float v = (k + .5) / n * 2. - 1. + (fract(k * .7548777 + .31) - .5) * 1.1 / n;
+      float r2 = fract(k * .5698403 + .77), r3 = fract(k * .618034 + .13);
+      float ph = (r2 - .5) * .26 + .14 * v, cp = 1. - ph * ph * .5, sp = ph - ph * ph * ph * .1667;
+      float c = ct * cp - st * sp, sn = st * cp + ct * sp, bow = .09 * (1. - v * v);
+      float z = z0 + v * w * sn + bow * c;
+      float dy = d - (b0 + v * w * c - bow * sn) / (1. - .45 * z);
+      float bl = .0007 + .013 * (1. - smoothstep(-.45, .1, z)) + .004 * smoothstep(.35, .6, z);
+      float s0 = max(.0017 + .001 * r3, .85 * px), sg = sqrt(s0 * s0 + bl * bl);
+      if (abs(dy) > 6. * sg) continue;
+      float nl = abs(.862 * c - .507 * sn), spec = pow(abs(.965 * c - .263 * sn), 80.);
+      float x = .4 + .46 * v + .1 * u + (r3 - .5) * .14 + .14 * (1. - smoothstep(-.2, .2, c));
+      float br = (.5 + .7 * r3) * (.88 + .12 * sin(TAU * 5. * ts + k * 1.7));
+      float line = s0 / sg * exp(-.5 * dy * dy / (sg * sg)), halo = .3 * s0 / (2.5 * sg) * exp(-.08 * dy * dy / (sg * sg));
+      sum += (pal(x) * (.25 + .75 * nl) + spec * .3) * br * (line + halo) * 60. / n;
+    }
+  }
+  vec3 bg = vec3(.043, .043, .059) + vec3(.02, .03, .065) * exp(-2.2 * dot(p, p));
+  vec3 col = 1. - (1. - bg) * exp(-1.7 * sum);
+  col += (hash(floor(gl_FragCoord.xy) + G * vec2(37., 17.)) - .5) * (.035 + .06 * (col.r + col.g + col.b) / 3.);
+  gl_FragColor = vec4(col, 1.);
+}`;
+const cv = $('#gl'), c2 = $('#c2'), wrap = $('.hero');
+let gl, U, g2, pat, W = 1, H = 1, scale = 1, ax = [1, 0], T = STILL, paused = reduce.matches, vis = true, lastT = null, raf = 0;
+
+function initGL() {
+  try { gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true }); } catch (e) {}
+  if (!gl) return false;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; }, p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}')); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return false;
+  gl.useProgram(p); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const a = gl.getAttribLocation(p, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+  U = {}; ['R', 'A', 'ts', 'G'].forEach(n => U[n] = gl.getUniformLocation(p, n));
+  return true;
+}
+// Canvas 2D fallback: the same strands as lines (fewer, with no true blur: far ones are wider and fainter), under a tiled grain.
+const TAU = Math.PI * 2, sin = Math.sin; // the shader's four formulas again, in JS
+const th = (u, ts) => 2.2 * u + .35 + .2 * sin(TAU * 3 * ts - 1.7 * u) + .35 * sin(TAU * ts + .9 * u + 1);
+const wd = (u, ts) => .31 * (1 + .18 * sin(1.9 * u + TAU * 3 * ts));
+const bd = (u, ts) => .16 * sin(1.7 * u + TAU * 2 * ts) + .06 * sin(3.1 * u - TAU * 3 * ts + 2);
+const zd = (u, ts) => .22 * sin(1.5 * u + TAU * 2 * ts + .6) - .3 * u;
+const pal = x => { let c = PAL[0]; [[1, 0, .34, 1], [2, .3, .64, 1], [3, .8, 1, .9]].forEach(([i, a, b, k]) => { const f = smooth((x - a) / (b - a)) * k; c = c.map((v, j) => v + (PAL[i][j] - v) * f); }); return c; };
+function useFallback() {
+  gl = null; cv.hidden = true; c2.hidden = false; g2 = c2.getContext('2d');
+  const n = document.createElement('canvas'), g = n.getContext('2d'), im = g.createImageData(96, 96);
+  n.width = n.height = 96;
+  for (let i = 0; i < im.data.length; i += 4) { im.data[i] = im.data[i + 1] = im.data[i + 2] = Math.random() * 255; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0); pat = g2.createPattern(n, 'repeat'); size();
+}
+function draw2d(ts) {
+  const m = Math.min(W, H), LH = .56 * Math.hypot(W, H) / m, N = LITE ? 26 : 56, J = LITE ? 22 : 34, k = Math.max(scale, .75);
+  g2.setTransform(1, 0, 0, 1, 0, 0); g2.globalAlpha = 1; g2.globalCompositeOperation = 'source-over'; g2.fillStyle = '#0b0b0f'; g2.fillRect(0, 0, W, H);
+  g2.globalCompositeOperation = 'lighter'; g2.lineCap = 'butt';
+  for (let i = 0; i < N; i++) {
+    const v = (i + .5) / N * 2 - 1, r3 = frac(i * .618034 + .13), ph = (frac(i * .5698403 + .77) - .5) * .26 + .14 * v, bow = .09 * (1 - v * v);
+    let px, py;
+    for (let j = 0; j <= J; j++) {
+      const u = -1 + 2 * j / J, a = th(u, ts) + ph, c = Math.cos(a), sn = Math.sin(a), w = wd(u, ts);
+      const z = zd(u, ts) + v * w * sn + bow * c, yq = (bd(u, ts) + v * w * c - bow * sn) / (1 - .45 * z), s = u * LH;
+      const x = W / 2 + (s * ax[0] - yq * ax[1]) * m, y = H / 2 - (s * ax[1] + yq * ax[0]) * m;
+      if (j) {
+        const far = 1 - smooth((z + .45) / .55), lit = .25 + .75 * Math.abs(.862 * c - .507 * sn);
+        const rgb = pal(.4 + .46 * v + .1 * u + (r3 - .5) * .14 + .14 * (1 - smooth((c + .2) / .4))).map(Math.round), al = (.3 + .6 * r3) * lit * (1 - .5 * far);
+        g2.beginPath(); g2.moveTo(px, py); g2.lineTo(x, y); // a soft glow under a core line: wider and fainter for strands far away
+        g2.strokeStyle = `rgba(${rgb},${(al * .16).toFixed(3)})`; g2.lineWidth = (4 + 11 * far) * k; g2.stroke();
+        g2.strokeStyle = `rgba(${rgb},${al.toFixed(3)})`; g2.lineWidth = (1.1 + 4 * far) * k; g2.stroke();
+      }
+      px = x; py = y;
+    }
+  }
+  const o = (Math.floor(T * 14) * 37) % 96;
+  g2.globalCompositeOperation = 'overlay'; g2.globalAlpha = .2; g2.translate(o, o * .6); g2.fillStyle = pat; g2.fillRect(-o, -o * .6, W + 96, H + 96);
+}
+function draw() {
+  const ts = (T % 60) / 60;
+  if (gl) {
+    gl.viewport(0, 0, W, H); gl.uniform2f(U.R, W, H); gl.uniform2f(U.A, ax[0], ax[1]); gl.uniform1f(U.ts, ts); gl.uniform1f(U.G, Math.floor(T * 14) % 997);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  } else if (g2) draw2d(ts);
+  root.classList.add('ready');
+}
+function size() {
+  const r = wrap.getBoundingClientRect(), a = Math.atan2(r.height, r.width) * .85;
+  // at most about 250,000 canvas pixels (the shader's cost grows with them) and 1.25 a CSS pixel; a phone draws at 0.6
+  scale = LITE ? .6 : Math.min(devicePixelRatio || 1, 1.25, Math.sqrt(2.5e5 / Math.max(r.width * r.height, 1)));
+  cv.width = c2.width = W = Math.max(1, Math.round(r.width * scale)); cv.height = c2.height = H = Math.max(1, Math.round(r.height * scale));
+  ax = [Math.cos(a), Math.sin(a)]; draw();
+}
+// The loop steps by elapsed time and runs only while the ribbon moves: not paused, on screen and in a visible tab.
+const go = () => !paused && vis && !document.hidden;
+function frame(ts) {
+  raf = 0;
+  const dt = lastT === null ? 0 : Math.min(ts - lastT, 50);
+  lastT = ts; T += (dt / FRAME) / 60; draw();
+  if (go()) raf = requestAnimationFrame(frame); else lastT = null;
+}
+const kick = () => { if (!raf && go()) { lastT = null; raf = requestAnimationFrame(frame); } };
+const halt = () => { cancelAnimationFrame(raf); raf = 0; lastT = null; };
+const setPaused = p => { paused = p; if (p) halt(); else kick(); };
+
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'pause') setPaused(true); else if (e.data.fx === 'play') setPaused(false);
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) halt(); else kick(); });
+cv.addEventListener('webglcontextlost', e => { e.preventDefault(); useFallback(); });
+reduce.addEventListener('change', () => { if (reduce.matches) { setPaused(true); T = STILL; draw(); } }); // turning it off resumes nothing: only Play does
+try { new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis) kick(); else halt(); }).observe(wrap); } catch (e) {}
+if (!initGL()) useFallback(); else size();
+new ResizeObserver(size).observe(wrap);
+kick();
+</script>
+</body>
+</html>

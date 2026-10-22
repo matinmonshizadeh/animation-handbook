@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: Gray shapes while it loads</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--c1:#6ea8ff;--c2:#5fd88a;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--c6:#3fd6c4;--c7:#ffce5a;--sk:#1f2230;--sk2:#2a2e3d;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html{height:100%;overflow:hidden;background:#0b0b0f}
+body,main{height:100%}
+body{color:#f1f2f6;font:400 13px/1.3 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* The grid fills the box exactly: the script picks columns and rows so every card fits whole (see layout). */
+.grid{display:grid;grid-template-columns:repeat(var(--c,2),minmax(0,1fr));grid-template-rows:repeat(var(--r,1),minmax(0,1fr));gap:var(--g,16px);height:100%;padding:var(--p,20px);list-style:none}
+.card{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.card[hidden]{display:none}
+/* Loading: still gray shapes, one for the picture, one for the avatar and one bar each for the title and the channel.
+   They sit exactly where the real content will be, so the content only has to be switched on. */
+.pic{position:relative;flex:1 1 0;min-height:0;border-radius:8px;overflow:hidden;background:var(--sk)}
+.art{position:absolute;inset:0;opacity:0;transition:opacity 0s}
+.meta{display:flex;gap:10px;height:36px;flex:none}
+.av{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--sk2);font-weight:700;font-size:14px;color:#0b0b0f}
+.tx{flex:1;min-width:0}
+.t,.c{position:relative;white-space:nowrap}
+.t span,.c span{display:block;overflow:hidden;text-overflow:ellipsis}
+.t{margin-bottom:2px;font-weight:600;font-size:13px;line-height:18px}
+.c{font-size:12px;line-height:16px;color:#a9aec1}
+.t::before,.c::before{content:"";position:absolute;left:0;top:0;bottom:0;width:90%;border-radius:3px;background:var(--sk2)}
+.c::before{width:60%}
+.av b,.t span,.c span{visibility:hidden}
+.sm .meta{gap:8px;height:30px}
+.sm .av{width:28px;height:28px;font-size:12px}
+.sm .t{margin-bottom:1px;font-size:11.5px;line-height:15px}
+.sm .c{font-size:11px;line-height:14px}
+/* Arrived: the text and avatars swap in at once, then each picture swaps in a moment later, one after another (a delayed switch, no fade). */
+.ready .av{background:var(--a)}
+.ready .av b,.ready .t span,.ready .c span{visibility:visible}
+.ready .t::before,.ready .c::before{display:none}
+.ready .art{opacity:1;transition-delay:calc(160ms + var(--i) * 70ms)}
+.snap *{transition:none!important}
+/* The pictures: a sky gradient and a few flat shapes, all drawn with gradients. Lite drops the small details (--h). */
+.art{background:var(--h,none),var(--g),linear-gradient(155deg,var(--a),var(--b))}
+.lite .art{background:var(--g),linear-gradient(155deg,var(--a),var(--b))}
+.s0{--g:radial-gradient(circle at 74% 28%,var(--c7) 0 8%,#0000 8.6%),radial-gradient(ellipse 72% 40% at 20% 112%,#0b1530 0 97%,#0000 100%),radial-gradient(ellipse 80% 34% at 88% 118%,#0b153099 0 97%,#0000 100%)}
+.s1{--g:radial-gradient(circle at 30% 68%,#ffe2b0 0 17%,#0000 17.6%),radial-gradient(circle at 62% 72%,#ffd08a 0 19%,#0000 19.6%),radial-gradient(ellipse 100% 26% at 50% 112%,#0b0b0f66 0 97%,#0000 100%);--h:radial-gradient(circle at 80% 28%,#ffffff55 0 10%,#0000 10.6%)}
+.s2{--g:radial-gradient(circle at 26% 30%,#f4f1ff 0 6.5%,#0000 7.1%),radial-gradient(ellipse 85% 36% at 30% 120%,#0d0b2a 0 97%,#0000 100%),radial-gradient(ellipse 70% 30% at 92% 116%,#0d0b2aaa 0 97%,#0000 100%);--h:radial-gradient(circle at 62% 20%,#fff 0 1.1%,#0000 1.7%),radial-gradient(circle at 80% 36%,#fff 0 1%,#0000 1.6%),radial-gradient(circle at 50% 42%,#fff 0 .9%,#0000 1.5%),radial-gradient(circle at 88% 14%,#fff 0 .9%,#0000 1.5%)}
+.s3{--g:radial-gradient(ellipse 62% 36% at 18% 112%,#ffffff55 0 97%,#0000 100%),radial-gradient(ellipse 66% 32% at 78% 104%,#ffffff3d 0 97%,#0000 100%),radial-gradient(ellipse 90% 30% at 46% 126%,#0b153066 0 97%,#0000 100%);--h:radial-gradient(circle at 72% 26%,#fff9 0 7%,#0000 7.6%)}
+.s4{--g:radial-gradient(circle at 50% 138%,#0000 0 41%,#0b0b0fb3 41.6% 49%,#0000 49.6%),linear-gradient(#0b0b0fcc,#0b0b0fcc) 0 74%/100% 5% no-repeat;--h:radial-gradient(circle at 24% 30%,var(--c7) 0 7%,#0000 7.6%)}
+.s5{--g:radial-gradient(circle at 26% 28%,var(--c7) 0 7%,#0000 7.6%),radial-gradient(ellipse 100% 26% at 50% 112%,#0b2a22 0 97%,#0000 100%);--h:radial-gradient(ellipse 9% 19% at 42% 70%,#0e3b2c 0 97%,#0000 100%),radial-gradient(ellipse 9% 19% at 58% 66%,#115a3f 0 97%,#0000 100%),radial-gradient(ellipse 8% 16% at 74% 72%,#0e3b2c 0 97%,#0000 100%)}
+.s6{--g:radial-gradient(circle at 28% 66%,#0000 0 12%,#0b0b0fb3 12.6% 16%,#0000 16.6%),radial-gradient(circle at 70% 66%,#0000 0 12%,#0b0b0fb3 12.6% 16%,#0000 16.6%),linear-gradient(#0b0b0f99,#0b0b0f99) 0 88%/100% 12% no-repeat}
+.s7{--g:radial-gradient(circle at 30% 50%,#fff 0 11%,#0000 11.6%),linear-gradient(#0b0b0fb3,#0b0b0fb3) 56% 40%/22% 36% no-repeat,radial-gradient(circle at 82% 66%,#ffffff88 0 7%,#0000 7.6%)}
+@media (prefers-reduced-motion: reduce){.art{transition:none}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<main>
+  <ul class="grid" id="grid" role="list" aria-label="Videos" aria-busy="true"></ul>
+  <p class="sr" id="st" role="status">Loading videos</p>
+</main>
+<script>
+const root = document.documentElement, grid = document.getElementById('grid'), status = document.getElementById('st');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+let rm = reduce.matches, timer = 0, started = false;
+const P = n => typeof n === 'number' ? `var(--c${n})` : n;
+// title, channel, picture, and the two colors of its sky
+const CARDS = [['A walk by the river', 'Daybreak Walks', 0, 1, 6], ['Bread from scratch', 'Maple Kitchen', 1, 4, 5], ['Stars over the hills', 'Blue Hour', 2, 3, '#2b2a72'],
+  ['A small garden', 'Garden Hours', 5, 2, 6], ['How bridges work', 'Pebble Lab', 4, 5, 3], ['Calm focus music', 'Paper Moon', 3, 6, 1], ['Fixing a bicycle', 'Workshop 12', 6, 7, 4],
+  ['Sketching shapes', 'Studio North', 7, 1, 3], ['A quiet morning', 'Early Trains', 0, 3, 5], ['Rice, three ways', 'Maple Kitchen', 1, 7, 4], ['A calm sea day', 'Sea Notes', 3, 1, 6],
+  ['Learning to knit', 'Wool Hours', 5, 5, 7]];
+grid.innerHTML = CARDS.map(([t, ch, s, a, b], i) => `<li class="card" style="--i:${i};--a:${P(a)};--b:${P(b)}"><div class="pic"><i class="art s${s}"></i></div><div class="meta"><span class="av" aria-hidden="true"><b>${ch[0]}</b></span><div class="tx"><p class="t"><span>${t}</span></p><p class="c"><span>${ch}</span></p></div></div></li>`).join('');
+const cards = [...grid.children];
+// Only as many cards as fit whole: try every grid of up to 4 columns, keep the ones whose pictures stay close to 16 to 9, take the one with the most cards
+// (fewer on a phone), then the one nearest 16 to 9. A card is 46px taller than its picture (40px when it is narrow and its avatar is smaller).
+// Only when nothing fits that way may the pictures go as flat as 3.6 to 1, so a narrow frame still shows two cards (one column of two rows).
+function layout() {
+  const W = innerWidth, H = innerHeight, p = W <= 480 ? 12 : 20, g = W <= 480 ? 10 : 16, max = root.classList.contains('lite') ? 8 : 12;
+  let best = { s: -1, c: 1, r: 1, w: W - 2 * p };
+  for (const [lo, hi] of [[1.3, 2.35], [1, 3.6]]) {
+    for (let c = 1; c <= 4; c++) for (let r = 1; r <= 6; r++) {
+      const w = (W - 2 * p - (c - 1) * g) / c, h = (H - 2 * p - (r - 1) * g) / r - (w < 190 ? 40 : 46), k = w / h;
+      if (c * r > max || w < 144 || h < 40 || k < lo || k > hi) continue;
+      const s = c * r - Math.abs(k - 1.78) / 3;
+      if (s > best.s) best = { s, c, r, w };
+    }
+    if (best.s > 0) break;
+  }
+  grid.style.cssText = `--c:${best.c};--r:${best.r};--g:${g}px;--p:${p}px`;
+  grid.classList.toggle('sm', best.w < 190);
+  cards.forEach((el, i) => { el.hidden = i >= best.c * best.r; });
+}
+// The shapes come back at once (no fade), then the wait for the content starts again.
+function loading() {
+  root.classList.add('snap'); root.classList.remove('ready'); void root.offsetWidth; root.classList.remove('snap');
+  grid.setAttribute('aria-busy', 'true'); status.textContent = 'Loading videos';
+}
+function arrived() {
+  root.classList.add('ready'); grid.setAttribute('aria-busy', 'false'); status.textContent = 'Videos loaded';
+}
+function wait(ms) { started = true; clearTimeout(timer); timer = setTimeout(arrived, ms); }
+// The shapes are on screen from the first paint; the content arrives a moment after the page and its font are ready (a shorter wait on Replay).
+// Under reduced motion the content is simply there at once, and Replay still shows the shapes first.
+function arrive() {
+  if (started) return;
+  if (document.hidden) { document.addEventListener('visibilitychange', arrive, { once: true }); return; }
+  if (rm) arrived(); else wait(2000);
+}
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'replay') { loading(); wait(1500); }
+});
+reduce.addEventListener('change', () => { rm = reduce.matches; });
+addEventListener('resize', layout);
+layout();
+if (rm) arrived();
+addEventListener('load', () => Promise.race([document.fonts && document.fonts.ready, new Promise(r => setTimeout(r, 1000))]).then(arrive));
+</script>
+</body>
+</html>
