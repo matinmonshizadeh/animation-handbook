@@ -25,6 +25,13 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#000}
     .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+    /* See inside and Compare: plain words over the picture, each shown in its own mode only */
+    .cap{display:none;position:absolute;padding:4px 9px;border-radius:999px;background:rgba(5,6,10,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.half{display:block}
+    .cap.half{top:10px;left:10px}
+    .cap.second{left:calc(50% + 10px)}
+    @media(max-width:600px){.stage[data-hb-mode="inside"] .cap.in.pic{display:none}}
+    @media(max-width:360px){.cap{font-size:12px;padding:3px 7px}.cap.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +54,27 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="c" aria-hidden="true"></canvas>
+      <p class="cap in tiles" aria-hidden="true" data-hb-caption>Four simple waves, each on its own</p>
+      <p class="cap in strip" aria-hidden="true" data-hb-caption>Added up, they pick a color from this strip</p>
+      <p class="cap in spot" aria-hidden="true" data-hb-caption>This spot's total</p>
+      <p class="cap in pic" aria-hidden="true" data-hb-caption>Drawn this small, then stretched to fill the box</p>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>One wave</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>Four waves</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the colors come from four simple waves added together: the gray tiles show each one alone. At every spot their total picks a color from the strip.</p>
+      <p data-hb-for="compare" hidden>On the left, One wave is a single wave, so it makes plain stripes. On the right, Four waves adds up waves running four ways, so the colors blend into soft blobs.</p>
     </div>
   </section>
 
@@ -198,7 +220,8 @@
     }
     sinX=new Float32Array(bw);sinY=new Float32Array(bh);sinC=new Float32Array(bw+bh);
     vctx.imageSmoothingEnabled=true;
-    draw(clock);
+    prepViews();
+    render(clock);
   }
 
   // Every pixel of the small picture is written, and the picture covers the whole view, so nothing of an earlier
@@ -223,6 +246,146 @@
     vctx.drawImage(buf,0,0,bw,bh,0,0,view.width,view.height);
   }
 
+  // ── See inside and Compare ──────────────────────────────────────────────────────────────────────────────────────────────
+  // Both views are drawn on the same canvas from the page's own numbers (the arrays draw() fills, the clock, the palette), so
+  // every setting reaches them and a mode keeps nothing but the clock: leaving a mode draws Normal's picture again.
+  const [capTiles,capStrip,capSpot,capPic]=['tiles','strip','spot','pic'].map(n=>stage.querySelector('.cap.'+n));
+  const wideScreen=matchMedia('(min-width:601px)'); // above 600px only, the small picture itself is shown at its real size
+  const tcv=[0,1,2,3].map(()=>document.createElement('canvas')),tctx=tcv.map(c=>c.getContext('2d'));
+  const scv=document.createElement('canvas'),sctx=scv.getContext('2d'); // the palette as a strip
+  const hbuf=document.createElement('canvas'),hctx=hbuf.getContext('2d'); // Compare's half-width small picture
+  // How fast each wave's stripes really travel, across, down, slanted and from the middle: the slanted wave's clock is slower, but its
+  // stripes lie farther apart, so they move about as fast as the first
+  const PACE=[1,1.3,.99,1.1];
+  let mode='normal',kept=null; // kept: Normal's clock, set aside while Compare runs on its own
+  let timg=null,tqw=0,tqh=0,hbw=0,himg=null,hdist=null,hsinX=null,hsinC=null,L=null;
+
+  // Whenever the small picture changes size: Compare's half-width picture and its distance table (measured from its own middle),
+  // and the tiles, a quarter of the small picture each
+  function prepViews(){
+    hbw=Math.max(1,Math.round(bw/2));hbuf.width=hbw;hbuf.height=bh;
+    himg=hctx.createImageData(hbw,bh);hdist=new Float32Array(hbw*bh);hsinX=new Float32Array(hbw);hsinC=new Float32Array(hbw+bh);
+    for(let y=0,p=0;y<bh;y++)for(let x=0;x<hbw;x++,p++)hdist[p]=Math.hypot(x-hbw/2,y-bh/2);
+    tqw=Math.max(8,Math.round(bw/4));tqh=Math.max(6,Math.round(bh/4));
+    tcv.forEach(c=>{c.width=tqw;c.height=tqh;});
+    timg=tctx.map(c=>c.createImageData(tqw,tqh));
+    buildStrip();
+    if(mode==='inside')layout();
+  }
+  // The palette as a strip, low to high; built again when the colors change
+  function buildStrip(){
+    const m=sctx.createImageData(256,1);
+    for(let i=0;i<256;i++)m.data.set([lut[i*3],lut[i*3+1],lut[i*3+2],255],i*4);
+    scv.width=256;scv.height=1;sctx.putImageData(m,0,0);
+  }
+  function put(el,x,y,right){el.style.left=right?'auto':x+'px';el.style.right=right?x+'px':'auto';el.style.top=y+'px';}
+  // Where See inside puts its parts, in CSS pixels. A dark band along the bottom holds the four tiles (each the box's own shape),
+  // plus signs, an equals sign and the strip; when the captions do not fit side by side the strip goes on a row below the tiles.
+  // The followed spot sits a third across in the field above the band, on one pixel of the small picture, so its ring, its dots
+  // and its total all come from that pixel. Above 600px the small picture is drawn at its real size in the top left corner.
+  function layout(){
+    const ch=capTiles.offsetHeight||24,wide=W-24>=capTiles.offsetWidth+capStrip.offsetWidth+24;
+    const pad=wide?12:8,eq=wide?28:0,sh=14,sw=wide?Math.max(110,Math.min(190,W*.16)):W-2*pad;
+    const rowW=W-2*pad-(wide?sw+eq:0),gap=wide?20:16;
+    const tw=Math.min((rowW-3*gap)/4,(wide?78:.2*H)*W/H),th=tw*H/W,gx=(rowW-4*tw)/3;
+    const bandH=wide?8+ch+4+th+8:6+ch+4+th+6+ch+10+sh+8,top=H-bandH,ty=top+(wide?8:6)+ch+4;
+    const pic=wideScreen.matches;
+    const sx=Math.max(W/3,pic?pad+bw+24:0),sy=Math.min(top-24,Math.max(.42*top,pic?pad+ch*1.5+8:ch/2+8));
+    const px=Math.max(0,Math.min(bw-1,Math.round(sx/W*bw-.5))),py=Math.max(0,Math.min(bh-1,Math.round(sy/H*bh-.5)));
+    L={wide,pad,gx,tw,th,top,ty,pic,px,py,x:(px+.5)*W/bw,y:(py+.5)*H/bh,
+      strip:{x:wide?W-pad-sw:pad,y:wide?ty+th/2-sh/2+4:ty+th+6+ch+10,w:sw,h:sh}};
+    put(capTiles,pad,top+(wide?8:6));
+    put(capStrip,pad,wide?top+8:ty+th+6,wide);
+    put(capSpot,L.x+16,L.y-ch/2);
+    put(capPic,pad+bw+10,pad);
+  }
+
+  // A line with a dark edge, so it shows on light and dark alike
+  function stroke(w){vctx.strokeStyle='rgba(6,7,12,.92)';vctx.lineWidth=w+3;vctx.stroke();vctx.strokeStyle='#fff';vctx.lineWidth=w;vctx.stroke();}
+  function arrow(x0,y0,x1,y1){
+    const a=Math.atan2(y1-y0,x1-x0),h=Math.min(7,Math.hypot(x1-x0,y1-y0)*.5);
+    vctx.beginPath();vctx.moveTo(x0,y0);vctx.lineTo(x1,y1);
+    vctx.moveTo(x1-Math.cos(a-.55)*h,y1-Math.sin(a-.55)*h);vctx.lineTo(x1,y1);vctx.lineTo(x1-Math.cos(a+.55)*h,y1-Math.sin(a+.55)*h);
+    stroke(2.2);
+  }
+  function dot(x,y,r){vctx.beginPath();vctx.arc(x,y,r,0,6.2832);stroke(2);}
+  function bar(x0,y0,x1,y1){vctx.beginPath();vctx.moveTo(x0,y0);vctx.lineTo(x1,y1);vctx.strokeStyle='#fff';vctx.lineWidth=2.4;vctx.stroke();}
+
+  // See inside, drawn right after draw() has filled the arrays for this frame. Each tile shows one wave alone over the whole box
+  // (dark low, light high), read from those arrays; the four are added to make the field, and their total at the followed spot
+  // picks a color from the strip.
+  function drawInside(t){
+    const f=.09*scale,D=timg.map(m=>m.data),g=v=>24+(v+1)*107|0;
+    for(let j=0,o=0;j<tqh;j++){
+      const y=Math.min(bh-1,(j+.5)*bh/tqh|0);
+      for(let i=0;i<tqw;i++,o+=4){
+        const x=Math.min(bw-1,(i+.5)*bw/tqw|0),a=g(sinX[x]),b=g(sinY[y]),c=g(sinC[x+y]),d=g(Math.sin(dist[y*bw+x]*f+t*1.1));
+        for(let k=0;k<3;k++){D[0][o+k]=a;D[1][o+k]=b;D[2][o+k]=c;D[3][o+k]=d;}
+        D[0][o+3]=D[1][o+3]=D[2][o+3]=D[3][o+3]=255;
+      }
+    }
+    tctx.forEach((c,k)=>c.putImageData(timg[k],0,0));
+    const total=sinX[L.px]+sinY[L.py]+sinC[L.px+L.py]+Math.sin(dist[L.py*bw+L.px]*f+t*1.1);
+    vctx.save();vctx.scale(view.width/W,view.height/H);vctx.lineCap=vctx.lineJoin='round';
+    vctx.fillStyle='rgba(6,7,12,.9)';vctx.fillRect(0,L.top,W,H-L.top);
+    vctx.fillStyle='rgba(255,255,255,.18)';vctx.fillRect(0,L.top,W,1);
+    const {tw,th,gx,ty,pad,strip:s}=L,u=Math.min(.2*tw,.41*th),len=PACE.map(p=>p*speed*u);
+    for(let k=0;k<4;k++){
+      const x=pad+k*(tw+gx),cx=x+tw/2,cy=ty+th/2;
+      vctx.drawImage(tcv[k],0,0,tqw,tqh,x,ty,tw,th);
+      vctx.strokeStyle='rgba(255,255,255,.4)';vctx.lineWidth=1;vctx.strokeRect(x+.5,ty+.5,tw-1,th-1);
+      // which way the stripes travel, as long as how fast: left, up, up and left, in toward the middle from both sides
+      if(k<3){const a=[Math.PI,-Math.PI/2,-Math.PI*.75][k],dx=Math.cos(a)*len[k]/2,dy=Math.sin(a)*len[k]/2;arrow(cx-dx,cy-dy,cx+dx,cy+dy);}
+      else{const r=.34*tw,l=Math.min(len[3],r-3);arrow(cx-r,cy,cx-r+l,cy);arrow(cx+r,cy,cx+r-l,cy);}
+      dot(x+(L.px+.5)/bw*tw,ty+(L.py+.5)/bh*th,4);
+      if(k<3){const px=x+tw+gx/2;bar(px-5,cy,px+5,cy);bar(px,cy-5,px,cy+5);} // a plus sign between neighbors
+    }
+    if(L.wide){const ex=pad+4*tw+3*gx+14,cy=ty+th/2+4;bar(ex-6,cy-3.5,ex+6,cy-3.5);bar(ex-6,cy+3.5,ex+6,cy+3.5);} // equals
+    vctx.drawImage(scv,0,0,256,1,s.x,s.y,s.w,s.h);
+    vctx.strokeStyle='rgba(255,255,255,.5)';vctx.lineWidth=1;vctx.strokeRect(s.x+.5,s.y+.5,s.w-1,s.h-1);
+    const m=s.x+(total+4)/8*s.w;
+    vctx.beginPath();vctx.moveTo(m,s.y-2);vctx.lineTo(m,s.y+s.h+2);stroke(2);
+    vctx.beginPath();vctx.moveTo(m,s.y-2);vctx.lineTo(m-6,s.y-11);vctx.lineTo(m+6,s.y-11);vctx.closePath();vctx.fillStyle='#fff';vctx.fill();vctx.strokeStyle='rgba(6,7,12,.92)';vctx.lineWidth=1.5;vctx.stroke();
+    dot(L.x,L.y,11);
+    if(L.pic){ // the small picture the field is stretched from, one of its pixels to a CSS pixel
+      vctx.imageSmoothingEnabled=false;vctx.drawImage(buf,0,0,bw,bh,pad,pad,bw,bh);
+      vctx.beginPath();vctx.rect(pad-1,pad-1,bw+2,bh+2);stroke(1.5);
+    }
+    vctx.restore();
+  }
+
+  // Compare: the canvas split down the middle, each half its own half-width small picture (so the work is Normal's). One wave
+  // colors only the across wave, four times as strong so that it uses the whole palette; Four waves is the page's sum, its middle
+  // wave measured from its own half's middle.
+  function drawCompare(t){
+    const f=.09*scale,data=himg.data,hw=Math.floor(view.width/2);
+    for(let x=0;x<hbw;x++)hsinX[x]=Math.sin(x*f+t);
+    for(let y=0;y<bh;y++)sinY[y]=Math.sin(y*f+t*1.3);
+    for(let k=0;k<hbw+bh;k++)hsinC[k]=Math.sin(k*f*.5+t*.7);
+    let o=0,p=0;
+    for(let y=0;y<bh;y++)for(let x=0;x<hbw;x++){
+      const i=(((4*hsinX[x]+4)*31.875)|0)*3;
+      data[o++]=lut[i];data[o++]=lut[i+1];data[o++]=lut[i+2];data[o++]=255;
+    }
+    hctx.putImageData(himg,0,0);vctx.drawImage(hbuf,0,0,hbw,bh,0,0,hw,view.height);
+    o=0;
+    for(let y=0;y<bh;y++){
+      const sy=sinY[y];
+      for(let x=0;x<hbw;x++,p++){
+        const i=(((hsinX[x]+sy+hsinC[x+y]+Math.sin(hdist[p]*f+t*1.1)+4)*31.875)|0)*3;
+        data[o++]=lut[i];data[o++]=lut[i+1];data[o++]=lut[i+2];data[o++]=255;
+      }
+    }
+    hctx.putImageData(himg,0,0);vctx.drawImage(hbuf,0,0,hbw,bh,hw,0,view.width-hw,view.height);
+    vctx.fillStyle='#f4f4f2';vctx.fillRect(hw-view.width/W,0,2*view.width/W,view.height);
+  }
+
+  // The field for the mode on show: Normal's own picture, with See inside's parts over it, or Compare's two halves
+  function render(t){
+    if(mode==='compare')drawCompare(t);
+    else{draw(t);if(mode==='inside')drawInside(t);}
+  }
+
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. The first frame
   // after a start adds no time, a long gap (a background tab) counts for at most 50 ms, and slow motion adds a third.
   function loop(now){
@@ -230,7 +393,7 @@
     const dt=last===null?0:Math.min(now-last,50);
     last=now;
     clock+=dt/1000*speed*(slowTog.checked?1/3:1);
-    draw(clock);
+    render(clock);
   }
   function start(){if(raf)return;last=null;raf=requestAnimationFrame(loop);}
 
@@ -246,6 +409,17 @@
     if(document.hidden){cancelAnimationFrame(raf);raf=null;}
     else if(!paused)start();
   });
+  // The mode switch: draws the mode at once, playing or paused. Compare runs on its own clock from where Normal's was and leaves
+  // Normal's clock as it was, so a visit changes nothing in Normal; See inside works on the clock Normal runs.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare')kept=clock;
+    else if(was==='compare'&&mode!=='compare'&&kept!==null){clock=kept;kept=null;}
+    if(mode==='inside')layout();
+    render(clock);
+  });
+  // The captions are placed by the width of their words, which the site font changes when it arrives
+  if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(mode==='inside'){layout();render(clock);}});
 
   // Sizing the view canvas wipes it, so the window's resize acts only when the stage's size really changed (a phone's
   // address bar sliding in or out fires resize too) and then draws the field again at once.
@@ -262,10 +436,11 @@
     }));
   }
   // Pattern size, Colors and Detail draw the field again at once, so a change shows while paused without starting the
-  // loop. Speed draws nothing: the field stays where it is and only its pace changes, from the next frame.
-  choices('speed-seg',d=>{speed=+d.speed;});
-  choices('size-seg',d=>{scale=+d.scale;draw(clock);});
-  choices('color-seg',d=>{lut=buildLUT(PALETTES[d.pal]);draw(clock);});
+  // loop. Speed draws nothing in Normal: the field stays where it is and only its pace changes, from the next frame (See inside,
+  // whose arrows are as long as the pace, draws again at once).
+  choices('speed-seg',d=>{speed=+d.speed;if(mode==='inside'&&paused)render(clock);});
+  choices('size-seg',d=>{scale=+d.scale;render(clock);});
+  choices('color-seg',d=>{lut=buildLUT(PALETTES[d.pal]);buildStrip();render(clock);});
   choices('detail-seg',d=>{quality=+d.px;resize();});
 
   resize();
