@@ -15,10 +15,11 @@ html{background:var(--stage);overscroll-behavior:contain;scrollbar-width:thin;sc
 body{color:var(--muted);font:400 clamp(15px,.5vw + 12px,18px)/1.6 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
 p{text-wrap:pretty}
 .pg{width:min(34em,100%);min-height:var(--H);margin:0 auto;padding:clamp(24px,6vh,56px) clamp(18px,5vw,40px);display:grid;align-content:center;gap:clamp(10px,2.4vh,18px)}
+.pg:first-child{padding-top:max(48px,clamp(24px,6vh,56px))}   /* the page's Our version label sits over the top left corner of the frame */
 .pg h2{font-size:clamp(20px,1.6vw + 14px,30px);line-height:1.2;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
 .eyebrow{font-size:13px;line-height:1.3;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8d8ea2}
 .last{min-height:var(--H);padding:clamp(20px,5vh,48px) clamp(16px,5vw,40px) 14px;display:grid;grid-template-rows:1fr auto;justify-items:center;text-align:center}
-.mid{align-self:center;max-width:min(34em,100%);display:grid;justify-items:center;gap:clamp(8px,1.6vh,14px)}
+.mid{align-self:center;max-width:100%;display:grid;justify-items:center;gap:clamp(8px,1.6vh,14px)}
 .lede{max-width:28em;color:var(--soft)}
 .fine{font-size:13px;color:#8d8ea2}
 
@@ -26,7 +27,7 @@ p{text-wrap:pretty}
    gradient's color; a flat layer of the stage color on top (lightest wins) hides the black around the letters. Only the gradient moves.
    The layers sit inside one another (stage layer, then black, then gradient, each a pixel or two in) so no edge of one shows through. */
 .hl{--hs:clamp(26px,min(10vw,calc(var(--H) * .17)),88px);position:relative;isolation:isolate;overflow:hidden;width:fit-content;max-width:100%;padding:3px}
-.hl h1{position:relative;padding:.12em .1em .18em;font-size:var(--hs);line-height:1.04;font-weight:800;letter-spacing:-.028em;color:var(--ink)}
+.hl h1{position:relative;padding:.12em .1em .18em;font-size:var(--hs);line-height:1.04;font-weight:800;letter-spacing:-.028em;color:var(--ink);text-wrap:balance}
 .gw{display:none}
 .armed h1{background:#000;color:#fff;mix-blend-mode:multiply}
 .armed .gw{display:block;position:absolute;inset:4px;z-index:-1;overflow:hidden}
@@ -77,11 +78,14 @@ const arm = () => { cl.remove('go', 'done'); cl.add('armed'); };      // hidden,
 const calm = () => cl.remove('armed', 'go', 'done');                 // the plain headline, no sweep
 const late = () => hl.getBoundingClientRect().top < innerHeight * .88; // risen into the window (or already past it)
 
-// The sweep starts by itself the first time the headline rises into the window, and stays played when you scroll back. Back at the top it is ready again.
+const rearm = () => { if (!reduce.matches && blend) arm(); };         // Back to top and a run from the top start fresh
+
+// The sweep starts by itself the first time the headline rises into the window, and stays played when you scroll back or wheel to the top.
+// Reading reduce.matches can use up its change event, so this runs on every scroll and settles the state from the setting as it is now.
 function check() {
-  if (reduce.matches || !blend) return;
-  if (scrollY < 2) { if (!cl.contains('armed') || cl.contains('go')) arm(); }
-  else if (cl.contains('armed') && !cl.contains('go') && late()) cl.add('go');
+  if (reduce.matches || !blend) { calm(); return; }
+  if (!cl.contains('armed')) { if (scrollY < 2 || hl.getBoundingClientRect().top >= innerHeight) arm(); return; } // the first arm, or motion is allowed again
+  if (!cl.contains('go') && late()) cl.add('go');
 }
 hl.addEventListener('animationend', e => { if (e.animationName === 'sweep') cl.add('done'); });
 
@@ -100,11 +104,12 @@ function tick(ts) {
 function play() {
   measure();
   if (END <= 0) return;
-  if (scrollY >= END - 2) { scrollTo({ top: 0, behavior: 'instant' }); check(); }
+  if (scrollY >= END - 2) scrollTo({ top: 0, behavior: 'instant' });
+  if (scrollY < 2) rearm();                                          // a run from the top starts fresh
   pos = scrollY; playing = true; lastT = null;
   if (!raf) raf = requestAnimationFrame(tick);
 }
-function toTop() { playing = false; scrollTo({ top: 0, behavior: 'instant' }); check(); }
+function toTop() { playing = false; scrollTo({ top: 0, behavior: 'instant' }); rearm(); }
 
 addEventListener('message', e => {
   if (e.source !== parent || !e.data) return;
@@ -114,10 +119,7 @@ addEventListener('message', e => {
 addEventListener('scroll', check, { passive: true });
 addEventListener('resize', () => { measure(); check(); });
 document.addEventListener('visibilitychange', () => { lastT = null; });
-reduce.addEventListener('change', () => {
-  if (reduce.matches) calm();
-  else if (scrollY < 2 || hl.getBoundingClientRect().top >= innerHeight) arm();  // never hides a headline that is already in view
-});
+reduce.addEventListener('change', check);                            // check() never hides a headline that is already in view
 measure(); check();
 addEventListener('load', () => {
   measure(); check();
