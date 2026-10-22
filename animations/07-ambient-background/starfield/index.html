@@ -36,6 +36,27 @@
       .fg-title{margin-bottom:0}
       .fg-body{display:none}
     }
+    /* See inside and Compare: a second canvas over the stars for the routes and arrows, plain words over the picture, a divider between the halves */
+    .marks,.legend,.lbl,.vs{display:none}
+    .marks{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .legend{position:absolute;inset:10px;flex-direction:column;justify-content:space-between;pointer-events:none}
+    .lg-top{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+    .lg-low{display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:flex-end}
+    .lbl{max-width:100%;padding:4px 9px;border-radius:999px;background:rgba(5,6,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
+    .far::before,.near::before{content:"";display:inline-block;border-radius:50%;margin-right:7px;vertical-align:middle;background:#fff}
+    .far::before{width:4px;height:4px;opacity:.45}
+    .near::before{width:10px;height:10px}
+    .vs{position:absolute;top:0;bottom:0;left:50%;border-left:2px solid #2a2b33;transform:translateX(-1px)}
+    .lc{position:absolute;top:10px;white-space:nowrap}
+    .lc.first{left:10px}
+    .lc.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .marks{display:block}
+    .stage[data-hb-mode="inside"] .legend{display:flex}
+    .stage[data-hb-mode="inside"][data-dir="radial"] .li-o,.stage[data-hb-mode="inside"][data-dir="drift"] .li-d{display:block}
+    .stage[data-hb-mode="inside"][data-dir="drift"] .lg-low{padding-bottom:12px}
+    .stage[data-hb-mode="compare"] .vs,.stage[data-hb-mode="compare"] .lc{display:block}
+    .stage[data-hb-mode="inside"] .fg-card,.stage[data-hb-mode="compare"] .fg-card{display:none}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -58,8 +79,29 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
-    <div class="stage">
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
+    <div class="stage" data-dir="radial">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <canvas class="marks" id="marks" aria-hidden="true"></canvas>
+      <div class="legend" aria-hidden="true">
+        <div class="lg-top">
+          <p class="lbl li-o" aria-hidden="true" data-hb-caption>Every star flies straight out from the middle</p>
+          <p class="lbl li-d far" aria-hidden="true" data-hb-caption>Far: small, dim, slow</p>
+          <p class="lbl li-d near" aria-hidden="true" data-hb-caption>Near: big, bright, fast</p>
+        </div>
+        <div class="lg-low">
+          <p class="lbl li-o" aria-hidden="true" data-hb-caption>Out of the box, it starts again in the middle</p>
+          <p class="lbl li-o" aria-hidden="true" data-hb-caption>Farther out: bigger, brighter, faster</p>
+          <p class="lbl li-d" aria-hidden="true" data-hb-caption>Out at the left, back in at the right</p>
+        </div>
+      </div>
+      <i class="vs"></i>
+      <p class="lbl lc first" aria-hidden="true" data-hb-caption>Without depth</p>
+      <p class="lbl lc second" aria-hidden="true" data-hb-caption>With depth</p>
       <div class="fg-card">
         <div class="fg-eyebrow">Starfield</div>
         <div class="fg-title">Infinite depth from a single point</div>
@@ -69,6 +111,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each line is a star's straight route out from the middle, and its arrow its speed: near the middle stars are small, dim and slow, near the edge big, bright and fast.</p>
+      <p data-hb-for="compare" hidden>Without depth gives every star the same size, brightness and speed, so the field looks flat. With depth makes them grow, brighten and speed up toward you, so it looks deep.</p>
     </div>
   </section>
 
@@ -177,84 +223,176 @@
   let W=0,H=0,raf=null,lastT=null,fa=0,paused=false; // fa: the part of a cover not yet applied
   let MODE='radial',COUNT=300,SPD=0.4,TWINKLE=true,NEBULA=false,COL='white';
   let stars=[];
+  // See inside and Compare. WHOLE is the part of the canvas Normal's stars live in; Compare gives each half a part of its own, below
+  // the half's name (TOP). marks is See inside's canvas over the stars, keep holds Normal's picture while Compare shows.
+  const WHOLE={x0:0,y0:0,w:0,h:0},TOP=40;
+  const marks=document.getElementById('marks'),mctx=marks.getContext('2d');
+  const keep=document.createElement('canvas'),kctx=keep.getContext('2d');
+  const MARK=getComputedStyle(document.documentElement).getPropertyValue('--ui-accent').trim()||'#ffce5a';
+  let look='normal',kept=false,halves=[],followed=[],shown=[],tick=0,lbls=[],taken=[]; // lbls, taken: boxes as left, top, right, bottom in one list
+  const notes=[...document.querySelectorAll('[data-hb-for]')];
+  const NOTES={radial:notes.map(p=>p.textContent),drift:[
+    "Inside, each arrow is a star's speed: far stars are small, dim and slow, near ones big, bright and fast, and each leaves at the left and comes back at the right.",
+    "Without depth gives every star the same size, brightness and speed, so the field looks flat. With depth makes near stars bigger, brighter and faster than far ones, so it looks deep."]};
 
   class Star{
-    constructor(init){
+    // box: the part of the canvas the star lives in; flat: Compare's "Without depth", every star in the middle of each range
+    constructor(init,box=WHOLE,flat=false){
+      const {x0,y0,w,h}=this.box=box;this.flat=flat;
       if(MODE==='radial'){
         this.angle=Math.random()*Math.PI*2;
-        this.dist=init?Math.random()*Math.max(W,H)*.5:0;
-        this.maxDist=Math.max(W,H)*.55;
-        this.speed=(Math.random()*.6+.2)*SPD;
-        this.size=Math.random()*1.5+.5;
-        this.twinklePhase=Math.random()*Math.PI*2;
+        this.dist=init?Math.random()*Math.max(w,h)*.5:0;
+        this.maxDist=Math.max(w,h)*.55;
+        this.size=flat?1.25:Math.random()*1.5+.5;
+        this.speed=flat?this.pace:(Math.random()*.6+.2)*SPD;
       }else{
-        this.x=Math.random()*W;this.y=Math.random()*H;
-        this.depth=Math.random()*.8+.2;
-        this.size=(Math.random()*1.5+.5)*this.depth;
-        this.twinklePhase=Math.random()*Math.PI*2;
+        this.x=x0+Math.random()*w;this.y=y0+Math.random()*h;
+        this.depth=flat?.6:Math.random()*.8+.2;
+        this.size=(flat?1.25:Math.random()*1.5+.5)*this.depth;
       }
+      this.twinklePhase=Math.random()*Math.PI*2;
       this.hue=Math.random()*60;
     }
+    // Where the star is in its range, 0 to 1: Outward its share of the way to maxDist, Sideways its depth
+    get ratio(){return MODE==='radial'?(this.flat?.5:this.dist/this.maxDist):this.depth;}
+    // How far it moves in one 60 Hz step (See inside draws its arrow this long) and how big it is drawn
+    get pace(){return MODE==='radial'?(this.ratio*.5+.2)*SPD*1.5:this.depth*SPD*2;}
+    get r(){return this.size*(1+this.ratio*1.5);}
     // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion: the outward
     // step, the sideways step and the twinkle all grow and shrink with it
     update(k){
       if(MODE==='radial'){
         this.dist+=this.speed*k;
-        const ratio=this.dist/this.maxDist;
-        this.speed=(ratio*.5+.2)*SPD*1.5;
-        if(this.dist>this.maxDist){this.dist=0;this.speed=(Math.random()*.6+.2)*SPD;this.angle=Math.random()*Math.PI*2;}
+        this.speed=this.pace;
+        if(this.dist>this.maxDist){this.dist=0;this.speed=this.flat?this.pace:(Math.random()*.6+.2)*SPD;this.angle=Math.random()*Math.PI*2;}
       }else{
-        this.x-=this.depth*SPD*2*k;if(this.x<-2){this.x=W+2;}
+        this.x-=this.pace*k;if(this.x<this.box.x0-2){this.x=this.box.x0+this.box.w+2;}
       }
       this.twinklePhase+=.05*k;
     }
     draw(){
-      const ratio=MODE==='radial'?this.dist/this.maxDist:this.depth;
+      const ratio=this.ratio,b=this.box;
       let col='rgba(255,255,255,';
       if(COL==='warm')col=`rgba(255,240,200,`;
       if(COL==='color')col=`hsla(${this.hue},80%,90%,`;
-      const sz=this.size*(1+ratio*1.5);
       const twinkle=TWINKLE?(.7+Math.sin(this.twinklePhase)*.3):1;
       const op=(ratio*.7+.3)*twinkle;
       ctx.fillStyle=col+op+')';
       ctx.beginPath();
       if(MODE==='radial'){
-        const x=W/2+Math.cos(this.angle)*this.dist,y=H/2+Math.sin(this.angle)*this.dist;
-        ctx.arc(x,y,sz,0,Math.PI*2);
+        ctx.arc(b.x0+b.w/2+Math.cos(this.angle)*this.dist,b.y0+b.h/2+Math.sin(this.angle)*this.dist,this.r,0,Math.PI*2);
       }else{
-        ctx.arc(this.x,this.y,sz,0,Math.PI*2);
+        ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
       }
       ctx.fill();
     }
   }
 
+  const count=()=>phone.matches?Math.min(COUNT,PHONE_STARS):COUNT;
+  // Compare deals each half its own stars (half the count each) and leaves Normal's stars as they are
   function initStars(){
-    const n=phone.matches?Math.min(COUNT,PHONE_STARS):COUNT;
-    stars=Array.from({length:n},()=>new Star(true));
+    const n=count();
+    if(look==='compare'){
+      halves=[0,1].map(i=>{const box={x0:i*W/2,y0:TOP,w:W/2,h:H-TOP};return{box,stars:Array.from({length:n/2},()=>new Star(true,box,i===0))};});
+    }else{stars=Array.from({length:n},()=>new Star(true));pick();}
   }
 
-  function drawNebula(){
-    const g=ctx.createRadialGradient(W*.3,H*.4,0,W*.3,H*.4,W*.5);
+  function drawNebula(b){
+    const {x0,y0,w,h}=b;
+    const g=ctx.createRadialGradient(x0+w*.3,y0+h*.4,0,x0+w*.3,y0+h*.4,w*.5);
     g.addColorStop(0,'rgba(50,20,100,.15)');g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    const g2=ctx.createRadialGradient(W*.7,H*.6,0,W*.7,H*.6,W*.4);
+    ctx.fillStyle=g;ctx.fillRect(x0,y0,w,h);
+    const g2=ctx.createRadialGradient(x0+w*.7,y0+h*.6,0,x0+w*.7,y0+h*.6,w*.4);
     g2.addColorStop(0,'rgba(20,50,80,.1)');g2.addColorStop(1,'transparent');
-    ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=g2;ctx.fillRect(x0,y0,w,h);
   }
 
-  // One picture. paint(true,n,nf) is a loop frame for n 60 Hz frames: nf covers (the haze redrawn after each), then the stars move by n
+  function run(list,move,k){for(const s of list){if(move)s.update(k);s.draw();}}
+  // One picture. paint(true,n,nf) is a loop frame for n 60 Hz frames: nf covers (the haze drawn again after each), then the stars move by n
   // (a third of it in slow motion; the covers do not slow) and are drawn. paint(false) redraws the picture where it stands, opaque:
-  // for the first frame, a resize and a setting changed while paused.
+  // for the first frame, a resize and a setting changed while paused. Compare covers the whole canvas, so both halves keep the same
+  // trails, and draws each half's haze and stars inside that half. See inside draws its marks last.
   function paint(move,n,nf){
     for(let i=0,c=move?nf:1;i<c;i++){
       ctx.fillStyle=move?'rgba(0,0,0,.85)':'#000';ctx.fillRect(0,0,W,H);
-      if(NEBULA)drawNebula();
+      if(NEBULA){if(look==='compare')for(const h of halves)drawNebula(h.box);else drawNebula(WHOLE);}
     }
     const k=move?n*(slowTog.checked?1/3:1):0;
-    stars.forEach(s=>{if(move)s.update(k);s.draw();});
+    if(look==='compare')for(const h of halves){
+      ctx.save();ctx.beginPath();ctx.rect(h.box.x0,h.box.y0,h.box.w,h.box.h);ctx.clip();
+      run(h.stars,move,k);ctx.restore();
+    }else run(stars,move,k);
+    if(look==='inside')drawMarks();
   }
   // While paused, a setting that changes the picture draws it again so the change shows
   function still(){if(paused)paint(false);}
+
+  // See inside: about a dozen followed stars (eight on phones), one in each slice of the circle around the middle, or of the box's
+  // width Sideways. They are picked whenever the stars are dealt and when See inside opens, and a few times a second a star whose
+  // ring and arrow no longer fit (it left the box, or nears an edge or a caption) gives way to another star of its slice.
+  const px=s=>MODE==='radial'?W/2+Math.cos(s.angle)*s.dist:s.x,py=s=>MODE==='radial'?H/2+Math.sin(s.angle)*s.dist:s.y;
+  const mk={}; // the ring and arrow of the star span() last measured: its place and heading, the ring's size, the arrow's tip and head, the box round them
+  // ahead: extra arrow length to allow for, so a star picked now still fits a moment on
+  function span(s,ahead){
+    const out=MODE==='radial',a=out?s.angle:Math.PI,x=px(s),y=py(s),r=s.r+5,len=s.pace*60*(out?1.8:1);
+    const dx=Math.cos(a),dy=Math.sin(a),fx=x+dx*(r+len+ahead),fy=y+dy*(r+len+ahead);
+    mk.x=x;mk.y=y;mk.a=a;mk.rad=r;mk.ex=x+dx*(r+len);mk.ey=y+dy*(r+len);mk.hd=Math.min(6,len*.6);
+    mk.l=Math.min(x-r,fx-3);mk.t=Math.min(y-r,fy-3);mk.r=Math.max(x+r,fx+3);mk.b=Math.max(y+r,fy+3);
+  }
+  // Does the star's ring and arrow sit inside the box, clear of the captions (and, Outward, of the cross)?
+  function fits(s,ahead){
+    span(s,ahead);
+    return (MODE!=='radial'||s.dist>=14)&&mk.l>=4&&mk.t>=4&&mk.r<=W-4&&mk.b<=H-(MODE==='radial'?4:20)&&!meets(mk.l,mk.t,mk.r,mk.b,lbls,4);
+  }
+  // which slice a star is in: 0 up to 1, round the middle or across the box
+  const slice=s=>MODE==='radial'?s.angle/(Math.PI*2):(s.x/W-.2)/.75;
+  const find=i=>stars.find(s=>Math.floor(slice(s)*followed.length)===i&&fits(s,24))||null;
+  function refill(){
+    for(let i=0;i<followed.length;i++)if(!followed[i]||!fits(followed[i],0)){const s=find(i);if(s)followed[i]=s;}
+  }
+  function pick(){followed=Array(phone.matches?8:12).fill(null);refill();}
+  // The captions' boxes in the stage, so no ring or arrow is drawn under one
+  function measure(){
+    const o=stage.getBoundingClientRect(),ox=o.left+stage.clientLeft,oy=o.top+stage.clientTop;
+    lbls.length=0;
+    stage.querySelectorAll('[data-hb-caption]').forEach(p=>{const b=p.getBoundingClientRect();if(b.width)lbls.push(b.left-ox,b.top-oy,b.right-ox,b.bottom-oy);});
+  }
+  // Does the box l, t, r, b meet a box of the list, with pad to spare?
+  function meets(l,t,r,b,list,pad){
+    for(let i=0;i<list.length;i+=4)if(l<list[i+2]+pad&&r>list[i]-pad&&t<list[i+3]+pad&&b>list[i+1]-pad)return true;
+    return false;
+  }
+  // Outward: a cross at the middle and a thin line from it through each shown star to the edge. Then, for both directions, a ring
+  // round each star and an arrow from it as long as the star's speed now (the page's own pace, Sideways pointing left). A star whose
+  // ring and arrow would meet another mark is left bare for now.
+  function drawMarks(){
+    mctx.clearRect(0,0,W,H);
+    if(++tick%20===0)refill();
+    const out=MODE==='radial',cx=W/2,cy=H/2;
+    taken.length=0;shown.length=0;
+    if(out)taken.push(cx-9,cy-9,cx+9,cy+9);
+    for(const s of followed)if(s&&fits(s,0)&&!meets(mk.l,mk.t,mk.r,mk.b,taken,3)){shown.push(s);taken.push(mk.l,mk.t,mk.r,mk.b);}
+    mctx.lineCap='round';mctx.lineWidth=1;mctx.strokeStyle='rgba(255,255,255,.3)';mctx.beginPath();
+    if(out){
+      for(const s of shown){
+        const dx=Math.cos(s.angle),dy=Math.sin(s.angle),t=Math.min(cx/Math.abs(dx||1e-9),cy/Math.abs(dy||1e-9));
+        mctx.moveTo(cx,cy);mctx.lineTo(cx+dx*t,cy+dy*t);
+      }
+    }else{ // the way round: out at the left, back in at the right
+      mctx.moveTo(W-14,H-8);mctx.lineTo(14,H-8);mctx.moveTo(22,H-12);mctx.lineTo(14,H-8);mctx.lineTo(22,H-4);
+    }
+    mctx.stroke();
+    mctx.strokeStyle=MARK;mctx.lineWidth=1.5;mctx.beginPath();
+    if(out){mctx.moveTo(cx-6,cy);mctx.lineTo(cx+6,cy);mctx.moveTo(cx,cy-6);mctx.lineTo(cx,cy+6);}
+    for(const s of shown){
+      span(s,0);
+      const {x,y,a,rad,ex,ey,hd}=mk;
+      mctx.moveTo(x+rad,y);mctx.arc(x,y,rad,0,Math.PI*2);
+      mctx.moveTo(x+Math.cos(a)*rad,y+Math.sin(a)*rad);mctx.lineTo(ex,ey);
+      mctx.moveTo(ex-Math.cos(a-.5)*hd,ey-Math.sin(a-.5)*hd);mctx.lineTo(ex,ey);mctx.lineTo(ex-Math.cos(a+.5)*hd,ey-Math.sin(a+.5)*hd);
+    }
+    mctx.stroke();
+  }
 
   // loop() keeps one frame requested in raf. A drawn frame stands for the time since the last drawn one (n, at most 50 ms) and covers once
   // per whole 60th, fa carrying the rest; with no cover due nothing is drawn and the time carries on, which also caps drawing near 60 a second.
@@ -278,16 +416,32 @@
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;fa=0;});
+  // The mode switch draws the mode at once, playing or paused. Compare keeps Normal's picture and stars (they are not stepped while
+  // it shows) and puts them back on leaving, or deals and draws Normal again if a setting or the size changed meanwhile.
+  document.addEventListener('hb:mode',e=>{
+    const was=look;look=e.detail.mode;
+    if(look==='compare'&&was!=='compare'){
+      keep.width=cvs.width;keep.height=cvs.height;kctx.drawImage(cvs,0,0);kept=true;
+      initStars();paint(false);
+    }else if(was==='compare'&&look!=='compare'){
+      if(kept){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(keep,0,0);ctx.restore();}
+      else{initStars();paint(false);}
+      kept=false;
+    }
+    measure();
+    if(look==='inside'&&was!=='inside')pick();
+    if(look==='inside')drawMarks();else mctx.clearRect(0,0,W,H);
+  });
 
   // Setting the canvas size wipes it, so a real change of the stage's size builds the stars and draws them at once,
   // playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
-    W=w;H=h;
+    W=w;H=h;WHOLE.w=W;WHOLE.h=H;kept=false;
     const dpr=Math.min(window.devicePixelRatio||1,2);
-    cvs.width=W*dpr;cvs.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-    initStars();paint(false);
+    cvs.width=marks.width=W*dpr;cvs.height=marks.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);mctx.setTransform(dpr,0,0,dpr,0,0);
+    measure();initStars();paint(false);
   }
 
   function choices(id,pick){
@@ -298,17 +452,24 @@
       pick(b.dataset);
     }));
   }
-  choices('dir-seg',d=>{MODE=d.mode;initStars();still();});
-  choices('speed-seg',d=>{SPD=+d.spd;});
-  choices('count-seg',d=>{COUNT=+d.n;initStars();still();});
-  choices('col-seg',d=>{COL=d.col;still();});
-  document.getElementById('twinkle-tog').addEventListener('change',e=>{TWINKLE=e.target.checked;still();});
-  document.getElementById('nebula-tog').addEventListener('change',e=>{NEBULA=e.target.checked;still();});
+  // A setting that changes the stars or their picture: a kept Normal picture is out of date (Speed leaves it good)
+  function changed(){kept=false;still();}
+  choices('dir-seg',d=>{
+    MODE=d.mode;stage.dataset.dir=MODE;
+    notes.forEach((p,i)=>{const t=NOTES[MODE][i];if(p.textContent!==t)p.textContent=t;});
+    measure();initStars();changed();
+  });
+  choices('speed-seg',d=>{SPD=+d.spd;if(look==='inside'&&paused)drawMarks();});
+  choices('count-seg',d=>{COUNT=+d.n;initStars();changed();});
+  choices('col-seg',d=>{COL=d.col;changed();});
+  document.getElementById('twinkle-tog').addEventListener('change',e=>{TWINKLE=e.target.checked;changed();});
+  document.getElementById('nebula-tog').addEventListener('change',e=>{NEBULA=e.target.checked;changed();});
 
   resize();
   window.addEventListener('resize',resize);
+  if(document.fonts)document.fonts.ready.then(()=>{measure();if(look==='inside')drawMarks();});
   // A window that crosses the phone size changes how many stars it draws, even when the stage keeps its size
-  function onPhone(){const n=phone.matches?Math.min(COUNT,PHONE_STARS):COUNT;if(n!==stars.length){initStars();paint(false);}}
+  function onPhone(){if(count()!==(look==='compare'?halves[0].stars.length*2:stars.length)){kept=false;initStars();paint(false);}}
   if(phone.addEventListener)phone.addEventListener('change',onPhone);
   else if(phone.addListener)phone.addListener(onPhone);
   start();
