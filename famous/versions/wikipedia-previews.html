@@ -11,10 +11,10 @@
 :root{--c1:#6ea8ff;--c2:#5fd88a;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--c6:#3fd6c4;--c7:#ffce5a;--card:#181a23;--edge:rgba(255,255,255,.17);color-scheme:dark}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%}
-html{background:#0b0b0f}
+html{background:#0b0b0f;overflow:hidden}
 body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
 /* the stage is a short article on a dark page; the card is laid over it, so it can cover the lines under its link like a pop-up */
-.stage{position:relative;height:100%;min-height:200px;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(80% 110% at 25% 0,#141830,#0b0b0f 72%)}
+.stage{position:relative;height:100%;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(80% 110% at 25% 0,#141830,#0b0b0f 72%)}
 .doc{width:100%;max-width:640px;margin:auto;padding:46px clamp(18px,5vw,44px) 14px}
 h1{margin-bottom:.45em;font-size:clamp(21px,3.4vw,32px);font-weight:700;line-height:1.15;letter-spacing:-.025em}
 .doc p{font-size:clamp(14px,1.5vw + 6px,20px);line-height:1.7;color:#d2d5e2}
@@ -37,6 +37,8 @@ a.lk:focus-visible{outline:3px solid #fff;outline-offset:2px;color:#fff}
 .pic svg{display:block;width:100%;height:100%}
 .card h2{font-size:clamp(15px,1.7vw,16px);font-weight:650;line-height:1.25;color:#fff}
 .card p{margin-top:3px;font-size:clamp(13px,1.5vw,14px);line-height:1.45;color:#b9bdd0}
+/* a box as short as a phone held sideways: the article starts under the label, and the card is lower, so it fits above or below each link */
+@media(max-height:200px){.doc{margin:0 auto;padding:40px clamp(18px,5vw,44px) 8px}.doc p{line-height:1.5}.card{gap:10px;padding:8px 10px;border-radius:12px}.pic{width:40px;height:40px;border-radius:8px}.card h2{font-size:14px}.card p{margin-top:1px;font-size:12px;line-height:1.35}}
 .note{position:absolute;left:50%;bottom:14px;z-index:6;max-width:calc(100% - 24px);padding:7px 14px;border-radius:99px;background:#f4f4f2;color:#16161b;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transform:translate(-50%,6px);pointer-events:none;transition:opacity .2s,transform .2s}
 .note.on{opacity:1;transform:translate(-50%,0)}
 /* the demo's pointer: a dot with a dark ring, so it shows on the page and on the card */
@@ -82,7 +84,7 @@ const CARDS = [
 // The card follows what the live effect does: a pointer must rest on a link for 500 ms (a pass over it shows nothing); the card then
 // fades in below the link while rising into place; it stays while the pointer is on it and for 300 ms after the pointer leaves the link
 // or the card; a pointer that goes to another link closes it at once, and the next card waits its own 500 ms.
-let cur = null, open = false, dismissed = null, showT = 0, hideT = 0, noteT = 0, run = false, timers = [], acted = false, seen = null;
+let cur = null, open = false, dismissed = null, showT = 0, hideT = 0, noteT = 0, run = false, timers = [], acted = false;
 const setHov = a => links.forEach(l => l.classList.toggle('hov', l === a));
 function reveal(a, x) {
   const c = CARDS[a.dataset.k];
@@ -117,8 +119,10 @@ function leave() {
 // The visitor's pointer (touch has no hover, so a tap only opens the link), keys and focus.
 const zone = el => el && el.closest ? el.closest('a.lk, .card') : null;
 document.addEventListener('pointerover', e => {
-  if (e.pointerType === 'touch' || run) return;
+  if (e.pointerType === 'touch') return;
   const to = zone(e.target); if (!to || to === zone(e.relatedTarget)) return;
+  if (e.isTrusted && to.matches('a.lk')) { acted = true; stopRun(); } // a pointer that reaches a link is the visitor's: it ends a run and the arrival
+  else if (run) return;
   if (to.classList.contains('card')) clearTimeout(hideT); else enter(to, e.clientX);
 });
 document.addEventListener('pointerout', e => {
@@ -140,7 +144,7 @@ document.addEventListener('click', e => {
 addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !(run || open || (cur && cur !== dismissed))) return;
   e.stopImmediatePropagation(); e.preventDefault();
-  if (run) { acted = true; stopRun(); } else { dismissed = cur; clearTimeout(showT); clearTimeout(hideT); conceal(); }
+  if (run) { acted = true; stopRun(); } else { dismissed = cur; clearTimeout(showT); clearTimeout(hideT); conceal(); setHov(null); }
 }, true);
 
 // Show me: a dot sweeps over the first link without stopping (no card), then rests on the third until its card has shown, and leaves.
@@ -166,22 +170,15 @@ function show() {
   at(2980, leave); // the card goes 300 ms after the pointer leaves
   at(3400, () => dot.classList.remove('on')); at(3650, () => { run = false; timers = []; });
 }
-// The visitor's own pointer, touch or key stops a run and takes over. A pointer that has not moved says nothing, and neither does a first sighting.
-addEventListener('pointermove', e => {
-  if (!e.isTrusted || e.pointerType === 'touch') return;
-  seen = seen || [e.clientX, e.clientY];
-  if (e.pointerType === 'mouse' && !e.movementX && !e.movementY) return;
-  if (Math.hypot(e.clientX - seen[0], e.clientY - seen[1]) < 5) return;
-  acted = true;
-  if (run) { stopRun(); const z = zone(e.target); if (z && z.matches('a.lk')) enter(z, e.clientX); }
-}, true);
-['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; if (e.key !== 'Escape') stopRun(); } }, { capture: true, passive: true }));
+// The visitor's own press, touch or key stops a run and takes over (so does a pointer that reaches a link, above). A pointer that only passes over the stage, or a turn of the wheel, does not.
+['pointerdown', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; if (e.key !== 'Escape') stopRun(); } }, { capture: true, passive: true }));
 addEventListener('message', e => {
   if (e.source !== parent || !e.data) return;
   if (e.data.fx === 'show') { acted = true; show(); }
 });
-reduce.addEventListener('change', () => { stopRun(); done(); });
-new ResizeObserver(() => { if (cur || run) { stopRun(); done(); } }).observe(stage);
+reduce.addEventListener('change', stopRun);
+let size = ''; // the first report of the box's size comes at first paint, so it only sets the size: a Show me sent while the frame loads goes on
+new ResizeObserver(([en]) => { const was = size; size = en.contentRect.width + 'x' + en.contentRect.height; if (was && was !== size && (cur || run)) { stopRun(); done(); } }).observe(stage);
 addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
 </script>
 </body>
