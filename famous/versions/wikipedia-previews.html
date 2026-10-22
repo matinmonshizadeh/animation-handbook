@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: Link previews</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--c1:#6ea8ff;--c2:#5fd88a;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--c6:#3fd6c4;--c7:#ffce5a;--card:#181a23;--edge:rgba(255,255,255,.17);color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+html{background:#0b0b0f}
+body{color:#f4f4f2;font:400 15px/1.5 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+/* the stage is a short article on a dark page; the card is laid over it, so it can cover the lines under its link like a pop-up */
+.stage{position:relative;height:100%;min-height:200px;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(80% 110% at 25% 0,#141830,#0b0b0f 72%)}
+.doc{width:100%;max-width:640px;margin:auto;padding:46px clamp(18px,5vw,44px) 14px}
+h1{margin-bottom:.45em;font-size:clamp(21px,3.4vw,32px);font-weight:700;line-height:1.15;letter-spacing:-.025em}
+.doc p{font-size:clamp(14px,1.5vw + 6px,20px);line-height:1.7;color:#d2d5e2}
+.doc p+p{margin-top:.7em;color:#b4b8cb}
+@media(max-width:600px),(max-height:380px){.doc p+p{display:none}}
+@media(max-height:270px){h1{display:none}.doc{padding-top:44px}}
+/* a link: underlined by dots, lit while it holds the card; its touch area is 44px tall */
+a.lk{position:relative;display:inline-block;margin:0 -3px;padding:0 3px;border-radius:5px;color:var(--c1);white-space:nowrap;text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+a.lk::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}
+a.lk.hov{background:rgba(110,168,255,.2);color:#fff;text-decoration-style:solid}
+a.lk:active{background:rgba(110,168,255,.3)}
+a.lk:focus-visible{outline:3px solid #fff;outline-offset:2px;color:#fff}
+/* the card: it comes in 18/100 s, rising 20px toward its link, and leaves a little faster; a small point aims at where the pointer came in */
+.card{position:absolute;left:0;top:0;z-index:5;width:min(clamp(300px,36vw,336px),calc(100% - 20px));display:flex;gap:12px;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--edge);box-shadow:0 18px 40px rgba(0,0,0,.55);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(var(--dy,20px));transition:opacity .15s ease-in,transform .15s ease-in,visibility 0s linear .15s}
+.card.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .18s ease-out,transform .18s ease-out,visibility 0s}
+.card::before{content:"";position:absolute;top:-6px;left:var(--tx,24px);width:10px;height:10px;margin-left:-5px;background:var(--card);border:solid var(--edge);border-width:1px 0 0 1px;transform:rotate(45deg)}
+.card.up::before{top:auto;bottom:-6px;border-width:0 1px 1px 0}
+.lite .card{box-shadow:0 10px 22px rgba(0,0,0,.55)}
+.pic{flex:none;width:clamp(64px,8vw,76px);height:clamp(64px,8vw,76px);border-radius:10px;background:linear-gradient(140deg,var(--a),var(--b))}
+.pic svg{display:block;width:100%;height:100%}
+.card h2{font-size:clamp(15px,1.7vw,16px);font-weight:650;line-height:1.25;color:#fff}
+.card p{margin-top:3px;font-size:clamp(13px,1.5vw,14px);line-height:1.45;color:#b9bdd0}
+.note{position:absolute;left:50%;bottom:14px;z-index:6;max-width:calc(100% - 24px);padding:7px 14px;border-radius:99px;background:#f4f4f2;color:#16161b;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transform:translate(-50%,6px);pointer-events:none;transition:opacity .2s,transform .2s}
+.note.on{opacity:1;transform:translate(-50%,0)}
+/* the demo's pointer: a dot with a dark ring, so it shows on the page and on the card */
+.dot{position:absolute;left:0;top:0;z-index:7;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(11,11,15,.7),0 3px 12px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s}
+.dot.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.card,.card.on{transform:none}.card{transition:opacity .12s linear,visibility 0s linear .12s}.card.on{transition:opacity .12s linear}.note,.note.on{transform:translateX(-50%);transition:opacity .15s}.dot{transition:none}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<div class="stage" id="stage" role="group" aria-label="A short article about paper planes with four links. Rest the pointer on a link, or reach it with the keyboard, and a small card about it appears; press Escape to hide the card.">
+  <main class="doc">
+    <h1>Paper planes</h1>
+    <p>A paper plane is a <a class="lk" href="#" data-k="0">glider</a> made from one flat sheet. Its <a class="lk" href="#" data-k="1">wings</a> are creased so air slides under them, and the <a class="lk" href="#" data-k="2">lift</a> that follows keeps it up. Folding one is <a class="lk" href="#" data-k="3">origami</a>.</p>
+    <p>The same sheet, folded two ways, can float far or dive fast. Small bends at the tail decide which.</p>
+  </main>
+  <div class="card" id="tip" role="tooltip"></div>
+  <p class="note" id="note" role="status"></p>
+  <i class="dot" id="dot" aria-hidden="true"></i>
+</div>
+<script>
+const $ = s => document.querySelector(s), clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+const stage = $('#stage'), card = $('#tip'), note = $('#note'), dot = $('#dot'), links = [...document.querySelectorAll('a.lk')];
+const SHOW = 500, HIDE = 300, KEYS = 300; // the pointer rests half a second before a card shows, a key takes 300 ms, and a card stays 300 ms after the pointer leaves
+
+// Our own cards: a title, a few short lines and a picture drawn in shapes on a gradient.
+const W7 = 'fill="#fff" fill-opacity=".95"', SH = 'fill="#0b0b0f" fill-opacity=".22"', AIR = 'fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"';
+const CARDS = [
+  { t: 'Glider', d: 'A craft with no engine that rides the air as it slowly sinks.', a: '#6ea8ff', b: '#b98cff', s: `<path ${W7} d="M12 42 62 16 46 58 38 44Z"/><path ${SH} d="M38 44 62 16 32 48Z"/><path ${AIR} d="M10 24q14-8 26 0M20 14q10-5 20 0"/>` },
+  { t: 'Wings', d: 'The flat surfaces that meet the air. Their shape sets the push.', a: '#3fd6c4', b: '#6ea8ff', s: `<path ${W7} d="M8 46C22 26 50 26 64 42 50 50 24 52 8 46Z"/><path ${AIR} d="M12 20q24-10 48 0M16 12q20-8 40 0"/>` },
+  { t: 'Lift', d: 'The upward push of moving air. It has to beat the weight.', a: '#ff9d5c', b: '#ff6f8b', s: `<path ${W7} d="M36 12 54 34H43v26H29V34H18Z"/><path ${AIR} d="M10 64h52"/>` },
+  { t: 'Origami', d: 'Folding one sheet into a shape, with no cuts and no glue.', a: '#ffce5a', b: '#ff9d5c', s: `<path ${W7} d="M36 10 62 36 36 62 10 36Z"/><path ${SH} d="M36 10 62 36H10Z"/><path fill="none" stroke="#0b0b0f" stroke-opacity=".25" stroke-width="2" d="M10 36 36 62 62 36"/>` }
+];
+
+// The card follows what the live effect does: a pointer must rest on a link for 500 ms (a pass over it shows nothing); the card then
+// fades in below the link while rising into place; it stays while the pointer is on it and for 300 ms after the pointer leaves the link
+// or the card; a pointer that goes to another link closes it at once, and the next card waits its own 500 ms.
+let cur = null, open = false, dismissed = null, showT = 0, hideT = 0, noteT = 0, run = false, timers = [], acted = false, seen = null;
+const setHov = a => links.forEach(l => l.classList.toggle('hov', l === a));
+function reveal(a, x) {
+  const c = CARDS[a.dataset.k];
+  card.innerHTML = `<div class="pic" style="--a:${c.a};--b:${c.b}"><svg viewBox="0 0 72 72" aria-hidden="true">${c.s}</svg></div><div><h2>${c.t}</h2><p>${c.d}</p></div>`;
+  const s = stage.getBoundingClientRect(), r = a.getBoundingClientRect(), H = s.height, cw = card.offsetWidth, ch = card.offsetHeight, M = 10, G = 9;
+  const lx = x - s.left, below = r.bottom - s.top + G, above = r.top - s.top - G - ch;
+  const up = below + ch > H - M && (above >= M || r.top - s.top > H - (r.bottom - s.top)); // no room below: above the link
+  const left = clamp(lx - 18, M, s.width - cw - M); // its left edge sits just left of where the pointer came in, and always inside the box
+  card.style.transition = 'none';
+  card.style.left = left + 'px'; card.style.top = clamp(up ? above : below, M, H - ch - M) + 'px';
+  card.style.setProperty('--tx', clamp(lx - left, 22, cw - 22) + 'px'); card.style.setProperty('--dy', (up ? -20 : 20) + 'px');
+  card.classList.toggle('up', up);
+  void card.offsetWidth; card.style.transition = ''; // placed at rest, so the rise starts from the new place
+  card.classList.add('on'); open = true; a.setAttribute('aria-describedby', 'tip');
+}
+function conceal() { card.classList.remove('on'); open = false; links.forEach(l => l.removeAttribute('aria-describedby')); }
+function done() { clearTimeout(showT); clearTimeout(hideT); conceal(); cur = dismissed = null; setHov(null); }
+function enter(a, x, wait = SHOW) {
+  clearTimeout(hideT);
+  if (cur === a || dismissed === a) return; // the same link (its card stays) or one the visitor dismissed
+  if (open) conceal(); // another card is open: it goes at once
+  clearTimeout(showT); cur = a; setHov(a);
+  showT = setTimeout(() => reveal(a, x), wait);
+}
+function leave() {
+  if (!cur) return;
+  clearTimeout(showT); clearTimeout(hideT);
+  if (!open) return done(); // never shown: a pass over a link leaves nothing behind
+  hideT = setTimeout(done, HIDE);
+}
+
+// The visitor's pointer (touch has no hover, so a tap only opens the link), keys and focus.
+const zone = el => el && el.closest ? el.closest('a.lk, .card') : null;
+document.addEventListener('pointerover', e => {
+  if (e.pointerType === 'touch' || run) return;
+  const to = zone(e.target); if (!to || to === zone(e.relatedTarget)) return;
+  if (to.classList.contains('card')) clearTimeout(hideT); else enter(to, e.clientX);
+});
+document.addEventListener('pointerout', e => {
+  if (e.pointerType === 'touch' || run) return;
+  const from = zone(e.target); if (from && from !== zone(e.relatedTarget)) leave();
+});
+document.addEventListener('focusin', e => {
+  const a = e.target.closest && e.target.closest('a.lk'); if (!a || !a.matches(':focus-visible')) return;
+  acted = true; stopRun(); // a key that brings focus here is the visitor's: it ends a run and the arrival
+  const r = a.getBoundingClientRect(); enter(a, r.left + Math.min(24, r.width / 2), KEYS);
+});
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('a.lk')) leave(); });
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a.lk'); if (!a) return;
+  e.preventDefault(); if (cur) { dismissed = cur; clearTimeout(showT); clearTimeout(hideT); conceal(); }
+  note.textContent = 'Link opened: ' + CARDS[a.dataset.k].t; note.classList.add('on'); clearTimeout(noteT); noteT = setTimeout(() => note.classList.remove('on'), 1700);
+});
+// Escape hides a card that is shown or waiting, and leaves the pointer and the focus where they are; with none, it passes on (the pop-up closes).
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !(run || open || (cur && cur !== dismissed))) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  if (run) { acted = true; stopRun(); } else { dismissed = cur; clearTimeout(showT); clearTimeout(hideT); conceal(); }
+}, true);
+
+// Show me: a dot sweeps over the first link without stopping (no card), then rests on the third until its card has shown, and leaves.
+const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+function stopRun() { timers.forEach(clearTimeout); timers = []; if (run) { run = false; dot.classList.remove('on'); done(); } }
+function glide(x, y, ms) { dot.style.transition = reduce.matches ? 'none' : `opacity .2s, transform ${ms}ms cubic-bezier(.45,0,.25,1)`; dot.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; }
+function show() {
+  stopRun(); done(); run = true;
+  const s = stage.getBoundingClientRect(), W = s.width, H = s.height, pos = a => { const r = a.getBoundingClientRect(); return [r.left - s.left, r.right - s.left, r.top - s.top + r.height / 2]; };
+  const [g0, g1, gy] = pos(links[0]), [l0, l1, ly] = pos(links[2]), lx = (l0 + l1) / 2;
+  const place = (x, y) => { dot.style.transition = 'none'; dot.style.transform = `translate(${x}px,${y}px)`; void dot.offsetWidth; dot.classList.add('on'); };
+  if (reduce.matches) { // no travel: the dot is simply at the link, the card fades in and out
+    place(lx, ly); enter(links[2], lx);
+    at(2000, () => { dot.classList.remove('on'); leave(); }); at(2700, () => { run = false; timers = []; });
+    return;
+  }
+  place(Math.max(g0 - 36, 14), gy);
+  at(300, () => glide(Math.min(g1 + 36, W - 14), gy, 460));
+  at(420, () => enter(links[0], g0 + 8)); at(640, leave); // over the first link for about 0.2 s: nothing shows
+  at(850, () => glide(lx, ly, 620));
+  at(1470, () => enter(links[2], lx)); // resting on the third: the card shows 500 ms later
+  at(2900, () => { const dy = card.classList.contains('up') ? 70 : -70; glide(clamp(lx + 60, 14, W - 14), clamp(ly + dy, 14, H - 14), 480); });
+  at(2980, leave); // the card goes 300 ms after the pointer leaves
+  at(3400, () => dot.classList.remove('on')); at(3650, () => { run = false; timers = []; });
+}
+// The visitor's own pointer, touch or key stops a run and takes over. A pointer that has not moved says nothing, and neither does a first sighting.
+addEventListener('pointermove', e => {
+  if (!e.isTrusted || e.pointerType === 'touch') return;
+  seen = seen || [e.clientX, e.clientY];
+  if (e.pointerType === 'mouse' && !e.movementX && !e.movementY) return;
+  if (Math.hypot(e.clientX - seen[0], e.clientY - seen[1]) < 5) return;
+  acted = true;
+  if (run) { stopRun(); const z = zone(e.target); if (z && z.matches('a.lk')) enter(z, e.clientX); }
+}, true);
+['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; if (e.key !== 'Escape') stopRun(); } }, { capture: true, passive: true }));
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'show') { acted = true; show(); }
+});
+reduce.addEventListener('change', () => { stopRun(); done(); });
+new ResizeObserver(() => { if (cur || run) { stopRun(); done(); } }).observe(stage);
+addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
+</script>
+</body>
+</html>
