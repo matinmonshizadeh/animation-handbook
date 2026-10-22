@@ -50,6 +50,43 @@
       .sc:nth-child(n+5){display:none}
     }
     @media(prefers-reduced-motion:reduce){.eg,.fg{transition-duration:.2s}}
+    /* See inside and Compare, drawn in the grid's own coordinates with the same numbers as the lights: the dashed circle is as big as the
+       light and moves with it, the pretend pointer sits where the light is heading, and in Compare a ghost of it crosses the copy */
+    .views,.twin,.lbl,.ring{display:none}
+    .views{position:absolute;inset:0;z-index:2;pointer-events:none}
+    .ring{position:absolute;left:0;top:0;width:var(--g);height:var(--g);margin:calc(var(--g)/-2) 0 0 calc(var(--g)/-2);border:2px dashed rgba(244,244,242,.85);border-radius:50%;will-change:transform,opacity}
+    .pt{position:absolute;left:0;top:0;width:16px;height:23px;fill:#f4f4f2;stroke:#09090b;stroke-width:1.5;stroke-linejoin:round;overflow:visible;will-change:transform,opacity}
+    .ring,.pt{opacity:0;transition:opacity .35s ease}
+    .grid.lit .ring,.grid.lit .pt{opacity:1}
+    .grid.mouse .pt{display:none}
+    .grid.lit .pt.ghost{opacity:.65}
+    .lbl{padding:2px 6px;border-radius:5px;background:rgba(9,9,11,.92);color:#f4f4f2;font:600 13px/1.15 var(--hb-font);white-space:nowrap}
+    .in-l{position:absolute;left:0;top:0}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="inside"] .ring,
+    .stage[data-hb-mode="inside"] .in-l,.stage[data-hb-mode="compare"] .cmp-l{display:block}
+    .stage[data-hb-mode="inside"] .grid.no-edge .l-edge{display:none}
+    /* See inside: a band along each face's edge lets the edge light show through; the words stay on the solid middle */
+    .stage[data-hb-mode="inside"] .face{background:linear-gradient(#121216,#121216) content-box,rgba(18,18,22,.45)}
+    /* Compare: the copy beside the real grid, each half with its name above it (a row of its own, so no name covers a card), four
+       cards a half (two on phones, in one row, with no icons so the words fit) */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:8px clamp(14px,3vw,28px)}
+    .stage[data-hb-mode="compare"] .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .stage[data-hb-mode="compare"] .sc:nth-child(n+5){display:none}
+    .stage[data-hb-mode="compare"] .grid.twin{display:grid;touch-action:auto}
+    .twin{grid-area:2/1}
+    .stage[data-hb-mode="compare"] #grid{grid-area:2/2}
+    .cmp-l.first{grid-area:1/1}
+    .cmp-l.second{grid-area:1/2}
+    .cmp-l{justify-self:start}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"] .l-trail{display:none}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto minmax(0,1fr)}
+      .stage[data-hb-mode="compare"] .sc:nth-child(n+3){display:none}
+      .stage[data-hb-mode="compare"] .ic{display:none}
+      .stage[data-hb-mode="compare"] #grid{grid-area:4/1}
+      .cmp-l.second{grid-area:3/1}
+    }
+    @media(prefers-reduced-motion:reduce){.ring,.pt{transition-duration:.2s}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -72,6 +109,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the cards, drag a finger across them (or Tab to them and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="grid" id="grid" tabindex="0" role="group" aria-label="Feature cards: use the arrow keys to move the light">
         <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg><p class="t">Analytics</p><p class="d">See what people click.</p></div></div>
@@ -80,10 +122,26 @@
         <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.4L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.4L21 15"/><path d="M21 20v-5h-5"/></svg><p class="t">Sync</p><p class="d">Work on every device.</p></div></div>
         <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h5"/></svg><p class="t">Reports</p><p class="d">Weekly summaries.</p></div></div>
         <div class="sc"><span class="eg" aria-hidden="true"></span><div class="face"><span class="fg" aria-hidden="true"></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M21 20c0-2.6-1.6-4.8-4-5.6"/></svg><p class="t">Teams</p><p class="d">Invite and share.</p></div></div>
+        <!-- See inside and Compare, drawn over the cards: the circle the light covers, the pretend pointer and the labels -->
+        <div class="views" aria-hidden="true">
+          <span class="ring"></span>
+          <svg class="pt" viewBox="0 0 16 23"><path d="M1 1V19L5.5 15L8.5 22L11.5 20.7L8.5 14H14.5Z"/></svg>
+          <span class="lbl in-l l-ring" data-hb-caption>One light for all cards</span>
+          <span class="lbl in-l l-cut" data-hb-caption>Each card cuts its copy</span>
+          <span class="lbl in-l l-edge" data-hb-caption>Only the edge glows</span>
+          <span class="lbl in-l l-face" data-hb-caption>A faint copy on the face</span>
+          <span class="lbl in-l l-trail" data-hb-caption>Lags a little behind</span>
+        </div>
       </div>
+      <span class="lbl cmp-l first" data-hb-caption aria-hidden="true">No glow</span>
+      <span class="lbl cmp-l second" data-hb-caption aria-hidden="true">Spotlight</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed circle is one light, copied into every card and cut to its shape; each card's face hides the middle, so only the edge glows. Move over the cards, or press Show me.</p>
+      <p data-hb-for="compare" hidden>No glow: the cards ignore the pointer, shown as a ghost; Spotlight: the edges near the pointer light up and the light follows it. Move over the cards, or press Show me.</p>
     </div>
   </section>
 
@@ -174,13 +232,24 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
-  const grid=document.getElementById('grid');
+  const stage=document.querySelector('.stage'),grid=document.getElementById('grid');
   const lights=[...grid.querySelectorAll('.eg,.fg')];
   const cards=[...grid.querySelectorAll('.sc')].map(el=>({el,eg:el.querySelector('.eg'),fg:el.querySelector('.fg'),x:0,y:0,w:0,h:0}));
+  // See inside and Compare: the circle and the pretend pointer in the grid, and for Compare a copy of the grid that ignores the pointer,
+  // made once (no id, role or tab stop, inert, hidden from screen readers, no lights) with a ghost of the pointer in it
+  const ring=grid.querySelector('.ring'),pt=grid.querySelector('.pt'),twin=grid.cloneNode(true),ghost=pt.cloneNode(true);
+  ['id','tabindex','role','aria-label'].forEach(a=>twin.removeAttribute(a));
+  twin.querySelectorAll('.eg,.fg,.views').forEach(n=>n.remove());
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  ghost.classList.add('ghost');twin.append(ghost);stage.insertBefore(twin,grid);
+  lights.push(ring,pt,ghost);
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
   const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: ease is the share of the gap the light closes in one of them
   // lx,ly: where the light is; tx,ty: where it is heading (both on the grid, from its top left); W,H: the grid's size
   let lx=0,ly=0,tx=0,ty=0,W=0,H=0,bw=2,k=1.15,ease=0.3,lit=false,raf=0,last=null,touchId=null,runTimers=[],runFrame=0;
+  // mode: what the box shows; posed: the light is parked at its spot (a pretend pointer where four cards meet) because nothing else holds it;
+  // hover: a mouse or pen is over the grid; bits: the places of the icons and words, which the labels keep clear of
+  let mode='normal',posed=false,hover=false,wide=false,bits=[];
 
   // Card places and the light's size are measured once and again whenever the grid changes size; a pointer move reads only the grid's rectangle
   function measure(){
@@ -188,7 +257,18 @@
     bw=parseFloat(getComputedStyle(cards[0].el).paddingLeft)||0;
     cards.forEach(c=>{c.x=c.el.offsetLeft;c.y=c.el.offsetTop;c.w=c.el.offsetWidth;c.h=c.el.offsetHeight});
     grid.style.setProperty('--g',Math.round(k*Math.min(W,H))+'px');
+    // the icons and words of the cards on show (the words as tight as their lines), in the grid's frame, with a little air
+    const g0=grid.getBoundingClientRect(),rg=document.createRange();
+    // and each card's edge band (the card less its middle: a negative weight takes the middle off again)
+    const pad=bw+parseFloat(getComputedStyle(cards[0].el.querySelector('.face')).paddingLeft);
+    bits=cards.filter(c=>c.w).flatMap(c=>[{x:c.x,y:c.y,r:c.x+c.w,b:c.y+c.h,w:3},{x:c.x+pad,y:c.y+pad,r:c.x+c.w-pad,b:c.y+c.h-pad,w:-3},
+      ...[...c.el.querySelectorAll('.ic,.t,.d')].map(el=>{
+        rg.selectNodeContents(el);const r=el.matches('.ic')?el.getBoundingClientRect():rg.getBoundingClientRect(),icon=el.matches('.ic');
+        return{x:r.left-g0.left-3,y:r.top-g0.top-3,r:r.right-g0.left+3,b:r.bottom-g0.top+3,w:icon?1:12};
+      })]);
     draw();
+    if(posed)pose();
+    labels();
   }
   // Every card's two lights go to the same spot of the grid, each counted from its own corner
   function draw(){
@@ -197,6 +277,8 @@
       c.eg.style.transform=`translate(${(lx-c.x).toFixed(1)}px,${(ly-c.y).toFixed(1)}px)`;
       c.fg.style.transform=`translate(${(lx-c.x-bw).toFixed(1)}px,${(ly-c.y-bw).toFixed(1)}px)`;
     }
+    ring.style.transform=`translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`;
+    pt.style.transform=ghost.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
   }
   // A frame longer or shorter than a 60 Hz one closes the share of the gap that fits its time, so the lag is the same on
   // every screen. The first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms. Under reduced motion the
@@ -210,14 +292,21 @@
     draw();
     raf=done?0:requestAnimationFrame(tick);
   }
-  // The pointer, a finger and Show me all send the light to a spot. It appears there directly, as the pointer enters,
-  // so it never swoops in from where it was last; once it is shown it glides after each new spot.
+  // The pointer, a finger and Show me all send the light to a spot. It appears there directly, as the pointer enters (or takes over
+  // from the parked light), so it never swoops in from where it was last; once it is shown it glides after each new spot.
   function aim(x,y){
     tx=x;ty=y;
-    if(!lit){lx=x;ly=y;draw();lit=true;grid.classList.add('lit');return}
+    if(!lit||posed){lx=x;ly=y;posed=false;shine(true);draw();return}
     if(!raf)raf=requestAnimationFrame(tick);
   }
-  function off(){lit=false;grid.classList.remove('lit');cancelAnimationFrame(raf);raf=0;last=null}
+  function shine(on){lit=on;grid.classList.toggle('lit',on);twin.classList.toggle('lit',on)}
+  function off(){posed=false;shine(false);cancelAnimationFrame(raf);raf=0;last=null}
+  // Nothing holds the light any more: in See inside and Compare it goes back to its parked spot, in Normal it fades out
+  function release(){if(mode!=='normal'&&!inUse())pose();else off()}
+  function inUse(){return hover||touchId!==null||keyed||running()}
+  // The parked spot, where four cards meet (the middle of a row of two): the pretend pointer is there and the light shows it
+  function spot(){const a=cards[0],b=cards[1],below=cards.find(c=>c.w&&c.y>a.y)||a;return{x:(a.x+a.w+b.x)/2,y:(a.y+a.h+below.y)/2}}
+  function pose(){const s=spot();aim(s.x,s.y);posed=true}
   function aimAt(e){const r=grid.getBoundingClientRect();aim(e.clientX-r.left,e.clientY-r.top)}
 
   // Show me: one run at a time. Every timer of the run goes through later(); its path is drawn frame by frame (runFrame).
@@ -235,12 +324,14 @@
   grid.addEventListener('pointermove',e=>{
     if(e.pointerType==='touch'&&e.pointerId!==touchId)return;
     if(e.isTrusted&&running())stopRun();
+    hover=e.pointerType!=='touch';grid.classList.toggle('mouse',hover);
     aimAt(e);
   });
   grid.addEventListener('pointerleave',e=>{
     if(e.pointerType==='touch')return;
     if(e.isTrusted&&running())stopRun();
-    off();
+    hover=false;grid.classList.remove('mouse');
+    release();
   });
   grid.addEventListener('pointerdown',e=>{
     if(e.pointerType!=='touch')return;
@@ -248,7 +339,7 @@
     try{grid.setPointerCapture(touchId)}catch(_){}
     aimAt(e);
   });
-  ['pointerup','pointercancel'].forEach(type=>grid.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;off()}}));
+  ['pointerup','pointercancel'].forEach(type=>grid.addEventListener(type,e=>{if(e.pointerId===touchId){touchId=null;release()}}));
 
   // A run starts with the light off, put there without its fade: the transitions are turned off, the state is set, a reflow
   // makes it stick, and the transitions come back.
@@ -269,7 +360,7 @@
     if(reduce.matches){
       const a=cards[0],b=cards[1],below=cards.find(c=>c.w&&c.y>a.y)||a;
       aim((a.x+a.w+b.x)/2,(a.y+a.h+below.y)/2);
-      later(off,0,1400);
+      later(release,0,1400);
       return;
     }
     let t0=0;
@@ -278,12 +369,12 @@
       const s=Math.min(1,Math.max(0,now-t0)/RUN),e=s<.5?2*s*s:1-2*(1-s)*(1-s);
       aim(W*(.06+.88*e),H*(.5-.3*Math.sin(2*Math.PI*s)));
       runFrame=s<1?requestAnimationFrame(frame):0;
-      if(s>=1)later(off,0,150);
+      if(s>=1)later(release,0,150);
     })(performance.now());
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the light goes; their own pointer
   // brings it back where they are.
-  document.addEventListener('hb:input',()=>{if(running()){stopRun();off()}});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();release()}});
 
   // The keyboard: Tab focuses the grid and the light appears where the keys last left it (kx,ky: shares of the grid's width and
   // height, first its middle), stopping a run as a pointer does. Each arrow press moves that spot by STEP (from the pointer's
@@ -293,18 +384,63 @@
   const STEP=0.06,ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   let kx=.5,ky=.5,keyed=false;
   function aimKeys(){keyed=true;aim(kx*W,ky*H)}
-  grid.addEventListener('focus',()=>{if(grid.matches(':focus-visible')){if(running())stopRun();aimKeys()}});
-  grid.addEventListener('blur',()=>{if(keyed){keyed=false;off()}});
+  grid.addEventListener('focus',()=>{if(grid.matches(':focus-visible')){if(running())stopRun();if(posed&&W&&H){kx=tx/W;ky=ty/H}aimKeys()}});
+  grid.addEventListener('blur',()=>{if(keyed){keyed=false;release()}});
   grid.addEventListener('pointermove',()=>{keyed=false});
   grid.addEventListener('keydown',e=>{
     const d=ARROWS[e.key];
     if(e.altKey||e.ctrlKey||e.metaKey)return;
-    if(e.key==='Escape'){keyed=false;off();return}
+    if(e.key==='Escape'){keyed=false;release();return}
     if(!d)return;
     e.preventDefault();
     if(!keyed&&lit&&W&&H){kx=tx/W;ky=ty/H}
     kx=Math.min(1,Math.max(0,kx+d[0]*STEP));ky=Math.min(1,Math.max(0,ky+d[1]*STEP));
     aimKeys();
+  });
+
+  // The labels go where they cover no icon, title or description and no other label, as near as they can to the part they name.
+  // They are placed for the parked spot, when the size, a setting or the mode changes, never while the light moves.
+  function labels(){
+    if(mode!=='inside'||!W)return;
+    const s=spot(),r=parseFloat(grid.style.getPropertyValue('--g'))/2,vis=cards.filter(c=>c.w),mid=i=>{const c=vis[Math.min(i,vis.length-1)];return[c.x+c.w/2,c.y+c.h/2]};
+    // a light bigger than the box (its farthest corner, with the stage's padding, is inside the circle) leaves no circle to see
+    const pad=parseFloat(getComputedStyle(stage).paddingLeft);
+    wide=Math.hypot(Math.max(s.x,W-s.x)+pad,Math.max(s.y,H-s.y)+pad)<r;
+    grid.querySelector('.l-ring').textContent=wide?'One light covers every card':'One light for all cards';
+    notes();
+    const taken=[...bits,{x:s.x-2,y:s.y-2,r:s.x+18,b:s.y+25,w:4}];
+    const overlap=(a,b)=>Math.max(0,Math.min(a.r,b.r)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.b,b.b)-Math.max(a.y,b.y));
+    [['.l-ring',s.x-.7*r,s.y-.7*r],['.l-cut',s.x+.7*r,s.y-.7*r],['.l-edge',...mid(3)],['.l-face',...mid(4)],['.l-trail',s.x+30,s.y]].forEach(([q,ax,ay])=>{
+      const el=grid.querySelector(q),w=el.offsetWidth,h=el.offsetHeight;
+      if(!w)return;
+      let best=[Infinity,0,0];
+      for(let y=2;y<=H-h-2;y+=2)for(let x=2;x<=W-w-2;x+=8){
+        const b={x,y,r:x+w,b:y+h};let c=0;
+        for(const o of taken)c+=overlap(b,o)*o.w;
+        const sc=c*1000+Math.hypot(x+w/2-ax,y+h/2-ay);
+        if(sc<best[0])best=[sc,x,y];
+      }
+      el.style.left=best[1]+'px';el.style.top=best[2]+'px';
+      taken.push({x:best[1],y:best[2],r:best[1]+w,b:best[2]+h,w:30});
+    });
+  }
+  // The notes say what the box shows now (the markup's own words while the edges are on and the circle is in view): with Lights the edges
+  // off there is no edge light to point at, and where the light is bigger than the whole box its circle lies outside it
+  function notes(){
+    const on=!grid.classList.contains('no-edge'),say=(m,t)=>{const p=document.querySelector(`[data-hb-for="${m}"]`);if(p.textContent!==t)p.textContent=t};
+    say('inside',(wide?'Inside, the light is so big that its dashed circle lies outside the box; ':'Inside, the dashed circle is one light, copied into every card and cut to its shape; ')+
+      (on?"each card's face hides the middle, so only the edge glows. Move over the cards, or press Show me.":'with Lights the edges off, only the faint copy on each face shows. Move over the cards.'));
+    say('compare','No glow: the cards ignore the pointer, shown as a ghost; Spotlight: '+
+      (on?'the edges near the pointer light up and the light follows it.':'with Lights the edges off, only a faint light on the faces follows it.')+' Move over the cards, or press Show me.');
+  }
+  const TRAIL={1:'Stays on the pointer',0.3:'Lags a little behind',0.1:'Lags far behind'};
+  // The mode switch: the box shows the mode at once. Compare changes the size of the grid, so the cards are measured again before the
+  // parked spot is worked out; the shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    measure();
+    if(inUse())return;
+    if(mode==='normal'){if(posed)off()}else pose();
   });
 
   function choices(id,pick){
@@ -316,8 +452,8 @@
   }
   choices('size-seg',d=>{k=+d.k;measure()});
   choices('color-sw',d=>{grid.style.setProperty('--glow',d.c)});
-  choices('lag-seg',d=>{ease=+d.ease});
-  document.getElementById('edge-tog').addEventListener('change',e=>{grid.classList.toggle('no-edge',!e.target.checked)});
+  choices('lag-seg',d=>{ease=+d.ease;grid.querySelector('.l-trail').textContent=TRAIL[ease];labels()});
+  document.getElementById('edge-tog').addEventListener('change',e=>{grid.classList.toggle('no-edge',!e.target.checked);notes();labels()});
   new ResizeObserver(measure).observe(grid);
 </script>
 </body>
