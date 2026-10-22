@@ -35,6 +35,22 @@
     /* The site focus ring is drawn inside the button. On the orange and the green fill it is as light as the fill, so it turns dark. */
     .hb-page .stage .order-btn:focus-visible{outline-color:#0b0b0d}
     @media(prefers-reduced-motion:reduce){.order-btn:active{transform:none}}
+    /* See inside and Compare: words on a dark backing over the canvas (the script places See inside's), and Compare's inert copy of the button */
+    .cap,.copy{display:none}
+    .cap{position:absolute;z-index:3;width:max-content;max-width:var(--w,240px);padding:4px 9px;border-radius:6px;background:rgba(11,11,13,.9);
+      color:#f4f4f2;font:600 13px/17px var(--hb-font);pointer-events:none}
+    .stage[data-hb-mode="inside"] .cap.in{display:block}
+    /* the spin's words point at a posed piece, so they show only while the still does */
+    .stage[data-hb-mode="inside"]:not(.posed) .cap.spin{display:none}
+    /* Compare: the scene twice, side by side at every width: on the left the button alone, on the right the button with its confetti */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;justify-items:center}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .order-btn{white-space:nowrap}
+    .stage[data-hb-mode="compare"] button.order-btn{grid-area:1/2}
+    .stage[data-hb-mode="compare"] .copy{display:flex;grid-area:1/1;align-items:center;justify-content:center;line-height:normal}
+    .stage[data-hb-mode="compare"] .cap.half{display:block;top:10px}
+    .half.first{left:10px}.half.second{left:calc(50% + 10px)}
+    @media(max-width:600px){.cap{padding:3px 7px;font-size:12px;line-height:16px}.stage[data-hb-mode="compare"] .order-btn{padding:18px 14px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -57,12 +73,27 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Place order (again for another burst), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <canvas id="cv" aria-hidden="true"></canvas>
       <button class="order-btn" type="button"><span class="check" aria-hidden="true">✓</span><span id="btn-lbl">Place order</span></button>
+      <p class="cap in fan" aria-hidden="true" data-hb-caption>Shot upward inside a medium fan</p>
+      <p class="cap in pull" aria-hidden="true" data-hb-caption>Gravity pulls every piece down steadily</p>
+      <p class="cap in path" aria-hidden="true" data-hb-caption>Each piece rises, slows, then falls and fades over about two seconds</p>
+      <p class="cap in spin" aria-hidden="true" data-hb-caption>Each one spins as it flies</p>
+      <p class="cap half first" aria-hidden="true" data-hb-caption>Check only</p>
+      <p class="cap half second" aria-hidden="true" data-hb-caption>With confetti</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the fan shows where the pieces are shot, the arrows the pull that brings them down, and the dashed lines a few of their paths. Click Place order, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Check only: the button turns green with a check; With confetti: pieces also shoot up from it, spin, fall and fade. Click Place order, or press Show me.</p>
     </div>
   </section>
 
@@ -147,30 +178,46 @@
   const COLORS=['#ff9d5c','#ff5470','#3fb950','#58a6ff','#ffd166','#c792ea'];
   const FRAME=1000/60;   // one frame of a 60 Hz screen, in ms: every step below is measured in these
   let particles=[],raf=null,last=null,dpr=1,pCount=120,spreadDeg=110,gravity=0.28,runTimers=[];
+  let mode='normal',posed=false,poseTimer=0,kept=null,shot=[],G={};   // See inside and Compare (see the end of the script)
+
+  // Compare's first half: a copy of the button that follows its look and label but never fires confetti, out of reach of the
+  // keyboard and screen readers
+  const twin=document.createElement('span'),twinCheck=check.cloneNode(true),twinLbl=lbl.cloneNode(true);
+  twinLbl.removeAttribute('id');twin.className='order-btn copy';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.append(document.createElement('span'));twin.firstChild.append(twinCheck,twinLbl);stage.append(twin);   // inside one box, as a button holds its content
 
   // The canvas has one pixel per screen pixel (two at most per CSS pixel), so the pieces stay sharp on dense screens.
+  // Resizing wipes it, so a mode's drawing is made again.
   function resize(){
     dpr=Math.min(window.devicePixelRatio||1,2);
     cv.width=Math.round(stage.clientWidth*dpr);cv.height=Math.round(stage.clientHeight*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(mode!=='normal')plan();
   }
   resize();new ResizeObserver(resize).observe(stage);
 
+  // Where a burst starts: the button's center, in the stage
+  function origin(){const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();return[b.left+b.width/2-s.left,b.top+b.height/2-s.top]}
+  // One piece from x, y, fanned round straight up by Spread (r gives the random numbers: Math.random for a real burst, a fixed
+  // series for the still)
+  function piece(i,x,y,r){
+    const ang=-Math.PI/2+(r()*2-1)*(spreadDeg*Math.PI/180)/2,speed=6+r()*7;
+    return{x,y,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
+      w:6+r()*6,h:3+r()*5,rot:r()*Math.PI,
+      spin:(r()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1};
+  }
   function fire(){
+    lift();
     if(dpr!==Math.min(window.devicePixelRatio||1,2))resize();
-    const b=btn.getBoundingClientRect(),s=stage.getBoundingClientRect();
-    const ox=b.left+b.width/2-s.left;          // origin x at button center
-    const cy=b.top+b.height/2-s.top;           // origin y at button center
-    const half=(spreadDeg*Math.PI/180)/2;
-    for(let i=0;i<pCount;i++){
-      // Base direction is straight up (-90deg), fanned by the spread angle
-      const ang=-Math.PI/2+(Math.random()*2-1)*half;
-      const speed=6+Math.random()*7;
-      particles.push({x:ox,y:cy,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,
-        w:6+Math.random()*6,h:3+Math.random()*5,rot:Math.random()*Math.PI,
-        spin:(Math.random()-0.5)*0.3,color:COLORS[i%COLORS.length],life:1});
-    }
+    const [ox,cy]=origin();
+    for(let i=0;i<pCount;i++)particles.push(piece(i,ox,cy,Math.random));
     if(!raf){last=null;raf=requestAnimationFrame(tick)}
+  }
+  // One step of a piece, h 60 Hz frames long: gravity pulls it down, drag slows it sideways, it spins and it fades
+  function step(p,h,drag){p.vy+=gravity*h;p.vx*=drag;p.x+=p.vx*h;p.y+=p.vy*h;p.rot+=p.spin*h;p.life-=0.008*h}
+  function dot(p){
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+    ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
   }
   function tick(ts){
     ctx.clearRect(0,0,cv.width,cv.height);
@@ -180,27 +227,26 @@
     // A step over 1.5 frames (a 30 Hz screen) is taken in two halves, which keeps the arc close to the one a 60 Hz screen draws.
     const dt=last===null?FRAME:Math.min(ts-last,50);last=ts;
     const k=dt/FRAME,parts=k>1.5?2:1,h=k/parts,drag=0.99**h;
+    ctx.save();
+    if(mode==='compare')half();   // Compare draws the burst in its second half only
     for(const p of particles){
-      for(let i=0;i<parts;i++){p.vy+=gravity*h;p.vx*=drag;p.x+=p.vx*h;p.y+=p.vy*h;p.rot+=p.spin*h;p.life-=0.008*h}
-      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-      ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
-      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+      for(let i=0;i<parts;i++)step(p,h,drag);
+      dot(p);
     }
-    ctx.globalAlpha=1;
+    ctx.restore();
+    if(mode==='inside')guides();
     raf=particles.length?requestAnimationFrame(tick):null;
+    if(!raf)settle(HOLD);
   }
 
   // Placing the order turns the button green with a check and, unless the visitor asks for reduced motion, fires the confetti.
   // The click and Show me both come through here; the button stays done, so every further click fires another burst.
-  function place(){
-    btn.classList.add('done');
-    lbl.textContent='Order placed';
-    if(!reduce.matches)fire();
+  function face(done){
+    btn.classList.toggle('done',done);twin.classList.toggle('done',done);
+    lbl.textContent=twinLbl.textContent=done?'Order placed':'Place order';
   }
-  function back(){
-    btn.classList.remove('done');
-    lbl.textContent='Place order';
-  }
+  function place(){face(true);if(!reduce.matches)fire()}
+  function back(){face(false)}
   btn.addEventListener('click',place);
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
@@ -211,35 +257,197 @@
   }
   function running(){return runTimers.length>0}
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
-  // A run starts from the arrival state, put there without animating: the transitions are turned off, the button is put back, a reflow
-  // makes it stick, and the transitions come back. Confetti still in the air goes too.
-  function toRest(){
-    [btn,check].forEach(el=>{el.style.transition='none'});
-    back();
-    particles=[];ctx.clearRect(0,0,cv.width,cv.height);
+  // The button (and Compare's copy) is put in a state without animating: the transitions are turned off, the state is set, a reflow
+  // makes it stick, and the transitions come back.
+  function rest(done){
+    const els=[btn,check,twin,twinCheck];
+    els.forEach(el=>{el.style.transition='none'});
+    face(done);
     void btn.offsetWidth;
-    [btn,check].forEach(el=>{el.style.transition=''});
+    els.forEach(el=>{el.style.transition=''});
+  }
+  // A run starts from the arrival state, put there without animating. Confetti still in the air goes too.
+  function toRest(){
+    lift();
+    rest(false);
+    particles=[];draw();
   }
   // The order is placed after 300ms of rest, and the button goes back once the 2.1 s burst and 400ms more of rest have passed.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
     later(place,0,300);
-    later(back,2100,700);
+    later(()=>{back();settle(HOLD)},2100,700);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the button stays as it is.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();settle(HOLD)}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      if(mode!=='normal')plan();   // a mode's drawing follows the setting at once
     }));
   }
   choices('amount-seg',d=>{pCount=+d.n});
   choices('spread-seg',d=>{spreadDeg=+d.deg});
   choices('fall-seg',d=>{gravity=+d.g});
+
+  // See inside and Compare. HOLD: how long the end of a run stays in view before the still comes back (ms). POSE: the still's moment,
+  // a quarter of a second after launch, in 60 Hz steps (a piece is at 0.88 of its strength then). SEED: the fixed series of random
+  // numbers the still's burst comes from, so every still is the same. MID: the middle of the launch speeds, which the sample paths use.
+  const HOLD=700,POSE=15,SEED=1,MID=9.5,DASH=[5,5],NODASH=[];
+  const FANS={60:'a narrow fan',110:'a medium fan',170:'a wide fan'},PULLS={.15:'gently',.28:'steadily',.45:'hard'};
+  const [capFan,capPull,capPath,capSpin]=stage.querySelectorAll('.cap.in');
+  // Under reduced motion both views are still pictures, and their notes say so (the page's own words otherwise)
+  const STILL={inside:'Inside, shown still: the fan shows where the pieces would be shot, the arrows the pull on them and the lines their paths. With reduced motion on, no confetti flies.',
+    compare:'Shown still: Check only turns green with a check; With confetti also sends pieces flying. With reduced motion on, both only turn green.'};
+  const noteTexts=[...document.querySelectorAll('[data-hb-for]')].map(n=>[n,n.textContent]);
+  function noteWords(){for(const [n,t] of noteTexts){const w=reduce.matches?STILL[n.dataset.hbFor]:t;if(n.textContent!==w)n.textContent=w}}
+  noteWords();reduce.addEventListener('change',noteWords);
+
+  function fixed(){let s=SEED;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function half(){const w=stage.clientWidth;ctx.beginPath();ctx.rect(w/2,0,w/2,stage.clientHeight);ctx.clip()}
+  // An arrowhead at x, y for a line that arrives there heading in direction a
+  function head(x,y,a){ctx.moveTo(x+Math.cos(a+2.6)*6,y+Math.sin(a+2.6)*6);ctx.lineTo(x,y);ctx.lineTo(x+Math.cos(a-2.6)*6,y+Math.sin(a-2.6)*6)}
+  // See inside's drawings, over the pieces: the fan, the five sample paths, the pull's arrows and, with the still, the curved arrow
+  function guides(){
+    const {x,y,R,fan,pull,spin}=G;
+    ctx.save();
+    ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,R,fan[0],fan[1]);ctx.closePath();
+    ctx.fillStyle=G.fill;ctx.fill();
+    ctx.strokeStyle=G.edge;ctx.lineWidth=1.25;ctx.beginPath();
+    for(const a of fan){ctx.moveTo(x,y);ctx.lineTo(x+R*Math.cos(a),y+R*Math.sin(a))}
+    ctx.stroke();
+    ctx.setLineDash(DASH);ctx.strokeStyle='rgba(244,244,242,.7)';ctx.lineWidth=1.5;ctx.beginPath();
+    for(const pts of G.paths){ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1])}
+    ctx.stroke();ctx.setLineDash(NODASH);
+    ctx.lineCap=ctx.lineJoin='round';ctx.strokeStyle='#58a6ff';ctx.lineWidth=2;ctx.beginPath();
+    for(let i=0;i<3;i++){const ax=pull.l+6+14*i;ctx.moveTo(ax,pull.t);ctx.lineTo(ax,pull.t+pull.len);head(ax,pull.t+pull.len,Math.PI/2)}
+    ctx.stroke();
+    if(posed&&spin){
+      ctx.strokeStyle='#f4f4f2';ctx.lineWidth=1.75;ctx.beginPath();ctx.arc(spin.x,spin.y,13,.3,3.6);
+      head(spin.x+13*Math.cos(3.6),spin.y+13*Math.sin(3.6),3.6+Math.PI/2);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // The canvas at rest in a mode: the still's burst (second half only in Compare; a piece that would sit under a caption is left out),
+  // then See inside's drawings over it. A look only: the button and a real burst's pieces are never touched.
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    if(mode==='normal')return;
+    ctx.save();
+    if(mode==='compare')half();
+    if(posed){
+      const words=[...stage.querySelectorAll('.cap')].filter(el=>el.offsetParent).map(el=>el.getBoundingClientRect()),s=stage.getBoundingClientRect();
+      for(const p of shot)if(!words.some(b=>p.x+8>b.left-s.left&&p.x-8<b.right-s.left&&p.y+8>b.top-s.top&&p.y-8<b.bottom-s.top))dot(p);
+    }
+    ctx.restore();
+    if(mode==='inside')guides();
+  }
+  function setPose(on){posed=on;stage.classList.toggle('posed',on);draw()}
+  // A click or Show me takes the still off before the real burst flies (not under reduced motion, where nothing flies)
+  function lift(){clearTimeout(poseTimer);poseTimer=0;if(posed&&!reduce.matches)setPose(false)}
+  // The still comes back in See inside and Compare once nothing goes on (no piece in the air, no Show me step waiting): after a
+  // change it waits HOLD first, so the end of the run is seen; a mode press shows it at once.
+  function settle(wait){
+    clearTimeout(poseTimer);poseTimer=0;
+    if(mode!=='normal'&&!raf&&!running()){if(wait)poseTimer=setTimeout(()=>settle(0),wait);else setPose(true)}
+  }
+
+  // The still and See inside's marks, worked out with the page's own step: the fixed burst POSE steps after launch, and five sample
+  // paths at the middle launch speed from the fan's two edges, its middle and between, each until it leaves the box or fades.
+  function plan(){
+    const W=stage.clientWidth,H=stage.clientHeight,[x,y]=origin(),r=fixed();
+    shot=Array.from({length:pCount},(_,i)=>piece(i,x,y,r));
+    for(const p of shot)for(let n=0;n<POSE;n++)step(p,1,.99);
+    G={x,y,paths:[]};
+    if(mode==='inside'){
+      const hf=spreadDeg*Math.PI/360;
+      G.fan=[-Math.PI/2-hf,-Math.PI/2+hf];
+      for(const f of [-1,-.5,0,.5,1]){
+        const a=-Math.PI/2+f*hf,q={x,y,vx:Math.cos(a)*MID,vy:Math.sin(a)*MID,rot:0,spin:0,life:1},pts=[[x,y]];
+        while(q.life>0&&q.y<H&&q.x>0&&q.x<W){step(q,1,.99);pts.push([q.x,q.y])}
+        G.paths.push(pts);
+      }
+      lay(W,H);
+    }
+    if(!raf)draw();
+  }
+  // See inside's words and marks, placed from measured sizes and kept 8px or more inside the box. Each takes the first spot that is
+  // clear (6px) of the button and of what was placed before it, else its first: the fan's words centered over the fan; the pull's
+  // three arrows (as long as the pull) under the button on the left, with their words beside them and the path's words under those;
+  // and the spin's words beside the posed piece nearest the fan's upper left, which gets a curved arrow round it.
+  function lay(W,H){
+    const m=8,g=6,{x,y}=G,sb=stage.getBoundingClientRect(),bb=btn.getBoundingClientRect();
+    const used=[{l:bb.left-sb.left-18,t:bb.top-sb.top,r:bb.right-sb.left+18,b:bb.bottom-sb.top}];   // 18px each side: the button is wider once it is done
+    const clear=k=>used.every(u=>k.l-g>=u.r||k.r+g<=u.l||k.t-g>=u.b||k.b+g<=u.t);
+    const fit=(el,w)=>{el.style.setProperty('--w',Math.max(w,100)+'px');return[el.offsetWidth,el.offsetHeight]};
+    // the first spot that is clear (else the first, or none when must is false) for a w by h box; a word box moves there
+    const put=(el,[w,h],spots,must=true)=>{
+      let k=null,first=null;
+      for(const [left,top] of spots){
+        const l=Math.max(m,Math.min(left(w,h),W-m-w)),t=Math.max(m,Math.min(top(w,h),H-m-h)),c={l,t,r:l+w,b:t+h};
+        if(clear(c)){k=c;break}
+        first=first||c;
+      }
+      k=k||(must?first:null);
+      if(k){used.push(k);if(el){el.style.left=k.l+'px';el.style.top=k.t+'px'}}
+      return k;
+    };
+    capFan.textContent='Shot upward inside '+FANS[spreadDeg];
+    capPull.textContent='Gravity pulls every piece down '+PULLS[gravity];
+    put(capFan,fit(capFan,W-2*m),[[w=>x-w/2,()=>m]]);
+    // the fan reaches the top of the box and fades out along the way, so a piece that flies past its end is not outside it
+    G.R=y-m;
+    [G.fill,G.edge]=[[.36,.1],[.8,.3]].map(([a,z])=>{const f=ctx.createRadialGradient(x,y,0,x,y,G.R);f.addColorStop(0,`rgba(255,157,92,${a})`);f.addColorStop(1,`rgba(255,157,92,${z})`);return f});
+    // the pull, as one block at the bottom: three arrows (as long as the pull) with the pull's words and the path's words stacked beside
+    // them. The block takes the first spot from the left that is clear and whose arrows no sample path crosses, else the one whose
+    // arrows are crossed least (the words may cover the lower end of an arch).
+    const len=gravity*160,hits=k=>G.paths.reduce((n,pts)=>n+pts.filter(([px,py])=>px>k.l-4&&px<k.r+4&&py>k.t-4&&py<k.b+4).length,0);
+    let blk=null,score=0;
+    for(const l0 of [x-330,x-240,m,m+26,m+52,m+78]){
+      const l=Math.max(m,l0),cw=Math.min(280,W-m-l-48),[pw,ph]=fit(capPull,cw),[qw,qh]=fit(capPath,cw),bh=Math.max(len,ph+6+qh);
+      const k={l,t:H-m-bh,r:l+48+Math.max(pw,qw),b:H-m,cw,ph},sc=(clear(k)?0:1e6)+hits({l,t:k.t,r:l+40,b:k.t+len});
+      if(!blk||sc<score){blk=k;score=sc}
+      if(!sc)break;
+    }
+    fit(capPull,blk.cw);fit(capPath,blk.cw);
+    G.pull={l:blk.l,t:blk.t,len};
+    capPull.style.left=capPath.style.left=blk.l+48+'px';
+    capPull.style.top=blk.t+'px';capPath.style.top=blk.t+blk.ph+6+'px';
+    used.push(blk);
+    // the spin: the posed pieces from the one nearest the fan's left side outward, the first with room for a ring and its words
+    capSpin.hidden=false;capSpin.style.display='block';   // it has no size to measure while the still is off or no spot was found
+    const [sw,sh]=fit(capSpin,240),ring=p=>({l:p.x-16,t:p.y-16,r:p.x+16,b:p.y+16});
+    capSpin.style.display='';
+    const hf=spreadDeg*Math.PI/360,tx=x-Math.sin(hf)*.55*G.R,ty=y-Math.cos(hf)*.55*G.R,away=p=>Math.hypot(p.x-tx,p.y-ty);
+    G.spin=null;
+    for(const p of shot.filter(p=>p.x>m+20&&p.x<W-m-20&&p.y>m+20&&p.y<H-m-20).sort((a,b)=>away(a)-away(b))){
+      if(!clear(ring(p)))continue;
+      used.push(ring(p));
+      if(put(capSpin,[sw,sh],[[()=>p.x-24-sw,()=>p.y-sh/2],[()=>p.x+24,()=>p.y-sh/2],[()=>p.x-sw/2,()=>p.y+24],[()=>p.x-sw/2,()=>p.y-24-sh]],false)){G.spin={x:p.x,y:p.y};break}
+      used.pop();
+    }
+    capSpin.hidden=!G.spin;
+  }
+  // The mode switch draws the mode at once. Leaving Normal keeps its own state (the button's look, the pieces in the air), and
+  // pressing Normal puts that state back as it was, a burst going on from where it was; a run a mode plays (Show me, pressed right
+  // after) is stopped then, and whatever the mode did to the button is undone.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode!=='normal'){
+      // a Show me run that waits ends with the button back and no piece left, so that is the state kept; else the look and the pieces
+      if(was==='normal')kept={done:!running()&&btn.classList.contains('done'),pieces:running()?[]:particles.map(p=>({...p}))};
+      plan();settle(0);return;
+    }
+    if(was==='normal'||!kept)return;
+    stopRun();clearTimeout(poseTimer);poseTimer=0;posed=false;stage.classList.remove('posed');
+    particles=kept.pieces;rest(kept.done);kept=null;draw();
+    if(particles.length&&!raf){last=null;raf=requestAnimationFrame(tick)}
+  });
+  document.fonts.ready.then(()=>{if(mode!=='normal')plan()});
 </script>
 </body>
 </html>
