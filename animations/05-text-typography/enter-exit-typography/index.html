@@ -48,6 +48,47 @@
     @keyframes xBl{from{opacity:1;filter:blur(0)}to{opacity:0;filter:blur(12px)}}
     @keyframes xCl{from{opacity:1;clip-path:inset(0 0% 0 0)}to{opacity:1;clip-path:inset(0 100% 0 0)}}
     @media(prefers-reduced-motion:reduce){.phrase-el{animation:none!important;opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}}
+    /* See inside and Compare. What they draw is hidden in Normal, and the bands only group the phrase there (they lay out nothing). */
+    .band{display:contents}
+    .band.copy,.strip,.side,.when,.ghost{display:none}
+    .copy-el{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center}
+    .lbl{position:absolute;z-index:2;padding:3px 7px;border-radius:5px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the phrase plays in the room above a strip. The strip draws a phrase's three parts as bars as long as the page's own
+       times, a marker that runs through them, and one dot for each of the five phrases. */
+    .stage[data-hb-mode="inside"]{flex-direction:column;align-items:stretch;justify-content:flex-start;overflow:hidden}
+    .stage[data-hb-mode="inside"] .phrase-el{position:relative;inset:auto;flex:1 1 0;min-height:0;padding:12px clamp(12px,3vw,32px)}
+    .stage[data-hb-mode="inside"] .strip{display:block}
+    .strip{flex:none;padding:8px clamp(10px,2.5vw,24px) 10px;background:#090c15;border-top:1px solid rgba(244,244,242,.14)}
+    .c1{--c:var(--ui-accent)}
+    .c2{--c:#f4f4f2}
+    .c3{--c:color-mix(in srgb,var(--ui-accent) 55%,#090c15)}
+    .caps{position:relative}
+    .cap{display:flex;flex-direction:column;border-bottom:2px solid var(--c)}
+    .cap span{font-weight:500}
+    .cap.c2{align-items:center;text-align:center}
+    .cap.c3{align-items:flex-end;text-align:right}
+    .bars{position:relative;display:flex;gap:2px;height:14px;margin-top:6px}
+    .bar{flex:1 1 0;min-width:4px;border-radius:3px;background:var(--c)}
+    .bar.faint{background:transparent;outline:1.5px dashed rgba(244,244,242,.45);outline-offset:-1.5px}
+    .mark{position:absolute;left:-1px;top:-4px;width:2px;height:22px;background:#fff;box-shadow:0 0 0 1px #090c15;will-change:transform}
+    .dots{display:flex;justify-content:center;gap:8px;margin-top:9px}
+    .dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(244,244,242,.6)}
+    .dots i.on{background:var(--ui-accent);border-color:var(--ui-accent)}
+    /* Compare: two bands, one over the other at every width. The top one swaps the words at once; the bottom one is the real phrase.
+       At rest the real phrase is held a fifth of a second into its wipe, inside a dashed outline of the whole phrase's box. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;overflow:hidden}
+    .stage[data-hb-mode="compare"] .band,.stage[data-hb-mode="compare"] .band.copy{display:block;position:relative;overflow:hidden}
+    .stage[data-hb-mode="compare"] .copy-el,.stage[data-hb-mode="compare"] .phrase-el{padding:30px 12px}
+    .stage[data-hb-mode="compare"] .phrase-text{font-size:clamp(24px,4.2vw,40px)}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;z-index:1;left:0;right:0;top:50%;height:1px;background:rgba(244,244,242,.16)}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"].posed .when,.stage[data-hb-mode="compare"].posed .ghost{display:block}
+    .stage[data-hb-mode="compare"].posed .phrase-el{clip-path:inset(0 var(--cut) 0 0)!important;opacity:1!important}
+    .side,.when{left:10px}
+    .side.s1{top:8px}
+    .side.s2{top:calc(50% + 8px)}
+    .when{bottom:8px}
+    .ghost{position:absolute;border:1.5px dashed rgba(244,244,242,.5);border-radius:6px;pointer-events:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -70,15 +111,40 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="phrase-el state-hidden" id="phrase-el" aria-live="polite">
-        <div class="phrase-text" id="phrase-text"></div>
+      <div class="band copy" aria-hidden="true" inert><div class="copy-el"><div class="phrase-text"></div></div></div>
+      <div class="band">
+        <div class="phrase-el state-hidden" id="phrase-el" aria-live="polite">
+          <div class="phrase-text" id="phrase-text"></div>
+        </div>
+        <span class="ghost" aria-hidden="true"></span>
       </div>
+      <div class="strip" aria-hidden="true">
+        <div class="caps">
+          <p class="lbl cap c1" data-hb-caption><b>Comes in</b><span></span></p>
+          <p class="lbl cap c2" data-hb-caption><b>Holds to be read</b><span></span></p>
+          <p class="lbl cap c3" data-hb-caption><b>Leaves</b><span></span></p>
+        </div>
+        <div class="bars"><span class="bar c1"></span><span class="bar c2"></span><span class="bar c3"></span><span class="mark"></span></div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p class="lbl side s1" aria-hidden="true" data-hb-caption>Swaps at once</p>
+      <p class="lbl side s2" aria-hidden="true" data-hb-caption>Enters and exits</p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each phrase has three parts on one time line: it comes in, holds still to be read, then leaves. The marker runs through them as each phrase plays.</p>
+      <p data-hb-for="compare" hidden>Swaps at once changes the words with no movement, so each change is a jump. Enters and exits brings each phrase in and takes it out, with the same time to read.</p>
     </div>
   </section>
 
@@ -163,6 +229,23 @@
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let enterMs=500,holdMs=2000,exitMs=400,timers=[];
+  // The wait the chain adds to each entrance and exit, so a part of a phrase lasts its animation plus this
+  const PAD=50;
+
+  // See inside and Compare. The strip's pieces, the dots (one for each phrase), the marker, and the numbers of the pose: a fifth of
+  // a second into the entrance's own speed curve, with a dashed outline GHOST pixels around the whole phrase's box.
+  const stage=document.querySelector('.stage');
+  const copyText=stage.querySelector('.copy-el .phrase-text'),ghost=stage.querySelector('.ghost');
+  const strip=stage.querySelector('.strip'),capsBox=strip.querySelector('.caps'),capEls=[...capsBox.children];
+  const barEls=[...strip.querySelectorAll('.bar')],mark=strip.querySelector('.mark'),dotEls=[...strip.querySelectorAll('.dots i')];
+  const GAP=8,GHOST=5,POSE_MS=200,EASE_OUT=[0,0,.58,1];
+  // idx: the phrase on show (-1 before the first); leaving: its exit has begun; ended: the play is over and the last phrase stays
+  let mode='normal',idx=-1,phraseAt=0,leaving=false,ended=false,markRaf=0,geom=[];
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent="Shown still: the three bars are each phrase's parts, coming in, holding to be read and leaving. With reduced motion on, the phrases swap in place but keep these times.";
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still when a play ends, a fifth of a second into the last phrase: Swaps at once shows it whole; Enters and exits is still wiping it in.';
+  }
 
   const PHRASES=[
     {text:'Everything starts',enter:'enter-slide-right',exit:'exit-slide-up'},
@@ -186,11 +269,14 @@
   function showPhrase(i){
     const p=PHRASES[i];
     phraseText.textContent=p.text;
+    copyText.textContent=p.text;
+    idx=i;leaving=false;ended=false;phraseAt=performance.now();
     phraseEl.classList.remove(...allPhaseClasses);
     phraseEl.classList.add('state-hidden');
     void phraseEl.offsetWidth;
     phraseEl.classList.remove('state-hidden');
     phraseEl.classList.add(p.enter);
+    refresh();
   }
 
   // Plays phrase i: enter, hold, exit, then the next phrase starts 120ms later. The last phrase always
@@ -202,14 +288,90 @@
     const p=PHRASES[i],last=i===PHRASES.length-1;
     later(()=>{
       later(()=>{
-        if(last&&(!loopTog.checked||!motionOk))return;
+        if(last&&(!loopTog.checked||!motionOk)){ended=true;refresh();return}
         phraseEl.classList.remove(p.enter);
         phraseEl.classList.add(p.exit);
-        later(()=>later(()=>step(last?0:i+1),120),exitDur()+50);
+        leaving=true;
+        later(()=>later(()=>step(last?0:i+1),120),exitDur()+PAD);
       },holdMs);
-    },enterDur()+50);
+    },enterDur()+PAD);
   }
   function play(){timers.forEach(clearTimeout);timers=[];step(0)}
+
+  // A phrase's three parts in ms, as step() waits them (one array, filled again each time, so the marker's frames make nothing new)
+  const PARTS=[0,0,0];
+  function parts(){PARTS[0]=enterDur()+PAD;PARTS[1]=holdMs;PARTS[2]=exitDur()+PAD;return PARTS}
+  // The last phrase with Loop off stays: it never leaves, so its third part is not coming
+  function stays(){return idx===PHRASES.length-1&&!leaving&&(!loopTog.checked||!motionOk)}
+  function words(t){
+    return t<=420?'a third of a second':t<=520?'under half a second':t<=640?'half a second':t<=800?'over half a second':t<=980?'under a second':
+      t<=1100?'about a second':t<=1450?'just over a second':t<=1800?'a second and a half':t<=2250?'two seconds':t<=2800?'two and a half seconds':
+      t<=3400?'about three seconds':'about '+Math.round(t/1000)+' seconds';
+  }
+  // The speed curve's height at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // See inside: bars as long as the three parts, their words, the lit dot, then the places of the captions and the marker
+  function drawStrip(){
+    const s=parts(),no=stays(),say=[words(s[0]),words(s[1]),no?'not on the last one':words(s[2])];
+    barEls.forEach((b,k)=>{b.style.flexGrow=s[k]});
+    barEls[2].classList.toggle('faint',no);
+    capEls.forEach((c,k)=>{if(c.lastChild.textContent!==say[k])c.lastChild.textContent=say[k]});
+    dotEls.forEach((d,k)=>d.classList.toggle('on',k===idx));
+    layout();
+  }
+  // The captions sit apart above the strip, the middle one over its bar where there is room: in one row if all three fit side by
+  // side; else in two rows, the middle one above the other two; else in three, one above the other
+  function layout(){
+    const W=capsBox.clientWidth;
+    if(mode!=='inside'||!W)return;
+    const w=capEls.map(c=>c.offsetWidth),h=capEls[0].offsetHeight,row=h+4;
+    const rows=w[0]+w[1]+w[2]+2*GAP<=W?1:w[0]+w[2]+GAP<=W?2:3;
+    geom=barEls.map(b=>({l:b.offsetLeft,w:b.offsetWidth}));
+    const mid=geom[1].l+geom[1].w/2-w[1]/2;
+    capsBox.style.height=(rows*row-4)+'px';
+    capEls[0].style.left='0px';capEls[2].style.left=(W-w[2])+'px';
+    capEls[1].style.left=Math.min(Math.max(mid,rows===1?w[0]+GAP:0),W-w[1]-(rows===1?w[2]+GAP:0))+'px';
+    capEls[0].style.top=(rows-1)*row+'px';capEls[1].style.top='0px';capEls[2].style.top=(rows===3?row:(rows-1)*row)+'px';
+    placeMark();
+  }
+  // The marker at the time since this phrase began, along the bars (still: at the end of Holds). It says whether it has far to go.
+  function placeMark(){
+    if(!geom.length)return false;
+    const s=parts(),stop=s[0]+s[1]+(stays()?0:s[2]);
+    const t=!motionOk?s[0]+s[1]:idx<0?0:Math.min(performance.now()-phraseAt,stop);
+    let from=0,k=0;
+    while(k<2&&t>from+s[k]){from+=s[k];k++}
+    mark.style.transform='translateX('+(geom[k].l+geom[k].w*Math.min((t-from)/s[k],1)).toFixed(1)+'px)';
+    return motionOk&&idx>=0&&t<stop;
+  }
+  function ride(){
+    cancelAnimationFrame(markRaf);markRaf=0;
+    if(mode!=='inside')return;
+    const tick=()=>{markRaf=placeMark()?requestAnimationFrame(tick):0};
+    tick();
+  }
+  // Compare at rest: the real phrase is held a fifth of a second into its wipe (by the setting's entrance time, not slow motion's),
+  // with a dashed outline around the whole phrase's box. A play lifts it and its end brings it back.
+  function pose(){
+    const on=mode==='compare'&&ended;
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    stage.style.setProperty('--cut',(100*(1-curveAt(EASE_OUT,Math.min(1,POSE_MS/enterMs)))).toFixed(1)+'%');
+    const b=ghost.parentElement.getBoundingClientRect(),r=phraseText.getBoundingClientRect();
+    ghost.style.cssText='left:'+(r.left-b.left-GHOST)+'px;top:'+(r.top-b.top-GHOST)+'px;width:'+(r.width+2*GHOST)+'px;height:'+(r.height+2*GHOST)+'px';
+  }
+  // Draws the current mode again from the page's own numbers (a phrase, a setting, Loop, Slow motion, a resize)
+  function refresh(){
+    if(mode==='inside'){drawStrip();ride()}
+    else pose();
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;refresh()});
 
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
@@ -218,11 +380,16 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('enter-seg',d=>{enterMs=+d.ms});
   choices('hold-seg',d=>{holdMs=+d.ms});
   choices('exit-seg',d=>{exitMs=+d.ms});
+  loopTog.addEventListener('change',refresh);
+  slowTog.addEventListener('change',refresh);
+  new ResizeObserver(refresh).observe(stage);
+  if(document.fonts)document.fonts.ready.then(refresh);
   apply();
 </script>
 </body>
