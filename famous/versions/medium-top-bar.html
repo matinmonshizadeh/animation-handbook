@@ -64,7 +64,7 @@ p{text-wrap:pretty}
 <main class="art">
   <p class="kick">Everyday habits</p>
   <h1>Five small habits for a slower morning</h1>
-  <div class="by"><i class="av" aria-hidden="true"></i><p><b>Written by Sam Ellery</b>5 min read</p></div>
+  <div class="by"><i class="av" aria-hidden="true"></i><p><b>Sam Ellery</b>About five minutes</p></div>
   <div class="cover" aria-hidden="true"></div>
   <h2>Start with a glass of water</h2>
   <p>Most mornings start in a rush. The alarm goes off, the phone lights up, and the day is already asking for answers before the kettle has boiled. A glass of water changes the pace. It tells the body the day has begun, and it gives your hands something to do while your head catches up.</p>
@@ -99,7 +99,7 @@ function measure() { H = Math.ceil(bar.getBoundingClientRect().height) || 56; EN
 function follow() {
   const y = Math.min(Math.max(scrollY, 0), END), dy = y - lastY;
   lastY = y;
-  if (!rm) ty = Math.min(0, Math.max(-H, ty - dy));
+  if (!rm) ty = Math.min(0, Math.max(-H, -y, ty - dy));      // near the top the bar goes with the page: never more than y away, and whole at y 0
   else if (y < 2) { away = false; anchor = y; }
   else if (Math.abs(y - anchor) >= 6) { away = y > anchor; anchor = y; }
   draw();
@@ -125,7 +125,7 @@ function play() {
   if (scrollY >= END - UP - 4) { scrollTo({ top: 0, behavior: 'instant' }); follow(); }          // already at the end: start from the top
   run = { pos: scrollY, rest: null, floor: 0, t: 0 }; lastT = null; wake();
 }
-function toTop() { run = null; scrollTo({ top: 0, behavior: 'instant' }); follow(); }            // the bar is shown at once
+function toTop() { run = null; scrollTo({ top: 0, behavior: 'instant' }); ty = 0; away = false; follow(); }   // the whole bar is shown at once
 
 addEventListener('message', e => {
   if (e.source !== parent || !e.data) return;
@@ -143,7 +143,7 @@ bar.addEventListener('focusin', () => {                  // keyboard focus movin
 reduce.addEventListener('change', e => {                 // never half way: the bar settles shown or away
   rm = e.matches;
   if (rm) away = ty < -H / 2; else ty = away ? -H : 0;
-  anchor = lastY; draw();
+  anchor = lastY; follow();                               // follow() keeps the bar to what the scroll position allows
 });
 
 measure(); lastY = Math.min(scrollY, END); ty = -Math.min(lastY, H); away = lastY > 2; anchor = lastY; draw();
