@@ -256,9 +256,9 @@
   const hbuf=document.createElement('canvas'),hctx=hbuf.getContext('2d'); // Compare's half-width small picture
   // How fast each wave's stripes really travel, across, down, slanted and from the middle: the slanted wave's clock is slower, but its
   // stripes lie farther apart, so they move about as fast as the first
-  const PACE=[1,1.3,.99,1.1];
+  const PACE=[1,1.3,.99,1.1],ANG=[Math.PI,-Math.PI/2,-Math.PI*.75]; // and the way they travel: left, up, up and left
   let mode='normal',kept=null; // kept: Normal's clock, set aside while Compare runs on its own
-  let timg=null,tqw=0,tqh=0,hbw=0,himg=null,hdist=null,hsinX=null,hsinC=null,L=null;
+  let timg=null,tdata=null,tqw=0,tqh=0,hbw=0,himg=null,hdist=null,hsinX=null,hsinC=null,L=null;
 
   // Whenever the small picture changes size: Compare's half-width picture and its distance table (measured from its own middle),
   // and the tiles, a quarter of the small picture each
@@ -268,7 +268,7 @@
     for(let y=0,p=0;y<bh;y++)for(let x=0;x<hbw;x++,p++)hdist[p]=Math.hypot(x-hbw/2,y-bh/2);
     tqw=Math.max(8,Math.round(bw/4));tqh=Math.max(6,Math.round(bh/4));
     tcv.forEach(c=>{c.width=tqw;c.height=tqh;});
-    timg=tctx.map(c=>c.createImageData(tqw,tqh));
+    timg=tctx.map(c=>c.createImageData(tqw,tqh));tdata=timg.map(m=>m.data);
     buildStrip();
     if(mode==='inside')layout();
   }
@@ -288,12 +288,12 @@
     const pad=wide?12:8,eq=wide?28:0,sh=14,sw=wide?Math.max(110,Math.min(190,W*.16)):W-2*pad;
     const rowW=W-2*pad-(wide?sw+eq:0),gap=wide?20:16;
     const tw=Math.min((rowW-3*gap)/4,(wide?78:.2*H)*W/H),th=tw*H/W,gx=(rowW-4*tw)/3;
-    const bandH=wide?8+ch+4+th+8:6+ch+4+th+6+ch+10+sh+8,top=H-bandH,ty=top+(wide?8:6)+ch+4;
+    const bandH=wide?8+ch+4+th+8:6+ch+4+th+6+ch+14+sh+8,top=H-bandH,ty=top+(wide?8:6)+ch+4;
     const pic=wideScreen.matches;
     const sx=Math.max(W/3,pic?pad+bw+24:0),sy=Math.min(top-24,Math.max(.42*top,pic?pad+ch*1.5+8:ch/2+8));
     const px=Math.max(0,Math.min(bw-1,Math.round(sx/W*bw-.5))),py=Math.max(0,Math.min(bh-1,Math.round(sy/H*bh-.5)));
     L={wide,pad,gx,tw,th,top,ty,pic,px,py,x:(px+.5)*W/bw,y:(py+.5)*H/bh,
-      strip:{x:wide?W-pad-sw:pad,y:wide?ty+th/2-sh/2+4:ty+th+6+ch+10,w:sw,h:sh}};
+      strip:{x:wide?W-pad-sw:pad,y:wide?ty+th/2-sh/2+4:ty+th+6+ch+14,w:sw,h:sh}};
     put(capTiles,pad,top+(wide?8:6));
     put(capStrip,pad,wide?top+8:ty+th+6,wide);
     put(capSpot,L.x+16,L.y-ch/2);
@@ -309,17 +309,18 @@
     stroke(2.2);
   }
   function dot(x,y,r){vctx.beginPath();vctx.arc(x,y,r,0,6.2832);stroke(2);}
+  function gray(v){return 24+(v+1)*107|0;} // a wave's value, -1 to 1, as dark to light
   function bar(x0,y0,x1,y1){vctx.beginPath();vctx.moveTo(x0,y0);vctx.lineTo(x1,y1);vctx.strokeStyle='#fff';vctx.lineWidth=2.4;vctx.stroke();}
 
   // See inside, drawn right after draw() has filled the arrays for this frame. Each tile shows one wave alone over the whole box
   // (dark low, light high), read from those arrays; the four are added to make the field, and their total at the followed spot
   // picks a color from the strip.
   function drawInside(t){
-    const f=.09*scale,D=timg.map(m=>m.data),g=v=>24+(v+1)*107|0;
+    const f=.09*scale,D=tdata;
     for(let j=0,o=0;j<tqh;j++){
       const y=Math.min(bh-1,(j+.5)*bh/tqh|0);
       for(let i=0;i<tqw;i++,o+=4){
-        const x=Math.min(bw-1,(i+.5)*bw/tqw|0),a=g(sinX[x]),b=g(sinY[y]),c=g(sinC[x+y]),d=g(Math.sin(dist[y*bw+x]*f+t*1.1));
+        const x=Math.min(bw-1,(i+.5)*bw/tqw|0),a=gray(sinX[x]),b=gray(sinY[y]),c=gray(sinC[x+y]),d=gray(Math.sin(dist[y*bw+x]*f+t*1.1));
         for(let k=0;k<3;k++){D[0][o+k]=a;D[1][o+k]=b;D[2][o+k]=c;D[3][o+k]=d;}
         D[0][o+3]=D[1][o+3]=D[2][o+3]=D[3][o+3]=255;
       }
@@ -329,14 +330,16 @@
     vctx.save();vctx.scale(view.width/W,view.height/H);vctx.lineCap=vctx.lineJoin='round';
     vctx.fillStyle='rgba(6,7,12,.9)';vctx.fillRect(0,L.top,W,H-L.top);
     vctx.fillStyle='rgba(255,255,255,.18)';vctx.fillRect(0,L.top,W,1);
-    const {tw,th,gx,ty,pad,strip:s}=L,u=Math.min(.2*tw,.41*th),len=PACE.map(p=>p*speed*u);
+    const {tw,th,gx,ty,pad,strip:s}=L,u=Math.min(.2*tw,.41*th)*speed;
+    const sx=L.px/bw<.5?1:-1,sy=L.py/bh<.5?1:-1; // each arrow sits on the side of its tile away from the spot's dot
     for(let k=0;k<4;k++){
       const x=pad+k*(tw+gx),cx=x+tw/2,cy=ty+th/2;
       vctx.drawImage(tcv[k],0,0,tqw,tqh,x,ty,tw,th);
       vctx.strokeStyle='rgba(255,255,255,.4)';vctx.lineWidth=1;vctx.strokeRect(x+.5,ty+.5,tw-1,th-1);
       // which way the stripes travel, as long as how fast: left, up, up and left, in toward the middle from both sides
-      if(k<3){const a=[Math.PI,-Math.PI/2,-Math.PI*.75][k],dx=Math.cos(a)*len[k]/2,dy=Math.sin(a)*len[k]/2;arrow(cx-dx,cy-dy,cx+dx,cy+dy);}
-      else{const r=.34*tw,l=Math.min(len[3],r-3);arrow(cx-r,cy,cx-r+l,cy);arrow(cx+r,cy,cx+r-l,cy);}
+      const ay=cy+(k===1?0:k===2?.15:.2)*sy*th,ax=cx+(k===1?.2:k===2?.15:0)*sx*tw,len=PACE[k]*u;
+      if(k<3){const dx=Math.cos(ANG[k])*len/2,dy=Math.sin(ANG[k])*len/2;arrow(ax-dx,ay-dy,ax+dx,ay+dy);}
+      else{const r=.34*tw,l=Math.min(len,r-3);arrow(cx-r,ay,cx-r+l,ay);arrow(cx+r,ay,cx+r-l,ay);}
       dot(x+(L.px+.5)/bw*tw,ty+(L.py+.5)/bh*th,4);
       if(k<3){const px=x+tw+gx/2;bar(px-5,cy,px+5,cy);bar(px,cy-5,px,cy+5);} // a plus sign between neighbors
     }
