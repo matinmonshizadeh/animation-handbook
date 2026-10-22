@@ -21,9 +21,9 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Drag to Reorder", "name": "Drag to Reorder", "description": "Drag an item and the others slide aside to make room. Best for to-do lists.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/drag-to-reorder/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Drag to Reorder"}</script>
   <style>
-    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--card:#16161a;--slide:220ms;--row:52px;--gap:8px}
+    :root{--ui-accent:#ff9d5c;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--card:#16161a;--slide:220ms;--row:52px;--gap:8px;--col:244px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;padding:12px clamp(16px,4vw,32px);background:#0b0b0d;overflow:hidden}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;padding:12px clamp(16px,4vw,32px);background:#0b0b0d;overflow:hidden}
     /* Every row sits at the top of the list and is moved to its place, slot --i, with a transform, so a new order never changes the layout */
     .list{position:relative;width:100%;max-width:360px;height:calc(4*var(--row) + 3*var(--gap));list-style:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     .row{position:absolute;left:0;right:0;top:0;height:var(--row);transform:translateY(calc(var(--i)*(var(--row) + var(--gap))));transition:transform var(--slide) cubic-bezier(.2,.8,.2,1);cursor:grab;touch-action:pan-y}
@@ -44,6 +44,29 @@
     .by-grip .tip{left:25px}.tip.on{opacity:1}
     .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
     @media(prefers-reduced-motion:reduce){.row,.card,.card::after,.tip{transition:none!important}}
+    /* See inside and Compare, drawn from the page's own numbers (the script measures the list and the slot height). See inside: four dashed places behind
+       the rows, numbered at the left, an arrow in the gutter for each task that slid, and callouts in a column at the right (the list is narrower to make
+       room). Compare: two halves, a copy of the list made in the script and the real one. */
+    .slots,.views,.num,.views svg,.twin{display:none}
+    .slots,.views{position:absolute;inset:0;pointer-events:none}.views{z-index:3}
+    .slot{position:absolute;border:2px dashed rgba(244,244,242,.4);border-radius:14px}.slot.lit{border-color:var(--ui-accent);background:rgba(255,157,92,.12)}
+    .num{position:absolute;left:0;top:0;width:18px;height:18px;border-radius:50%;background:#0b0b0d;border:1px solid rgba(244,244,242,.45);color:var(--ui-text);font:700 12px/16px var(--hb-font);text-align:center}.num.lit{background:var(--ui-accent);border-color:var(--ui-accent);color:#0b0b0d}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.arrow{fill:none;stroke:var(--ui-text);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .cap{position:absolute;left:0;top:0;width:max-content;max-width:calc(var(--col) - 30px);padding:3px 7px;border-radius:5px;background:#0b0b0d;color:var(--ui-text);font:600 13px/1.25 var(--hb-font);white-space:pre-line}
+    .cap[hidden]{display:none}.cap.nm{max-width:none;white-space:nowrap}.cap.lands{color:var(--ui-accent)}
+    .cap::before{content:"";position:absolute;top:var(--pt,50%);left:-26px;width:22px;margin-top:-1px;border-top:2px dotted rgba(244,244,242,.5)}.cap.nm::before,.cap.nc::before,.cap.right::before{display:none}
+    /* The fingertip of the held task: one rides in each row and in each faint copy (the same look as Show me's), and shows in the two modes while a finger holds it */
+    .f{left:calc(100% - 30px)}.fing .lifted .f,.fing .ghost.held .f{opacity:1}
+    .twin .row{transition:none;cursor:default}.twin .ghost{display:none;opacity:.5;transition:transform var(--slide) cubic-bezier(.2,.8,.2,1)}.twin .ghost.held{display:block}.twin .ghost .card{border-color:var(--ui-accent)}.twin .ghost .label{visibility:hidden}
+    .stage[data-hb-mode="inside"] .slots,.stage[data-hb-mode="inside"] .num,.stage[data-hb-mode="inside"] .views svg,.stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"] #tip,.stage[data-hb-mode="compare"] #tip{display:none}
+    .stage[data-hb-mode="inside"]{padding-inline:8px}.stage[data-hb-mode="inside"] .list{margin:0 var(--col) 0 24px}
+    /* Compare: the copy that jumps in the first half, the real list in the second; on a stage too short for the half names above the lists the rows are a little shorter */
+    .stage[data-hb-mode="compare"]{--m:clamp(8px,2.5vw,20px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;padding-inline:0}
+    .stage[data-hb-mode="compare"].tight{--row:46px;--gap:4px}.stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.2);pointer-events:none}
+    .stage[data-hb-mode="compare"] .twin{display:block}.stage[data-hb-mode="compare"] .list{width:calc(100% - 2*var(--m));max-width:360px;clip-path:inset(-80px calc(-1*var(--m)))}
+    @media(max-width:600px){:root{--col:136px}.cap{font-size:12px}
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{gap:6px;padding-right:8px}.stage[data-hb-mode="inside"] .grip,.stage[data-hb-mode="compare"] .grip{margin-left:0}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,7 +89,13 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Drag it</h2><p>Drag a task up or down and let go (or Tab to its grip, then use Space and the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="slots" aria-hidden="true"><i class="slot"></i><i class="slot"></i><i class="slot"></i><i class="slot"></i></div>
       <ul class="list" id="list" aria-label="Today's tasks">
         <li class="row" style="--i:0"><div class="card"><button class="grip" type="button" aria-label="Move Reply to Sam" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#ff9d5c"></span><span class="label">Reply to Sam</span></div><span class="tip" id="tip" aria-hidden="true"></span></li>
         <li class="row" style="--i:1"><div class="card"><button class="grip" type="button" aria-label="Move Book the flights" aria-describedby="moves-help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button><span class="tag" style="background:#58a6ff"></span><span class="label">Book the flights</span></div></li>
@@ -75,10 +104,25 @@
       </ul>
       <p class="sr-only" id="moves-help">Press Space to pick up the task, the up and down arrow keys to move it, and Space again to drop it. Escape puts it back.</p>
       <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+      <div class="views" aria-hidden="true">
+        <b class="num">1</b><b class="num">2</b><b class="num">3</b><b class="num">4</b>
+        <svg><path class="arrow"/><path class="arrow"/><path class="arrow"/><path class="arrow"/></svg>
+        <span class="cap nm" data-hb-caption hidden>Four fixed places</span>
+        <span class="cap nc" data-hb-caption hidden>Slide one place to make room</span>
+        <span class="cap" data-hb-caption hidden>Follows your finger exactly</span>
+        <span class="cap lands" data-hb-caption hidden>Lands here</span>
+        <span class="cap" data-hb-caption hidden>It started here</span>
+        <span class="cap nm" data-hb-caption hidden>Jumps when dropped</span>
+        <span class="cap nm" data-hb-caption hidden>Makes room</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the outlines are four fixed places: the held task follows your finger, and the others move one place to make room before it lands. Drag a task, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Jumps when dropped: nothing moves aside while you drag, then the list jumps; Makes room: the held task lifts and the others move aside. Drag a task, or press Show me.</p>
     </div>
   </section>
 
@@ -160,11 +204,113 @@
   const place=(row,i)=>row.style.setProperty('--i',i);
   const drawnY=row=>new DOMMatrix(getComputedStyle(row).transform).m42;   // where the row is drawn now, mid-slide too
 
+  // See inside and Compare. The views are drawn from `drag` (the held task: its row, the slot it came from and is over, how it is held), from
+  // `order` and from G, what is measured from the page: the list's place and size, the height of a slot and the box's height.
+  const stage=document.querySelector('.stage'),SLOTS=[...stage.querySelectorAll('.slot')],NUMS=[...stage.querySelectorAll('.num')],ARROWS=[...stage.querySelectorAll('.arrow')];
+  const CAPS=[...stage.querySelectorAll('.cap')],[cFixed,cSlide,cFinger,cLands,cStart,cOne,cTwo]=CAPS;
+  const SPEED={420:'in under half a second',220:'in a fifth of a second',120:'in a tenth of a second'};
+  let mode='normal',G={},slideMs=220,poseTimer=0;
+  // Compare's first list is a copy made once: the same rows (the grips are plain spans; nothing has an id, takes focus or is read out) and, after
+  // them, a faint copy of each row for the one being held. Its rows only move when the real list is dropped or reset.
+  const twin=document.createElement('ul'),TW=[],GH=[];
+  twin.className='list twin';twin.setAttribute('aria-hidden','true');twin.inert=true;
+  START.forEach(r=>{const f=document.createElement('span');f.className='tip f';f.setAttribute('aria-hidden','true');r.append(f)});
+  START.forEach(r=>[TW,GH].forEach((to,k)=>{
+    const c=r.cloneNode(true),g=c.querySelector('.grip'),sp=document.createElement('span');
+    sp.className=g.className;sp.innerHTML=g.innerHTML;g.replaceWith(sp);
+    c.querySelector('#tip')?.remove();if(k)c.classList.add('ghost');
+    to.push(c);
+  }));
+  twin.append(...TW,...GH);list.before(twin);
+  const stepwise=()=>!!drag&&(drag.by==='key'||drag.by==='run'&&reduceMq.matches);   // the held task moves a place at a time, with no finger
+  // A callout's size is measured when its words change, and again when the page is measured
+  function fit(c,text){
+    if(text!==undefined&&c.textContent!==text){c.textContent=text;c._s=0}
+    c.hidden=false;
+    return c._s||(c._s=[c.offsetWidth,c.offsetHeight]);
+  }
+  // Compare puts a shorter row in a box too short for the half names above the lists
+  function measure(){
+    stage.classList.remove('tight');
+    stage.classList.toggle('tight',mode==='compare'&&(stage.clientHeight-list.offsetHeight)/2<30);
+    const s=slotPx(),h=START[0].offsetHeight,x=list.offsetLeft,y=list.offsetTop,w=list.offsetWidth;
+    G={s,h,x,y,w,H:stage.clientHeight};
+    SLOTS.forEach((e,j)=>Object.assign(e.style,{left:x-4+'px',top:y+j*s-2+'px',width:w+8+'px',height:h+4+'px'}));
+    NUMS.forEach((e,j)=>{e.style.transform=`translate(${x-24}px,${y+j*s+(h-18)/2}px)`});
+    CAPS.forEach(c=>{c._s=0;c.hidden=true});
+    if(mode==='compare')[[cOne,twin],[cTwo,list]].forEach(([c,l])=>{const [cw,ch]=fit(c);c.style.transform=`translate(${Math.round(l.offsetLeft+(l.offsetWidth-cw)/2)}px,${Math.round((l.offsetTop-ch)/2)}px)`});
+  }
+  // A callout at x, as near the height `at` (the middle of what it names) as the ones put before it leave room; its pointer shows `at`
+  function put(c,text,at,x,taken,right){
+    const [w,h]=fit(c,text),lo=4,hi=G.H-4-h,want=Math.min(hi,Math.max(lo,at-h/2));
+    const clear=t=>t>=lo&&t<=hi&&taken.every(([a,b])=>t+h+5<=a||t>=b+5);
+    const t=[want,...taken.flatMap(([a,b])=>[a-5-h,b+5])].filter(clear).sort((p,q)=>Math.abs(p-want)-Math.abs(q-want))[0];
+    if(t===undefined){c.hidden=true;return}
+    taken.push([t,t+h]);c.classList.toggle('right',!!right);
+    c.style.setProperty('--pt',Math.max(8,Math.min(h-8,at-t))+'px');
+    c.style.transform=`translate(${Math.round(right?x-w:x)}px,${Math.round(t)}px)`;
+  }
+  // See inside: the place the held task will land in is lit; each task that slid has an arrow the way it went; the callouts take the first free
+  // height near what they name, the finger's first
+  function inside(){
+    const {s,h,x,y,w}=G,to=drag?drag.to:-1,mid=j=>y+j*s+h/2,col=x+w+30,right=[],left=[],moved=[];
+    SLOTS.forEach((e,j)=>{e.classList.toggle('lit',j===to);NUMS[j].classList.toggle('lit',j===to)});
+    if(drag)order.forEach((r,j)=>{const k=+r.style.getPropertyValue('--i');if(r!==drag.row&&k!==j)moved.push([k,k<j?-1:1])});
+    ARROWS.forEach((p,j)=>{
+      const m=moved.find(a=>a[0]===j),u=m?m[1]:0,ax=x+w+14,tip=mid(j)+9*u;
+      const d=m?`M${ax} ${mid(j)-9*u}V${tip}M${ax-5} ${tip-5*u}L${ax} ${tip}L${ax+5} ${tip-5*u}`:'';
+      if(p.getAttribute('d')!==d)p.setAttribute('d',d);
+    });
+    [cSlide,cFinger,cLands,cStart].forEach(c=>{c.hidden=true});
+    if(drag){
+      put(cFinger,stepwise()?'Moves a place at a time':'Follows your finger exactly',mid(0)+drag.y,col,right);
+      put(cLands,'Lands here',mid(to),col,right);
+      if(moved.length)put(cSlide,reduceMq.matches?'Move one place to make room':`Slide one place to make room\n${SPEED[slideMs]}`,mid(moved.reduce((a,m)=>a+m[0],0)/moved.length),col,right);
+    }
+    const fh=fit(cFixed)[1],sw=fit(cStart)[0];cStart.hidden=true;
+    if(y>=fh+12)cFixed.style.transform=`translate(${x}px,${Math.round((y-fh)/2)}px)`;   // above the list when there is room, else in the column
+    else put(cFixed,undefined,mid(3),col,right);
+    if(drag&&drag.from!==to&&x>=sw+50)put(cStart,undefined,mid(drag.from),x-36,left,true);   // only where the left side has room
+  }
+  // Draws the mode on show from the state: Compare's copy keeps the real list's order from its last drop, with the held task's faint copy at the
+  // real row's height (the same transform and transition)
+  function view(){
+    if(mode==='normal')return;
+    TW.forEach((r,i)=>place(r,order.indexOf(START[i])));
+    GH.forEach((g,i)=>{const on=!!drag&&drag.row===START[i];g.classList.toggle('held',on);if(on){g.style.transition=drag.row.style.transition;g.style.transform=drag.row.style.transform;place(g,drag.to)}});
+    stage.classList.toggle('fing',!stepwise());
+    if(mode==='inside')inside();
+  }
+  // The pose both views rest on: the first task held half way between places 2 and 3 by the page's own lift() and follow(), so the two tasks it
+  // passed have slid up and place 3 is lit. Anything that acts on the list puts it back first, without a slide; it comes back once nothing is
+  // held, pressed or running.
+  function poseNow(){
+    poseTimer=0;
+    if(mode==='normal'||drag||press||running())return;
+    order.forEach(r=>{r.style.transition='none'});
+    lift(order[0],'pose');follow(1.5*slotPx());
+    void list.offsetWidth;order.forEach(r=>{if(r!==drag.row)r.style.transition=''});
+  }
+  function poseSoon(ms){clearTimeout(poseTimer);poseTimer=mode==='normal'?0:setTimeout(poseNow,ms)}
+  function unpose(){
+    if(!drag||drag.by!=='pose')return;
+    drop(false);
+    order.forEach(r=>{r.style.transition='none';r.classList.remove('settling')});void list.offsetWidth;order.forEach(r=>{r.style.transition=''});
+  }
+  // The mode switch draws the mode at once (its pose, or in Normal the list as it was); the shared script then presses Show me, which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='normal'){clearTimeout(poseTimer);stage.classList.remove('tight','fing');unpose();return}
+    measure();poseNow();view();
+  });
+  addEventListener('resize',()=>{if(mode!=='normal'){measure();view()}});
+  document.fonts.ready.then(()=>{if(mode!=='normal'){measure();view()}});
+
   // The visitor's drag, the keyboard and Show me all pick a row up with lift(), move it and put it down with drop().
   function lift(row,by){
     const from=order.indexOf(row);
     drag={row,by,from,to:from,y:drawnY(row)};
-    row.classList.remove('settling');row.classList.add('lifted');
+    row.classList.remove('settling');row.classList.add('lifted');view();
   }
   // The rows between where the held one started and slot `to` slide one slot toward the gap it left.
   function makeRoom(to){
@@ -178,9 +324,10 @@
     r.style.transition='none';r.style.transform=`translateY(${drag.y}px)`;
     const to=Math.max(0,Math.min(n-1,Math.round(drag.y/s)));
     if(to!==drag.to)makeRoom(to);
+    view();
   }
   // Keyboard and reduced motion: the held row itself slides (or jumps) one slot.
-  function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to)}
+  function step(to){drag.row.style.transition=drag.row.style.transform='';place(drag.row,to);makeRoom(to);view()}
   // Moving a row in the document ends the slide it is in the middle of: it would be drawn in its slot at once. So each moved row is
   // first read where it is drawn, given that place back as a still transform after the move, and let go, so its slide carries on.
   function keepSlides(rows,move){
@@ -195,7 +342,7 @@
     if(!keep)makeRoom(from);
     row.style.transition=row.style.transform='';row.classList.remove('lifted');row.classList.add('settling');place(row,to);
     keepSlides(passed,()=>passed.forEach(r=>list.insertBefore(r,to>from?row:row.nextSibling)));
-    order.splice(from,1);order.splice(to,0,row);drag=null;
+    order.splice(from,1);order.splice(to,0,row);drag=null;view();poseSoon(900);
     return to;
   }
   list.addEventListener('transitionend',e=>{if(e.target.classList.contains('settling')&&e.propertyName==='transform')e.target.classList.remove('settling')});
@@ -205,6 +352,7 @@
   list.addEventListener('pointerdown',e=>{
     const row=e.target.closest('.row'),onGrip=!!e.target.closest('.grip');
     if(!row||press||(drag&&drag.by==='pointer')||(e.pointerType==='mouse'&&e.button!==0)||(byGrip&&!onGrip))return;
+    unpose();
     if(drag)drop(true);   // a row picked up with the keyboard is put down where it is
     if(e.pointerType==='touch'&&!onGrip)press={pid:e.pointerId,row,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{const p=press;press=null;grab(p.row,p.pid,p.y)},300)};
     else grab(row,e.pointerId,e.clientY);
@@ -215,6 +363,7 @@
     }else if(drag&&drag.by==='pointer'&&e.pointerId===drag.pid)follow(e.clientY-drag.start);
   });
   function letGo(e){
+    poseSoon(900);
     if(press&&e.pointerId===press.pid){clearTimeout(press.timer);press=null}
     if(!drag||drag.by!=='pointer'||e.pointerId!==drag.pid)return;
     const {row,from}=drag,to=drop(e.type==='pointerup');
@@ -222,11 +371,12 @@
   }
   list.addEventListener('pointerup',letGo);list.addEventListener('pointercancel',letGo);
   list.addEventListener('touchmove',e=>{if(drag&&drag.by==='pointer'&&e.cancelable)e.preventDefault()},{passive:false});
-  list.addEventListener('contextmenu',e=>{if(press||drag)e.preventDefault()});
+  list.addEventListener('contextmenu',e=>{if(press||drag&&drag.by!=='pose')e.preventDefault()});
   // The keyboard, on a grip: Space or Enter picks the task up and puts it down, the arrows move it, Escape puts it back.
   list.addEventListener('keydown',e=>{
     const grip=e.target.closest('.grip'),row=grip&&grip.closest('.row');
     if(!row)return;
+    if([' ','Enter','ArrowUp','ArrowDown','Escape'].includes(e.key))unpose();
     const held=drag&&drag.row===row&&drag.by==='key',n=order.length;
     if(e.key===' '||e.key==='Enter'){
       e.preventDefault();
@@ -246,7 +396,7 @@
   // Puts the rows in this order: sliding from where they are drawn, around the settling row so its lift and fingertip fade out (Reset),
   // or at once, with the slides off for a moment (before a run).
   function setOrder(next,slide){
-    const keep=slide&&list.querySelector('.settling'),k=next.indexOf(keep),move=()=>{order=[...next];if(keep){order.slice(0,k).forEach(r=>list.insertBefore(r,keep));list.append(...order.slice(k+1))}else list.append(...order);order.forEach((r,i)=>place(r,i))};
+    const keep=slide&&list.querySelector('.settling'),k=next.indexOf(keep),move=()=>{order=[...next];if(keep){order.slice(0,k).forEach(r=>list.insertBefore(r,keep));list.append(...order.slice(k+1))}else list.append(...order);order.forEach((r,i)=>place(r,i));view()};
     if(slide)return keepSlides([...order],move);
     order.forEach(r=>{r.style.transition='none';r.classList.remove('settling')});move();void list.offsetWidth;order.forEach(r=>{r.style.transition=''});
   }
@@ -258,6 +408,7 @@
   function stopRun(keep){
     runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;tip.classList.remove('on');
     if(drag&&drag.by==='run')drop(!!keep);
+    poseSoon(900);
   }
   // The fingertip rides in the row the run holds; glide() moves the row as a hand would, frame by frame by the time passed.
   function hold(row){lift(row,'run');row.append(tip);void tip.offsetWidth;tip.classList.add('on')}
@@ -285,19 +436,19 @@
     later(()=>glide(2,900),150);later(release,1200);
     later(()=>hold(row),2000);later(()=>glide(0,800),2150);later(release,3050);
   });
-  $('btn-reset').addEventListener('click',()=>{stopRun();if(drag)drop(false);setOrder(START,true);say('')});
+  $('btn-reset').addEventListener('click',()=>{stopRun();unpose();if(drag)drop(false);setOrder(START,true);say('');poseSoon(900)});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
   document.addEventListener('hb:input',()=>{if(running())stopRun(true)});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);view();
     }));
   }
-  choices('speed-seg',d=>{document.documentElement.style.setProperty('--slide',d.ms+'ms')});
+  choices('speed-seg',d=>{slideMs=+d.ms;document.documentElement.style.setProperty('--slide',d.ms+'ms')});
   choices('lift-seg',d=>{list.classList.toggle('strong',d.lift==='strong')});
-  $('grip-tog').addEventListener('change',e=>{byGrip=e.target.checked;list.classList.toggle('by-grip',byGrip)});
+  $('grip-tog').addEventListener('change',e=>{byGrip=e.target.checked;list.classList.toggle('by-grip',byGrip);twin.classList.toggle('by-grip',byGrip);view()});
 </script>
 </body>
 </html>
