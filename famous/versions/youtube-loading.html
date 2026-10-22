@@ -79,18 +79,22 @@ const CARDS = [['A walk by the river', 'Daybreak Walks', 0, 1, 6], ['Bread from 
   ['A small garden', 'Garden Hours', 5, 2, 6], ['How bridges work', 'Pebble Lab', 4, 5, 3], ['Calm focus music', 'Paper Moon', 3, 6, 1], ['Fixing a bicycle', 'Workshop 12', 6, 7, 4],
   ['Sketching shapes', 'Studio North', 7, 1, 3], ['A quiet morning', 'Early Trains', 0, 3, 5], ['Rice, three ways', 'Maple Kitchen', 1, 7, 4], ['A calm sea day', 'Sea Notes', 3, 1, 6],
   ['Learning to knit', 'Wool Hours', 5, 5, 7]];
-grid.innerHTML = CARDS.map(([t, ch, s, a, b], i) => `<li class="card" style="--i:${i};--a:${P(a)};--b:${P(b)}"><div class="pic"><i class="art s${s}"></i></div><div class="meta"><span class="av"><b>${ch[0]}</b></span><div class="tx"><p class="t"><span>${t}</span></p><p class="c"><span>${ch}</span></p></div></div></li>`).join('');
+grid.innerHTML = CARDS.map(([t, ch, s, a, b], i) => `<li class="card" style="--i:${i};--a:${P(a)};--b:${P(b)}"><div class="pic"><i class="art s${s}"></i></div><div class="meta"><span class="av" aria-hidden="true"><b>${ch[0]}</b></span><div class="tx"><p class="t"><span>${t}</span></p><p class="c"><span>${ch}</span></p></div></div></li>`).join('');
 const cards = [...grid.children];
 // Only as many cards as fit whole: try every grid of up to 4 columns, keep the ones whose pictures stay close to 16 to 9, take the one with the most cards
 // (fewer on a phone), then the one nearest 16 to 9. A card is 46px taller than its picture (40px when it is narrow and its avatar is smaller).
+// Only when nothing fits that way may the pictures go as flat as 3.6 to 1, so a narrow frame still shows two cards (one column of two rows).
 function layout() {
   const W = innerWidth, H = innerHeight, p = W <= 480 ? 12 : 20, g = W <= 480 ? 10 : 16, max = root.classList.contains('lite') ? 8 : 12;
   let best = { s: -1, c: 1, r: 1, w: W - 2 * p };
-  for (let c = 1; c <= 4; c++) for (let r = 1; r <= 6; r++) {
-    const w = (W - 2 * p - (c - 1) * g) / c, h = (H - 2 * p - (r - 1) * g) / r - (w < 190 ? 40 : 46), k = w / h;
-    if (c * r > max || w < 144 || h < 40 || k < 1.3 || k > 2.35) continue;
-    const s = c * r - Math.abs(k - 1.78) / 3;
-    if (s > best.s) best = { s, c, r, w };
+  for (const [lo, hi] of [[1.3, 2.35], [1, 3.6]]) {
+    for (let c = 1; c <= 4; c++) for (let r = 1; r <= 6; r++) {
+      const w = (W - 2 * p - (c - 1) * g) / c, h = (H - 2 * p - (r - 1) * g) / r - (w < 190 ? 40 : 46), k = w / h;
+      if (c * r > max || w < 144 || h < 40 || k < lo || k > hi) continue;
+      const s = c * r - Math.abs(k - 1.78) / 3;
+      if (s > best.s) best = { s, c, r, w };
+    }
+    if (best.s > 0) break;
   }
   grid.style.cssText = `--c:${best.c};--r:${best.r};--g:${g}px;--p:${p}px`;
   grid.classList.toggle('sm', best.w < 190);
