@@ -645,7 +645,7 @@ test('the pop-up is a rounded card in the page\'s surface and line colors, dimme
   assert.match(rule(phone, '.fx-dlg .copy'), /position:sticky;bottom:\d+px/, "on phones the entry's own Copy prompt sticks to the bottom");
   assert.match(rule(CSS_BLOCKS, '.fx-stage'), /height:clamp\(240px,calc\(100dvh - 420px\),420px\)/, 'Our version is 420px tall, less in a short window, so it and its player fit the first screen');
   assert.match(rule(phone, '.fx-stage'), /height:min\(300px,calc\(100dvh - 140px\)\)/, 'and 300px on phones, less in a short window');
-  assert.match(rule(inner('@media(max-height:500px)'), '.fx-dlg .copy'), /position:static/, 'in a short window Copy prompt does not stick (it would cover the stage)');
+  assert.match(rule(inner('@media(max-height:720px)'), '.fx-dlg .copy'), /position:static/, 'in a short window Copy prompt does not stick (it would cover the stage)');
   assert.match(rule(CSS_BLOCKS, '.fx-stage'), /background:#08080a/, 'always dark');
 });
 
