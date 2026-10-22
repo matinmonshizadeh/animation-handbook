@@ -52,7 +52,7 @@ h1{padding-left:4px;font-size:clamp(17px,2.2vw,22px);font-weight:700;line-height
 /* touch screens have no hover: the button is always there (a run of Show me hides it first, so the rise can be seen) */
 @media(hover:none){html:not(.demo) .play{opacity:1;transform:none}}
 .lite .cover{box-shadow:none}.lite .play{box-shadow:0 4px 5px rgba(0,0,0,.3)}
-.note{position:absolute;left:50%;top:8px;z-index:6;max-width:calc(100% - 24px);padding:7px 14px;border-radius:99px;background:#f4f4f2;color:#16161b;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,-6px);pointer-events:none;transition:opacity .2s,transform .2s}
+.note{position:absolute;left:50%;bottom:10px;z-index:6;max-width:calc(100% - 24px);padding:7px 14px;border-radius:99px;background:#f4f4f2;color:#16161b;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,6px);pointer-events:none;transition:opacity .2s,transform .2s}
 .note.on{opacity:1;transform:translate(-50%,0)}
 /* the demo's pointer: a dot with a dark ring, so it shows on the page and on a cover */
 .dot{position:absolute;left:0;top:0;z-index:7;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(11,11,15,.7),0 3px 12px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s}
@@ -69,8 +69,8 @@ h1{padding-left:4px;font-size:clamp(17px,2.2vw,22px);font-weight:700;line-height
 </script>
 </head>
 <body>
-<main class="stage" id="stage" role="group" aria-label="A shelf of playlist cards. Point at a card, or reach it with the keyboard, and a play button rises into the corner of its cover.">
-  <div class="wrap">
+<main class="stage" id="stage">
+  <div class="wrap" role="group" aria-label="A shelf of playlist cards. Point at a card, or reach it with the keyboard, and a play button rises into the corner of its cover.">
     <h1>Playlists for today</h1>
     <ul class="row">
       <li class="card"><div class="cover" style="background:linear-gradient(140deg,#ffce5a,#ff9d5c 42%,#ff6f8b 76%,#6b2c6e)"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="36" cy="37" r="19" fill="#fff" fill-opacity=".92"/><path d="M0 68q22-11 44 0t56-3v35H0z" fill="#0b0b0f" fill-opacity=".2"/><path d="M8 80q20-8 40 0t44-4" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/></svg></div><p class="t"><a href="#" data-t="Morning mix">Morning mix</a></p><p class="s">32 songs</p><button type="button" class="play" aria-label="Play Morning mix" data-t="Morning mix"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></button></li>
@@ -119,22 +119,31 @@ function glide(x, y, ms) { dot.style.transition = reduce.matches ? 'none' : `opa
 function show() {
   stopRun(); run = true; root.classList.add('demo');
   const s = stage.getBoundingClientRect(), W = s.width, H = s.height, [a, b] = cards;
-  const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  const box = c => { const r = c.getBoundingClientRect(); return { l: r.left - s.left, t: r.top - s.top, r: r.right - s.left, b: r.bottom - s.top }; };
+  const ra = box(a), rb = box(b);
   const on = (c, fx, fy) => { const r = c.querySelector('.cover').getBoundingClientRect(); return [r.left - s.left + r.width * fx, r.top - s.top + r.height * fy]; };
   const P1 = on(a, .36, .4), P2 = on(b, .36, .4);
-  const from = [Math.max(14, ra.left - s.left - 26), Math.max(14, ra.top - s.top - 20)];
-  const out = [clamp(rb.left - s.left + rb.width * .72, 14, W - 14), Math.max(12, rb.top - s.top - 24)];
+  const from = [Math.max(14, ra.l - 26), Math.max(52, ra.t - 20)]; // below the page's "Our version" label (top left, down to 36px)
+  const out = [clamp(rb.l + (rb.r - rb.l) * .72, 14, W - 14), Math.max(12, rb.t - 24)];
   const place = (x, y) => { dot.style.transition = 'none'; dot.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; void dot.offsetWidth; dot.classList.add('on'); };
   const set = c => { demo = c; paint(); };
+  // when (in ms) the dot gliding from p to q, with the glide's easing, meets a box (enter) or leaves it: the card reacts at that moment
+  const bez = (u, p1, p2) => 3 * (1 - u) * (1 - u) * u * p1 + 3 * (1 - u) * u * u * p2 + u * u * u;
+  const meet = (p, q, r, enter, ms) => {
+    let f = enter ? 1 : 0;
+    for (let i = 0; i <= 200; i++) { const x = p[0] + (q[0] - p[0]) * i / 200, y = p[1] + (q[1] - p[1]) * i / 200; if ((x >= r.l && x <= r.r && y >= r.t && y <= r.b) === enter) { f = i / 200; break; } }
+    let lo = 0, hi = 1; for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (bez(m, 0, 1) < f) lo = m; else hi = m; }
+    return ms * bez((lo + hi) / 2, .45, .25);
+  };
   if (reduce.matches) { // no travel: the dot is simply on the card, and the button shows and hides
     place(...P1); at(150, () => set(a)); at(1500, () => { place(...P2); set(b); });
     at(2800, () => { dot.classList.remove('on'); set(null); }); at(3200, () => { run = false; timers = []; root.classList.remove('demo'); });
     return;
   }
   place(...from);
-  at(120, () => glide(...P1, 560)); at(420, () => set(a));
-  at(1550, () => glide(...P2, 540)); at(1790, () => set(b));
-  at(2850, () => glide(...out, 480)); at(3010, () => set(null));
+  at(120, () => glide(...P1, 560)); at(120 + meet(from, P1, ra, true, 560), () => set(a));
+  at(1550, () => glide(...P2, 540)); at(1550 + meet(P1, P2, rb, true, 540), () => set(b));
+  at(2850, () => glide(...out, 480)); at(2850 + meet(P2, out, rb, false, 480), () => set(null));
   at(3450, () => dot.classList.remove('on')); at(3700, () => { run = false; timers = []; root.classList.remove('demo'); });
 }
 // Only a press, a touch or a key (or a real pointer on a card, above) takes over a run: a pointer passing over the box does not.
@@ -144,7 +153,8 @@ addEventListener('message', e => {
   if (e.data.fx === 'show') { acted = true; show(); }
 });
 reduce.addEventListener('change', () => stopRun()); // what the visitor holds (a hover, a focus) stays as it is
-new ResizeObserver(() => { if (run) stopRun(); }).observe(stage);
+let size = ''; // the first report of the box's size comes at first paint, so it only sets the size: a Show me sent while the frame loads goes on
+new ResizeObserver(([en]) => { const was = size; size = en.contentRect.width + 'x' + en.contentRect.height; if (was && was !== size && run) stopRun(); }).observe(stage);
 addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
 </script>
 </body>
