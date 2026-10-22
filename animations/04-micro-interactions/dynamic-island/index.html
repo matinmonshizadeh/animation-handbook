@@ -81,6 +81,9 @@
     /* Forced colors: the phone keeps its own colors (a black pill on black would vanish), and so does its focus ring: a system color
        is dark in light themes, but the ring's own color stands out against the dark phone in every theme */
     @media(forced-colors:active){.screen,.shape,.pill,.ring{forced-color-adjust:none}}
+    /* See inside's rim: a white layer 2px larger than the shape, on the island's numbers and transition, under the focus ring */
+    .rim{position:absolute;inset:0;top:-2px;background:#fff;opacity:.9;transition:clip-path var(--dur) var(--ease);
+      clip-path:inset(0 calc(50% - var(--hw) - 2px) calc(100% - var(--h) - 4px) round calc(var(--r) + 2px))}
     /* Reduced motion: a resting pill shows; a card fades in over it and out at its own size (a new one after the open one fades out).
        The focus ring is a hollow outline here, sized by the same values, so nothing of it shows through a fading card. */
     @media(prefers-reduced-motion:reduce){
@@ -88,7 +91,51 @@
       .ring{clip-path:none;background:none;right:auto;bottom:auto;left:calc(50% - var(--hw) - 3px);width:calc(var(--hw) * 2 + 6px);height:calc(var(--h) + 6px);border:3px solid var(--ui-accent);border-radius:calc(var(--r) + 3px)}
       .pill{display:block}.shape,.isl.swap .shape,.isl.swap .ring{opacity:0}.open .shape{opacity:1}.c{transform:none;filter:none}
       .isl:not(.open):focus-visible .ring{opacity:0}.isl:not(.open):focus-visible .pill{box-shadow:0 0 0 3px var(--ui-accent)}
-      .open[data-n] .av i,.open[data-n] .wave i{animation:none}}
+      .open[data-n] .av i,.open[data-n] .wave i{animation:none}
+      .rim{clip-path:none;background:none;right:auto;bottom:auto;left:calc(50% - var(--hw) - 2px);width:calc(var(--hw) * 2 + 4px);height:calc(var(--h) + 4px);border:2px solid #fff;
+        border-radius:calc(var(--r) + 2px);opacity:0;transition:opacity .3s ease!important}
+      .open .rim{opacity:1}.isl.swap .rim{opacity:0}
+      .stage[data-hb-mode="inside"] .isl:not(.open) .pill{box-shadow:0 0 0 2px #fff}
+      .stage[data-hb-mode="inside"] .isl:not(.open):focus-visible .pill{box-shadow:0 0 0 3px var(--ui-accent)}}
+    /* See inside and Compare. Their copies and labels stay out of sight until a mode shows them. */
+    .gh,.go,.twin,.keys,.nm,.rim{display:none}
+    .lbl{--lc:#fff;position:absolute;z-index:3;width:max-content;padding:2px 7px 2px 10px;border-radius:2px 5px 5px 2px;background:#111114;box-shadow:inset 3px 0 0 var(--lc);
+      color:#f4f4f2;font:600 12px/15px var(--hb-font);pointer-events:none}
+    .k-to,.k-past{--lc:var(--ui-accent)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    .stage[data-hb-mode="inside"] .sb,.stage[data-hb-mode="inside"] .date,.stage[data-hb-mode="inside"] .clock,
+    .stage[data-hb-mode="compare"] .sb,.stage[data-hb-mode="compare"] .date,.stage[data-hb-mode="compare"] .clock{opacity:0}
+    /* See inside: its whole box (dashed) with the picked card in it at full size, behind the island; over it the shape it grows to (dashed) and the bounce's reach (dotted) */
+    .screen{--ghw:44%;--ghh:76px;--ghr:30px;--pk:1}
+    .gh,.go{position:absolute;top:11px;left:6px;right:6px;height:172px;pointer-events:none}.gh{container-type:inline-size}.go{z-index:2}
+    .stage[data-hb-mode="inside"] .gh,.stage[data-hb-mode="inside"] .go,.stage[data-hb-mode="inside"] .rim{display:block}
+    .g-box,.g-to,.g-past{position:absolute}
+    .g-box{inset:0;border:1.5px dashed rgba(255,255,255,.85);border-radius:24px;background:rgba(0,0,0,.4)}
+    .g-to,.g-past{--ow:var(--ghw);--oh:var(--ghh);--or:var(--ghr);top:0;left:calc(50% - var(--ow));width:calc(var(--ow) * 2);height:var(--oh);border:1.5px dashed var(--ui-accent);border-radius:var(--or)}
+    .g-past{--ow:calc(48px + (var(--ghw) - 48px) * var(--pk));--oh:calc(32px + (var(--ghh) - 32px) * var(--pk));--or:calc(16px + (var(--ghr) - 16px) * var(--pk));border-style:dotted}
+    .stage[data-hb-mode="inside"] .gh .c{transition:none;transform:none;filter:none}
+    .stage[data-hb-mode="inside"] .gh[data-n=call] .c-call,.stage[data-hb-mode="inside"] .gh[data-n=timer] .c-timer,.stage[data-hb-mode="inside"] .gh[data-n=music] .c-music{opacity:.4}
+    .keys .lbl{position:absolute}.keys:not(.under) .lbl::after{content:"";position:absolute;left:var(--sx);top:var(--sy);width:var(--len);height:1px;background:var(--lc);
+      transform-origin:0 0;transform:rotate(var(--ang))}
+    .stage[data-hb-mode="inside"] .keys{display:contents}
+    .stage[data-hb-mode="inside"] .keys.under{display:grid;position:absolute;z-index:3;left:10px;right:10px;top:214px;grid-template-columns:1fr 1fr;gap:4px 6px;align-items:start}
+    .keys.under .lbl{position:static;width:auto;justify-self:start}
+    /* Compare: a copy of the phone shows the card the moment the island opens (class on); the real island, closed, stands part-grown (class posed) */
+    .stage[data-hb-mode="compare"]{--np:clamp(8px,3vw,16px);--ng:clamp(6px,2vw,16px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);column-gap:var(--ng)}
+    .stage[data-hb-mode="compare"] .phone{justify-self:center}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] .nm{display:block}
+    .stage[data-hb-mode="compare"] .twin *{transition:none!important}
+    .stage[data-hb-mode="compare"] .twin .on .shape{opacity:1}
+    .stage[data-hb-mode="compare"] .twin .on[data-n=call] .c-call,.stage[data-hb-mode="compare"] .twin .on[data-n=timer] .c-timer,.stage[data-hb-mode="compare"] .twin .on[data-n=music] .c-music{opacity:1;transform:none;filter:none}
+    .stage[data-hb-mode="compare"] .isl.posed .shape{clip-path:inset(0 calc(50% - var(--phw)) calc(100% - var(--ph)) round var(--pr));opacity:1;pointer-events:auto;transition:none!important}
+    .stage[data-hb-mode="compare"] .isl.posed .ring{clip-path:inset(0 calc(50% - var(--phw) - 3px) calc(100% - var(--ph) - 6px) round calc(var(--pr) + 3px));transition:none!important}
+    .stage[data-hb-mode="compare"] .isl.posed .pill{display:block;z-index:1;background:none;border:1.5px dashed rgba(255,255,255,.75)}
+    .stage[data-hb-mode="compare"] .c{gap:min(10px,2.4cqw)}.stage[data-hb-mode="compare"] .tx b{font-size:clamp(7px,6.4cqw,16px)}
+    .stage[data-hb-mode="compare"] .av{width:min(42px,12.5cqw)}.stage[data-hb-mode="compare"] .rb{width:min(36px,10.5cqw)}
+    .stage[data-hb-mode="compare"] .mctl{gap:min(30px,7cqw)}.stage[data-hb-mode="compare"] .mctl svg{width:min(24px,8cqw);height:min(24px,8cqw)}
+    .nm{bottom:10px;transform:translateX(-50%)}.nm.first{left:calc(var(--np) + (100% - 2 * var(--np) - var(--ng)) / 4)}.nm.second{left:calc(100% - var(--np) - (100% - 2 * var(--np) - var(--ng)) / 4)}
+    @media(max-width:760px){
+      .stage[data-hb-mode="compare"] .phone{border-width:4px;border-radius:32px 32px 0 0}.stage[data-hb-mode="compare"] .screen{border-radius:28px 28px 0 0}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -111,11 +158,18 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the black pill to open it and again to close it, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="phone">
         <div class="screen">
+          <span class="gh" aria-hidden="true"><span class="g-box"></span></span>
+          <span class="go" aria-hidden="true"><span class="g-to"></span><span class="g-past"></span></span>
           <button class="isl" id="isl" type="button" aria-label="Phone notification" aria-expanded="false" data-n="call">
-            <span class="ring"></span><span class="pill"></span><span class="hit"></span>
+            <span class="rim"></span><span class="ring"></span><span class="pill"></span><span class="hit"></span>
             <span class="shape"><span class="c c-call" aria-hidden="true"><span class="av">MC<i></i></span><span class="tx"><small>Incoming call</small><b>Maya Chen</b></span>
               <span class="rb no"><svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15 15 0 0 1-6.59-6.59l2.2-2.21a1 1 0 0 0 .25-1A11.4 11.4 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1z"/></svg></span><span class="rb yes"><svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15 15 0 0 1-6.59-6.59l2.2-2.21a1 1 0 0 0 .25-1A11.4 11.4 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1z"/></svg></span></span>
             <span class="c c-timer" aria-hidden="true"><span class="rb pz"><svg viewBox="0 0 24 24"><path d="M9 7v10M15 7v10"/></svg></span><span class="rb x"><svg viewBox="0 0 24 24"><path d="m7.5 7.5 9 9m0-9-9 9"/></svg></span>
@@ -130,11 +184,24 @@
         </div>
       </div>
       <p class="sr-only" id="say" role="status" aria-live="polite"></p>
+      <div class="keys" aria-hidden="true">
+        <p class="lbl k-box" data-hb-caption>One box that never changes size</p>
+        <p class="lbl k-card" data-hb-caption>The card waits inside at full size</p>
+        <p class="lbl k-cut" data-hb-caption>Only this cut-out shows</p>
+        <p class="lbl k-to" data-hb-caption>Grows to here in about two thirds of a second</p>
+        <p class="lbl k-past" data-hb-caption>Goes a little past, then settles</p>
+      </div>
+      <p class="lbl nm first" aria-hidden="true" data-hb-caption>Appears at once</p>
+      <p class="lbl nm second" aria-hidden="true" data-hb-caption>Pill grows</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed box is the island and never changes size; the card waits inside at full size, and only a black cut-out grows to show it. Click the pill, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Just after a press, Appears at once shows the whole card; in Pill grows the black shape is still moving from the pill (dashed). Click the pill, or press Show me.</p>
     </div>
   </section>
 
@@ -222,23 +289,35 @@
   const SAY={call:'Incoming call from Maya Chen.',timer:'Timer: 5 minutes left.',music:'Now playing: Golden Hour by Nova Lane.'};
   // note is the notification picked in Try it; data-n on the island is the card on show, whose size the shape takes
   let note='call',open=false,dur=700,runTimers=[],tick=0,swap=0;
+  // The mode on show, and in Compare whether the real island stands part-grown; bounce is the curve picked in Try it
+  let mode='normal',posed=false,poseT=0,modePress=false,bounce='soft';
 
   // Bounce: a damped spring (damping z, 1 = no overshoot) sampled into a CSS linear() curve that settles by its end. Soft overshoots
   // the size by about 5%, Springy by about 16%. Browsers without linear() get a cubic-bezier that overshoots about as far.
-  function spring(z){
+  function samples(z){
     const w=4.6/z,d=w*Math.sqrt(1-z*z),p=[];
-    for(let i=0;i<40;i++){const t=i/40;p.push((1-Math.exp(-z*w*t)*(Math.cos(d*t)+z*w/d*Math.sin(d*t))).toFixed(3))}
-    return 'linear('+p.join(',')+',1)';
+    for(let i=0;i<40;i++){const t=i/40;p.push(+(1-Math.exp(-z*w*t)*(Math.cos(d*t)+z*w/d*Math.sin(d*t))).toFixed(3))}
+    return p.concat(1);
   }
   const curves=CSS.supports('transition-timing-function','linear(0,1)');
-  const EASE={none:'cubic-bezier(.22,1,.36,1)',soft:curves?spring(.68):'cubic-bezier(.3,1.4,.5,1)',springy:curves?spring(.5):'cubic-bezier(.3,1.75,.45,1)'};
+  const SP={soft:samples(.68),springy:samples(.5)},BZ={none:[.22,1,.36,1],soft:[.3,1.4,.5,1],springy:[.3,1.75,.45,1]};
+  const useSP=k=>curves&&SP[k];
+  const EASE={};for(const k in BZ)EASE[k]=useSP(k)?'linear('+SP[k].join(',')+')':'cubic-bezier('+BZ[k]+')';
+  // How far a curve has gone at x (0 to 1): the CSS curve's own points, or the bezier solved, so See inside and Compare read the page's curve
+  function easeAt(k,x){
+    const s=useSP(k);
+    if(s){const i=Math.min(x,1)*40,j=Math.min(Math.floor(i),39);return s[j]+(s[j+1]-s[j])*(i-j)}
+    const [a,b,c,e]=BZ[k],at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
 
   // The shape's size: the card on show while it is open, else the resting pill's. Under reduced motion the card keeps its size while it fades out.
   function shape(){const g=SIZE[open||reduceMq.matches?isl.dataset.n:'rest'];['--hw','--h','--r'].forEach((v,i)=>isl.style.setProperty(v,g[i]))}
   // The timer counts down from 5:00 while it shows
   function clock(){
     clearInterval(tick);if(!open||note!=='timer')return;const t0=performance.now();
-    const draw=()=>{const s=Math.max(0,300-Math.floor((performance.now()-t0)/1000));tm.innerHTML=(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')).replace(/\d/g,'<i>$&</i>')};
+    const draw=()=>{const s=Math.max(0,300-Math.floor((performance.now()-t0)/1000));tm.innerHTML=(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')).replace(/\d/g,'<i>$&</i>');if(mode==='compare')tTm.innerHTML=tm.innerHTML};
     draw();tick=setInterval(draw,250);
   }
   function still(fn){isl.classList.add('still');fn();void isl.offsetWidth;isl.classList.remove('still')} // fn with the island's transitions off
@@ -248,14 +327,14 @@
   // still in sight (open, or fading out) fades out first (swap). Only the visitor's own changes are announced (politely).
   function setOpen(next,visitor){
     const hidden=+getComputedStyle(shapeEl).opacity===0;
-    clearTimeout(swap);isl.classList.remove('swap');
+    lift();clearTimeout(swap);isl.classList.remove('swap');
     if(next&&isl.dataset.n!==note){
       if(!reduceMq.matches)isl.dataset.n=note;
       else if(hidden)showNote();
       else{isl.classList.add('swap');swap=setTimeout(()=>{showNote();isl.classList.remove('swap')},300)}
     }
     open=next;isl.classList.toggle('open',open);isl.setAttribute('aria-expanded',String(open));
-    shape();clock();
+    shape();clock();mirror();settle();
     if(visitor)say.textContent=open?SAY[note]:'';
   }
   isl.addEventListener('click',()=>setOpen(!open,true));
@@ -263,17 +342,17 @@
   // A press anywhere else on the stage closes it, as a tap outside does on a phone
   stage.addEventListener('click',e=>{if(open&&!isl.contains(e.target))setOpen(false,true)});
   // Reduced motion switched on or off: the shape takes its new size and look at once, so a closed island never shows a card in passing
-  reduceMq.addEventListener('change',()=>still(shape));
+  reduceMq.addEventListener('change',()=>{still(shape);notes();redraw()});
 
   // Show me: one run at a time. later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
   function later(fn,move,hold){const id=setTimeout(()=>{runTimers.splice(runTimers.indexOf(id),1);fn()},move*(slowTog.checked?3:1)+hold);runTimers.push(id)}
-  function running(){return runTimers.length>0}function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down')}
+  function running(){return runTimers.length>0}function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];isl.classList.remove('down');settle()}
   // A run starts from the pill at rest, put there without animating
   function toRest(){still(()=>setOpen(false))}
   // The pill is pressed at 300ms and opens at 420ms; it shrinks back after the move and 1.4 s. At Normal it is at rest again at 3.2 s.
   // The arrival press leaves alone an island the visitor has already opened.
   $('btn-demo').addEventListener('click',e=>{
-    if(!e.isTrusted&&open)return;
+    if(!e.isTrusted&&open&&!modePress)return;
     stopRun();toRest();
     later(()=>isl.classList.add('down'),0,300);
     later(()=>{isl.classList.remove('down');setOpen(true)},0,420);
@@ -292,10 +371,95 @@
     }));
   }
   // A new notification is kept at once and opens the island, or changes the open card into the new one (setOpen shows it)
-  choices('note-seg',d=>{note=d.n;stopRun();setOpen(true,true)});
-  choices('speed-seg',d=>{dur=+d.ms;isl.style.setProperty('--dur',dur+'ms')});
-  choices('bounce-seg',d=>isl.style.setProperty('--ease',EASE[d.b]));
+  choices('note-seg',d=>{note=d.n;stopRun();setOpen(true,true);redraw()});
+  choices('speed-seg',d=>{dur=+d.ms;isl.style.setProperty('--dur',dur+'ms');redraw()});
+  choices('bounce-seg',d=>{bounce=d.b;isl.style.setProperty('--ease',EASE[d.b]);redraw()});
   isl.style.setProperty('--ease',EASE.soft);shape();
+
+  // ── See inside and Compare ──
+  // Copies are made once, with no ids, inert and hidden from screen readers: See inside's faint cards, Compare's second phone
+  const phone=stage.querySelector('.phone'),screenEl=phone.querySelector('.screen'),gh=stage.querySelector('.gh'),keys=stage.querySelector('.keys');
+  const phoneMq=matchMedia('(max-width:600px),(max-height:500px)'),POSE_MS=150;
+  const copy=el=>{const c=el.cloneNode(true);c.removeAttribute('id');c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));return c};
+  const twin=copy(phone),tIsl=document.createElement('span'),tOld=twin.querySelector('.isl');
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');twin.querySelectorAll('.gh,.go').forEach(n=>n.remove());
+  tIsl.className='isl';tIsl.append(...tOld.childNodes);tOld.replaceWith(tIsl);tIsl.querySelectorAll('.rim,.ring,.hit').forEach(n=>n.remove());
+  stage.insertBefore(twin,phone);
+  const tTm=twin.querySelector('.c-timer b'),TM0=tm.innerHTML;
+  shapeEl.querySelectorAll('.c').forEach(c=>gh.append(copy(c)));
+  gh.inert=true;
+  const K={};keys.querySelectorAll('.lbl').forEach(k=>{K[k.className.match(/k-(\w+)/)[1]]=k});
+
+  // Compare: the copy shows the card the moment the real island opens and the pill the moment it closes
+  function mirror(){
+    if(mode!=='compare')return;
+    const on=open||posed,g=SIZE[on?note:'rest'];
+    tIsl.classList.toggle('on',on);tIsl.dataset.n=note;
+    ['--hw','--h','--r'].forEach((v,i)=>tIsl.style.setProperty(v,g[i]));
+    tTm.innerHTML=open?tm.innerHTML:TM0;
+  }
+  // Compare: closed, the real island stands as far grown as it is POSE_MS after a press, on the page's curve and Speed. Opening, closing or a new
+  // card lifts it (the shape goes on from there); it snaps back once the island is closed, its shrink is over and no run is pending.
+  function poseVars(){
+    const p=easeAt(bounce,POSE_MS/dur).toFixed(3),c=SIZE[note],r=SIZE.rest;
+    ['--phw','--ph','--pr'].forEach((v,i)=>isl.style.setProperty(v,'calc('+r[i]+' + ('+c[i]+' - '+r[i]+') * '+p+')'));
+  }
+  function pose(){
+    const on=mode==='compare'&&!open&&!running();
+    if(on!==posed){posed=on;still(()=>isl.classList.toggle('posed',on))}
+    mirror();
+  }
+  function lift(){if(posed){posed=false;isl.classList.remove('posed')}}
+  function settle(){clearTimeout(poseT);if(mode==='compare'&&!open)poseT=setTimeout(pose,dur*(slowTog.checked?3:1)+60)}
+
+  // See inside: the words that follow Speed, Bounce and Slow motion; labels sit beside the phone with a line to their part, or under the box
+  const WORDS={450:['in under half a second','in under a second and a half'],700:['in about two thirds of a second','in about two seconds','in under a second'],1100:['in about a second','in over three seconds']};
+  const PAST={soft:'Goes a little past, then settles',springy:'Goes well past, then settles',none:'Stops right at it: no bounce'};
+  function place(){
+    if(mode!=='inside')return;
+    const sr=stage.getBoundingClientRect(),R=el=>{const r=el.getBoundingClientRect();return{l:r.left-sr.left,r:r.right-sr.left,t:r.top-sr.top,b:r.bottom-sr.top,w:r.width,h:r.height}};
+    const B=R(stage.querySelector('.g-box')),T=R(stage.querySelector('.g-to')),P=R(stage.querySelector('.g-past')),H=R(phone);
+    const free=Math.min(H.l,sr.width-H.r)-20,side=free>=150,reach=bounce!=='none';
+    const w=WORDS[dur];K.to.textContent='Grows to here '+((!side&&!slowTog.checked&&w[2])||w[+slowTog.checked]);K.past.textContent=PAST[bounce];
+    keys.classList.toggle('under',!side);K.box.hidden=phoneMq.matches||(!side&&stage.clientHeight<330);
+    for(const n in K){K[n].style.maxWidth=side?free+'px':'';K[n].style.left=K[n].style.top=''}
+    if(!side)return;
+    // where each label's line ends [x, y, side] (and where its label sits, if not at that height): the box's left edge, the card's left edge, the pill, the outline's right edge, the dotted one's
+    const at={box:[B.l,B.b-24,0],card:[T.l+10,T.t+T.h/2,0],cut:[B.l+B.w/2+44,B.t+6,1,B.t-6],to:[T.r,T.t+T.h/2,1],past:reach?[P.r,P.t+P.h*.85,1]:[T.r,T.t+T.h*.85,1]};
+    [0,1].forEach(col=>{
+      let y=4;
+      Object.keys(at).filter(n=>at[n][2]===col&&!K[n].hidden).sort((a,b)=>at[a][1]-at[b][1]).forEach(n=>{
+        const k=K[n],w=k.offsetWidth,h=k.offsetHeight,x=col?H.r+12:H.l-12-w,top=Math.max(y,(at[n][3]||at[n][1])-h/2);y=top+h+5;
+        const sx=col?0:w,dx=at[n][0]-(x+sx),dy=at[n][1]-(top+h/2);
+        k.style.left=x+'px';k.style.top=top+'px';
+        [['--sx',sx+'px'],['--sy',h/2+'px'],['--len',Math.hypot(dx,dy).toFixed(1)+'px'],['--ang',Math.atan2(dy,dx).toFixed(4)+'rad']].forEach(([v,val])=>k.style.setProperty(v,val));
+      });
+    });
+  }
+  // Everything a mode draws from the page's numbers, at once (a mode press, a setting, a resize, reduced motion switched)
+  function redraw(){
+    if(mode==='inside'){
+      const c=SIZE[note];
+      gh.dataset.n=note;['--ghw','--ghh','--ghr'].forEach((v,i)=>screenEl.style.setProperty(v,c[i]));
+      screenEl.style.setProperty('--pk',Math.max(...Array.from({length:101},(_,i)=>easeAt(bounce,i/100))).toFixed(3));
+      stage.querySelector('.g-past').hidden=bounce==='none';
+    }
+    if(mode!=='normal')poseVars();
+    pose();place();
+  }
+  // The notes' words for reduced motion (the markup holds the others): written only when they change
+  const NOTE0={},NOTE1={inside:'Inside, shown still: the dashed box is the island and never changes size; the card waits inside at full size, and only a black cut-out shows. With reduced motion on, the card fades in instead.',
+    compare:'Shown still, just after a press: Appears at once shows the whole card; in Pill grows the shape is still moving from the pill (dashed). With reduced motion on, a press fades the card in.'};
+  document.querySelectorAll('.hb-mode-notes [data-hb-for]').forEach(p=>{NOTE0[p.dataset.hbFor]=p.textContent});
+  function notes(){document.querySelectorAll('.hb-mode-notes [data-hb-for]').forEach(p=>{const t=(reduceMq.matches?NOTE1:NOTE0)[p.dataset.hbFor];if(p.textContent!==t)p.textContent=t})}
+  // The shared script has already marked the stage; it then presses Show me, which the flag lets through even for an island left open
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;modePress=true;Promise.resolve().then(()=>{modePress=false});
+    redraw();
+  });
+  slowTog.addEventListener('change',redraw);
+  new ResizeObserver(place).observe(stage);document.fonts&&document.fonts.ready.then(place);phoneMq.addEventListener('change',place);
+  notes();
 </script>
 </body>
 </html>
