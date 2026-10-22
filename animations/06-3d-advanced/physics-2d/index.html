@@ -32,7 +32,7 @@
     .key,.half{display:none}
     .stage[data-hb-mode="inside"] .key{display:flex}
     .stage[data-hb-mode="compare"] .half{display:block}
-    .stage[data-hb-mode="compare"] .hint{display:none}
+    .stage[data-hb-mode="inside"] .hint,.stage[data-hb-mode="compare"] .hint{display:none} /* the notes say what to do; on a small phone the hint would sit under See inside's key */
     .lbl{text-wrap:balance;padding:3px 10px;border-radius:12px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);pointer-events:none}
     .key{position:absolute;left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:5px;max-width:min(320px,70%);padding-left:26px;pointer-events:none}
     .key .asleep{display:none}.key.calm .asleep{display:block}
@@ -85,7 +85,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, gravity speeds every ball down; where two touch (or a ball meets a wall) they push apart, and lower balls push harder, holding up the ones above. Click to drop a ball.</p>
-      <p data-hb-for="compare" hidden>Pass through checks only the walls, so its balls sink into each other on the floor; Bump and pile also pushes touching balls apart, so they stack. Click to drop a ball in both.</p>
+      <p data-hb-for="compare" hidden>Pass through checks only the walls, so its balls sink into each other on the floor; Bump and pile also pushes touching balls apart, so none overlap. Click to drop a ball in both.</p>
     </div>
   </section>
 
@@ -307,7 +307,7 @@ function pmove(e){
   const p=local(e),dt=Math.max(1,e.timeStamp-last.t);
   pv.x=pv.x*.4+(p.x-last.x)/dt*FRAME*.6;pv.y=pv.y*.4+(p.y-last.y)/dt*FRAME*.6;Object.assign(last,p,{t:e.timeStamp});
   target.x=p.x+grab.x;target.y=p.y+grab.y;
-  if(reduce.matches){held.x=clamp(target.x,held.r,W-held.r);held.y=clamp(target.y,held.r,H-held.r);redraw();}
+  if(reduce.matches){held.x=clamp(target.x,held.r,W-held.r);held.y=clamp(target.y,held.r,H-held.r);return true;} // drawn by the listener, outside Compare's half
 }
 function release(e){
   if(!held||!e.isPrimary)return;
@@ -321,7 +321,7 @@ cvs.addEventListener('pointerdown',e=>{
   if(!first&&second(grabAt,p,e))return;
   own=true;drop(first?p.x+cvs.clientWidth/2:p.x,p.y);
 });
-cvs.addEventListener('pointermove',e=>second(pmove,e));
+cvs.addEventListener('pointermove',e=>{if(second(pmove,e))redraw();});
 ['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,e=>second(release,e)));
 // The keyboard drops a ball at a random spot near the top
 cvs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();own=true;const[bw,bh]=box();drop(bw*(.2+Math.random()*.6),bh*.15);}});
@@ -390,6 +390,7 @@ document.addEventListener('hb:mode',e=>{
   flag=true;queueMicrotask(()=>{flag=false;});
   cvs.setAttribute('aria-label',NAMES[mode]);
   if(mode!==was){
+    if(was==='normal'&&runTimers.length)for(const b of balls)b.to=0; // a Show me run cut short by a view ends as it would have: its balls fade
     stopRun();
     if(was==='compare'){made=kept.made;clock=kept.clock;behind=kept.behind;halves=null;}
     if(mode==='compare'){kept={made,clock,behind};made=behind=0;halves=[world(false),world(true)];}
@@ -399,7 +400,7 @@ document.addEventListener('hb:mode',e=>{
   showHint();redraw();kick();
 });
 function deal(){ // the run's own plan, out of sight: a ball every 18 steps (0.3 s), then the steps run until all sleep
-  made=0;own=false;const[bw,bh,cx]=box();
+  made=0;own=false;each(clearWorld);const[bw,bh,cx]=box(); // balls still fading out go first, or they would stay unseen but solid
   for(const[x,y,k]of PLAN.concat(MORE)){const r=R0*(MIX?k:1),c=COLORS[made++%COLORS.length];each(()=>{put(cx+R0*x,bh*y,r,c,true);for(let n=0;n<18;n++)step();});}
   each(()=>{settle();for(const b of balls)b.al=b.to;});showHint();
 }
@@ -414,7 +415,7 @@ function changed(){
 }
 // The notes as the markup writes them, and the same two under reduced motion, where nothing moves
 const NOTES=[[document.querySelector('[data-hb-for="inside"]'),'Shown still: gravity pulls every ball down; where two touch (or a ball meets a wall) they push apart, and lower balls push harder, holding up the ones above. Click to drop a ball.'],
-  [document.querySelector('[data-hb-for="compare"]'),'Shown still: Pass through lets balls sink into each other on the floor; Bump and pile pushes touching balls apart, so they stack. Click to drop a ball in both.']];
+  [document.querySelector('[data-hb-for="compare"]'),'Shown still: Pass through lets balls sink into each other on the floor; Bump and pile pushes touching balls apart, so none overlap. Click to drop a ball in both.']];
 for(const n of NOTES)n.push(n[0].textContent);
 function notes(){for(const[el,still,moving]of NOTES){const t=reduce.matches?still:moving;if(el.textContent!==t)el.textContent=t;}}
 reduce.addEventListener('change',notes);notes();
