@@ -43,9 +43,7 @@ const $ = s => document.querySelector(s), frac = x => x - Math.floor(x), smooth 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)'), FRAME = 1000 / 60, root = document.documentElement;
 const LITE = root.classList.contains('lite'), NS = LITE ? 48 : 80, STILL = 3, scale = LITE ? .6 : Math.min(devicePixelRatio || 1, 1.25);
 const PAL = [[63, 214, 196], [110, 168, 255], [185, 140, 255], [255, 111, 139]]; // teal, blue, violet, a touch of coral
-// The ribbon's shape, written once for the shader and the Canvas 2D fallback: u runs along it, ts is the 60 s loop from 0 to 1.
-const F = { th: '2.2*u+.35+.2*sin(TAU*3.*ts-1.7*u)+.35*sin(TAU*ts+.9*u+1.)', wd: '.31*(1.+.18*sin(1.9*u+TAU*3.*ts))',
-  bd: '.16*sin(1.7*u+TAU*2.*ts)+.06*sin(3.1*u-TAU*3.*ts+2.)', zd: '.22*sin(1.5*u+TAU*2.*ts+.6)-.3*u' };
+// The ribbon's shape is four short formulas (u runs along it, ts is the 60 s loop from 0 to 1): the shader has them below, the Canvas 2D fallback the same ones in JS.
 const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -54,10 +52,10 @@ precision mediump float;
 uniform vec2 R, A; uniform float ts, G;
 const int NS = ${NS}; const float TAU = 6.2831853;
 ${PAL.map((c, i) => `const vec3 C${i} = vec3(${c.map(v => (v / 255).toFixed(3))});`).join('\n')}
-float th(float u){return ${F.th};}
-float wd(float u){return ${F.wd};}
-float bd(float u){return ${F.bd};}
-float zd(float u){return ${F.zd};}
+float th(float u){return 2.2*u+.35+.2*sin(TAU*3.*ts-1.7*u)+.35*sin(TAU*ts+.9*u+1.);}
+float wd(float u){return .31*(1.+.18*sin(1.9*u+TAU*3.*ts));}
+float bd(float u){return .16*sin(1.7*u+TAU*2.*ts)+.06*sin(3.1*u-TAU*3.*ts+2.);}
+float zd(float u){return .22*sin(1.5*u+TAU*2.*ts+.6)-.3*u;}
 vec3 pal(float x){ vec3 c = mix(C0, C1, smoothstep(0., .34, x)); c = mix(c, C2, smoothstep(.3, .64, x)); return mix(c, C3, smoothstep(.8, 1., x) * .9); }
 float hash(vec2 p){ vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 void main(){
@@ -106,8 +104,11 @@ function initGL() {
   return true;
 }
 // Canvas 2D fallback: the same strands as lines (fewer, with no true blur: far ones are wider and fainter), under a tiled grain.
-const fn = e => { const f = new Function('u', 'ts', 'sin', 'TAU', 'return ' + e); return (u, ts) => f(u, ts, Math.sin, Math.PI * 2); };
-const [th, wd, bd, zd] = ['th', 'wd', 'bd', 'zd'].map(k => fn(F[k]));
+const TAU = Math.PI * 2, sin = Math.sin; // the shader's four formulas again, in JS
+const th = (u, ts) => 2.2 * u + .35 + .2 * sin(TAU * 3 * ts - 1.7 * u) + .35 * sin(TAU * ts + .9 * u + 1);
+const wd = (u, ts) => .31 * (1 + .18 * sin(1.9 * u + TAU * 3 * ts));
+const bd = (u, ts) => .16 * sin(1.7 * u + TAU * 2 * ts) + .06 * sin(3.1 * u - TAU * 3 * ts + 2);
+const zd = (u, ts) => .22 * sin(1.5 * u + TAU * 2 * ts + .6) - .3 * u;
 const pal = x => { let c = PAL[0]; [[1, 0, .34, 1], [2, .3, .64, 1], [3, .8, 1, .9]].forEach(([i, a, b, k]) => { const f = smooth((x - a) / (b - a)) * k; c = c.map((v, j) => v + (PAL[i][j] - v) * f); }); return c; };
 function useFallback() {
   gl = null; cv.hidden = true; c2.hidden = false; g2 = c2.getContext('2d');
