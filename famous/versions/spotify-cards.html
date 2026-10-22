@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Our version: The play button that rises</title>
+<style>
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Schibsted Grotesk';src:url('../../assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--c1:#6ea8ff;--c2:#5fd88a;--c3:#b98cff;--c4:#ff9d5c;--c5:#ff6f8b;--c6:#3fd6c4;--c7:#ffce5a;--btn:#6ea8ff;--btn-hi:#8fbcff;--btn-lo:#5a93ec;--sub:#aeb3c6;color-scheme:dark;
+  /* how many cards fit across, and the size that keeps the whole row inside the box in width and in height */
+  --n:2;--px:clamp(12px,3vw,28px);--py:clamp(14px,3vh,24px);--gap:clamp(4px,1vw,10px);--head:40px;
+  --cw:min(224px,calc((100vw - 2 * var(--px) - (var(--n) - 1) * var(--gap)) / var(--n)),calc(100vh - 2 * var(--py) - var(--head) - 48px))}
+@media(min-width:440px){:root{--n:3}}
+@media(min-width:640px){:root{--n:4}}
+@media(max-height:329px){:root{--head:0px}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+html{background:#0b0b0f;overflow:hidden}
+body{color:#f4f4f2;font:400 15px/1.4 'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+.stage{position:relative;height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:var(--py) var(--px);background:radial-gradient(90% 120% at 20% 0,#14172a,#0b0b0f 70%)}
+.wrap{display:grid;gap:clamp(8px,2.5vh,14px);width:max-content;max-width:100%;margin:0 auto}
+h1{padding-left:4px;font-size:clamp(17px,2.2vw,22px);font-weight:700;line-height:1.2;letter-spacing:-.02em}
+@media(max-height:329px){h1{display:none}}
+.row{list-style:none;display:grid;grid-template-columns:repeat(var(--n),var(--cw));gap:var(--gap)}
+.row li:nth-child(n+3){display:none}
+@media(min-width:440px){.row li:nth-child(3){display:block}}
+@media(min-width:640px){.row li:nth-child(4){display:block}}
+/* a card: a light layer behind its picture and words fades in 0.025 s after the button starts, in about 0.08 s, and fades out a little sooner and faster */
+.card{--cv:calc(var(--cw) - 24px);--b:clamp(44px,calc(var(--cv) * .31),48px);position:relative;isolation:isolate;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);cursor:pointer}
+.card::before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:rgba(255,255,255,.065);opacity:0;transition:opacity .065s ease-in-out .012s}
+.card.on::before{opacity:1;transition:opacity .08s ease-out .025s}
+.card::after{content:"";position:absolute;inset:0 calc(var(--gap) / -2)}
+.cover{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.cover svg{display:block;width:100%;height:100%}
+.t{margin-top:10px;font-size:15px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s{font-size:13px;line-height:1.4;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t a{color:inherit;text-decoration:none;outline:none}
+.t a::after{content:"";position:absolute;inset:0;z-index:1;border-radius:12px}
+.t a:focus-visible::after{outline:3px solid #fff;outline-offset:3px}
+/* the play button: 8px in from the corner of the cover. It fades in over 0.2 s and rises 8px in 0.15 s, both slowing as they arrive;
+   leaving it fades the same way and sinks 0.04 s later. Pointing at it grows it 4% and brightens it at once; pressing it brightens less. */
+.play{position:absolute;z-index:2;right:20px;top:calc(12px + var(--cv) - 8px - var(--b));width:var(--b);aspect-ratio:1;display:grid;place-items:center;border:0;border-radius:50%;background:var(--btn);color:#0b1226;cursor:pointer;
+  box-shadow:0 8px 8px rgba(0,0,0,.3);opacity:0;transform:translateY(8px);touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:opacity .2s ease-out,transform .15s ease-out .04s}
+.play svg{width:42%;height:42%;margin-left:7%;fill:currentColor}
+.on .play{opacity:1;transform:none;transition:opacity .2s ease-out,transform .15s ease-out}
+@media(hover:hover){.on .play:hover{transform:scale(1.04);background:var(--btn-hi);transition:transform .04s linear}}
+.on .play:active,.play:active{transform:none;background:var(--btn-lo);transition:transform .04s linear}
+.play:focus-visible{outline:3px solid #fff;outline-offset:3px}
+/* touch screens have no hover: the button is always there (a run of Show me hides it first, so the rise can be seen) */
+@media(hover:none){html:not(.demo) .play{opacity:1;transform:none}}
+.lite .cover{box-shadow:none}.lite .play{box-shadow:0 4px 5px rgba(0,0,0,.3)}
+.note{position:absolute;left:50%;top:8px;z-index:6;max-width:calc(100% - 24px);padding:7px 14px;border-radius:99px;background:#f4f4f2;color:#16161b;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,-6px);pointer-events:none;transition:opacity .2s,transform .2s}
+.note.on{opacity:1;transform:translate(-50%,0)}
+/* the demo's pointer: a dot with a dark ring, so it shows on the page and on a cover */
+.dot{position:absolute;left:0;top:0;z-index:7;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(11,11,15,.7),0 3px 12px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s}
+.dot.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.play,.on .play,.on .play:hover,.on .play:active,.play:active,html:not(.demo) .play{transform:none!important;transition:opacity .12s linear}.card::before,.card.on::before{transition:opacity .1s linear}.note,.note.on{transform:translateX(-50%);transition:opacity .15s}.dot{transition:none}}
+</style>
+<script>
+{
+  const q = '(max-width:600px),(max-height:500px)';
+  let lite;
+  try { lite = window.parent.matchMedia(q).matches; } catch (e) { lite = screen.width <= 600 || screen.height <= 500; }
+  document.documentElement.classList.toggle('lite', lite);
+}
+</script>
+</head>
+<body>
+<main class="stage" id="stage" role="group" aria-label="A shelf of playlist cards. Point at a card, or reach it with the keyboard, and a play button rises into the corner of its cover.">
+  <div class="wrap">
+    <h1>Playlists for today</h1>
+    <ul class="row">
+      <li class="card"><div class="cover" style="background:linear-gradient(140deg,#ffce5a,#ff9d5c 42%,#ff6f8b 76%,#6b2c6e)"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="36" cy="37" r="19" fill="#fff" fill-opacity=".92"/><path d="M0 68q22-11 44 0t56-3v35H0z" fill="#0b0b0f" fill-opacity=".2"/><path d="M8 80q20-8 40 0t44-4" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/></svg></div><p class="t"><a href="#" data-t="Morning mix">Morning mix</a></p><p class="s">32 songs</p><button type="button" class="play" aria-label="Play Morning mix" data-t="Morning mix"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></button></li>
+      <li class="card"><div class="cover" style="background:linear-gradient(140deg,#b98cff,#6a5bd0 42%,#252a78 76%,#12153c)"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="68" cy="29" r="12" fill="#ffce5a" fill-opacity=".95"/><path d="M0 100 45 56h10l45 44z" fill="#0b0b0f" fill-opacity=".3"/><path d="M50 60v6M50 72v9M50 87v13" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.4" stroke-linecap="round"/><path d="M12 36h26M20 46h18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" stroke-linecap="round"/></svg></div><p class="t"><a href="#" data-t="Night drive">Night drive</a></p><p class="s">18 songs</p><button type="button" class="play" aria-label="Play Night drive" data-t="Night drive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></button></li>
+      <li class="card"><div class="cover" style="background:linear-gradient(140deg,#ff6f8b,#b98cff 50%,#4a2f94 80%,#1c1650)"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="#fff" fill-opacity=".92"><circle cx="34" cy="40" r="12"/><circle cx="50" cy="34" r="15"/><circle cx="65" cy="42" r="11"/><rect x="26" y="42" width="49" height="12" rx="6"/></g><path d="M33 64l-3 9M47 66l-3 9M62 64l-3 9M40 78l-3 8" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2.5" stroke-linecap="round"/></svg></div><p class="t"><a href="#" data-t="Rainy day">Rainy day</a></p><p class="s">41 songs</p><button type="button" class="play" aria-label="Play Rainy day" data-t="Rainy day"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></button></li>
+      <li class="card"><div class="cover" style="background:linear-gradient(140deg,#5fd88a,#3fd6c4 34%,#1f6f86 68%,#10283f)"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M24 44h38v12a19 19 0 0 1-38 0z" fill="#fff" fill-opacity=".92"/><path d="M62 48h6a7 7 0 0 1 0 14h-8" fill="none" stroke="#fff" stroke-opacity=".92" stroke-width="4"/><path d="M34 36q-4-6 0-12M44 36q-4-6 0-12M54 36q-4-6 0-12" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-linecap="round"/></svg></div><p class="t"><a href="#" data-t="Slow coffee">Slow coffee</a></p><p class="s">27 songs</p><button type="button" class="play" aria-label="Play Slow coffee" data-t="Slow coffee"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.6-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></button></li>
+    </ul>
+  </div>
+  <p class="note" id="note" role="status"></p>
+  <i class="dot" id="dot" aria-hidden="true"></i>
+</main>
+<script>
+const $ = s => document.querySelector(s), clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+const root = document.documentElement, stage = $('#stage'), note = $('#note'), dot = $('#dot'), cards = [...document.querySelectorAll('.card')];
+
+// A card shows its button while the pointer is on it, while a key has put focus in it, and while Show me points at it.
+let hov = null, foc = null, demo = null, run = false, timers = [], acted = false, noteT = 0;
+const paint = () => cards.forEach(c => c.classList.toggle('on', c === hov || c === foc || c === demo));
+const cardOf = el => (el && el.closest ? el.closest('.card') : null);
+const say = text => { note.textContent = text; note.classList.add('on'); clearTimeout(noteT); noteT = setTimeout(() => note.classList.remove('on'), 1700); };
+
+// The visitor's pointer (touch has no hover, so it is left out), keys and focus. A real pointer arriving on a card takes over a run.
+document.addEventListener('pointerover', e => {
+  if (e.pointerType === 'touch') return;
+  const c = cardOf(e.target);
+  if (c && e.isTrusted) { acted = true; stopRun(); }
+  if (c !== hov) { hov = c; paint(); }
+});
+document.addEventListener('pointerout', e => { if (e.pointerType !== 'touch' && !e.relatedTarget && hov) { hov = null; paint(); } });
+document.addEventListener('focusin', e => { const c = cardOf(e.target); if (!c || !e.target.matches(':focus-visible')) return; acted = true; stopRun(); foc = c; paint(); });
+document.addEventListener('focusout', () => { foc = null; paint(); });
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.play, .t a'); if (!b) return;
+  e.preventDefault(); say((b.matches('.play') ? 'Play pressed: ' : 'Opened: ') + b.dataset.t);
+});
+
+// Show me: a dot comes in, rests on the first card, crosses to the second, rests there and leaves. The cards take their state from it.
+const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+function stopRun() {
+  timers.forEach(clearTimeout); timers = [];
+  if (!run) return;
+  run = false; dot.classList.remove('on'); root.classList.remove('demo'); demo = null; paint();
+}
+function glide(x, y, ms) { dot.style.transition = reduce.matches ? 'none' : `opacity .2s, transform ${ms}ms cubic-bezier(.45,0,.25,1)`; dot.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; }
+function show() {
+  stopRun(); run = true; root.classList.add('demo');
+  const s = stage.getBoundingClientRect(), W = s.width, H = s.height, [a, b] = cards;
+  const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  const on = (c, fx, fy) => { const r = c.querySelector('.cover').getBoundingClientRect(); return [r.left - s.left + r.width * fx, r.top - s.top + r.height * fy]; };
+  const P1 = on(a, .36, .4), P2 = on(b, .36, .4);
+  const from = [Math.max(14, ra.left - s.left - 26), Math.max(14, ra.top - s.top - 20)];
+  const out = [clamp(rb.left - s.left + rb.width * .72, 14, W - 14), Math.max(12, rb.top - s.top - 24)];
+  const place = (x, y) => { dot.style.transition = 'none'; dot.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; void dot.offsetWidth; dot.classList.add('on'); };
+  const set = c => { demo = c; paint(); };
+  if (reduce.matches) { // no travel: the dot is simply on the card, and the button shows and hides
+    place(...P1); at(150, () => set(a)); at(1500, () => { place(...P2); set(b); });
+    at(2800, () => { dot.classList.remove('on'); set(null); }); at(3200, () => { run = false; timers = []; root.classList.remove('demo'); });
+    return;
+  }
+  place(...from);
+  at(120, () => glide(...P1, 560)); at(420, () => set(a));
+  at(1550, () => glide(...P2, 540)); at(1790, () => set(b));
+  at(2850, () => glide(...out, 480)); at(3010, () => set(null));
+  at(3450, () => dot.classList.remove('on')); at(3700, () => { run = false; timers = []; root.classList.remove('demo'); });
+}
+// Only a press, a touch or a key (or a real pointer on a card, above) takes over a run: a pointer passing over the box does not.
+['pointerdown', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; stopRun(); } }, { capture: true, passive: true }));
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.fx === 'show') { acted = true; show(); }
+});
+reduce.addEventListener('change', () => stopRun()); // what the visitor holds (a hover, a focus) stays as it is
+new ResizeObserver(() => { if (run) stopRun(); }).observe(stage);
+addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
+</script>
+</body>
+</html>
