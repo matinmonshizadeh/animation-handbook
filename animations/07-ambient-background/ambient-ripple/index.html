@@ -217,11 +217,12 @@
   const slowTog=document.getElementById('slow-tog');
   const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   let W=0,H=0,raf=null,lastT=null,paused=false;
-  let mode='normal',posed=true; // the view the box shows; posed: Compare's picture is still the one it was dealt
+  let mode='normal',posed=true; // the view the box shows; posed: Compare's dealt rings are still on screen, held by Pause since they were dealt
   let clock=0; // the page's own time in ms: it moves only while the loop runs, so Pause holds every ring where it is
   let SRCS=3,INTERVAL=3,MAX_R=160,LIFE=2.5,THICK=1.5,IRR=true,DRIFT=false;
   let COLOR=[88,166,255];
   let sources=[],rings=[];
+  let capLo=0,capHi=1e9; // in See inside the rows of captions mark how high and low a drifting spot may go (see bounds())
   // Compare has its own clock, spots and rings, so Normal's stay exactly as they were while it shows: cs holds the spots' places
   // within one half (the same in both), ct[h][i] when spot i of half h sends its next ring, cr[h] the rings of half h
   let cmpClock=0,cs=[],ct=[[],[]],cr=[[],[]];
@@ -257,11 +258,23 @@
   // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion
   function advance(k,list,w){
     if(!DRIFT)return;
+    const lo=Math.max(H*.1,capLo),hi=Math.min(H*.9,capHi);
     list.forEach(s=>{
       s.x+=s.vx*k;s.y+=s.vy*k;
       if(s.x<w*.05||s.x>w*.95)s.vx*=-1;
-      if(s.y<H*.1||s.y>H*.9)s.vy*=-1;
+      if((s.y<lo&&s.vy<0)||(s.y>hi&&s.vy>0))s.vy*=-1; // turns back only when heading out, so a spot found outside walks back in
     });
+  }
+  // In See inside a drifting spot turns back before the caption rows, which would hide it and its circle for many seconds. The rows
+  // are measured on a mode press, a resize and when the font arrives, never per frame. A stage too short for the gap lets spots go
+  // as far as in Normal
+  function bounds(){
+    capLo=0;capHi=1e9;
+    if(mode!=='inside')return;
+    const edge=sel=>stage.querySelector(sel).getBoundingClientRect(),y0=stage.getBoundingClientRect().top;
+    // 18: the countdown circle's radius and a few pixels to spare
+    const lo=edge('.caps.top').bottom-y0+18,hi=edge('.caps.bottom').top-y0-18;
+    if(hi>lo){capLo=lo;capHi=hi}
   }
   function emit(){
     sources.forEach(s=>{
@@ -304,6 +317,7 @@
   const STEADY=[.08,.3,.16,.36,.22].map(o=>[o,o+.27,o+.54]); // even spacing, from a different start for each spot
   function dealCompare(){
     const half=W/2,n=sources.length;
+    posed=paused; // a deal made while the loop runs is not a held picture, so the note must not call it still
     cmpClock=0;cr=[[],[]];ct=[[],[]];
     cs=sources.map((s,i)=>({x:half*(.35+i*.3/Math.max(n-1,1)),y:s.y,vx:s.vx,vy:s.vy}));
     cs.forEach((s,i)=>{
@@ -364,8 +378,8 @@
   // The mode switch draws the mode at once. Compare deals its two halves afresh (Normal's spots, rings and clock stay as they are);
   // See inside draws over Normal's own
   document.addEventListener('hb:mode',e=>{
-    mode=e.detail.mode;
-    if(mode==='compare'){dealCompare();posed=true}
+    mode=e.detail.mode;bounds();
+    if(mode==='compare')dealCompare();
     describe();draw();
   });
   // Under reduced motion the loop starts paused, so both views are still pictures, and their notes say so: See inside's while
@@ -392,7 +406,8 @@
     W=w;H=h;
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-    initSources();if(mode==='compare')dealCompare();draw();
+    bounds();initSources();if(mode==='compare'){dealCompare();describe()}
+    draw();
   }
 
   function choices(id,pick){
@@ -421,20 +436,22 @@
   choices('size-seg',d=>{MAX_R=+d.px;still()});
   choices('src-seg',d=>{
     if(+d.n===SRCS)return;
-    SRCS=+d.n;initSources();if(mode==='compare')dealCompare();still();
+    SRCS=+d.n;initSources();if(mode==='compare'){dealCompare();describe()}
+    still();
   });
   choices('thick-seg',d=>{THICK=+d.px;still()});
   choices('color-sw',d=>{COLOR=d.rgb.split(',').map(Number);still()});
   document.getElementById('irr-tog').addEventListener('change',e=>{
     IRR=e.target.checked;
     capWait.textContent=IRR?'Each wait is a little different':'Every wait is the same';
-    if(mode==='compare'){dealCompare();posed=true} // the second half's dealt rings follow this switch
+    if(mode==='compare')dealCompare(); // the second half's dealt rings follow this switch
     describe();still();
   });
   document.getElementById('drift-tog').addEventListener('change',e=>{DRIFT=e.target.checked;still()});
 
   resize();
   window.addEventListener('resize',resize);
+  if(document.fonts)document.fonts.ready.then(bounds);
   start();
 </script>
 </body>
