@@ -415,6 +415,9 @@ test('the entries are all in one wrapper after the gallery, in page order, so th
 });
 
 const stems = s => new Set((s.toLowerCase().match(/[a-z]{5,}/g) || []).map(w => w.slice(0, 5)));
+const promptText = e => textOf(e.body.match(/<div class="fx-pbox"><p class="fx-prompt">([\s\S]*?)<\/p><\/div>/)[1]);
+// The word stems every prompt has (visitor, reduced, motion, turned): they say nothing about one entry, so they do not count.
+const COMMON_STEMS = (sets => new Set([...sets[0]].filter(s => sets.every(set => set.has(s)))))(ENTRIES.map(e => stems(promptText(e))));
 // The player of each kind of entry: its buttons as [data-fx-cmd, label]. A loop's one button swaps between Pause and Play.
 const PLAYER = { loop: [['pause', 'Pause']], load: [['replay', 'Replay']], hover: [['show', 'Show me']], press: [['show', 'Show me']], scroll: [['play', 'Play'], ['top', 'Back to top']] };
 for (const e of ENTRIES) {
@@ -442,7 +445,8 @@ for (const e of ENTRIES) {
     for (const [, label, line] of pairs) {
       const n = words(decode(line));
       assert.ok(n >= 2 && n <= 20 && !/["“”`]/.test(line), `${label}: "${line}" is one short plain line`);
-      assert.ok([...stems(line)].some(s => promptStems.has(s)), `${label}: "${line}" is taken from the entry's prompt`);
+      const shared = [...stems(line)].filter(s => promptStems.has(s) && !COMMON_STEMS.has(s));
+      assert.ok(shared.length >= 2, `${label}: "${line}" shares ${shared.length} word stems with the entry's prompt and needs two (not counting ${[...COMMON_STEMS].join(', ')}, which every prompt has)`);
     }
     const href = seenHref(e);
     assert.ok(b.includes(`<a class="fx-real" href="${href}" target="_blank" rel="noopener">Watch the real one on ${hostOf(href)} <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>`),
@@ -636,8 +640,9 @@ test('the pop-up is a rounded card in the page\'s surface and line colors, dimme
   const phone = inner(PHONE);
   assert.match(rule(phone, '.fx-dlg'), /width:100%;height:100%;max-height:none;border:0;border-radius:0/, 'on phones it fills the screen');
   assert.match(rule(phone, '.fx-dlg .copy'), /position:sticky;bottom:\d+px/, "on phones the entry's own Copy prompt sticks to the bottom");
-  assert.match(rule(CSS_BLOCKS, '.fx-stage'), /height:420px/, 'Our version is 420px tall');
-  assert.match(rule(phone, '.fx-stage'), /height:300px/, 'and 300px on phones');
+  assert.match(rule(CSS_BLOCKS, '.fx-stage'), /height:clamp\(240px,calc\(100dvh - 420px\),420px\)/, 'Our version is 420px tall, less in a short window, so it and its player fit the first screen');
+  assert.match(rule(phone, '.fx-stage'), /height:min\(300px,calc\(100dvh - 140px\)\)/, 'and 300px on phones, less in a short window');
+  assert.match(rule(inner('@media(max-height:500px)'), '.fx-dlg .copy'), /position:static/, 'in a short window Copy prompt does not stick (it would cover the stage)');
   assert.match(rule(CSS_BLOCKS, '.fx-stage'), /background:#08080a/, 'always dark');
 });
 
@@ -655,9 +660,35 @@ test('an entry\'s version loads from data-src only while its entry is open, in a
   assert.ok(SCRIPT.includes('frame.src=frame.dataset.src'), 'the frame gets its src from data-src');
   assert.ok(SCRIPT.includes('const fresh=frame.cloneNode(false)') && SCRIPT.includes("fresh.removeAttribute('src')") && SCRIPT.includes('frame.replaceWith(fresh)'), 'and is replaced by an empty one when its entry closes or changes');
   assert.ok(/startVersion\(entry\)/.test(SCRIPT) && /unmount\(entry\)\{\s*stopVersion\(entry\)/.test(SCRIPT), 'started with its entry, stopped when it goes back to the list');
-  assert.ok(SCRIPT.includes("frame.contentWindow.postMessage({fx:cmd},'*')"), 'a player button sends {fx: command} to the frame');
+  assert.ok(SCRIPT.includes("frame.contentWindow.postMessage({fx:cmd},location.protocol==='file:'?'*':location.origin)"), "a player button sends {fx: command} to the frame, naming this site's origin (a page opened from disk has none)");
+  assert.ok(SCRIPT.includes("fresh.removeAttribute('data-ready')"), 'the empty frame that replaces a used one is not marked ready (commands would go to a blank page and be lost)');
   assert.ok(SCRIPT.includes('.fx-player [data-fx-cmd]') && SCRIPT.includes("dataset.fxStart==='loop'"), 'any player button works by its data-fx-cmd, and a loop\'s Pause and Play swap');
   assert.ok(!/<iframe[^>]*\ssrc=/.test(PAGE), 'no frame has a src in the markup');
+});
+
+test('closing after Previous and Next brings the tile back into view, a double-click does not close what it opened, and a failing set-up falls back to the list', () => {
+  assert.ok(SCRIPT.includes('viaBack=goBack&&!fromHistory'), 'a close that goes back in the history is told apart');
+  assert.ok(/addEventListener\('popstate',\(\)=>setTimeout\(\(\)=>\{[^]*?tile\.closest\('\.tile'\)\.scrollIntoView\(\{block:'nearest'\}\);[^]*?tile\.focus\(\{preventScroll:true\}\);?[^]*?\},0\),\{once:true\}\)/.test(SCRIPT),
+    "once the history has moved (the browser puts the page back where it was after that), the whole tile is scrolled into view and its link keeps focus");
+  assert.ok(SCRIPT.includes('e.target===dlg&&downOnBackdrop&&e.detail<2&&outside(e)'), 'the second click of a double-click, which lands on the backdrop, closes nothing');
+  assert.ok(SCRIPT.includes("try{popup();}catch(err){document.documentElement.classList.remove('js');}"), 'if the set-up throws, the js class goes and the list shows');
+  assert.ok(SCRIPT.includes('catch(err){fail(id);}') && SCRIPT.includes('entry.scrollIntoView();') && SCRIPT.includes('const live=()=>root.classList.contains(\'js\');'), 'a press (or an address) that fails falls back to the list too and jumps to the entry, and the handlers stand down');
+  assert.ok(SCRIPT.includes("stage.classList.add('is-focused')") && SCRIPT.includes("stage.classList.remove('is-focused')"), 'the stage shows when the frame holds keyboard focus');
+  assert.match(rule(CSS_BLOCKS, '.fx-stage.is-focused'), /outline:3px solid var\(--brand\);outline-offset:3px/, 'as a ring, since the browser draws none inside a frame');
+});
+
+test('without scripts Our version stays hidden, and the pop-up says once, in its own bar, that the page is not connected to the site', () => {
+  assert.match(rule(CSS_BLOCKS, '.fx-version'), /display:none/, 'hidden until scripts run (a script fills the frame)');
+  assert.match(rule(CSS_BLOCKS, '.js .fx-version'), /display:block/, 'and shown with them');
+  assert.equal(count(PAGE, 'class="fx-dnote"'), 1, 'one note');
+  assert.ok(between(PAGE, '<div class="fx-dbar">', '<div class="fx-dbody">').includes('<p class="fx-dnote">Not connected to the site. Everything shown is our own version.</p>'), 'in the bar of the pop-up, which stays on screen');
+  assert.ok(!ENTRIES.some(e => /fx-dnote|Not connected/.test(e.body)), 'not in each entry');
+  assert.match(rule(CSS_BLOCKS, '.fx-dnote'), /font-size:12px;[^}]*color:var\(--muted\)/, 'small and muted');
+});
+
+test('the tile pictures do not repeat the look of a site: the round play button is a palette color, not green, and the menu button has three lines', () => {
+  assert.match(rule(CSS_BLOCKS, '.gp-cards .play'), /background:var\(--c1\)/, 'the play button is the palette blue');
+  assert.ok(GALLERY.includes('<div class="mn-btn"><i></i><i></i><i></i></div>'), 'a plain three-line menu button');
 });
 
 // ---------- Our version: the frames of the entries and the files they load ----------
@@ -701,6 +732,11 @@ for (const e of VERSIONS) {
     assert.ok(!/\b(fetch|XMLHttpRequest|sendBeacon|EventSource|WebSocket|importScripts|import)\s*\(|new\s+(Worker|SharedWorker)\b/.test(script), 'its script makes no request');
     assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html) || /matchMedia\(\s*['"]\(prefers-reduced-motion\s*:\s*reduce\)['"]/.test(script), 'a reduced-motion rule');
     assert.ok(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/.test(html), 'in its style');
+    assert.ok(/matchMedia\(\s*['"]\(prefers-reduced-motion\s*:\s*reduce\)['"]\s*\)/.test(script), 'it asks matchMedia about reduced motion');
+    assert.ok(/overscroll-behavior\s*:\s*contain/.test(html), 'its scroller keeps the scroll to itself (overscroll-behavior: contain)');
+    if (/requestAnimationFrame/.test(script)) {
+      assert.ok(/\bFRAME\s*=\s*1000\s*\/\s*60\b/.test(script) && /Math\.min\(\s*ts\s*-\s*lastT\s*,\s*50\s*\)/.test(script) && /\bdt\s*\)?\s*\/\s*FRAME\b/.test(script), 'its frame loop steps by elapsed time (dt / FRAME), not by a fixed amount a frame');
+    }
     assert.ok(/addEventListener\(\s*['"]message['"]/.test(script), 'a message listener');
     assert.ok(/\.source\s*(?:!==|===|!=|==)\s*(?:window\.)?parent\b/.test(script) || /\b(?:window\.)?parent\s*(?:!==|===|!=|==)\s*\w+\.source\b/.test(script), 'that checks the message comes from its parent');
     const text = versionText(html);
