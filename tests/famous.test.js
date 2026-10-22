@@ -489,7 +489,7 @@ const SITE_PHRASES = [
 const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'apple-sweep', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
 const CHECKED_DAY = '2026-10-13';
 // Entries checked again on their site before the gallery release, and the day of that check.
-const RECHECKED = { 'apple-menu': '2026-10-22', 'apple-scroll': '2026-10-22', 'apple-sweep': '2026-10-22', 'landonorris-reveal': '2026-10-22', 'linear-intro': '2026-10-22', 'pudding-chart': '2026-10-22', 'spotify-cards': '2026-10-22', 'stripe-ribbon': '2026-10-22', 'wikipedia-previews': '2026-10-22', 'youtube-loading': '2026-10-22' };
+const RECHECKED = { 'apple-menu': '2026-10-22', 'apple-scroll': '2026-10-22', 'apple-sweep': '2026-10-22', 'landonorris-reveal': '2026-10-22', 'linear-intro': '2026-10-22', 'pudding-chart': '2026-10-22', 'spotify-cards': '2026-10-22', 'stripe-ribbon': '2026-10-22', 'wikipedia-previews': '2026-10-22', 'youtube-loading': '2026-10-22', 'medium-top-bar': '2026-10-22' };
 
 // The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
 // slogan at the end of a card label would run into the card's name and go unseen).
@@ -756,7 +756,7 @@ for (const e of VERSIONS) {
   });
 }
 
-test('every entry has its own version', { todo: 'versions come one at a time' }, () => {
+test('every entry has its own version', () => {
   for (const e of ENTRIES) {
     const m = e.body.match(/<iframe title="Our version: [^"]+" data-src="(versions\/[a-z0-9-]+\.html)"/);
     assert.ok(m, `${e.id} has no Our version block yet`);
