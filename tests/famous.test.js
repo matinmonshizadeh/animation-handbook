@@ -740,6 +740,10 @@ for (const e of VERSIONS) {
     const rootRules = [...html.matchAll(/(?:^|[}\s])(?:html|body)\s*(?:,\s*(?:html|body)\s*)*\{([^}]*)\}/g)].map(m => m[1]).join(';');
     if (start === 'scroll') assert.ok(/overscroll-behavior\s*:\s*contain/.test(html), 'its scroller keeps the scroll to itself (overscroll-behavior: contain)');
     else assert.ok(!/overscroll-behavior\s*:\s*contain/.test(rootRules), 'it does not scroll, so html and body leave the wheel and a finger free to scroll the pop-up (no overscroll-behavior: contain there)');
+    // a finger kept for the effect (touch-action: none) only where the prompt makes a finger drag drive it, and said so on the html
+    const keepsFinger = /touch-action\s*:\s*none/.test(html), saysDrag = /<html\b[^>]*\bdata-fx-touch="drag"/.test(html);
+    assert.equal(keepsFinger, saysDrag, keepsFinger ? 'it keeps the finger (touch-action: none), so its html says data-fx-touch="drag"' : 'data-fx-touch="drag" only on a version that keeps the finger');
+    if (saysDrag) assert.ok(/\bfinger\b[^.]*\bdrag|\bdrag[^.]*\bfinger\b/i.test(promptText(e)), 'data-fx-touch="drag" only where its prompt makes a finger drag drive the effect');
     if (/requestAnimationFrame/.test(script)) {
       assert.ok(/\bFRAME\s*=\s*1000\s*\/\s*60\b/.test(script) && /Math\.min\(\s*ts\s*-\s*lastT\s*,\s*50\s*\)/.test(script) && /\bdt\s*\)?\s*\/\s*FRAME\b/.test(script), 'its frame loop steps by elapsed time (dt / FRAME), not by a fixed amount a frame');
     }

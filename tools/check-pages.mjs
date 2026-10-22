@@ -14,7 +14,9 @@
 //   link takes focus, then Enter; the first entry with an Our version block, else the first): the pop-up is open, the address is
 //   #<id> and focus is on the entry's heading; inside it nothing overflows, every button and link is at least 44px on phones, the
 //   not-connected note shows on its first screen and, in a window at least 700px tall, so do the stage and the player bar of Our
-//   version; the frame of Our version loads an Our version page that fits it; then Escape closes it and focus is back on the
+//   version; the frame of Our version loads an Our version page that fits it (no wider than the frame, and, unless the entry starts
+//   on scroll, no taller, so nothing in it scrolls), and, unless the entry starts on scroll, a real wheel turn over the middle of
+//   its stage (a finger dragged over it on the phones) scrolls the pop-up; then Escape closes it and focus is back on the
 //   tile's link, with the tile in view, the address plain again and the frame unloaded. The desktop run does this for every entry
 //   in turn and adds: the tile pictures behind the pop-up hold still; the frame logs no console error or warning (the console
 //   listener below hears a frame of this site); each player button visibly changes the stage (a loop's Pause holds it still and
@@ -1909,10 +1911,11 @@ const famousPopupCheck = id => `(() => {
 })()`;
 
 // Famous effects: the frame of Our version in an entry's open pop-up loads: it was given a page to load, finishes loading it within
-// 6 s, the page is an Our version page and is no wider than the frame. Whatever the page logs as it starts is collected with the
-// page's own messages (the frame is a page of this site, so it runs in the page's process and the console listener below hears
-// it). Returns the problems.
-async function famousFrameProblems(id) {
+// 6 s and the page is an Our version page. Whatever the page logs as it starts is collected with the page's own messages (the frame
+// is a page of this site, so it runs in the page's process and the console listener below hears it). Once the page has settled
+// (700 ms), it is no wider than its frame and, unless the entry starts on scroll (that version scrolls inside its box on purpose),
+// no taller: nothing in it scrolls or is cut. Returns the problems, and whether the frame loaded.
+async function famousFrameProblems(id, start) {
   const got = await evaluate(`(async () => {
     const f = document.querySelector('#${id} .fx-version iframe');
     if (!f) return null;
@@ -1920,16 +1923,60 @@ async function famousFrameProblems(id) {
     const ready = () => { const d = doc(); return !!d && d.URL !== 'about:blank' && d.readyState === 'complete'; };
     for (let i = 0; i < 120 && f.hasAttribute('src') && !ready(); i++) await new Promise(r => setTimeout(r, 50));
     const d = doc();
-    return { src: f.hasAttribute('src'), ready: ready(), title: d ? d.title : null, over: d ? d.documentElement.scrollWidth - d.documentElement.clientWidth : 0 };
+    return { src: f.hasAttribute('src'), ready: ready(), title: d ? d.title : null };
   })()`);
-  if (!got) return ['Our version has no frame'];
-  if (!got.src) return ['the Our version frame was never given a page to load (it has no src)'];
-  if (!got.ready) return ['the Our version frame did not finish loading its page within 6 s'];
+  if (!got) return { problems: ['Our version has no frame'], loaded: false };
+  if (!got.src) return { problems: ['the Our version frame was never given a page to load (it has no src)'], loaded: false };
+  if (!got.ready) return { problems: ['the Our version frame did not finish loading its page within 6 s'], loaded: false };
   const problems = [];
   if (!/^Our version/.test(got.title || '')) problems.push(`the Our version frame loaded a page titled "${got.title}", not an Our version page`);
-  if (got.over > 1) problems.push(`the Our version page is ${got.over}px wider than its frame`);
-  await sleep(700); // what the page logs as it starts is in the console by now
-  return problems;
+  await sleep(700); // what the page logs as it starts is in the console by now, and the page has laid itself out
+  const size = await evaluate(`(() => { try { const d = document.querySelector('#${id} .fx-version iframe').contentDocument.documentElement;
+    return { w: d.scrollWidth, cw: d.clientWidth, h: d.scrollHeight, ch: d.clientHeight }; } catch (err) { return null; } })()`);
+  if (size) {
+    if (size.w > size.cw + 1) problems.push(`its version is ${size.w}px wide in a ${size.cw}px frame, so it scrolls inside its box`);
+    if (start !== 'scroll' && size.h > size.ch + 1) problems.push(`its version is ${size.h}px tall in a ${size.ch}px frame, so it scrolls inside its box`);
+  }
+  return { problems, loaded: true };
+}
+
+// Famous effects: with an entry's pop-up open and able to scroll, the version of an entry that does not start on scroll leaves the
+// scroll to the pop-up: a real wheel turn over the middle of its stage (touch false: the desktop, laptop and tablet runs) or a
+// finger dragged up over it (touch true: the phones) moves the pop-up (its scrollTop grows), where the page of a version could
+// hold it (an overscroll-behavior that does not chain, a box that scrolls on its own, a finger it keeps for itself). Touch is
+// switched on for the drag only. A version whose prompt makes a finger dragged over it drive the effect marks its html with
+// data-fx-touch="drag" and keeps the finger: the drag is not tried there. Returns the problems.
+async function famousScrollProblems(id, touch) {
+  const spot = await evaluate(`(() => {
+    const d = document.getElementById('fx-dlg'), s = document.querySelector('#${id} .fx-version .fx-stage');
+    d.scrollTop = 0;
+    if (!s || d.scrollHeight <= d.clientHeight + 1) return null;
+    const f = s.querySelector('iframe'), doc = f && f.contentDocument;
+    const b = s.getBoundingClientRect(), bar = d.querySelector('.fx-dbar').getBoundingClientRect();
+    const top = Math.max(b.top, bar.bottom), bottom = Math.min(b.bottom, d.getBoundingClientRect().bottom, innerHeight);
+    return bottom - top < 40 ? null : { x: b.left + b.width / 2, y: (top + bottom) / 2, drag: !!(doc && doc.documentElement.dataset.fxTouch === 'drag') };
+  })()`);
+  if (!spot) return []; // nothing to scroll, or no room to put a pointer on the stage
+  if (touch && spot.drag) return [];
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: spot.x, y: spot.y, button: 'none' });
+  if (touch) {
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    try {
+      await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: spot.x, y: spot.y + 60 }] });
+      for (let i = 1; i <= 8; i++) {
+        await send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: spot.x, y: spot.y + 60 - i * 15 }] });
+        await sleep(20);
+      }
+      await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    } finally {
+      await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+    }
+  } else {
+    await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: spot.x, y: spot.y, deltaX: 0, deltaY: 120 });
+  }
+  const moved = await famousWait(`document.getElementById('fx-dlg').scrollTop > 2`, 1500);
+  await evaluate(`document.getElementById('fx-dlg').scrollTop = 0`);
+  return moved ? [] : ['the wheel (or a finger) over its version does not scroll the pop-up'];
 }
 
 // Famous effects, desktop run: plays Our version in an entry's open pop-up and presses each player button for real. Each button
@@ -2235,7 +2282,8 @@ async function famousCopyMotionProblems(id) {
 }
 
 // Famous effects: everything the run checks about one entry, in its pop-up, opened from its tile by the keyboard. Every setup:
-// the open state, the layout of the pop-up, the frame of Our version (loads, logs nothing) and Escape. The desktop run (setup.moves)
+// the open state, the layout of the pop-up, the frame of Our version (loads, logs nothing, nothing in it scrolls), where the entry
+// does not start on scroll the wheel (or, on phones, a finger) over it scrolling the pop-up, and Escape. The desktop run (setup.moves)
 // adds the tiles behind it holding still, Our version's player, the recipe card previews, Copy prompt (the first entry again with
 // the clipboard refused, the second with none), Next and Previous, and Close in place of Escape (but for the first entry with Our
 // version, which keeps Escape). The reduced-motion run adds the held recipe cards, the held stage of Our version and Copy prompt's
@@ -2245,15 +2293,19 @@ async function famousEntryProblems(id, ids, first, setup) {
   if (!await famousOpen(id, problems)) return problems;
   const entry = await evaluate(`({ start: document.getElementById('${id}').dataset.fxStart, version: !!document.querySelector('#${id} .fx-version iframe') })`);
   problems.push(...await famousList(famousPopupCheck(id)));
-  const frame = entry.version ? await famousFrameProblems(id) : null;
-  if (frame) problems.push(...frame);
-  const playable = !!frame && !frame.length;
+  const frame = entry.version ? await famousFrameProblems(id, entry.start) : null;
+  if (frame) problems.push(...frame.problems);
+  const playable = !!frame && frame.loaded && !frame.problems.length;
+  // The wheel (or finger) over the stage comes last of the steps that look at the stage: a pointer or a finger on it is something
+  // the version answers (a card, a note, a trail), and its answer must not count as a stage that moves.
+  const scrolls = !!frame && frame.loaded && entry.start !== 'scroll';
   if (setup.moves) {
     problems.push(...await famousBehindProblems());
     if (playable) problems.push(...await famousVersionProblems(id, entry.start));
     problems.push(...await famousCardProblems(id));
     const at = ids.indexOf(id);
     problems.push(...await famousCopyProblems(id, at === 0 ? 'refused' : at === 1 ? 'missing' : ''));
+    if (scrolls) problems.push(...await famousScrollProblems(id, false));
     problems.push(...await famousStepProblems(id, ids));
   }
   if (setup.reduce) {
@@ -2261,6 +2313,7 @@ async function famousEntryProblems(id, ids, first, setup) {
     problems.push(...await famousCardStillProblems(id));
     if (id === ids[0]) problems.push(...await famousCopyMotionProblems(id));
   }
+  if (scrolls && !setup.moves) problems.push(...await famousScrollProblems(id, !!setup.mobile));
   problems.push(...await famousCloseProblems(id, setup.moves && id !== first ? 'Close' : 'Escape'));
   return problems;
 }
