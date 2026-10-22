@@ -62,7 +62,7 @@ h1{font-size:clamp(24px,5.2vw,44px);line-height:1.1;font-weight:700;letter-spaci
 .panel::before{content:"";position:absolute;inset:0;background:rgba(12,13,19,.8);opacity:0;transition:opacity .06s linear .12s}
 .panel.on::before{opacity:1;transition:opacity .4s cubic-bezier(.4,0,.6,1) .03s}
 .lite .panel::before{background:rgba(12,13,19,.97)}
-.panel ul{position:relative;max-height:100%;overflow-y:auto;overscroll-behavior:contain;padding:calc(var(--bh) + 4px) 0 10px;list-style:none}
+.panel ul{position:relative;max-height:100%;overflow-y:auto;padding:calc(var(--bh) + 4px) 0 10px;list-style:none}
 .drop ul{max-height:100vh}
 .panel li{opacity:0;transform:translateY(-8px);transition:opacity .2s ease-out .06s,transform .2s ease-out .06s}
 .panel.on li{opacity:1;transform:none;transition:opacity .2s var(--e) calc(.245s + var(--i) * .02s),transform .2s var(--e) calc(.245s + var(--i) * .02s)}
@@ -70,6 +70,9 @@ h1{font-size:clamp(24px,5.2vw,44px);line-height:1.1;font-weight:700;letter-spaci
 .drop a{padding-left:var(--gx);font-size:20px;font-weight:600}
 @media(hover:hover){.panel a:hover{color:var(--c1)}}
 @media(max-width:480px){.cards{grid-template-columns:repeat(2,1fr)}.cards i:nth-child(3){display:none}}
+/* a short stage (a laptop's pop-up): the rows go two across, so an open menu always fits and never needs to scroll */
+@media(max-height:289px){#menu ul{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:minmax(0,1fr);padding-bottom:6px}}
+@media(max-height:245px){.drop ul{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:minmax(0,1fr);padding-bottom:6px}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important}}
 </style>
 <script>
@@ -122,7 +125,7 @@ ops.forEach(b => b.addEventListener('click', () => set(cur === b ? null : b)));
 // Top items (wide boxes): the pointer opens a panel after a short pause, a key reaching the item opens it at once, a press opens or closes it (touch).
 $$('.grp').forEach(g => {
   const b = g.querySelector('.op'), later = (open, ms) => { clearTimeout(hov); hov = setTimeout(() => { if (open) set(b); else if (cur === b) set(null); }, ms); };
-  g.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') later(true, cur ? 0 : 100); });
+  g.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') { if (e.isTrusted) { acted = true; stop(); } later(true, cur ? 0 : 100); } });
   g.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') later(false, 80); });
   g.addEventListener('focusin', () => { if (!quiet && cur !== b && b.matches(':focus-visible')) set(b); });
   g.addEventListener('focusout', e => { if (cur === b && !g.contains(e.relatedTarget)) set(null); });
@@ -130,26 +133,30 @@ $$('.grp').forEach(g => {
 wide.addEventListener('change', () => set(null));
 document.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
 
-// Escape shuts the open menu and gives focus back to its button; with nothing open it passes on (the pop-up closes).
+// Escape shuts the open menu; if focus was inside it, focus goes back to its button. With nothing open it passes on (the pop-up closes).
 addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !cur) return;
   e.stopImmediatePropagation(); e.preventDefault();
-  const b = cur; set(null); quiet = true; b.focus(); quiet = false;
+  const b = cur, inside = $('#' + b.getAttribute('aria-controls')).contains(document.activeElement);
+  set(null);
+  if (inside) { quiet = true; b.focus(); quiet = false; }
 }, true);
 
-// Show me: the button is pressed (a ring shows), the menu opens, rests a moment, and a second press closes it. A real input stops it.
+// Show me: the button is pressed (a ring shows), the menu opens, rests a moment, and a second press closes it. A press, a touch, a key or a real hover
+// of a top item stops it; a pointer that only crosses the stage does not. While it runs, timers is not empty.
 const stop = () => { timers.forEach(clearTimeout); timers = []; burger.classList.remove('tap'); };
 function show() {
   stop(); set(null);
   const press = (t, fn) => timers.push(setTimeout(() => { burger.classList.add('tap'); timers.push(setTimeout(() => burger.classList.remove('tap'), 170)); fn(); }, t));
   press(250, () => set(burger)); press(2150, () => set(null));
+  timers.push(setTimeout(() => { timers = []; }, 2900));
 }
-['pointerdown', 'pointermove', 'touchstart', 'keydown', 'wheel'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; stop(); } }, { capture: true, passive: true }));
+['pointerdown', 'touchstart', 'keydown'].forEach(t => addEventListener(t, e => { if (e.isTrusted) { acted = true; stop(); } }, { capture: true, passive: true }));
 addEventListener('message', e => {
   if (e.source !== parent || !e.data) return;
   if (e.data.fx === 'show') { acted = true; show(); }
 });
-reduce.addEventListener('change', () => { stop(); set(null); });
+reduce.addEventListener('change', () => { if (timers.length) { stop(); set(null); } });
 addEventListener('load', () => setTimeout(() => { if (!acted && !reduce.matches) show(); }, 700));
 </script>
 </body>
