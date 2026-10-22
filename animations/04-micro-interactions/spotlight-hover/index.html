@@ -68,7 +68,7 @@
     /* See inside: a band along each face's edge lets the edge light show through; the words stay on the solid middle */
     .stage[data-hb-mode="inside"] .face{background:linear-gradient(#121216,#121216) content-box,rgba(18,18,22,.45)}
     /* Compare: the copy beside the real grid, each half with its name above it (a row of its own, so no name covers a card), four
-       cards a half (two on phones, in one row, with no icons so the words fit) */
+       cards a half (two on phones, in one row) */
     .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:8px clamp(14px,3vw,28px)}
     .stage[data-hb-mode="compare"] .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .stage[data-hb-mode="compare"] .sc:nth-child(n+5){display:none}
@@ -78,11 +78,13 @@
     .cmp-l.first{grid-area:1/1}
     .cmp-l.second{grid-area:1/2}
     .cmp-l{justify-self:start}
+    /* Compare's cards are shorter than Normal's (a row of half names is added), so on a short stage the icons would shrink to specks:
+       they go, in both halves, there and on phones */
+    @media(max-width:600px),(max-height:680px){.stage[data-hb-mode="compare"] .ic{display:none}}
     @media(max-width:600px){
       .stage[data-hb-mode="inside"] .l-trail{display:none}
       .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto minmax(0,1fr)}
       .stage[data-hb-mode="compare"] .sc:nth-child(n+3){display:none}
-      .stage[data-hb-mode="compare"] .ic{display:none}
       .stage[data-hb-mode="compare"] #grid{grid-area:4/1}
       .cmp-l.second{grid-area:3/1}
     }
@@ -125,12 +127,13 @@
         <!-- See inside and Compare, drawn over the cards: the circle the light covers, the pretend pointer and the labels -->
         <div class="views" aria-hidden="true">
           <span class="ring"></span>
-          <svg class="pt" viewBox="0 0 16 23"><path d="M1 1V19L5.5 15L8.5 22L11.5 20.7L8.5 14H14.5Z"/></svg>
           <span class="lbl in-l l-ring" data-hb-caption>One light for all cards</span>
           <span class="lbl in-l l-cut" data-hb-caption>Each card cuts its copy</span>
           <span class="lbl in-l l-edge" data-hb-caption>Only the edge glows</span>
           <span class="lbl in-l l-face" data-hb-caption>A faint copy on the face</span>
           <span class="lbl in-l l-trail" data-hb-caption>Lags a little behind</span>
+          <!-- after the labels, so the arrow is never hidden under one -->
+          <svg class="pt" viewBox="0 0 16 23"><path d="M1 1V19L5.5 15L8.5 22L11.5 20.7L8.5 14H14.5Z"/></svg>
         </div>
       </div>
       <span class="lbl cmp-l first" data-hb-caption aria-hidden="true">No glow</span>
@@ -278,7 +281,8 @@
       c.fg.style.transform=`translate(${(lx-c.x-bw).toFixed(1)}px,${(ly-c.y-bw).toFixed(1)}px)`;
     }
     ring.style.transform=`translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`;
-    pt.style.transform=ghost.style.transform=`translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px)`;
+    // the arrow (16 by 23, its tip at the spot) is drawn wholly inside its grid, so in Compare neither it nor its ghost leaves its half
+    pt.style.transform=ghost.style.transform=`translate(${Math.min(tx,W-16).toFixed(1)}px,${Math.min(ty,H-23).toFixed(1)}px)`;
   }
   // A frame longer or shorter than a 60 Hz one closes the share of the gap that fits its time, so the lag is the same on
   // every screen. The first frame counts as one 60 Hz frame, and no gap counts as more than 50 ms. Under reduced motion the
