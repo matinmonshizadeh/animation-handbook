@@ -75,7 +75,7 @@
     .dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(244,244,242,.6)}
     .dots i.on{background:var(--ui-accent);border-color:var(--ui-accent)}
     /* Compare: two bands, one over the other at every width. The top one swaps the words at once; the bottom one is the real phrase.
-       At rest the real phrase is held a fifth of a second into its wipe, inside a dashed outline of the whole phrase's box. */
+       At rest the real phrase is held part way through its wipe, inside a dashed outline of the whole phrase's box. */
     .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;overflow:hidden}
     .stage[data-hb-mode="compare"] .band,.stage[data-hb-mode="compare"] .band.copy{display:block;position:relative;overflow:hidden}
     .stage[data-hb-mode="compare"] .copy-el,.stage[data-hb-mode="compare"] .phrase-el{padding:30px 12px}
@@ -135,7 +135,7 @@
       </div>
       <p class="lbl side s1" aria-hidden="true" data-hb-caption>Swaps at once</p>
       <p class="lbl side s2" aria-hidden="true" data-hb-caption>Enters and exits</p>
-      <p class="lbl when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>Part way in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
@@ -233,18 +233,18 @@
   const PAD=50;
 
   // See inside and Compare. The strip's pieces, the dots (one for each phrase), the marker, and the numbers of the pose: a fifth of
-  // a second into the entrance's own speed curve, with a dashed outline GHOST pixels around the whole phrase's box.
+  // how much of the words the wipe has uncovered, with a dashed outline GHOST pixels around the whole phrase's box.
   const stage=document.querySelector('.stage');
   const copyText=stage.querySelector('.copy-el .phrase-text'),ghost=stage.querySelector('.ghost');
   const strip=stage.querySelector('.strip'),capsBox=strip.querySelector('.caps'),capEls=[...capsBox.children];
   const barEls=[...strip.querySelectorAll('.bar')],mark=strip.querySelector('.mark'),dotEls=[...strip.querySelectorAll('.dots i')];
-  const GAP=8,GHOST=5,POSE_MS=200,EASE_OUT=[0,0,.58,1];
+  const GAP=8,GHOST=5,SHOWN=.6;
   // idx: the phrase on show (-1 before the first); leaving: its exit has begun; ended: the play is over and the last phrase stays
   let mode='normal',idx=-1,phraseAt=0,leaving=false,ended=false,markRaf=0,geom=[];
   // Under reduced motion both views are still pictures, and their notes say so
   if(!motionOk){
     document.querySelector('[data-hb-for="inside"]').textContent="Shown still: the three bars are each phrase's parts, coming in, holding to be read and leaving. With reduced motion on, the phrases swap in place but keep these times.";
-    document.querySelector('[data-hb-for="compare"]').textContent='Shown still when a play ends, a fifth of a second into the last phrase: Swaps at once shows it whole; Enters and exits is still wiping it in.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still when a play ends, part way into the last phrase: Swaps at once shows it whole; Enters and exits is still wiping it in.';
   }
 
   const PHRASES=[
@@ -308,13 +308,6 @@
       t<=1100?'about a second':t<=1450?'just over a second':t<=1800?'a second and a half':t<=2250?'two seconds':t<=2800?'two and a half seconds':
       t<=3400?'about three seconds':'about '+Math.round(t/1000)+' seconds';
   }
-  // The speed curve's height at a share x of its time: the curve's own t for x found by halving, then its height there
-  function curveAt([a,b,c,e],x){
-    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
-    let lo=0,hi=1,t=x;
-    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
-    return at(b,e,t);
-  }
   // See inside: bars as long as the three parts, their words, the lit dot, then the places of the captions and the marker
   function drawStrip(){
     const s=parts(),no=stays(),say=[words(s[0]),words(s[1]),no?'not on the last one':words(s[2])];
@@ -355,20 +348,20 @@
     const tick=()=>{markRaf=placeMark()?requestAnimationFrame(tick):0};
     tick();
   }
-  // Compare at rest: the real phrase is held a fifth of a second into its wipe (by the setting's entrance time, not slow motion's),
-  // with a dashed outline around the whole phrase's box. A play lifts it and its end brings it back.
+  // Compare at rest: the real phrase is held with the wipe's edge SHOWN of the way across its words, so the words are part uncovered
+  // at every entrance speed and width, with a dashed outline around the whole phrase's box. A play lifts it and its end brings it back.
   function pose(){
     const on=mode==='compare'&&ended;
     stage.classList.toggle('posed',on);
     if(!on)return;
-    stage.style.setProperty('--cut',(100*(1-curveAt(EASE_OUT,Math.min(1,POSE_MS/enterMs)))).toFixed(1)+'%');
     const b=ghost.parentElement.getBoundingClientRect(),r=phraseText.getBoundingClientRect();
+    stage.style.setProperty('--cut',(b.right-r.left-SHOWN*r.width).toFixed(1)+'px');
     ghost.style.cssText='left:'+(r.left-b.left-GHOST)+'px;top:'+(r.top-b.top-GHOST)+'px;width:'+(r.width+2*GHOST)+'px;height:'+(r.height+2*GHOST)+'px';
   }
   // Draws the current mode again from the page's own numbers (a phrase, a setting, Loop, Slow motion, a resize)
   function refresh(){
     if(mode==='inside'){drawStrip();ride()}
-    else pose();
+    else{cancelAnimationFrame(markRaf);markRaf=0;pose()}
   }
   // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
   document.addEventListener('hb:mode',e=>{mode=e.detail.mode;refresh()});
