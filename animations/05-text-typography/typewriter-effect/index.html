@@ -34,6 +34,35 @@
     .cursor.underscore{width:0.7em;height:2px;vertical-align:baseline;margin-bottom:3px;background:var(--cursor-color)}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
     @media(prefers-reduced-motion:reduce){.cursor{animation:none!important;opacity:1!important}}
+    /* See inside and Compare. Their parts are hidden in Normal, where the wrapper around the typing takes no room. */
+    .band{display:contents}
+    .band.first{display:none}
+    .cap,.comb{display:none}
+    .cap{width:fit-content;max-width:100%;padding:3px 8px;border-radius:5px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the text between its words. The part not typed yet is the rest of the same text, faint, after the cursor, so
+       solid and faint letters wrap as one text; the cursor takes no room and cannot split a word. */
+    .stage[data-hb-mode="inside"]{flex-direction:column;gap:clamp(6px,1.5vw,10px);padding:clamp(10px,2.5vw,24px)}
+    .stage[data-hb-mode="inside"] .cap-solid,.stage[data-hb-mode="inside"] .cap-rate,
+    .stage[data-hb-mode="inside"].posed .cap-pose,.stage[data-hb-mode="inside"].retype .cap-retype{display:block}
+    .stage[data-hb-mode="inside"] .cap{align-self:flex-start;margin-left:max(0px,calc((100% - 640px)/2))}
+    .stage[data-hb-mode="inside"] .ahead{color:rgba(244,244,242,.3)}
+    .stage[data-hb-mode="inside"] .cursor{display:inline;position:relative;width:0;height:auto;margin:0;background:none}
+    .stage[data-hb-mode="inside"] .cursor::after{content:'';position:absolute;left:-1px;top:.12em;width:2px;height:1.1em;background:var(--cursor-color)}
+    .stage[data-hb-mode="inside"] .cursor.block::after{left:0;width:.55em;opacity:.9}
+    .stage[data-hb-mode="inside"] .cursor.underscore::after{left:0;top:auto;bottom:.12em;width:.7em;height:2px}
+    /* Compare: two bands, the same text twice, each with a comb of its latest keystrokes under it (the newest at the right) */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;
+      padding:clamp(6px,1.5vw,12px) clamp(10px,3vw,28px)}
+    .stage[data-hb-mode="compare"] .band{position:relative;display:flex;flex-direction:column;justify-content:center;gap:6px;width:100%;
+      max-width:640px;min-width:0;justify-self:center;padding-top:30px}
+    .stage[data-hb-mode="compare"] .band+.band{border-top:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .name,.stage[data-hb-mode="compare"] .keys{display:block;position:absolute;top:5px;white-space:nowrap}
+    .stage[data-hb-mode="compare"] .keys{right:0}
+    .stage[data-hb-mode="compare"] .type-text{font-size:clamp(14px,3.8vw,19px)}
+    .stage[data-hb-mode="compare"] .comb{display:block;position:relative;flex:none;height:14px}
+    .comb::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:rgba(244,244,242,.3)}
+    .comb i{position:absolute;left:0;bottom:1px;width:3px;height:12px;border-radius:1px;background:#f4f4f2;visibility:hidden}
+    @media(max-width:600px),(max-height:500px){.stage[data-hb-mode="inside"] .type-text{font-size:clamp(14px,4.4vw,17px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -56,17 +85,32 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
-      <div class="type-wrap" id="type-wrap" role="img">
-        <div class="type-text type-ghost" id="type-ghost-full" aria-hidden="true"></div>
-        <div class="type-text type-ghost" id="type-ghost-retyped" aria-hidden="true"></div>
-        <div class="type-text" id="type-out" aria-hidden="true"></div>
+      <p class="cap cap-solid" aria-hidden="true" data-hb-caption>Solid: typed so far · faint: still to come</p>
+      <div class="band">
+        <div class="type-wrap" id="type-wrap" role="img">
+          <div class="type-text type-ghost" id="type-ghost-full" aria-hidden="true"></div>
+          <div class="type-text type-ghost" id="type-ghost-retyped" aria-hidden="true"></div>
+          <div class="type-text" id="type-out" aria-hidden="true"></div>
+        </div>
       </div>
+      <p class="cap cap-pose" aria-hidden="true" data-hb-caption>Shown two thirds in</p>
+      <p class="cap cap-rate" id="cap-rate" aria-hidden="true" data-hb-caption>About 20 letters a second, each gap a little different</p>
+      <p class="cap cap-retype" aria-hidden="true" data-hb-caption>Then it backs up over the last word and types a new ending</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the whole text is there from the start, faint: typing only makes more of it solid, one letter at a time, with the cursor after the last one.</p>
+      <p data-hb-for="compare" hidden>Even beat types every letter after the same pause. Like a person varies each pause a little, as real typing does; the ticks under each show the gaps.</p>
     </div>
   </section>
 
@@ -168,6 +212,7 @@
 <script>
   const typeWrap=document.getElementById('type-wrap'),typeOut=document.getElementById('type-out');
   const ghostFull=document.getElementById('type-ghost-full'),ghostRetyped=document.getElementById('type-ghost-retyped');
+  const stage=typeWrap.closest('.stage'),band2=typeWrap.parentElement,capRate=document.getElementById('cap-rate');
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const retypeTog=document.getElementById('retype-tog'),jitterTog=document.getElementById('jitter-tog');
@@ -175,6 +220,11 @@
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const DEFAULT_TEXT='Typography is the art and craft of arranging type. Good type communicates before it decorates.';
   let spd=50,shape='pipe',cursor=null,timers=[];
+  // See inside rests POSE of the way through. Compare's combs show the latest KEYS keystrokes across TW ms, one scale for both;
+  // under reduced motion SAMPLE draws them (offsets in ms from Speed's gap, inside the page's up-to-20ms rule).
+  // mode: what the box shows; posed: See inside rests on its pose; target: the finished text.
+  const KEYS=16,TW=1000,POSE=2/3,TICK=3,SAMPLE=[-14,9,-3,18,-17,6,12,-9,-19,15,2,-6,19,-12,8,-1];
+  let mode='normal',posed=false,target='',gen=0,stamps=[[],[]],last=['',''],combW=[0,0];
 
   // Drops a timer's id once it fires, so `timers` only ever holds ones still pending (not every id ever
   // scheduled) — Loop can run for a long time without the array growing without bound.
@@ -198,20 +248,30 @@
     c.setAttribute('aria-hidden','true');
     return c;
   }
-  function render(shown){
-    typeOut.textContent=shown;
-    typeOut.appendChild(cursor);
+  function put(out,cur,shown){
+    out.textContent=shown;
+    out.appendChild(cur);
   }
+  // See inside also shows the rest of the text, faint, after the cursor; Compare notes the time of each keystroke.
+  function render(shown){
+    if(posed){posed=false;stage.classList.remove('posed')}
+    put(typeOut,cursor,shown);
+    if(mode==='inside'){ahead.textContent=target.slice(shown.length);typeOut.appendChild(ahead)}
+    else if(mode==='compare'&&motionOk)tick(1,shown);
+  }
+  function curText(){return txtIn.value.trim()||DEFAULT_TEXT}
   // Reserves the stage's height for the tallest text this play could show, so nothing moves while it
   // types: an invisible copy of the finished text, and, when Deletes and retypes is on, of the retyped
   // ending too (deleting and retyping always ends up back at the full text, plus " — always.").
   // The typed text changes with every keystroke, so it is hidden from screen readers; the wrapper is one image
-  // labeled with the finished text instead, which they read once.
+  // labeled with the finished text instead, which they read once (in a mode, with what that mode shows).
   function syncGhosts(text){
     const retyped=text+' — always.';
-    ghostFull.textContent=text;
-    ghostRetyped.textContent=retypeTog.checked?retyped:'';
-    typeWrap.setAttribute('aria-label',retypeTog.checked?retyped:text);
+    target=retypeTog.checked?retyped:text;
+    ghostFull.textContent=cGhostFull.textContent=text;
+    ghostRetyped.textContent=cGhostRetyped.textContent=retypeTog.checked?retyped:'';
+    typeWrap.setAttribute('aria-label',target+(mode==='inside'?', part typed, the rest shown faint':
+      mode==='compare'?', typed twice: with an even beat and like a person':''));
   }
 
   function typeChars(text,done){
@@ -222,9 +282,13 @@
       else done();
     })();
   }
-  function deleteChars(text){
+  // Backing up goes over the last word and the space before it, never more than the last 40% of the text
+  function cutFor(text){
     const words=text.trim().split(' ');
-    const deleteFrom=Math.max(text.length-words[words.length-1].length-1,Math.floor(text.length*0.6));
+    return Math.max(text.length-words[words.length-1].length-1,Math.floor(text.length*0.6));
+  }
+  function deleteChars(text){
+    const deleteFrom=cutFor(text);
     let i=text.length;
     (function del(){
       if(i>deleteFrom){i--;render(text.slice(0,i));later(del,jitter(30));}
@@ -242,7 +306,7 @@
   }
   function afterType(){
     later(()=>{
-      if(!loopTog.checked||!motionOk)return;
+      if(!loopTog.checked||!motionOk){settle();return;}
       cycle();
     },1200);
   }
@@ -251,11 +315,13 @@
   // last word and types a new ending. While Loop is on, the finished text holds 1200ms; whether the play
   // then starts again is decided right after that hold, from Loop's value at that moment, so switching Loop
   // off during the hold still leaves the text shown. Reduced motion shows the full text at once and stops.
+  // In Compare the same play is typed again beside it with an even beat.
   function cycle(){
-    const text=txtIn.value.trim()||DEFAULT_TEXT;
+    const text=curText();
     syncGhosts(text);
     cursor=makeCursor();
-    if(!motionOk){render(text);return;}
+    if(!motionOk){render(text);settle();return;}
+    if(mode==='compare')evenPlay(text);
     typeChars(text,()=>{
       if(retypeTog.checked)later(()=>deleteChars(text),500);
       else afterType();
@@ -263,13 +329,127 @@
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // Compare's first half: a copy of the typing, out of reach of the keyboard and screen readers, with its own cursor. Each half has
+  // its name at the top, with what a tick is, and a comb of tick marks, one for each of the latest keystrokes, at the bottom.
+  const make=(tag,cls,text)=>{const e=document.createElement(tag);e.className=cls;if(text)e.textContent=text;return e};
+  const cap=(cls,text)=>{const n=make('p','cap '+cls,text);n.setAttribute('aria-hidden','true');n.setAttribute('data-hb-caption','');return n};
+  const comb=()=>{const c=make('div','comb');c.setAttribute('aria-hidden','true');for(let i=0;i<KEYS;i++)c.appendChild(make('i',''));return c};
+  const copy=typeWrap.cloneNode(true),band1=make('div','band first'),ahead=make('span','ahead'),ecursor=makeCursor();
+  ['id','role','aria-label'].forEach(a=>copy.removeAttribute(a));
+  copy.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  const [cGhostFull,cGhostRetyped,cOut]=copy.children;
+  band1.inert=true;band1.setAttribute('aria-hidden','true');
+  band1.append(cap('name','Even beat'),cap('keys','One tick per key'),copy,comb());
+  band2.prepend(cap('name','Like a person'),cap('keys','One tick per key'));band2.append(comb());
+  band2.before(band1);
+  const combs=[band1,band2].map(b=>b.querySelector('.comb')),ticks=combs.map(c=>[...c.children]);
+
+  // The steps of one play with every gap the same: what to show, then how long to wait before the next
+  function plan(text){
+    const from=cutFor(text),rest=text.slice(from)+' — always.',steps=[];
+    for(let i=0;i<=text.length;i++)steps.push([text.slice(0,i),spd]);
+    if(!retypeTog.checked)return steps;
+    steps[text.length]=[text,500,true]; // the pause before backing up is not slowed
+    for(let i=text.length-1;i>=from;i--)steps.push([text.slice(0,i),30]);
+    for(let j=0;j<=rest.length;j++)steps.push([text.slice(0,from)+rest.slice(0,j),spd]);
+    return steps;
+  }
+  // A new play starts both combs empty and cancels the even beat of the play before
+  function evenPlay(text){
+    const mine=++gen,steps=plan(text);
+    let i=0;
+    stamps=[[],[]];last=['',''];drawCombs();
+    (function go(){
+      if(mine!==gen)return;
+      const [shown,wait,pause]=steps[i++];
+      put(cOut,ecursor,shown);tick(0,shown);
+      if(i<steps.length)later(go,pause?wait:wait*mul());
+    })();
+  }
+  // A keystroke is noted at its real time; the comb puts the newest at the right edge and the others by how long before it came
+  function tick(k,shown){
+    if(!shown||shown===last[k])return;
+    last[k]=shown;
+    const s=stamps[k];
+    s.push(performance.now());
+    if(s.length>KEYS)s.shift();
+    drawComb(k);
+  }
+  function drawComb(k){
+    const s=stamps[k],now=s[s.length-1],w=Math.max(combW[k]-TICK,0);
+    ticks[k].forEach((el,i)=>{
+      const t=s[s.length-1-i],ok=t!==undefined&&now-t<=TW;
+      el.style.visibility=ok?'visible':'hidden';
+      if(ok)el.style.transform='translateX('+(w*(1-(now-t)/TW)).toFixed(1)+'px)';
+    });
+  }
+  function drawCombs(){drawComb(0);drawComb(1)}
+  function sample(uneven){let t=0;return SAMPLE.map(d=>t+=spd+(uneven?d:0))}
+
+  // Where a view comes to rest when nothing is typing: See inside two thirds in (rendered like any keystroke, so the rest stays
+  // faint), Compare with both texts whole (under reduced motion with the fixed sample on the combs)
+  function pose(text){
+    if(!cursor)cursor=makeCursor();
+    render(text.slice(0,Math.round(text.length*POSE)));
+    posed=true;stage.classList.add('posed');
+  }
+  // The text a play ends on (reduced motion shows the text alone)
+  function finished(){return motionOk?target:curText()}
+  function settle(){
+    if(timers.length)return;
+    if(mode==='inside')pose(curText());
+    else if(mode==='compare'){
+      if(!cursor)cursor=makeCursor();
+      put(typeOut,cursor,finished());put(cOut,ecursor,finished());
+      if(!motionOk){stamps=[sample(false),sample(jitterTog.checked)];drawCombs()}
+    }
+  }
+  // The captions that change with the settings, and the notes (the markup's own words until a setting or reduced motion changes them)
+  const notes=[...document.querySelectorAll('[data-hb-for]')],markup=notes.map(n=>n.textContent);
+  const STILL=['Shown still, two thirds of the way through: the solid part has been typed and the faint part is still to come. With reduced motion on, the text appears at once.',
+    'Shown still: the ticks under Even beat are evenly spaced, and under Like a person each gap is a little different. With reduced motion on, both show the text at once.'];
+  const ALIKE='Types like a person is off, so Even beat and Like a person type alike. Turn it on in Try it to see the difference.';
+  function describe(){
+    const per=Math.floor(1000/(spd*mul())),rate='About '+per+' letters a second, '+(jitterTog.checked?'each gap a little different':'every gap the same');
+    if(capRate.textContent!==rate)capRate.textContent=rate;
+    stage.classList.toggle('retype',retypeTog.checked);
+    const want=[motionOk?markup[0]:STILL[0],!jitterTog.checked?ALIKE:motionOk?markup[1]:STILL[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==want[i])n.textContent=want[i]});
+  }
+  // A setting or the text changed: the views show it at once (Normal waits for the replay, as before)
+  function refresh(){
+    describe();
+    if(mode==='normal')return;
+    syncGhosts(curText());
+    settle();
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  // Leaving See inside while it rests on its pose shows the whole text at once; a run under way goes on.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(was==='inside'&&mode!=='inside'){
+      ahead.remove();
+      if(posed){posed=false;stage.classList.remove('posed');put(typeOut,cursor,finished())}
+    }
+    syncGhosts(curText());
+    describe();
+    settle();
+  });
+  // A comb is measured when it first shows and whenever the box changes size
+  const sizer=new ResizeObserver(()=>{combs.forEach((c,k)=>{combW[k]=c.clientWidth});drawCombs()});
+  combs.forEach(c=>sizer.observe(c));
+
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  [slowTog,retypeTog,jitterTog].forEach(t=>t.addEventListener('change',refresh));
+  txtIn.addEventListener('input',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('speed-seg',d=>{spd=+d.ms});
@@ -277,9 +457,11 @@
     shape=d.shape;
     const c=typeOut.querySelector('.cursor');
     if(c)c.className='cursor '+shape;
+    ecursor.className='cursor '+shape;
   });
   choices('cursor-color-sw',d=>{vars.setProperty('--cursor-color',d.c)});
-  syncGhosts(txtIn.value.trim()||DEFAULT_TEXT);
+  syncGhosts(curText());
+  describe();
 </script>
 </body>
 </html>
