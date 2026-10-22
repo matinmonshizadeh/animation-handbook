@@ -488,6 +488,8 @@ const SITE_PHRASES = [
 // (apple-sweep), which the check covered too, and entry 8 was left out, as no other reserve had passed.
 const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'apple-sweep', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
 const CHECKED_DAY = '2026-10-13';
+// Entries checked again on their site before the gallery release, and the day of that check.
+const RECHECKED = { 'apple-scroll': '2026-10-22' };
 
 // The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
 // slogan at the end of a card label would run into the card's name and go unseen).
@@ -499,14 +501,15 @@ test('no visible text of the page holds a name or slogan the live check saw on a
   for (const phrase of SITE_PHRASES) assert.ok(!names(shown, phrase), `"${phrase}" is in the text of the page`);
 });
 
-test(`each entry the live check covered is dated ${CHECKED_DAY}, the day it was checked`, () => {
+test(`each entry the live check covered is dated ${CHECKED_DAY}, or the day it was checked again`, () => {
   const present = ENTRIES.filter(e => CHECKED_IDS.includes(e.id));
   assert.ok(present.length > 0, 'the page holds some of the checked entries');
   for (const e of present) {
     const seen = e.body.match(/<p class="fx-seen">[\s\S]*?<\/p>/);
     assert.ok(seen, `${e.id}: a Seen on line`);
     const days = [...seen[0].matchAll(/<time datetime="([^"]*)">/g)].map(m => m[1]);
-    assert.deepEqual(days, [CHECKED_DAY], `${e.id}: its Seen on line is dated ${CHECKED_DAY}`);
+    const day = RECHECKED[e.id] || CHECKED_DAY;
+    assert.deepEqual(days, [day], `${e.id}: its Seen on line is dated ${day}`);
   }
 });
 
