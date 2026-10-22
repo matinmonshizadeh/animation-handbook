@@ -382,7 +382,9 @@ button{font:inherit;color:inherit}
 .gp-load .m1 b{background:#e6e8f0}
 .gp-load .m2 b{background:#8f96ad}
 
-/* the chart that changes step by step as the text goes by */
+/* the chart that changes step by step as the text goes by: columns of dots that grow, then the three tallest light up while the rest fade, then
+   slide to the front. A column is a clipped box; the dotted layer inside it moves down to hide dots from the top, so the column keeps its
+   dots at the baseline (transform only). At rest the picture shows the middle step. */
 .gp-chart{background:radial-gradient(80% 90% at 70% 60%,#10152a,#08080a 72%)}
 .gp-chart .tl{left:8cqw;height:2.2cqw;border-radius:1cqw;background:#2a3042}
 .gp-chart .tl1{top:14cqw;width:25cqw}
@@ -391,13 +393,16 @@ button{font:inherit;color:inherit}
 .gp-chart .tl4{top:32cqw;width:19cqw}
 .gp-chart .tl5{top:38cqw;width:24cqw}
 .gp-chart .mk{left:5.4cqw;top:13.2cqw;width:.8cqw;height:3.8cqw;border-radius:1cqw;background:var(--c1);transform:translateY(6cqw)}
-.gp-chart .bar{bottom:9cqw;width:6.2cqw;height:38cqw;border-radius:1.2cqw 1.2cqw .4cqw .4cqw;background:#323a52;transform-origin:50% 100%;transform:scaleY(var(--b))}
-.gp-chart .k1{left:44cqw;--a:.35;--b:.55;--c:.3}
-.gp-chart .k2{left:52.4cqw;--a:.5;--b:.4;--c:.65}
-.gp-chart .k3{left:60.8cqw;--a:.3;--b:.8;--c:.55;background:var(--c1)}
-.gp-chart .k4{left:69.2cqw;--a:.65;--b:.5;--c:.9}
-.gp-chart .k5{left:77.6cqw;--a:.45;--b:.7;--c:.4;background:var(--c4)}
-.gp-chart .k6{left:86cqw;--a:.25;--b:.35;--c:.6}
+.gp-chart .bar{bottom:9cqw;width:6.2cqw;height:33.6cqw;overflow:hidden;opacity:var(--dim)}
+.gp-chart .mv,.gp-chart .g{left:0;top:0;width:100%;height:100%;background:radial-gradient(circle 1.5cqw at 50% 50%,var(--dc) 96%,transparent) 0 0/100% 4.8cqw}
+.gp-chart .mv{--dc:#8d93ad;transform:translateY(calc(var(--h2) * 4.8cqw))}
+.gp-chart .g{--dc:var(--c1);opacity:var(--lit)}
+.gp-chart .k1{left:44cqw;--h1:6;--h2:5;--lit:0;--dim:.26;--sx:33.6cqw}
+.gp-chart .k2{left:52.4cqw;--h1:6;--h2:4;--lit:0;--dim:.26;--sx:16.8cqw}
+.gp-chart .k3{left:60.8cqw;--h1:5;--h2:2;--lit:1;--dim:1;--sx:-8.4cqw}
+.gp-chart .k4{left:69.2cqw;--h1:5;--h2:1;--lit:1;--dim:1;--sx:-25.2cqw}
+.gp-chart .k5{left:77.6cqw;--h1:6;--h2:3;--lit:1;--dim:1;--sx:-16.8cqw}
+.gp-chart .k6{left:86cqw;--h1:6;--h2:5;--lit:0;--dim:.26;--sx:0cqw}
 
 /* the top bar that slides away while the page scrolls down and comes back when it scrolls up: a page that rises from the bottom edge */
 .gp-bar{background:radial-gradient(80% 90% at 50% 100%,#12162a,#08080a 72%)}
@@ -441,7 +446,9 @@ button{font:inherit;color:inherit}
 @keyframes g-pt{0%{opacity:0;transform:translate(-41.5cqw,-15.7cqw)}6%{opacity:1;transform:translate(-41.5cqw,-15.7cqw)}16%,40%{opacity:1;transform:translate(-31.3cqw,0)}50%,78%{opacity:1;transform:none}86%{opacity:1;transform:translate(8cqw,-16.7cqw)}92%,100%{opacity:0;transform:translate(8cqw,-16.7cqw)}}
 @keyframes g-pop{0%,31%{opacity:0}31.5%,88%{opacity:1}88.5%,100%{opacity:0}}
 @keyframes g-fill{0%,33%{opacity:0}33.4%,88%{opacity:1}88.5%,100%{opacity:0}}
-@keyframes g-bars{0%,26%{transform:scaleY(var(--a))}36%,62%{transform:scaleY(var(--b))}72%,92%{transform:scaleY(var(--c))}100%{transform:scaleY(var(--a))}}
+@keyframes g-dots{0%,26%{transform:translateY(calc(var(--h1) * 4.8cqw))}36%,92%{transform:translateY(calc(var(--h2) * 4.8cqw))}100%{transform:translateY(calc(var(--h1) * 4.8cqw))}}
+@keyframes g-lit{0%,26%{opacity:0}36%,92%{opacity:var(--lit)}100%{opacity:0}}
+@keyframes g-sort{0%,26%{opacity:1;transform:none}36%,62%{opacity:var(--dim);transform:none}72%,92%{opacity:var(--dim);transform:translateX(var(--sx))}100%{opacity:1;transform:none}}
 @keyframes g-mark{0%,26%{transform:none}36%,62%{transform:translateY(6cqw)}72%,92%{transform:translateY(12cqw)}100%{transform:none}}
 @keyframes g-page{0%,10%{transform:translateY(-6cqh)}38%,56%{transform:translateY(-40cqh)}70%,92%{transform:translateY(-32cqh)}100%{transform:translateY(-6cqh)}}
 @keyframes g-slide{0%,14%{transform:none}24%,58%{transform:translateY(-105%)}68%,92%{transform:none}100%{transform:none}}
@@ -497,7 +504,9 @@ button{font:inherit;color:inherit}
   .gp-load .l-b{--d:.15s}
   .gp-load .l-c{--d:.3s}
   .gp-chart{--x:3.2s}
-  .gp-chart .bar{animation:g-bars 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-chart .mv{animation:g-dots 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-chart .g{animation:g-lit 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
+  .gp-chart .bar{animation:g-sort 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
   .gp-chart .mk{animation:g-mark 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
   .gp-bar{--x:.4s}
   .tb-page{animation:g-page 7s var(--ease) infinite backwards;animation-delay:calc(0s - var(--x))}
@@ -851,7 +860,7 @@ html.fx-open{overflow:hidden;padding-right:var(--fx-gap,0px)} /* the page does n
       </li>
       <li class="tile" data-fx-tile="pudding-chart">
         <div class="t-stage">
-          <div class="gp gp-chart" aria-hidden="true"><i class="tl tl1"></i><i class="tl tl2"></i><i class="tl tl3"></i><i class="tl tl4"></i><i class="tl tl5"></i><i class="mk"></i><i class="bar k1"></i><i class="bar k2"></i><i class="bar k3"></i><i class="bar k4"></i><i class="bar k5"></i><i class="bar k6"></i></div>
+          <div class="gp gp-chart" aria-hidden="true"><i class="tl tl1"></i><i class="tl tl2"></i><i class="tl tl3"></i><i class="tl tl4"></i><i class="tl tl5"></i><i class="mk"></i><i class="bar k1"><i class="mv"><i class="g"></i></i></i><i class="bar k2"><i class="mv"><i class="g"></i></i></i><i class="bar k3"><i class="mv"><i class="g"></i></i></i><i class="bar k4"><i class="mv"><i class="g"></i></i></i><i class="bar k5"><i class="mv"><i class="g"></i></i></i><i class="bar k6"><i class="mv"><i class="g"></i></i></i></div>
           <div class="t-tags"><span class="t-tag">Our version</span><span class="t-tag t-start">On scroll</span></div>
         </div>
         <div class="t-meta">
@@ -1183,15 +1192,26 @@ html.fx-open{overflow:hidden;padding-right:var(--fx-gap,0px)} /* the page does n
   </section>
 
   <section class="fx" id="pudding-chart" aria-labelledby="pudding-chart-t" data-fx-site="The Pudding" data-fx-start="scroll">
-    <p class="fx-seen">Seen on <a href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">pudding.cool/2025/11/democracy<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-13">2026</time></p>
+    <p class="fx-seen">Seen on <a href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">pudding.cool/2025/11/democracy<span class="sr"> (opens in a new tab)</span></a> in&nbsp;<time datetime="2026-10-22">2026</time></p>
     <h2 id="pudding-chart-t" tabindex="-1">The chart that changes as you read</h2>
     <p class="fx-chips"><span class="fx-chip">Starts on scroll</span><span class="fx-chip">Made from 2 animations</span></p>
+    <div class="fx-version">
+      <div class="fx-stage">
+        <iframe title="Our version: The chart that changes as you read" data-src="versions/pudding-chart.html"></iframe>
+        <span class="fx-vlabel" aria-hidden="true">Our version</span>
+      </div>
+      <div class="fx-player">
+        <button type="button" class="fx-pbtn" data-fx-cmd="play">Play</button>
+        <button type="button" class="fx-pbtn" data-fx-cmd="top">Back to top</button>
+        <p class="fx-phint">Built from the prompt below. Scroll inside the box, or press Play.</p>
+      </div>
+    </div>
     <h3 class="fx-sub">What you see</h3>
     <p class="fx-what">A chart of dots stays on screen while short paragraphs scroll past. As you scroll, the years go by and each year's dots pile up into the chart, the ones the story is about in bright color, and at some paragraphs the dots slide into a new chart; scrolling back undoes each step.</p>
     <h3 class="fx-sub">Good to know</h3>
     <dl class="fx-know">
       <div><dt>Starts</dt><dd>Each time a new block of text reaches the middle of the screen.</dd></div>
-      <div><dt>On phones</dt><dd>The chart stays at the top and the text scrolls over it on cards.</dd></div>
+      <div><dt>On phones</dt><dd>The chart stays at the top and each block of text slides up below it on a card.</dd></div>
       <div><dt>Reduced motion</dt><dd>The steps switch without animating.</dd></div>
     </dl>
     <h3 class="fx-sub">Build it with these animations</h3>
@@ -1200,7 +1220,7 @@ html.fx-open{overflow:hidden;padding-right:var(--fx-gap,0px)} /* the page does n
       <article class="card c1" data-slug="sticky-section"><div class="stage"><div class="pv" aria-hidden="true"></div><span class="tag">The chart stays</span></div><div class="meta"><h4 class="title"><a href="../animations/01-scroll-based/sticky-section/">Sticky Section</a></h4><p class="desc">A section holds still while its content changes. Best for feature tours.</p></div></article>
     </div>
     <h3 class="fx-sub">A prompt to build something similar</h3>
-    <div class="fx-pbox"><p class="fx-prompt">Add a scrollytelling layout to <mark>[your story or data article]</mark>. Keep a chart or picture fixed on the screen while short blocks of text scroll past it, and change the chart each time a new block reaches the middle of the screen: light up the dots or bars the text talks about and fade the rest, so the words and the chart tell the story together. Change it smoothly, and let scrolling back undo each step. On phones, keep the chart at the top and let the text scroll over it on cards. Keep every step readable without the chart for screen readers. If the visitor has reduced motion turned on, switch between the steps without animating.</p></div>
+    <div class="fx-pbox"><p class="fx-prompt">Add a scrollytelling layout to <mark>[your story or data article]</mark>. Keep a chart or picture fixed on the screen while short blocks of text scroll past it, and change the chart each time a new block reaches the middle of the screen: light up the dots or bars the text talks about and fade the rest, so the words and the chart tell the story together. Change it smoothly, and let scrolling back undo each step. On phones, keep the chart at the top and let each block of text slide up below it on a wide card. Keep every step readable without the chart for screen readers. If the visitor has reduced motion turned on, switch between the steps without animating.</p></div>
     <button type="button" class="copy" aria-label="Copy prompt for The chart that changes as you read"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="copy-l" aria-live="polite">Copy prompt</span></button>
     <a class="fx-real" href="https://pudding.cool/2025/11/democracy/" target="_blank" rel="noopener">Watch the real one on pudding.cool <span aria-hidden="true">↗</span><span class="sr"> (opens in a new tab)</span></a>
   </section>
