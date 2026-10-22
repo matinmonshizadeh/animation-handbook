@@ -61,6 +61,57 @@
     /* At 16px a text field does not make iOS zoom in when it gets the focus */
     @media(pointer:coarse){.help-input{font-size:16px}}
     @media(prefers-reduced-motion:reduce){.tooltip{transition:opacity var(--tip-dur) ease!important}}
+    /* See inside and Compare, drawn from the page's own numbers. See inside: the tip's life as bars on one time line (a marker rides
+       it), and the hidden tip outlined. Compare: a copy of the items on the left whose tips show with no wait. */
+    .strip,.views,.cp-wrap,.tip-ol,.lbl{display:none}
+    .lbl{position:absolute;padding:2px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:var(--ui-text);font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .views{position:absolute;inset:0;z-index:11;pointer-events:none}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .pt path{fill:var(--ui-text);stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .gh{opacity:.7}
+    .trail{fill:none;stroke:rgba(244,244,242,.6);stroke-width:2;stroke-dasharray:3 5}
+    .tip-ol{color:transparent;background:transparent;border:1px dashed rgba(255,157,92,.85);--tip-bg:rgba(255,157,92,.8);transition:none;z-index:9;user-select:none}
+    .strip{padding:6px 10px 7px;background:#111114;border:1px solid var(--ui-border);border-radius:8px}
+    .tl{position:relative;height:24px}
+    .f-wait{--edge:1px dashed rgba(244,244,242,.6)}
+    .f-in{--fill:linear-gradient(90deg,rgba(255,157,92,.1),var(--ui-accent))}
+    .f-out{--fill:linear-gradient(90deg,var(--ui-accent),rgba(255,157,92,.1))}
+    .f-stay{--fill:repeating-linear-gradient(135deg,var(--ui-accent) 0 3px,rgba(255,157,92,.28) 3px 6px)}
+    .bar,.kl::before{background:var(--fill,none);border:var(--edge,0)}
+    .bar{position:absolute;top:3px;height:18px;border-radius:3px}
+    .bar.f-stay::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 30%,#111114)}
+    .mk{position:absolute;left:0;top:0;width:2px;height:24px;margin-left:-1px;background:var(--ui-text);box-shadow:0 0 0 1px #0b0b0d}
+    .key{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px}
+    .kl{font:600 12px/1.25 var(--hb-font);color:var(--ui-text)}
+    .kl::before{content:'';display:inline-block;width:16px;height:10px;margin-right:6px;border-radius:2px;vertical-align:-1px}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"].three #tw2,.stage[data-hb-mode="compare"].three #tw2{display:none}
+    .stage[data-hb-mode="inside"]{gap:8px;padding:8px 16px}
+    .stage[data-hb-mode="inside"] .strip{display:block;align-self:stretch;flex:none}
+    .stage[data-hb-mode="inside"] .in-cap:not([hidden]){display:block}
+    .stage[data-hb-mode="inside"] .tip-ol.on{display:block}
+    /* Compare: the real items move to the middle of the right half (left, not translate: a transform would trap each tip under the
+       items after it) and their copies stand at the same heights in the left half. The field's tip opens below it in both halves,
+       as Normal's does on a narrow screen. */
+    .stage[data-hb-mode="compare"]{gap:26px;padding:30px 16px 8px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .cmp-cap:not([hidden]){display:block}
+    .stage[data-hb-mode="compare"] .tip-wrap{left:var(--half,0px)}
+    .stage[data-hb-mode="compare"] .cp-wrap{display:inline-flex;position:absolute;pointer-events:none}
+    .stage[data-hb-mode="compare"].three .cp2{display:none}
+    .stage[data-hb-mode="compare"] .tooltip{max-width:var(--tw,200px)}
+    .stage[data-hb-mode="compare"] .tooltip.pose{opacity:var(--po,0);transform:translateX(-50%) scale(var(--ps,.95));transition:none}
+    .stage[data-hb-mode="compare"] .tip-right{left:50%;right:auto;top:calc(100% + 8px);transform:translateX(-50%) scale(.95);transform-origin:top center}
+    .stage[data-hb-mode="compare"] .tip-right.visible{transform:translateX(-50%) scale(1)}
+    .stage[data-hb-mode="compare"] .has-arrow .tip-right::after{left:50%;top:-10px;transform:translateX(-50%);border-right-color:transparent;border-bottom-color:var(--tip-bg)}
+    .n-l{left:8px;top:8px}
+    .n-r{left:calc(50% + 8px);top:8px}
+    @media(max-width:600px){.stage[data-hb-mode="inside"]{gap:6px;padding:6px}.strip{padding:5px 6px 6px}}
+    /* A stage under 300px tall has no room for the strip under three items, so it stands to their right */
+    .stage[data-hb-mode="inside"].side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);align-content:center;gap:8px 16px}
+    .stage[data-hb-mode="inside"].side .tip-wrap{grid-column:1;justify-self:center}
+    .stage[data-hb-mode="inside"].side .strip{grid-column:2;grid-row:1/span 3;align-self:center}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -83,6 +134,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Point at an item, tab to it or tap it on a phone, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="tip-wrap" id="tw0">
         <div class="icon-btn" tabindex="0" aria-describedby="tt0">⚙️</div>
@@ -100,10 +156,30 @@
         <div class="avatar-sm" tabindex="0" aria-describedby="tt3">🧑</div>
         <div class="tooltip tip-top" id="tt3" role="tooltip">@atlas — joined 2019 · 140 projects</div>
       </div>
+      <div class="strip" aria-hidden="true">
+        <div class="tl"><span class="bar f-wait" id="b1"></span><span class="bar f-in" id="b2"></span><span class="bar f-stay" id="b3"></span><span class="bar f-wait" id="b4"></span><span class="bar f-out" id="b5"></span><span class="mk" id="mk"></span></div>
+        <p class="key"><span class="kl f-wait" id="k1" data-hb-caption>Waits about a third of a second</span><span class="kl f-in" id="k2" data-hb-caption>Fades in, about a sixth of a second</span><span class="kl f-stay" data-hb-caption>Stays while you point</span><span class="kl f-out" id="k4" data-hb-caption>Waits a tenth of a second, then fades out</span></p>
+      </div>
+      <div class="views" aria-hidden="true">
+        <span class="lbl in-cap" id="l-ol" data-hb-caption hidden>Hidden here until it shows</span>
+        <span class="lbl cmp-cap n-l" data-hb-caption>Shows at once</span>
+        <span class="lbl cmp-cap n-r" data-hb-caption>Waits a moment</span>
+        <span class="lbl cmp-cap" id="l-pass" data-hb-caption hidden>Passing by</span>
+        <!-- The trails, the pretend pointer and its ghost over the copy: after the labels, so a pointer is never hidden under one -->
+        <svg>
+          <path class="trail" id="tr0"/><path class="trail" id="tr1"/>
+          <g class="pt" id="pt"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g>
+          <g class="pt gh" id="gh"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g>
+        </svg>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed box is the hidden tip; the bars are its life: it waits, fades in, stays while you point, then waits and fades out. Point at an item, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Shows at once: every tip the pointer passes flashes up; Waits a moment: only the item the pointer rests on shows its tip. Move across the items, or press Show me.</p>
     </div>
   </section>
 
@@ -194,25 +270,41 @@
 <script>
   const stage=document.querySelector('.stage');
   const wraps=[...document.querySelectorAll('.tip-wrap')];
+  const tips=wraps.map(w=>w.querySelector('.tooltip'));
   const slowTog=document.getElementById('slow-tog');
   const canHover=window.matchMedia('(hover: hover)');
   const vars=document.documentElement.style;
   let showDelay=300,hideDelay=100,fadeMs=150,runTimers=[];
 
+  // See inside and Compare: the strip of bars with its marker, a dashed outline of each hidden tip, an inert copy of the items for
+  // Compare, and the pretend pointer of Show me's pass. The mode is Normal until the switch says otherwise.
+  const $=id=>document.getElementById(id);
+  const strip=stage.querySelector('.strip'),tl=strip.querySelector('.tl'),mk=$('mk'),barEls=[1,2,3,4,5].map(n=>$('b'+n));
+  const pt=$('pt'),gh=$('gh'),trails=[$('tr0'),$('tr1')],capOl=$('l-ol'),capPass=$('l-pass');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),narrowMQ=matchMedia('(max-width:720px)'),phoneMQ=matchMedia('(max-width:600px)');
+  const compareNote=document.querySelector('[data-hb-for="compare"]'),COMPARE_NOTE=compareNote.textContent;
+  const NONE_NOTE='Delay before showing is set to None, so Shows at once and Waits a moment both flash every tip the pointer passes. Pick another delay in Try it.';
+  let mode='normal',cur=0,M={i:-1,ph:'rest'},K=0,X=[],D=[],rp=-1,posed=false,passed=[],mouse=null,mouseIn=false,markRaf=0;
+  const copies=[],ols=[];
+
   // Each item shows and hides its own tooltip: the visitor's pointer, focus and tap and the Show me run all call the same two
   // functions. A delay of 0 shows or hides at once (a tap does), and dismiss() clears both timers and hides at once (Escape does).
-  wraps.forEach(wrap=>{
-    const tip=wrap.querySelector('.tooltip');
-    let showTimer=0,hideTimer=0;
+  wraps.forEach((wrap,i)=>{
+    const tip=tips[i];
+    let showTimer=0,hideTimer=0,waiting=false;
     function show(delay=showDelay){
-      clearTimeout(hideTimer);clearTimeout(showTimer);
-      if(delay>0)showTimer=setTimeout(()=>tip.classList.add('visible'),delay);
+      const was=tip.classList.contains('visible');
+      clearTimeout(hideTimer);clearTimeout(showTimer);waiting=false;
+      if(delay>0){waiting=true;showTimer=setTimeout(()=>{waiting=false;tip.classList.add('visible');sync()},delay)}
       else tip.classList.add('visible');
+      note(i,'show',delay,was);
     }
     function hide(delay=hideDelay){
-      clearTimeout(showTimer);clearTimeout(hideTimer);
-      if(delay>0)hideTimer=setTimeout(()=>tip.classList.remove('visible'),delay);
+      const was=tip.classList.contains('visible'),cut=waiting;
+      clearTimeout(showTimer);clearTimeout(hideTimer);waiting=false;
+      if(delay>0)hideTimer=setTimeout(()=>{tip.classList.remove('visible');sync()},delay);
       else tip.classList.remove('visible');
+      note(i,'hide',delay,was,cut);
     }
     wrap.show=show;
     wrap.hide=hide;
@@ -229,6 +321,41 @@
   // Escape closes every shown tooltip at once; one comes back only when the pointer or the focus leaves its item and returns
   document.addEventListener('keydown',e=>{if(e.key==='Escape')wraps.forEach(w=>w.dismiss())});
 
+  // The copies, made once from the real items (which stay the four in wraps): no ids, no roles, inert and hidden from screen readers.
+  // Each real item also holds a twin of its tip for See inside, drawn as a dashed outline, with its text clear so it has the tip's size.
+  function plain(el){
+    [el,...el.querySelectorAll('*')].forEach(n=>['id','role','tabindex','aria-describedby','aria-label'].forEach(a=>n.removeAttribute(a)));
+    el.setAttribute('aria-hidden','true');el.inert=true;return el;
+  }
+  wraps.forEach((w,i)=>{
+    const c=plain(w.cloneNode(true));
+    c.classList.replace('tip-wrap','cp-wrap');c.classList.add('cp'+i);
+    stage.insertBefore(c,strip);
+    copies.push({wrap:c,tip:c.querySelector('.tooltip'),t:0});
+    const o=plain(tips[i].cloneNode(true));
+    o.classList.add('tip-ol','visible');w.append(o);ols.push(o);
+  });
+  // The field's copy shows what is typed in the real one
+  wraps[2].querySelector('input').addEventListener('input',e=>{copies[2].wrap.querySelector('input').value=e.target.value});
+
+  // A call of show() or hide() reaches the views. Compare's copy shows its tip at once (no wait) and hides it after the delay before
+  // hiding. See inside's marker starts at the wait and runs through the fade, and on hide() jumps to the second wait; a show() cut
+  // off before its wait ended (cut) sends it back to the start, and a tap (delay 0) starts it at the fade.
+  function note(i,kind,delay,was,cut){
+    if(mode==='compare'){
+      const c=copies[i];clearTimeout(c.t);
+      if(kind==='show'){c.tip.classList.remove('pose');c.tip.classList.add('visible')}
+      else if(delay>0)c.t=setTimeout(()=>{c.tip.classList.remove('visible');sync()},delay);
+      else c.tip.classList.remove('visible');
+    }else if(mode==='inside'){
+      const t0=performance.now();
+      if(kind==='show'){cur=i;M={i,ph:was?'stay':'in',t0,off:showDelay-delay}}
+      else if(i===M.i)M=cut?{i:-1,ph:'rest'}:was?{i,ph:'out',t0,off:hideDelay-delay}:M;
+      outline();ride();
+    }
+    sync();
+  }
+
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
   function later(fn,move,hold){
@@ -236,44 +363,166 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
-  // A stopped run lets go of the gear's tooltip, unless the visitor's pointer or focus is on the gear
+  // A stopped run lets go of the tooltips it showed (the gear's, and in the views the ones its pass touched), unless the visitor's
+  // pointer or focus is on that item
   function stopRun(){
     runTimers.forEach(clearTimeout);runTimers=[];
-    if(!wraps[0].matches(':hover,:focus-within'))wraps[0].hide();
+    [0,...passed].forEach(i=>{if(!wraps[i].matches(':hover,:focus-within'))wraps[i].hide()});
+    passed=[];rp=-1;sync();
   }
   // A run starts with every tooltip hidden at once: the transitions are turned off, a reflow makes it stick, and they come back.
   function toRest(){
-    const tips=[...stage.querySelectorAll('.tooltip')];
-    tips.forEach(t=>t.style.setProperty('transition','none','important'));
+    const all=[...stage.querySelectorAll('.tooltip')];
+    all.forEach(t=>t.style.setProperty('transition','none','important'));
     wraps.forEach(w=>w.dismiss());
     void stage.offsetWidth;
-    tips.forEach(t=>t.style.removeProperty('transition'));
+    all.forEach(t=>t.style.removeProperty('transition'));
   }
   // One hover of the gear: its tooltip shows after the delay before showing, stays 1.6 s, then hides after the delay before hiding.
-  // At the defaults it is back at rest 2.3 s after the press.
-  document.getElementById('btn-demo').addEventListener('click',()=>{
+  // At the defaults it is back at rest 2.3 s after the press. In See inside and Compare a pass comes first: a pretend pointer
+  // jumps up the items a tenth of a second apart, on each one show() and then hide(), so the wait is seen keeping the tips from
+  // flashing. The pass is a hold (Slow motion does not lengthen it) and adds a tenth of a second per item.
+  $('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
-    wraps[0].show();
-    later(()=>wraps[0].hide(),fadeMs,showDelay+1600);
+    const path=mode==='normal'?[0]:[...[3,2,1].filter(i=>wraps[i].offsetParent),0],lead=(path.length-1)*100;
+    path.forEach((i,k)=>{
+      const go=()=>{
+        if(k)wraps[path[k-1]].hide();
+        if(mode!=='normal'){rp=i;if(k<path.length-1)passed.push(i)}
+        wraps[i].show();
+        if(mode!=='normal')pointers();
+      };
+      if(k)later(go,0,k*100);else go();
+    });
+    later(()=>wraps[0].hide(),fadeMs,lead+showDelay+1600);
+    later(()=>{rp=-1;sync()},fadeMs,lead+showDelay+1600);
+    sync();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage, moved a pointer over it or tabbed into it: the run stops.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
-  stage.addEventListener('pointermove',e=>{if(e.isTrusted&&running())stopRun()});
-  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun()});
+  stage.addEventListener('pointermove',e=>{
+    if(e.isTrusted&&running())stopRun();
+    if(e.pointerType!=='mouse'||mode==='normal')return;
+    const s=stage.getBoundingClientRect();
+    mouse={x:e.clientX-s.left-stage.clientLeft,y:e.clientY-s.top-stage.clientTop};
+    if(!mouseIn){mouseIn=true;sync()}else pointers();
+  });
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){mouseIn=false;mouse=null;sync()}});
+  stage.addEventListener('focusin',e=>{if(e.isTrusted&&running())stopRun();sync()});
+  stage.addEventListener('focusout',()=>setTimeout(sync));
+
+  // ---- See inside and Compare ----
+  const say=ms=>[[90,'a tenth of a second'],[150,'about a sixth of a second'],[250,'a quarter of a second'],[300,'about a third of a second'],
+    [450,'about half a second'],[600,'over half a second'],[750,'about three quarters of a second']].reduce((m,w)=>Math.abs(w[0]-ms)<Math.abs(m[0]-ms)?w:m)[1];
+  const write=(el,text)=>{if(el.textContent!==text)el.textContent=text};
+  // The box of an element, and the point where the pointer lands on an item, in the stage's padding box
+  function box(el){const s=stage.getBoundingClientRect(),b=el.getBoundingClientRect(),l=b.left-s.left-stage.clientLeft,t=b.top-s.top-stage.clientTop;return{l,t,r:l+b.width,b:t+b.height}}
+  function hot(i){const b=box(wraps[i]);return{x:(b.l+b.r)/2+18,y:b.t+(b.b-b.t)*.55}}
+  const below=()=>wraps[2].offsetParent?2:3;
+  // How far a tip has faded in after a tenth of a second: a curve close to the CSS "ease" the fade uses
+  const ease=t=>t*(2-t);
+  // The bars, one per step of a tip's life, on a time line drawn at one scale (the stay is a made-up length that fades out, since it
+  // lasts as long as the pointer stays); with Slow motion the fades are three times as long, as the CSS fade is
+  function barsDraw(){
+    const f=fadeMs*(slowTog.checked?3:1);
+    D=[showDelay,f,800,hideDelay,f];
+    K=tl.clientWidth/Math.max(2200,D.reduce((a,b)=>a+b));
+    let x=0;X=[];
+    D.forEach((ms,j)=>{X.push(x*K);barEls[j].style.left=x*K+'px';barEls[j].style.width=ms*K+'px';barEls[j].hidden=!ms;x+=ms});
+    X.push(x*K);
+    write($('k1'),showDelay?'Waits '+say(showDelay):'No wait: shows at once');
+    write($('k2'),'Fades in, '+say(f));
+    write($('k4'),hideDelay?'Waits '+say(hideDelay)+', then fades out':'Fades out as soon as you leave');
+  }
+  // The marker's place at this moment. It runs in real time (the waits as they are, the fades as long as they last); under reduced
+  // motion it jumps to the start of each step instead of gliding.
+  function markX(){
+    const t=M.off+performance.now()-M.t0,r=reduceMQ.matches;
+    if(M.ph==='in'){if(t>=D[0]+D[1]){M.ph='stay';return X[2]}return r?(t<D[0]?0:X[1]):t*K}
+    if(M.ph==='out'){if(t>=D[3]+D[4]){M.ph='rest';return 0}return X[3]+(r?(t<D[3]?0:D[3]*K):t*K)}
+    return M.ph==='stay'?X[2]:0;
+  }
+  function ride(){
+    cancelAnimationFrame(markRaf);
+    const step=()=>{mk.style.transform=`translateX(${markX()}px)`;markRaf=(M.ph==='in'||M.ph==='out')&&mode==='inside'?requestAnimationFrame(step):0};
+    step();
+  }
+  // The dashed outline of the tip shown last (the gear's at rest), and its words beside it where there is room
+  function outline(){
+    ols.forEach((o,k)=>o.classList.toggle('on',k===cur));
+    capOl.hidden=mode!=='inside'||phoneMQ.matches;
+    if(capOl.hidden)return;
+    const o=box(ols[cur]),W=stage.clientWidth,H=stage.clientHeight,w=capOl.offsetWidth,h=capOl.offsetHeight,y=(o.t+o.b-h)/2;
+    const others=[strip,...wraps.filter(v=>v.offsetParent)].map(box);
+    const at=[o.r+8,o.l-8-w].find(x=>x>=6&&x+w<=W-6&&y>=6&&y+h<=H-6&&!others.some(b=>x<b.r&&x+w>b.l&&y<b.b&&y+h>b.t));
+    capOl.hidden=at===undefined;
+    if(at!==undefined){capOl.style.left=at+'px';capOl.style.top=y+'px'}
+  }
+  // The pretend pointer (Show me's pass, and Compare's pose) with its ghost over the copy, and the trail of the pose
+  const put=(g,p)=>{g.style.display=p?'':'none';if(p)g.setAttribute('transform',`translate(${p.x} ${p.y})`)};
+  function pointers(){
+    const W=stage.clientWidth;
+    let p=null,from=null;
+    if(mode!=='normal'){if(rp>=0)p=hot(rp);else if(posed){p=hot(1);from=hot(below())}}
+    put(pt,p);
+    put(gh,mode!=='compare'?null:p?{x:p.x-W/2,y:p.y}:mouse&&mouse.x>W/2?{x:mouse.x-W/2,y:mouse.y}:null);
+    trails.forEach((t,k)=>t.setAttribute('d',from?`M${from.x-k*W/2} ${from.y}L${p.x-k*W/2} ${p.y}`:''));
+    capPass.hidden=!from;
+    if(from){
+      const t=box(wraps[1]),n=box(wraps[below()]);
+      capPass.style.left=p.x-6-capPass.offsetWidth+'px';capPass.style.top=(t.b+n.t-capPass.offsetHeight)/2+'px';
+    }
+  }
+  // Compare's rest pose, until the real side gets input or a run starts: the pretend pointer has just come up from the item below
+  // onto the cut-off text. The left shows its tip as far faded in as a tenth of a second of the fade gets it (at None the right
+  // does too), the right nothing yet. The pose goes by progress, so Slow motion does not change it.
+  function sync(){
+    const was=posed;
+    posed=mode==='compare'&&!running()&&!mouseIn&&!stage.matches(':focus-within')&&![...tips,...copies.map(c=>c.tip)].some(t=>t.classList.contains('visible'));
+    if(mode==='normal'&&!was&&rp<0)return;
+    const p=posed?ease(Math.min(1,100/fadeMs)):0;
+    stage.style.setProperty('--po',p);stage.style.setProperty('--ps',.95+.05*p);
+    copies[1].tip.classList.toggle('pose',posed);
+    tips[1].classList.toggle('pose',posed&&showDelay===0);
+    pointers();
+  }
+  function layout(){
+    if(mode!=='normal'){
+      const W=stage.clientWidth;
+      stage.classList.toggle('three',stage.clientHeight<340||(mode==='inside'&&narrowMQ.matches));
+      stage.classList.toggle('side',mode==='inside'&&stage.clientHeight<300&&W>=600);
+      if(cur===2&&!wraps[2].offsetParent)cur=0;
+      stage.style.setProperty('--half',W/4+'px');stage.style.setProperty('--tw',Math.min(200,W/2-16)+'px');
+      copies.forEach((c,i)=>{c.wrap.style.top=wraps[i].offsetTop+'px';c.wrap.style.left=W/4-c.wrap.offsetWidth/2+'px'});
+      if(mode==='inside')barsDraw();
+      outline();ride();
+    }
+    write(compareNote,showDelay===0?NONE_NOTE:COMPARE_NOTE);
+    sync();
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    copies.forEach(c=>{clearTimeout(c.t);c.tip.classList.remove('visible')});
+    layout();
+  });
+  addEventListener('resize',layout);
+  document.fonts.ready.then(layout);
+  slowTog.addEventListener('change',()=>{if(mode==='inside'){barsDraw();ride()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      layout();
     }));
   }
   choices('show-seg',d=>{showDelay=+d.ms});
   choices('speed-seg',d=>{fadeMs=+d.ms;vars.setProperty('--tip-dur',fadeMs+'ms')});
   choices('hide-seg',d=>{hideDelay=+d.ms});
   document.getElementById('arrow-tog').addEventListener('change',e=>{
-    wraps.forEach(w=>w.classList.toggle('has-arrow',e.target.checked));
+    wraps.forEach((w,i)=>{w.classList.toggle('has-arrow',e.target.checked);copies[i].wrap.classList.toggle('has-arrow',e.target.checked)});
   });
 </script>
 </body>
