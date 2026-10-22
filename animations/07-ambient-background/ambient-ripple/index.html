@@ -32,6 +32,19 @@
     /* On phones and short screens the card shrinks and sits lower, to leave the rings in view */
     @media(max-width:600px),(max-height:760px){.fg-card{bottom:12px;padding:12px 14px}.fg-eyebrow{margin-bottom:4px}.fg-title{margin-bottom:0}.fg-body{display:none}}
     @media(max-width:600px){.fg-card{padding:12px}.fg-title{font-size:13px}}
+    /* See inside and Compare: plain words on dark pills over the picture; the card is hidden there so the rings and circles show */
+    .lbl{position:absolute;display:none;padding:4px 9px;border-radius:999px;background:rgba(2,5,8,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .caps{position:absolute;left:10px;right:10px;display:none;flex-wrap:wrap;gap:4px;pointer-events:none}
+    .caps.top{top:10px}
+    .caps.bottom{bottom:10px}
+    .caps .lbl{position:static;display:block}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .caps{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="inside"] .fg-card,.stage[data-hb-mode="compare"] .fg-card{display:none}
+    @media(max-width:400px){.lbl{font-size:12px;padding:3px 7px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -54,6 +67,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
       <div class="fg-card">
@@ -61,10 +79,18 @@
         <div class="fg-title">Something is alive here</div>
         <div class="fg-body">Like drops on a still pond, or a sonar ping: it hints that something is there.</div>
       </div>
+      <div class="caps top" aria-hidden="true"><p class="lbl fl" data-hb-caption>Each spot sends a ring when its circle fills</p></div>
+      <div class="caps bottom" aria-hidden="true"><p class="lbl fl" data-hb-caption>A ring grows and fades out by the dashed line</p><p class="lbl fl" id="cap-wait" data-hb-caption>Each wait is a little different</p></div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Like a clock</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Out of step</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each spot's small circle fills up, and when it is full the spot sends a ring. Each ring grows and fades out by the dashed line.</p>
+      <p data-hb-for="compare" hidden>Like a clock sends every ring at the same moment on a steady beat, which feels mechanical. Out of step lets each spot keep its own, uneven time; watch a few seconds.</p>
     </div>
   </section>
 
@@ -191,15 +217,21 @@
   const slowTog=document.getElementById('slow-tog');
   const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   let W=0,H=0,raf=null,lastT=null,paused=false;
+  let mode='normal',posed=true; // the view the box shows; posed: Compare's dealt rings are still on screen, held by Pause since they were dealt
   let clock=0; // the page's own time in ms: it moves only while the loop runs, so Pause holds every ring where it is
   let SRCS=3,INTERVAL=3,MAX_R=160,LIFE=2.5,THICK=1.5,IRR=true,DRIFT=false;
   let COLOR=[88,166,255];
   let sources=[],rings=[];
+  let capLo=0,capHi=1e9; // in See inside the rows of captions mark how high and low a drifting spot may go (see bounds())
+  // Compare has its own clock, spots and rings, so Normal's stay exactly as they were while it shows: cs holds the spots' places
+  // within one half (the same in both), ct[h][i] when spot i of half h sends its next ring, cr[h] the rings of half h
+  let cmpClock=0,cs=[],ct=[[],[]],cr=[[],[]];
+  const TAU=Math.PI*2,DASH=[6,6],SOLID=[];
 
   class Ring{
     constructor(x,y,born){this.x=x;this.y=y;this.born=born;this.dur=LIFE*1000}
-    draw(rgb){
-      const p=(clock-this.born)/this.dur; // 0 when the ring starts, 1 when it has faded away
+    draw(rgb,now=clock){
+      const p=(now-this.born)/this.dur; // 0 when the ring starts, 1 when it has faded away
       ctx.beginPath();ctx.arc(this.x,this.y,MAX_R*p,0,Math.PI*2);
       ctx.strokeStyle=`rgba(${rgb},${((1-p)*.5).toFixed(2)})`;
       ctx.lineWidth=THICK*(1-p*.3);ctx.stroke();
@@ -210,6 +242,7 @@
   function gap(){return INTERVAL*1000*(1+(IRR?(Math.random()-.5)*.8:0))}
 
   // First picture: three rings per source on their way. Emptying rings first keeps a resize or a new Number of sources from piling rings up.
+  const FILLS=[.45,.8,.25,.65,.12];
   function initSources(){
     rings=[];
     sources=Array.from({length:SRCS},(_,i)=>({
@@ -218,22 +251,36 @@
       nextEmit:clock+Math.random()*INTERVAL*1000
     }));
     sources.forEach(s=>[.3,.6,.9].forEach(f=>rings.push(new Ring(s.x,s.y,clock-f*LIFE*1000))));
+    // See inside's circle counts from lastEmit; the first picture poses each spot part way through its first wait
+    sources.forEach((s,i)=>{const f=FILLS[i];s.lastEmit=clock-f/(1-f)*(s.nextEmit-clock)});
   }
 
   // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion
-  function advance(k){
+  function advance(k,list,w){
     if(!DRIFT)return;
-    sources.forEach(s=>{
+    const lo=Math.max(H*.1,capLo),hi=Math.min(H*.9,capHi);
+    list.forEach(s=>{
       s.x+=s.vx*k;s.y+=s.vy*k;
-      if(s.x<W*.05||s.x>W*.95)s.vx*=-1;
-      if(s.y<H*.1||s.y>H*.9)s.vy*=-1;
+      if(s.x<w*.05||s.x>w*.95)s.vx*=-1;
+      if((s.y<lo&&s.vy<0)||(s.y>hi&&s.vy>0))s.vy*=-1; // turns back only when heading out, so a spot found outside walks back in
     });
+  }
+  // In See inside a drifting spot turns back before the caption rows, which would hide it and its circle for many seconds. The rows
+  // are measured on a mode press, a resize and when the font arrives, never per frame. A stage too short for the gap lets spots go
+  // as far as in Normal
+  function bounds(){
+    capLo=0;capHi=1e9;
+    if(mode!=='inside')return;
+    const edge=sel=>stage.querySelector(sel).getBoundingClientRect(),y0=stage.getBoundingClientRect().top;
+    // 18: the countdown circle's radius and a few pixels to spare
+    const lo=edge('.caps.top').bottom-y0+18,hi=edge('.caps.bottom').top-y0-18;
+    if(hi>lo){capLo=lo;capHi=hi}
   }
   function emit(){
     sources.forEach(s=>{
       if(clock<s.nextEmit)return;
       rings.push(new Ring(s.x,s.y,clock));
-      s.nextEmit=clock+gap();
+      s.lastEmit=clock;s.nextEmit=clock+gap();
     });
     rings=rings.filter(r=>clock-r.born<=r.dur);
   }
@@ -241,10 +288,69 @@
   function draw(){
     ctx.clearRect(0,0,W,H);
     const rgb=COLOR.join(',');
-    ctx.fillStyle=`rgba(${rgb},.4)`;
+    if(mode==='compare')return drawCompare(rgb);
+    ctx.fillStyle=`rgba(${rgb},${mode==='inside'?.95:.4})`; // See inside draws the spots brighter, so their circles read
     sources.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,3,0,Math.PI*2);ctx.fill()});
     rings.forEach(r=>r.draw(rgb));
+    if(mode==='inside')drawInside(rgb);
   }
+
+  // See inside: the dashed line where the middle spot's rings have faded away (Ripple size), and around every spot a circle that
+  // fills clockwise from its last ring to its next one (lastEmit to nextEmit on the page's clock); when it is full the ring goes out
+  function drawInside(rgb){
+    const n=sources.length,mid=sources[(n-1)>>1],R=Math.min(15,W*.3/Math.max(n-1,1)*.38);
+    ctx.lineWidth=1.5;ctx.strokeStyle='rgba(244,244,242,.7)';ctx.setLineDash(DASH);
+    ctx.beginPath();ctx.arc(mid.x,mid.y,MAX_R,0,TAU);ctx.stroke();ctx.setLineDash(SOLID);
+    for(const s of sources){
+      const span=s.nextEmit-s.lastEmit,f=span>0?Math.min(Math.max((clock-s.lastEmit)/span,0),1):1;
+      ctx.lineWidth=2.5;ctx.strokeStyle='rgba(244,244,242,.28)';
+      ctx.beginPath();ctx.arc(s.x,s.y,R,0,TAU);ctx.stroke();
+      ctx.lineWidth=3.5;ctx.strokeStyle=`rgb(${rgb})`;
+      ctx.beginPath();ctx.arc(s.x,s.y,R,-Math.PI/2,-Math.PI/2+f*TAU);ctx.stroke();
+    }
+  }
+
+  // Compare: the same spots twice, each half drawn only inside itself. The first half sends every ring at one moment on a steady
+  // beat (Like a clock); the second keeps the page's own rule, each spot on its own timer (Out of step).
+  const EVEN=[.3,.6,.9]; // how far along the first picture's rings are, as in Normal
+  const OWN=[[.06,.2,.7],[.18,.62,.78],[.1,.36,.9],[.04,.5,.68],[.24,.4,.88]]; // each spot's own, uneven spacing
+  const STEADY=[.08,.3,.16,.36,.22].map(o=>[o,o+.27,o+.54]); // even spacing, from a different start for each spot
+  function dealCompare(){
+    const half=W/2,n=sources.length;
+    posed=paused; // a deal made while the loop runs is not a held picture, so the note must not call it still
+    cmpClock=0;cr=[[],[]];ct=[[],[]];
+    cs=sources.map((s,i)=>({x:half*(.35+i*.3/Math.max(n-1,1)),y:s.y,vx:s.vx,vy:s.vy}));
+    cs.forEach((s,i)=>{
+      for(let h=0;h<2;h++){
+        (h?(IRR?OWN[i]:STEADY[i]):EVEN).forEach(a=>cr[h].push(new Ring(h*half+s.x,s.y,-a*LIFE*1000)));
+        ct[h].push({next:h?((i*.618+.2)%1)*INTERVAL*1000:INTERVAL*400});
+      }
+    });
+  }
+  function emitCompare(){
+    const half=W/2,step=INTERVAL*1000;
+    for(let h=0;h<2;h++){
+      for(let i=0;i<cs.length;i++){
+        const t=ct[h][i],s=cs[i];
+        if(cmpClock<t.next)continue;
+        cr[h].push(new Ring(h*half+s.x,s.y,cmpClock));
+        t.next=h?cmpClock+gap():(t.next+step>cmpClock?t.next+step:cmpClock+step);
+      }
+      cr[h]=cr[h].filter(r=>cmpClock-r.born<=r.dur);
+    }
+  }
+  function drawCompare(rgb){
+    const half=W/2;
+    for(let h=0;h<2;h++){
+      ctx.save();ctx.beginPath();ctx.rect(h*half,0,half,H);ctx.clip();
+      ctx.fillStyle=`rgba(${rgb},.4)`;
+      for(const s of cs){ctx.beginPath();ctx.arc(h*half+s.x,s.y,3,0,TAU);ctx.fill()}
+      for(const r of cr[h])r.draw(rgb,cmpClock);
+      ctx.restore();
+    }
+    ctx.fillStyle='rgba(244,244,242,.22)';ctx.fillRect(half-.5,0,1,H);
+  }
+  function rescale(list,now,dur){list.forEach(r=>{const p=(now-r.born)/r.dur;r.dur=dur;r.born=now-p*dur})}
 
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again.
   function loop(ts){
@@ -255,17 +361,41 @@
     const dt=lastT===null?0:Math.min(ts-lastT,50);
     lastT=ts;
     const k=slowTog.checked?1/3:1;
-    clock+=dt*k;
-    advance(k*dt/FRAME);emit();draw();
+    if(mode==='compare'){cmpClock+=dt*k;advance(k*dt/FRAME,cs,W/2);emitCompare()}
+    else{clock+=dt*k;advance(k*dt/FRAME,sources,W);emit()}
+    draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop)}
 
   // Top level, so it is there before the shared script (deferred) pauses the loop on arrival under reduced motion. Paused rings stay put.
   document.addEventListener('hb:pause',e=>{
     paused=e.detail.paused;
+    if(!paused)posed=false;
+    describe();
     if(paused){cancelAnimationFrame(raf);raf=null}
     else start();
   });
+  // The mode switch draws the mode at once. Compare deals its two halves afresh (Normal's spots, rings and clock stay as they are);
+  // See inside draws over Normal's own
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;bounds();
+    if(mode==='compare')dealCompare();
+    describe();draw();
+  });
+  // Under reduced motion the loop starts paused, so both views are still pictures, and their notes say so: See inside's while
+  // the loop is paused, Compare's while it is still the dealt picture. A note is rewritten only when its words change.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),capWait=document.getElementById('cap-wait');
+  function describe(){
+    const still=reduceMQ.matches&&paused,wi=still?
+      'Inside, shown still: each spot\'s small circle fills until the spot sends a ring, and each ring fades out by the dashed line.':moving[0];
+    const sc=reduceMQ.matches&&paused&&posed,wc=IRR?(sc?
+      'Shown still: in Like a clock every spot\'s rings are alike and evenly spaced; in Out of step each spot\'s rings sit at their own, uneven spacing.':moving[1]):(sc?
+      'Shown still: Like a clock\'s spots all show the same rings; Out of step\'s rings are evenly spaced too, but each spot\'s are at their own sizes. Turn on Uneven timing in Try it.':
+      'Uneven timing is off, so Out of step keeps a steady beat too, only not in time with the other spots. Turn it on in Try it for uneven waits.');
+    [wi,wc].forEach((w,i)=>{if(notes[i].textContent!==w)notes[i].textContent=w});
+  }
+  reduceMQ.addEventListener('change',describe);
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
   document.addEventListener('visibilitychange',()=>{lastT=null});
 
@@ -276,7 +406,8 @@
     W=w;H=h;
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-    initSources();draw();
+    bounds();initSources();if(mode==='compare'){dealCompare();describe()}
+    draw();
   }
 
   function choices(id,pick){
@@ -291,7 +422,7 @@
   choices('speed-seg',d=>{
     // Rings on screen keep how far along they are, so the picture stays as it is and only their pace changes
     const dur=+d.life*1000;
-    rings.forEach(r=>{const p=(clock-r.born)/r.dur;r.dur=dur;r.born=clock-p*dur});
+    rescale(rings,clock,dur);rescale(cr[0],cmpClock,dur);rescale(cr[1],cmpClock,dur);
     LIFE=+d.life;still();
   });
   choices('int-seg',d=>{
@@ -299,20 +430,28 @@
     INTERVAL=+d.secs;
     // A source that would wait longer than a new gap sends its next ring within one, so the change shows soon
     sources.forEach(s=>{s.nextEmit=Math.min(s.nextEmit,clock+Math.random()*gap())});
+    if(mode==='compare'){ct[0].forEach(t=>{t.next=Math.min(t.next,cmpClock+INTERVAL*1000)});ct[1].forEach(t=>{t.next=Math.min(t.next,cmpClock+Math.random()*gap())})}
     still();
   });
   choices('size-seg',d=>{MAX_R=+d.px;still()});
   choices('src-seg',d=>{
     if(+d.n===SRCS)return;
-    SRCS=+d.n;initSources();still();
+    SRCS=+d.n;initSources();if(mode==='compare'){dealCompare();describe()}
+    still();
   });
   choices('thick-seg',d=>{THICK=+d.px;still()});
   choices('color-sw',d=>{COLOR=d.rgb.split(',').map(Number);still()});
-  document.getElementById('irr-tog').addEventListener('change',e=>{IRR=e.target.checked;still()});
+  document.getElementById('irr-tog').addEventListener('change',e=>{
+    IRR=e.target.checked;
+    capWait.textContent=IRR?'Each wait is a little different':'Every wait is the same';
+    if(mode==='compare')dealCompare(); // the second half's dealt rings follow this switch
+    describe();still();
+  });
   document.getElementById('drift-tog').addEventListener('change',e=>{DRIFT=e.target.checked;still()});
 
   resize();
   window.addEventListener('resize',resize);
+  if(document.fonts)document.fonts.ready.then(bounds);
   start();
 </script>
 </body>
