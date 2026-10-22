@@ -489,7 +489,7 @@ const SITE_PHRASES = [
 const CHECKED_IDS = ['stripe-ribbon', 'apple-scroll', 'landonorris-reveal', 'linear-intro', 'apple-menu', 'wikipedia-previews', 'apple-sweep', 'spotify-cards', 'youtube-loading', 'pudding-chart', 'medium-top-bar'];
 const CHECKED_DAY = '2026-10-13';
 // Entries checked again on their site before the gallery release, and the day of that check.
-const RECHECKED = { 'apple-scroll': '2026-10-22', 'stripe-ribbon': '2026-10-22' };
+const RECHECKED = { 'apple-scroll': '2026-10-22', 'landonorris-reveal': '2026-10-22', 'stripe-ribbon': '2026-10-22' };
 
 // The text a visitor reads, with each tag ending a word (textOf above joins the end of one element to the start of the next, so a
 // slogan at the end of a card label would run into the card's name and go unseen).
