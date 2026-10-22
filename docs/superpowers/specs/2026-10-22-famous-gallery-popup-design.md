@@ -76,6 +76,14 @@ prompt, in the handbook's look, with nothing taken from the site.
   | pudding-chart | Text steps scrolling past a sticky bar chart of example data that sorts, highlights and changes with each step. |
   | medium-top-bar | An article whose top bar slides away while you scroll down and comes back as soon as you scroll up. |
 
+The table was the plan. Each builder watched its effect on the live site first (the owner asked for motion as close
+to the real effect as the law allows) and that check before release rewrote several entries (apple-scroll, linear-intro,
+wikipedia-previews, apple-sweep, spotify-cards, youtube-loading, medium-top-bar): each entry's what you see and prompt
+are now the reference, and its Seen on date is the day of that check. As built, the "Seen on" line stays the entry's
+first line under the pop-up's bar (the bar holds Previous, Next, Close and the short not-connected note), and
+`overscroll-behavior: contain` is only on a version that scrolls; a version driven by a finger drag says so with
+`data-fx-touch="drag"`.
+
 ## Checks
 
 - `tests/famous.test.js`: the jump-row tests become gallery tests (one card per entry in order, title equal to the
