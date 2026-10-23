@@ -24,6 +24,7 @@
     :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0;align-items:center}
     /* Hidden, Back also leaves the Tab order once it has faded out; shown, it is visible (and can take focus) at once */
     .nav-back{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
@@ -31,26 +32,57 @@
     .nav-title{font-size:13px;color:var(--ui-text);letter-spacing:1px;flex:1;text-align:center}
     .page-area{flex:1;position:relative;overflow:hidden}
     /* Grid page */
-    #page-grid{position:absolute;inset:0;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:auto}
+    .cg{position:absolute;inset:0;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;pointer-events:auto}
     .thumb{border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:10px;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;transition:transform .2s;overflow:hidden;position:relative}
     @media(hover:hover){.thumb:hover{transform:scale(1.02)}}
     .thumb-label{display:block;font-size:11px;font-weight:bold;line-height:1.2;margin-bottom:2px}
     .thumb-sub{display:block;font-size:9px;opacity:.8}
     /* Detail page */
-    #page-detail{position:absolute;inset:0;pointer-events:none;opacity:0;display:flex;flex-direction:column}
-    #page-detail.active{pointer-events:auto;opacity:1}
-    #detail-hero{height:45%;border-radius:0;transition:none}
-    #detail-body{flex:1;padding:20px;background:#0a0f14}
-    #detail-title{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:8px}
-    #detail-sub{font-size:11px;opacity:.5;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
-    #detail-desc{font-size:12px;opacity:.6;line-height:1.7;max-width:360px}
+    .cd{position:absolute;inset:0;pointer-events:none;opacity:0;display:flex;flex-direction:column}
+    .cd.active{pointer-events:auto;opacity:1}
+    .ch{height:45%;border-radius:0;transition:none}
+    .cb{flex:1;padding:20px;background:#0a0f14}
+    .ct{font-size:clamp(20px,3vw,28px);font-weight:bold;margin-bottom:8px}
+    .cs{font-size:11px;opacity:.5;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+    .cx{font-size:12px;opacity:.6;line-height:1.7;max-width:360px}
     /* On small stages (short windows, phones) a tighter text block lets the hero keep its share of the height instead of being squeezed */
-    @media(max-height:640px),(max-width:600px){#detail-body{padding:12px 16px}#detail-title{font-size:18px;margin-bottom:4px}#detail-sub{margin-bottom:6px}#detail-desc{line-height:1.5}}
+    @media(max-height:640px),(max-width:600px){.cb{padding:12px 16px}.ct{font-size:18px;margin-bottom:4px}.cs{margin-bottom:6px}.cx{line-height:1.5}}
     /* FLIP element — the morphing clone. It is position:fixed and moves in viewport coordinates, so the stage cannot clip it:
        no ancestor of it may have a transform, filter, backdrop-filter, perspective or contain, or that ancestor would become its
        containing block. Above the stage's content (40), below the site's top bar (50). */
     #flip-el{position:fixed;border-radius:10px;pointer-events:none;z-index:40;will-change:transform}
     @media(prefers-reduced-motion:reduce){#flip-el{transition:none!important}}
+    /* See inside and Compare. The small site stays in .box; Compare puts a copy of it (.twin, no ids) beside it. */
+    .twin,.ins,.cap,.side{display:none}
+    .twin .nav-back{display:flex;align-items:center}
+    .twin .thumb{white-space:pre}
+    .ins,.ins svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .ins rect,.ins line{fill:none;stroke:#f4f4f2;stroke-width:2;stroke-dasharray:6 5}
+    .lbl{position:absolute;z-index:45;padding:2px 7px;border-radius:5px;background:rgba(17,17,20,.92);color:var(--ui-text);font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .side{right:8px;bottom:6px}
+    .pose{position:absolute;display:none}
+    /* At rest with the list showing, both views hold the same moment: a quarter of the way into opening, the list almost faded */
+    .stage.posed .pose{display:block}
+    .stage.posed .cg{opacity:var(--fade)!important}
+    .stage[data-hb-mode="inside"] .ins,.stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="compare"] .ins,.stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="inside"] .pose,.stage[data-hb-mode="inside"] #flip-el{outline:4px solid var(--ui-accent)}
+    .stage[data-hb-mode="compare"] #route,.stage[data-hb-mode="compare"]:not(.posed) #rs{display:none}
+    .stage[data-hb-mode="compare"] #rs{stroke-opacity:.5;stroke-dasharray:none;stroke-width:1.5}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .box{background:var(--bg)}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .cg{padding:14px 14px 38px;gap:8px}
+    .stage[data-hb-mode="compare"] .thumb{padding:10px}
+    .stage[data-hb-mode="compare"] .cx{max-width:260px}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-back{padding:0 8px}
+      .stage[data-hb-mode="compare"] .nav-title{font-size:12px;letter-spacing:0}
+      .stage[data-hb-mode="compare"] .cg{padding:8px 8px 34px;gap:6px}
+      .stage[data-hb-mode="compare"] .thumb{padding:8px}
+      .stage[data-hb-mode="compare"] .cb{padding:10px}
+      .stage[data-hb-mode="compare"] .cx{display:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -73,28 +105,48 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click a project to open it, then Back, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <div class="mini-nav">
-        <button type="button" class="nav-back" id="nav-back">← Back</button>
-        <div class="nav-title" id="nav-title">Projects</div>
-      </div>
-      <div class="page-area" id="page-area">
-        <div id="page-grid"></div>
-        <div id="page-detail" inert>
-          <div id="detail-hero"></div>
-          <div id="detail-body">
-            <div id="detail-title">Project Name</div>
-            <div id="detail-sub">Category</div>
-            <div id="detail-desc">Project description goes here.</div>
+      <div class="box" id="box">
+        <div class="mini-nav">
+          <button type="button" class="nav-back" id="nav-back">← Back</button>
+          <div class="nav-title" id="nav-title">Projects</div>
+        </div>
+        <div class="page-area" id="page-area">
+          <div id="page-grid" class="cg"></div>
+          <div id="page-detail" class="cd" inert>
+            <div id="detail-hero" class="ch"></div>
+            <div id="detail-body" class="cb">
+              <div id="detail-title" class="ct">Project Name</div>
+              <div id="detail-sub" class="cs">Category</div>
+              <div id="detail-desc" class="cx">Project description goes here.</div>
+            </div>
+          </div>
+          <div id="flip-el"></div>
+          <div class="ins" id="ins" aria-hidden="true">
+            <div class="pose" id="pose"></div>
+            <svg><rect id="rs"/><g id="route"><rect id="re"/><line id="la"/><line id="lb"/></g></svg>
+            <span class="lbl cap" data-hb-caption>Starts here: the thumbnail</span>
+            <span class="lbl cap" data-hb-caption>Ends here: the header</span>
+            <span class="lbl cap" data-hb-caption>One copy grows along these lines</span>
+            <span class="lbl cap" data-hb-caption id="cap-len"></span>
+            <span class="lbl side" data-hb-caption>Picture travels</span>
           </div>
         </div>
-        <div id="flip-el"></div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed boxes are where the picture starts and ends: one copy of it grows along the lines between them while the pages fade. Click a project, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Just fades swaps the list for the project with fades only; Picture travels does the same while the picture grows from the list into the header. Click a project, or press Show me.</p>
     </div>
   </section>
 
@@ -173,9 +225,10 @@
   const detailHero=document.getElementById('detail-hero'),detailTitle=document.getElementById('detail-title');
   const detailSub=document.getElementById('detail-sub'),detailDesc=document.getElementById('detail-desc');
   const flipEl=document.getElementById('flip-el'),navBack=document.getElementById('nav-back'),navTitle=document.getElementById('nav-title');
-  const slowTog=document.getElementById('slow-tog');
+  const slowTog=document.getElementById('slow-tog'),area=document.getElementById('page-area'),stage=document.querySelector('.stage');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let dur=500,ease='cubic-bezier(.2,.7,.3,1)',animating=false,currentView='grid',openIndex=0,afterMove=null,closeTimer=0,timers=[],ownFocus=false;
+  let mode='normal',lastIdx=PROJECTS.length-1,posed=false,openAt=0,openD=0;
 
   const thumbEls=PROJECTS.map((p,i)=>{
     const el=document.createElement('button');el.type='button';el.className='thumb';el.style.background=p.bg;
@@ -210,6 +263,7 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    draw();
   }
   // Stops everything at once: no timer, no run step, no copy on its way
   function settle(){
@@ -224,21 +278,27 @@
     grid.style.opacity='';grid.style.transition='';grid.style.pointerEvents='';grid.inert=false;
     navBack.classList.remove('show');navTitle.textContent='Projects';currentView='grid';
     [grid,detail,navBack].forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
+    mirror();draw();
   }
 
   // The visitor's own opening and closing move focus with the view; Show me and Reset move none. ownFocus marks these moves as the page's own.
   function showDetailChrome(name,byVisitor){
     navBack.classList.add('show');navTitle.textContent=name;
     if(byVisitor){ownFocus=true;navBack.focus({preventScroll:true});ownFocus=false}
+    mirror();
   }
   function showGrid(byVisitor){
     grid.inert=false;
     if(byVisitor){ownFocus=true;thumbEls[openIndex].focus({preventScroll:true});ownFocus=false}
+    mirror();
   }
 
   function openDetail(i,byVisitor,then){
-    animating=true;afterMove=then||null;openIndex=i;
+    animating=true;afterMove=then||null;openIndex=lastIdx=i;
     const p=PROJECTS[i],d=scaled();
+    openAt=performance.now();openD=d;
+    // The held picture goes first, so the list fades from full
+    if(mode!=='normal'){draw();void grid.offsetWidth}
     // FIRST: record thumb rect
     const thumbRect=thumbEls[i].getBoundingClientRect();
     // Set detail content
@@ -257,11 +317,13 @@
     flipEl.style.cssText=`background:${p.bg};top:${heroRect.top}px;left:${heroRect.left}px;width:${heroRect.width}px;height:${heroRect.height}px;transform-origin:0 0;transform:translate(${thumbRect.left-heroRect.left}px,${thumbRect.top-heroRect.top}px) scale(${sx},${sy});border-radius:${10/sx}px/${10/sy}px;transition:none;display:block`;
     grid.style.opacity='0';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;
     detail.style.opacity='0';
+    mirror();
     void flipEl.offsetWidth; // commit the inverted start before the transition is switched on
     flipEl.style.transition=`transform ${d}ms ${ease},border-radius ${d}ms ${ease}`; // PLAY: only the transform and the corners animate, so nothing is laid out while the copy travels
     flipEl.style.transform='none';flipEl.style.borderRadius='0';
     detail.style.transition=`opacity ${Math.round(d*0.4)}ms ease ${Math.round(d*0.6)}ms`;
     detail.style.opacity='1';
+    mirror();
     later(()=>{
       flipEl.style.display='none';
       showDetailChrome(p.name,byVisitor);
@@ -279,6 +341,7 @@
       showGrid(byVisitor);currentView='grid';finish();return;
     }
     detail.style.transition=`opacity ${Math.round(d*0.3)}ms ease`;detail.style.opacity='0';
+    mirror();
     later(()=>{
       detail.classList.remove('active');detail.inert=true;grid.style.opacity='1';grid.style.transition=`opacity ${Math.round(d*0.4)}ms ease`;grid.style.pointerEvents='auto';
       showGrid(byVisitor);currentView='grid';finish();
@@ -299,11 +362,99 @@
   // A visitor who tabs into the box takes over too; the page's own focus moves (ownFocus) do not count.
   document.querySelector('.stage').addEventListener('focusin',e=>{if(e.isTrusted&&!ownFocus){afterMove=null;cancel(closeTimer);closeTimer=0}});
 
+  // ── See inside and Compare ──
+  // Compare's first half: a copy of the small site (no ids, no buttons) that takes on the real one's classes, styles and text at every
+  // step, so it opens and closes with the same fades but has no traveling picture
+  const twin=Object.assign(document.createElement('div'),{className:'box twin',inert:true});
+  twin.setAttribute('aria-hidden','true');
+  twin.innerHTML='<div class="mini-nav"><span class="nav-back">← Back</span><div class="nav-title"></div></div><div class="page-area"><div class="cg">'+
+    PROJECTS.map(p=>`<span class="thumb" style="background:${p.bg}"><span class="thumb-label" style="color:${p.ac}">${p.name}</span><span class="thumb-sub">${p.sub}</span></span>`).join('')+
+    '</div><div class="cd"><div class="ch"></div><div class="cb"><div class="ct"></div><div class="cs"></div><div class="cx"></div></div></div><span class="lbl side" data-hb-caption>Just fades</span></div>';
+  document.getElementById('box').before(twin);
+  const mirrored=[[grid,'.cg'],[detail,'.cd'],[detailHero,'.ch'],[detailTitle,'.ct'],[detailSub,'.cs'],[detailDesc,'.cx'],[navBack,'.nav-back'],[navTitle,'.nav-title']]
+    .map(([real,sel])=>[real,twin.querySelector(sel)]);
+  function mirror(){
+    if(mode==='compare')mirrored.forEach(([r,t])=>{t.className=r.className;t.style.cssText=r.style.cssText;if(!r.children.length)t.textContent=r.textContent});
+  }
+  // Under reduced motion a click opens the project at once, so the notes speak of the list
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='While the list shows, one copy of the picture is held part way along the lines between the dashed boxes, where it starts and where it ends.';
+    document.querySelector('[data-hb-for="compare"]').textContent='While the list shows, both halves are held a moment into opening a project: Just fades has only faded its list; Picture travels has its picture part way to the header.';
+  }
+
+  // The share of a movement done at time t (0 to 1), from the browser's own curve for the easing
+  const clock=document.createElement('i').animate({opacity:[0,1]},{duration:1000,fill:'both'});clock.pause();
+  function easeAt(t,easing){clock.effect.updateTiming({easing});clock.currentTime=t*1000;return clock.effect.getComputedTiming().progress}
+  const words=ms=>ms<400?'about a third of a second':ms<700?'half a second':ms<1000?'nearly a second':ms<2000?'a second and a half':'about two and a half seconds';
+  const $=id=>document.getElementById(id),caps=[...document.querySelectorAll('.cap')],capLen=$('cap-len'),pose=$('pose');
+  const set=(el,o)=>{for(const k in o)el.setAttribute(k,o[k])};
+  const ext=el=>{const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect(),a=area.getBoundingClientRect();return{x:b.left-a.left,y:b.top-a.top,w:b.width,h:b.height}};
+  const edge=(r,x,y,w,h)=>x<r.x+r.w+4&&x+w>r.x-4&&y<r.y+r.h+4&&y+h>r.y-4&&!(x>r.x+4&&x+w<r.x+r.w-4&&y>r.y+4&&y+h<r.y+r.h-4);
+  const over=(r,x,y,w,h)=>Math.max(0,Math.min(x+w,r.x+r.w)-Math.max(x,r.x))*Math.max(0,Math.min(y+h,r.y+r.h)-Math.max(y,r.y));
+
+  // The mode's picture, at once and from the page's own numbers: the thumbnail's box, the header's box, the lines between their corners,
+  // and, while the list shows at rest, the picture held a quarter of the way into opening. Safe to run twice.
+  function draw(){
+    const W=area.clientWidth;
+    if(mode==='normal'||!W){stage.classList.remove('posed');posed=false;return}
+    const th=thumbEls[lastIdx],s={x:th.offsetLeft,y:th.offsetTop,w:th.offsetWidth,h:th.offsetHeight},e={w:W,h:detailHero.offsetHeight};
+    set($('rs'),{x:s.x,y:s.y,width:s.w,height:s.h});set($('re'),{x:1,y:1,width:W-2,height:e.h-2});
+    set($('la'),{x1:s.x,y1:s.y,x2:1,y2:1});set($('lb'),{x1:s.x+s.w,y1:s.y+s.h,x2:W-1,y2:e.h-1});
+    const k=easeAt(.25,ease),px={x:s.x*(1-k),y:s.y*(1-k),w:s.w+(e.w-s.w)*k,h:s.h+(e.h-s.h)*k};
+    posed=currentView==='grid'&&!animating;
+    if(posed){
+      const rad=a=>10*(1-k)*(a+(1-a)*k)/a;
+      pose.style.cssText=`background:${PROJECTS[lastIdx].bg};left:${px.x}px;top:${px.y}px;width:${px.w}px;height:${px.h}px;border-radius:${rad(s.w/e.w)}px/${rad(s.h/e.h)}px`;
+      stage.style.setProperty('--fade',(1-easeAt(.625,'ease')).toFixed(3));
+    }
+    stage.classList.toggle('posed',posed);
+    if(mode==='inside'){capLen.textContent='Travels in '+words(scaled());place(s,e,px)}
+  }
+  // Each caption goes to the free spot nearest the part it names: clear of the words on screen, the held picture and the other captions,
+  // and off the lines where it can. Measured again whenever a size, the view or a word changes.
+  let placed='';
+  function place(s,e,px){
+    const W=e.w,H=area.clientHeight,key=[W,H,s.x,s.y,s.w,s.h,e.h,px.w,currentView,openIndex,capLen.textContent,...caps.map(c=>c.offsetWidth)].join();
+    if(key===placed)return;
+    placed=key;
+    const listed=currentView==='grid',words=listed?thumbEls.flatMap(t=>[...t.children].map(ext)):[detailTitle,detailSub,detailDesc].map(ext);
+    const rim=[s,{x:1,y:1,w:W-2,h:e.h-2},...(listed?[px]:[])],pts=[],at=[[s.x+s.w*.5,s.y+s.h*.6],[W*.8,12],[s.x*.3,s.y*.3+12],[W*.4,12]],home=[{x:s.x-24,y:s.y-24,w:s.w+48,h:s.h+48},{x:0,y:0,w:W,h:e.h+8}],done=[];
+    for(let i=0;i<=20;i++){const f=i/20;pts.push([s.x+(1-s.x)*f,s.y+(1-s.y)*f],[s.x+s.w+(W-1-s.x-s.w)*f,s.y+s.h+(e.h-1-s.y-s.h)*f])}
+    caps.forEach((c,i)=>{
+      const w=c.offsetWidth,h=c.offsetHeight;let best=[1e12,4,4];
+      for(let y=4;y<=H-h-4;y+=6)for(let x=4;x<=W-w-4;x+=10){
+        let cost=Math.hypot(x+w/2-at[i][0],y+h/2-at[i][1])/1.5;
+        if(home[i]&&over(home[i],x+w/2-1,y+h/2-1,2,2)<4)cost+=400;
+        words.forEach(r=>{cost+=over(r,x,y,w,h)*6});
+        if(listed)cost+=over(px,x,y,w,h)*.06;
+        done.forEach(r=>{cost+=over(r,x-4,y-4,w+8,h+8)*500});
+        rim.forEach(r=>{if(edge(r,x,y,w,h))cost+=120});
+        pts.forEach(q=>{if(q[0]>x-3&&q[0]<x+w+3&&q[1]>y-3&&q[1]<y+h+3)cost+=40});
+        if(cost<best[0])best=[cost,x,y];
+      }
+      c.style.left=best[1]+'px';c.style.top=best[2]+'px';done.push({x:best[1],y:best[2],w,h});
+    });
+  }
+  // A mode can change the size of the box a copy is flying to (Compare halves it): aim the copy at the new header again, from where it is now
+  function reaim(){
+    if(flipEl.style.display!=='block')return;
+    const t=Math.min((performance.now()-openAt)/openD,1),k=easeAt(t,ease),a=thumbEls[openIndex].getBoundingClientRect(),b=detailHero.getBoundingClientRect();
+    const sx=(a.width+(b.width-a.width)*k)/b.width,sy=(a.height+(b.height-a.height)*k)/b.height,left=Math.round(openD*(1-t));
+    flipEl.style.cssText+=`;top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px;transition:none;transform:translate(${a.left+(b.left-a.left)*k-b.left}px,${a.top+(b.top-a.top)*k-b.top}px) scale(${sx},${sy});border-radius:${10*(1-k)/sx}px/${10*(1-k)/sy}px`;
+    void flipEl.offsetWidth;
+    flipEl.style.transition=`transform ${left}ms ${ease},border-radius ${left}ms ${ease}`;flipEl.style.transform='none';flipEl.style.borderRadius='0';
+  }
+  // The mode switch: the shared script has marked the stage; draw it now. Show me follows (not under reduced motion) and plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;mirror();reaim();draw()});
+  new ResizeObserver(draw).observe(area);
+  document.fonts.ready.then(draw);
+  slowTog.addEventListener('change',draw);
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);draw();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
