@@ -345,13 +345,17 @@
   const STILL=[lead+'Below, the whole band, three times as wide, with the box over the part you see.',lead+'Below, the color wheel that turns behind them.',
     'Shown still where the band starts over: Hard seam has a sharp edge across the letters, while Seamless blends straight through.'];
   const FLAT='Both colors are the same, so the word has no gradient and both halves match. Pick two different colors in Try it.';
+  // Diagonal's slanted stripes do not meet where the page's band repeats sideways, so its Seamless half shows an edge too
+  const DIAG='Slanted stripes do not meet where the band starts over, so Seamless shows an edge there too, like Hard seam. Pick another gradient in Try it to see the difference.';
+  const SPINC=["Hard seam's color wheel ends on a different color than it starts with, so a sharp edge sweeps through the letters. Seamless ends where it began, so the colors flow on without a break.",
+    'Shown still where the wheel starts over: Hard seam has a sharp edge across the letters, while Seamless blends straight through.'];
   const SPIN='Inside, the gradient fills the whole box behind the word, shown faint, and the letters are holes that let it through. Behind them, a color wheel keeps turning.';
   // The notes and captions are written only when their words change (the notes box is read aloud)
   function describe(){
     const spin=cls()==='grad-conic',still=reduceMQ.matches&&paused();
     const flat=cls()==='grad-custom'&&getComputedStyle(root).getPropertyValue('--c1').trim()===getComputedStyle(root).getPropertyValue('--c2').trim();
     const dur=parseFloat(getComputedStyle(root).getPropertyValue('--grad-dur'))*(slow.checked?3:1);
-    const say=[[notes[0],still?STILL[+spin]:spin?SPIN:plain[0]],[notes[1],flat?FLAT:still?STILL[2]:plain[1]],
+    const say=[[notes[0],still?STILL[+spin]:spin?SPIN:plain[0]],[notes[1],flat?FLAT:cls()==='grad-multi'?DIAG:spin?SPINC[+still]:still?STILL[2]:plain[1]],
       [capB,spin?'A color wheel turns behind, once '+per(dur):'A band three times as wide slides behind, one band '+per(dur/2)],
       [when,spin?'Where the wheel starts over':'Where the band starts over']];
     say.forEach(([el,words])=>{if(el.textContent!==words)el.textContent=words});
