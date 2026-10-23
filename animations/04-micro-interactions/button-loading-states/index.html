@@ -66,6 +66,60 @@
       .shaker.shake{animation:none}
       .sbtn.busy .l-busy,.sbtn.ok .l-ok,.sbtn.err .l-err{opacity:1}
     }
+    /* Everything below is for See inside and Compare; at rest in Normal none of it is drawn. */
+    .twin,.in-rows,.lbl,.full,.cir{display:none}
+    .lbl[hidden]{display:none!important}
+    .lbl{padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 12px/1.25 var(--hb-font)}
+    .sw{flex:none;display:grid;place-items:center;font:700 12px/1 var(--hb-font);font-style:normal}
+    .sw-full{width:20px;height:11px;border:2px dashed #f4f4f2;border-radius:6px}
+    .sw-circle{width:20px;height:20px}
+    .sw-circle circle{fill:none;stroke:#f4f4f2;stroke-width:1.6;stroke-dasharray:3.2 2.4}
+    .sw-circle circle+circle{fill:var(--ui-accent);stroke:none}
+    .sw-spin{width:15px;height:15px;border:3px solid rgba(244,244,242,.3);border-top-color:#f4f4f2;border-radius:50%}
+    .sw-end{width:17px;height:17px;border-radius:50%;background:var(--ok);color:var(--ink)}
+    .sw-end.err{background:var(--err)}
+    .stage:not(.circ) .sw-circle{display:none}
+    .s{display:block;font-weight:500;color:#c9c9cf}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;justify-items:center}
+    /* See inside: the card is just the button, with a row of labels above it and one below it (equal rows keep the button in the
+       middle). The real button keeps working: a dashed outline marks its full size, which never changes, and a dashed circle the
+       size the color shrinks to. */
+    .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto minmax(0,1fr);row-gap:10px}
+    .stage[data-hb-mode="inside"] .in-rows{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 8px;max-width:100%}
+    .stage[data-hb-mode="inside"] .in-top{grid-row:1;align-self:end}
+    .stage[data-hb-mode="inside"] .card{grid-row:2}
+    .stage[data-hb-mode="inside"] .in-bot{grid-row:3;align-self:start}
+    .stage[data-hb-mode="inside"] .in-l{display:flex;align-items:center;gap:7px}
+    .stage[data-hb-mode="inside"] .title,.stage[data-hb-mode="inside"] .msg{display:none}
+    .stage[data-hb-mode="inside"].circ .l-rest{font-size:12px}
+    /* While it runs, the label of the part on show is lit */
+    .stage[data-hb-mode="inside"]:has(.sbtn.busy) .k-spin,.stage[data-hb-mode="inside"]:has(.sbtn:is(.ok,.err)) .k-end{box-shadow:0 0 0 2px var(--ui-accent)}
+    .stage[data-hb-mode="inside"] .shaker{position:relative}
+    .stage[data-hb-mode="inside"] .sbtn{border-radius:26px}
+    .full{position:absolute;inset:-9px;border:2px dashed rgba(244,244,242,.9);border-radius:35px;pointer-events:none}
+    .stage[data-hb-mode="inside"] .full,.stage[data-hb-mode="inside"].circ .cir{display:block}
+    .cir{position:absolute;top:-2px;left:calc(50% - 28px);width:56px;height:56px;border:2px dashed #f4f4f2;border-radius:50%;pointer-events:none;filter:drop-shadow(0 0 1px rgba(11,11,13,.8))}
+    /* Compare: No sign (a copy of the card whose button never changes) beside Shows progress (the real card). At rest the real one
+       is caught while it sends, by a look alone: the state and the button's presses are untouched. */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:8px 10px}
+    .stage[data-hb-mode="compare"] .cmp-l{display:block;grid-row:1}
+    .stage[data-hb-mode="compare"] .c2{grid-column:2}
+    .stage[data-hb-mode="compare"] .card{grid-row:2;align-self:center}
+    .stage[data-hb-mode="compare"] .twin{display:flex;grid-column:1}
+    .stage[data-hb-mode="compare"] .card:not(.twin){grid-column:2}
+    .stage[data-hb-mode="compare"]:has(.card:not(.twin) .sbtn:is(.down,:active:not([aria-disabled="true"]))) .twin .sbtn{transform:scale(.97)}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin) .l-rest{opacity:0}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin) .spin{opacity:1}
+    .stage[data-hb-mode="compare"].posed.circ .card:not(.twin) .bg{clip-path:inset(0 calc(50% - 26px) round 26px)}
+    .stage[data-hb-mode="compare"].posed.circ .card:not(.twin) .sbtn:focus-visible{outline-color:transparent}
+    .stage[data-hb-mode="compare"].posed.circ .card:not(.twin) .sbtn:focus-visible .ring{opacity:1}
+    @media(max-height:720px){.stage[data-hb-mode="compare"] .msg{display:none}}
+    @media(max-width:600px),(max-height:500px){
+      .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{padding:10px}
+      .stage[data-hb-mode="compare"] .title,.stage[data-hb-mode="compare"] .msg{display:none}
+      .stage[data-hb-mode="compare"] .card{padding:10px}
+    }
+    @media(prefers-reduced-motion:reduce){.stage[data-hb-mode="compare"].posed .card:not(.twin) .l-busy{opacity:1}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -88,7 +142,18 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Submit and wait for the answer, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="in-rows in-top" aria-hidden="true">
+        <p class="lbl in-l k-full" data-hb-caption><i class="sw sw-full"></i><span class="m">Keeps its full size</span></p>
+        <p class="lbl in-l k-spin" data-hb-caption><i class="sw sw-spin"></i><span class="m">Spins about a second while it loads</span></p>
+      </div>
+      <p class="lbl cmp-l c1" data-hb-caption aria-hidden="true">No sign</p>
+      <p class="lbl cmp-l c2" data-hb-caption aria-hidden="true">Shows progress</p>
       <div class="card">
         <p class="title">Send feedback</p>
         <p class="msg">The new dashboard is much faster. Thank you!</p>
@@ -101,15 +166,26 @@
               <svg class="tick" viewBox="0 0 24 24"><path pathLength="1" d="M5 12.5l4.5 4.5L19 7.5"/></svg>
               <svg class="cross" viewBox="0 0 24 24"><path pathLength="1" d="M7 7l10 10"/><path pathLength="1" d="M17 7 7 17"/></svg>
             </span>
+            <span class="cir" aria-hidden="true"></span>
             <span class="ring" aria-hidden="true"></span>
           </button>
+          <span class="full" aria-hidden="true"></span>
         </div>
+      </div>
+      <div class="in-rows in-bot" aria-hidden="true">
+        <p class="lbl in-l k-circle" data-hb-caption><svg class="sw sw-circle" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9"/><circle cx="10" cy="10" r="6"/></svg><span><span class="m">Only the color shrinks to this circle</span><span class="s">in about a third of a second</span></span></p>
+        <p class="lbl in-l k-end" data-hb-caption><i class="sw sw-end">✓</i><span class="m">Then a tick on green</span></p>
+        <p class="lbl in-l k-words" data-hb-caption hidden><span><span class="m">The words change instead:</span><span class="s">Sending… for about a second, then ✓ Sent</span></span></p>
       </div>
       <p class="sr-only" id="status" role="status" aria-live="polite"></p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed outline is the button's full size, which never changes: only its color shrinks to the circle while it sends, then shows a tick or a cross. Press Submit, or Show me.</p>
+      <p data-hb-for="compare" hidden>No sign: after the press the button looks the same, so people tap again; Shows progress: it turns into a spinner, then a tick or a cross. Press Submit, or Show me.</p>
     </div>
   </section>
 
@@ -203,6 +279,18 @@
   // Everything that eases between two looks; toRest() switches these transitions off for a moment
   const easing=[btn,...btn.querySelectorAll('.bg,.words span,.spin,.ico path')];
   let result='ok',dur=300,waitMs=1200,state='rest',seqTimers=[],runTimers=[],quiet=false;
+  const stage=document.querySelector('.stage'),card=stage.querySelector('.card');
+  let mode='normal',modePress=false;
+  // A press of See inside or Compare: the shared script presses Show me right after this event, and that untrusted press may
+  // restart a button that is busy (the flag is gone a moment later). The view is drawn at once, with no easing.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;modePress=true;queueMicrotask(()=>{modePress=false});
+    // Only a change of the pose is drawn without easing: a run in progress keeps easing, so leaving a mode never pops it ahead
+    const snap=state==='rest'&&!running();
+    if(snap)easing.forEach(el=>{el.style.transition='none'});
+    refresh();
+    if(snap){void btn.offsetWidth;easing.forEach(el=>{el.style.transition=''})}
+  });
 
   // wait(list, fn, move, hold) runs fn after move*(slow?3:1) + hold ms and keeps its timer in list (seqTimers for the submit itself,
   // runTimers for Show me's press): Slow motion triples the movement, never the hold.
@@ -215,7 +303,7 @@
   // the shape change and How long it loads, the answer comes. Show me's press comes through here too, but says nothing aloud.
   function submit(fromRun){
     if(state!=='rest')return;
-    state='busy';quiet=fromRun;
+    state='busy';quiet=fromRun;stage.classList.remove('posed');
     btn.setAttribute('aria-disabled','true');
     btn.classList.add('busy');
     btn.classList.toggle('round',roundTog.checked&&!reduceMq.matches);
@@ -232,7 +320,7 @@
   }
   function back(){
     btn.classList.remove('ok','err','round');
-    wait(seqTimers,()=>{state='rest';btn.removeAttribute('aria-disabled')},dur,0);
+    wait(seqTimers,()=>{state='rest';btn.removeAttribute('aria-disabled');pose()},dur,0);
   }
   shaker.addEventListener('animationend',()=>shaker.classList.remove('shake'));
   btn.addEventListener('click',()=>submit(false));
@@ -253,25 +341,67 @@
   // The button is pressed down at 150ms and let go at 270ms. At the defaults the answer shows at 1.8 s and Submit is back at 3.4 s.
   // The arrival press leaves alone a Submit the visitor has already pressed.
   $('btn-demo').addEventListener('click',e=>{
-    if(!e.isTrusted&&state!=='rest')return;
-    stopRun();toRest();
+    if(!e.isTrusted&&state!=='rest'&&!modePress)return;
+    stopRun();stage.classList.remove('posed');toRest();
     wait(runTimers,()=>btn.classList.add('down'),0,150);
     wait(runTimers,()=>{btn.classList.remove('down');submit(true)},0,270);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the press of the run is called off. A submit that has
   // started finishes as usual.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();pose()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);refresh();
     }));
   }
   choices('result-seg',d=>{result=d.r});
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
   choices('wait-seg',d=>{waitMs=+d.ms});
+
+  // Compare's first half: a copy of the card made once, with no ids, out of the Tab order and hidden from screen readers. Its
+  // button is a plain Submit that never changes (the press only dips it, as the real one dips).
+  const twin=document.createElement('div');
+  twin.className='card twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=card.querySelector('.title').outerHTML+card.querySelector('.msg').outerHTML+
+    '<div class="shaker"><span class="sbtn"><span class="bg"></span><span class="words"><span class="l-rest">Submit</span></span></span></div>';
+  card.before(twin);
+
+  // The words of the labels come from the page's own settings. Each label is (name, words, small print); no words hides it.
+  const SPEED={500:['in half a second','in a second and a half'],300:['in about a third of a second','in about a second'],180:['in a fifth of a second','in about half a second']};
+  const LOADS={700:'under a second',1200:'about a second',2200:'about two seconds'};
+  function put(k,main,sub){
+    const el=stage.querySelector('.k-'+k),m=el.querySelector('.m'),s=el.querySelector('.s');
+    el.hidden=!main;
+    if(main&&m.textContent!==main)m.textContent=main;
+    if(s&&sub!==undefined&&s.textContent!==sub)s.textContent=sub;
+  }
+  function note(which,text){const p=document.querySelector('[data-hb-for="'+which+'"]');if(p.textContent!==text)p.textContent=text}
+  const NOTES={inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent};
+  // What the view shows for the current settings. Under reduced motion nothing shrinks or turns: the words change instead.
+  function refresh(){
+    const red=reduceMq.matches,circle=roundTog.checked&&!red,err=result==='err',loads=LOADS[waitMs];
+    stage.classList.toggle('circ',circle);
+    put('full',red?'Keeps its full size and shape':'Keeps its full size');
+    put('spin',red?'':'Spins '+loads+' while it loads');
+    put('circle',red?'':circle?'Only the color shrinks to this circle':'Keeps its shape: only the inside changes',circle?SPEED[dur][slowTog.checked?1:0]:'');
+    put('end',red?'':err?'Then a cross on red, with a shake':'Then a tick on green');
+    const sw=stage.querySelector('.sw-end');sw.classList.toggle('err',err);sw.textContent=err?'✕':'✓';
+    put('words',red?'The words change instead:':'','Sending… for '+loads+', then '+(err?'✕ Not sent':'✓ Sent'));
+    note('inside',red?"Inside, the dashed outline is the button's full size, which never changes; with reduced motion on, its words change instead: Sending, then Sent or Not sent.":
+      roundTog.checked?NOTES.inside:"Inside, the dashed outline is the button's full size, which never changes; Shrinks to a circle is off, so only what is inside changes. Press Submit, or Show me.");
+    note('compare',red?'No sign: after the press the button looks the same, so people tap again. Shows progress: its words say Sending, then Sent or Not sent.':NOTES.compare);
+    pose();
+  }
+  // At rest in Compare the real card is caught while it sends, by a look alone. A press or Show me lifts it; it comes back when
+  // the button is at rest and no run is waiting.
+  function pose(){stage.classList.toggle('posed',mode==='compare'&&state==='rest'&&!running())}
+  roundTog.addEventListener('change',refresh);
+  slowTog.addEventListener('change',refresh);
+  reduceMq.addEventListener('change',refresh);
+  refresh();
 </script>
 </body>
 </html>
