@@ -28,6 +28,17 @@
     .hint{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;pointer-events:none;
       font-size:clamp(15px,2vw,18px);font-weight:600;color:var(--hint);transition:opacity .3s}
     .hint.gone{opacity:0}
+    /* See inside and Compare: plain words over the canvas. See inside's key sits top left with the gravity arrow beside it (drawn on the canvas) */
+    .key,.half{display:none}
+    .stage[data-hb-mode="inside"] .key{display:flex}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="inside"] .hint,.stage[data-hb-mode="compare"] .hint{display:none} /* the notes say what to do; on a small phone the hint would sit under See inside's key */
+    .lbl{text-wrap:balance;padding:3px 10px;border-radius:12px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);pointer-events:none}
+    .key{position:absolute;left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:5px;max-width:min(320px,70%);padding-left:26px;pointer-events:none}
+    .key .asleep{display:none}.key.calm .asleep{display:block}
+    .half{position:absolute;top:6px;transform:translateX(-50%);white-space:nowrap}
+    .half.first{left:25%}.half.second{left:75%}
+    @media(max-width:600px){.lbl{font-size:12px}.key{max-width:48%}.more{display:none}} /* on a phone the key keeps the short words, so it stays clear of the pile */
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -50,14 +61,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap anywhere in the box to drop a ball, drag a ball to throw it, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage">
       <canvas id="cvs" tabindex="0" role="button" aria-label="A box of balls: click, tap or press Enter to drop a ball, or drag a ball to throw it"></canvas>
       <p class="hint" id="hint" aria-hidden="true">Click or tap to drop a ball</p>
+      <div class="key" aria-hidden="true">
+        <p class="lbl kc" data-hb-caption>Gravity speeds every ball down</p>
+        <p class="lbl kc" data-hb-caption>Touching balls push apart, never pull</p>
+        <p class="lbl kc" data-hb-caption>Lower balls push harder<span class="more">, holding up the ones above</span></p>
+        <p class="lbl asleep" data-hb-caption>All still: the steps stop<span class="more"> until something moves</span></p>
+      </div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>Pass through</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>Bump and pile</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, gravity speeds every ball down; where two touch (or a ball meets a wall) they push apart, and lower balls push harder, holding up the ones above. Click to drop a ball.</p>
+      <p data-hb-for="compare" hidden>Pass through checks only the walls, so its balls sink into each other on the floor; Bump and pile also pushes touching balls apart, so none overlap. Click to drop a ball in both.</p>
     </div>
   </section>
 
@@ -153,6 +181,9 @@ const FRAME=1000/60,FADE=300,RING=450; // one physics step is 1/60 s; a fade and
 const WALL={vx:0,vy:0,im:0}; // the walls and floor never move
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 let W=0,H=0,R0=20,balls=[],rings=[],made=0,held=null,raf=null,lastT=null,behind=0,clock=0,awake=false,calm=0,runTimers=[];
+// See inside and Compare: the mode on show; the contacts of the last step; Compare's two worlds (null outside Compare), each with its own
+// balls, rings, held ball, sleep and contacts, and "pairs" (whether balls push each other); Normal's own state stays where it is
+let mode='normal',contacts=[],pairs=true,halves=null,own=false,flag=false,keyCalm=false,fadeMs=0,kept=null;
 let GRAV=1,E=.5,MIX=false,SHOW=false;const target={x:0,y:0},grab={x:0,y:0},pv={x:0,y:0},last={x:0,y:0,t:0};
 
 // One physics step of 1/60 s. Gravity, then the contacts: touching pairs and the four walls. Each contact pushes only apart,
@@ -160,12 +191,12 @@ let GRAV=1,E=.5,MIX=false,SHOW=false;const target={x:0,y:0},grab={x:0,y:0},pv={x
 // contacts share the pushes (and the friction, at most half the push) through a pile; then the balls move, overlaps left
 // over are eased apart and everything is kept inside the box. A held ball follows the pointer and nothing pushes it.
 function step(){
-  const g=GRAV*H/1000,cs=[],im=b=>b===held?0:b.im;
+  const g=GRAV*H/1000,cs=contacts=[],im=b=>b===held?0:b.im; // contacts: the list See inside draws
   for(const b of balls)if(b!==held)b.vy+=g;
   if(held){held.vx=clamp(target.x,held.r,W-held.r)-held.x;held.vy=clamp(target.y,held.r,H-held.r)-held.y;}
   const touch=(a,b,nx,ny)=>{const vn=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;cs.push({a,b,nx,ny,t:vn<-1?-E*vn:0,j:0,jt:0});};
   for(let i=0,a;a=balls[i];i++){
-    for(let k=i+1;k<balls.length;k++){const b=balls[k],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d>0&&d<a.r+b.r+.5)touch(a,b,dx/d,dy/d);}
+    if(pairs)for(let k=i+1;k<balls.length;k++){const b=balls[k],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d>0&&d<a.r+b.r+.5)touch(a,b,dx/d,dy/d);}
     if(a.x-a.r<.5)touch(a,WALL,-1,0);if(a.x+a.r>W-.5)touch(a,WALL,1,0);
     if(a.y-a.r<.5)touch(a,WALL,0,-1);if(a.y+a.r>H-.5)touch(a,WALL,0,1);
   }
@@ -182,7 +213,7 @@ function step(){
     b.x+=b.vx;b.y+=b.vy;b.a+=b.vx/b.r;
   }
   for(let it=0;it<3;it++){
-    for(let i=0;i<balls.length;i++)for(let k=i+1;k<balls.length;k++){
+    if(pairs)for(let i=0;i<balls.length;i++)for(let k=i+1;k<balls.length;k++){
       const a=balls[i],b=balls[k],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.01,o=a.r+b.r-d,ia=im(a),ib=im(b);
       if(o<=.3||!(ia+ib))continue;
       const m=(o-.3)*.6/(ia+ib)/d;a.x-=dx*m*ia;a.y-=dy*m*ia;b.x+=dx*m*ib;b.y+=dy*m*ib;
@@ -197,8 +228,8 @@ function step(){
 // Under reduced motion nothing falls on screen: the steps run at once, out of sight, and the result is shown
 function settle(){awake=true;calm=0;for(let i=0;i<900&&awake;i++)step();awake=false;for(const b of balls)b.vx=b.vy=0;}
 
-function draw(){
-  ctx.clearRect(0,0,W,H);
+function draw(){ctx.clearRect(0,0,W,H);scene();if(mode==='inside')inside();}
+function scene(){
   ctx.strokeStyle=ctx.fillStyle=MARK;ctx.lineWidth=2;
   for(const r of rings){const p=(clock-r.t)/RING;ctx.globalAlpha=(1-p)*.7;ctx.beginPath();ctx.arc(r.x,r.y,6+R0*1.2*p,0,Math.PI*2);ctx.stroke();}
   for(const b of balls){
@@ -218,6 +249,7 @@ function fade(ms){
   for(const b of balls)if(b.al!==b.to){b.al=b.to>b.al?Math.min(b.to,b.al+ms/FADE):Math.max(b.to,b.al-ms/FADE);if(!b.al&&!b.to)gone=true;}
   rings=rings.filter(r=>clock-r.t<RING);
   if(!gone)return;balls=balls.filter(b=>b.al||b.to);
+  contacts=contacts.filter(c=>balls.includes(c.a)&&(c.b===WALL||balls.includes(c.b)));
   if(held&&!balls.includes(held))held=null;
   if(reduce.matches)settle();else wake(); // the balls that rested on it fall into the gap
 }
@@ -232,6 +264,7 @@ function loop(ts){
   lastT=ts;
   const ms=Math.min(dt,50)*(slowTog.checked?1/3:1);
   clock+=ms;
+  if(halves)return compareFrame(ms);
   if(awake){behind+=ms;for(let n=0;behind>=FRAME-1&&n<3;n++){step();behind-=FRAME;}}
   fade(ms);draw();
   if(!awake&&!held&&!rings.length&&balls.every(b=>b.al===b.to)){cancelAnimationFrame(raf);raf=null;}
@@ -241,57 +274,170 @@ function wake(){if(!reduce.matches){awake=true;calm=0;}kick();}
 document.addEventListener('visibilitychange',()=>{lastT=null;behind=0;});
 
 // A new ball at (x, y), in one size or a mix of sizes. Past the limit the oldest ball fades out.
-function drop(x,y){
-  const r=R0*(MIX?.6+Math.random()*.8:1);
-  balls.push({x:clamp(x,r,W-r),y:clamp(y,r,H-r),vx:0,vy:0,r,im:(R0/r)**2,a:0,al:reduce.matches?0:1,to:1,c:COLORS[made++%COLORS.length]});
-  const live=balls.filter(b=>b.to>0);
-  if(live.length>(phone.matches?24:40))live[0].to=0;
-  if(reduce.matches)settle();else rings.push({x,y,t:clock});
-  showHint();wake();
+// In Compare it drops one ball, the same size and color, at the same spot of both halves (half the limit each). k: a size that Mixed
+// uses instead of a random one; pose: a ball a view's Show me run drops, which fades when Normal comes back.
+const put=(x,y,r,c,pose)=>balls.push({x:clamp(x,r,W-r),y:clamp(y,r,H-r),vx:0,vy:0,r,im:(R0/r)**2,a:0,al:reduce.matches?0:1,to:1,c,pose});
+function drop(x,y,k,pose){
+  const r=R0*(MIX?k||.6+Math.random()*.8:1),c=COLORS[made++%COLORS.length];
+  each(()=>{
+    put(x,y,r,c,pose);
+    const live=balls.filter(b=>b.to>0);
+    if(live.length>(phone.matches?24:40)/(halves?2:1))live[0].to=0;
+    if(reduce.matches)settle();else rings.push({x,y,t:clock});
+    showHint();wake();
+  });
 }
 
 // Pointer Events cover mouse, touch and pen. Pressing a ball picks up the nearest one in reach (its radius plus 8px, and at least
 // a 44px circle); pressing anywhere else drops a new one. While a ball is held, the pointer's speed is followed (in px per
 // 1/60 s), and letting go throws the ball with it if the pointer was still moving.
-const local=e=>{const r=cvs.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
-cvs.addEventListener('pointerdown',e=>{
-  if(!e.isPrimary||e.button!==0)return;
-  const p=local(e);let b=null,best=Infinity;
+// In Compare the pointer is read in the second half's own place (x below 0 is the first half, which never grabs a ball), and a grab,
+// move or release works on that half's world.
+const local=e=>{const r=cvs.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;return halves?{x:x-r.width/2,y:y-TOP}:{x,y};};
+function grabAt(p,e){
+  let b=null,best=Infinity;
   for(const o of balls){const d=Math.hypot(o.x-p.x,o.y-p.y);if(o.to>0&&d<=Math.max(o.r+8,22)&&d-o.r<best){best=d-o.r;b=o;}}
-  if(!b){drop(p.x,p.y);return;}
+  if(!b)return false;
   held=b;grab.x=b.x-p.x;grab.y=b.y-p.y;target.x=b.x;target.y=b.y;pv.x=pv.y=0;Object.assign(last,p,{t:e.timeStamp});
   try{cvs.setPointerCapture(e.pointerId);}catch(_){}
-  wake();
-});
-cvs.addEventListener('pointermove',e=>{
+  wake();return true;
+}
+function pmove(e){
   if(!held||!e.isPrimary)return;
   const p=local(e),dt=Math.max(1,e.timeStamp-last.t);
   pv.x=pv.x*.4+(p.x-last.x)/dt*FRAME*.6;pv.y=pv.y*.4+(p.y-last.y)/dt*FRAME*.6;Object.assign(last,p,{t:e.timeStamp});
   target.x=p.x+grab.x;target.y=p.y+grab.y;
-  if(reduce.matches){held.x=clamp(target.x,held.r,W-held.r);held.y=clamp(target.y,held.r,H-held.r);draw();}
-});
-const release=e=>{
+  if(reduce.matches){held.x=clamp(target.x,held.r,W-held.r);held.y=clamp(target.y,held.r,H-held.r);return true;} // drawn by the listener, outside Compare's half
+}
+function release(e){
   if(!held||!e.isPrimary)return;
   const s=Math.hypot(pv.x,pv.y),k=e.timeStamp-last.t<80&&s?Math.min(1,R0*.9/s):0;
   held.vx=pv.x*k;held.vy=pv.y*k;held=null;
   if(reduce.matches){settle();kick();}else wake();
-};
-['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,release));
+}
+cvs.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary||e.button!==0)return;
+  const p=local(e),first=halves&&p.x<0;
+  if(!first&&second(grabAt,p,e))return;
+  own=true;drop(first?p.x+cvs.clientWidth/2:p.x,p.y);
+});
+cvs.addEventListener('pointermove',e=>{if(second(pmove,e))redraw();});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,e=>second(release,e)));
 // The keyboard drops a ball at a random spot near the top
-cvs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();drop(W*(.2+Math.random()*.6),H*.15);}});
+cvs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();own=true;const[bw,bh]=box();drop(bw*(.2+Math.random()*.6),bh*.15);}});
+
+// See inside and Compare. A world is the state of one box: Normal's own sits in the variables above; Compare's two (Pass through, then
+// Bump and pile) are objects that take the variables' place for a moment (inWorld), so Normal's balls, rings, held ball and sleep stay
+// untouched while Compare shows. Both take the same fixed steps from the one "behind", and each sleeps on its own.
+const TOP=34; // Compare's worlds start below the halves' names
+const world=pairs=>({balls:[],rings:[],held:null,awake:false,calm:0,contacts:[],pairs,w:W/2,h:H-TOP});
+function inWorld(o,fn,p,q){
+  const sb=balls,sr=rings,sh=held,sa=awake,sc=calm,sk=contacts,sp=pairs,sw=W,sH=H;
+  ({balls,rings,held,awake,calm,contacts,pairs,w:W,h:H}=o);
+  const out=fn(p,q);
+  o.balls=balls;o.rings=rings;o.held=held;o.awake=awake;o.calm=calm;o.contacts=contacts;
+  balls=sb;rings=sr;held=sh;awake=sa;calm=sc;contacts=sk;pairs=sp;W=sw;H=sH;
+  return out;
+}
+const each=fn=>{if(halves)for(const o of halves)inWorld(o,fn);else fn();}; // fn works on the box on show: Compare's two halves, else the real one
+const second=(fn,p,q)=>halves?inWorld(halves[1],fn,p,q):fn(p,q); // ... or on the half the visitor can grab from
+const box=()=>halves?[W/2,H-TOP,W/4]:[W,H,W*(mode==='inside'&&phone.matches?.62:.5)]; // width, height and where a run drops (right of See inside's key on a phone)
+const filled=()=>halves?halves.some(o=>o.balls.some(isLive)):balls.some(isLive);
+const clearWorld=()=>{balls=[];rings=[];held=null;awake=false;contacts=[];};
+const wakeIfAny=()=>{if(balls.length)wake();},settleIfAny=()=>{if(balls.length)settle();};
+const isAwake=o=>o.awake,isLive=b=>b.to>0,stepAwake=()=>{if(awake)step();},fadeNow=()=>fade(fadeMs),isIdle=o=>!o.awake&&!o.held&&!o.rings.length&&o.balls.every(b=>b.al===b.to);
+const redraw=()=>halves?drawHalves():draw();
+function compareFrame(ms){
+  if(halves.some(isAwake)){behind+=ms;for(let n=0;behind>=FRAME-1&&n<3;n++){for(const o of halves)inWorld(o,stepAwake);behind-=FRAME;}}
+  fadeMs=ms;for(const o of halves)inWorld(o,fadeNow);
+  drawHalves();
+  if(halves.every(isIdle)){cancelAnimationFrame(raf);raf=null;}
+}
+// One canvas split down the middle, each half clipped to itself, with a thin line between
+function drawHalves(){
+  const hw=W/2;ctx.clearRect(0,0,W,H);
+  for(let i=0;i<2;i++){ctx.save();ctx.beginPath();ctx.rect(i*hw,0,hw,H);ctx.clip();ctx.translate(i*hw,TOP);inWorld(halves[i],scene);ctx.restore();}
+  ctx.fillStyle='#3a3c46';ctx.fillRect(hw-1,0,2,H);
+}
+// See inside, over the balls: a white line through each touching point of the last step, along the push, as long as the push it carried
+// (one ball's weight on Earth is about 3/4 of a radius; a line never passes one and a half), with a head at each end pointing apart, or one head
+// going into the ball for a wall or the floor; and the gravity arrow beside the key, as long as Gravity is strong. A dark edge keeps
+// the lines clear on any ball.
+function head(x,y,dx,dy,s=6){ctx.moveTo(x-dx*s-dy*s*.7,y-dy*s+dx*s*.7);ctx.lineTo(x,y);ctx.lineTo(x-dx*s+dy*s*.7,y-dy*s-dx*s*.7);}
+function inside(){
+  const unit=H/1000,calmNow=!awake&&!held&&balls.some(isLive);
+  if(calmNow!==keyCalm){keyCalm=calmNow;key.classList.toggle('calm',calmNow);}
+  ctx.lineCap=ctx.lineJoin='round';ctx.beginPath();
+  for(const c of contacts){
+    const{a,b,nx,ny}=c;if(c.j<=.001||Math.min(a.al,b.al??1)<.5)continue;
+    const wall=b===WALL,L=clamp(R0*(.3+c.j/unit*.45),wall?8:R0*.9,R0*1.6),x=a.x+nx*a.r,y=a.y+ny*a.r;
+    const hs=Math.min(6,L*.3);
+    if(wall){ctx.moveTo(x,y);ctx.lineTo(x-nx*L,y-ny*L);head(x-nx*L,y-ny*L,-nx,-ny,hs);continue;}
+    ctx.moveTo(x-nx*L/2,y-ny*L/2);ctx.lineTo(x+nx*L/2,y+ny*L/2);head(x+nx*L/2,y+ny*L/2,nx,ny,hs);head(x-nx*L/2,y-ny*L/2,-nx,-ny,hs);
+  }
+  const g=R0*(.7+.85*GRAV);ctx.moveTo(22,14);ctx.lineTo(22,14+g);head(22,14+g,0,1);
+  ctx.strokeStyle='rgba(11,11,13,.85)';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+}
+const key=stage.querySelector('.key');
+const NAMES={normal:cvs.getAttribute('aria-label')};
+NAMES.inside=NAMES.normal+'; inside, arrows show gravity and the pushes where balls touch';
+NAMES.compare=NAMES.normal+'; two boxes side by side, balls that pass through each other and balls that pile up';
+// The mode switch draws the mode at once. Leaving a mode stops its run; Compare starts two empty worlds and keeps Normal's color count,
+// clock and steps owed; Normal fades out the balls a view's run posed (the visitor's own stay). Under reduced motion an empty box gets
+// the plan's balls resting at once. The flag marks the Show me press that follows as the visitor's (cleared once it has run).
+document.addEventListener('hb:mode',e=>{
+  const was=mode;mode=e.detail.mode;
+  flag=true;queueMicrotask(()=>{flag=false;});
+  cvs.setAttribute('aria-label',NAMES[mode]);
+  if(mode!==was){
+    if(was==='normal'&&runTimers.length)for(const b of balls)b.to=0; // a Show me run cut short by a view ends as it would have: its balls fade
+    stopRun();
+    if(was==='compare'){made=kept.made;clock=kept.clock;behind=kept.behind;halves=null;}
+    if(mode==='compare'){kept={made,clock,behind};made=behind=0;halves=[world(false),world(true)];}
+    if(mode==='normal')for(const b of balls)if(b.pose)b.to=0;
+  }
+  if(mode!=='normal'&&reduce.matches&&!filled())deal();
+  showHint();redraw();kick();
+});
+function deal(){ // the run's own plan, out of sight: a ball every 18 steps (0.3 s), then the steps run until all sleep
+  made=0;own=false;each(clearWorld);const[bw,bh,cx]=box(); // balls still fading out go first, or they would stay unseen but solid
+  for(const[x,y,k]of PLAN.concat(MORE)){const r=R0*(MIX?k:1),c=COLORS[made++%COLORS.length];each(()=>{put(cx+R0*x,bh*y,r,c,true);for(let n=0;n<18;n++)step();});}
+  each(()=>{settle();for(const b of balls)b.al=b.to;});showHint();
+}
+// A setting changed while a view shows: Compare's balls feel a new Gravity at once; under reduced motion the steps run out of sight, or
+// the plan's balls are dealt again when the visitor has dropped none
+function changed(){
+  if(mode==='normal')return;
+  if(!reduce.matches){if(halves)each(wakeIfAny);}
+  else if(own||!filled())each(settleIfAny);
+  else{each(clearWorld);deal();}
+  redraw();
+}
+// The notes as the markup writes them, and the same two under reduced motion, where nothing moves
+const NOTES=[[document.querySelector('[data-hb-for="inside"]'),'Shown still: gravity pulls every ball down; where two touch (or a ball meets a wall) they push apart, and lower balls push harder, holding up the ones above. Click to drop a ball.'],
+  [document.querySelector('[data-hb-for="compare"]'),'Shown still: Pass through lets balls sink into each other on the floor; Bump and pile pushes touching balls apart, so none overlap. Click to drop a ball in both.']];
+for(const n of NOTES)n.push(n[0].textContent);
+function notes(){for(const[el,still,moving]of NOTES){const t=reduce.matches?still:moving;if(el.textContent!==t)el.textContent=t;}}
+reduce.addEventListener('change',notes);notes();
 
 // Show me: five clicks' worth, 0.3 s apart and a ball's width or less from the middle, so each new ball lands on the ones before
 // and they pile up; they fade out 1.7 s after the last one, so the box is empty again.
 // Slow motion stretches the waits three times. Every timer of the run goes through later(); stopRun() cancels the rest of it.
 function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn();},ms*(slowTog.checked?3:1));runTimers.push(id);}
 function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];}
+// The press on arrival leaves alone a box the visitor has already filled (in a view, the box that run would clear); the press a mode
+// sends right after its event counts as the visitor's own (flag). In See inside and Compare the run clears the box, drops the plan
+// with fixed sizes and colors (the page's five balls and three more, so the pile is deep enough to show weight pressing down)
+// and keeps them, so the view rests on a pile.
+const PLAN=[[0,.18,1.15],[1.1,.12,.7],[-1.2,.22,1.3],[.5,.16,.85],[-.4,.1,1]],MORE=[[.8,.14,.9],[-.7,.2,1.1],[.1,.12,.95]];
 document.getElementById('btn-demo').addEventListener('click',e=>{
-  if(!e.isTrusted&&balls.some(b=>b.to>0))return; // the press on arrival leaves alone a box the visitor has already filled
-  stopRun();balls=[];rings=[];held=null;awake=false;showHint();draw();
-  [[0,.18],[1.1,.12],[-1.2,.22],[.5,.16],[-.4,.1]].forEach(([x,y],i)=>later(()=>drop(W/2+R0*x,H*y),300*i));
-  later(()=>{balls.forEach(b=>{b.to=0;});showHint();kick();},2900);
+  if(!e.isTrusted&&!flag&&filled())return;
+  stopRun();each(clearWorld);own=false;showHint();redraw();
+  const pose=mode!=='normal';if(pose)made=0;
+  (pose?PLAN.concat(MORE):PLAN).forEach(([x,y,k],i)=>later(()=>{const[bw,bh,cx]=box();drop(cx+R0*x,bh*y,pose&&k,pose);},300*i));
+  if(!pose)later(()=>{balls.forEach(b=>{b.to=0;});showHint();kick();},2900);
 });
-document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();held=null;balls.forEach(b=>{b.to=0;});showHint();kick();});
+document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();each(()=>{held=null;balls.forEach(b=>{b.to=0;});});showHint();kick();});
 // The visitor pressed, typed or touched inside the stage: the run stops and its balls stay for the visitor to play with
 document.addEventListener('hb:input',()=>{if(runTimers.length)stopRun();});
 
@@ -305,8 +451,12 @@ function resize(){
   const dpr=Math.min(window.devicePixelRatio||1,2);
   W=w;H=h;R0=clamp(Math.min(W,H)*.055,12,22);
   cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-  if(balls.length)wake();
-  draw();
+  if(balls.length){wake();if(reduce.matches&&mode==='inside')settle();}
+  if(halves)for(const o of halves){ // Compare's worlds stretch with the stage too
+    const nw=W/2,nh=H-TOP;for(const b of o.balls){b.x*=nw/o.w;b.y*=nh/o.h;}
+    o.w=nw;o.h=nh;inWorld(o,reduce.matches?settleIfAny:wakeIfAny);
+  }
+  redraw();
 }
 
 function choices(id,pick){
@@ -317,10 +467,10 @@ function choices(id,pick){
   }));
 }
 // The next drop, throw or Show me shows a change; a new gravity also wakes the balls already in the box
-choices('grav-seg',d=>{GRAV=+d.g;if(balls.length)wake();});
-choices('bounce-seg',d=>{E=+d.e;});
-choices('size-seg',d=>{MIX=d.mix==='1';});
-document.getElementById('speed-tog').addEventListener('change',e=>{SHOW=e.target.checked;draw();});
+choices('grav-seg',d=>{GRAV=+d.g;if(balls.length)wake();changed();});
+choices('bounce-seg',d=>{E=+d.e;changed();});
+choices('size-seg',d=>{MIX=d.mix==='1';changed();});
+document.getElementById('speed-tog').addEventListener('change',e=>{SHOW=e.target.checked;redraw();});
 
 resize();
 window.addEventListener('resize',resize);
