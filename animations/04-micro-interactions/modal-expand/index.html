@@ -317,6 +317,7 @@
     originDot.classList.toggle('show',on&&(isOpen||posed||mode==='inside'));
     tw.dot.classList.toggle('show',on&&(isOpen||posed));
     if(!motionOk&&mode==='compare')say(noteCmp,posed?STILL.posed:STILL.lifted);
+    if(!motionOk&&mode==='inside')say(noteIn,isOpen?STILL.open:STILL.inside);
   }
   // The visitor's own way in and out. Keyboard focus goes into the window when it opens and back to the button that opened it
   // when it closes, unless the visitor has moved on to another control in the meantime. Show me calls openModal() and
@@ -440,6 +441,7 @@
 
   const STILL={
     inside:'Inside, shown still: the small box is where the window starts, at the button you pressed; with motion on, every corner grows out along its line to the full window.',
+    open:'Inside, with the window open: it shows at full size at once; close it to see the small box at the button you pressed and the lines it would grow along.',
     posed:'Shown still, a moment after the same press: From the middle is part grown at the center; From the button is part grown out of the button.',
     lifted:'With reduced motion the window appears at once in both halves, so they look alike; with motion on, From the middle ignores the button you pressed and From the button grows out of it.'
   };
@@ -453,9 +455,11 @@
     if(mode==='normal'){
       if(was==='normal')return;
       const k=kept||{open:false,opener,tour};kept=null;
-      tour=k.tour;opener=k.opener;
+      tour=k.tour;
       if(k.open){stopRun();instant(()=>{unpose();openModal(k.opener)})}
-      else if(!running())toRest();
+      else if(!running()&&(isOpen||isPosed()))toRest();
+      // A run (or its closing shrink) still playing goes on in Normal: its growth point and dot move to Normal's box
+      else if(opener)aim(opener);
       sync();return;
     }
     if(was==='normal')kept={open:isOpen&&!running(),opener,tour};
