@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Glitch Text", "name": "Glitch Text", "description": "Text tears into red and cyan strips like a broken signal. Best for bold titles.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/glitch-text/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Glitch Text"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b;--offset:4px;--speed:2.4s}
+    :root{--ui-accent:#ff6f8b;--offset:4px;--speed:2.4s;--pill:rgba(8,8,10,.9);--ink:#f4f4f2}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#141018,#04060c);padding:24px;overflow:hidden}
     /* Glitch text: two colored copies via ::before/::after clones, sliced by an animated clip-path */
@@ -56,6 +56,40 @@
     .hover-only.active .glitch::before,.hover-only.active .glitch::after{animation-play-state:running}
     /* toggling this class restarts the pseudo-element animations (reshuffles phase) */
     .glitch.reset::before,.glitch.reset::after{animation:none}
+    /* Shown only in See inside and Compare. The word's box wraps it and takes no part in Normal's layout. */
+    .real{display:contents}
+    .steady,.lbl,.slot,.gh{display:none}
+    .sw{font-weight:800;line-height:1;letter-spacing:-.02em;color:#fff;text-transform:uppercase;white-space:nowrap;user-select:none}
+    .lbl{padding:3px 8px;border-radius:6px;background:var(--pill);color:var(--ink);font:600 13px/1.25 var(--hb-font);text-align:center;text-wrap:balance}
+    /* The faint whole copies sit inside the word (so the shake moves them) exactly where the colored strips are; each carries the
+       dashed line at the word's left edge for its row */
+    .gh{position:absolute;inset:0;font-style:normal;pointer-events:none}
+    .gh.gr{--gc:rgba(255,45,94,.22);color:var(--gc);text-shadow:calc(var(--offset)*-1) 0 var(--gc);left:calc(var(--offset)*-1);translate:0 calc(var(--up,0px)*-1)}
+    .gh.gc{--gc:rgba(45,255,230,.22);color:var(--gc);text-shadow:var(--offset) 0 var(--gc);left:var(--offset);translate:0 var(--dn,0px)}
+    .gh.gr::after,.gh.gc::after,.gh.gw{content:"";position:absolute;top:0;bottom:0;border-left:2px dashed rgba(244,244,242,.6)}
+    .gh.gr::after{left:var(--offset)}
+    .gh.gc::after{left:calc(var(--offset)*-1)}
+    .gh.gw{inset:0 auto 0 0}
+    /* See inside: red copy lifted above the word, cyan copy dropped below it (the separate translate property, as the shake owns
+       transform); a caption above each row, the behavior caption last. The script sets --fs and the lift (--up, --dn). */
+    .stage[data-hb-mode="inside"]{padding:8px 12px}
+    .stage[data-hb-mode="inside"] .real{display:flex;flex-direction:column;align-items:center;max-width:100%;min-width:0}
+    .stage[data-hb-mode="inside"] .lbl.cap{display:block;max-width:100%;margin:8px 0 2px}
+    .stage[data-hb-mode="inside"] .nm+.cap{margin-top:0}
+    .stage[data-hb-mode="inside"] .slot{display:block;height:var(--fs,0px)}
+    .stage[data-hb-mode="inside"] .gh{display:block}
+    .stage[data-hb-mode="inside"] .glitch{font-size:clamp(28px,min(12vw,120vw/var(--n,6)),64px)}
+    .stage[data-hb-mode="inside"] .glitch::before{translate:0 calc(var(--up,0px)*-1)}
+    .stage[data-hb-mode="inside"] .glitch::after{translate:0 var(--dn,0px)}
+    /* Compare: the plain word beside (above, on phones) the real one, each half clipping its own scene below its name */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;padding:0}
+    .stage[data-hb-mode="compare"] .half{display:flex;position:relative;overflow:hidden;align-items:center;justify-content:center;min-width:0;padding:40px 12px 12px}
+    .stage[data-hb-mode="compare"] .real{border-left:1px solid rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .lbl.nm{display:block;position:absolute;top:8px;left:10px}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .real{border-left:0;border-top:1px solid rgba(255,255,255,.14)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -78,12 +112,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
-      <div class="glitch" id="glitch" data-text="GLITCH">GLITCH</div>
+      <div class="half steady" aria-hidden="true" inert>
+        <p class="lbl nm" data-hb-caption>Steady</p>
+        <div class="sw">GLITCH</div>
+      </div>
+      <div class="half real" id="real">
+        <p class="lbl nm" data-hb-caption aria-hidden="true">Glitching</p>
+        <p class="lbl cap" data-hb-caption aria-hidden="true">Red copy, shifted left: only thin strips show</p>
+        <div class="slot" aria-hidden="true"></div>
+        <p class="lbl cap" data-hb-caption aria-hidden="true">The word itself</p>
+        <div class="glitch" id="glitch" data-text="GLITCH">GLITCH</div>
+        <p class="lbl cap" data-hb-caption aria-hidden="true">Cyan copy, shifted right: only thin strips show</p>
+        <div class="slot" aria-hidden="true"></div>
+        <p class="lbl cap" id="act" data-hb-caption aria-hidden="true">Strips slide at a steady pace and jump to a new spot two or three times a second. The word shakes some.</p>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the word has a red copy shifted left and a cyan copy shifted right, pulled apart here. Only thin strips of each copy show, and the strips keep jumping.</p>
+      <p data-hb-for="compare" hidden>Steady is the word on its own. Glitching adds the red and cyan copies, shows only strips of them and shakes the word now and then, like a broken signal.</p>
     </div>
   </section>
 
@@ -178,6 +234,7 @@
 <script>
   const glitch=document.getElementById('glitch');
   const stage=document.getElementById('stage');
+  const real=document.getElementById('real'),sw=stage.querySelector('.sw'),act=document.getElementById('act');
   const vars=document.documentElement.style;
   const txtIn=document.getElementById('text-inp');
   const hoverTog=document.getElementById('hover-tog');
@@ -221,18 +278,58 @@
   document.addEventListener('hb:pause',e=>{
     clearTimeout(jitterTimer);
     if(e.detail.paused)glitch.style.transform='';
-    else reslice();
+    else{still=null;reslice()}
+  });
+  // See inside and Compare are drawn from the page's own numbers; a press draws the mode at once and changes nothing else.
+  // Under reduced motion a paused loop can rest where neither strip crosses the letters, so a mode press poses the strips at their
+  // arrival frame (both cross the letters) and Normal puts them back where they stood; Play lets go of the saved times.
+  let still=null;
+  document.addEventListener('hb:mode',e=>{
+    fit();
+    const strips=glitch.getAnimations({subtree:true});
+    if(e.detail.mode!=='normal'&&reduceMQ.matches&&stage.classList.contains('hb-paused')){
+      if(!still)still=strips.map(a=>[a,a.currentTime]);
+      strips.forEach(a=>{a.currentTime=a.effect.getTiming().delay});
+    }else if(e.detail.mode==='normal'&&still){
+      still.forEach(([a,t])=>{a.currentTime=t});
+      still=null;
+    }
   });
 
-  // The CSS formula is viewport-based; measure against the real stage width and shrink further if needed.
+  // The CSS formula is viewport-based; measure against the room the mode on show gives and shrink further if needed. Normal keeps
+  // the page's own sizing. See inside shares the height between three rows and the captions; a Compare half has its own width.
   function fit(){
     glitch.style.fontSize='';
-    const avail=stage.clientWidth-48,w=glitch.scrollWidth;
-    if(w>avail)glitch.style.fontSize=Math.max(16,parseFloat(getComputedStyle(glitch).fontSize)*avail/w)+'px';
+    const mode=stage.dataset.hbMode,base=parseFloat(getComputedStyle(glitch).fontSize);
+    let avail=stage.clientWidth-48,want=base;
+    if(mode==='compare'){avail=real.clientWidth-60;want=Math.min(base,real.clientHeight-56)}
+    if(mode==='inside'){
+      avail=stage.clientWidth-64;
+      glitch.style.fontSize='0px';real.style.setProperty('--fs','0px'); // what the captions and gaps take of the height
+      want=Math.max(24,Math.min(base,(stage.clientHeight-16-real.offsetHeight)/3));
+      glitch.style.fontSize='';
+    }
+    const w=glitch.scrollWidth*(want/base),size=w>avail?Math.max(16,want*avail/w):want;
+    if(size!==base)glitch.style.fontSize=size+'px';
+    const px=getComputedStyle(glitch).fontSize;
+    real.style.setProperty('--fs',px);sw.style.fontSize=px;
+    if(mode==='inside'){ // how far the copies are lifted: from the word's row to the empty rows above and below it
+      const slots=real.querySelectorAll('.slot');
+      real.style.setProperty('--up',glitch.offsetTop-slots[0].offsetTop+'px');
+      real.style.setProperty('--dn',slots[1].offsetTop-glitch.offsetTop+'px');
+    }
   }
+  // The faint whole copies and the word's dashed line live inside the word, so a new text puts them back
+  const ghosts=['gr','gc','gw'].map(c=>{const g=document.createElement('i');g.className='gh '+c;g.setAttribute('aria-hidden','true');g.inert=true;return g});
+  function copies(t){
+    glitch.dataset.text=t;sw.textContent=t;
+    ghosts.slice(0,2).forEach(g=>{g.textContent=t});
+    ghosts.forEach(g=>glitch.append(g));
+  }
+  copies(glitch.dataset.text);
   txtIn.addEventListener('input',e=>{
     const t=e.target.value.trim()||'GLITCH';
-    glitch.textContent=t;glitch.dataset.text=t;
+    glitch.textContent=t;copies(t);
     glitch.style.setProperty('--n',t.length); // longer words shrink so they stay inside the stage
     fit();
   });
@@ -243,6 +340,7 @@
   hoverTog.addEventListener('change',()=>{
     stage.classList.toggle('hover-only',hoverTog.checked);
     stage.classList.remove('active');
+    words();
   });
   // touch has no hover: a tap on the stage toggles the hover-only state instead
   stage.addEventListener('pointerdown',e=>{
@@ -257,8 +355,27 @@
     }));
   }
   choices('offset-seg',d=>{vars.setProperty('--offset',d.offset+'px')});
-  choices('speed-seg',d=>{dur=+d.dur;vars.setProperty('--speed',d.dur+'s')});
-  choices('intensity-seg',d=>{intensity=+d.intensity});
+  choices('speed-seg',d=>{dur=+d.dur;vars.setProperty('--speed',d.dur+'s');words()});
+  choices('intensity-seg',d=>{intensity=+d.intensity;words()});
+
+  // The behavior caption and the notes, in the page's own numbers: how long a slide takes, how often reslice() restarts the strips
+  // (about 1.5, 2.5 and 3 a second, a third as often in slow motion) and how far it shakes the word. Written only when they change.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],normalNotes=notes.map(n=>n.textContent),reducedNotes=[
+    'Pulled apart here: the red copy sits above the word, shifted left, and the cyan copy below, shifted right. Only the bright strips show; the faint rest marks what stays hidden.',
+    'Steady is the word on its own, while Glitching shows strips of its red and cyan copies torn off to either side.'];
+  function words(){
+    const i=intensity<.5?0:intensity<.8?1:2,slide=['slowly','at a steady pace','quickly'][dur>3?0:dur>2?1:2];
+    const jumps=[['once or twice a second','once every two seconds'],['two or three times a second','about once a second'],['three times a second','about once a second']][i][+slowTog.checked];
+    const text=(reduceMQ.matches?`With reduced motion on, the strips only slide ${slide}, and the word never shakes.`
+      :`Strips slide ${slide} and jump to a new spot ${jumps}. The word shakes ${['a little','some','a lot'][i]}.`)
+      +(hoverTog.checked?' Nothing moves until you point or tap.':'');
+    if(act.textContent!==text)act.textContent=text;
+    notes.forEach((n,k)=>{let t=reduceMQ.matches?reducedNotes[k]:normalNotes[k];if(hoverTog.checked)t=t.replace('and the strips keep jumping.','and they jump while you point or tap.');if(n.textContent!==t)n.textContent=t});
+    if(stage.dataset.hbMode==='inside')fit(); // the caption can take more or fewer lines
+  }
+  slowTog.addEventListener('change',words);
+  reduceMQ.addEventListener('change',words);
+  words();
 
   if(!reduceMQ.matches)reslice();
 </script>
