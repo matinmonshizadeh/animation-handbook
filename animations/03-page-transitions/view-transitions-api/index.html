@@ -21,13 +21,15 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "View Transitions API", "name": "View Transitions API", "description": "The browser animates the change between two pages for you. Best for web apps.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/view-transitions-api/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, View Transitions API"}</script>
   <style>
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--vt-dur:0.5s;--vt-ease:ease-in-out}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--vt-dur:0.5s;--vt-ease:ease-in-out;--c-page:#e6e6ea;--c-old:#ffb86b;--c-new:#b98cff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .body{position:relative;flex:1;min-height:0}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
-    .page-area{flex:1;position:relative;overflow:hidden;view-transition-name:page-content}
+    .page-area{position:absolute;inset:0;overflow:hidden;view-transition-name:page-content}
     .page{position:absolute;inset:0;pointer-events:none}
     .page.active{pointer-events:auto}
     /* Suppress root animation — we only want page-content to animate */
@@ -72,6 +74,71 @@
     @media(hover:hover){.nav-btn:hover{border-color:var(--ui-accent)}}
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
+    /* See inside and Compare. The browser's two pictures are drawn by the browser, so both views use stand-ins: copies of the old
+       and new page, moved by the same keyframes as the real ones, with the same length and feel. */
+    .twin,.fan,.zone,.side{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    /* Two elements with the name page-content would make the browser skip the transition */
+    .twin .page-area{view-transition-name:none}
+    .fan{position:absolute;inset:0;z-index:5;pointer-events:none}
+    .frame{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
+    .f-old,.l-old{--c:var(--c-old)}
+    .f-new,.l-new{--c:var(--c-new)}
+    .l-page,.l-time{--c:var(--c-page)}
+    .pic{position:absolute;inset:0;border:4px solid var(--c);animation:vt-out var(--vt-dur) var(--vt-ease) both}
+    .f-new .pic{animation-name:vt-in}
+    [data-vt="slide"] .f-old .pic{animation-name:vt-slide-out}[data-vt="slide"] .f-new .pic{animation-name:vt-slide-in}
+    [data-vt="zoom"] .f-old .pic{animation-name:vt-zoom-out}[data-vt="zoom"] .f-new .pic{animation-name:vt-zoom-in}
+    [data-vt="custom"] .f-old .pic{animation-name:vt-custom-out}[data-vt="custom"] .f-new .pic{animation-name:vt-custom-in}
+    /* At rest the pictures are held 40% of the way through the change, whatever its length */
+    .pic.hold{animation-play-state:paused;animation-delay:calc(var(--vt-dur) * -.4)}
+    .lbl{padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .fan .lbl{border-left:4px solid var(--c)}
+    .l-time span{display:block}
+    /* See inside: the page itself is the back sheet, top left; the old and new pictures are the middle and front sheets, each
+       in a dashed frame that stays where the browser places its picture (and clips it, as the browser does). Every sheet is
+       drawn smaller, so the gap between a picture and its frame shows how far it has moved. The labels sit in the two free corners. */
+    .stage[data-hb-mode="inside"]{--s:.44;--dx:.27;--dy:.27}
+    .stage[data-hb-mode="inside"] .page-area{scale:var(--s);translate:calc(var(--dx) * -100%) calc(var(--dy) * -100%);outline:4px solid var(--c-page);outline-offset:-4px}
+    .stage[data-hb-mode="inside"] .fan{display:block}
+    .stage[data-hb-mode="inside"] .zone{display:flex}
+    .stage[data-hb-mode="inside"] .frame{scale:var(--s);outline:4px dashed color-mix(in srgb,var(--c) 60%,transparent);outline-offset:-4px}
+    .stage[data-hb-mode="inside"] .f-new{translate:calc(var(--dx) * 100%) calc(var(--dy) * 100%)}
+    .zone{position:absolute;z-index:3;flex-wrap:wrap;gap:4px}
+    .zone.top{top:2px;left:calc((.5 - var(--dx) + var(--s) / 2) * 100% + 4px);right:2px;align-content:flex-start}
+    .zone.bot{bottom:2px;left:2px;right:calc((.5 - var(--dx) + var(--s) / 2) * 100% + 4px);flex-direction:row-reverse;align-content:flex-end}
+    /* Compare: the small site twice. On the left a copy that changes page at once; on the right the real site, which at rest has
+       the two pictures held over its page area (on a backing of the stage's color that hides the page already switched below). */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"].posed .fan{display:block}
+    .stage[data-hb-mode="compare"] .f-new{background:none}
+    .stage[data-hb-mode="compare"] .pic{border:0}
+    .side{position:absolute;bottom:10px;z-index:11}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px);view-transition-name:vt-side}
+    /* The browser draws its pictures above the page, so the real half's name is held still like the site's top bar */
+    ::view-transition-group(vt-side),::view-transition-old(vt-side),::view-transition-new(vt-side){animation:none}
+    ::view-transition-old(vt-side){opacity:0}
+    /* Side by side, only the real half's bottom right corner is the stage's own */
+    :root[data-vt-side="right"]::view-transition-group(page-content){border-radius:0 0 11px 0}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    @media(max-width:360px){
+      .stage[data-hb-mode="inside"]{--s:.38;--dx:.31;--dy:.31}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
     @media(prefers-reduced-motion:reduce){::view-transition-old(page-content),::view-transition-new(page-content){animation:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -95,14 +162,41 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="body">
+          <div class="page-area" id="page-area"></div>
+          <div class="fan" aria-hidden="true" inert>
+            <div class="frame f-old" id="f-old"></div>
+            <div class="frame f-new" id="f-new"></div>
+            <div class="zone top">
+              <p class="lbl l-page" data-hb-caption><b>Page:</b> switches at once</p>
+              <p class="lbl l-old" data-hb-caption><b>Old picture:</b> <span id="w-old">fades out</span></p>
+            </div>
+            <div class="zone bot">
+              <p class="lbl l-new" data-hb-caption><b>New picture:</b> <span id="w-new">fades in</span></p>
+              <p class="lbl l-time" data-hb-caption><b>Both move for</b><span id="w-len">half a second</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Switches at once</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Browser animates it</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, a drawing of the browser's work: it pictures the old and new page, switches the page underneath at once, then moves the two pictures. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once simply changes page; Browser animates it moves pictures of the old and new page in the style you chose. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -194,10 +288,14 @@
   ];
   const root=document.documentElement,stage=document.querySelector('.stage');
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),slowTog=document.getElementById('slow-tog');
+  const box=document.getElementById('box'),fOld=document.getElementById('f-old'),fNew=document.getElementById('f-new');
   const supportsVT='startViewTransition' in document;
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   // run only ever grows in settle(): a navigation still waiting on its view transition compares it and stops there
   let current=0,animating=false,style='crossfade',dur=500,run=0,vt=null,afterMove=null,wayBack=0,timers=[];
+  // mode: Normal, See inside or Compare. last: the change just made. fake: a stand-in change is playing (See inside).
+  // origin: the page a Show me run began on, until it has come back. posedKey: which change the held pictures show.
+  let mode='normal',last=null,fake=false,origin=null,posedKey='';
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -205,6 +303,23 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+  // Compare's first half: the same small site, changing page at once. A copy with no ids and no buttons, out of the Tab order and
+  // hidden from screen readers; it changes page the moment a change of the real site starts, so one click drives both halves.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="body"><div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div></div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){
+    twinPages.forEach((el,i)=>{el.classList.toggle('active',i===n);el.style.opacity=i===n?'1':'0'});
+    twinNav.forEach((b,i)=>b.classList.toggle('active',i===n));
+  }
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent="Shown still, a drawing of the browser's work: pictures of the old and new page caught part way, over the page, which has already switched.";
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still: Switches at once has simply changed page; Browser animates it is caught part way between pictures of the old and the new page.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -231,6 +346,7 @@
       el.style.background=PAGES[i].bg;
       el.style.opacity=i===n?'1':'0';el.getAnimations().forEach(a=>a.cancel());
     });
+    showTwin(n);
   }
 
   // Ends a transition: the demo is idle again, and a Show me run goes on to its next step
@@ -238,25 +354,41 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     run++;
     if(vt){vt.skipTransition();vt=null}
+    endFake(true);
     animating=false;
     updateNav(current);showPage(current);
+    pose();
   }
 
   async function navigate(next,then){
     if(next===current||animating)return;
     const prev=current;current=next;updateNav(next);
+    last={from:prev,to:next};showTwin(next);
     afterMove=then||null;
     if(!motionOk){showPage(next);finish();return}
     animating=true;
     const mine=run,scale=slowTog.checked?3:1;
-    root.dataset.vt=style==='crossfade'?'':style;
+    applyStyle();
     root.style.setProperty('--vt-dur',dur*scale+'ms');
+    lift();
+    if(mode==='inside'){
+      // No browser picture is taken here: the page switches at once, as it does under the browser's pictures, and a stand-in
+      // moves a copy of the old page and a copy of the new one with the same keyframes
+      showPage(next);
+      setPics(prev,next,false);fake=true;
+      fNew.firstChild.addEventListener('animationend',()=>endFake(),{once:true});
+      return;
+    }
+    // Side by side, the real half is the right one, so only its bottom right corner is the stage's own (the pictures are drawn
+    // at document level, so the corner is set from the root)
+    root.dataset.vtSide=mode==='compare'&&!matchMedia('(max-width:360px)').matches?'right':'';
     if(supportsVT){
       // The callback shows the resting state for `current` as it is when it runs, so a skipped transition cannot undo a Reset
       vt=document.startViewTransition(()=>showPage(current));
@@ -277,16 +409,19 @@
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
   function showMe(){
+    // Pressed again mid-run (or right after a mode press), it starts over from the page the run began on, so it ends where it began
+    const start=origin!==null&&(animating||wayBack||afterMove)?origin:current;
+    origin=start;
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    if(current!==start){current=start;updateNav(start);showPage(start);pose()}
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{origin=null})},1200)});
   }
-  function reset(){settle();current=0;updateNav(0);showPage(0)}
+  function reset(){settle();current=0;origin=null;updateNav(0);showPage(0);pose()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A transition already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;origin=null;pose()});
   // While a view transition runs, the browser sends every press to the page root, so the shared script never hears a press on the
   // stage. A press over the stage then counts as the visitor taking over: it is passed on as the same "hb:input" event.
   ['pointerdown','click'].forEach(type=>root.addEventListener(type,e=>{
@@ -295,16 +430,62 @@
     if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)document.dispatchEvent(new CustomEvent('hb:input',{detail:{type}}));
   },{capture:true,passive:true}));
 
+  function applyStyle(){root.dataset.vt=style==='crossfade'?'':style}
+  // The two pictures the browser takes: a copy of the old page and one of the new, each in its frame (the frame stays where the
+  // browser places its picture and clips it). Held at 40% of the change at rest, playing from the start during a change.
+  function setPics(from,to,hold){
+    [[fOld,from],[fNew,to]].forEach(([frame,i])=>{
+      const p=document.createElement('div');
+      p.className='pic'+(hold?' hold':'');p.style.background=PAGES[i].bg;p.innerHTML=PAGES[i].html;
+      frame.replaceChildren(p);
+    });
+  }
+  function lift(){stage.classList.remove('posed');fOld.replaceChildren();fNew.replaceChildren();posedKey=''}
+  // A stand-in change ends: its pictures go. Quietly when Reset or Show me has settled the demo, otherwise the run goes on.
+  function endFake(quiet){
+    if(!fake)return;
+    fake=false;lift();
+    if(!quiet)finish();
+  }
+  // At rest in See inside and Compare the pictures are held part way through the last change, which ended on the page on show
+  function pose(){
+    if(fake)return;
+    if(mode==='normal'||animating||wayBack){lift();return}
+    const c=last&&last.to===current?last:{from:(current+1)%PAGES.length,to:current};
+    stage.classList.add('posed');
+    if(c.from+'-'+c.to!==posedKey){setPics(c.from,c.to,true);posedKey=c.from+'-'+c.to}
+  }
+  const OUT={crossfade:'fades out',slide:'slides out',zoom:'shrinks away',custom:'tilts away'};
+  const IN={crossfade:'fades in',slide:'slides in',zoom:'settles from larger',custom:'tilts in'};
+  const LEN={300:'about a third of a second',500:'half a second',800:'almost a second',900:'about a second',1500:'a second and a half',2400:'about two and a half seconds'};
+  function words(){
+    [['w-old',OUT[style]],['w-new',IN[style]],['w-len',LEN[dur*(slowTog.checked?3:1)]]].forEach(([id,t])=>{
+      const el=document.getElementById(id);
+      if(el.textContent!==t)el.textContent=t;
+    });
+  }
+  function drawMode(){applyStyle();words();pose()}
+  // The mode switch: draws the mode at once. A change the browser is making stops (the run goes on from the page it was changing
+  // to), and so does a stand-in change; the shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(vt)vt.skipTransition();
+    endFake();
+    drawMode();
+  });
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      if(mode!=='normal')drawMode();
     }));
   }
   choices('style-seg',d=>{style=d.style});
   choices('speed-seg',d=>{dur=+d.ms});
   choices('feel-seg',d=>root.style.setProperty('--vt-ease',d.ease));
+  slowTog.addEventListener('change',()=>{if(mode!=='normal')words()});
   showPage(0);updateNav(0);
 </script>
 </body>
