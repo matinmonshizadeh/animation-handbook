@@ -27,6 +27,18 @@
     canvas{display:block;width:100%;height:100%}
     .gl-msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:clamp(16px,4vw,32px);font-size:13px;line-height:1.7;color:rgba(255,255,255,.72);white-space:pre-wrap;overflow-y:auto}
     .gl-msg.on{display:flex}
+    /* See inside and Compare: plain words over the picture (the picture itself is drawn by the shader) */
+    .lbl{position:absolute;display:none;padding:3px 8px;border-radius:5px;background:rgba(3,8,16,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .stage[data-hb-mode="inside"] .v-in,.stage[data-hb-mode="compare"] .v-cmp{display:block}
+    .v-top{top:10px}.v-bot{bottom:10px}.v-a{left:10px}.v-b{left:calc(50% + 10px)}
+    .v-line{white-space:normal;max-width:calc(100% - 20px)}
+    .readout{left:0;top:0}
+    .readout span{display:block}
+    .readout .rd-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .sw{width:16px;height:16px;border-radius:3px;border:1px solid #fff;background:#000}
+    .pick{position:absolute;left:0;top:0;display:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(3,8,16,.8);pointer-events:none}
+    .stage[data-hb-mode="inside"] .pick{display:block}
+    .stage.failed .lbl,.stage.failed .pick{display:none!important}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -49,13 +61,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="A moving pattern of bright colors that fills the stage"></canvas>
       <div class="gl-msg" id="gl-msg" role="status"></div>
+      <span class="lbl v-in v-top v-a" data-hb-caption aria-hidden="true">Each square: one pixel, made big</span>
+      <span class="pick" aria-hidden="true"></span>
+      <div class="lbl v-in readout" data-hb-caption aria-hidden="true"><span class="rd-h">This pixel<i class="sw"></i></span><span class="rd-x"></span><span class="rd-y"></span><span class="rd-t"></span></div>
+      <span class="lbl v-in v-bot v-a v-line" data-hb-caption aria-hidden="true">Four waves added up pick each color</span>
+      <span class="lbl v-cmp v-top v-a" data-hb-caption aria-hidden="true">Drawn once</span>
+      <span class="lbl v-cmp v-top v-b" data-hb-caption aria-hidden="true">Every frame</span>
+      <span class="lbl v-cmp v-bot v-a clk-a" data-hb-caption aria-hidden="true">Time: stays at the start</span>
+      <span class="lbl v-cmp v-bot v-b clk-b" data-hb-caption aria-hidden="true">Time: 0 seconds and running</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each square is one pixel, made big: the same short formula works out every pixel's color from its place and the time, every frame. Point at a square to read it.</p>
+      <p data-hb-for="compare" hidden>Drawn once is the pattern worked out a single time, so it never changes. Every frame works it out again for each moment, so the colors flow.</p>
     </div>
   </section>
 
@@ -137,38 +166,38 @@
 <script>
 const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
+// Every pattern starts with this. uO is where a picture starts on the canvas (Compare draws two) and uCell is the size of
+// See inside's big squares; at 0 they change nothing, so Normal works out the same pixels as before.
+const HEAD=`precision mediump float;
+uniform vec2 R,M,uO;uniform float T,H,uCell;uniform bool uMouse;
+vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
+vec2 fc(){vec2 p=gl_FragCoord.xy-uO;if(uCell>0.){p.y=R.y-p.y;p=(floor(p/uCell)+.5)*uCell;p.y=R.y-p.y;}return p;}
+vec4 fin(vec4 c){if(uCell>0.){vec2 p=gl_FragCoord.xy-uO;p.y=R.y-p.y;vec2 g=mod(p,uCell);g=min(g,uCell-g);if(min(g.x,g.y)<uCell*.03)c.rgb*=.15;}return c;}
+`;
+
 const SHADERS=[
   // 0: Plasma
-  {name:'Plasma',src:`precision mediump float;
-uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
-vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
-void main(){
-  vec2 uv=gl_FragCoord.xy/R*2.-1.;uv.x*=R.x/R.y;
+  {name:'Plasma',src:HEAD+`void main(){
+  vec2 uv=fc()/R*2.-1.;uv.x*=R.x/R.y;
   vec2 c=vec2(0.);if(uMouse)c=(M*2.-1.)*vec2(R.x/R.y,1.);
   float v=sin(uv.x*5.+T)+sin(uv.y*5.+T*.7)+sin((uv.x+uv.y)*5.+T*.5)+sin(length(uv-c)*6.);
   float hue=fract(v*.25+T*.05+H/360.);
-  gl_FragColor=vec4(hsv(hue,.9,.95),1.);
+  gl_FragColor=fin(vec4(hsv(hue,.9,.95),1.));
 }`},
   // 1: Wave distortion
-  {name:'Waves',src:`precision mediump float;
-uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
-vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
-void main(){
-  vec2 uv=gl_FragCoord.xy/R;
+  {name:'Waves',src:HEAD+`void main(){
+  vec2 uv=fc()/R;
   float wave=sin(uv.y*12.+T*2.)*.04+sin(uv.x*8.-T*1.5)*.03;
   if(uMouse)wave*=1.+4.*exp(-14.*dot(uv-M,uv-M));
   vec2 d=uv+vec2(wave,wave*1.3);
   float stripe=sin(d.x*20.+T)*sin(d.y*20.-T*.6);
   float hue=fract(stripe*.3+H/360.+T*.02);
-  gl_FragColor=vec4(hsv(hue,.85,.9),1.);
+  gl_FragColor=fin(vec4(hsv(hue,.85,.9),1.));
 }`},
   // 2: Voronoi
-  {name:'Cells',src:`precision mediump float;
-uniform vec2 R,M;uniform float T,H;uniform bool uMouse;
-vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
-float rand(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
+  {name:'Cells',src:HEAD+`float rand(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}
 void main(){
-  vec2 q=gl_FragCoord.xy/R;
+  vec2 q=fc()/R;
   if(uMouse){vec2 dm=q-M;q+=dm*.7*exp(-16.*dot(dm,dm));}
   vec2 uv=q*4.;
   vec2 i=floor(uv),f=fract(uv);
@@ -180,21 +209,18 @@ void main(){
   }
   float edge=smoothstep(.02,.06,md);
   float hue=fract(mi+H/360.+T*.03);
-  gl_FragColor=vec4(hsv(hue,.8,.8)*edge+vec3(.05)*(1.-edge),1.);
+  gl_FragColor=fin(vec4(hsv(hue,.8,.8)*edge+vec3(.05)*(1.-edge),1.));
 }`},
   // 3: Kaleidoscope
-  {name:'Kaleidoscope',src:`precision mediump float;
-uniform vec2 R;uniform float T,H;uniform vec2 M;uniform bool uMouse;
-vec3 hsv(float h,float s,float v){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(vec3(h)+K.xyz)*6.-K.www);return v*mix(K.xxx,clamp(p-K.xxx,0.,1.),s);}
-void main(){
-  vec2 uv=(gl_FragCoord.xy-.5*R)/min(R.x,R.y);
+  {name:'Kaleidoscope',src:HEAD+`void main(){
+  vec2 uv=(fc()-.5*R)/min(R.x,R.y);
   float a=atan(uv.y,uv.x),r=length(uv);
   float segs=uMouse?max(3.,M.x*12.):8.;
   a=abs(mod(a,2.*3.14159/segs)-3.14159/segs);
   uv=vec2(cos(a),sin(a))*r;
   float v=sin(uv.x*8.+T)*sin(uv.y*8.-T*.7)+sin(r*10.-T*1.5)*.5;
   float hue=fract(v*.3+H/360.+T*.04);
-  gl_FragColor=vec4(hsv(hue,.9,.9),1.);
+  gl_FragColor=fin(vec4(hsv(hue,.9,.9),1.));
 }`},
 ];
 
@@ -204,9 +230,27 @@ let W,H,gl,prog=null,U=null,raf=null,paused=false,last=null,T=0;
 let PRESET=0,SPD=1,MOUSE_UV=[.5,.5],SHOWN_UV=[.5,.5],MOUSE_ON=false;
 const HUE=0; // every pattern already runs through the whole rainbow, so the shaders keep the hue shift at 0
 
-// A failed shader is otherwise invisible: the canvas just stays black.
-function fail(msg){msgEl.textContent=msg;msgEl.classList.add('on');cvs.style.visibility='hidden';}
-function clearFail(){msgEl.classList.remove('on');msgEl.textContent='';cvs.style.visibility='';}
+// See inside and Compare. Both draw with the one context: See inside snaps the pattern to big squares and reads one pixel
+// back; Compare draws it twice, side by side. The page's clock T and Normal's pointer are never changed for them.
+let mode='normal',havePt=false,havePt2=false,PT2=[.5,.5],SHOWN2=[.5,.5];
+let cols=1,cell=24,cellDev=24,rMin=0,rMax=0,topY=0,botY=0,sel=[0,0],txtAt=0,swC='';
+const ptr={x:0,y:0,on:false};
+const HOME=[.33,.6]; // the views' own bend point (a third across, two fifths down): the square read out before a pointer comes
+const LABELS={normal:cvs.getAttribute('aria-label'),
+  inside:'The moving pattern drawn as big squares, each one pixel worked out from its place and the time, with one pixel read out',
+  compare:'The pattern twice: worked out once and held still, and worked out again every frame'};
+const LINES=['Four waves added up pick each color','Stripes bent by two slow waves',
+  'Each pixel takes the color of its nearest moving point','One slice, mirrored around the middle'];
+const $=q=>stage.querySelector(q);
+const ring=$('.pick'),capTop=$('.v-top'),capLine=$('.v-line'),rd=$('.readout'),sw=$('.sw');
+const rdX=$('.rd-x'),rdY=$('.rd-y'),rdT=$('.rd-t'),clkA=$('.clk-a'),clkB=$('.clk-b');
+const noteC=document.querySelector('[data-hb-for="compare"]'),noteWas=noteC.textContent;
+const noteStill='Shown still: Drawn once is the pattern at the start. Every frame is worked out again for each moment; here, a little later.';
+const px=new Uint8Array(4);
+
+// A failed shader is otherwise invisible: the canvas just stays black. The captions go with it.
+function fail(msg){msgEl.textContent=msg;msgEl.classList.add('on');cvs.style.visibility='hidden';stage.classList.add('failed');}
+function clearFail(){msgEl.classList.remove('on');msgEl.textContent='';cvs.style.visibility='';stage.classList.remove('failed');}
 
 function mkProg(fs){
   function sh(t,s){
@@ -248,7 +292,7 @@ function switchShader(idx){
   if(prog)gl.deleteProgram(prog);
   prog=next;clearFail();
   gl.useProgram(prog);
-  U={};['R','T','H','M','uMouse'].forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
+  U={};['R','T','H','M','uMouse','uO','uCell'].forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
   const a=gl.getAttribLocation(prog,'a');
   gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
 }
@@ -260,15 +304,36 @@ function resize(){
   const dpr=Math.min(window.devicePixelRatio||1,innerWidth<=600||innerHeight<=500?1.5:2);
   W=cvs.width=Math.max(1,Math.round(stage.clientWidth*dpr));
   H=cvs.height=Math.max(1,Math.round(stage.clientHeight*dpr));
-  if(gl){gl.viewport(0,0,W,H);still();}
+  if(gl){gl.viewport(0,0,W,H);layout();texts(performance.now(),true);still();}
 }
 
-function draw(){
-  gl.useProgram(prog);
-  gl.uniform2f(U.R,W,H);gl.uniform1f(U.T,T);gl.uniform1f(U.H,HUE);
-  if(MOUSE_ON){gl.uniform2f(U.M,SHOWN_UV[0],SHOWN_UV[1]);gl.uniform1i(U.uMouse,1);}
+// One picture in a part of the canvas (x and w in canvas pixels): t is its clock, m the point it bends around (or false), cs the square size.
+function view(x,w,t,m,cs){
+  gl.viewport(x,0,w,H);
+  gl.uniform2f(U.R,w,H);gl.uniform2f(U.uO,x,0);gl.uniform1f(U.uCell,cs);
+  gl.uniform1f(U.T,t);gl.uniform1f(U.H,HUE);
+  if(m){gl.uniform2f(U.M,m[0],m[1]);gl.uniform1i(U.uMouse,1);}
   else gl.uniform1i(U.uMouse,0);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+const half=()=>Math.floor((W-Math.max(2,Math.round(W/500)))/2); // Compare: each picture's width, with a thin line between
+// Compare's second picture shows the page's own time; while the clock rests at its start (under a second, as on arrival
+// under reduced motion) it is posed two seconds on, so the two pictures differ.
+const t2=()=>paused&&T<1?2:T;
+function draw(){
+  gl.useProgram(prog);
+  if(mode==='compare'){
+    const w=half();
+    gl.viewport(0,0,W,H);gl.clearColor(.17,.17,.2,1);gl.clear(gl.COLOR_BUFFER_BIT);
+    view(0,w,0,false,0); // drawn once: the start, no time and no pointer
+    view(W-w,w,t2(),MOUSE_ON&&(havePt2?SHOWN2:HOME),0);
+  }else if(mode==='inside'){
+    view(0,W,T,MOUSE_ON&&(havePt?SHOWN_UV:HOME),cellDev);
+    // The drawing buffer is not kept, so the outlined square's pixel is read right after the draw.
+    gl.readPixels(Math.floor((sel[0]+.5)*cellDev),H-1-Math.floor((sel[1]+.5)*cellDev),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+    const c='rgb('+px[0]+','+px[1]+','+px[2]+')';
+    if(c!==swC){swC=c;sw.style.background=c;}
+  }else view(0,W,T,MOUSE_ON&&SHOWN_UV,0);
 }
 // Redraw the held frame while paused so controls still take effect.
 function still(){if(paused&&prog)draw();}
@@ -281,8 +346,8 @@ function render(ts){
   const dt=ts-last;if(dt<16)return;
   last=ts;
   T+=Math.min(dt,100)/1000*SPD/(slowTog.checked?3:1);
-  SHOWN_UV=MOUSE_UV;
-  draw();
+  SHOWN_UV=MOUSE_UV;SHOWN2=PT2;
+  draw();texts(ts,false);
 }
 function start(){if(raf!==null||!prog)return;last=null;raf=requestAnimationFrame(render);}
 
@@ -290,15 +355,83 @@ function setPaused(p){
   paused=p;
   if(paused){cancelAnimationFrame(raf);raf=null;still();}
   else start();
+  note();texts(performance.now(),true);
 }
 // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
 // loop on arrival, which this listener must catch. Play carries on from the current clock.
 document.addEventListener('hb:pause',e=>setPaused(e.detail.paused));
+// The mode switch: draw the mode at once (a frame, also while paused). It scrolls, focuses and presses nothing.
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;cvs.setAttribute('aria-label',LABELS[mode]);
+  layout();texts(performance.now(),true);note();if(prog)draw();
+});
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',note);
+
+// Under reduced motion a paused Compare would rest on two matching pictures, so its note says the second is a little later.
+function note(){
+  const s=matchMedia('(prefers-reduced-motion: reduce)').matches&&paused?noteStill:noteWas;
+  if(noteC.textContent!==s)noteC.textContent=s;
+}
+const set=(el,s)=>{if(el.textContent!==s)el.textContent=s;};
+function words(s){
+  s=Math.floor(s);const u=s<100?[s,'second']:s<6000?[Math.floor(s/60),'minute']:[Math.floor(s/3600),'hour'];
+  return u[0]+' '+u[1]+(u[0]===1?'':'s');
+}
+// The words in the views; the time is written at most four times a second (force: after a press, a resize or a pause).
+function texts(now,force){
+  if(mode==='normal'||(!force&&now-txtAt<250))return;
+  txtAt=now;
+  if(mode==='inside'){
+    set(rdX,Math.round((sel[0]+.5)*cell/stage.clientWidth*100)+'% across');
+    set(rdY,Math.round((sel[1]+.5)*cell/stage.clientHeight*100)+'% down');
+    set(rdT,'Time: '+words(T));place();
+  }else{
+    const long=stage.clientWidth>=460; // each half is wide enough for the longer words
+    set(clkA,long?'Time: stays at the start':'Time: the start');
+    set(clkB,'Time: '+words(t2())+(long&&!paused?' and running':''));
+  }
+}
+
+// See inside's squares: whole squares across (about 24px, 20px on a phone), measured again on a resize and on a mode press.
+// The outlined square stays between the top caption and the pattern line, so no caption covers a square being read.
+function layout(){
+  const cw=stage.clientWidth;
+  cols=Math.max(2,Math.round(cw/(matchMedia('(max-width:600px),(max-height:500px)').matches?14:16)));
+  cell=cw/cols;cellDev=W/cols;
+  if(mode!=='inside')return;
+  ring.style.width=ring.style.height=cell+'px';
+  topY=capTop.offsetTop+capTop.offsetHeight+8;botY=capLine.offsetTop-8;
+  rMin=Math.ceil(topY/cell);rMax=Math.max(rMin,Math.floor(botY/cell)-1);
+  setSel();
+}
+// The square under the pointer or finger, else the home square; true when it changed.
+function setSel(){
+  const x=ptr.on?ptr.x:HOME[0]*stage.clientWidth,y=ptr.on?ptr.y:(1-HOME[1])*stage.clientHeight;
+  const n=[Math.min(cols-1,Math.max(0,Math.floor(x/cell))),Math.min(rMax,Math.max(rMin,Math.floor(y/cell)))];
+  if(n[0]===sel[0]&&n[1]===sel[1])return false;
+  sel=n;return true;
+}
+// The outline sits on the square; the readout goes beside it (right, left, below or above) inside the band.
+function place(){
+  const x0=sel[0]*cell,y0=sel[1]*cell,cw=stage.clientWidth,w=rd.offsetWidth,h=rd.offsetHeight,g=8;
+  ring.style.transform='translate('+x0+'px,'+y0+'px)';
+  let x=x0+cell+g,y=Math.min(Math.max(y0+cell/2-h/2,topY),botY-h);
+  if(x+w>cw-g)x=x0-g-w;
+  if(x<g){x=Math.min(Math.max(x0,g),cw-g-w);y=y0+cell+g+h<=botY?y0+cell+g:y0-g-h;}
+  rd.style.transform='translate('+x+'px,'+y+'px)';
+}
+function moved(){if(mode==='inside'&&setSel()){texts(performance.now(),true);still();}}
 
 // The pointer is only recorded here. The pattern takes it on the next frame that moves on (render sets SHOWN_UV),
 // so a repaint while paused shows a new setting and nothing else.
-// y is flipped because gl_FragCoord counts from the bottom of the buffer.
-function aim(e){const r=cvs.getBoundingClientRect();MOUSE_UV=[(e.clientX-r.left)/r.width,1-(e.clientY-r.top)/r.height];}
+// y is flipped because gl_FragCoord counts from the bottom of the buffer. Compare reads it over the second picture only.
+function aim(e){
+  const r=cvs.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  MOUSE_UV=[x,1-y];havePt=true;
+  const hx=(W-half())/W;
+  if(x>=hx){PT2=[(x-hx)/(1-hx),1-y];havePt2=true;}
+  ptr.x=x*r.width;ptr.y=y*r.height;ptr.on=true;moved();
+}
 
 if(init()){
   resize();
@@ -307,7 +440,10 @@ if(init()){
   // Pointer Events, so the same handlers serve mouse, pen and touch: a tap bends the pattern where the finger lands.
   stage.addEventListener('pointermove',aim);
   stage.addEventListener('pointerdown',aim);
+  // A mouse that leaves sends the outline home; a finger that lifts leaves it on the tapped square.
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){ptr.on=false;moved();}});
   window.addEventListener('resize',resize);
+  if(document.fonts)document.fonts.ready.then(()=>{layout();texts(performance.now(),true);});
   // A GPU reset or a restored tab kills the context; without this the demo dies for good.
   cvs.addEventListener('webglcontextlost',e=>{
     e.preventDefault();
@@ -330,7 +466,10 @@ function choices(id,pick){
     pick(b.dataset);
   }));
 }
-choices('pattern-seg',d=>{switchShader(+d.pattern);if(paused)still();else start();});
+choices('pattern-seg',d=>{
+  switchShader(+d.pattern);capLine.textContent=LINES[+d.pattern];layout();texts(performance.now(),true);
+  if(paused)still();else start();
+});
 choices('speed-seg',d=>{SPD=+d.spd;});
 document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE_ON=e.target.checked;still();});
 </script>
