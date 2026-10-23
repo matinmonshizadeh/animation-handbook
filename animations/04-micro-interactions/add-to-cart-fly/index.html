@@ -229,7 +229,7 @@
   const prods=[...stage.querySelectorAll('.prod')],brand=stage.querySelector('.brand');
   const OUT='cubic-bezier(.333,.667,.667,1)',IN='cubic-bezier(.333,0,.667,.333)';   // the two halves of a thrown arc
   const REST=2;
-  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false,mode='normal',planProd=prods[0],posed=false,shown='';
+  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false,mode='normal',planProd=prods[0],posed=false,shown='',holdT=0;
 
   // Compare's first half: the same small shop, counting at the press. A copy with no ids and no buttons, out of the Tab order
   // and hidden from screen readers. Its number goes up the moment Add to cart is pressed: no flight, no bump.
@@ -254,6 +254,8 @@
   // The copy has landed: the count goes up, and the cart and its badge bump (Cart bumps). Under reduced motion nothing flew,
   // and the new number fades in instead.
   function land(name,quiet){
+    // In Compare both halves show this press's result for a moment before the pose (the next press) comes back
+    if(mode==='compare'){clearTimeout(holdT);holdT=setTimeout(()=>{holdT=0;draw()},1200)}
     count++;show();
     if(!quiet)statusEl.textContent=name+' added to the cart, '+count+' items.';
     if(reduce.matches){countEl.animate([{opacity:0},{opacity:1}],{duration:400,easing:'ease-out'});return}
@@ -310,7 +312,9 @@
   // The box changes shape when Compare comes or goes: a copy in the air is launched again in the new shape, at the same moment of its flight
   function reaim(){
     const old=flights;flights=[];
-    old.forEach(f=>{const t=f.flight.currentTime,rate=f.flight.playbackRate;f.anims.forEach(x=>x.cancel());f.fly.remove();launch(f.prod,f.quiet,f.onLand,f.a,f.d,t,rate)});
+    // A product the new shape hides (Mug in Compare, Camera there on phones) has no picture to fly from: its copy lands at once
+    old.forEach(f=>{const t=f.flight.currentTime,rate=f.flight.playbackRate;f.anims.forEach(x=>x.cancel());f.fly.remove();
+      if(f.prod.offsetParent)launch(f.prod,f.quiet,f.onLand,f.a,f.d,t,rate);else{land(f.prod.querySelector('.name').textContent,f.quiet);if(f.onLand)f.onLand()}});
   }
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
@@ -329,7 +333,7 @@
     bumps.forEach(a=>a.cancel());bumps=[];
     countEl.getAnimations().forEach(a=>a.cancel());
     [...prods.map(p=>p.querySelector('.add')),tAdd].forEach(b=>b.getAnimations().forEach(a=>a.cancel()));
-    count=REST;planProd=prods[0];show();statusEl.textContent='';
+    clearTimeout(holdT);holdT=0;count=REST;planProd=prods[0];show();statusEl.textContent='';
   }
   // The first product's button is pressed after 300ms of rest. The press is an animation, so it always ends by itself, and Slow
   // motion slows it with the rest of the stage. When the copy has landed and the cart has bumped (450ms), and 1.2 s more have
@@ -400,6 +404,7 @@
   // second of the flight (three times as many in slow motion); dashed outlines of the copy at the start, 30% and 85% of the way; and
   // the cart at its biggest bump.
   function drawPlan(){
+    if(!planProd.offsetParent)planProd=prods[0];   // the box no longer shows the product last pressed (Mug on a phone): plan the first
     const P=planOf(planProd),D=dur*(slowTog.checked?3:1),c=loc(cart),cx=(c[0]+c[2])/2,cy=(c[1]+c[3])/2;
     const pt=u=>{const q=at(P,u);return[P.x0+q[0],P.y0+q[1]]};
     const dots=Array.from({length:Math.ceil(D/100)-1},(_,i)=>pt((i+1)*100/D));
@@ -434,7 +439,7 @@
   }
   // Draws the mode for the state now; Compare's pose stands only with no copy in the air, no run pending and the cart done bumping
   function draw(){
-    posed=mode==='compare'&&!flights.length&&!running()&&!bumps.some(a=>a.playState==='running');
+    posed=mode==='compare'&&!flights.length&&!running()&&!bumps.some(a=>a.playState==='running')&&!holdT;
     stage.classList.toggle('posed',posed);
     paintTwin();
     if(reduce.matches)notes();
