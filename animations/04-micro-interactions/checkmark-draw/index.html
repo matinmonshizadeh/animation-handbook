@@ -50,6 +50,47 @@
     /* Shake */
     @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
     .icon-wrap.shake{animation:shake .4s ease}
+    /* See inside and Compare. Their words are on a dark backing; the marks and pens sit on the icon. */
+    .ghost,.legend,.twin,.side,.when,.mk,.pen,.g-err{display:none}
+    .stage.is-err .g-ok{display:none}
+    .stage.is-err .g-err{display:inline}
+    .ghost{fill:none;stroke:var(--stroke-color);stroke-width:var(--stroke-w);stroke-opacity:.5;stroke-dasharray:1 1}
+    .ghost .g-err{stroke:#f85149}
+    .lbl{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 12px/1.25 var(--hb-font)}
+    .kn,.mk{place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ui-accent);color:#0b0b0d;font:700 12px/1 var(--hb-font)}
+    .kn{display:grid;flex:none}
+    .kd{flex:none;width:18px;height:0;margin-top:.6em;border-top:3px dashed var(--stroke-color);opacity:.7}
+    .stage.is-err .kd{border-top-color:#f85149}
+    .mk,.pen{position:absolute;left:0;top:0}
+    .pen{width:14px;height:14px;border-radius:50%;background:#f4f4f2;border:2px solid #0b0b0d}
+    .stage[data-hb-mode="inside"] .ghost,.stage[data-hb-mode="compare"] .ghost{display:inline}
+    /* See inside: the icon at twice its size, its paths under it, a numbered mark where each line starts, a pen on each line's front */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:auto minmax(0,340px);justify-content:center;align-content:center;align-items:center;
+      gap:12px clamp(22px,4vw,32px);padding:clamp(10px,2.5vw,24px)}
+    .stage[data-hb-mode="inside"] .submit-btn{grid-column:1/-1;justify-self:center}
+    .stage[data-hb-mode="inside"] .icon-wrap{width:160px;height:160px}
+    .stage[data-hb-mode="inside"] .legend{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+    .legend .lbl{display:flex;gap:6px;align-items:flex-start;font-size:13px}
+    .stage[data-hb-mode="inside"] .mk{display:grid}
+    .stage[data-hb-mode="inside"] .pen:not(.off){display:block}
+    /* Compare: one Submit above two icons, each under its name; at rest the real icon is held a quarter of a second in (--po: the length undrawn) */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));justify-items:center;align-content:center;
+      gap:10px 0;padding:clamp(10px,3vw,24px) 8px}
+    .stage[data-hb-mode="compare"] .submit-btn{grid-column:1/-1}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .when{display:block}
+    .stage[data-hb-mode="compare"] .when{grid-column:1/-1;text-align:center;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .twin .check-circle,.twin .check-mark,.twin .x-mark,.twin .x-mark2{transition:none}
+    .stage[data-hb-mode="compare"].posed .check-circle,.stage[data-hb-mode="compare"].posed .check-mark,
+    .stage[data-hb-mode="compare"].posed .x-mark,.stage[data-hb-mode="compare"].posed .x-mark2{stroke-dashoffset:var(--po);transition:none}
+    /* Phones: Submit beside the icon at one and a half times its size, the words below. Short windows keep the smaller icon too. */
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:auto auto;gap:10px 12px;padding:10px}
+      .stage[data-hb-mode="inside"] .submit-btn{grid-column:auto;width:110px}
+      .stage[data-hb-mode="inside"] .legend{grid-column:1/-1;justify-self:center;width:100%;max-width:340px}
+      .legend .lbl{font-size:12px}
+    }
+    @media(max-width:600px),(max-height:680px){.stage[data-hb-mode="inside"] .icon-wrap{width:120px;height:120px}}
     @media(prefers-reduced-motion:reduce){.check-circle,.check-mark,.x-mark,.x-mark2{transition:none!important}.icon-wrap.drawn .check-circle,.icon-wrap.drawn .check-mark,.icon-wrap.error .x-mark,.icon-wrap.error .x-mark2{stroke-dashoffset:0}.icon-wrap.shake{animation:none}.sp{animation:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -73,25 +114,43 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Submit (Reset brings it back), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <button class="submit-btn" id="submit-btn" type="button">
         <span class="btn-text" id="btn-text">Submit</span>
         <span class="btn-spinner" id="btn-spin" aria-hidden="true"><span class="sp"></span></span>
         <span class="btn-check" id="btn-check" aria-hidden="true">✓</span>
       </button>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Appears at once</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Draws itself</p>
       <div class="icon-wrap" id="icon-wrap">
         <svg viewBox="0 0 80 80" aria-hidden="true">
+          <g class="ghost"><circle class="g-ok" cx="40" cy="40" r="30" pathLength="30"/><polyline class="g-ok" points="24,41 35,52 56,30" pathLength="9"/><line class="g-err" x1="26" y1="26" x2="54" y2="54" pathLength="5"/><line class="g-err" x1="54" y1="26" x2="26" y2="54" pathLength="5"/></g>
           <circle class="check-circle" cx="40" cy="40" r="30"/>
           <polyline class="check-mark" points="24,41 35,52 56,30"/>
           <line class="x-mark" x1="26" y1="26" x2="54" y2="54"/>
           <line class="x-mark2" x1="54" y1="26" x2="26" y2="54"/>
         </svg>
       </div>
+      <div class="legend" aria-hidden="true">
+        <p class="lbl k" data-hb-caption><b class="kn">1</b><span>The circle draws first, in about half a second, slowing at the end</span></p>
+        <p class="lbl k" data-hb-caption><b class="kn">2</b><span>The tick starts before the circle closes</span></p>
+        <p class="lbl k" data-hb-caption><i class="kd"></i><span>The faint line is the path; the color slides along it</span></p>
+      </div>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>A quarter of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the faint lines are the paths: the circle starts first, the tick before the circle closes, and the dot is the pen drawing them. Press Submit, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Shown a quarter of a second into the drawing: Appears at once is already complete; Draws itself is still on its way. Press Submit, or press Show me.</p>
     </div>
   </section>
 
@@ -206,12 +265,14 @@
   // Everything on the stage that eases between two looks; toRest() switches these transitions off for a moment.
   const easing=[btn,btnText,btnSpin,btnCheck,...stage.querySelectorAll('.check-circle,.check-mark,.x-mark,.x-mark2')];
   let showError=false,draw=500,seqTimer=0,runTimers=[];
+  let mode='normal',ease='ease-out',thick=4,posed=false,modePress=false,penRaf=0;
 
   // Submit: the label fades and a spinner turns for 900ms, then the circle and tick (or the X) draw and the button stays
   // finished until reset(). The click and Show me both come through here. The 900ms wait is a hold, so Slow motion does not stretch it.
   function runSequence(){
     if(btn.disabled)return;
     btn.disabled=true;
+    pose();
     btnText.style.opacity='0';btnSpin.style.opacity='1';
     const failed=showError;
     seqTimer=setTimeout(()=>{
@@ -226,6 +287,7 @@
     iconWrap.classList.remove('drawn','error','shake');
     btn.disabled=false;btn.style.background='';
     btnText.style.opacity='1';btnSpin.style.opacity='0';btnCheck.style.opacity='0';
+    repose();
   }
   btn.addEventListener('click',runSequence);
 
@@ -250,28 +312,140 @@
   // the tick starting 0.4 x Speed after it) and rest 1.2 s. At the defaults: the tick is complete at 1.9 s, back to Submit at 3.1 s.
   // The arrival press is not the visitor's: it leaves alone a Submit the visitor has already pressed.
   document.getElementById('btn-demo').addEventListener('click',e=>{
-    if(!e.isTrusted&&btn.disabled)return;
+    if(!e.isTrusted&&btn.disabled&&!modePress)return;
     stopRun();
     toRest();
     later(runSequence,0,300);
     later(reset,1.4*draw,2400);
+    pose();
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();reset()});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the button stays as it is.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();pose()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh(true);
     }));
   }
   choices('result-seg',d=>{showError=d.err==='1'});
   choices('speed-seg',d=>{draw=+d.ms;vars.setProperty('--draw-dur',draw+'ms')});
-  choices('thick-seg',d=>{vars.setProperty('--stroke-w',d.w)});
-  choices('feel-seg',d=>{vars.setProperty('--draw-ease',d.ease)});
+  choices('thick-seg',d=>{thick=+d.w;vars.setProperty('--stroke-w',d.w)});
+  choices('feel-seg',d=>{ease=d.ease;vars.setProperty('--draw-ease',d.ease)});
   choices('color-sw',d=>{vars.setProperty('--stroke-color',d.c)});
+
+  // ---- See inside and Compare ----
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const lines=[...stage.querySelectorAll('.check-circle,.check-mark,.x-mark,.x-mark2')],[circle,tick,x1,x2]=lines;
+  const DASH=new Map([[circle,189],[tick,52],[x1,40],[x2,40]]);
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const POSE_MS=250,PEN=14;
+  // Compare's first icon: a copy that takes the real icon's classes (drawn, error, shake) as they change, with no transition
+  const twin=iconWrap.cloneNode(true);
+  twin.removeAttribute('id');twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  iconWrap.before(twin);
+  const twinLines=[...twin.querySelectorAll('.check-circle,.check-mark,.x-mark,.x-mark2')];
+  new MutationObserver(()=>{twin.className=iconWrap.className+' twin';if(mode==='inside')ridePens()}).observe(iconWrap,{attributes:true,attributeFilter:['class']});
+  // See inside's numbered marks (where each line starts) and pens (the front of each line)
+  const add=(tag,cls,text)=>{const el=document.createElement(tag);el.className=cls;el.setAttribute('aria-hidden','true');el.textContent=text||'';iconWrap.append(el);return el};
+  const marks=[add('b','mk',1),add('b','mk',2)],pens=[add('i','pen'),add('i','pen off')];
+  const caps=[...stage.querySelectorAll('.legend span')];
+  const note={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const NOTE0={inside:note.inside.textContent,compare:note.compare.textContent};
+  const FEEL={'ease-out':'slowing at the end','ease-in-out':'easing in and out',linear:'at one steady pace'};
+  // A mark sits just beside where its line starts (x, y in the icon's 80 units), away from the way the pen goes
+  const SPOTS={ok:[[70,40,1,0],[24,41,.24,-.97]],err:[[26,26,-.71,-.71],[54,26,.71,-.71]]};
+  const words=ms=>ms<=350?'about a third of a second':ms<=600?'about half a second':ms<=900?'almost a second':ms<=1100?'about a second':
+    ms<=1700?'about a second and a half':ms<=2200?'about two seconds':'about two and a half seconds';
+
+  // The speed curve's height at a share x of its time (the browser's own four numbers), found by halving
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // A pen rides its line's front: the drawn length is the dash length less the offset the browser has now, so Feel and Slow motion are
+  // followed. The second pen shows only while its line draws; the loop runs only while something is drawing.
+  function movePens(s){
+    (showError?[x1,x2]:[circle,tick]).forEach((el,i)=>{
+      const off=parseFloat(getComputedStyle(el).strokeDashoffset)||0,dash=DASH.get(el);
+      const p=el.getPointAtLength(Math.min(Math.max(dash-off,0),el.getTotalLength()));
+      pens[i].style.transform='translate('+(p.x*s-PEN/2).toFixed(1)+'px,'+(p.y*s-PEN/2).toFixed(1)+'px)';
+      pens[i].classList.toggle('off',i===1&&(off<=0||off>=dash));
+    });
+  }
+  function ridePens(){
+    cancelAnimationFrame(penRaf);
+    const step=()=>{movePens(iconWrap.clientWidth/80);penRaf=mode==='inside'&&iconWrap.getAnimations({subtree:true}).length?requestAnimationFrame(step):0};
+    step();
+  }
+  // Places the marks from the icon's measured size, then the pens
+  function place(){
+    const s=iconWrap.clientWidth/80,d=thick/2*s+15;
+    if(mode!=='inside'||!s)return;
+    SPOTS[showError?'err':'ok'].forEach(([x,y,dx,dy],i)=>{marks[i].style.transform='translate('+(x*s+dx*d-9).toFixed(1)+'px,'+(y*s+dy*d-9).toFixed(1)+'px)'});
+    ridePens();
+  }
+  function captions(){
+    const first=showError?'The first stroke of the X':'The circle draws first';
+    const t=motionOk
+      ?[first+', in '+words(draw*(slowTog.checked?3:1))+', '+FEEL[ease],showError?'The second starts a little later, then a short shake':'The tick starts before the circle closes','The faint line is the path; the color slides along it']
+      :[first+'; with reduced motion on, the lines appear at once',showError?'The second stroke comes next':'The tick comes second','The faint line is the path the pen would follow'];
+    caps.forEach((el,i)=>{if(el.textContent!==t[i])el.textContent=t[i]});
+  }
+  // The notes keep the markup's words for the first picture of each view and are written only when their words change
+  function notes(){
+    const t={
+      inside:!motionOk?'Inside, the faint lines are the paths the pen would follow: '+(showError?'one stroke of the X, then the other':'the circle first, then the tick')+'. With reduced motion on, the lines appear at once.'
+        :showError?"Inside, the faint lines are the X's paths: one stroke starts first, the other a little later, then it shakes; the dot is the pen. Press Submit, or press Show me.":NOTE0.inside,
+      compare:posed?(motionOk?NOTE0.compare:'Shown still, a quarter of a second into the drawing: Appears at once is complete; Draws itself is still on its way. With reduced motion on, both appear at once.')
+        :(motionOk?'Appears at once is complete the moment the drawing starts; Draws itself takes its time.':'Both are complete: with reduced motion on, the lines appear at once.')+' Reset brings the still picture back; Show me plays it again.'
+    };
+    for(const k in t)if(note[k].textContent!==t[k])note[k].textContent=t[k];
+  }
+
+  // Compare's rest pose is a look only: the real lines are held where their own curve has them a quarter of a second in (the tick
+  // starts 0.4 of Speed later, the X's second stroke 0.3), the copy's are whole. A press or a run lifts it; it returns at rest.
+  function atRest(){
+    return !btn.disabled&&!running()&&!iconWrap.classList.contains('drawn')&&!iconWrap.classList.contains('error')&&!iconWrap.getAnimations({subtree:true}).length;
+  }
+  function poseVars(){
+    const at=POSE_MS/draw,live=showError?[2,3]:[0,1],start=[0,.4,0,.3];
+    lines.forEach((el,i)=>{
+      const on=live.includes(i),r=on?curveAt(CURVES[ease],Math.min(Math.max(at-start[i],0),1)):0;
+      el.style.setProperty('--po',(DASH.get(el)*(1-r)).toFixed(1));
+      twinLines[i].style.setProperty('--po',on?'0':String(DASH.get(el)));
+    });
+  }
+  // Changes that must not slide switch the lines' transitions off while they are made
+  function quiet(fn){lines.forEach(el=>{el.style.transition='none'});fn();void btn.offsetWidth;lines.forEach(el=>{el.style.transition=''})}
+  function pose(force){
+    const want=mode==='compare'&&atRest();
+    if(want===posed&&!(want&&force))return;
+    posed=want;
+    quiet(()=>{stage.classList.toggle('posed',want);if(want)poseVars()});
+    notes();
+  }
+  // After a reset the lines draw back out first; the pose comes back when they have finished
+  function repose(){Promise.allSettled(iconWrap.getAnimations({subtree:true}).map(a=>a.finished)).then(()=>pose())}
+  function refresh(force){
+    stage.classList.toggle('is-err',showError);
+    pose(force);
+    if(mode==='inside'){captions();place()}
+    notes();
+  }
+  // The mode switch draws the mode at once; the press of Show me that follows is let past the arrival press's rule (modePress)
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    modePress=true;queueMicrotask(()=>{modePress=false});
+    refresh(true);
+  });
+  new ResizeObserver(()=>place()).observe(iconWrap);
+  slowTog.addEventListener('change',()=>{if(mode==='inside')captions()});
 </script>
 </body>
 </html>
