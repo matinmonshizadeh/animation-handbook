@@ -35,6 +35,54 @@
     .pen{opacity:0;transition:opacity .2s}
     .pen.shown{opacity:1}
     .pen-body{fill:var(--ink)}
+    /* See inside and Compare. The .half wrappers take no box in Normal, and everything the modes add stays hidden there. */
+    .half{display:contents}
+    .half.first,.capbar,.capbar .cap,.strip,.route,.starts{display:none}
+    .cap{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 12.5px/1.2 var(--hb-font);white-space:nowrap}
+    .capbar{align-items:flex-start;justify-content:space-between;gap:8px}
+    .cap.c-pose{visibility:hidden}
+    .cap .narrow{display:none}
+    /* The route and the start dots live in the sheet: the faint line is the whole stroke, the dot keeps its size on the screen (--k is
+       the screen pixels in one unit of the sheet). The dots sit under the pen. */
+    .route{fill:none;stroke:var(--ink);stroke-opacity:.35;stroke-width:.8;stroke-linecap:round;stroke-linejoin:round}
+    .starts circle{r:calc(10px / var(--k,1));fill:var(--ink);stroke:#fbf7ee;stroke-width:calc(1.5px / var(--k,1))}
+    .starts text{fill:#fbf7ee;font-family:var(--hb-font);font-weight:700;font-size:calc(12px / var(--k,1));text-anchor:middle;dominant-baseline:central}
+    /* The strip under the sheet: one bar per stroke as long as its time, a gap for each lift, a marker riding with the clock */
+    .strip{--ink:#2346b5;position:relative;height:26px;border-radius:5px;background:linear-gradient(170deg,#fbf7ee,#f1eadb)}
+    .bar{position:absolute;top:4px;bottom:4px;border-radius:3px;background:var(--ink);color:#fbf7ee;font:700 12px/18px var(--hb-font);text-align:center;overflow:hidden}
+    .bar.tiny span{display:none}
+    .mark{position:absolute;top:-3px;bottom:-3px;left:0;width:100%;border-right:3px solid #ff6f8b;pointer-events:none;transform:translateX(-100%)}
+    /* The wiped-on copy: every stroke drawn, under a panel of the paper's own look that shrinks toward the right */
+    .copy{position:relative}
+    .cover{position:absolute;inset:0;background:inherit;border-radius:0 6px 6px 0;transform-origin:100% 50%}
+    .edge{position:absolute;inset:0;pointer-events:none}
+    .edge::before{content:'';position:absolute;top:0;bottom:0;left:0;border-left:2px dashed #d6336c}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);align-content:center;padding:8px 14px}
+    .stage[data-hb-mode="inside"] .half.second,.stage[data-hb-mode="compare"] .half{display:flex;flex-direction:column;align-items:center;gap:7px}
+    .stage[data-hb-mode="inside"] .capbar,.stage[data-hb-mode="compare"] .capbar{display:flex;width:var(--pw);min-width:max-content}
+    .stage[data-hb-mode="inside"] .paper,.stage[data-hb-mode="compare"] .paper{width:var(--pw);overflow:hidden}
+    .stage[data-hb-mode="inside"] .capbar .c-in,.stage[data-hb-mode="inside"] .capbar .c-low,.stage[data-hb-mode="inside"] .capbar .c-pose,
+    .stage[data-hb-mode="compare"] .capbar .c-cmp,.stage[data-hb-mode="compare"] .capbar .c-pose{display:block}
+    .stage[data-hb-mode="inside"].posed .c-pose,.stage[data-hb-mode="compare"].posed .c-pose{visibility:visible}
+    /* See inside: the sheet over its strip (no tilt, so the bars line up with the word), the three words under it */
+    .stage[data-hb-mode="inside"] .half.second{--pw:min(100%,520px,calc((100cqh - 96px)*1.8))}
+    .stage[data-hb-mode="inside"] .paper{transform:none}
+    .stage[data-hb-mode="inside"] .strip{display:block;width:var(--pw)}
+    .stage[data-hb-mode="inside"] .route,.stage[data-hb-mode="inside"] .starts{display:inline}
+    /* Compare: the wiped-on sheet beside (above, on phones) the real one, each with its name over it */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+    .stage[data-hb-mode="compare"] .half{--pw:min(100%,560px,calc((100cqh - 34px)*1.8))}
+    .stage[data-hb-mode="compare"] .half.first{display:flex}
+    .stage[data-hb-mode="compare"] .capbar.low{display:none}
+    @media(max-width:600px){
+      .cap .wide{display:none}
+      .cap .narrow{display:inline}
+      .bar span{display:none}
+      .stage[data-hb-mode="inside"] .half.second{--pw:min(100%,calc((100cqh - 117px)*1.8))}
+      .stage[data-hb-mode="inside"] .capbar.low{flex-direction:column;align-items:flex-start;gap:4px}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);gap:7px}
+      .stage[data-hb-mode="compare"] .half{--pw:min(100%,calc((100cqh - 66px)*.9))}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -57,7 +105,18 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to follow the pen stroke by stroke.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage">
+      <div class="half second">
+      <div class="capbar" aria-hidden="true">
+        <span class="cap c-cmp" data-hb-caption>Written</span>
+        <span class="cap c-in" data-hb-caption><span class="wide">Faint: the pen's route, still to come</span><span class="narrow">Faint: the route ahead</span></span>
+        <span class="cap c-pose" data-hb-caption>Part way through</span>
+      </div>
       <div class="paper" id="paper">
         <svg id="sheet" viewBox="-44 -96 200 111" role="img" aria-label="hello">
           <line class="rule" id="rule" x1="-44" x2="156" y1="0" y2="0"/>
@@ -69,11 +128,21 @@
           </g></g>
         </svg>
       </div>
+      <div class="strip" aria-hidden="true"><i class="mark"></i></div>
+      <div class="capbar low" aria-hidden="true">
+        <span class="cap c-low" data-hb-caption>Longer strokes take longer, then a lift</span>
+        <span class="cap c-low" id="cap-speed" data-hb-caption>Steady pen speed</span>
+      </div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the faint lines are the pen's route and the numbers its writing order. Each stroke is uncovered at one steady speed, so longer strokes take longer, with a short lift between.</p>
+      <p data-hb-for="compare" hidden>Wiped on uncovers the finished word from left to right, cutting straight through the letters. Written follows the pen along each stroke, in the order a person writes.</p>
     </div>
   </section>
 
@@ -189,6 +258,32 @@
   const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
   let word='hello',speed=400,strokes=[],total=0,t=0,lastT=null,raf=0,timers=[];
 
+  // See inside and Compare. The copy for Compare is made once, here: the sheet again with every stroke drawn, no pen, no ids and out of
+  // reach of the keyboard and screen readers, under a cover that the wipe moves. POSE is how far through the run the modes rest.
+  const POSE=.6,VBW=200,MORE={inside:", with the pen's route and writing order",compare:', twice: wiped on and written'};
+  const S=document.getElementById('stage'),strip=S.querySelector('.strip'),mark=S.querySelector('.mark'),capSpeed=document.getElementById('cap-speed');
+  const twin=paper.cloneNode(true),first=document.createElement('div'),cover=document.createElement('div'),edge=document.createElement('div');
+  const tSvg=twin.querySelector('svg'),tInk=twin.querySelector('#ink'),tRule=twin.querySelector('#rule');
+  [twin,...twin.querySelectorAll('[id]')].forEach(e=>e.removeAttribute('id'));
+  ['role','aria-label'].forEach(a=>tSvg.removeAttribute(a));
+  const cSvg=tSvg.cloneNode(false);
+  twin.querySelector('.pen').remove();
+  twin.classList.add('copy');cover.className='cover';edge.className='edge';
+  cSvg.appendChild(tRule.cloneNode());cover.appendChild(cSvg);twin.append(cover,edge);
+  first.className='half first';first.inert=true;first.setAttribute('aria-hidden','true');
+  first.innerHTML='<div class="capbar"><span class="cap c-cmp" data-hb-caption>Wiped on</span></div>';
+  first.appendChild(twin);S.prepend(first);
+  const inks=[ink,tInk],route=svgEl('g','route'),starts=svgEl('g','starts');
+  ink.before(route);pen.before(starts);
+  let mode='normal',built='',bb=null,vbx=0;
+  function svgEl(tag,cls){const e=document.createElementNS(NS,tag);if(cls)e.setAttribute('class',cls);return e}
+  function gone(on){inks.forEach(e=>e.classList.toggle('gone',on))}
+  function fadeTime(v){inks.forEach(e=>{e.style.transition=v})}
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still, part way through: the bold part is written, the faint lines are still to come, and the numbers give the writing order.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, part way through: Wiped on is cut off by a straight edge, while Written stops part way along its stroke.';
+  }
+
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
   // A gentle ease: the pen starts and ends each stroke at 40% of its average speed and is fastest in the middle.
   const ease=p=>p-.6*Math.sin(2*Math.PI*p)/(2*Math.PI);
@@ -197,7 +292,7 @@
   // its time is its length over the pen speed, so long strokes take longer, plus a short lift before the next.
   function build(){
     ink.textContent='';
-    sheet.setAttribute('aria-label',word);
+    label();
     let at=0;
     strokes=WORDS[word].map((d,i,all)=>{
       const el=document.createElementNS(NS,'path');
@@ -213,18 +308,66 @@
     const box=ink.getBBox(),x=box.x+box.width/2-100;
     sheet.setAttribute('viewBox',x+' -96 200 111');
     rule.setAttribute('x1',x);rule.setAttribute('x2',x+200);
+    bb=box;vbx=x;
+    if(built!==word+speed){built=word+speed;views()}
+  }
+
+  // What the modes draw from the plan above, made again only when the word or the pen speed changes: the faint route and a numbered dot
+  // where each stroke starts (See inside), a bar for each stroke as long as its time (See inside), the copy's strokes (Compare).
+  function views(){
+    const vb=sheet.getAttribute('viewBox'),x=rule.getAttribute('x1');
+    [route,starts,tInk].forEach(g=>{g.textContent=''});
+    strip.querySelectorAll('.bar').forEach(b=>b.remove());
+    [tSvg,cSvg].forEach(v=>v.setAttribute('viewBox',vb));
+    [tRule,cSvg.firstChild].forEach(r=>{r.setAttribute('x1',x);r.setAttribute('x2',+x+VBW)});
+    strokes.forEach((st,i)=>{
+      const d=st.el.getAttribute('d'),p=st.el.getPointAtLength(0),g=svgEl('g'),b=document.createElement('b');
+      [route,tInk].forEach(to=>{const c=svgEl('path');c.setAttribute('d',d);to.appendChild(c)});
+      g.setAttribute('transform','translate('+p.x+' '+p.y+')');
+      g.innerHTML='<circle></circle><text>'+(i+1)+'</text>';
+      starts.appendChild(g);
+      b.className='bar';b.style.left=st.start/total*100+'%';b.style.width=st.dur/total*100+'%';
+      b.innerHTML='<span>'+(i+1)+'</span>';
+      strip.insertBefore(b,mark);
+    });
+    measure();
+  }
+  // Sizes that depend on the screen: the start dots keep their size whatever the sheet's, and a bar too short for its number goes without
+  function measure(){
+    sheet.style.setProperty('--k',(sheet.clientWidth/VBW).toFixed(3));
+    strip.querySelectorAll('.bar').forEach(b=>b.classList.toggle('tiny',b.offsetWidth<14));
+  }
+  new ResizeObserver(measure).observe(sheet);new ResizeObserver(measure).observe(strip);
+  // The words that change with the plan: how long this word takes at one steady pen speed, three times as long in slow motion
+  function words(){
+    const sec=total*(slowTog.checked?3:1)/1000;
+    capSpeed.textContent='Steady pen speed: '+(sec<.9?'under a second':sec<1.5?'about a second':'about '+Math.round(sec)+' seconds');
+  }
+  function label(){sheet.setAttribute('aria-label',word+(MORE[mode]||''))}
+  // The modes rest part way through a run (pose by progress, so slow motion does not move it) when no run is playing and Loop is off
+  function posed(){return mode!=='normal'&&!raf&&!loopTog.checked}
+  function shownT(){return posed()?POSE*total:motionOk?t:total}
+  // Draws the moment shown now: the real sheet through render(), then what the mode adds (the strip's marker, the wipe's cover and edge)
+  function show(){
+    const T=shownT();
+    render(T);
+    if(mode==='normal')return;
+    const k=total?Math.min(1,T/total):0,L=Math.min(1,Math.max(0,(bb.x-3+(bb.width+6)*k-vbx)/VBW));
+    mark.style.transform='translateX('+(k-1)*100+'%)';
+    cover.style.transform='scaleX('+(1-L)+')';edge.style.transform='translateX('+L*100+'%)';
+    S.classList.toggle('posed',posed());
   }
 
   // Draws the moment t: every stroke uncovered as far as its own share of the time, and the pen on the tip of the one
   // being drawn, or gliding just above the paper from the end of one stroke to the start of the next.
-  function render(){
+  function render(T=t){
     let at=null;
     strokes.forEach((s,i)=>{
-      const p=Math.min(1,Math.max(0,(t-s.start)/s.dur)),e=ease(p),next=strokes[i+1];
+      const p=Math.min(1,Math.max(0,(T-s.start)/s.dur)),e=ease(p),next=strokes[i+1];
       s.el.style.strokeDashoffset=s.len*(1-e);
-      if(t>=s.start&&t<s.start+s.dur)at=s.el.getPointAtLength(s.len*e);
-      else if(next&&t>=s.start+s.dur&&t<next.start){
-        const k=(t-s.start-s.dur)/LIFT,a=s.el.getPointAtLength(s.len),b=next.el.getPointAtLength(0);
+      if(T>=s.start&&T<s.start+s.dur)at=s.el.getPointAtLength(s.len*e);
+      else if(next&&T>=s.start+s.dur&&T<next.start){
+        const k=(T-s.start-s.dur)/LIFT,a=s.el.getPointAtLength(s.len),b=next.el.getPointAtLength(0);
         at={x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k-Math.sin(Math.PI*k)*6};
       }
     });
@@ -232,20 +375,29 @@
     pen.classList.toggle('shown',!!at&&penTog.checked);
   }
 
+  // A finished word is painted once more from scratch: the pen's last frames leave the paper's edges painted over, which differs faintly
+  // from a fresh paint (and from the same picture after a mode)
+  function repaint(){
+    paper.style.outline='1px solid transparent';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{paper.style.outline=''}));
+  }
+
   // The frame loop moves by elapsed time (a third as fast in slow motion), so the pen keeps its speed on any screen.
   function frame(ts){
     const dt=lastT===null?0:Math.min(ts-lastT,50);
     lastT=ts;
     t+=dt*(slowTog.checked?1/3:1);
-    render();
+    show();
     if(t<total){raf=requestAnimationFrame(frame);return}
     raf=0;
     pen.classList.remove('shown');
+    show();
+    later(repaint,350);
     // While Loop is on, the finished word holds, fades out and is written again; switching Loop off keeps it.
     if(loopTog.checked)later(()=>{
       if(!loopTog.checked)return;
-      ink.classList.add('gone');
-      later(()=>{if(loopTog.checked)play();else ink.classList.remove('gone')},400);
+      gone(true);
+      later(()=>{if(loopTog.checked)play();else gone(false)},400);
     },HOLD);
   }
   // Every play starts from a blank sheet. Under reduced motion the finished word fades in instead.
@@ -257,30 +409,41 @@
     if(!motionOk){
       strokes.forEach(s=>{s.el.style.strokeDashoffset=0});
       pen.classList.remove('shown');
-      ink.style.transition='none';ink.classList.add('gone');ink.getBoundingClientRect();
-      ink.style.transition='opacity .6s';ink.classList.remove('gone');
+      fadeTime('none');gone(true);ink.getBoundingClientRect();
+      fadeTime('opacity .6s');gone(false);
+      if(mode!=='normal')show();
       return;
     }
-    ink.style.transition='none';ink.classList.remove('gone');ink.getBoundingClientRect();ink.style.transition='';
-    render();
+    fadeTime('none');gone(false);ink.getBoundingClientRect();fadeTime('');
     raf=requestAnimationFrame(frame);
+    show();
   }
   document.addEventListener('visibilitychange',()=>{lastT=null});
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else if(mode!=='normal')show()});
+  penTog.addEventListener('change',()=>{if(mode!=='normal')show()});
+  slowTog.addEventListener('change',words);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
+  // A setting changed: the copy and the strip take the ink and pen size, and a mode draws the new plan at once (Normal waits for the replay)
+  function refresh(){
+    twin.style.cssText=strip.style.cssText=paper.style.cssText;
+    if(mode!=='normal'){build();words();show()}
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;label();words();measure();show()});
   choices('word-seg',d=>{word=d.w});
   choices('speed-seg',d=>{speed=+d.s});
   choices('ink-sw',d=>{paper.style.setProperty('--ink',d.c)});
   choices('size-seg',d=>{paper.style.setProperty('--pen-w',d.w)});
-  build();
+  build();words();
 </script>
 </body>
 </html>
