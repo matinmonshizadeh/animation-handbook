@@ -265,7 +265,7 @@
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     grid.style.minHeight='';
-    grid.querySelectorAll('.flip-card').forEach(c=>{c.style.transition='';c.style.transform='';c.getAnimations().forEach(a=>a.cancel())});
+    grid.querySelectorAll('.flip-card').forEach(c=>{c.style.transition='';c.style.transform='';c.style.willChange='';c.getAnimations().forEach(a=>a.cancel())});
     animating=false;
   }
 
@@ -304,8 +304,10 @@
     cards.forEach(c=>{c.style.transition=`transform ${d}ms ${curve}`;c.style.transform=''});
     later(()=>{
       grid.style.minHeight='';
-      cards.forEach(c=>{c.style.transition=''});
+      cards.forEach(c=>{c.style.transition='';c.style.willChange='auto'});
       finish();
+      // The cards drop their layer for a moment and take it again, so a card at rest is drawn as a new one is, whatever happened while it glided
+      setTimeout(()=>cards.forEach(c=>{c.style.willChange=''}),50);
     },d+50);
   }
 
