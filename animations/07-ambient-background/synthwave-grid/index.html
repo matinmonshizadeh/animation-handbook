@@ -66,7 +66,7 @@
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
       <p class="lbl cap a" aria-hidden="true" data-hb-caption>All the lines meet at one point on the horizon</p>
-      <p class="lbl cap b" aria-hidden="true" data-hb-caption>This row rolls toward you, then starts again far away</p>
+      <p class="lbl cap b" aria-hidden="true" data-hb-caption>The white row rolls toward you, then starts again far away</p>
       <p class="lbl cap c" aria-hidden="true" data-hb-caption>Rows bunch up far away and spread out near you</p>
       <p class="lbl side first" aria-hidden="true" data-hb-caption>Flat grid</p>
       <p class="lbl side second" aria-hidden="true" data-hb-caption>In perspective</p>
@@ -282,6 +282,8 @@
       (w,h)=>[[M,H-M-h],[W-R-w,H-M-h]],
       (w,h)=>[[W-R-w,H-M-h],[W-R-w,(given[1]?given[1][1]:H)-6-h],[M,(given[1]?given[1][1]:H)-6-h],[W-M-w,M]]
     ];
+    // each is measured from the left edge, where it has the whole width: at its old spot after a resize it would wrap narrower
+    caps.forEach(el=>{el.style.left=el.style.top='0px';});
     caps.forEach((el,i)=>{
       const w=el.offsetWidth,h=el.offsetHeight,all=list[i](w,h).filter(c=>c[0]>=M&&c[1]>=M&&c[0]+w<=W-M&&c[1]+h<=H-M);
       const c=all.find(c=>!meets(c,w,h,busy)&&!meets(c,w,h,given))||all.find(c=>!meets(c,w,h,given))||all[0]||[M,M];
@@ -323,7 +325,10 @@
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;
     if(mode==='inside'){pose();place();}
-    frame();notes();
+    // the horizon's row of pixels is only partly covered by the sky and the floor, so it keeps a little of the last picture:
+    // while the loop is stopped, a few more drawings settle it, so Normal comes back exactly
+    for(let k=raf?1:5;k>0;k--)frame();
+    notes();
   });
   // See inside's note speaks of the white row rolling; a still (reduced motion, paused) says what the arrow shows instead, and the
   // words are written only when they change, so the live region is not read again at every Pause and Play
