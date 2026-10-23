@@ -21,14 +21,49 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text on a Path", "name": "Text on a Path", "description": "Text travels along a wave, an arc or a circle. Best for badges and seals.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-on-path/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text on a Path"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b}
+    :root{--ui-accent:#ff6f8b;--mark:#ffd166}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#101018,#04060c);padding:16px;overflow:hidden}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#101018,#04060c);padding:16px;overflow:hidden}
     .stage svg{width:100%;height:100%;max-width:640px}
     .flow-text{font-weight:800;font-size:34px;letter-spacing:2px;fill:#f4f4f2}
     .guide{fill:none;stroke:var(--ui-accent);stroke-width:1.5;stroke-dasharray:5 6;opacity:.5;transition:opacity .2s}
     .guide.hidden{opacity:0}
     @media(prefers-reduced-motion:reduce){.guide{transition:none}}
+    /* Nothing below shows in Normal: the drawn parts and the captions are for See inside, the second drawing for Compare */
+    .inx,.cap,.cmp-a,.cmp-nb{display:none}
+    .bold,.slide{fill:none;stroke-linejoin:round}
+    .bold{stroke:var(--ui-accent);stroke-width:calc(5*var(--u,1));stroke-linecap:round}
+    .slide{stroke:var(--mark);stroke-width:calc(4*var(--u,1))}
+    .dot{fill:#f4f4f2;stroke:#08080a;stroke-width:calc(2*var(--u,1))}
+    .head{fill:var(--mark);stroke:#08080a;stroke-width:calc(1.5*var(--u,1));stroke-linejoin:round}
+    .tick line{stroke:var(--mark);stroke-width:calc(3*var(--u,1));stroke-linecap:round}
+    .cap,.cmp-name{padding:4px 9px;border:1px solid rgba(255,255,255,.14);border-radius:7px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 12px/15px var(--hb-font);white-space:nowrap}
+    @media(min-width:601px){.cap,.cmp-name{font-size:13px}}
+    .cap{position:absolute;left:0;top:0}
+    .cap::before{content:"";flex:none;margin-right:7px}
+    .c-curve::before{width:16px;height:5px;border-radius:3px;background:var(--ui-accent)}
+    .c-tick::before{width:3px;height:14px;border-radius:2px;background:var(--mark)}
+    .c-dot::before{width:10px;height:10px;border-radius:50%;background:#f4f4f2}
+    .c-slide::before{width:16px;height:9px;background:var(--mark);clip-path:polygon(0 33%,58% 33%,58% 0,100% 50%,58% 100%,58% 67%,0 67%)}
+    .gone{display:none!important}
+    /* See inside: the curve drawn bold, the dots where it starts and ends, a tick where each copy of the phrase starts and a bar as
+       long as one second's slide; the thin guide the Shows the path switch controls runs along the middle of the bold curve */
+    .stage[data-hb-mode="inside"] .inx{display:inline}
+    .stage[data-hb-mode="inside"] .cap{display:flex;align-items:center}
+    .stage[data-hb-mode="inside"] .guide{stroke:#f4f4f2;stroke-width:calc(2*var(--u,1));opacity:.9}
+    .stage[data-hb-mode="inside"] .guide.hidden{opacity:0}
+    /* Compare: the same words on a straight line (above, or on the left) and on the curve, two drawings of one size */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,max-content) auto minmax(0,max-content);align-content:center;gap:6px 0;padding:10px}
+    .stage[data-hb-mode="compare"] .cmp-a{display:grid;grid-template-rows:subgrid;grid-row:1/3;row-gap:6px;border-bottom:1px solid rgba(255,255,255,.09)}
+    .stage[data-hb-mode="compare"] .cmp-nb{display:block;grid-row:3;justify-self:center}
+    .stage[data-hb-mode="compare"] .cmp-na{justify-self:center}
+    .stage[data-hb-mode="compare"]>svg{grid-row:4;max-width:none;min-height:0}
+    @media(min-width:601px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,max-content)}
+      .stage[data-hb-mode="compare"] .cmp-a{grid-column:1;border-bottom:0;border-right:1px solid rgba(255,255,255,.09)}
+      .stage[data-hb-mode="compare"] .cmp-nb{grid-row:1;grid-column:2}
+      .stage[data-hb-mode="compare"]>svg{grid-row:2;grid-column:2}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -51,20 +86,48 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" aria-label="animated text following a curved path">
         <defs>
           <path id="curve" d="M20,180 C120,60 240,300 340,180 S560,60 620,180"/>
         </defs>
+        <use href="#curve" class="bold inx"/>
         <use href="#curve" class="guide" id="guide"/>
         <text class="flow-text">
           <textPath href="#curve" id="tp" startOffset="0%">FOLLOW THE CURVE · </textPath>
         </text>
+        <g class="marks inx">
+          <circle class="dot"/><circle class="dot"/>
+          <path class="slide"/><path class="head"/>
+          <g class="tick"><line/></g>
+        </g>
       </svg>
+      <div class="cmp-a" aria-hidden="true" inert>
+        <span class="cmp-name cmp-na" data-hb-caption>Straight line</span>
+        <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
+          <defs><path id="ln-path" d="M20,180 H620"/></defs>
+          <use href="#ln-path" class="guide" id="ln-guide"/>
+          <text class="flow-text"><textPath href="#ln-path" id="ln-tp" startOffset="0">FOLLOW THE CURVE · </textPath></text>
+        </svg>
+      </div>
+      <span class="cmp-name cmp-nb" data-hb-caption>On a path</span>
+      <span class="cap c-curve" data-hb-caption aria-hidden="true">The text is attached to this curve</span>
+      <span class="cap c-tick" data-hb-caption aria-hidden="true">Each tick starts one copy of the phrase</span>
+      <span class="cap c-dot" data-hb-caption aria-hidden="true">Letters show only between the dots</span>
+      <span class="cap c-slide" data-hb-caption aria-hidden="true">Slides a quarter of the curve a second</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the text is attached to a curve, drawn bold here. The phrase is repeated, and each tick marks where one copy starts; they all slide along the curve together.</p>
+      <p data-hb-for="compare" hidden>Straight line slides the same words along a flat line, like a ticker. On a path bends them around the curve, so every letter follows its shape.</p>
     </div>
   </section>
 
@@ -160,7 +223,7 @@
   };
   const DEFAULT_TEXT='FOLLOW THE CURVE · ';
   const FRAME=1000/60; // the speeds are a share of the path per 1/60 s, so a 120 Hz screen is no faster than a 60 Hz one
-  let offset=0,speed=0.4,raf=null,last=null,unit=100;
+  let offset=0,speed=0.4,raf=null,last=null,unit=100,total=700,mode='normal';
 
   // Glyphs past the end of the path are not drawn, so repeat the string until it
   // covers the path plus one extra copy, then wrap the offset over that one copy.
@@ -172,12 +235,14 @@
     const s=txtIn.value.trim()?txtIn.value:DEFAULT_TEXT;
     tp.textContent=s; const one=measure();
     tp.textContent=s+s; const two=measure();
-    unit=Math.max((two-one)/curve.getTotalLength()*100,1);
+    total=curve.getTotalLength();
+    unit=Math.max((two-one)/total*100,1);
     tp.textContent=s.repeat(Math.ceil(100/unit)+1);
     // The copy length and the number of copies just changed. Keep the start point within one copy and write it
     // now: loop() would do it, but it is not running while paused, and a stale start point can leave the end of the curve empty.
     offset%=unit;
     tp.setAttribute('startOffset',(offset-unit)+'%');
+    if(mode!=='normal')refreshView();
   }
   function step(dt){ return (slowTog.checked?speed/3:speed)*dt/FRAME; }
   function loop(now){
@@ -187,6 +252,7 @@
     last=now;
     offset=(offset+step(dt))%unit;
     tp.setAttribute('startOffset',(offset-unit)+'%');
+    if(mode!=='normal')drawLive();
     raf=requestAnimationFrame(loop);
   }
   function start(){ if(raf)return; last=null; raf=requestAnimationFrame(loop); }
@@ -199,7 +265,10 @@
   document.addEventListener('hb:pause',e=>{
     if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+    paused=e.detail.paused;describe();
   });
+  // The mode switch: the stage is already marked, so the view is drawn at once, also while the loop is paused
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;refreshView()});
 
   txtIn.addEventListener('input',fill);
   function choices(id,pick){
@@ -210,10 +279,125 @@
     }));
   }
   choices('shape-seg',d=>{curve.setAttribute('d',PATHS[d.shape]);fill()});
-  choices('speed-seg',d=>{speed=+d.speed});
+  choices('speed-seg',d=>{speed=+d.speed;if(mode==='inside')refreshView()});
+  slowTog.addEventListener('change',()=>{if(mode==='inside')refreshView()});
   document.getElementById('guide-tog').addEventListener('change',e=>{
     guide.classList.toggle('hidden',!e.target.checked);
+    ln.guide.classList.toggle('hidden',!e.target.checked);
   });
+
+  // ---- See inside and Compare ----
+  const stage=document.querySelector('.stage'),svg=stage.querySelector('svg'),reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const ln={svg:stage.querySelector('.cmp-a svg'),path:document.getElementById('ln-path'),tp:document.getElementById('ln-tp'),guide:document.getElementById('ln-guide')};
+  const marks=svg.querySelector('.marks'),dots=[...marks.querySelectorAll('.dot')],head=marks.querySelector('.head'),ticks=[marks.querySelector('.tick')];
+  const bar=marks.querySelector('.slide'),caps=[...stage.querySelectorAll('.cap')],NAME=svg.getAttribute('aria-label');
+  const LABEL={normal:NAME,inside:NAME+', with the curve drawn bold and a tick where each copy of the phrase starts',
+    compare:'the same words on a straight line and on a curve'};
+  const BAR=24; // how far below the curve the slide bar runs, in pixels
+  let k=1,fadeAt=15,tickN=0,tip={x:0,y:0}; // k: screen pixels in a drawing unit; fadeAt: how far from an end a tick starts to show, in pixels
+  // Under reduced motion the loop starts paused, so a note says "Shown still" only while it is paused
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+    'Shown still: the text is attached to the bold curve, and each tick marks where one copy of the phrase starts. Played, they all slide along the curve together.',
+    'Shown still: Straight line sets the words on a flat line, while On a path bends the same words around the curve.'];
+  let paused=reduceMQ.matches;
+  function describe(){
+    notes.forEach((n,i)=>{const words=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
+  reduceMQ.addEventListener('change',describe);
+  function pt(L){ return curve.getPointAtLength(L); }
+  function share(){ return (slowTog.checked?speed/3:speed)*60/100; } // the part of the curve the text covers in a second
+  function slideWord(f){ // that part in a beginner's words
+    const W=[[.05,'a twentieth'],[.083,'a twelfth'],[.125,'an eighth'],[.167,'a sixth'],[.25,'a quarter'],[.4,'two fifths']];
+    return W.reduce((a,b)=>Math.abs(b[0]-f)<Math.abs(a[0]-f)?b:a)[1];
+  }
+  // The height of drawing that holds the curve and its letters; Compare crops both drawings to it, so they share one scale
+  function span(){
+    let y0=360,y1=0;
+    for(let i=0;i<=48;i++){const y=pt(total*i/48).y;y0=Math.min(y0,y);y1=Math.max(y1,y)}
+    y0=Math.max(0,y0-36);y1=Math.min(360,y1+36);
+    return [y0,y1-y0];
+  }
+  function layoutCompare(){
+    const [y,h]=span(),box='0 '+y.toFixed(1)+' 640 '+h.toFixed(1);
+    svg.setAttribute('viewBox',box);ln.svg.setAttribute('viewBox',box);
+    ln.path.setAttribute('d','M20,'+(y+h/2).toFixed(1)+' H620');
+    if(ln.tp.textContent!==tp.textContent)ln.tp.textContent=tp.textContent;
+  }
+  function layoutInside(){
+    k=svg.getScreenCTM().a;svg.style.setProperty('--u',1/k);
+    const u=n=>n/k,a=pt(0),b=pt(total),closed=Math.hypot(a.x-b.x,a.y-b.y)*k<20,d=closed?u(11):0;
+    [pt(d),pt(total-d)].forEach((p,i)=>{dots[i].setAttribute('cx',p.x);dots[i].setAttribute('cy',p.y);dots[i].setAttribute('r',u(7))});
+    fadeAt=closed?26:15;
+    const gap=unit/100*total;
+    tickN=gap*k<22?0:Math.min(Math.ceil(total/gap)+2,30); // copies too short to tell apart get no ticks
+    while(ticks.length<tickN){const c=ticks[0].cloneNode(true);marks.appendChild(c);ticks.push(c)}
+    ticks.forEach(t=>{const l=t.firstChild,top=Math.max(22,34*k);l.setAttribute('y1',-u(top));l.setAttribute('y2',u(10));t.o=-1});
+    // the bar runs beside the curve, on the side away from the letters, as long as the text slides in a second
+    const f=share(),len=f*total,n=Math.max(4,Math.ceil(len*k/14)),side=[];
+    for(let i=0;i<=n;i++){
+      const L=len*i/n,p=pt(L),a2=pt(Math.max(L-2,0)),b2=pt(Math.min(L+2,total)),m=Math.hypot(b2.x-a2.x,b2.y-a2.y)||1;
+      side.push([p.x-(b2.y-a2.y)/m*u(BAR),p.y+(b2.x-a2.x)/m*u(BAR)]);
+    }
+    const [x,y]=side[n],[x0,y0]=side[n-1];
+    tip={x:x,y:y};
+    bar.setAttribute('d','M'+side.map(c=>c[0].toFixed(1)+','+c[1].toFixed(1)).join(' L'));
+    head.setAttribute('d','M0,0 L'+-u(13)+','+-u(8)+' L'+-u(13)+','+u(8)+'Z');
+    head.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+(Math.atan2(y-y0,x-x0)*180/Math.PI).toFixed(1)+')');
+    const words='Slides '+slideWord(f)+' of the curve a second';
+    if(caps[3].textContent!==words)caps[3].textContent=words;
+    placeCaps();
+  }
+  // Each caption goes to the free spot nearest its part: clear of the curve with the letters and ticks along it, the dots, the
+  // bar and the other captions, inside the box. Measured here, on a mode, a setting or a resize, never in the frame step.
+  function placeCaps(){
+    const m=svg.getScreenCTM(),r=stage.getBoundingClientRect(),W=stage.clientWidth,H=stage.clientHeight;
+    const to=p=>[m.a*p.x+m.e-r.left-stage.clientLeft,m.d*p.y+m.f-r.top-stage.clientTop];
+    const up=Math.max(22,34*k)+8,down=18,keep=[],N=100,done=[],len=share()*total;
+    for(let i=0;i<=N;i++){
+      const L=total*i/N,[x,y]=to(pt(L)),[x1,y1]=to(pt(Math.max(L-2,0))),[x2,y2]=to(pt(Math.min(L+2,total))),n=Math.hypot(x2-x1,y2-y1)||1;
+      for(let s=L<=len+16/k?-BAR-14:-down;s<=up;s+=7)keep.push([x+(y2-y1)/n*s,y+(x1-x2)/n*s]);
+    }
+    const anchors=[to(pt(total*.5)),to(pt(total*.3)),to(pt(0)),to(tip)];
+    const spot=(w,h,[ax,ay])=>{ // the free place nearest the part, for a box of this size
+      const cand=[];
+      for(let y=4;y<=H-h-4;y+=6)for(let x=4;x<=W-w-4;x+=6)cand.push([Math.hypot(x+w/2-ax,y+h/2-ay),x,y]);
+      cand.sort((a,b)=>a[0]-b[0]);
+      return cand.find(([,x,y])=>!keep.some(([a,b])=>a>x-5&&a<x+w+5&&b>y-5&&b<y+h+5)&&!done.some(([a,b,c2,d])=>x<a+c2+4&&x+w>a-4&&y<b+d+4&&y+h>b-4));
+    };
+    [3,2,0,1].forEach(i=>{ // the slide and the dots first: their parts are the most crowded
+      const c=caps[i];
+      c.classList.remove('gone');c.style.whiteSpace=c.style.maxWidth='';
+      if(i===1&&!tickN){c.classList.add('gone');return}
+      let w=c.offsetWidth,f=spot(w,c.offsetHeight,anchors[i]);
+      if(!f){ // no room on one line: two lines
+        c.style.whiteSpace='normal';c.style.maxWidth=Math.min(W-8,Math.round(w*.68))+'px';
+        w=c.offsetWidth;f=spot(w,c.offsetHeight,anchors[i]);
+      }
+      if(!f){c.classList.add('gone');return}
+      c.style.transform='translate('+f[1]+'px,'+f[2]+'px)';done.push([f[1],f[2],w,c.offsetHeight]);
+    });
+  }
+  // The ticks sit where each copy of the phrase starts, worked out from the same offset and copy length as the text itself
+  function drawTicks(){
+    const gap=unit/100*total,first=(offset-unit)/100*total;
+    for(let i=0;i<ticks.length;i++){
+      const t=ticks[i],L=first+i*gap,o=i<tickN?Math.max(0,Math.min((L*k-fadeAt)/14,(total*k-fadeAt-L*k)/14,1)):0;
+      if(o!==t.o){t.setAttribute('opacity',o.toFixed(2));t.o=o}
+      if(o>0){const p=pt(L),q=pt(L+3);t.setAttribute('transform','translate('+p.x.toFixed(1)+' '+p.y.toFixed(1)+') rotate('+(Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI).toFixed(1)+')')}
+    }
+  }
+  function drawLive(){
+    if(mode==='compare')ln.tp.setAttribute('startOffset',((offset-unit)/100*total).toFixed(1));
+    else if(mode==='inside')drawTicks();
+  }
+  function refreshView(){
+    if(svg.getAttribute('aria-label')!==LABEL[mode])svg.setAttribute('aria-label',LABEL[mode]);
+    if(mode!=='compare'&&svg.getAttribute('viewBox')!=='0 0 640 360')svg.setAttribute('viewBox','0 0 640 360');
+    if(mode==='compare')layoutCompare();
+    else if(mode==='inside')layoutInside();
+    describe();drawLive();
+  }
+  new ResizeObserver(()=>{if(mode!=='normal')refreshView()}).observe(stage);
 
   fill();
   start();
