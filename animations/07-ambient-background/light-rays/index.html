@@ -24,13 +24,30 @@
     :root{--ui-accent:#ffce5a}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     /* A dark room, a little lighter where the light comes in (--sx, set by the script) */
-    .stage{position:relative;overflow:hidden;--sx:6%;background:radial-gradient(ellipse 90% 75% at var(--sx) 0%,#2a1c0f,#120c08 55%,#070505)}
-    .stage[data-tone="cool"]{background:radial-gradient(ellipse 90% 75% at var(--sx) 0%,#14223a,#09101c 55%,#04060a)}
+    .stage{position:relative;overflow:hidden;--sx:6%;--r0:#2a1c0f;--r1:#120c08;--r2:#070505;background:radial-gradient(ellipse 90% 75% at var(--sx) 0%,var(--r0),var(--r1) 55%,var(--r2))}
+    .stage[data-tone="cool"]{--r0:#14223a;--r1:#09101c;--r2:#04060a}
     canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
     .fg{position:absolute;left:50%;bottom:clamp(18px,9%,40px);transform:translateX(-50%);width:min(86%,440px);text-align:center;z-index:1;pointer-events:none}
     .fg::before{content:"";position:absolute;inset:-24px -32px;z-index:-1;background:radial-gradient(closest-side,rgba(7,5,5,.6),rgba(7,5,5,0))} /* keeps the text readable where beams cross under it */
     .fg-eyebrow{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:6px}
     .fg-title{font-size:clamp(18px,3.2vw,28px);font-weight:800;line-height:1.2;color:#fff;text-wrap:balance}
+    /* See inside and Compare: the key and the half names are plain words over the picture, each on its own dark backing */
+    .key,.half{display:none}
+    .tag{position:absolute;padding:4px 10px;border-radius:999px;background:rgba(5,6,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .key{position:absolute;bottom:10px;flex-direction:column;gap:4px}
+    .kr{position:static;display:flex;align-items:center;gap:7px;padding-left:7px}
+    .kr[hidden]{display:none}
+    .kr svg{flex:none;width:22px;height:16px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .half{top:8px;left:10px}
+    .half.two{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .fg,.stage[data-hb-mode="compare"] .fg{display:none}
+    .stage[data-hb-mode="inside"] .key{display:flex;left:10px;align-items:flex-start}
+    .stage[data-hb-mode="inside"][data-from="left"] .key{left:auto;right:10px;align-items:flex-end}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    /* Compare: a divider, and a lighter patch of room at each half's own source, below the names */
+    .stage[data-hb-mode="compare"]{background:radial-gradient(ellipse 90% 75% at var(--sx) 0%,var(--r0),var(--r1) 55%,var(--r2)) 0 var(--nm)/50% calc(100% - var(--nm)) no-repeat,radial-gradient(ellipse 90% 75% at var(--sx) 0%,var(--r0),var(--r1) 55%,var(--r2)) 100% var(--nm)/50% calc(100% - var(--nm)) no-repeat,var(--r2)}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(244,244,242,.3)}
+    @media(max-width:600px){.tag{font-size:12px;padding:3px 8px}.key{gap:3px}.kr{padding-left:6px}.half.two{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -53,16 +70,33 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" data-tone="warm">
       <canvas id="cvs" aria-hidden="true"></canvas>
       <div class="fg">
         <p class="fg-eyebrow">Light rays</p>
         <p class="fg-title">A soft, slow start for your page</p>
       </div>
+      <div class="key" aria-hidden="true">
+        <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M11 3 16.5 13h-11z"/></svg>All beams start from one point</p>
+        <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M1 13h20M3 13C8 13 8.5 3 11 3S14 13 19 13"/></svg>Clear edges, bright middle</p>
+        <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M3 14C3 8 7 4 13 3"/><circle cx="9" cy="5.6" r="1.8" fill="#fff"/></svg><span>Beams swing every <b id="secs">12 to 22</b> seconds</span></p>
+        <p class="tag kr" id="kdust" data-hb-caption><svg viewBox="0 0 22 16"><circle cx="11" cy="8" r="6"/></svg>Dust glints only inside a beam</p>
+      </div>
+      <p class="tag half" aria-hidden="true" data-hb-caption>Hard edges</p>
+      <p class="tag half two" aria-hidden="true" data-hb-caption>Soft edges</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each beam is a slice of light from one point just above the box: clear at its edges, brightest in the middle. Each one swings and brightens on its own slow beat.</p>
+      <p data-hb-for="compare" hidden>Hard edges fills each beam with one flat color, so the light looks cut out of paper. Soft edges fades each beam to clear at both sides, so it reads as light in the air.</p>
     </div>
   </section>
 
@@ -169,72 +203,176 @@
   let W=0,H=0,raf=null,lastT=null;
   let TONE='warm',SPD=1,DUST=true,COUNT=8,FROM='left';
   let clock=0; // the light's own time in seconds: it moves only while the loop runs, so Play carries on with no jump
-  let rays=[],motes=[],sx=0,sy=0,base=0,reach=1,fade=null,glow=null;
+  let rays=[],motes=[];
+  // A scene is one box of light: its source, fan direction, reach and fade and glow gradients. Normal draws one; Compare two half-width ones
+  const full={},half={},NM=38; // NM: the strip above Compare's halves that holds their names
+  const key=document.querySelector('.key'),secs=document.getElementById('secs'),kdust=document.getElementById('kdust');
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const MOVING=notes.inside.textContent,reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const STILL='Inside, shown still: each beam is a slice of light from one point just above the box, clear at its edges. Each arc shows how far its beam swings.';
+  const DASH=[7,5],DASH2=[3,4],PROFILE=CONIC?[[0,0],[.2,.3],[.5,1],[.8,.3],[1,0]]:[[0,0],[0,1],[1,1],[1,0]]; // the bump: the beam gradient's own stops
+  let mode='normal',paused=false,bump=null;
+  const clearOfDots=m=>{for(const r of rays)if(Math.hypot(r.dx-m.x,r.dy-m.y)<20)return false;return true;};
 
   // The beams: each has its place in the fan (c), a width and a strength, and its own slow sway and slow brightening
   function build(){const spread=.55;
     rays=Array.from({length:COUNT},(_,i)=>({
       c:-spread+(i+.5+(Math.random()-.5)*.6)*2*spread/COUNT,w:.1+Math.random()*.16,a:.14+Math.random()*.16,
       s:.025+Math.random()*.04,f:TAU/(12+Math.random()*10),p:Math.random()*TAU,
-      g:TAU/(6+Math.random()*6),q:Math.random()*TAU,now:0,al:0
+      g:TAU/(6+Math.random()*6),q:Math.random()*TAU,now:0,al:0,d:0,lo:0,hi:0,dx:0,dy:0
     }));
+    if(W)plan();
   }
   // Specks of dust: each drifts up and sideways with a gentle wobble and twinkles on its own rhythm
   function scatter(){
     motes=Array.from({length:phone.matches?PHONE_MOTES:MOTES},()=>({x:Math.random()*W,y:Math.random()*H,r:.7+Math.random()*1.3,
-      vx:(Math.random()-.5)*6,vy:-(2+Math.random()*5),w:TAU/(5+Math.random()*6),tw:TAU/(1.5+Math.random()*3),p:Math.random()*TAU}));
+      vx:(Math.random()-.5)*6,vy:-(2+Math.random()*5),w:TAU/(5+Math.random()*6),tw:TAU/(1.5+Math.random()*3),p:Math.random()*TAU,l:0}));
   }
   // Where the light starts (a little above the top edge) and the direction its fan points; the room is lighter there too
-  function aim(){
+  function aimScene(o,w,h){
     const fx=FROM==='left'?.06:FROM==='right'?.94:.5,tx=FROM==='left'?.64:FROM==='right'?.36:.5;
-    sx=W*fx;sy=-H*.14;base=Math.atan2(H-sy,W*tx-sx);reach=Math.hypot(W,H)*1.05;
-    stage.style.setProperty('--sx',fx*100+'%');
-    fade=ctx.createRadialGradient(sx,sy,0,sx,sy,reach);
-    fade.addColorStop(0,'#000');fade.addColorStop(.5,'rgba(0,0,0,.75)');fade.addColorStop(1,'rgba(0,0,0,0)');
-    glow=ctx.createRadialGradient(sx,sy,0,sx,sy,Math.min(W,H)*.8);
-    glow.addColorStop(0,`rgba(${LIGHT[TONE]},.3)`);glow.addColorStop(1,`rgba(${LIGHT[TONE]},0)`);
+    o.w=w;o.h=h;o.sx=w*fx;o.sy=-h*.14;o.base=Math.atan2(h-o.sy,w*tx-o.sx);o.reach=Math.hypot(w,h)*1.05;
+    o.fade=ctx.createRadialGradient(o.sx,o.sy,0,o.sx,o.sy,o.reach);
+    o.fade.addColorStop(0,'#000');o.fade.addColorStop(.5,'rgba(0,0,0,.75)');o.fade.addColorStop(1,'rgba(0,0,0,0)');
+    o.glow=ctx.createRadialGradient(o.sx,o.sy,0,o.sx,o.sy,Math.min(w,h)*.8);
+    o.glow.addColorStop(0,`rgba(${LIGHT[TONE]},.3)`);o.glow.addColorStop(1,`rgba(${LIGHT[TONE]},0)`);
   }
-  // How brightly the beams light one spot: every beam that covers it adds its strength, most at its middle line
-  function lightAt(x,y){
-    const d=Math.hypot(x-sx,y-sy)/reach,ang=Math.atan2(y-sy,x-sx);
+  function aim(){
+    aimScene(full,W,H);aimScene(half,W/2,H-NM); // Compare's scenes are the same numbers for a box half as wide
+    stage.style.setProperty('--sx',(FROM==='left'?6:FROM==='right'?94:50)+'%');stage.dataset.from=FROM;plan();
+  }
+  // How brightly the beams light one spot of a scene: every beam that covers it adds its strength, most at its middle line
+  function lightAt(o,x,y){
+    const d=Math.hypot(x-o.sx,y-o.sy)/o.reach,ang=Math.atan2(y-o.sy,x-o.sx);
     if(d>=1)return 0;
     let sum=0;
     for(const r of rays){const u=(ang-r.now)*2/r.w;if(u>-1&&u<1){const b=1-u*u;sum+=r.al*b*b;}}
     return sum*(1-d);
   }
-  // The whole picture at the light's current time. Each beam is a soft wedge: a conic gradient around the source, clear at both edges
-  // and brightest in the middle, drawn with 'lighter' so overlapping beams add up. 'destination-in' with a radial gradient then fades
-  // all of them with distance, and the dust is drawn on top, as bright as the light where each speck is.
-  function draw(){
-    const rgb=LIGHT[TONE],t=clock,sweep=.06*Math.sin(t*.11),R=reach*1.3;
-    ctx.clearRect(0,0,W,H);
+  function pose(o,t,sweep){
+    for(const r of rays){
+      r.now=o.base+r.c+r.s*Math.sin(r.f*t+r.p)+sweep;
+      r.al=r.a*(.6+.4*Math.sin(r.g*t+r.q));
+    }
+  }
+  // One scene of light. Each beam is a soft wedge: a conic gradient around the source, clear at both edges and brightest in the middle,
+  // drawn with 'lighter' so overlaps add up; 'destination-in' with a radial gradient then fades them with distance. Hard edges fills each wedge flat instead.
+  function paint(o,hard,sweep){
+    const rgb=LIGHT[TONE],R=o.reach*1.3;
     ctx.globalCompositeOperation='lighter';
     if(CONIC){ // a faint haze over the whole fan, so the beams shine through lit air instead of a black room
-      const hz=ctx.createConicGradient(base-.75+sweep,sx,sy),h=1.5/TAU;
+      const hz=ctx.createConicGradient(o.base-.75+sweep,o.sx,o.sy),h=1.5/TAU;
       hz.addColorStop(0,`rgba(${rgb},0)`);hz.addColorStop(h*.3,`rgba(${rgb},.07)`);hz.addColorStop(h*.7,`rgba(${rgb},.07)`);hz.addColorStop(h,`rgba(${rgb},0)`);
-      ctx.fillStyle=hz;ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=hz;ctx.fillRect(0,0,o.w,o.h);
     }
     for(const r of rays){
-      r.now=base+r.c+r.s*Math.sin(r.f*t+r.p)+sweep;
-      r.al=r.a*(.6+.4*Math.sin(r.g*t+r.q));
-      const e=CONIC?r.w:r.w/4; // the triangle filled: wider than a soft wedge, or the middle half of one in a flat color
-      if(CONIC){const g=ctx.createConicGradient(r.now-r.w/2,sx,sy),k=r.w/TAU;
+      const e=hard?r.w/2:CONIC?r.w:r.w/4; // the triangle filled: wider than a soft wedge, or the middle half of one in a flat color
+      if(CONIC&&!hard){const g=ctx.createConicGradient(r.now-r.w/2,o.sx,o.sy),k=r.w/TAU;
         g.addColorStop(0,`rgba(${rgb},0)`);g.addColorStop(k*.2,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k*.5,`rgba(${rgb},${r.al})`);
         g.addColorStop(k*.8,`rgba(${rgb},${r.al*.3})`);g.addColorStop(k,`rgba(${rgb},0)`);ctx.fillStyle=g;}
-      else ctx.fillStyle=`rgba(${rgb},${r.al*.6})`;
-      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+Math.cos(r.now-e)*R,sy+Math.sin(r.now-e)*R);
-      ctx.lineTo(sx+Math.cos(r.now+e)*R,sy+Math.sin(r.now+e)*R);ctx.fill();
+      else ctx.fillStyle=`rgba(${rgb},${r.al*(hard?.45:.6)})`;
+      ctx.beginPath();ctx.moveTo(o.sx,o.sy);ctx.lineTo(o.sx+Math.cos(r.now-e)*R,o.sy+Math.sin(r.now-e)*R);
+      ctx.lineTo(o.sx+Math.cos(r.now+e)*R,o.sy+Math.sin(r.now+e)*R);ctx.fill();
     }
-    ctx.globalCompositeOperation='destination-in';ctx.fillStyle=fade;ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='lighter';ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='destination-in';ctx.fillStyle=o.fade;ctx.fillRect(0,0,o.w,o.h);
+    ctx.globalCompositeOperation='lighter';ctx.fillStyle=o.glow;ctx.fillRect(0,0,o.w,o.h);
     ctx.globalCompositeOperation='source-over';
+  }
+  // The dust, on top, each speck as bright as the light where it is. A Compare half shows every second speck, squeezed into the half
+  function dust(o){
     if(!DUST)return;
+    const kx=o.w/W,ky=o.h/H,step=o===half?2:1;
     ctx.fillStyle=`rgb(${SPECK[TONE]})`;
-    for(const m of motes){
-      ctx.globalAlpha=Math.min(1,.06+4*lightAt(m.x,m.y)*(.65+.35*Math.sin(m.tw*t+m.p)));
-      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,TAU);ctx.fill();
+    for(let i=0;i<motes.length;i+=step){
+      const m=motes[i],x=m.x*kx,y=m.y*ky;
+      ctx.globalAlpha=Math.min(1,.06+4*lightAt(o,x,y)*(.65+.35*Math.sin(m.tw*clock+m.p)));
+      ctx.beginPath();ctx.arc(x,y,m.r,0,TAU);ctx.fill();
     }
     ctx.globalAlpha=1;
+  }
+  // The whole picture at the light's time: one scene, or (Compare) two half-width scenes, each drawn whole in its own clip so one half's fade never erases the other
+  function draw(){
+    const sweep=.06*Math.sin(clock*.11);
+    ctx.clearRect(0,0,W,H);
+    if(mode==='compare'){
+      pose(half,clock,sweep);
+      for(let i=0;i<2;i++){
+        ctx.save();ctx.translate(i*half.w,NM);ctx.beginPath();ctx.rect(0,0,half.w,half.h);ctx.clip();
+        paint(half,i===0,sweep);dust(half);ctx.restore();
+      }
+      return;
+    }
+    pose(full,clock,sweep);paint(full,false,sweep);dust(full);
+    if(mode==='inside')marks();
+  }
+  // See inside, over the page's picture: a dashed line down each beam's middle (back to the one point it starts from), the beam nearest the middle
+  // with dashed edges and a bump across it, an arc for each beam's whole swing with a dot where it is now, and rings on the brightest specks
+  function marks(){
+    const o=full,R=o.reach,b=bump&&rays[bump.i];
+    const line=a=>{const c=Math.cos(a),s=Math.sin(a);if(s<=0)return;ctx.moveTo(o.sx-c*o.sy/s,0);ctx.lineTo(o.sx+c*R,o.sy+s*R);}; // a beam that points up never shows
+    ctx.save();ctx.lineCap='round';ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.setLineDash(DASH);ctx.lineWidth=1.5;
+    for(const r of rays){ctx.globalAlpha=.3+Math.min(.6,2.2*r.al);ctx.beginPath();line(r.now);ctx.stroke();}
+    let bx=-99;
+    if(b){
+      const hw=CONIC?b.w/2:b.w/4,d=(bump.y-o.sy)/Math.sin(b.now),chord=2*d*Math.sin(hw);bx=o.sx+d*Math.cos(b.now);
+      ctx.globalAlpha=.8;ctx.lineWidth=1;ctx.setLineDash(DASH2);ctx.beginPath();line(b.now-hw);line(b.now+hw);ctx.stroke();
+      ctx.save();ctx.translate(bx,bump.y);ctx.rotate(b.now+Math.PI/2);ctx.setLineDash([]);
+      const X=i=>(PROFILE[i][0]-.5)*chord,Y=i=>PROFILE[i][1]*bump.hb*(CONIC?1.2:1),n=PROFILE.length-1;
+      ctx.beginPath();ctx.moveTo(X(0),Y(0)); // soft beams: the stops joined smoothly; flat ones: as they are
+      for(let i=1;i<n;i++)if(CONIC)ctx.quadraticCurveTo(X(i),Y(i),(X(i)+X(i+1))/2,(Y(i)+Y(i+1))/2);else ctx.lineTo(X(i),Y(i));
+      ctx.lineTo(X(n),Y(n));ctx.closePath();
+      ctx.globalAlpha=1;ctx.lineWidth=2;ctx.fillStyle='rgba(255,255,255,.22)';ctx.fill();ctx.stroke();ctx.restore();
+    }
+    ctx.setLineDash([]);ctx.globalAlpha=.65;ctx.lineWidth=1.5;ctx.beginPath();
+    for(const r of rays)if(r.d>0){ctx.moveTo(o.sx+r.d*Math.cos(r.lo),o.sy+r.d*Math.sin(r.lo));ctx.arc(o.sx,o.sy,r.d,r.lo,r.hi);}
+    ctx.stroke();
+    ctx.globalAlpha=1;ctx.lineWidth=2;ctx.strokeStyle='rgba(5,6,10,.85)';ctx.beginPath();
+    for(const r of rays){r.dx=r.dy=-99;if(r.d>0){r.dx=o.sx+r.d*Math.cos(r.now);r.dy=o.sy+r.d*Math.sin(r.now);ctx.moveTo(r.dx+4.5,r.dy);ctx.arc(r.dx,r.dy,4.5,0,TAU);}}
+    ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(o.sx,2);ctx.lineTo(o.sx-6.5,12.5);ctx.lineTo(o.sx+6.5,12.5);ctx.closePath();ctx.fill();ctx.stroke();
+    if(DUST){ // the brightest specks first, none within a ring's width of one already picked
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.globalAlpha=.9;ctx.beginPath();
+      for(const m of motes)m.l=m.x<12||m.x>W-12||m.y<12||m.y>H-12||near(m.x,m.y,14)||Math.hypot(m.x-bx,m.y-bump.y)<bump.rad||!clearOfDots(m)?0:lightAt(o,m.x,m.y);
+      for(let k=0;k<(phone.matches?4:6);k++){
+        let pick=null;
+        for(const m of motes)if(m.l>(pick?pick.l:.04))pick=m;
+        if(!pick)break;
+        ctx.moveTo(pick.x+9,pick.y);ctx.arc(pick.x,pick.y,9,0,TAU);
+        for(const m of motes)if(Math.hypot(m.x-pick.x,m.y-pick.y)<24)m.l=0; // no other ring within a ring's width
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Where See inside puts what stays put, once and not every frame: the bump (as high as the key leaves room for, wherever its beam swings) and
+  // each beam's arc: a distance from the source at which the whole swing is inside the box, clear of the key, the bump and every other arc
+  let keyR=null;
+  const near=(x,y,m)=>keyR&&x>keyR.x-m&&x<keyR.x+keyR.w+m&&y>keyR.y-m;
+  function plan(){
+    const o=full,kw=key.offsetWidth,placed=[[o.sx,7]];
+    keyR=kw?{x:FROM==='left'?W-10-kw:10,y:H-10-key.offsetHeight,w:kw}:null;
+    bump=null;if(!rays.length)return;
+    const bi=rays.reduce((m,r,i)=>Math.abs(r.c)<Math.abs(rays[m].c)?i:m,0),r0=rays[bi],a0=o.base+r0.c,sp0=r0.s+.06,hw=CONIC?r0.w/2:r0.w/4;
+    for(const f of [.45,.37,.29,.21]){
+      const y=H*f,chord=2*(y-o.sy)/Math.sin(a0)*Math.sin(hw),hb=Math.max(20,Math.min(36,chord*.55)),x=a=>o.sx+(y-o.sy)*Math.cos(a)/Math.sin(a);
+      bump={i:bi,y,hb,x0:Math.min(x(a0-sp0),x(a0+sp0)),x1:Math.max(x(a0-sp0),x(a0+sp0)),rad:Math.max(chord/2,hb)+10};
+      if(![bump.x0,bump.x1,x(a0)].some(v=>near(v,y,bump.rad)))break;
+    }
+    const free=(x,y)=>x>8&&x<W-8&&y>8&&y<H-8&&!near(x,y,8)&&Math.hypot(Math.max(bump.x0-x,0,x-bump.x1),bump.y-y)>bump.rad;
+    rays.forEach((r,i)=>{
+      const sp=r.s+.06,Q=[],pref=i%2?.7:.3;let dlo=0,dhi=1e9;
+      r.lo=o.base+r.c-sp;r.hi=o.base+r.c+sp;r.d=0;
+      for(let k=0;k<9;k++){ // the distances at which every angle of the swing is inside the box
+        const q=r.lo+(r.hi-r.lo)*k/8,c=Math.cos(q),s=Math.sin(q);Q.push([c,s]);
+        if(s<=0)return;
+        dlo=Math.max(dlo,(8-o.sy)/s);dhi=Math.min(dhi,(H-8-o.sy)/s,c>0?(W-8-o.sx)/c:c<0?(8-o.sx)/c:1e9);
+      }
+      const ds=Array.from({length:12},(_,k)=>(k+.5)/12).sort((u,v)=>Math.abs(u-pref)-Math.abs(v-pref)); // alternate beams prefer near and far
+      for(const u of ds){
+        const d=dlo+(dhi-dlo)*u,P=Q.map(([c,s])=>[o.sx+d*c,o.sy+d*s]);
+        if(dhi>=dlo&&P.every(([x,y])=>free(x,y)&&placed.every(([px,py])=>Math.hypot(px-x,py-y)>14))){r.d=d;placed.push(...P);break;}
+      }
+    });
   }
   // The dust moves on by s seconds of the light's own time, coming back in at the bottom when it leaves at the top
   function drift(s){
@@ -259,9 +397,12 @@
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The rays on screen stay as they are while paused.
   document.addEventListener('hb:pause',e=>{
-    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    paused=e.detail.paused;words();
+    if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
   });
+  // The mode switch draws the mode at once. Every mode is drawn from the clock alone, so Normal's picture comes back exactly
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;relayout();});
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
   document.addEventListener('visibilitychange',()=>{lastT=null;});
 
@@ -286,11 +427,24 @@
   // A setting that changes the picture draws it at once, so the change shows while the loop is paused. Speed changes no
   // picture: the beams carry on from where they are, at the new pace.
   choices('tone-seg',d=>{TONE=d.tone;stage.dataset.tone=TONE;aim();draw();});
-  choices('speed-seg',d=>{SPD=+d.spd;});
-  document.getElementById('dust-tog').addEventListener('change',e=>{DUST=e.target.checked;draw();});
+  choices('speed-seg',d=>{SPD=+d.spd;keySecs();});
+  document.getElementById('dust-tog').addEventListener('change',e=>{DUST=e.target.checked;kdust.hidden=!DUST;relayout();});
+  slowTog.addEventListener('change',keySecs);
   choices('count-seg',d=>{COUNT=+d.n;build();draw();});
   choices('from-seg',d=>{FROM=d.from;aim();draw();});
 
+  // See inside's key says how long a beam takes to swing: 12 to 22 seconds at Normal speed, longer at Slow and in slow motion
+  function keySecs(){
+    const k=(slowTog.checked?3:1)/SPD,t=Math.round(12*k)+' to '+Math.round(22*k);
+    if(secs.textContent!==t)secs.textContent=t;relayout();
+  }
+  // The See inside words say "shown still" only while reduced motion has the loop paused; Compare's say so where soft beams cannot be drawn
+  function words(){const t=reduced.matches&&paused?STILL:MOVING;if(notes.inside.textContent!==t)notes.inside.textContent=t;}
+  function relayout(){if(W){plan();draw();}}
+  if(!CONIC)notes.compare.textContent='This browser cannot draw soft beams, so Hard edges and Soft edges both look flat here. In a current browser, Soft edges fades each beam to clear at both sides.';
+  reduced.addEventListener('change',words);
+  if(document.fonts)document.fonts.ready.then(()=>{if(mode==='inside')relayout();});
+  stage.style.setProperty('--nm',NM+'px');
   build();resize();
   window.addEventListener('resize',resize);
   // A window that crosses the phone size changes how many specks of dust it shows, even when the stage keeps its size
