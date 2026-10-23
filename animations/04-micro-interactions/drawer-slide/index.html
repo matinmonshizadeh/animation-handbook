@@ -86,6 +86,7 @@
     .stage[data-hb-mode="inside"][data-side="bottom"] .box{align-self:start}
     .stage[data-hb-mode="inside"] .app-header,.stage[data-hb-mode="inside"] .drawer-header{padding-block:6px}
     .stage[data-hb-mode="inside"] .app-body{overflow:hidden;min-height:0}
+    .stage[data-hb-mode="inside"] .content-line{flex-shrink:0}
     .stage[data-hb-mode="inside"] .drawer.top,.stage[data-hb-mode="inside"] .drawer.bottom{height:var(--dh)}
     .stage[data-hb-mode="inside"] .drawer{opacity:.35;transition:transform var(--close-dur) var(--close-ease),opacity var(--close-dur) var(--close-ease)}
     .stage[data-hb-mode="inside"] .drawer.open{opacity:1;transition:transform var(--open-dur) var(--open-ease),opacity var(--open-dur) var(--open-ease)}
@@ -127,6 +128,11 @@
     .stage[data-hb-mode="compare"][data-side="right"].posed .box:not(.twin) .arrow.in{left:auto;right:calc(var(--pose)*var(--drawer-w) + 6px)}
     .stage[data-hb-mode="compare"][data-side="top"].posed .box:not(.twin) .arrow.in{left:calc(50% - 14px);top:calc(var(--pose)*200px + 14px)}
     .stage[data-hb-mode="compare"][data-side="bottom"].posed .box:not(.twin) .arrow.in{left:calc(50% - 14px);top:auto;bottom:calc(var(--pose)*200px + 14px)}
+    /* The real menu button stays drawn above the caught drawer, so it can be seen and pressed. A Top menu keeps a gutter for it, and on
+       narrow stages, where the drawer's own × would meet it, the caught drawer leaves the × out. */
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .hamburger{position:relative;z-index:11;background:var(--ui-bg)}
+    .stage[data-hb-mode="compare"][data-side="top"] .drawer-body{padding-left:56px}
+    @media(max-width:760px){.stage[data-hb-mode="compare"][data-side="left"].posed .box:not(.twin) .close-btn,.stage[data-hb-mode="compare"][data-side="top"].posed .box:not(.twin) .close-btn{visibility:hidden}}
     @media(min-width:601px){.stage[data-hb-mode="compare"][data-side="bottom"] .half{top:18px;left:auto;right:8px}}
     /* A short stage cannot hold the open menu and a half's name below it: each drawer gives up some width, so the name sits beside it */
     @media(min-width:601px) and (max-height:620px){.stage[data-hb-mode="compare"]{--drawer-w:min(280px,58%)}}
@@ -456,7 +462,7 @@
   function notes(){
     if(motionOk)return;
     setText(nIn,isOpen?'Inside, the outline marks where the drawer waits; your device is set to reduce motion, so it appears over the page at once.':'Inside, shown still: the drawer waits just off the screen, outlined where it parks; with motion on, it slides in over the page, slowing as it lands.');
-    setText(nCmp,posed||!isOpen?'Shown still: Appears at once is already open; Slides in is caught part way in from its edge.':'Both halves show the menu at once, because your device is set to reduce motion. Close it to see the still again.');
+    setText(nCmp,posed||!isOpen?'Shown still: Appears at once is already open; Slides in is caught part way in from its edge.':'Appears at once and Slides in both show the open menu, because your device is set to reduce motion. Close it to see the still again.');
   }
   document.addEventListener('hb:mode',e=>{mode=e.detail.mode;words();pose();measure()});
   addEventListener('resize',measure);
