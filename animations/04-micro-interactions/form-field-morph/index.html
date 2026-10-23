@@ -21,9 +21,9 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Form Field Morph", "name": "Form Field Morph", "description": "The label moves up out of the way as you type. Best for sign-up forms.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/form-field-morph/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Form Field Morph"}</script>
   <style>
-    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--field-dur:200ms;--float-dist:22px;--label-scale:0.8;--focus-color:#58a6ff}
+    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--field-dur:200ms;--float-dist:22px;--label-scale:0.8;--focus-color:#58a6ff;--box-rise:-12px;--box-scale:0.78}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0b0d}
     .form{display:flex;flex-direction:column;gap:16px;width:100%;max-width:320px}
     /* A window this short gives the stage 260px, less than the three fields need: the stage and the form give up some spacing, the fields keep their size */
     @media(min-width:601px) and (max-height:620px){.stage{padding:8px}.form{gap:12px}}
@@ -31,8 +31,8 @@
     .float-field{position:relative;padding-top:20px}
     .float-field label{position:absolute;left:0;top:20px;height:44px;display:flex;align-items:center;font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
     .float-field:has(textarea) label{top:26px;height:auto}
-    .float-field input,.float-field textarea{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
-    .float-field textarea{min-height:56px;resize:none}
+    .float-field input,.float-field textarea,.float-field .tw-in{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:6px 0;outline:none;transition:border-color var(--field-dur) ease;min-height:44px}
+    .float-field textarea,.float-field .ta{min-height:56px;resize:none}
     .float-field .underline{position:absolute;bottom:0;left:0;width:100%;height:2px;background:var(--focus-color);transform:scaleX(0);transform-origin:left center;transition:transform var(--field-dur) ease}
     /* A field looks focused while it has the focus (:focus-within) and while Show me points at it (.is-demo); Show me never moves the real focus */
     .float-field:is(:focus-within,.is-demo) .underline{transform:scaleX(1)}
@@ -41,15 +41,73 @@
     /* Variant 2: box input */
     .box-field{position:relative;padding-top:20px}
     .box-field label{position:absolute;left:12px;top:calc(20px + 10px);font-size:12px;color:var(--ui-muted);transition:transform var(--field-dur) ease,color var(--field-dur) ease;pointer-events:none;transform-origin:left center}
-    .box-field input{display:block;width:100%;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:24px 12px 8px;outline:none;border-radius:6px;transition:border-color var(--field-dur) ease,background var(--field-dur) ease;min-height:56px}
-    .box-field:is(:focus-within,.is-demo) input{border-color:var(--focus-color);background:color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)}
-    .box-field:is(:focus-within,.is-demo) label,.box-field.filled label{transform:translateY(-12px) scale(0.78);color:var(--focus-color)}
+    .box-field input,.box-field .tw-in{display:block;width:100%;background:var(--ui-bg);border:1px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:24px 12px 8px;outline:none;border-radius:6px;transition:border-color var(--field-dur) ease,background var(--field-dur) ease;min-height:56px}
+    .box-field:is(:focus-within,.is-demo) :is(input,.tw-in){border-color:var(--focus-color);background:color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)}
+    .box-field:is(:focus-within,.is-demo) label,.box-field.filled label{transform:translateY(var(--box-rise)) scale(var(--box-scale));color:var(--focus-color)}
     /* The fields show focus with their own line, label color and border, so the site focus ring (0,2,1) is switched off on them.
        The .stage in front (0,3,1) outranks it and the stage's inward ring rule (0,3,0). */
     .stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}
     /* iOS Safari zooms in on a field whose text is smaller than 16px */
-    @media(pointer:coarse){.float-field input,.float-field textarea,.box-field input{font-size:16px}}
-    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field textarea,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
+    @media(pointer:coarse){.float-field input,.float-field textarea,.box-field input,.float-field .tw-in,.box-field .tw-in,.float-field .pose-t{font-size:16px}}
+    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field textarea,.float-field .underline,.box-field label,.box-field input,.box-field .tw-in{transition:none!important}}
+    /* See inside and Compare: nothing below shows in Normal. See inside draws the label's two places from the page's own variables
+       (the raised place is the label's own move) and joins them with an arrow; Compare puts an inert copy of the form with only a
+       hint inside each field (a placeholder) beside the real one. */
+    .twin,.views,.gh,.pose-t,.cap{display:none}
+    .views{position:absolute;inset:0;pointer-events:none}
+    .gh,.pose-t,.float-field::before{pointer-events:none}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .views path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .lead{stroke:rgba(244,244,242,.55);stroke-width:1.5}
+    .dots{stroke:#f4f4f2;stroke-width:6}
+    .arrow{stroke:var(--focus-color);stroke-width:2}
+    .cap{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.3 var(--hb-font)}
+    .gh{position:absolute;left:-4px;top:20px;height:44px;align-items:center;transform-origin:4px 50%}
+    .gh i{display:block;padding:2px 4px;border:2px dashed rgba(244,244,242,.6);border-radius:5px;font-style:normal;font-size:12px;color:transparent}
+    .gh-up{transform:translateY(calc(var(--float-dist)*-1)) scale(var(--label-scale))}
+    .gh-box{left:8px;top:26px;height:auto;transform:translateY(var(--box-rise)) scale(var(--box-scale))}
+    .gh-up i,.gh-box i{border-color:var(--focus-color);border-width:calc(2px / var(--label-scale))}
+    .gh-box i{border-width:calc(2px / var(--box-scale))}
+    .form .tw-in{display:flex;align-items:center;min-width:0;overflow:hidden;white-space:pre}
+    .form .tw-in.ta{align-items:flex-start;white-space:pre-wrap;overflow-wrap:anywhere;height:56px}
+    .tw-in:empty::before{content:attr(data-h);color:var(--ui-muted)}
+    .pose-t{position:absolute;left:0;top:20px;height:44px;align-items:center;font-size:13px;color:var(--ui-text)}
+    .stage[data-hb-mode="inside"] .views{display:block}
+    .stage[data-hb-mode="inside"] .gh{display:flex}
+    .stage[data-hb-mode="inside"] .in-c{display:block;text-align:right}
+    .stage[data-hb-mode="inside"] .float-field::before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:color-mix(in srgb,var(--focus-color) 32%,transparent)}
+    @media(min-width:601px){.stage[data-hb-mode="inside"] .form{max-width:min(320px,calc(100% - 240px))}}
+    /* Compare: the copy (Placeholder only) first, left or on top, and the real form second */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:38px 0 8px}
+    .stage[data-hb-mode="compare"]::before{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .form{width:calc(100% - 24px);margin:0 auto;gap:12px}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="compare"] .views svg{display:none}
+    .stage[data-hb-mode="compare"] .cmp-n{display:block;top:8px;left:12px}
+    .stage[data-hb-mode="compare"] .cmp-n.second{left:calc(50% + 12px)}
+    .stage[data-hb-mode="compare"] .float-field.pose label{transform:translateY(calc(var(--float-dist)*-1)) scale(var(--label-scale));color:var(--focus-color)}
+    .stage[data-hb-mode="compare"] .float-field.pose .pose-t{display:flex}
+    /* The copy looks as focused as the real field (or as Show me points at it), and keeps its hint */
+    .stage[data-hb-mode="compare"]:has(#ff-name:is(:focus-within,.is-demo)) .twin>:nth-child(1) .underline,
+    .stage[data-hb-mode="compare"]:has(#ff-msg:is(:focus-within,.is-demo)) .twin>:nth-child(3) .underline{transform:scaleX(1)}
+    .stage[data-hb-mode="compare"]:has(#ff-company:is(:focus-within,.is-demo)) .twin .box-field .tw-in{border-color:var(--focus-color);background:color-mix(in srgb,var(--focus-color) 4%,#0b0b0d)}
+    /* Short windows: the half names need room, so each half drops Message */
+    @media(min-width:601px) and (max-height:640px){
+      .stage[data-hb-mode="compare"] #ff-msg,.stage[data-hb-mode="compare"] .twin>:nth-child(3){display:none}
+    }
+    /* Phones: See inside keeps only Full name, with room at its left for the arrow; Compare stacks two halves, each only Full name */
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{padding-left:34px}
+      .stage[data-hb-mode="inside"] .in-c{text-align:left}
+      .stage[data-hb-mode="inside"] #ff-company,.stage[data-hb-mode="inside"] #ff-msg,.stage[data-hb-mode="inside"] .in-box,
+      .stage[data-hb-mode="compare"] #ff-company,.stage[data-hb-mode="compare"] #ff-msg,.stage[data-hb-mode="compare"] .twin>:nth-child(n+2){display:none}
+      .stage[data-hb-mode="compare"]{grid-template-columns:1fr;grid-template-rows:1fr 1fr;padding:0}
+      .stage[data-hb-mode="compare"]::before{left:12px;right:12px;top:50%;bottom:auto;width:auto;height:1px}
+      .stage[data-hb-mode="compare"] .form{width:calc(100% - 32px);margin-top:30px}
+      .stage[data-hb-mode="compare"] .cmp-n{top:6px}
+      .stage[data-hb-mode="compare"] .cmp-n.second{left:12px;top:calc(50% + 6px)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -72,16 +130,29 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap a field and type, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="form twin" aria-hidden="true" inert>
+        <div class="float-field"><span class="tw-in" data-h="Full name"></span><div class="underline"></div></div>
+        <div class="box-field"><span class="tw-in" data-h="Company"></span></div>
+        <div class="float-field"><span class="tw-in ta" data-h="Message"></span><div class="underline"></div></div>
+      </div>
       <div class="form">
         <div class="float-field" id="ff-name">
           <label for="inp-name">Full name</label>
           <input id="inp-name" type="text" placeholder=" " autocomplete="off">
           <div class="underline"></div>
+          <span class="gh gh-rest" aria-hidden="true"><i>Full name</i></span><span class="gh gh-up" aria-hidden="true"><i>Full name</i></span>
+          <span class="pose-t" aria-hidden="true"></span>
         </div>
         <div class="box-field" id="ff-company">
           <label for="inp-company">Company</label>
           <input id="inp-company" type="text" placeholder=" " autocomplete="off">
+          <span class="gh gh-box" aria-hidden="true"><i>Company</i></span>
         </div>
         <div class="float-field" id="ff-msg">
           <label for="inp-msg">Message</label>
@@ -89,10 +160,24 @@
           <div class="underline"></div>
         </div>
       </div>
+      <div class="views" aria-hidden="true">
+        <svg><path class="arrow" id="v-arrow"/><path class="lead" id="v-lead"/><path class="dots" id="v-dots"/></svg>
+        <span class="cap in-c" id="c-up" data-hb-caption></span>
+        <span class="cap in-c" id="c-stay" data-hb-caption>Stays up while the field has text</span>
+        <span class="cap in-c" id="c-rest" data-hb-caption>Rests inside the field, like a hint</span>
+        <span class="cap in-c" id="c-line" data-hb-caption>A line grows from the left</span>
+        <span class="cap in-c in-box" id="c-box" data-hb-caption>The box style rises inside its border</span>
+        <span class="cap cmp-n" data-hb-caption>Placeholder only</span>
+        <span class="cap cmp-n second" data-hb-caption>Floating label</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the label is drawn in both of its places: inside the empty field, and raised and smaller once you click or type. Click a field and type, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Shown with a name typed in: Placeholder only has lost its hint, so you forget what the field was for; Floating label keeps it above the text. Click and type, or Show me.</p>
     </div>
   </section>
 
@@ -189,19 +274,25 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.querySelector('.stage');
-  const wraps=[...stage.querySelectorAll('.float-field,.box-field')];
+  const form=stage.querySelector('.form:not(.twin)');
+  const wraps=[...form.querySelectorAll('.float-field,.box-field')];
   const nameWrap=document.getElementById('ff-name');
   const nameInput=document.getElementById('inp-name');
   const companyWrap=document.getElementById('ff-company');
   const slowTog=document.getElementById('slow-tog');
   const vars=document.documentElement.style;
-  const parts=[...stage.querySelectorAll('label,.underline,input,textarea')]; // what eases; toRest() switches it off for a moment
+  const parts=[...form.querySelectorAll('label,.underline,input,textarea')]; // what eases; toRest() switches it off for a moment
   const typed='Ada Lovelace';
   let f=200,runTimers=[];
+  // See inside and Compare: the copy's texts, the mode on show, whether Show me was pressed by a mode button, whether a press is held in
+  // the stage, and the visitor's own text while a run played by a mode button has it set aside
+  const copies=[...stage.querySelectorAll('.twin .tw-in')],copyParts=[...stage.querySelectorAll('.twin .underline,.twin .tw-in')];
+  let mode='normal',modePress=false,pressing=false,aside=null;
 
   // A field is filled when it holds more than spaces; a filled field keeps its label up after the focus has left.
   function syncFilled(wrap){
     wrap.classList.toggle('filled',wrap.querySelector('input,textarea').value.trim().length>0);
+    applyPose();
   }
   wraps.forEach(wrap=>{
     const inp=wrap.querySelector('input,textarea');
@@ -218,35 +309,46 @@
   }
   function running(){return runTimers.length>0}
   // Stopping also takes back what the run did: no field looks focused and the name the run typed is gone, so a field the
-  // visitor clicks into starts empty.
+  // visitor clicks into starts empty. A run played by See inside or Compare gives back the text the visitor had typed.
   function stopRun(){
+    const was=running();
     runTimers.forEach(clearTimeout);runTimers=[];
     wraps.forEach(w=>w.classList.remove('is-demo'));
-    nameInput.value='';syncFilled(nameWrap);
+    if(was){nameInput.value='';syncFilled(nameWrap)}
+    restoreAside();
+  }
+  function restoreAside(){
+    if(!aside)return;
+    const kept=aside;aside=null;
+    wraps.forEach((w,i)=>{w.querySelector('input,textarea').value=kept[i];syncFilled(w)});
   }
   // A run starts from an empty form, put there without animating: the transitions are turned off, the fields are emptied, a reflow
   // makes it stick, and the transitions come back.
   function toRest(){
-    parts.forEach(el=>{el.style.transition='none'});
+    [...parts,...copyParts].forEach(el=>{el.style.transition='none'});
     wraps.forEach(w=>{w.classList.remove('is-demo','filled');w.querySelector('input,textarea').value=''});
     void stage.offsetWidth;
-    parts.forEach(el=>{el.style.transition=''});
+    [...parts,...copyParts].forEach(el=>{el.style.transition=''});
   }
   // Full name looks focused and is typed into, one letter every 70ms once its label has risen; then Company looks focused for a
   // moment and the name is cleared. The run only adds a class and sets values: it never moves the real focus, so it cannot take
   // the place of a visitor who is typing. A real press on Show me lets go of a field that still has the focus (this also closes
-  // the phone keyboard); the press the shared script makes on arrival leaves a visitor who is already in a field alone.
+  // the phone keyboard); the press the shared script makes on arrival leaves a visitor who is already in a field alone, while the
+  // press it makes after See inside or Compare (modePress) plays the run, keeping the text the visitor had typed.
   document.getElementById('btn-demo').addEventListener('click',e=>{
     const inStage=stage.contains(document.activeElement);
-    if(!e.isTrusted&&inStage)return;
+    if(!e.isTrusted&&inStage&&!modePress)return;
     stopRun();
     if(inStage)document.activeElement.blur();
+    if(modePress)aside=wraps.map(w=>w.querySelector('input,textarea').value);
+    nameWrap.classList.remove('pose');
     toRest();
     later(()=>nameWrap.classList.add('is-demo'),0,0);
     [...typed].forEach((_,k)=>later(()=>{nameInput.value=typed.slice(0,k+1);syncFilled(nameWrap)},f,100+70*k));
     later(()=>{nameWrap.classList.remove('is-demo');companyWrap.classList.add('is-demo')},f,1300);
     later(()=>companyWrap.classList.remove('is-demo'),2*f,2000);
-    later(()=>{nameInput.value='';syncFilled(nameWrap)},3*f,2400);
+    later(()=>{nameInput.value='';syncFilled(nameWrap);restoreAside()},3*f,2400);
+    applyPose();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A Tab press from outside the form sends no
   // hb:input (the key goes to the element that had the focus), but the run never moves the focus, so any focus arriving in the
@@ -259,12 +361,97 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      drawInside();
     }));
   }
   choices('speed-seg',d=>{f=+d.ms;vars.setProperty('--field-dur',f+'ms')});
   choices('dist-seg',d=>{vars.setProperty('--float-dist',d.px+'px')});
   choices('scale-seg',d=>{vars.setProperty('--label-scale',d.s)});
   choices('color-sw',d=>{vars.setProperty('--focus-color',d.c)});
+
+  // Compare rests on a name typed in: the real Full name shows its label raised with the sample text drawn over it (a look, not a
+  // value) and the copy shows the text and no hint. The pose lifts at once while a field has the focus, a press is held in the stage
+  // or Show me runs, and returns when none of these holds and the real name is empty. The copy's texts follow the real ones.
+  function applyPose(next){
+    const inField=stage.contains(next===undefined?document.activeElement:next);
+    const on=mode==='compare'&&!running()&&!pressing&&!inField&&!nameInput.value;
+    nameWrap.classList.toggle('pose',on);
+    wraps.forEach((w,i)=>{const v=on&&i===0?typed:w.querySelector('input,textarea').value;if(copies[i].textContent!==v)copies[i].textContent=v});
+  }
+  stage.addEventListener('pointerdown',()=>{pressing=true;applyPose()},true);
+  ['pointerup','pointercancel','click'].forEach(t=>document.addEventListener(t,e=>{
+    if(pressing&&(t!=='pointerup'||e.pointerType==='mouse')){pressing=false;applyPose()}
+  },true));
+  stage.addEventListener('focusin',()=>applyPose());
+  stage.addEventListener('focusout',e=>applyPose(e.relatedTarget));
+
+  // See inside: the label's two places (dashed outlines drawn by the stylesheet from the same variables as the label), an arrow
+  // between them, and captions with a line to what they name: beside the form on a wide box, over and under Full name on a phone.
+  const $=id=>document.getElementById(id);
+  const cap={up:$('c-up'),stay:$('c-stay'),rest:$('c-rest'),line:$('c-line'),box:$('c-box')};
+  const ghRest=nameWrap.querySelector('.gh-rest i'),ghUp=nameWrap.querySelector('.gh-up i'),ghBox=companyWrap.querySelector('.gh-box i');
+  const insideNote=document.querySelector('[data-hb-for="inside"]'),NOTE=insideNote.textContent;
+  const RM_NOTE=NOTE.replace(/\. Click a field.*$/,'; with reduced motion on it moves at once.');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),phoneMQ=matchMedia('(max-width:600px)');
+  const say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  nameWrap.querySelector('.pose-t').textContent=typed;
+  function drawInside(){
+    if(mode!=='inside')return;
+    say(insideNote,reduce.matches?RM_NOTE:NOTE);
+    const root=getComputedStyle(document.documentElement),dist=parseFloat(root.getPropertyValue('--float-dist')),size=parseFloat(root.getPropertyValue('--label-scale')),ms=f*(slowTog.checked?3:1);
+    const time=ms<160?'a tenth of a second':ms<260?'a fifth of a second':ms<480?'a third of a second':ms<800?'half a second':'a second';
+    say(cap.up,`${dist<19?'Rises a little':dist<25?'Rises':'Rises well clear'} and shrinks to ${size<.75?'about two thirds':size<.85?'about four fifths':'nine tenths'} when you click or type, ${reduce.matches?'at once':'in about '+time}`);
+    const phone=phoneMQ.matches,W=stage.clientWidth,H=stage.clientHeight,sb=stage.getBoundingClientRect();
+    const rel=el=>{const r=el.getBoundingClientRect();return{l:r.left-sb.left-stage.clientLeft,t:r.top-sb.top-stage.clientTop,r:r.right-sb.left-stage.clientLeft,b:r.bottom-sb.top-stage.clientTop}};
+    form.style.translate='';
+    const fw=form.offsetWidth,GUT=56,capW=phone?fw:Math.min(290,W-24-GUT-fw);
+    Object.values(cap).forEach(c=>{c.style.left=c.style.top='0px';c.style.maxWidth=capW+'px'}); // measured from the box's corner
+    cap.rest.style.maxWidth=(phone?fw-34:capW)+'px';
+    // wide box: the captions and the form sit together in the middle
+    if(!phone)form.style.translate=((W-capW-GUT-fw)/2+capW+GUT-rel(form).l)+'px 0';
+    const wr=rel(nameWrap),up=rel(ghUp),rs=rel(ghRest),bx=rel(ghBox),um=(up.t+up.b)/2,rm=(rs.t+rs.b)/2,L=[],D=[];
+    const dot=(x,y)=>D.push(`M${x} ${y}h0`);
+    $('v-arrow').setAttribute('d',`M${rs.l} ${rm}H${rs.l-14}V${um}H${up.l-1}M${up.l-7} ${um-3.5}L${up.l-1} ${um}L${up.l-7} ${um+3.5}`);
+    if(phone){
+      const x=wr.l,put=(el,top)=>{el.style.left=x+'px';el.style.top=top+'px';return top+el.offsetHeight};
+      const top=up.t-16-cap.stay.offsetHeight-4-cap.up.offsetHeight;
+      put(cap.stay,put(cap.up,top)+4);
+      L.push(`M${x+14} ${up.t-16}V${up.t+2}`);dot(x+14,up.t+2);
+      const restTop=wr.b+16,lineTop=put(cap.rest,restTop)+8;
+      put(cap.line,lineTop);cap.line.style.left=(wr.r-cap.line.offsetWidth)+'px';
+      L.push(`M${x+30} ${restTop}V${rs.b-2}M${wr.r-12} ${lineTop}V${wr.b-1}`);dot(x+30,rs.b-2);dot(wr.r-12,wr.b-1);
+    }else{
+      const gx=wr.l-GUT;
+      let y=-2;
+      const rows=[[[cap.up,cap.stay],up.l+2,up.t+3],[[cap.rest],rs.l+2,rs.b-4],[[cap.line],wr.l,wr.b-1],[[cap.box],bx.l,(bx.t+bx.b)/2]].map(([els,ax,ay])=>{
+        const h=els.reduce((n,e)=>n+e.offsetHeight,0)+4*(els.length-1),top=Math.max(ay-h/2,y+8);
+        y=top+h;return{els,ax,ay,h,top};
+      });
+      const lift=Math.max(0,Math.min(y-(H-6),rows[0].top-6));
+      rows.forEach(r=>{
+        let t=r.top-lift;
+        L.push(`M${gx+6} ${t+r.h/2}L${gx+24} ${r.ay}H${r.ax}`);dot(r.ax,r.ay);
+        r.els.forEach(e=>{e.style.left=(gx-e.offsetWidth)+'px';e.style.top=t+'px';t+=e.offsetHeight+4});
+      });
+    }
+    $('v-lead').setAttribute('d',L.join(''));$('v-dots').setAttribute('d',D.join(''));
+  }
+  new ResizeObserver(drawInside).observe(stage);
+  document.fonts.ready.then(drawInside);
+  slowTog.addEventListener('change',drawInside);
+  reduce.addEventListener('change',drawInside);
+
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it;
+  // that press runs right after this event, so a flag lets the Show me handler tell it from the arrival press.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    modePress=true;queueMicrotask(()=>{modePress=false});
+    if(mode!=='inside')form.style.translate='';
+    const posed=nameWrap.classList.contains('pose');
+    applyPose();
+    if(posed&&!nameWrap.classList.contains('pose')){const l=nameWrap.querySelector('label');l.style.transition='none';void l.offsetWidth;l.style.transition=''} // a pose a mode press takes away goes at once
+    drawInside();
+  });
 </script>
 </body>
 </html>
