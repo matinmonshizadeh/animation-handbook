@@ -54,6 +54,54 @@
     .grad-custom{background-image:linear-gradient(90deg,var(--c1),var(--c2),var(--c1))}
     @keyframes grad-flow{from{background-position:0% 50%}to{background-position:300% 50%}}
     @keyframes grad-spin{from{--ang:0deg}to{--ang:360deg}}
+    /* See inside and Compare. In a mode the stage keeps its height because .gt-ghost, a hidden word of Normal's size, stays in the
+       flow; the real word leaves the flow and is laid over a hidden "slot" word that the view lays out (the script places it). */
+    .gt-ghost,.gt-in,.gt-cmp{display:none}
+    .gt-ghost,.gt-slot{animation:none;background:none;visibility:hidden}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    .stage[data-hb-mode="inside"] .gt-ghost,.stage[data-hb-mode="compare"] .gt-ghost{display:block}
+    .stage[data-hb-mode="inside"] #grad-text,.stage[data-hb-mode="compare"] #grad-text{position:absolute;z-index:1;font-size:var(--gt-fs)}
+    .stage[data-hb-mode="inside"] .gt-in{display:flex}
+    .stage[data-hb-mode="compare"] .gt-cmp{display:grid}
+    .gt-in,.gt-cmp{position:absolute;inset:0;padding:12px;pointer-events:none}
+    .gt-in .grad-text,.gt-cmp .grad-text{font-size:var(--gt-fs)}
+    .gt-cap{margin:0;max-width:100%;padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);text-align:center}
+    /* See inside: the faint box (the gradient, not clipped to the letters), then the band with the box as a window, or the wheel */
+    .gt-in{flex-direction:column;align-items:center;gap:6px}
+    .gt-in>:first-child{margin-top:auto}
+    .gt-in>:last-child{margin-bottom:auto}
+    .gt-in .gt-slot{position:relative}
+    .gt-in .gt-slot::after{content:"";position:absolute;inset:-2px;border:2px solid rgba(244,244,242,.55);border-radius:6px;visibility:visible}
+    .gt-fill{position:absolute;inset:0;background-clip:border-box;-webkit-background-clip:border-box;opacity:.2;visibility:visible}
+    .gt-band{position:relative;flex:none;width:var(--gw);height:var(--gh);margin-top:6px}
+    .gt-strip{display:block;position:absolute;left:0;top:0;width:calc(var(--bw)*4);height:var(--bh);border-radius:4px;
+      background-size:calc(var(--bw)*3) calc(var(--bh)*3);background-position:0 calc(var(--bh)*-1)}
+    .gt-strip::before,.gt-strip::after{content:"";position:absolute;top:0;bottom:0;border:0 dashed rgba(244,244,242,.55)}
+    .gt-strip::before{left:0;width:var(--bw);border-width:2px;border-radius:4px}
+    .gt-strip::after{left:75%;border-left-width:2px}
+    .gt-wheel{display:none;position:absolute;inset:0;border-radius:50%}
+    .gt-win{position:absolute;left:-3px;top:-3px;width:calc(var(--bw) + 6px);height:calc(var(--bh) + 6px);border:3px solid var(--ui-accent);border-radius:6px;
+      animation:gt-slide linear infinite;animation-duration:calc(var(--grad-dur)/2)}
+    .gt-win .gt-cap{position:absolute;left:-3px;top:calc(100% + 6px);white-space:nowrap}
+    .gt-in.wheel .gt-wheel{display:block}
+    .gt-in.wheel .gt-strip{display:none}
+    .gt-in.wheel .gt-win{left:calc(50% - var(--bw)/2 - 3px);top:calc(50% - var(--bh)/2 - 3px);animation:none}
+    .gt-in.wheel .gt-win .gt-cap{left:50%;transform:translateX(-50%)}
+    @keyframes gt-slide{to{transform:translateX(calc(var(--bw)*3))}}
+    /* Compare: two halves, side by side or stacked; the first lets its band end on the color before it, so the repeat has an edge */
+    .gt-cmp{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .gt-cmp.stack{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+    .gt-half{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 8px 8px;border:1px solid rgba(255,255,255,.14);border-radius:8px;overflow:hidden}
+    .gt-name{position:absolute;top:6px;left:6px;white-space:nowrap}
+    /* the note under the first word has a room of the same size under the second, so the two words stand at the same height */
+    .gt-when,.gt-half:last-child::after{position:relative;flex:none;height:22px;margin-top:8px;white-space:nowrap}
+    .gt-half:last-child::after{content:""}
+    .gt-when::before{content:"";position:absolute;left:50%;bottom:100%;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--ui-accent)}
+    .stage[data-hb-mode="compare"]:not(.hb-paused) .gt-when{visibility:hidden}
+    .gt-seam.grad-linear{background-image:linear-gradient(90deg,#58a6ff,#56d364,#d2a8ff,#ffa657,#ffa657)}
+    .gt-seam.grad-conic{background-image:conic-gradient(from var(--ang),#58a6ff,#56d364,#d2a8ff,#ffa657,#ffa657)}
+    .gt-seam.grad-multi{background-image:linear-gradient(135deg,#f85149,#ffa657,#56d364,#58a6ff,#d2a8ff,#d2a8ff)}
+    .gt-seam.grad-custom{background-image:linear-gradient(90deg,var(--c1),var(--c2),var(--c2))}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -76,12 +124,35 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div class="grad-text grad-linear" id="grad-text">Flow</div>
+      <div class="grad-text gt-ghost" aria-hidden="true" inert data-t>Flow</div>
+      <div class="gt-in" aria-hidden="true" inert>
+        <p class="gt-cap" data-hb-caption>Colors fill the whole box; the letters let them through</p>
+        <div class="grad-text gt-slot"><span data-t>Flow</span><i class="gt-fill grad-text grad-linear"></i></div>
+        <div class="gt-band">
+          <i class="gt-strip grad-linear"></i><i class="gt-wheel grad-conic"></i>
+          <div class="gt-win"><p class="gt-cap" data-hb-caption>In the box</p></div>
+        </div>
+        <p class="gt-cap" data-hb-caption>A band three times as wide slides behind, one band every two seconds</p>
+      </div>
+      <div class="gt-cmp" aria-hidden="true" inert>
+        <div class="gt-half"><p class="gt-cap gt-name" data-hb-caption>Hard seam</p><div class="grad-text gt-seam grad-linear" aria-hidden="true" inert data-t>Flow</div><p class="gt-cap gt-when" data-hb-caption>Where the band starts over</p></div>
+        <div class="gt-half"><p class="gt-cap gt-name" data-hb-caption>Seamless</p><div class="grad-text gt-slot"><span data-t>Flow</span></div></div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the gradient fills the whole box behind the word, shown faint, and the letters are holes that let it through. The band is three times as wide and keeps sliding past.</p>
+      <p data-hb-for="compare" hidden>Hard seam ends its band on a different color than it starts with, so a sharp edge slides through the letters. Seamless ends where it began, so the colors flow on without a break.</p>
     </div>
   </section>
 
@@ -206,6 +277,7 @@
     const isCustom=d.cls==='grad-custom';
     c1Setting.hidden=!isCustom;
     c2Setting.hidden=!isCustom;
+    refresh();
   });
   // How far through its pass (0 to 1) an animation is. It is read from the animation itself, so it also holds
   // while the animation is paused or slowed down.
@@ -219,10 +291,106 @@
     const kept=gradText.getAnimations().map(a=>[a,progressOf(a)]);
     vars.setProperty('--grad-dur',d.dur);
     kept.forEach(([a,progress])=>{a.currentTime=progress*parseFloat(d.dur)*1000});
+    refresh();
   });
-  choices('c1-sw',d=>{vars.setProperty('--c1',d.c)});
-  choices('c2-sw',d=>{vars.setProperty('--c2',d.c)});
-  txtIn.addEventListener('input',()=>{gradText.textContent=txtIn.value.trim()||'Flow'});
+  choices('c1-sw',d=>{vars.setProperty('--c1',d.c);refresh()});
+  choices('c2-sw',d=>{vars.setProperty('--c2',d.c);refresh()});
+  txtIn.addEventListener('input',()=>{gradText.textContent=txtIn.value.trim()||'Flow';refresh()});
+
+  // ── See inside and Compare ──
+  // Every view animation is set to the real word's time, so the faint box, the window, the wheel and the copy run in step with it.
+  const root=document.documentElement,stage=document.querySelector('.stage'),$=s=>stage.querySelector(s);
+  const ghost=$('.gt-ghost'),inn=$('.gt-in'),cmp=$('.gt-cmp'),when=$('.gt-when'),copy=$('.gt-seam');
+  const fill=$('.gt-fill'),strip=$('.gt-strip'),win=$('.gt-win'),wheel=$('.gt-wheel');
+  const capB=inn.lastElementChild,lblC=win.firstElementChild,slotI=$('.gt-in .gt-slot'),slotC=$('.gt-cmp .gt-slot');
+  const slow=document.getElementById('slow-tog'),reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const M=12,NUM=['','','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+  const cls=()=>CLASSES.find(c=>gradText.classList.contains(c));
+  const paused=()=>stage.classList.contains('hb-paused');
+  const real=()=>gradText.getAnimations()[0];
+  // Compare rests where the band starts over, in the middle of the word: the box has slid 2.5 of the band's 3 widths (5/12 of
+  // a loop), and the wheel has turned a quarter, so its edge runs right through the middle of the letters. The real word's own
+  // progress is kept meanwhile.
+  const poseAt=c=>c==='grad-conic'?.25:5/12;
+  let kept=null,lastAnim=null,raf=0;
+
+  const mirror=()=>stage.querySelectorAll('[data-t]').forEach(e=>{if(e.textContent!==gradText.textContent)e.textContent=gradText.textContent});
+  function style(){
+    const c=cls();
+    fill.className='gt-fill grad-text '+c;
+    copy.className='grad-text gt-seam '+c;
+    strip.className='gt-strip '+(c==='grad-conic'?'grad-linear':c);
+    inn.classList.toggle('wheel',c==='grad-conic');
+  }
+  function pose(){
+    const a=real();
+    if(!a)return;
+    if(a!==lastAnim){lastAnim=a;kept=null} // Spinning and the others are different animations: a switch starts over
+    const dur=a.effect.getComputedTiming().duration;
+    if(stage.dataset.hbMode==='compare'&&paused()){
+      if(kept===null)kept=progressOf(a);
+      a.currentTime=poseAt(cls())*dur;
+    }else if(kept!==null){a.currentTime=kept*dur;kept=null}
+  }
+  function sync(){
+    const a=real();
+    if(a&&a.currentTime!=null)[fill,copy,win,wheel].forEach(el=>el.getAnimations().forEach(b=>{
+      b.currentTime=a.currentTime%b.effect.getComputedTiming().duration;
+    }));
+  }
+  // Time in a beginner's words: "every two seconds", "about every three seconds"
+  function per(s){const r=Math.round(s);return(Math.abs(s-r)>.15?'about ':'')+'every '+(r<2?'second':(NUM[r]||r)+' seconds')}
+  const notes=[...document.querySelectorAll('[data-hb-for]')],plain=notes.map(n=>n.textContent);
+  const lead='Shown still: the faint box is the gradient behind the word, and the letters let it through. ';
+  const STILL=[lead+'Below, the whole band, three times as wide, with the box over the part you see.',lead+'Below, the color wheel that turns behind them.',
+    'Shown still where the band starts over: Hard seam has a sharp edge across the letters, while Seamless blends straight through.'];
+  const FLAT='Both colors are the same, so the word has no gradient and both halves match. Pick two different colors in Try it.';
+  const SPIN='Inside, the gradient fills the whole box behind the word, shown faint, and the letters are holes that let it through. Behind them, a color wheel keeps turning.';
+  // The notes and captions are written only when their words change (the notes box is read aloud)
+  function describe(){
+    const spin=cls()==='grad-conic',still=reduceMQ.matches&&paused();
+    const flat=cls()==='grad-custom'&&getComputedStyle(root).getPropertyValue('--c1').trim()===getComputedStyle(root).getPropertyValue('--c2').trim();
+    const dur=parseFloat(getComputedStyle(root).getPropertyValue('--grad-dur'))*(slow.checked?3:1);
+    const say=[[notes[0],still?STILL[+spin]:spin?SPIN:plain[0]],[notes[1],flat?FLAT:still?STILL[2]:plain[1]],
+      [capB,spin?'A color wheel turns behind, once '+per(dur):'A band three times as wide slides behind, one band '+per(dur/2)],
+      [when,spin?'Where the wheel starts over':'Where the band starts over']];
+    say.forEach(([el,words])=>{if(el.textContent!==words)el.textContent=words});
+  }
+  // The room under the faint box: a band with the box as a window over it, or a wheel with the box at its middle. The word is
+  // made smaller until all of it fits the stage, whatever the text. The wheel has no size of its own (its colors only turn), so
+  // it takes the room that is left and the box is drawn small enough to sit inside it.
+  function fitInside(){
+    const w=slotI.offsetWidth,h=slotI.offsetHeight,aw=inn.clientWidth-2*M,lw=lblC.offsetWidth,lh=lblC.offsetHeight,spin=inn.classList.contains('wheel');
+    const left=inn.clientHeight-(2*M+inn.firstElementChild.offsetHeight+h+capB.offsetHeight+24);
+    const d=Math.max(0,Math.min(aw,left,220)),bh0=Math.max(0,d-2*(lh+10)); // the wheel's box leaves room under it for its label
+    const bw=spin?Math.min(w,d/1.15*w/Math.hypot(w,h),bh0*w/h):Math.min(w,aw/4,(aw-lw)/3),bh=bw*h/w;
+    [['--bw',bw],['--bh',bh],['--gw',spin?d:Math.max(4*bw,3*bw+lw)],['--gh',spin?d:bh+12+lh]].forEach(([k,v])=>inn.style.setProperty(k,v+'px'));
+    const ir=inn.getBoundingClientRect();
+    return inn.firstElementChild.getBoundingClientRect().top>=ir.top+M-1&&capB.getBoundingClientRect().bottom<=ir.bottom-M+1&&(!spin||d>=100);
+  }
+  function layout(){
+    const mode=stage.dataset.hbMode,inside=mode==='inside';
+    if(!inside&&mode!=='compare'){gradText.removeAttribute('style');stage.style.removeProperty('--gt-fs');return}
+    const base=parseFloat(getComputedStyle(ghost).fontSize),slot=inside?slotI:slotC,half=slot.parentNode;
+    cmp.classList.toggle('stack',stage.clientWidth<440);
+    for(let s=1;s>=.3;s-=.05){
+      stage.style.setProperty('--gt-fs',base*s+'px');
+      if(inside?fitInside():slot.offsetHeight<=half.clientHeight-68)break;
+    }
+    const r=slot.getBoundingClientRect(),o=stage.getBoundingClientRect();
+    Object.assign(gradText.style,{left:r.left-o.left-stage.clientLeft+'px',top:r.top-o.top-stage.clientTop+'px',width:r.width+'px'});
+  }
+  function refresh(){
+    mirror();style();pose();describe();layout();sync();
+    requestAnimationFrame(sync); // an animation just shown starts a frame later than asked
+  }
+  document.addEventListener('hb:mode',refresh);
+  document.addEventListener('hb:pause',refresh);
+  slow.addEventListener('change',refresh);
+  reduceMQ.addEventListener('change',refresh);
+  new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(refresh)}).observe(stage);
+  if(document.fonts)document.fonts.ready.then(refresh);
+  refresh();
 </script>
 </body>
 </html>
