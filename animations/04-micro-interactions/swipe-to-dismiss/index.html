@@ -46,6 +46,58 @@
     /* A window this short gives the stage 260 to 310px, less than four rows of 66px need (288px): the rows give up some height and spacing */
     @media(min-width:601px) and (max-height:640px){.stage{padding:8px}.list{gap:6px}.row{height:56px}}
     @media(prefers-reduced-motion:reduce){.row,.card.settling,.card.flung{transition:none!important}}
+    /* See inside and Compare: all they add stays hidden until the stage is marked with a mode */
+    .stage,.list{position:relative}
+    .ins,.lbl,.list.copy,.row.gone,.row.xtra{display:none}
+    .lbl{padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap;text-align:center}
+    .ins .lbl{display:block;align-self:center;max-width:100%}
+    .ins .lbl[hidden]{display:none}
+    .lbl.k1{white-space:normal;text-wrap:balance}
+    .stage.snap .row,.stage.posed .row{transition:none!important}
+    /* See inside: a gauge reads the card that moves, a speed bar has a notch where a flick counts, the first card is see-through over its strip */
+    .stage[data-hb-mode="inside"]{--rh:56px;flex-direction:column;justify-content:center;gap:4px;padding:8px clamp(12px,4vw,24px)}
+    .stage[data-hb-mode="inside"] .ins{display:flex;flex-direction:column;gap:4px;width:100%;max-width:340px}
+    .stage[data-hb-mode="inside"] .lbl.k4{display:block;align-self:center;max-width:100%}
+    .stage[data-hb-mode="inside"] .list{gap:6px;min-height:var(--lh)}
+    .stage[data-hb-mode="inside"] .row{height:var(--rh)}
+    .stage[data-hb-mode="inside"] .row:first-child .reveal:not(.hidden)+.card{background:rgba(17,17,20,.55)}
+    .stage[data-hb-mode="inside"] .row:first-child .reveal:not(.hidden)+.card .s{color:#b8b8c0}
+    .stage[data-hb-mode="inside"] .row:first-child .reveal{opacity:.8;color:#f4f4f2;padding:0 8px}
+    .stage[data-hb-mode="inside"] .row:first-child .reveal.show{opacity:1}
+    @media(max-width:340px){.stage[data-hb-mode="inside"] .row:first-child .reveal:not(.show){color:transparent}} /* the strip's word would meet the first message's last words */
+    .stage[data-hb-mode="inside"] .list::before{content:'';position:absolute;right:18px;top:calc(var(--rh) + 21px);bottom:8px;width:2px;background:var(--ui-accent);z-index:1}
+    .stage[data-hb-mode="inside"] .list::after{content:'';position:absolute;right:12px;top:calc(var(--rh) + 14px);border:7px solid transparent;border-top:0;border-bottom:8px solid var(--ui-accent)}
+    .gauge{--k:.47;position:relative;height:22px;border-radius:7px;border:1px solid var(--ui-border);
+      background:linear-gradient(90deg,rgba(244,81,91,.42) calc(50% - var(--k)*(50% - 8px)),#1b1b20 0,#1b1b20 calc(50% + var(--k)*(50% - 8px)),rgba(244,81,91,.42) 0)}
+    .gauge i{position:absolute;display:block}
+    .gauge .lim{top:-3px;bottom:-3px;left:calc(50% - var(--k)*(50% - 8px));border-left:2px dashed #f4f4f2}
+    .gauge .lim.r{left:calc(50% + var(--k)*(50% - 8px))}
+    .gauge .ring,.gauge .dot{left:50%;top:50%;border-radius:50%}
+    .gauge .ring{width:16px;height:16px;margin:-8px 0 0 -8px;border:1.5px solid rgba(255,255,255,.5)}
+    .gauge .dot{width:12px;height:12px;margin:-6px 0 0 -6px;background:var(--ui-accent);box-shadow:0 0 0 2px #0b0b0d}
+    .gauge .dot.settle{transition:transform .32s cubic-bezier(.22,1,.36,1)}
+    .gauge .dot.fling{transition:transform .3s cubic-bezier(.4,0,1,1)}
+    .spd{display:flex;align-items:center;gap:8px}
+    .meter{position:relative;flex:0 0 34%;height:12px;border-radius:6px;border:1px solid var(--ui-border);background:#1b1b20;overflow:hidden}
+    .meter .fill{position:absolute;inset:0;background:#6d6d78;transform:scaleX(0);transform-origin:0 50%;transition:transform .12s}
+    .meter .fill.hot{background:var(--ui-accent)}
+    .meter .notch{position:absolute;top:0;bottom:0;left:60%;width:2px;margin-left:-1px;background:#f4f4f2}
+    .stage.moved .list::before,.stage.moved .list::after{opacity:0;transition:opacity .5s .2s} /* once a row has gone the arrow has nothing to point at */
+    @media(prefers-reduced-motion:reduce){.gauge .dot,.meter .fill,.stage.moved .list::before,.stage.moved .list::after{transition:none!important}}
+    /* Compare: a copy of the list that drops a message at once (Vanishes) beside the real one (Flies off), posed 0.1 s after letting go */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto 1fr;align-items:start;justify-items:center;
+      column-gap:clamp(12px,3vw,28px);row-gap:6px;padding:clamp(8px,2vw,16px)}
+    .stage[data-hb-mode="compare"]::before{content:'';position:absolute;left:50%;top:12px;bottom:12px;width:1px;background:var(--ui-border)}
+    .stage[data-hb-mode="compare"] .lbl.half{display:block}
+    .stage[data-hb-mode="compare"] .list{display:flex;min-height:var(--lh)}
+    .stage.posed .list:not(.copy) .row:first-child::after{content:'';position:absolute;inset:0;border:1.5px dashed rgba(255,255,255,.4);border-radius:10px;pointer-events:none}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(4,auto);row-gap:4px;padding:6px 12px}
+      .stage[data-hb-mode="compare"]::before{left:12px;right:12px;top:50%;bottom:auto;width:auto;height:1px}
+      .stage[data-hb-mode="compare"] .h2{order:2}
+      .stage[data-hb-mode="compare"] #list{order:3}
+      .stage[data-hb-mode="compare"] .row{height:52px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -68,13 +120,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Drag it</h2><p>Drag a message sideways and let go, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="ins" aria-hidden="true">
+        <p class="lbl k1" data-hb-caption>Let go past a dashed mark and it flies off; short of it, it springs back</p>
+        <div class="gauge"><i class="ring"></i><i class="lim l"></i><i class="lim r"></i><i class="dot"></i></div>
+        <div class="spd"><div class="meter"><i class="fill"></i><i class="notch"></i></div><p class="lbl k2" data-hb-caption>Or flick faster than this</p></div>
+        <p class="lbl k3" id="k3" data-hb-caption>The Delete strip waits behind the card</p>
+      </div>
+      <p class="lbl half h1" aria-hidden="true" data-hb-caption>Vanishes</p>
+      <p class="lbl half h2" aria-hidden="true" data-hb-caption>Flies off</p>
       <div class="list" id="list"></div>
+      <p class="lbl k4" aria-hidden="true" data-hb-caption>Its row closes; the rows below glide up</p>
       <p class="sr-only" id="del-hint">Press Delete to remove this message.</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed marks are the delete distance: let go past one, or flick fast, and the card flies off; short of it, it springs back. Drag a message, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Vanishes: the message is gone the moment you let go and the list jumps up; Flies off: it slides away and the list closes up smoothly. Drag a message, or press Show me.</p>
     </div>
   </section>
 
@@ -142,6 +212,8 @@
   const listEl=document.getElementById('list'),stage=document.querySelector('.stage');
   const resetBtn=document.getElementById('btn-reset'),reduceMq=window.matchMedia('(prefers-reduced-motion:reduce)');
   let threshold=0.35, showReveal=true;
+  const FLICK=0.6,FLICK_MIN=24; // letting go commits when the card moves faster than FLICK px per ms, after at least FLICK_MIN px
+  let mode='normal',holding=0; // holding: cards held by a pointer right now
   const DATA=[
     ['AV','Ava Reyes','Lunch tomorrow? I found a spot'],
     ['KM','Kai Morgan','Booked the tickets for June'],
@@ -161,15 +233,22 @@
       wire(row);
     });
     if(was)listEl.querySelector(`.card[data-i="${was}"]`).focus({preventScroll:true}); // a rebuild never takes the focus away from its message
+    if(mode!=='normal'){if(mode==='compare')syncCopy();else homeGauge('settle',0);layout();}
   }
 
   // The card follows the pointer 1:1 and fades a little; the red strip shows once it has moved a few pixels, its label on the side the card uncovers.
   // The visitor's drag and Show me's drag both draw each frame with this.
-  function follow(card,reveal,x){
+  function draw(card,reveal,x){
     card.style.transform=`translateX(${x}px)`;
     card.style.opacity=String(Math.max(0.3,1-Math.abs(x)/(card.offsetWidth*0.9)));
     reveal.classList.toggle('show',showReveal&&Math.abs(x)>8);
     reveal.classList.toggle('from-left',x>0);
+  }
+  function follow(card,reveal,x){
+    draw(card,reveal,x);
+    if(mode==='inside')readGauge(x,card.offsetWidth);
+    const t=mode==='compare'&&twins.get(card); // Compare's copy shows the same offset for the same message
+    if(t)draw(t,t.previousElementSibling,x);
   }
 
   function wire(row){
@@ -181,7 +260,7 @@
       if(dragging||row.classList.contains('collapsing'))return; // already dismissed
       if(e.pointerType==='mouse'&&e.button!==0)return;
       const off=new DOMMatrix(getComputedStyle(card).transform).m41; // where the card is now: it may be on its way back to rest
-      dragging=true;pid=e.pointerId;dx=off;startX=e.clientX-off;lastX=e.clientX;lastT=performance.now();vel=0;
+      dragging=true;holding++;pid=e.pointerId;dx=off;startX=e.clientX-off;lastX=e.clientX;lastT=performance.now();vel=0;
       card.classList.remove('settling','flung');
       follow(card,reveal,off); // stays where it is
       card.setPointerCapture(e.pointerId);
@@ -196,12 +275,14 @@
     });
     // Letting go decides by distance or flick; a cancelled pointer (the browser took the gesture over for scrolling) always springs back
     function end(e,cancelled){
-      if(!dragging||e.pointerId!==pid)return;dragging=false;card.style.cursor='';
+      if(!dragging||e.pointerId!==pid)return;dragging=false;holding--;card.style.cursor='';
       if(performance.now()-lastT>100)vel=0; // finger stopped before release: no flick
+      if(vel&&mode==='inside')holdSpeed(700);
       const w=card.offsetWidth;
       const pastDist=Math.abs(dx)>w*threshold;
-      const flick=Math.abs(vel)>0.6&&Math.abs(dx)>24&&Math.sign(vel)===Math.sign(dx); // velocity commit, only when the flick points away from rest
+      const flick=Math.abs(vel)>FLICK&&Math.abs(dx)>FLICK_MIN&&Math.sign(vel)===Math.sign(dx); // velocity commit, only when the flick points away from rest
       if(!cancelled&&(pastDist||flick))dismiss(row,card,dx>=0?1:-1);else spring(card,reveal);
+      poseLater();
     }
     card.addEventListener('pointerup',e=>end(e,false));
     card.addEventListener('pointercancel',e=>end(e,true));
@@ -209,7 +290,7 @@
     card.addEventListener('keydown',e=>{
       if((e.key!=='Delete'&&e.key!=='Backspace')||row.classList.contains('collapsing'))return;
       e.preventDefault();
-      const rows=[...listEl.children].filter(r=>!r.classList.contains('collapsing')),i=rows.indexOf(row);
+      const rows=[...listEl.children].filter(r=>!r.classList.contains('collapsing')&&!r.classList.contains('xtra')),i=rows.indexOf(row);
       const next=rows[i+1]||rows[i-1];
       dismiss(row,card,1);
       (next?next.querySelector('.card'):resetBtn).focus({preventScroll:true});
@@ -221,9 +302,14 @@
     card.style.transform='translateX(0)';
     card.style.opacity='1';
     reveal.classList.remove('show');
+    if(mode==='inside')homeGauge('settle',0);
+    const t=mode==='compare'&&twins.get(card);
+    if(t)spring(t,t.previousElementSibling);
   }
 
   function dismiss(row,card,dir){
+    if(mode==='inside'){homeGauge('fling',dir);stage.classList.add('moved');}
+    if(mode==='compare')dropTwin(card); // Vanishes: the copy's row goes at once
     if(reduceMq.matches){row.remove();checkEmpty();return;} // no fly-off flourish — collapse immediately
     card.classList.add('flung');
     card.style.transform=`translateX(${dir*card.offsetWidth*1.25}px)`;
@@ -271,14 +357,15 @@
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
+    lift();
     const row=[...listEl.children].find(r=>!r.contains(document.activeElement)),card=row.querySelector('.card'),reveal=row.querySelector('.reveal'); // the first message, unless the visitor is on it
     drag(card,reveal,card.offsetWidth*threshold/2,400,()=>spring(card,reveal));
     later(()=>drag(card,reveal,card.offsetWidth*(threshold+0.15),600,()=>dismiss(row,card,1)),0,1100);
     later(build,0,2600);
   });
-  resetBtn.addEventListener('click',()=>{ stopRun(); build(); });
+  resetBtn.addEventListener('click',()=>{ stopRun(); lift(); build(); });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
-  document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
+  document.addEventListener('hb:input',()=>{ if(running()) stopRun(); lift(); poseLater(); });
   // A Tab press from outside the stage sends no hb:input, but a run never moves the focus, so focus arriving in the stage while one runs is the visitor's.
   stage.addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); });
 
@@ -289,11 +376,124 @@
       pick(b.dataset);
     }));
   }
-  choices('dist-seg',d=>{threshold=+d.t});
+  choices('dist-seg',d=>{threshold=+d.t;layout();});
   document.getElementById('reveal-tog').addEventListener('change',e=>{
     showReveal=e.target.checked;
-    listEl.querySelectorAll('.reveal').forEach(r=>r.classList.toggle('hidden',!showReveal));
+    stage.querySelectorAll('.reveal').forEach(r=>r.classList.toggle('hidden',!showReveal));
+    document.getElementById('k3').hidden=!showReveal;
+    layout();
   });
+
+  // ── See inside and Compare ──
+  // Compare's left half: an inert copy of the list, made once
+  const copyEl=document.createElement('div');
+  copyEl.className='list copy';copyEl.inert=true;copyEl.setAttribute('aria-hidden','true');
+  copyEl.innerHTML=DATA.map(d=>`<div class="row"><div class="reveal ${showReveal?'':'hidden'}">Delete</div><div class="card"><div class="avatar">${d[0]}</div>`+
+    `<div class="meta"><div class="t">${d[1]}</div><div class="s">${d[2]}</div></div></div></div>`).join('')+'<div class="empty" hidden>All cleared. Press Reset to bring them back.</div>';
+  listEl.before(copyEl);
+  const copyRows=[...copyEl.querySelectorAll('.row')],copyEmpty=copyEl.querySelector('.empty'),twins=new Map(); // twins: a real card → its copy
+  const gaugeEl=stage.querySelector('.gauge'),dot=gaugeEl.querySelector('.dot'),fill=stage.querySelector('.fill');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const RANGE=0.75,SPEED_FULL=FLICK/0.6; // the gauge shows a card up to RANGE of its width each way; the speed bar is full at SPEED_FULL px per ms
+  const POSE_FLY=0.2,POSE_CLOSE=0.5;     // 0.1 s after letting go the card has flown this share of its way and the row has closed this share
+  let half=0,gx=0,gw=300,speedX=0,speedT=0,holdT=0,poseT=0;
+  const STILL='Shown still, just after letting go: Vanishes has already dropped the message and jumped up; Flies off is still sliding it away and closing the gap.';
+  const FREE='With reduced motion, Vanishes and Flies off both drop a message at once. Reset brings the still back.';
+  if(reduceMq.matches){
+    noteIn.textContent='Inside, the dashed marks are the delete distance: let go past one, or flick fast, and the message goes; short of it, it comes back. Drag a message, or press Show me.';
+    noteCmp.textContent=STILL;
+  }
+  function note(posed){ if(reduceMq.matches&&mode==='compare'&&noteCmp.textContent!==(posed?STILL:FREE))noteCmp.textContent=posed?STILL:FREE; }
+
+  function placeDot(){ dot.style.transform=`translateX(${(Math.max(-1,Math.min(1,gx/(RANGE*gw)))*half).toFixed(1)}px)`; }
+  function setSpeed(v){ fill.style.transform=`scaleX(${Math.min(1,v/SPEED_FULL).toFixed(3)})`;fill.classList.toggle('hot',v>FLICK); }
+  function holdSpeed(ms){ clearTimeout(holdT);holdT=setTimeout(()=>setSpeed(0),ms); }
+  // Every follow() call: the marker goes where the card is, and the speed bar reads how far it moved since the call before
+  function readGauge(x,w){
+    gx=x;gw=w;dot.classList.remove('settle','fling');placeDot();
+    const now=performance.now(),dt=now-speedT;
+    if(dt>0){ setSpeed(dt<100?Math.abs(x-speedX)/dt:0);speedX=x;speedT=now; }
+    holdSpeed(holding?100:700); // a stopped finger reads zero, as its release does; after letting go the reading is held a moment
+  }
+  // The card springs back (dir 0) or flies off (dir 1 or -1): the marker does the same
+  function homeGauge(kind,dir){
+    gx=dir*9e3;dot.classList.remove('settle','fling');dot.classList.add(kind);placeDot();
+    if(dir)setTimeout(()=>{ if(mode==='inside'&&Math.abs(gx)>=9e3)homeGauge('settle',0); },600);
+  }
+
+  function dropTwin(card){
+    const t=twins.get(card);
+    if(t){ t.parentElement.classList.add('gone');copyEmpty.hidden=copyRows.some(r=>!r.classList.contains('gone')); }
+  }
+  // Draws the copy as the real list is now (on entering Compare and after a rebuild)
+  function syncCopy(){
+    twins.clear();
+    copyRows.forEach((cr,i)=>{
+      const card=listEl.querySelector(`.card[data-i="${i}"]`),c=cr.querySelector('.card');
+      cr.classList.toggle('gone',!card||card.parentElement.classList.contains('collapsing'));
+      c.className=card?card.className:'card';c.style.cssText=card?card.style.cssText:'';
+      cr.querySelector('.reveal').className=card?card.previousElementSibling.className:'reveal';
+      if(card)twins.set(card,c);
+    });
+    copyEmpty.hidden=copyRows.some(r=>!r.classList.contains('gone'));
+  }
+  // A mode shows as many messages as fit under what it adds (never fewer than two); the others stay hidden in both halves
+  function fit(){
+    const modal=mode!=='normal',cs=getComputedStyle(stage);
+    let n=DATA.length;
+    if(modal){
+      const pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom),gap=parseFloat(cs.rowGap)||0,rg=parseFloat(getComputedStyle(listEl).rowGap)||0;
+      const rh=parseFloat(getComputedStyle(copyRows[0]).height),nameH=stage.querySelector('.h1').offsetHeight;
+      const room=mode==='inside'?stage.clientHeight-pad-stage.querySelector('.ins').offsetHeight-stage.querySelector('.k4').offsetHeight-2*gap
+        :cs.gridTemplateColumns.split(' ').length===1?(stage.clientHeight-pad-2*nameH-3*gap)/2:stage.clientHeight-pad-nameH-gap;
+      n=Math.max(2,Math.min(DATA.length,Math.floor((room+rg)/(rh+rg))));
+      stage.style.setProperty('--lh',(n*rh+(n-1)*rg)+'px');
+    }
+    listEl.querySelectorAll('.card').forEach(c=>c.parentElement.classList.toggle('xtra',modal&&+c.dataset.i>=n));
+    copyRows.forEach((r,i)=>r.classList.toggle('xtra',modal&&i>=n));
+  }
+
+  // Compare's rest picture: whole lists, nothing moving, no run pending. Returns whether it stands.
+  function pose(){
+    if(mode!=='compare'||holding||running()||listEl.querySelectorAll('.row').length!==DATA.length||listEl.querySelector('.collapsing'))return stage.classList.contains('posed');
+    const row=listEl.querySelector('.row'),card=row.querySelector('.card'),w=card.offsetWidth,x0=(threshold+0.15)*w;
+    stage.classList.add('posed');
+    row.style.height=Math.round(parseFloat(getComputedStyle(copyRows[0]).height)*(1-POSE_CLOSE))+'px';
+    draw(card,row.querySelector('.reveal'),x0+POSE_FLY*(1.25*w-x0));
+    card.style.opacity='0.5';
+    copyRows[0].classList.add('gone');
+    return true;
+  }
+  // Any input, Show me and Reset take the pose away before a card reads where it is
+  function lift(){
+    if(!stage.classList.contains('posed'))return;
+    const row=listEl.querySelector('.row'),card=row.querySelector('.card');
+    row.style.height='';card.style.transform='';card.style.opacity='';row.querySelector('.reveal').classList.remove('show','from-left');
+    copyRows[0].classList.remove('gone');
+    void row.offsetHeight; // the rows' transition is still off: the pose goes at once
+    stage.classList.remove('posed');
+    note(false);
+  }
+  function poseLater(){ if(mode==='compare'){ clearTimeout(poseT);poseT=setTimeout(()=>note(pose()),420); } }
+  function layout(){
+    fit();
+    if(mode==='inside'){
+      half=gaugeEl.clientWidth/2-8;gw=listEl.querySelector('.card')?listEl.querySelector('.card').offsetWidth:gw;
+      gaugeEl.style.setProperty('--k',(threshold/RANGE).toFixed(3));placeDot();
+      stage.classList.toggle('moved',listEl.querySelectorAll('.row').length<DATA.length);
+    }
+    if(mode==='compare')note(pose());
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    stage.classList.add('snap'); // the rows change height with the mode at once, not over a third of a second
+    lift();
+    if(mode==='compare')syncCopy();
+    layout();
+    stage.classList.remove('snap');
+  });
+  addEventListener('resize',()=>{ if(mode!=='normal')layout(); });
+  if(document.fonts)document.fonts.ready.then(()=>{ if(mode!=='normal')layout(); });
 
   build();
 </script>
