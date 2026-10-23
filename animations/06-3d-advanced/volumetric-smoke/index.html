@@ -88,7 +88,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>From the side, each pixel's line of sight takes steps through the cloud (the dots), adding up the smoke it meets. Fine grain staggers the steps, so no stripes form.</p>
-      <p data-hb-for="compare" hidden>Flat picture is the same smoke pattern drawn once, flat and unlit; 3D cloud adds up smoke along each line of sight and shades it from the light, so it looks soft and deep.</p>
+      <p data-hb-for="compare" hidden>Flat picture is the same smoke pattern at one depth, flat and unlit; 3D cloud adds up smoke along each line of sight and shades it from the light, so it looks soft and deep.</p>
     </div>
   </section>
 
@@ -413,14 +413,17 @@ function rebuild(){
   const stack=cw<480,fw=stack?cw:Math.round(cw*.38),fh=stack?Math.round(ch*.34):ch,m=Math.min(fw,fh);
   const front={x:0,y:0,w:fw,h:fh,kind:0,sc:stack?.7:1,cy:stack?.15:0};
   const side={x:stack?0:fw+g,y:stack?fh+g:0,w:stack?cw:cw-fw-g,h:stack?ch-fh-g:ch,kind:1};
-  // The side view keeps both directions in proportion: s pixels to a unit, the eye at z 3 and the column's middle at z 0
-  const s=Math.min(side.w/4.05,side.h/3.5),zL=3.4+(side.w/s-4.05)/2,yT=2.7+(side.h/s-3.5)/2;
+  // The side view keeps both directions in proportion: s pixels to a unit, the eye at z 3 and the column's middle at z 0.
+  // It frames the column (y from -.8 to 2.7) and also the far ends of the lowest and highest lines of sight, with room for their last dots.
+  const uys=ROWS.map(r=>front.cy+front.sc*r*fh/m),endY=u=>u*3.2/Math.hypot(u,.9);
+  const yB=Math.min(-.8,endY(Math.min(...uys))-.18),yTop=Math.max(2.7,endY(Math.max(...uys))+.18),sh=yTop-yB;
+  const s=Math.min(side.w/4.05,side.h/sh),zL=3.4+(side.w/s-4.05)/2,yT=yTop+(side.h/s-sh)/2;
   side.sl=[zL,yT-side.h/s,side.w/s,side.h/s];
   views=[front,side];
   svg.push(`<path class="div" d="${stack?`M0 ${fh+1}H${cw}`:`M${fw+1} 0V${ch}`}"/>`);
   const X=z=>side.x+(zL-z)*s,Y=y=>side.y+(yT-y)*s,n=steps(),eye=[X(3),Y(0)];
   ROWS.forEach((r,i)=>{
-    const uy=front.cy+front.sc*r*fh/m,len=Math.hypot(uy,.9),at=t=>[X(3-.9*t/len),Y(uy*t/len)],c=i===GOLD?' gold':'';
+    const uy=uys[i],len=Math.hypot(uy,.9),at=t=>[X(3-.9*t/len),Y(uy*t/len)],c=i===GOLD?' gold':'';
     svg.push(`<path class="ray${c}" d="M${at(0)}L${at(3.2)}"/>`);
     let d='';
     for(let j=0;j<n;j++){const p=at(.2+(j+(DITHER?OFFS[i]:0))*3/n);d+=`M${p[0].toFixed(1)} ${p[1].toFixed(1)}h0`;}
@@ -467,7 +470,7 @@ document.addEventListener('hb:pause',e=>{
 const noteEl={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
 const NOTE_MOVING={inside:noteEl.inside.textContent,compare:noteEl.compare.textContent};
 const NOTE_STILL={inside:"Shown still from the side: each pixel's line of sight takes steps through the cloud (the dots), adding up the smoke it meets. Fine grain staggers the steps, so no stripes form.",
-  compare:'Shown still: Flat picture is the same smoke pattern drawn once, flat and unlit; 3D cloud adds up smoke along each line of sight and shades it from the light.'};
+  compare:'Shown still: Flat picture is the same smoke pattern at one depth, flat and unlit; 3D cloud adds up smoke along each line of sight and shades it from the light.'};
 function words(){
   const still=matchMedia('(prefers-reduced-motion: reduce)').matches&&paused;
   for(const k in noteEl){const w=(still?NOTE_STILL:NOTE_MOVING)[k];if(noteEl[k].textContent!==w)noteEl[k].textContent=w;}
