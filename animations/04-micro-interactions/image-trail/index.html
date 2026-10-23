@@ -44,6 +44,42 @@
     .k7{background:linear-gradient(#1b1d4a,#6d3a78 50%,#f0876a 80%,#ffb07a)}.k8{background:#f3e7d7}
     .defs{position:absolute;width:0;height:0}
     @media(max-width:600px),(max-height:500px){.pic{box-shadow:0 8px 20px var(--shade)}} /* phones: a lighter shadow, and fewer frames (in the script) */
+    /* See inside and Compare, drawn over the stage from the page's own numbers: the route, a dot for each drop, the ring the gap makes,
+       a pretend pointer and the labels. Compare is two halves, each with a name above its hero. */
+    .twin,.views,.cap,.gh,.in-g{display:none}
+    .views{position:absolute;inset:0;z-index:3;pointer-events:none}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .halo{fill:none;stroke:rgba(11,11,13,.75);stroke-width:6;stroke-linecap:round}
+    .line{fill:none;stroke:#f4f4f2;stroke-opacity:.8;stroke-width:2.5;stroke-linecap:round}
+    .ahd{fill:none;stroke:#f4f4f2;stroke-opacity:.55;stroke-width:2.5;stroke-dasharray:1 8;stroke-linecap:round}
+    .line.rng{fill:rgba(255,157,92,.1);stroke:var(--ui-accent);stroke-opacity:1;stroke-dasharray:7 6}
+    .dot{fill:var(--ui-accent);stroke:#0b0b0d;stroke-width:2.5}
+    .ptr{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}.gh{opacity:.75}
+    .cap{position:absolute;left:0;top:0;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.92);color:var(--ink);font:600 13px/1.3 var(--hb-font);white-space:pre}
+    .cmp-l{top:6px;left:8px}.cmp-l.second{left:calc(50% + 8px)}
+    .tr{position:absolute;inset:0;z-index:1}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="inside"] .in-l,.stage[data-hb-mode="compare"] .cmp-l{display:block}
+    .stage[data-hb-mode="inside"] .in-g,.stage[data-hb-mode="compare"] .gh{display:inline}
+    /* Compare: the copy in the first half (left, or on top on phones), the real hero in the second; each scene starts below its name */
+    .stage[data-hb-mode="compare"]{--band:38px}
+    .stage[data-hb-mode="compare"] .top{display:none}
+    .stage[data-hb-mode="compare"] .hero{position:absolute;left:75%;top:calc(var(--band) + (100% - var(--band))/2);translate:-50% -50%;width:50%}
+    .stage[data-hb-mode="compare"] .ttl{margin:8px 0 10px;font-size:clamp(26px,4.4vw,56px)}
+    .stage[data-hb-mode="compare"] #trail,.stage[data-hb-mode="compare"] #keys{inset:var(--band) 0 0 50%;overflow:hidden}
+    .stage[data-hb-mode="compare"] .twin{display:block;position:absolute;inset:0 50% 0 0}
+    .stage[data-hb-mode="compare"] .sc{position:absolute;inset:var(--band) 0 0;display:grid;place-items:center;overflow:hidden}
+    .stage[data-hb-mode="compare"] .sc .hero{position:static;translate:none;width:auto}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;z-index:4;left:50%;top:0;bottom:0;width:1px;background:var(--edge)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{--band:32px}
+      .stage[data-hb-mode="compare"] .hero{left:50%;top:calc(50% + var(--band) + (50% - var(--band))/2);width:100%}
+      .stage[data-hb-mode="compare"] .ttl{font-size:clamp(22px,7vw,30px)}
+      .stage[data-hb-mode="compare"] .kick,.stage[data-hb-mode="compare"] .sub{display:none}
+      .stage[data-hb-mode="compare"] #trail,.stage[data-hb-mode="compare"] #keys{inset:calc(50% + var(--band)) 0 0}
+      .stage[data-hb-mode="compare"] .twin{inset:0 0 50%}
+      .stage[data-hb-mode="compare"]::after{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px}
+      .cmp-l.second{left:8px;top:calc(50% + 6px)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,12 +102,38 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the hero, drag a finger across it (or Tab to it and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <p class="top"><b>lumen</b><span>Journal · Prints · About</span></p>
       <div class="hero"><p class="kick">Photo journal · 2026</p><p class="ttl">Chasing<br>the light</p><p class="sub">Eight places, one camera</p></div>
       <div class="trail" id="trail" aria-hidden="true"></div>
       <div class="keys" id="keys" tabindex="0" role="group" aria-label="Image trail: use the arrow keys to leave pictures behind"></div>
+      <div class="twin" aria-hidden="true" inert><div class="sc"><div class="tr"></div></div></div>
+      <div class="views" aria-hidden="true">
+        <svg>
+          <defs><path id="rt"/><circle id="rg"/></defs>
+          <g class="in-g">
+            <path class="ahd" id="ah"/>
+            <use class="halo" href="#rt"/><use class="line" href="#rt"/>
+            <use class="halo" href="#rg"/><use class="line rng" href="#rg"/>
+            <g id="dg"></g>
+          </g>
+        </svg>
+        <span class="cap in-l" id="l-ring" data-hb-caption>A picture drops when&#10;the pointer leaves this ring</span>
+        <span class="cap in-l" id="l-dots" data-hb-caption>Each dot: where&#10;one dropped</span>
+        <span class="cap in-l" id="l-stay" data-hb-caption></span>
+        <span class="cap in-l" id="l-new" data-hb-caption>The newest&#10;lies on top</span>
+        <span class="cap cmp-l first" data-hb-caption>Every move</span>
+        <span class="cap cmp-l second" data-hb-caption>Spaced out</span>
+        <!-- The pretend pointer and its ghost come last, so no label ever hides one -->
+        <svg><use class="ptr" id="pr" href="#ptr" style="display:none"/><use class="ptr gh" id="pl" href="#ptr" style="display:none"/></svg>
+      </div>
       <svg class="defs" aria-hidden="true"><defs>
+        <path id="ptr" d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/>
         <g id="it1"><circle cx="40" cy="50" r="18" fill="#ffd9a0" opacity=".25"/><circle cx="40" cy="50" r="10" fill="#ffe3ad"/><path d="M0 64l12-9 9 6 13-15 12 12 9-7 25 16v33H0z" fill="#6b3466"/><path d="M0 76l17-12 11 8 15-13 22 16 15-9v34H0z" fill="#2b1638"/></g>
         <g id="it2"><circle cx="54" cy="66" r="9" fill="#fff0c8"/><path d="M0 70h80v30H0z" fill="#1d3461"/><path d="M47 74h14M45 79h18M48 84h12M46 90h16M49 95h10" stroke="#ffd9a8" stroke-width="1.6" stroke-linecap="round" opacity=".75"/><path d="M22 68V52l10 16zM21 68V55l-6 13zM15 69h20l-3 4H18z" fill="#121c38"/></g>
         <g id="it3"><circle cx="27" cy="30" r="9" fill="#fff4d8"/><path d="M0 70Q30 48 60 64Q72 70 80 64V100H0z" fill="#e8894a"/><path d="M0 86Q22 66 46 78Q64 87 80 76V100H0z" fill="#c4592b"/><path d="M50 22q3-3 6 0q3-3 6 0M58 30q2-2 4 0q2-2 4 0" fill="none" stroke="#8a4a2a" stroke-width="1.2" stroke-linecap="round"/></g>
@@ -85,6 +147,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each dot is where a picture dropped: the next drops only when the pointer leaves the ring around the last one. Move over the hero, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Every move: a picture drops on each small move and they pile up; Spaced out: one drops only after the pointer has gone a set distance. Move over the hero or press Show me.</p>
     </div>
   </section>
 
@@ -181,59 +247,83 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
-  const stage=document.getElementById('stage'),trail=document.getElementById('trail'),slowTog=document.getElementById('slow-tog');
+  const $=id=>document.getElementById(id);
+  const stage=$('stage'),trail=$('trail'),slowTog=$('slow-tog');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)'),phone=matchMedia('(max-width:600px),(max-height:500px)');
-  const POP=400,LEAVE=500,RUN=2400;   // ms: a picture's pop, its leaving, and Show me's sweep
+  const POP=400,LEAVE=500,RUN=2400,FRAME=1000/60,STEPS=Math.round(RUN/FRAME);   // ms: a picture's pop, its leaving, and Show me's sweep
   // The eight pictures are drawn once (#it1 … #it8). A pool of frames shows them in turn, each frame reused when its turn comes
   // round again and its last picture has left, so nothing is created while the pointer moves. Phones use 20 of the 32 frames.
-  const pool=Array.from({length:32},()=>trail.appendChild(Object.assign(document.createElement('i'),{className:'pic',innerHTML:'<svg viewBox="0 0 80 100"><use href="#it1"/></svg>'})));
-  // W,H: the stage's size; last: where the last picture dropped (null between strokes); live: the one picture under reduced motion
-  let W=0,H=0,gapK=.2,stay=800,sizeK=.34,leave='shrink',tilt=true,last=null,next=0,pic=0,z=0,live=null,hovering=false,touchId=null,runTimers=[],runFrame=0;
+  const frames=(box,n)=>Array.from({length:n},()=>box.appendChild(Object.assign(document.createElement('i'),{className:'pic',innerHTML:'<svg viewBox="0 0 80 100"><use href="#it1"/></svg>'})));
+  // real: the hero's trail. first: Compare's copy of the hero, which drops on every move and reuses its oldest frame at once.
+  // In Compare each half has 16 frames (10 on phones).
+  const real={pool:frames(trail,32),next:0,pic:0,live:null,cap:()=>mode==='compare'?(phone.matches?10:16):phone.matches?20:32};
+  const sc=stage.querySelector('.sc'),first={pool:frames(sc.querySelector('.tr'),16),next:0,pic:0,live:null,eager:true,last:null,t:0,cap:()=>phone.matches?10:16};
+  sc.prepend(stage.querySelector('.hero').cloneNode(true));
+  // W,H: the box the trail lives in (the stage; in Compare its half); last: where the last picture dropped (null between strokes);
+  // ptr: the stroke's latest point; mode: normal, inside or compare; side: the half the pointer is in (Compare)
+  let mode='normal',W=0,H=0,gapK=.2,stay=800,sizeK=.34,leave='shrink',tilt=true,last=null,z=0,hovering=false,touchId=null,runTimers=[],runFrame=0;
+  let ptr=null,posed=false,fresh=true,nudge=false,trace='',dots=[],side='R',lay=true,shownDots=null,shownN=-1;
 
-  function measure(){W=stage.clientWidth;H=stage.clientHeight;stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
+  function measure(){const b=mode==='compare'?trail:stage;W=b.clientWidth;H=b.clientHeight;stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
   // A frame centered on x,y, turned by r degrees and scaled by s
   const at=(x,y,s,r)=>`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%) rotate(${r.toFixed(1)}deg) scale(${s})`;
   // Pictures fade out where they are: one under reduced motion, and every one still out when reduced motion is switched on (its
   // change event below; Show me's sweep also reads the setting every frame, as Chrome may not send the event while a loop reads it)
   function fadeOut(el){const cs=getComputedStyle(el),from={transform:cs.transform,opacity:cs.opacity};
-    el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250})}
-  function fadeAll(){pool.forEach(el=>{if(el._a&&el._a.playState==='running')fadeOut(el)})}
-  // Drops the next picture at x,y, on top of the others, and says whether it did: a picture still out is never cut short, so when
-  // every frame is busy nothing drops and the trail thins. A picture's life is one animation (el._a) of transform and opacity: it
-  // glides in from the last drop (from), growing from half size with a small overshoot, stays, then leaves as How they leave says;
-  // Slow motion slows all of it. Under reduced motion it only fades in and out where it is, and the one before it fades out.
-  function drop(x,y,from){
-    const el=pool[next];
-    if(el._a&&el._a.playState==='running')return false;
-    next=(next+1)%(phone.matches?20:pool.length);
-    el.getAnimations().forEach(a=>a.cancel());
-    pic=pic%8+1;el.className='pic k'+pic;el.querySelector('use').setAttribute('href','#it'+pic);
+    el.getAnimations().forEach(a=>a.cancel());el.animate([from,{transform:from.transform,opacity:0}],{duration:250}).onfinish=settle}
+  function fadeAll(){[real,first].forEach(S=>S.pool.forEach(el=>{if(el._a&&el._a.playState==='running')fadeOut(el)}))}
+  // A picture's whole life: it glides in from the last drop (from), growing from half size with a small overshoot, stays, then leaves
+  // as How they leave says. Calm (reduced motion): it only fades in and out where it is.
+  function keyframes(x,y,from,r,calm){
+    const life=stay+LEAVE,still=at(x,y,1,r);
+    if(calm)return[{transform:still,opacity:0},{transform:still,opacity:1,offset:150/life},{transform:still,opacity:1,offset:stay/life},{transform:still,opacity:0}];
+    const end=leave==='fall'?at(x,y+H*.3,.9,r*2.5):at(x,y,leave==='shrink'?.25:1,r);
+    return[{transform:at(from.x,from.y,.5,r*2),opacity:0,easing:'cubic-bezier(.22,1.3,.36,1)'},
+      {transform:still,opacity:1,offset:POP/life},
+      {transform:still,opacity:1,offset:stay/life,easing:leave==='fall'?'cubic-bezier(.55,0,1,.45)':'ease-in'},
+      {transform:end,opacity:0}];
+  }
+  // Drops the next picture of S at x,y, on top of the others, and says whether it did: a picture still out is never cut short, so when
+  // every frame is busy nothing drops and the trail thins (Compare's first half reuses its frame at once). Slow motion slows it;
+  // under reduced motion it only fades in and out where it is, and the one before it fades out.
+  function drop(x,y,from,S=real){
+    const el=S.pool[S.next];
+    if(!S.eager&&el._a&&el._a.playState==='running')return false;
+    S.next=(S.next+1)%S.cap();
+    el.getAnimations().forEach(a=>a.cancel());el._pose=false;
+    S.pic=S.pic%8+1;el.className='pic k'+S.pic;el.querySelector('use').setAttribute('href','#it'+S.pic);
     el.style.zIndex=++z;
-    const r=tilt?Math.random()*16-8:0,life=stay+LEAVE,still=at(x,y,1,r);
-    let frames;
-    if(reduce.matches){
-      if(live&&live!==el)fadeOut(live);
-      live=el;
-      frames=[{transform:still,opacity:0},{transform:still,opacity:1,offset:150/life},{transform:still,opacity:1,offset:stay/life},{transform:still,opacity:0}];
-    }else{
-      const end=leave==='fall'?at(x,y+H*.3,.9,r*2.5):at(x,y,leave==='shrink'?.25:1,r);
-      frames=[{transform:at(from.x,from.y,.5,r*2),opacity:0,easing:'cubic-bezier(.22,1.3,.36,1)'},
-        {transform:still,opacity:1,offset:POP/life},
-        {transform:still,opacity:1,offset:stay/life,easing:leave==='fall'?'cubic-bezier(.55,0,1,.45)':'ease-in'},
-        {transform:end,opacity:0}];
-    }
-    el._a=el.animate(frames,{duration:life});el._a.playbackRate=slowTog.checked?1/3:1;
+    if(reduce.matches){if(S.live&&S.live!==el)fadeOut(S.live);S.live=el}
+    el._a=el.animate(keyframes(x,y,from,tilt?Math.random()*16-8:0,reduce.matches),{duration:stay+LEAVE});
+    el._a.playbackRate=slowTog.checked?1/3:1;el._a.onfinish=el._a.oncancel=settle;
+    if(S===real&&mode==='inside'){dots.push({x,y});if(dots.length>40)dots=dots.slice(1)}
     return true;
   }
   // Every pointer, finger and Show me position comes through here: a picture drops once the pointer is the gap (How often a picture
   // appears) from the last drop and a frame is free; a stroke's first point marks its start; under reduced motion, also when none shows.
   function track(x,y){
-    const free=reduce.matches&&!(live&&live._a.playState==='running');   // reduced motion, and no picture is showing
+    const free=reduce.matches&&!(real.live&&real.live._a.playState==='running');   // reduced motion, and no picture is showing
     if(last&&!free&&Math.hypot(x-last.x,y-last.y)<gapK*Math.min(W,H))return;
     if((last||reduce.matches)&&!drop(x,y,last||{x,y}))return;
     last={x,y};
   }
-  function spot(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left-stage.clientLeft,y:e.clientY-r.top-stage.clientTop}}
+  function move(x,y){ptr={x,y};track(x,y);see()}   // the stroke's next point, and what See inside shows of it
+  // Compare's first half drops on every move, at most one in a 60th of a second (Show me's sweep gives one for each 60th of its own
+  // time: fixed), so the pile is as dense on a 144 Hz screen as on a 60 Hz one. Under reduced motion it shows one picture at a time.
+  function smear(x,y,fixed){
+    const now=performance.now();
+    if(!fixed&&now-first.t<FRAME-1||reduce.matches&&first.live&&first.live._a.playState==='running')return;
+    first.t=now;drop(x,y,first.last||{x,y},first);first.last={x,y};
+  }
+  function point(x,y){move(x,y);if(mode==='compare')smear(x,y)}
+  // Where a pointer event is in the trail's box. In Compare either half takes the pointer, and the spot is the same in both.
+  function spot(e){
+    const r=stage.getBoundingClientRect(),x=e.clientX-r.left-stage.clientLeft,y=e.clientY-r.top-stage.clientTop;
+    if(mode!=='compare'){side='R';return{x,y}}
+    const f=trail.offsetLeft?x<trail.offsetLeft:y<trail.offsetTop-sc.offsetTop,o=f?sc:trail;
+    if((f?'L':'R')!==side){side=f?'L':'R';end()}
+    return{x:x-o.offsetLeft,y:y-o.offsetTop};
+  }
 
   // Show me: one run at a time. Its sweep is drawn frame by frame (runFrame); its timers (reduced motion only) go through later().
   function later(fn,ms){
@@ -241,78 +331,207 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0||runFrame!==0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;last=null}
+  function end(){last=null;first.last=null;fresh=true}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];cancelAnimationFrame(runFrame);runFrame=0;end()}
+  function lift(){end();redraw()}
   // The empty hero: every picture goes at once
-  function toRest(){pool.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));last=null;live=null}
+  function toRest(){[real,first].forEach(S=>{S.pool.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));S.live=null});end();dots=[];trace='';posed=false}
 
   // A mouse or pen in the air leaves the trail while it moves over the hero; a finger drops a picture where it touches and leaves the
   // trail as it drags (the capture keeps its moves coming). The visitor's own pointer stops a run, and the trail follows them after it.
   stage.addEventListener('pointermove',e=>{
     if(e.pointerType==='touch'&&e.pointerId!==touchId)return;
     if(e.isTrusted){if(e.pointerType!=='touch')hovering=true;if(running())stopRun()}
-    const p=spot(e);track(p.x,p.y);
+    const p=spot(e);point(p.x,p.y);
   });
-  stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){hovering=false;last=null}});
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch'){hovering=false;lift()}});
   stage.addEventListener('pointerdown',e=>{
     if(e.pointerType!=='touch')return;
     touchId=e.pointerId;try{stage.setPointerCapture(touchId)}catch(_){}
-    const p=spot(e);drop(p.x,p.y,p);last=p;
+    const p=spot(e);ptr=p;drop(p.x,p.y,p);last=p;if(mode==='compare')smear(p.x,p.y);see();
   });
-  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(e.pointerId===touchId){touchId=null;last=null}}));
+  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(e.pointerId===touchId){touchId=null;lift()}}));
 
-  // A pretend pointer sweeps across the hero in 2.4 s (three times as long in Slow motion), easing in and out in one and a half waves,
-  // by elapsed time, so it takes as long on every screen; at the defaults the hero is empty again at about 3.7 s. Under reduced motion
-  // a picture fades in at three spots in turn, a second apart. The arrival press leaves alone a visitor already over the hero.
-  document.getElementById('btn-demo').addEventListener('click',e=>{
-    if(!e.isTrusted&&hovering)return;
+  // Show me's sweep: a pretend pointer crosses the hero in 2.4 s (three times as long in Slow motion), easing in and out in one and a
+  // half waves, by elapsed time, so it takes as long on every screen; at the defaults the hero is empty again at about 3.7 s. Under
+  // reduced motion a picture fades in at three spots in turn, a second apart. The arrival press leaves alone a visitor already over
+  // the hero; a See inside or Compare press goes through (nudge).
+  function sweep(p){const s=p<.5?2*p*p:1-2*(1-p)*(1-p);return{x:W*(.08+.84*s),y:H*(.5-.3*Math.sin(3*Math.PI*s))}}
+  $('btn-demo').addEventListener('click',e=>{
+    if(!e.isTrusted&&hovering&&!nudge)return;
     stopRun();toRest();measure();
     if(reduce.matches){
-      [[.24,.42],[.5,.62],[.76,.4]].forEach(([fx,fy],i)=>later(()=>{last=null;track(W*fx,H*fy)},i*1000));
+      [[.24,.42],[.5,.62],[.76,.4]].forEach(([fx,fy],i)=>later(()=>{end();point(W*fx,H*fy)},i*1000));
+      later(lift,2300);redraw();
       return;
     }
-    let p=0,lastT=null;
+    let p=0,lastT=null,acc=0,pn=0;
     runFrame=requestAnimationFrame(function frame(ts){
       if(reduce.matches){stopRun();fadeAll();return}
-      const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;
-      p=Math.min(1,p+dt/(RUN*(slowTog.checked?3:1)));
-      const s=p<.5?2*p*p:1-2*(1-p)*(1-p);
-      track(W*(.08+.84*s),H*(.5-.3*Math.sin(3*Math.PI*s)));
+      const dt=lastT===null?0:Math.min(ts-lastT,50),slow=slowTog.checked?3:1;lastT=ts;
+      p=Math.min(1,p+dt/(RUN*slow));
+      const q=sweep(p);move(q.x,q.y);
+      // Compare's first half: one drop for each 60th of a second of the sweep's own time
+      if(mode==='compare')for(acc+=dt/slow;acc>=FRAME;acc-=FRAME){pn=Math.min(1,pn+FRAME/RUN);const c=sweep(pn);smear(c.x,c.y,true)}
       runFrame=p<1?requestAnimationFrame(frame):0;
-      if(p>=1)last=null;
+      if(p>=1)lift();
     });
+    redraw();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, and the pictures already out leave as usual.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
-  reduce.addEventListener('change',()=>{if(reduce.matches)fadeAll()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();redraw()}});
+  reduce.addEventListener('change',()=>{if(reduce.matches)fadeAll();redraw()});
 
   // The keyboard: Tab focuses the layer over the hero, which stops a run and drops a picture at an invisible pointer in the middle of
   // the hero, or where the keys last left it, as a finger's touch does; the arrow keys move it a step (6% of the hero's shorter side,
   // three with Shift) and it leaves the trail through track(), as the pointer does. Escape, or focus leaving, ends the stroke as the
   // pointer leaving does, and the pictures already out leave as usual.
-  const keys=document.getElementById('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kx=null,ky=null;
+  const keys=$('keys'),ARROWS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};let kx=null,ky=null;
   function keyAt(dx,dy,big){const s=Math.min(W,H)*(big?.18:.06);if(kx===null){kx=W/2;ky=H/2}
     kx=Math.min(W,Math.max(0,kx+dx*s));ky=Math.min(H,Math.max(0,ky+dy*s))}
-  keys.addEventListener('focus',()=>{if(running())stopRun();keyAt(0,0);last={x:kx,y:ky};drop(kx,ky,last)});
-  keys.addEventListener('blur',()=>{last=null});
+  keys.addEventListener('focus',()=>{if(running())stopRun();keyAt(0,0);ptr={x:kx,y:ky};last={x:kx,y:ky};drop(kx,ky,last);if(mode==='compare')smear(kx,ky);see()});
+  keys.addEventListener('blur',lift);
   keys.addEventListener('keydown',e=>{
     if(e.altKey||e.ctrlKey||e.metaKey)return;
-    if(e.key==='Escape')last=null;
-    else if(ARROWS[e.key]){e.preventDefault();keyAt(...ARROWS[e.key],e.shiftKey);track(kx,ky)}
+    if(e.key==='Escape')lift();
+    else if(ARROWS[e.key]){e.preventDefault();keyAt(...ARROWS[e.key],e.shiftKey);point(kx,ky)}
   });
+
+  // ---- See inside and Compare: drawn from the numbers above (the gap, the sweep, the pictures' own keyframes) ----
+  const rt=$('rt'),ah=$('ah'),rg=$('rg'),pr=$('pr'),pl=$('pl'),Lr=$('l-ring'),Ld=$('l-dots'),Ls=$('l-stay'),Ln=$('l-new');
+  const dotEls=Array.from({length:40},()=>$('dg').appendChild(document.createElementNS('http://www.w3.org/2000/svg','circle'))),
+    pathOf=(a,b)=>{let d='';for(let i=a;i<=b;i+=2){const q=sweep(i/STEPS);d+=(d?'L':'M')+q.x.toFixed(0)+' '+q.y.toFixed(0)}return d};
+  dotEls.forEach(c=>{c.setAttribute('class','dot');c.setAttribute('r',5)});
+  // The notes as the markup has them, and for reduced motion: still (the pose) or live (the visitor or Show me made pictures)
+  const DEF={},STILL={inside:'Inside, shown still: each dot is where a picture dropped, and the next drops only when the pointer leaves the ring around the last one.',
+      compare:'Shown still: Every move has piled pictures up on each small move; Spaced out has dropped one only every set distance.'},
+    LIVE={inside:'Inside, each dot is where a picture appeared. Your device is set to reduce motion, so one shows at a time, where you point.',
+      compare:'Your device is set to reduce motion, so both halves show one picture at a time, where you point.'};
+  document.querySelectorAll('[data-hb-for]').forEach(p=>DEF[p.dataset.hbFor]=p.textContent);
+  function note(){   // written only when its words change: the box is read aloud each time
+    if(mode==='normal')return;
+    const el=document.querySelector(`[data-hb-for="${mode}"]`),t=reduce.matches?(posed?STILL:LIVE)[mode]:DEF[mode];
+    if(el.textContent!==t)el.textContent=t;
+  }
+  const out=()=>[real,first].some(S=>S.pool.some(el=>el.getAnimations().some(a=>a.playState==='running')));
+  function settle(){if(mode!=='normal')redraw()}
+  // At rest the view is the pose; with a stroke, a run or a picture out, it is what really happens
+  function redraw(){
+    if(mode==='normal')return;
+    if(last===null&&!running()&&!out())poseView();else liveView();
+    note();
+  }
+  function clearPose(){[real,first].forEach(S=>S.pool.forEach(el=>{if(el._pose){el.getAnimations().forEach(a=>a.cancel());el._pose=false}}))}
+  // The drops Show me's sweep makes with n frames, found at 60 steps a second by the page's own rules (the gap, and the frame in turn
+  // still out) and stopped when the oldest picture is three quarters through leaving and the pointer is just inside the last drop's ring
+  // (or at the end of the sweep): the plan the stills show
+  function plan(n){
+    const gap=gapK*Math.min(W,H),life=stay+LEAVE,drops=[];let prev=sweep(0);
+    for(let i=0;;i++){
+      const t=i*FRAME,q=sweep(i/STEPS),d=Math.hypot(q.x-prev.x,q.y-prev.y)/gap,k=drops.length-n;
+      if(i>=STEPS||drops.length&&t>=drops[0].t+stay+LEAVE*.75&&d>.5&&d<.92)return{drops,last:prev,q,i,t};
+      if(i&&d>=1&&!(k>=0&&t<drops[k].t+life)){drops.push({x:q.x,y:q.y,from:prev,t,pic:drops.length%8+1});prev=q}
+    }
+  }
+  // A frame held part way through its life, so a still shows what the page's own keyframes make at that moment
+  function pin(S,i,d,r,age){
+    const el=S.pool[i];el.getAnimations().forEach(a=>a.cancel());
+    el.className='pic k'+d.pic;el.querySelector('use').setAttribute('href','#it'+d.pic);el.style.zIndex=++z;
+    const a=el.animate(keyframes(d.x,d.y,d.from,r,false),{duration:stay+LEAVE});a.pause();a.currentTime=age;el._pose=true;
+  }
+  function poseView(){
+    clearPose();posed=true;dots=[];trace='';   // what the last stroke marked is forgotten once its pictures are gone
+    const n=real.cap(),p=plan(n),life=stay+LEAVE,r=i=>tilt?(i%2?5:-5):0,shown=p.drops.slice(-n);
+    shown.forEach((d,i)=>{if(p.t-d.t<life)pin(real,i,d,r(i),p.t-d.t)});
+    if(mode==='compare')for(let k=0;k<n;k++){   // the first half: a picture for each 60th of a second of the sweep
+      const j=Math.max(0,p.i-n+1+k),a=sweep(j/STEPS);
+      pin(first,k,{x:a.x,y:a.y,from:sweep(Math.max(0,j-1)/STEPS),pic:k%8+1},r(k),(n-1-k)*FRAME);
+    }
+    if(mode==='inside'){
+      const g=gapK*Math.min(W,H),ds=p.drops.slice(-40);
+      paint({trace:pathOf(0,p.i),ahead:pathOf(p.i,STEPS),dots:ds,ring:p.last,ptr:p.q});
+      words();place(ds,p.last,g,p.q,shown.find(d=>p.t-d.t<life));lay=false;
+    }else paint({dots:[],ptr:p.q});
+  }
+  function liveView(){
+    if(posed){clearPose();posed=false;note()}
+    paint({trace,dots,ring:last&&!reduce.matches?last:null,ptr:last?ptr:null});
+    if(mode==='inside'&&(words()||lay)){place(dots,last,gapK*Math.min(W,H),ptr,dots[0]);lay=false}
+  }
+  // The route taken so far (each stroke is a new piece), then the view
+  function see(){
+    if(mode==='normal')return;
+    if(mode==='inside'&&last){trace+=(fresh||!trace?'M':'L')+ptr.x.toFixed(0)+' '+ptr.y.toFixed(0);fresh=false;if(trace.length>4000)trace='M'+ptr.x.toFixed(0)+' '+ptr.y.toFixed(0)}
+    liveView();
+  }
+  // d: the route so far and ahead, the dots, the ring's center and the pointer (in Compare also its ghost in the other half)
+  function paint(d){
+    rt.setAttribute('d',d.trace||'');ah.setAttribute('d',d.ahead||'');
+    rg.setAttribute('r',d.ring?gapK*Math.min(W,H):0);Lr.style.visibility=d.ring?'':'hidden';   // the ring's label goes with it
+    if(d.ring){rg.setAttribute('cx',d.ring.x);rg.setAttribute('cy',d.ring.y)}
+    if(d.dots!==shownDots||d.dots.length!==shownN){   // the dots change only when one is added
+      shownDots=d.dots;shownN=d.dots.length;
+      dotEls.forEach((c,i)=>{const q=d.dots[i];c.style.display=q?'':'none';if(q){c.setAttribute('cx',q.x);c.setAttribute('cy',q.y)}});
+    }
+    const p=d.ptr,cmp=mode==='compare',mine=hovering?side:'';   // a mouse is drawn by the browser itself
+    pr.style.display=p&&mine!=='R'?'':'none';pl.style.display=p&&cmp&&mine!=='L'?'':'none';
+    if(p){
+      pr.setAttribute('transform',`translate(${p.x+(cmp?trail.offsetLeft:0)} ${p.y+(cmp?trail.offsetTop:0)})`);
+      pl.setAttribute('transform',`translate(${p.x+sc.offsetLeft} ${p.y+sc.offsetTop})`);
+    }
+  }
+  // The third label: how long a picture stays, in a beginner's words (Slow motion is three times as long), and how it leaves
+  const DUR={400:'under half a second',800:'almost a second',1600:'a second and a half'},
+    SLOW={400:'over a second',800:'almost two and a half seconds',1600:'almost five seconds'},GO={shrink:'shrinks',fade:'fades',fall:'falls'};
+  function words(){
+    const a=`Each stays ${(slowTog.checked?SLOW:DUR)[stay]},`,b=`then ${GO[leave]} away`,cut=a.length>33?a.lastIndexOf(' ',33):a.length,   // two lines, neither wider than about 33 letters
+      t=cut<a.length?`${a.slice(0,cut)}\n${a.slice(cut+1)} ${b}`:`${a}\n${b}`,show=!phone.matches&&H>=330?'':'none',
+      changed=Ls.textContent!==t||Ln.style.display!==show;
+    if(changed){Ls.textContent=t;Ln.style.display=show}
+    return changed;
+  }
+  // Puts each label where it covers no other label, the ring's edge, the pointer or a dot, as near what it names as it can
+  function place(ds,ring,g,p,old){
+    const taken=[],marks=[...ds.map(q=>[q.x-8,q.y-8,16,16,60]),...(p?[[p.x-4,p.y-4,22,30,400]]:[])],c0=ring||{x:W/2,y:H/2},
+      hit=(x,y,w,h,[a,b,c,e])=>x<a+c&&a<x+w&&y<b+e&&b<y+h;
+    [[Lr,{x:c0.x,y:c0.y-g},1.5],[Ld,ds[ds.length>>1]||c0],[Ls,old||c0],[Ln,c0]].forEach(([el,a,k=.5])=>{
+      if(el.style.display==='none')return;
+      const w=el.offsetWidth,h=el.offsetHeight;let best,low=Infinity;
+      for(let j=0;j<=12;j++)for(let i=0;i<=10;i++){
+        const x=6+i/10*(W-w-12),y=6+j/12*(H-h-12);let c=Math.hypot(x+w/2-a.x,y+h/2-a.y)*k;
+        taken.forEach(o=>{if(hit(x,y,w,h,o))c+=1e4});
+        marks.forEach(m=>{if(hit(x,y,w,h,m))c+=m[4]});
+        if(ring){const nx=Math.max(x,Math.min(ring.x,x+w)),ny=Math.max(y,Math.min(ring.y,y+h)),
+          far=Math.max(...[[x,y],[x+w,y],[x,y+h],[x+w,y+h]].map(([u,v])=>Math.hypot(u-ring.x,v-ring.y)));
+          if(Math.hypot(nx-ring.x,ny-ring.y)<=g&&far>=g)c+=400}   // across the ring's edge
+        if(c<low){low=c;best=[x,y]}
+      }
+      el.style.left=best[0]+'px';el.style.top=best[1]+'px';taken.push([best[0]-5,best[1]-5,w+10,h+10]);
+    });
+  }
+  // The mode switch draws the mode at once (at rest, its pose). The shared script then presses Show me (not under reduced motion),
+  // which plays it; nudge lets that untrusted press through even while the mouse rests on the hero.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;nudge=true;Promise.resolve().then(()=>nudge=false);
+    real.next%=real.cap();end();kx=ky=null;lay=true;measure();
+    if(mode==='normal'){clearPose();posed=false;dots=[];trace=''}else redraw();
+  });
+  document.fonts.ready.then(()=>{lay=true;redraw()});
+  slowTog.addEventListener('change',redraw);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);redraw();
     }));
   }
   choices('often-seg',d=>{gapK=+d.k});
   choices('stay-seg',d=>{stay=+d.ms});
   choices('size-seg',d=>{sizeK=+d.k;measure()});
   choices('leave-seg',d=>{leave=d.leave});
-  document.getElementById('tilt-tog').addEventListener('change',e=>{tilt=e.target.checked});
-  new ResizeObserver(measure).observe(stage);
+  $('tilt-tog').addEventListener('change',e=>{tilt=e.target.checked;redraw()});
+  new ResizeObserver(()=>{lay=true;measure();redraw()}).observe(stage);
 </script>
 </body>
 </html>
