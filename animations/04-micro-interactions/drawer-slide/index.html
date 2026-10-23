@@ -52,7 +52,90 @@
     .nav-item.active{color:var(--ui-accent)}
     /* A window this short gives the stage 260px, less than the four menu items need: the drawer gives up some spacing, the items keep their size */
     @media(min-width:601px) and (max-height:620px){.drawer-header{padding:8px 16px}.drawer-body{padding:8px 12px;gap:0}}
-    @media(prefers-reduced-motion:reduce){.drawer,.backdrop{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.drawer,.backdrop,.arrow{transition:none!important}}
+    /* The app sits in a box that fills the stage; See inside and Compare lay the box out their own way */
+    .box{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}
+    .cap,.half{padding:2px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.14);background:#111114;color:var(--ui-text);font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .cap{display:flex;align-items:center;gap:5px}
+    .cap .more{font-style:normal}
+    @media(max-width:480px){.cap .more{display:none}}
+    .cap b{font-weight:600;color:#c9c9cf}
+    .twin,.park,.arrow,.keys,.half{display:none}
+    .twin .drawer,.twin .backdrop{transition:none}
+    .ico{flex:none;width:16px;height:12px}
+    .ico-park{border:2px dashed var(--ui-accent);border-radius:2px}
+    .ico-dim{border-radius:3px;border:1px solid rgba(255,255,255,.4);background:linear-gradient(rgba(0,0,0,var(--backdrop-op)),rgba(0,0,0,var(--backdrop-op))),#e8e8ea}
+    .ico-in,.ico-out{background:var(--ui-accent);clip-path:polygon(0 35%,68% 35%,68% 0,100% 50%,68% 100%,68% 65%,0 65%)}
+    .arrow{background:var(--ui-accent);clip-path:polygon(0 35%,calc(100% - 14px) 35%,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,calc(100% - 14px) 65%,0 65%)}
+    .ico-in{transform:rotate(calc(var(--r)*1deg))}
+    .ico-out{background:#f4f4f2;transform:rotate(calc((var(--r) + 180)*1deg))}
+    /* Where each arrow sits and points, for each edge the drawer comes in from: centered on the screen's edge and as long as the
+       slide (--mv, measured), on a side edge between the menu items */
+    .stage[data-side="left"]{--r:0;--ax:calc(var(--mv)/-2);--ay:min(109px,calc(100% - 70px));--bx:calc(var(--mv)/-2);--by:min(153px,calc(100% - 14px))}
+    .stage[data-side="right"]{--r:180;--ax:calc(100% - var(--mv)/2);--ay:min(109px,calc(100% - 70px));--bx:calc(100% - var(--mv)/2);--by:min(153px,calc(100% - 14px))}
+    .stage[data-side="top"]{--r:90;--ax:calc(62% - var(--mv)/2);--ay:-6px;--bx:calc(82% - var(--mv)/2);--by:-6px}
+    .stage[data-side="bottom"]{--r:-90;--ax:calc(62% - var(--mv)/2);--ay:calc(100% - 6px);--bx:calc(82% - var(--mv)/2);--by:calc(100% - 6px)}
+    /* See inside: the screen is laid out smaller on the side away from the drawer and stops clipping, so the closed drawer shows in
+       its parked place beyond the edge. A dashed outline stays there when it opens; the key below names each part. */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:6px;padding:6px;--drawer-w:min(280px,76%);--dh:62%}
+    .stage[data-hb-mode="inside"] .box{overflow:visible;width:55%;outline:2px solid rgba(244,244,242,.4)}
+    .stage[data-hb-mode="inside"][data-side="left"] .box{justify-self:end}
+    .stage[data-hb-mode="inside"][data-side="right"] .box{justify-self:start}
+    .stage[data-hb-mode="inside"][data-side="top"] .box,.stage[data-hb-mode="inside"][data-side="bottom"] .box{width:auto;height:60%}
+    .stage[data-hb-mode="inside"][data-side="top"] .box{align-self:end}
+    .stage[data-hb-mode="inside"][data-side="bottom"] .box{align-self:start}
+    .stage[data-hb-mode="inside"] .app-header,.stage[data-hb-mode="inside"] .drawer-header{padding-block:6px}
+    .stage[data-hb-mode="inside"] .app-body{overflow:hidden;min-height:0}
+    .stage[data-hb-mode="inside"] .content-line{flex-shrink:0}
+    .stage[data-hb-mode="inside"] .drawer.top,.stage[data-hb-mode="inside"] .drawer.bottom{height:var(--dh)}
+    .stage[data-hb-mode="inside"] .drawer{opacity:.35;transition:transform var(--close-dur) var(--close-ease),opacity var(--close-dur) var(--close-ease)}
+    .stage[data-hb-mode="inside"] .drawer.open{opacity:1;transition:transform var(--open-dur) var(--open-ease),opacity var(--open-dur) var(--open-ease)}
+    .stage[data-hb-mode="inside"] .park{display:block;position:absolute;z-index:12;pointer-events:none;border:0 dashed var(--ui-accent);top:0;bottom:0;left:0;width:var(--drawer-w);border-width:2px 0 2px 2px;transform:translateX(-100%)}
+    .stage[data-hb-mode="inside"][data-side="right"] .park{left:auto;right:0;border-width:2px 2px 2px 0;transform:translateX(100%)}
+    .stage[data-hb-mode="inside"][data-side="top"] .park{bottom:auto;right:0;width:auto;height:var(--dh);border-width:2px 2px 0;transform:translateY(-100%)}
+    .stage[data-hb-mode="inside"][data-side="bottom"] .park{top:auto;bottom:0;right:0;width:auto;height:var(--dh);border-width:0 2px 2px;transform:translateY(100%)}
+    .stage[data-hb-mode="inside"] .arrow{display:block;position:absolute;z-index:13;pointer-events:none;width:var(--mv);height:12px;left:var(--ax);top:var(--ay);transform:rotate(calc(var(--r)*1deg));transition:opacity .15s var(--close-dur)}
+    .stage[data-hb-mode="inside"] .arrow.out{left:var(--bx);top:var(--by);background:#f4f4f2;transform:rotate(calc((var(--r) + 180)*1deg))}
+    .stage[data-hb-mode="inside"].shown .arrow{opacity:0;transition-delay:0s}
+    .stage[data-hb-mode="inside"] .keys{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .kr{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 6px}
+    .stage[data-hb-mode="inside"] .app-header{padding-inline:12px;gap:8px}
+    .stage[data-hb-mode="inside"] .app-title{white-space:nowrap}
+    @media(max-width:360px){.stage[data-hb-mode="inside"]{padding:4px;gap:4px}}
+    @media(min-width:761px){.stage[data-hb-mode="inside"] .box{width:58%}.stage[data-hb-mode="inside"] .keys{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 6px}}
+    /* Compare: on the left a copy whose menu is simply there, on the right the real app. At rest the real drawer and sheet are caught
+       part way in, as far as the page's own opening curve takes them in a tenth of a second, with an arrow in front of the drawer. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .box{background:#0b0b0d}
+    .stage[data-hb-mode="compare"] .app-header{padding:6px 8px;gap:8px}
+    .stage[data-hb-mode="compare"] .app-title{font-size:12px;letter-spacing:.3px;white-space:nowrap}
+    .stage[data-hb-mode="compare"] .app-body{padding:16px 8px}
+    .stage[data-hb-mode="compare"] .drawer-header{padding:8px}
+    .stage[data-hb-mode="compare"] .drawer-body{padding:8px;gap:0}
+    .stage[data-hb-mode="compare"] .half{display:block;position:absolute;z-index:11;bottom:8px;right:8px;pointer-events:none}
+    .stage[data-hb-mode="compare"][data-side="right"] .half,.stage[data-hb-mode="compare"][data-side="top"] .half{right:auto;left:8px}
+    .stage[data-hb-mode="compare"][data-side="bottom"] .half{bottom:auto;top:64px;right:auto;left:8px}
+    .stage[data-hb-mode="compare"].posed .twin .drawer{transform:none}
+    .stage[data-hb-mode="compare"].posed .twin .backdrop{opacity:1}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .drawer,.stage[data-hb-mode="compare"].posed .box:not(.twin) .backdrop{transition:none}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .backdrop{opacity:var(--pose)}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .drawer{transform:translateX(calc((var(--pose) - 1)*100%))}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .drawer.right{transform:translateX(calc((1 - var(--pose))*100%))}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .drawer.top{transform:translateY(calc((var(--pose) - 1)*100%))}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .drawer.bottom{transform:translateY(calc((1 - var(--pose))*100%))}
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .arrow.in{display:block;position:absolute;z-index:11;pointer-events:none;width:28px;height:12px;transform:rotate(calc(var(--r)*1deg));top:calc(50% - 6px);left:calc(var(--pose)*var(--drawer-w) + 6px)}
+    .stage[data-hb-mode="compare"][data-side="right"].posed .box:not(.twin) .arrow.in{left:auto;right:calc(var(--pose)*var(--drawer-w) + 6px)}
+    .stage[data-hb-mode="compare"][data-side="top"].posed .box:not(.twin) .arrow.in{left:calc(50% - 14px);top:calc(var(--pose)*200px + 14px)}
+    .stage[data-hb-mode="compare"][data-side="bottom"].posed .box:not(.twin) .arrow.in{left:calc(50% - 14px);top:auto;bottom:calc(var(--pose)*200px + 14px)}
+    /* The real menu button stays drawn above the caught drawer, so it can be seen and pressed. A Top menu keeps a gutter for it, and on
+       narrow stages, where the drawer's own × would meet it, the caught drawer leaves the × out. */
+    .stage[data-hb-mode="compare"].posed .box:not(.twin) .hamburger{position:relative;z-index:11;background:var(--ui-bg)}
+    .stage[data-hb-mode="compare"][data-side="top"] .drawer-body{padding-left:56px}
+    @media(max-width:760px){.stage[data-hb-mode="compare"][data-side="left"].posed .box:not(.twin) .close-btn,.stage[data-hb-mode="compare"][data-side="top"].posed .box:not(.twin) .close-btn{visibility:hidden}}
+    @media(min-width:601px){.stage[data-hb-mode="compare"][data-side="bottom"] .half{top:18px;left:auto;right:8px}}
+    /* A short stage cannot hold the open menu and a half's name below it: each drawer gives up some width, so the name sits beside it */
+    @media(min-width:601px) and (max-height:620px){.stage[data-hb-mode="compare"]{--drawer-w:min(280px,58%)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -75,33 +158,56 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press the menu button, then close the drawer with × or a swipe, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <div class="app-header">
-        <button class="hamburger" id="open-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">☰</button>
-        <div class="app-title">Atlas App</div>
-      </div>
-      <div class="app-body">
-        <div class="content-line w100"></div><div class="content-line w80"></div>
-        <div class="content-line w60"></div><div class="content-line w100"></div>
-        <div class="content-line w40"></div><div class="content-line w80"></div>
-      </div>
-      <div class="backdrop" id="backdrop" aria-hidden="true"></div>
-      <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Navigation menu" tabindex="-1" inert>
-        <div class="drawer-header">
-          <div class="drawer-title">Menu</div>
-          <button class="close-btn" id="close-btn" type="button" aria-label="Close menu">×</button>
+      <div class="box" id="box">
+        <div class="app-header">
+          <button class="hamburger" id="open-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">☰</button>
+          <div class="app-title">Atlas App</div>
         </div>
-        <div class="drawer-body">
-          <div class="nav-item active">Home</div>
-          <div class="nav-item">Gallery</div>
-          <div class="nav-item">About</div>
-          <div class="nav-item">Contact</div>
+        <div class="app-body">
+          <div class="content-line w100"></div><div class="content-line w80"></div>
+          <div class="content-line w60"></div><div class="content-line w100"></div>
+          <div class="content-line w40"></div><div class="content-line w80"></div>
+        </div>
+        <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+        <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Navigation menu" tabindex="-1" inert>
+          <div class="drawer-header">
+            <div class="drawer-title">Menu</div>
+            <button class="close-btn" id="close-btn" type="button" aria-label="Close menu">×</button>
+          </div>
+          <div class="drawer-body">
+            <div class="nav-item active">Home</div>
+            <div class="nav-item">Gallery</div>
+            <div class="nav-item">About</div>
+            <div class="nav-item">Contact</div>
+          </div>
+        </div>
+        <span class="park" aria-hidden="true"></span><span class="arrow in" aria-hidden="true"></span><span class="arrow out" aria-hidden="true"></span>
+        <p class="half" aria-hidden="true" data-hb-caption>Slides in</p>
+      </div>
+      <div class="keys" aria-hidden="true">
+        <div class="kr">
+          <p class="cap" data-hb-caption><i class="ico ico-park"></i><span>Waits <i class="more">here, </i>off the screen</span></p>
+          <p class="cap" id="cap-dim" data-hb-caption><i class="ico ico-dim"></i><span>Dims the page</span></p>
+        </div>
+        <div class="kr">
+          <p class="cap" data-hb-caption><i class="ico ico-in"></i><span>Slides in, slowing<i class="more"> down</i><br><b id="t-in">a quarter of a second</b></span></p>
+        <p class="cap" data-hb-caption><i class="ico ico-out"></i><span>Slides out, speeding<i class="more"> up</i><br><b id="t-out">a fifth of a second</b></span></p>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the drawer waits just off the screen, outlined where it parks; opening slides it in over the page, slowing as it lands. Press the menu button, or Show me.</p>
+      <p data-hb-for="compare" hidden>Appears at once: the menu is simply there; Slides in: it comes in from the edge, so you see where it lives. Press the menu button, or Show me.</p>
     </div>
   </section>
 
@@ -201,17 +307,38 @@
   const openBtn=document.getElementById('open-btn');
   const closeBtn=document.getElementById('close-btn');
   const vars=document.documentElement.style;
-  let isOpen=false,side='left',dragging=false,dragStartX=0,dragStartY=0,openDur=280;
+  let isOpen=false,side='left',dragging=false,dragStartX=0,dragStartY=0,openDur=280,closeDur=220,dimOp=0.5;
+  const stage=document.querySelector('.stage'),box=document.getElementById('box');
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  stage.dataset.side=side;
+
+  // Compare's first half: a copy of the app whose drawer and sheet show the moment open() runs and go the moment close() runs. It has
+  // no ids, no buttons (spans) and no dialog role, and it is out of the Tab order and hidden from screen readers.
+  const twin=box.cloneNode(true);
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');twin.removeAttribute('id');
+  twin.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  twin.querySelectorAll('.park,.arrow').forEach(e=>e.remove());
+  twin.querySelectorAll('button').forEach(b=>{const t=document.createElement('span');t.className=b.className;t.textContent=b.textContent;b.replaceWith(t)});
+  const tDrawer=twin.querySelector('.drawer'),tBackdrop=twin.querySelector('.backdrop');
+  ['role','aria-modal','aria-label','tabindex','inert'].forEach(a=>tDrawer.removeAttribute(a));
+  twin.querySelector('.half').textContent='Appears at once';
+  box.before(twin);
 
   function open(){
+    settleAt=0;unpose();
     drawer.inert=false;
     drawer.classList.add('open');backdrop.classList.add('visible');
+    tDrawer.classList.add('open');tBackdrop.classList.add('visible');
     openBtn.setAttribute('aria-expanded','true');isOpen=true;
+    stage.classList.add('shown');notes();
   }
   function close(){
     drawer.classList.remove('open');backdrop.classList.remove('visible');
+    tDrawer.classList.remove('open');tBackdrop.classList.remove('visible');
     openBtn.setAttribute('aria-expanded','false');isOpen=false;
     drawer.inert=true; // a closed drawer cannot be reached with Tab
+    stage.classList.remove('shown');
+    settleAt=Date.now()+(motionOk?closeDur*(slowTog.checked?3:1):0);pose();
   }
   // The visitor's own way in and out. Keyboard focus goes into the drawer when it opens and back to the menu button when it
   // closes, unless the visitor has moved on to another control in the meantime. Show me calls open() and close() alone: a run
@@ -255,13 +382,14 @@
   function stopRun(){ runTimers.forEach(clearTimeout); runTimers=[]; }
   // A run starts with the drawer closed, put there without animating: the transitions are turned off, the drawer is closed,
   // a reflow makes it stick, and the transitions come back.
-  function toRest(){
+  function snap(fn){
     const parts=[drawer,backdrop];
     parts.forEach(p=>p.style.setProperty('transition','none','important'));
-    close();
+    fn();
     void drawer.offsetWidth;
     parts.forEach(p=>p.style.removeProperty('transition'));
   }
+  function toRest(){snap(()=>{unpose();close()})}
   // The drawer opens as the menu button opens it, waits 1.5 s, and closes (the slide in is the movement the wait counts).
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
@@ -270,7 +398,7 @@
     later(close,openDur,1500);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the drawer stays as it is.
-  document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
+  document.addEventListener('hb:input',()=>{ if(running()){ stopRun(); pose(); } });
   // A Tab press from outside the stage sends no hb:input (the key goes to the control that had the focus), but a run never
   // moves the focus, so focus arriving in the stage while one runs is the visitor's: the drawer must not close under it.
   document.querySelector('.stage').addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); });
@@ -280,6 +408,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      words();pose();measure();
     }));
   }
   // An open drawer closes first; the class then changes without a transition, so it never slides across the stage
@@ -289,12 +418,56 @@
     drawer.style.transition='none';
     drawer.className='drawer';
     if(side!=='left')drawer.classList.add(side);
+    tDrawer.className=drawer.className;stage.dataset.side=side;
     void drawer.offsetWidth;
     drawer.style.transition='';
   });
   choices('open-seg',d=>{openDur=+d.ms;vars.setProperty('--open-dur',d.ms+'ms')});
-  choices('close-seg',d=>{vars.setProperty('--close-dur',d.ms+'ms')});
-  choices('dim-seg',d=>{vars.setProperty('--backdrop-op',d.op)});
+  choices('close-seg',d=>{closeDur=+d.ms;vars.setProperty('--close-dur',d.ms+'ms')});
+  choices('dim-seg',d=>{dimOp=+d.op;vars.setProperty('--backdrop-op',d.op)});
+
+  // The two views. See inside draws the key from the page's own numbers; Compare's rest pose catches the real drawer and sheet where
+  // the page's own opening curve has taken them a tenth of a second after the press (judged by progress, so Slow motion leaves it be).
+  let mode='normal',posed=false,settleAt=0,poseTimer=0;
+  const SECS={130:'an eighth of a second',170:'a sixth of a second',220:'a fifth of a second',280:'a quarter of a second',350:'a third of a second',390:'under half a second',450:'nearly half a second',510:'half a second',660:'over half a second',840:'nearly a second',1050:'about a second',1350:'over a second'};
+  const tIn=document.getElementById('t-in'),tOut=document.getElementById('t-out'),capDim=document.getElementById('cap-dim');
+  const probe=document.body.appendChild(document.createElement('i'));
+  probe.style.cssText='position:absolute;visibility:hidden;width:0;height:0';
+  // How far the drawer slides (its width, or its height at the top and bottom), for the length of See inside's arrows
+  function measure(){stage.style.setProperty('--mv',(side==='top'||side==='bottom'?drawer.offsetHeight:drawer.offsetWidth)+'px')}
+  function words(){
+    const k=slowTog.checked?3:1;
+    tIn.textContent=SECS[openDur*k];tOut.textContent=SECS[closeDur*k];capDim.hidden=dimOp===0;
+  }
+  function progressAt(ms,dur){
+    const a=probe.animate({opacity:[0,1]},{duration:dur,easing:getComputedStyle(document.documentElement).getPropertyValue('--open-ease').trim(),fill:'both'});
+    a.pause();a.currentTime=ms;
+    const v=+getComputedStyle(probe).opacity;a.cancel();return v;
+  }
+  function unpose(){if(posed){posed=false;stage.classList.remove('posed')}}
+  // At rest in Compare: the drawer is closed, no Show me run is waiting and the last slide out has finished
+  function pose(){
+    clearTimeout(poseTimer);poseTimer=0;
+    let on=mode==='compare'&&!isOpen&&!running();
+    const wait=settleAt-Date.now();
+    if(on&&wait>0){on=false;poseTimer=setTimeout(pose,wait+20)}
+    stage.style.setProperty('--pose',progressAt(100,openDur).toFixed(3));
+    if(on&&!posed){posed=true;stage.classList.add('posed')}
+    else if(!on&&posed)snap(unpose);
+    notes();
+  }
+  // Under reduced motion each note says what its still shows, and changes with it
+  const nIn=document.querySelector('[data-hb-for="inside"]'),nCmp=document.querySelector('[data-hb-for="compare"]');
+  function setText(el,t){if(el.textContent!==t)el.textContent=t}
+  function notes(){
+    if(motionOk)return;
+    setText(nIn,isOpen?'Inside, the outline marks where the drawer waits; your device is set to reduce motion, so it appears over the page at once.':'Inside, shown still: the drawer waits just off the screen, outlined where it parks; with motion on, it slides in over the page, slowing as it lands.');
+    setText(nCmp,posed||!isOpen?'Shown still: Appears at once is already open; Slides in is caught part way in from its edge.':'Appears at once and Slides in both show the open menu, because your device is set to reduce motion. Close it to see the still again.');
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;words();pose();measure()});
+  addEventListener('resize',measure);
+  slowTog.addEventListener('change',words);
+  words();notes();
 </script>
 </body>
 </html>
