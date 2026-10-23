@@ -82,7 +82,7 @@
       <canvas class="loupe in" id="loupe" aria-hidden="true"></canvas>
       <p class="cap in tl" aria-hidden="true" data-hb-caption>Hidden hills: lighter is higher</p>
       <p class="cap in kc" aria-hidden="true" data-hb-caption>A line at every step of height</p>
-      <p class="cap in lc" aria-hidden="true" data-hb-caption>Zoomed in: the line runs between higher and lower dots</p>
+      <p class="cap in lc" aria-hidden="true" data-hb-caption>Zoomed in: a line runs wherever higher and lower dots meet</p>
       <div class="cap in dr" aria-hidden="true" data-hb-caption>
         <span>Big hills drift</span><svg class="arw" data-ar="h"><path/></svg>
         <span>Small <b>bumps</b> drift</span><svg class="arw gold" data-ar="b"><path/></svg>
@@ -215,7 +215,7 @@
   const MOVING=notes.map(p=>p.textContent); // the markup's words; the still words below replace them under reduced motion while paused
   const STILL=['Inside, shown still: the shading shows the hidden hills, lighter where higher, and each line joins one height. The arrows show which way the big hills and the small bumps would drift.',
     'Shown still: the arrows show how each would move. Hills only would slide past in one piece; in Hills and bumps the bumps drift the other way, so its hills would swell and change shape.'];
-  const LO=-.8,HI=.8,ZOOM=4,SPAN=5; // heights the shading and key cover; the magnifier's zoom; the arrows show about five seconds of drift
+  const LO=-.8,HI=.8,ZOOM=4,ZMIN=2,SPAN=5; // heights the shading and key cover; the magnifier's zoom at most and at least; the arrows show about five seconds of drift
   const DARK=[9,12,11],LIGHT=[116,124,120]; // the shading from the lowest height to the highest
   const SHADE=new Uint32Array(256).map((_,i)=>{const v=i/255,c=DARK.map((d,j)=>Math.round(d+(LIGHT[j]-d)*v));return 0xff000000|c[2]<<16|c[1]<<8|c[0];});
 
@@ -241,7 +241,7 @@
       const y=r*step*s;
       for(let q=0;q<=c;q++,k++){
         const x=q*step*s;
-        h[k]=bumps?noise(x+t*HX,y+t*HY)+BA*noise(x*BK-t*BX+17.3,y*BK+t*BY+5.1):noise(x+t*HX,y+t*HY)+1e-4; // the lift keeps exact zeros from tying with the zero level
+        h[k]=bumps?noise(x+t*HX,y+t*HY)+BA*noise(x*BK-t*BX+17.3,y*BK+t*BY+5.1):noise(x+t*HX,y+t*HY)+GAP/2; // lifted half a step: the hills' zero level runs straight in some cells, and no line sits there now
       }
     }
   }
@@ -338,13 +338,14 @@
       c.beginPath();c.moveTo(big?2:bar-7,y);c.lineTo(bar+12,y);c.stroke();
     }
   }
-  // The magnifier: the patch under its own center, four times larger: grid squares, a dot at every grid point (filled above the
-  // level, hollow below) and that level's line from the page's own cross(). The level is the multiple of Line spacing nearest the
-  // height at the center, kept while it still crosses the patch and is within a spacing.
+  // The magnifier: the patch under its own center, four times larger (less at big hills or wide spacing, where a patch is flatter
+  // and would often hold no line): grid squares, a dot at every grid point (filled above the level, hollow below) and that
+  // level's line from the page's own cross(). The level is the multiple of Line spacing nearest the height at the center, kept
+  // while it still crosses the patch and is within a spacing.
   function drawLoupe(){
     lw=fitCanvas(lpCv,lpCtx);
     if(!lw)return;
-    const c=lpCtx,n=cols+1,pw=lw/ZOOM,ox=lx-pw/2,oy=ly-pw/2;
+    const c=lpCtx,n=cols+1,Z=Math.max(ZMIN,Math.min(ZOOM,ZOOM*22/(HILL*GAP))),pw=lw/Z,ox=lx-pw/2,oy=ly-pw/2;
     const q0=Math.max(0,Math.floor(ox/step)),q1=Math.min(cols,Math.ceil((ox+pw)/step));
     const r0=Math.max(0,Math.floor(oy/step)),r1=Math.min(rows,Math.ceil((oy+pw)/step));
     const hc=hts[Math.min(rows,Math.round(ly/step))*n+Math.min(cols,Math.round(lx/step))]; // the height at the center, to a grid point
@@ -358,16 +359,16 @@
     const L=lm*GAP,line=new Path2D();
     c.clearRect(0,0,lw,lw);
     c.drawImage(shCv,(ox+step/2)/step,(oy+step/2)/step,pw/step,pw/step,0,0,lw,lw);
-    c.save();c.translate(-ox*ZOOM,-oy*ZOOM);c.scale(ZOOM,ZOOM);
-    c.strokeStyle='rgba(244,244,242,.3)';c.lineWidth=1/ZOOM;c.beginPath();
+    c.save();c.translate(-ox*Z,-oy*Z);c.scale(Z,Z);
+    c.strokeStyle='rgba(244,244,242,.3)';c.lineWidth=1/Z;c.beginPath();
     for(let q=q0;q<=q1;q++){c.moveTo(q*step,r0*step);c.lineTo(q*step,r1*step);}
     for(let r=r0;r<=r1;r++){c.moveTo(q0*step,r*step);c.lineTo(q1*step,r*step);}
     c.stroke();
     for(let r=r0;r<r1;r++)for(let q=q0;q<q1;q++){const i=r*n+q;segs(line,q*step,r*step,L,hts[i],hts[i+1],hts[i+n+1],hts[i+n]);}
-    c.strokeStyle='#ffce5a';c.lineWidth=3/ZOOM;c.stroke(line);
-    c.fillStyle='#f4f4f2';c.strokeStyle='#f4f4f2';c.lineWidth=1.5/ZOOM;
+    c.strokeStyle='#ffce5a';c.lineWidth=3/Z;c.stroke(line);
+    c.fillStyle='#f4f4f2';c.strokeStyle='#f4f4f2';c.lineWidth=1.5/Z;
     for(let r=r0;r<=r1;r++)for(let q=q0;q<=q1;q++){
-      c.beginPath();c.arc(q*step,r*step,4.5/ZOOM,0,6.2832);
+      c.beginPath();c.arc(q*step,r*step,4.5/Z,0,6.2832);
       if(hts[r*n+q]>L)c.fill();else{c.save();c.fillStyle='rgba(5,7,6,.85)';c.fill();c.restore();c.stroke();}
     }
     c.restore();
@@ -381,10 +382,13 @@
     svg.setAttribute('width',f(w));svg.setAttribute('height',f(h));svg.setAttribute('viewBox',`0 0 ${f(w)} ${f(h)}`);
     svg.firstElementChild.setAttribute('d',`M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}M${pt(.5)}L${f(x1)} ${f(y1)}L${pt(-.5)}`);
   }
+  // On the narrowest boxes the biggest, fastest drift would run past the key or into the other half's name, so both arrows of a
+  // caption shrink together (the hills' room: what the caption leaves beside the key, or inside its half)
   function arrows(){
-    const d=SPAN*SPD*HILL;
-    document.querySelectorAll('[data-ar="h"]').forEach(a=>put(a,-d*HX,-d*HY));
-    document.querySelectorAll('[data-ar="b"]').forEach(a=>put(a,d*BX/BK,-d*BY/BK));
+    const d=SPAN*SPD*HILL,w=stage.clientWidth;
+    const shown=(a,dx,dy)=>{const k=Math.min(1,(a.closest('.cmp')?w/2-46:w-192)/(d*HX));put(a,dx*k,dy*k);};
+    document.querySelectorAll('[data-ar="h"]').forEach(a=>shown(a,-d*HX,-d*HY));
+    document.querySelectorAll('[data-ar="b"]').forEach(a=>shown(a,d*BX/BK,-d*BY/BK));
   }
   // The key and the magnifier's place are measured when See inside opens and when the box or a setting changes them
   function measure(){
@@ -439,7 +443,7 @@
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.lineCap=ctx.lineJoin='round';
-    grid();measure();draw();
+    grid();measure();arrows();draw();
   }
 
   function choices(id,pick){
