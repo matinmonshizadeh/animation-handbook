@@ -25,6 +25,17 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#0a0316}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words over the picture in dark pills. The script places the three captions (top and left
+       from what it measures); the two half names sit at the top of their halves */
+    .lbl{display:none;position:absolute;left:0;top:0;padding:4px 9px;border-radius:14px;background:rgba(5,1,10,.9);color:#f4f4f2;font:600 13px/16px var(--hb-font)}
+    .cap{max-width:calc(100% - 20px)}
+    .side{top:10px;white-space:nowrap}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="compare"] .side{display:block}
+    @media(max-width:900px){.cap.b,.cap.c{max-width:calc(50% - 24px)}}
+    @media(max-width:600px){.lbl{font-size:12px;line-height:15px;padding:3px 8px}}
+    @media(max-width:360px){.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +58,26 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <p class="lbl cap a" aria-hidden="true" data-hb-caption>All the lines meet at one point on the horizon</p>
+      <p class="lbl cap b" aria-hidden="true" data-hb-caption>The white row rolls toward you, then starts again far away</p>
+      <p class="lbl cap c" aria-hidden="true" data-hb-caption>Rows bunch up far away and spread out near you</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Flat grid</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>In perspective</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, every floor line meets at one point on the horizon, and the rows bunch up far away and spread out near you. The white row rolls toward you, then starts again far away.</p>
+      <p data-hb-for="compare" hidden>Flat grid keeps its rows evenly spaced and its lines parallel, so it looks like a sheet of paper. In perspective, the lines meet on the horizon and the rows bunch up far away.</p>
     </div>
   </section>
 
@@ -138,16 +163,21 @@
   const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   let W=0,H=0,raf=null,lastT=null,offset=0;
   let SPD=1,DENS=16,GLOW='#ff2fb0';
+  // See inside and Compare: mode is what the box shows; fi is the row See inside follows; paused is whether the loop is stopped
+  let mode='normal',fi=0,paused=false;
 
   function horizon(){return H*0.42;}
+  // How far down the floor a row is, 0 at the horizon and 1 at the viewer (Compare's flat grid spaces its rows evenly instead)
+  function rowY(p,flat){return horizon()+(flat?p:Math.pow(p,2.2))*(H-horizon());}
 
-  function drawSky(){
+  // w: the width of the scene, the whole box except in Compare, where each half is a scene of its own
+  function drawSky(w=W){
     const hz=horizon();
     const sky=ctx.createLinearGradient(0,0,0,hz);
     sky.addColorStop(0,'#1a0b2e');sky.addColorStop(.55,'#3d1152');sky.addColorStop(1,'#8a2160');
-    ctx.fillStyle=sky;ctx.fillRect(0,0,W,hz);
+    ctx.fillStyle=sky;ctx.fillRect(0,0,w,hz);
     // glowing sun striped with seven gaps in its lower half, wider toward the horizon
-    const cx=W/2,cy=hz-6,rad=Math.min(W,H)*0.18;
+    const cx=w/2,cy=hz-6,rad=Math.min(w,H)*0.18;
     const sun=ctx.createLinearGradient(0,cy-rad,0,cy+rad);
     sun.addColorStop(0,'#ffe15a');sun.addColorStop(.5,'#ff8a3d');sun.addColorStop(1,'#ff2fb0');
     ctx.save();
@@ -159,30 +189,116 @@
     // floor
     const flr=ctx.createLinearGradient(0,hz,0,H);
     flr.addColorStop(0,'#160726');flr.addColorStop(1,'#05010a');
-    ctx.fillStyle=flr;ctx.fillRect(0,hz,W,H-hz);
+    ctx.fillStyle=flr;ctx.fillRect(0,hz,w,H-hz);
   }
 
-  function drawGrid(){
-    const hz=horizon(),cx=W/2;
+  // flat: Compare's first half, where the lines stand straight up and the rows are evenly spaced
+  function drawGrid(w=W,flat=false){
+    const hz=horizon(),cx=w/2;
     ctx.strokeStyle=GLOW;ctx.shadowColor=GLOW;ctx.shadowBlur=8;ctx.lineWidth=1.4;
     // lines toward the horizon converge to the vanishing point
     const cols=Math.round(DENS*0.7);
     for(let i=-cols;i<=cols;i++){
-      const fx=cx+(i/cols)*W*1.4;
-      ctx.beginPath();ctx.moveTo(cx,hz);ctx.lineTo(fx,H);ctx.stroke();
+      const fx=cx+(i/cols)*w*1.4;
+      if(flat&&Math.abs(fx-cx)>w/2+2)continue;
+      ctx.beginPath();ctx.moveTo(flat?fx:cx,hz);ctx.lineTo(fx,H);ctx.stroke();
     }
     // lines across: perspective spacing, scrolled by modulo offset
     for(let i=0;i<DENS;i++){
       const p=((i+offset)%DENS)/DENS; // 0 at horizon -> 1 at viewer, loops seamlessly
-      const y=hz+Math.pow(p,2.2)*(H-hz);
+      const y=rowY(p,flat);
       ctx.globalAlpha=Math.min(1,p*1.6);
-      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
 
   // The whole picture at the current offset. It paints every pixel, so nothing of an earlier picture stays.
-  function frame(){drawSky();drawGrid();}
+  function frame(){
+    if(mode==='compare'){drawCompare();return;}
+    drawSky();drawGrid();
+    if(mode==='inside')drawMarks();
+  }
+
+  const HALVES=[true,false],DASH=[7,5],SOLID=[]; // made once: the halves, and the dashes and the solid line of See inside
+  // Compare: the scene twice at half the width, from the same offset, each half drawn only inside its own clip (so the glow's
+  // blur is not doubled): the flat grid on the left, the page's floor on the right
+  function drawCompare(){
+    const half=W/2;
+    for(const flat of HALVES){
+      ctx.save();ctx.beginPath();ctx.rect(flat?0:half,0,half,H);ctx.clip();
+      ctx.translate(flat?0:half,0);
+      drawSky(half);drawGrid(half,flat);
+      ctx.restore();
+    }
+    ctx.fillStyle='rgba(244,244,242,.7)';ctx.fillRect(half-1,0,2,H);
+  }
+
+  // See inside, drawn over the picture with the glow off: a ring where the lines meet and the horizon dashed across; one row
+  // followed in white (the row fi) with an arrow as long as Speed; and a bracket on the right edge for every other gap between
+  // neighboring rows, short far away and long near you. The row has the page's own alpha, so it fades in at the horizon
+  function drawMarks(){
+    const hz=horizon(),cx=W/2,pf=((fi+offset)%DENS)/DENS,yf=rowY(pf);
+    const len=12+22*SPD,y0=Math.max(hz+4,Math.min(yf-len/2,H-2-len)),ax=cx;
+    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.5;ctx.setLineDash(DASH);
+    ctx.beginPath();ctx.moveTo(0,hz);ctx.lineTo(W,hz);ctx.stroke();ctx.setLineDash(SOLID);
+    ctx.beginPath();ctx.arc(cx,hz,8,0,Math.PI*2);
+    ctx.strokeStyle='rgba(5,1,10,.6)';ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.globalAlpha=Math.min(1,pf*1.6);
+    ctx.beginPath();ctx.moveTo(0,yf);ctx.lineTo(W,yf);ctx.stroke();ctx.globalAlpha=1;
+    ctx.beginPath();ctx.moveTo(ax,y0);ctx.lineTo(ax,y0+len);ctx.moveTo(ax-6,y0+len-7);ctx.lineTo(ax,y0+len);ctx.lineTo(ax+6,y0+len-7);
+    ctx.strokeStyle='rgba(5,1,10,.55)';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.beginPath();
+    for(let i=0;i<DENS;i+=2){
+      const a=((i+offset)%DENS)/DENS,b=((i+1+offset)%DENS)/DENS;
+      if(b<=a)continue; // the nearer row has wrapped round to the horizon: its bracket has left the floor
+      const t=rowY(a),u=rowY(b);
+      if(u-t>=2.5){ctx.moveTo(W-15,t);ctx.lineTo(W-9,t);ctx.lineTo(W-9,u);ctx.lineTo(W-15,u);}
+    }
+    ctx.strokeStyle='rgba(5,1,10,.55)';ctx.lineWidth=4;ctx.stroke();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.restore();
+    dodge(yf,y0,y0+len,ax);
+  }
+  // Pick the row See inside follows: the one about three fifths of the way down the floor, so a paused picture shows it mid-floor
+  function pose(){
+    let best=1;
+    for(let i=0;i<DENS;i++){const d=Math.abs(((i+offset)%DENS)/DENS-.6);if(d<best){best=d;fi=i;}}
+  }
+
+  // See inside's three captions: the first over the sky, the second and third on the floor. Placed from their measured sizes (when
+  // the mode, a setting, the size or the font changes, never per frame), each in the first spot that meets no other caption, the sun,
+  // the ring, the brackets, the followed row or its arrow. A caption on the floor steps aside while the row or its arrow passes it.
+  const caps=[...stage.querySelectorAll('.cap')],spots=[],gone=[0,0,0];
+  function place(){
+    if(mode!=='inside')return;
+    const M=10,R=26,hz=horizon(),rad=Math.min(W,H)*.18,yf=rowY(((fi+offset)%DENS)/DENS),len=12+22*SPD;
+    const y0=Math.max(hz+4,Math.min(yf-len/2,H-2-len));
+    const busy=[[W/2-rad-6,hz-rad-12,W/2+rad+6,hz+16],[W-20,hz,W,H],[0,yf-8,W,yf+8],[W/2-12,y0-6,W/2+12,y0+len+6]];
+    const meets=(c,w,h,set)=>set.some(o=>c[0]<o[2]+5&&o[0]<c[0]+w+5&&c[1]<o[3]+5&&o[1]<c[1]+h+5);
+    const given=[];
+    const list=[
+      (w,h)=>[[M,M],[W-M-w,M]],
+      (w,h)=>[[M,H-M-h],[W-R-w,H-M-h]],
+      (w,h)=>[[W-R-w,H-M-h],[W-R-w,(given[1]?given[1][1]:H)-6-h],[M,(given[1]?given[1][1]:H)-6-h],[W-M-w,M]]
+    ];
+    // each is measured from the left edge, where it has the whole width: at its old spot after a resize it would wrap narrower
+    caps.forEach(el=>{el.style.left=el.style.top='0px';});
+    caps.forEach((el,i)=>{
+      const w=el.offsetWidth,h=el.offsetHeight,all=list[i](w,h).filter(c=>c[0]>=M&&c[1]>=M&&c[0]+w<=W-M&&c[1]+h<=H-M);
+      const c=all.find(c=>!meets(c,w,h,busy)&&!meets(c,w,h,given))||all.find(c=>!meets(c,w,h,given))||all[0]||[M,M];
+      el.style.left=c[0]+'px';el.style.top=c[1]+'px';el.style.visibility='';gone[i]=0;
+      given[i]=spots[i]=[c[0],c[1],c[0]+w,c[1]+h];
+    });
+  }
+  // The two floor captions step aside while the row or its arrow is near them (6px) and return when it is 16px away
+  function dodge(yf,a0,a1,ax){
+    for(let i=1;i<3;i++){
+      const s=spots[i];if(!s)continue;
+      const m=gone[i]?16:6,hit=(yf+2+m>s[1]&&yf-2-m<s[3])||(ax+8+m>s[0]&&ax-8-m<s[2]&&a1+m>s[1]&&a0-m<s[3]);
+      if(hit!==!!gone[i]){gone[i]=hit?1:0;caps[i].style.visibility=hit?'hidden':'';}
+    }
+  }
 
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per
   // 16 ms. A step is Speed x 0.02, or a third of that in slow motion, for every 60th of a second since the last frame, never
@@ -200,9 +316,26 @@
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The picture on screen stays as it is while paused.
   document.addEventListener('hb:pause',e=>{
-    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    paused=e.detail.paused;
+    if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+    notes();
   });
+  // The mode switch draws the mode at once, playing or paused. The picture comes from the offset alone, so Normal comes back as it was.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='inside'){pose();place();}
+    // the horizon's row of pixels is only partly covered by the sky and the floor, so it keeps a little of the last picture:
+    // while the loop is stopped, a few more drawings settle it, so Normal comes back exactly
+    for(let k=raf?1:5;k>0;k--)frame();
+    notes();
+  });
+  // See inside's note speaks of the white row rolling; a still (reduced motion, paused) says what the arrow shows instead, and the
+  // words are written only when they change, so the live region is not read again at every Pause and Play
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const NOTE_IN=noteIn.textContent,NOTE_STILL='Inside, every floor line meets at one point on the horizon, and the rows bunch up far away and spread out near you. The arrow shows which way the white row would roll.';
+  function notes(){const t=reduced.matches&&paused?NOTE_STILL:NOTE_IN;if(noteIn.textContent!==t)noteIn.textContent=t;}
+  reduced.addEventListener('change',notes);
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;});
 
@@ -212,7 +345,7 @@
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
     W=cvs.width=w;H=cvs.height=h;
-    frame();
+    place();frame();
   }
 
   function choices(id,pick){
@@ -225,12 +358,14 @@
   }
   // A setting that changes the picture draws it at once, so the change shows while the loop is paused (or is paused a
   // moment later, before the next frame). Speed changes no picture: the floor carries on from where it is.
-  choices('speed-seg',d=>{SPD=+d.spd;});
-  choices('lines-seg',d=>{DENS=+d.n;frame();});
+  // In See inside Speed lengthens the arrow, so it draws at once too; Number of lines picks the followed row again
+  choices('speed-seg',d=>{SPD=+d.spd;if(mode==='inside'){place();frame();}});
+  choices('lines-seg',d=>{DENS=+d.n;if(mode==='inside'){pose();place();}frame();});
   choices('color-sw',d=>{GLOW=d.col;frame();});
 
   resize();
   window.addEventListener('resize',resize);
+  document.fonts.ready.then(place);
   start();
 </script>
 </body>
