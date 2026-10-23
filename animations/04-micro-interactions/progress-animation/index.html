@@ -45,7 +45,7 @@
        (above the graph on phones, where the steps go) and a graph of how full it is over time. Compare: them twice, side by side. */
     .shows{display:contents}
     .graph,.twin,.side,.when,.cap-sum{display:none}
-    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap;text-wrap:balance}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap;text-wrap-style:balance}
     .twin .step{transition:none}
     .stage[data-hb-mode="inside"] .shows:not(.twin),.stage[data-hb-mode="compare"] .shows{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
     .stage[data-hb-mode="inside"] .prog-circle,.stage[data-hb-mode="compare"] .prog-circle{width:64px;height:64px}
@@ -54,7 +54,7 @@
       align-items:center;gap:8px clamp(12px,3vw,32px);padding:clamp(12px,2.5vw,24px)}
     .stage[data-hb-mode="inside"] .shows{grid-area:1/1}
     .stage[data-hb-mode="inside"] .graph{display:block;grid-area:1/2/3;position:relative;align-self:stretch;min-height:0}
-    .stage[data-hb-mode="inside"] .cap-sum{display:block;position:static;grid-area:2/1;max-width:100%;white-space:normal;text-align:center}
+    .stage[data-hb-mode="inside"] .cap-sum{display:block;position:static;grid-area:2/1;max-width:100%;white-space:normal;text-wrap:balance;text-align:center}
     .graph svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
     .graph path{fill:none;stroke-linecap:round;stroke-linejoin:round}
     .g-axis,.g-top{stroke:rgba(244,244,242,.5);stroke-width:1.5}
@@ -347,8 +347,8 @@
   const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
   const WORDS={inside:noteIn.textContent,compare:noteCmp.textContent};
   const STILL={inside:'The graph shows how full it would get over time, shown still. With reduced motion on, the bar, the ring and the steps show the end at once.',
-    posed:'Shown still, half a second in: Empty until done shows nothing yet; Fills over time is part way. With reduced motion on, both show the end at once.',
-    lifted:'Both show the end at once because reduced motion is on, and Fills over time then returns to half a second in.'};
+    posed:'Shown still, half a second in: Empty until done shows nothing yet; Fills over time is part way. With reduced motion on, Replay jumps both straight to the end.',
+    lifted:'Both show the end at once because reduced motion is on; then Empty until done is empty again and Fills over time returns to half a second in.'};
   const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
   const TARGETS={50:'half',75:'three quarters',100:'all of it'};
   const FEELS={'ease-out':'Fast at first, slowing near the end','ease-in-out':'Slow, then fast, then slow',linear:'One steady pace'};
@@ -361,8 +361,9 @@
   }
   // Written only when its words change, so the live region is not read again. Under reduced motion the notes say what the stills show.
   function notes(){
-    const rm=reduceMotion.matches;
-    put(noteIn,rm?STILL.inside:WORDS.inside);
+    const rm=reduceMotion.matches,ph=PHONE.matches,all='the bar, the ring and the steps';
+    const fill=indetTog.checked?(ph?'the ring fills while the bar slides':'the ring and the steps fill while the bar slides'):(ph?'the bar and the ring fill':all+' fill');
+    put(noteIn,rm?STILL.inside.replace(all,ph?'the bar and the ring':all):WORDS.inside.replace(all+' fill',fill));
     put(noteCmp,rm?(posed?STILL.posed:STILL.lifted):WORDS.compare);
   }
   // The copy is empty while the play runs or Compare is posed, and shows the end once the play is done
@@ -388,14 +389,19 @@
     dot.style.transform='translate('+(G.x0+(G.x1-G.x0)*curT)+'px,'+(G.yb-G.h*(busy?shown:target)/100)+'px)';
   }
   // The graph, drawn in the box's own pixels: the line is the Feel's own ease sampled across the Speed, the top line is where Fills to
-  // stops, and a faint line crosses at each fifth, where a step lights. Its words keep their size and the line's words take the spot
-  // farthest from the line (the dot rides the line, so it counts too).
+  // stops, and a faint line crosses at each fifth, where a step lights. Its words keep their size; the line's words take the spot
+  // farthest from the line (the dot rides it, so the dot counts too), in one row or two. Words are measured at the box's left edge,
+  // never at their last place, where the room left there would make them wrap.
   function drawGraph(){
     const W=graph.clientWidth,H=graph.clientHeight,ph=PHONE.matches;
     if(!W||!H)return;
     put(capTop,'Fills to '+TARGETS[target]);put(capTime,timeWords(speed()));put(capLine,FEELS[feel]);
     put(capSum,indetTog.checked?(ph?'The bar slides first; the ring fills':'The bar slides first; the ring and steps fill'):(ph?'One number fills the bar and the ring':'One number fills the bar, the ring and the steps'));
-    const ch=capTop.offsetHeight,x0=10,x1=W-R-2,yt=ch+R+4,yb=H-ch-10,h=yb-yt,yT=yb-h*target/100,pts=[];
+    const place=(el,l,t)=>{el.style.left=l+'px';el.style.top=t+'px'};
+    [capTop,capTime,capLine].forEach(c=>place(c,0,0));
+    capLine.style.whiteSpace='';capLine.style.width='';
+    const ch=capTop.offsetHeight,tw=capTop.offsetWidth,mw=capTime.offsetWidth,nat=capLine.offsetWidth,row=capLine.offsetHeight;
+    const x0=10,x1=W-R-2,yt=ch+R+4,yb=H-ch-10,h=yb-yt,yT=yb-h*target/100,pts=[],dense=[];
     G={x0,x1,yb,h};
     for(let i=0;i<=N;i++)pts.push([x0+(x1-x0)*i/N,yb-h*target*ease(i/N)/100]);
     const at=(n,d)=>gs.querySelector('.g-'+n).setAttribute('d',d);
@@ -404,24 +410,39 @@
     at('axis','M'+x0+' '+(yt-4)+'V'+yb+'H'+(W-3)+'M'+(W-9)+' '+(yb-4)+'L'+(W-3)+' '+yb+'L'+(W-9)+' '+(yb+4));
     at('top','M'+x0+' '+yT+'H'+x1);
     at('fifths',[20,40,60,80].filter(v=>v<target).map(v=>'M'+x0+' '+(yb-h*v/100)+'H'+x1).join(''));
-    const place=(el,l,t)=>{el.style.left=l+'px';el.style.top=t+'px'};
-    place(capTop,x0+4,yT-ch-4);place(capTime,(x0+x1-capTime.offsetWidth)/2,yb+8);
-    capLine.style.whiteSpace='';capLine.style.width='';
-    const nat=capLine.offsetWidth;
-    let best=null;
-    for(const wrap of [0,1]){
-      capLine.style.whiteSpace=wrap?'normal':'';capLine.style.width=wrap?Math.ceil(nat*.8)+'px':'';
-      const w=capLine.offsetWidth,lh=capLine.offsetHeight;
-      for(const [l,t] of [[x1-w-4,yb-lh-8],[x0+8,yT+8],[x0+8,yb-lh-8],[(x0+x1-w)/2,yb-lh-8]]){
-        if(l<0||l+w>W||t<yT+4||t+lh>yb-2)continue;
-        const c=Math.min(...pts.map(([x,y])=>Math.hypot(Math.max(l-x,0,x-l-w),Math.max(t-y,0,y-t-lh))));
-        if(!best||c>best.c)best={c,l,t,wrap};
+    place(capTop,x0+4,yT-ch-4);place(capTime,(x0+x1-mw)/2,yb+8);
+    pts.forEach((p,i)=>{const q=pts[i+1]||p,k=Math.max(1,Math.ceil(Math.hypot(q[0]-p[0],q[1]-p[1])/5));
+      for(let j=0;j<k;j++)dense.push([p[0]+(q[0]-p[0])*j/k,p[1]+(q[1]-p[1])*j/k])});
+    // What a caption keeps clear of: the top line and the two other words
+    const boxes=[[x0-2,yT-3,x1-x0+4,6],[x0,yT-ch-8,tw+8,ch+8],[(x0+x1-mw)/2-4,yb+4,mw+8,ch+8]];
+    const CLEAR=16;
+    // Searched from the lower right upward in steps of 3; the first spot with the most room (up to CLEAR from the line) wins
+    const spot=(w,hh,t0,t1)=>{
+      let best=null;
+      for(let t=t0;t>=t1&&!(best&&best.c>=CLEAR);t-=3)for(let l=x1-4-w;l>=x0+6&&!(best&&best.c>=CLEAR);l-=3){
+        if(boxes.some(([bx,by,bw,bh])=>l<bx+bw&&l+w>bx&&t<by+bh&&t+hh>by))continue;
+        let c=CLEAR;
+        for(const [x,y] of dense){c=Math.min(c,Math.hypot(Math.max(l-x,0,x-l-w),Math.max(t-y,0,y-t-hh)));if(best&&c<=best.c)break}
+        if(!best||c>best.c)best={c,l,t,w,h:hh,rows:1};
       }
-      if(best&&best.c>R+3)break;
+      return best;
+    };
+    const wrapTo=w=>{capLine.style.whiteSpace=w?'normal':'';capLine.style.width=w?w+'px':''};
+    let pick=spot(nat,row,yb-8-row,2);
+    if(!pick||pick.c<R+6){
+      // Two rows: the narrowest width that needs only two, then the width of its longer row
+      let w=Math.ceil(nat*.5);
+      for(wrapTo(w);capLine.offsetHeight>row*1.9&&w<nat;wrapTo(w+=6));
+      const rg=document.createRange();rg.selectNodeContents(capLine);
+      w=Math.ceil(Math.max(...[...rg.getClientRects()].map(q=>q.width)))+15;wrapTo(w);
+      const two=capLine.offsetHeight<row*1.9?spot(capLine.offsetWidth,capLine.offsetHeight,yb-8-capLine.offsetHeight,2):null;
+      if(two&&(!pick||two.c>pick.c)){pick=two;pick.rows=2;pick.w=w}
     }
-    if(!best)best={l:Math.max(0,x1-capLine.offsetWidth-4),t:yb-capLine.offsetHeight-8,wrap:0};
-    capLine.style.whiteSpace=best.wrap?'normal':'';capLine.style.width=best.wrap?Math.ceil(nat*.8)+'px':'';
-    place(capLine,best.l,best.t);
+    // Under the axis, beside the time words, only when no spot above it keeps off the line
+    if(!pick||pick.c<R+3){const off=spot(nat,row,yb+5,yb+5);if(off&&(!pick||off.c>pick.c))pick=off}
+    if(!pick)pick={l:Math.max(2,x1-nat-4),t:yb-8-row,rows:1};
+    wrapTo(pick.rows===2?pick.w:0);
+    place(capLine,pick.l,pick.t);
     dotAt();
   }
   // Draws the current mode for the settings as they now are (also while at rest, and after a resize)
