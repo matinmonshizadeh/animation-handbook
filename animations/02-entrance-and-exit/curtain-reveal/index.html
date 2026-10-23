@@ -24,6 +24,7 @@
     :root{--ui-accent:#5fd88a;--ui-muted:#8a8a92;--dur:500ms;--ease:cubic-bezier(.2,.7,.3,1);--curtain-color:#111827}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0f18;position:relative}
+    .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
     .content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:24px;z-index:1}
     .content-badge{font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--ui-accent);opacity:.7}
     .content-title{font-size:clamp(24px,4vw,42px);font-weight:bold;line-height:1.1}
@@ -37,6 +38,53 @@
     .curtain.c-in,.curtain-b.c-in{transform:translate(0,0)}
     .curtain.c-out,.curtain-b.c-out{transform:var(--to)}
     @media(prefers-reduced-motion:reduce){.curtain,.curtain-b{transition:none!important}}
+    /* See inside and Compare. The scene holds the panels and the content, so a mode can draw it small or twice. */
+    .copy,.ghost,.cap{display:none}
+    .cap{position:absolute;z-index:10;padding:2px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .cap b,.cap i{display:block;font:inherit}
+    .cap i{color:#c9c9d0}
+    .cap i:empty{display:none}
+    .ghost{position:absolute;z-index:3;transition:none;background:none;pointer-events:none;container-type:size}
+    .ghost.to{transform:var(--to)}
+    /* The arrow in each outline is as long as the way the panel goes there (most of the outline), and has a head at both ends with Both sides */
+    .arrow{position:absolute;left:50%;top:50%;width:84cqw;height:calc(22px / var(--k,1));display:flex;align-items:center;
+      transform:translate(-50%,-50%) rotate(var(--rot,0deg))}
+    .ghost[data-axis=v] .arrow{width:84cqh}
+    .arrow i{flex:1;border-top:calc(2.2px / var(--k,1)) solid #f4f4f2}
+    .arrow svg{position:absolute;right:0;top:0;width:calc(22px / var(--k,1));height:calc(22px / var(--k,1));fill:none;stroke:#f4f4f2;stroke-width:2.4;
+      stroke-linecap:round;stroke-linejoin:round}
+    .arrow .bk{display:none;right:auto;left:0}
+    .ghost.twin .bk,.ghost.curtain-b .bk{display:block}
+    /* Where a mode rests, the panels stand at the moment it shows (the script sets --pose-a and --pose-b) */
+    .stage[data-hb-mode="inside"].posed .curtain:not(.ghost),.stage[data-hb-mode="compare"].posed .curtain:not(.ghost){transform:var(--pose-a)}
+    .stage[data-hb-mode="inside"].posed .curtain-b:not(.ghost),.stage[data-hb-mode="compare"].posed .curtain-b:not(.ghost){transform:var(--pose-b)}
+    /* See inside: the box drawn small (the script works out --k and --tx) inside a thin frame, with the panel see-through and dashed
+       outlines where it waits and where it leaves; each outline holds an arrow along the way */
+    .stage[data-hb-mode="inside"] .scene{transform:translate(var(--tx,0px),0) scale(var(--k,1));background:#0a0f18}
+    .stage[data-hb-mode="inside"] .scene::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border:calc(2px / var(--k,1)) solid #f4f4f2}
+    .stage[data-hb-mode="inside"] .curtain,.stage[data-hb-mode="inside"] .curtain-b{border:calc(1.5px / var(--k,1)) solid rgba(244,244,242,.5);
+      background:repeating-linear-gradient(135deg,rgba(244,244,242,.14) 0 calc(3px / var(--k,1)),transparent 0 calc(9px / var(--k,1))),color-mix(in srgb,var(--curtain-color) 45%,transparent)}
+    .stage[data-hb-mode="inside"] .ghost{display:block;background:none;border:calc(2px / var(--k,1)) dashed rgba(244,244,242,.7)}
+    .stage[data-hb-mode="inside"] .tip{display:block}
+    /* Compare: the scene twice. On the first half a copy with no panel; on the second the real scene, which between plays stands a
+       tenth of a second into leaving, with a faint outline where the panel started */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:50%;z-index:5;border-left:1px solid rgba(244,244,242,.15)}
+    .stage[data-hb-mode="compare"] .scene,.stage[data-hb-mode="compare"] .copy{position:relative;inset:auto;display:flex;overflow:hidden;min-width:0}
+    .stage[data-hb-mode="compare"] .half,.stage[data-hb-mode="compare"] .moment{display:block}
+    .stage[data-hb-mode="compare"].posed .moment{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .ghost.cover{display:block}
+    .ghost.cover{inset:0;border:2px dashed rgba(244,244,242,.3)}
+    .half{top:8px}
+    .half.h1{left:8px}
+    .half.h2{left:calc(50% + 8px)}
+    .moment{bottom:8px;left:calc(50% + 8px);max-width:calc(50% - 16px);white-space:normal;text-align:center;visibility:hidden}
+    @media(max-width:600px),(max-height:500px){
+      .stage[data-hb-mode="compare"] .content{padding:8px;gap:8px}
+      .stage[data-hb-mode="compare"] .content-title{font-size:20px}
+      .stage[data-hb-mode="compare"] .content-badge{letter-spacing:1.5px}
+      .stage[data-hb-mode="compare"] .content-sub{display:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -59,19 +107,40 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="curtain" id="curtain" data-axis="h"></div>
-      <div class="curtain-b" id="curtain-b" data-axis="h" style="display:none"></div>
-      <div class="content">
-        <div class="content-badge">Curtain Reveal</div>
-        <div class="content-title">Unveiled</div>
-        <div class="content-sub">The reveal is hidden then exposed — your eye registers the change dramatically.</div>
+      <div class="scene">
+        <div class="curtain" id="curtain" data-axis="h"></div>
+        <div class="curtain-b" id="curtain-b" data-axis="h" style="display:none"></div>
+        <div class="content">
+          <div class="content-badge">Curtain Reveal</div>
+          <div class="content-title">Unveiled</div>
+          <div class="content-sub">The reveal is hidden then exposed — your eye registers the change dramatically.</div>
+        </div>
+        <span class="curtain ghost" id="gh-a" data-axis="h"><span class="arrow"><i></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l8 7-8 7"/></svg><svg class="bk" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5l-8 7 8 7"/></svg></span></span>
+        <span class="curtain ghost to" id="gh-b" data-axis="h"><span class="arrow"><i></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l8 7-8 7"/></svg><svg class="bk" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5l-8 7 8 7"/></svg></span></span>
+        <span class="ghost cover"></span>
       </div>
+      <span class="cap tip" id="cap-1" data-hb-caption aria-hidden="true"><b></b><i></i></span>
+      <span class="cap tip" id="cap-2" data-hb-caption aria-hidden="true"><b></b><i></i></span>
+      <span class="cap tip" id="cap-3" data-hb-caption aria-hidden="true"><b></b><i></i></span>
+      <span class="cap tip" id="cap-box" data-hb-caption aria-hidden="true">The box</span>
+      <span class="cap half h1" data-hb-caption aria-hidden="true">No curtain</span>
+      <span class="cap half h2" data-hb-caption aria-hidden="true">Curtain</span>
+      <span class="cap moment" id="cap-m" data-hb-caption aria-hidden="true"></span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the box is drawn small so the panel's whole trip shows: it waits off one edge, covers the content and holds, then leaves off the far edge.</p>
+      <p data-hb-for="compare" hidden>No curtain simply shows the content; Curtain covers it with a panel, holds, then slides the panel away, so it seems revealed. With Loop off, the panel rests as it leaves.</p>
     </div>
   </section>
 
@@ -214,11 +283,139 @@
       later(()=>{
         if(twin&&axis==='h'){curtain.classList.remove('c-in');curtainB.classList.remove('c-in')}
         else{curtain.classList.remove('c-in');curtain.classList.add('c-out')}
-        later(()=>{if(loopTog.checked)later(cycle,500)},dur());
+        later(()=>{if(loopTog.checked)later(cycle,500);else{busy=false;setPose()}},dur());
       },pauseDur());
     },dur());
   }
-  function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+  function play(){timers.forEach(clearTimeout);timers=[];busy=motionOk;setPose();cycle()}
+  // See inside and Compare. Compare's first half is a copy of the scene with no panels, no ids and out of reach of the keyboard
+  // and screen readers.
+  const stage=document.querySelector('.stage'),scene=stage.querySelector('.scene');
+  const copy=scene.cloneNode(true);
+  copy.querySelectorAll('.curtain,.curtain-b,.ghost').forEach(el=>el.remove());
+  copy.classList.add('copy');copy.inert=true;copy.setAttribute('aria-hidden','true');
+  scene.before(copy);
+  const gA=document.getElementById('gh-a'),gB=document.getElementById('gh-b');
+  const c1=document.getElementById('cap-1'),c2=document.getElementById('cap-2'),c3=document.getElementById('cap-3');
+  const cBox=document.getElementById('cap-box'),cMoment=document.getElementById('cap-m');
+  // The curve of every pass, the fraction of the box the panel waits beyond (101%), a tenth of a second for Compare's rest, and
+  // the room kept at the box's edges and between labels (pixels)
+  const EASE=getComputedStyle(document.documentElement).getPropertyValue('--ease').match(/-?[\d.]+/g).map(Number);
+  const OFF=parseFloat(getInDir().match(/[\d.]+/)[0])/100,POSE_MS=100,PAD=8,GAP=6;
+  const ROT={ltr:0,rtl:180,ttb:90,btt:-90};
+  // busy: a play is under way (or Loop is on), so no mode rests
+  let mode='normal',busy=false;
+  const NOTES={
+    inside:["Inside, the box is drawn small so the panel's whole trip shows: it waits off one edge, covers the content and holds, then leaves off the far edge.",
+      "Inside, the box is drawn small so the panels' whole trip shows: they wait off both edges, meet over the content and hold, then go back.",
+      "Shown still: the box is drawn small, with the panel see-through over it; dashed outlines mark where it waits and where it leaves.",
+      "Shown still: the box is drawn small, with both panels see-through over it; dashed outlines mark where they wait, off both edges."],
+    compare:["No curtain simply shows the content; Curtain covers it with a panel, holds, then slides the panel away, so it seems revealed. With Loop off, the panel rests as it leaves.",
+      "No curtain simply shows the content; Curtain covers it with two panels that meet, hold, then part, so it seems revealed. With Loop off, the panels rest as they part.",
+      "Shown still: No curtain shows the content, while Curtain's panel is part way off as it leaves.",
+      "Shown still: No curtain shows the content, while Curtain's two panels are part way back to the edges."]};
+
+  function both(){return twin&&axis==='h'}
+  // An amount of time as a beginner says it
+  function say(t){return t<=350?'a third of a second':t<=550?'half a second':t<=850?'most of a second':t<=1000?'almost a second':t<=1600?'a second and a half':'over two seconds'}
+  function put(el,head,tail){el.children[0].textContent=head;el.children[1].textContent=tail}
+  // The outlines where the panel waits and where it leaves, from the same rules as the panels themselves: with Both sides two
+  // half outlines, one each side (the panels go back the way they came)
+  function syncGhosts(){
+    const two=both();
+    gA.className='curtain ghost'+(two?' twin':'');gB.className=two?'curtain-b ghost':'curtain ghost to';
+    [gA,gB].forEach(g=>{
+      g.dataset.axis=axis;g.style.removeProperty('--from');g.style.removeProperty('--to');
+      g.style.setProperty('--rot',two?'0deg':ROT[dirMode]+'deg');
+      if(!two){g.style.setProperty('--from',getInDir());g.style.setProperty('--to',getOutDir())}
+    });
+  }
+  function words(){
+    const two=both(),way=two?'parting':'leaving';
+    put(c1,two?'1 · Both come in':'1 · Comes in',say(dur()));
+    put(c2,pause?'2 · Holds':'2 · No hold',pause?say(pauseDur()):'');
+    put(c3,two?'3 · Both go back':'3 · Leaves',say(dur()));
+    cMoment.textContent=pause?`Held ${say(pauseDur())}, now ${way}`:`No hold: already ${way}`;
+  }
+  // A note is written only when its words change
+  function notes(){
+    const i=(motionOk?0:2)+(both()?1:0);
+    // With no pause while covered the panel never holds, so the notes leave the hold out
+    for(const m in NOTES){const el=document.querySelector(`[data-hb-for="${m}"]`),t=pause?NOTES[m][i]:NOTES[m][i].replace(/,? (?:and )?holds?,/,',');if(el.textContent!==t)el.textContent=t}
+  }
+
+  // The share of a pass's way a panel has made at a share x of its time, on the page's own curve (found by halving)
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // Where the panels stand when a mode rests: in See inside over the box; in Compare a tenth of a second into leaving (by
+  // progress, so Slow motion does not move it), which is the same share of the way out whatever the speed is
+  function pose(){
+    if(mode==='inside')return['translate(0,0)','translate(0,0)'];
+    const y=curveAt(EASE,Math.min(1,POSE_MS/ms)),two=both();
+    const part=(g,p)=>getComputedStyle(g).getPropertyValue(p).trim().replace(/-?[\d.]+(?=%)/,n=>(n*y).toFixed(2));
+    return two?[part(gA,'--from'),part(gB,'--from')]:[part(gA,'--to'),'none'];
+  }
+  // Moves the panels without a slide
+  function snap(fn){
+    [curtain,curtainB].forEach(c=>c.style.setProperty('transition','none','important'));
+    fn();void curtain.offsetWidth;
+    [curtain,curtainB].forEach(c=>c.style.removeProperty('transition'));
+  }
+  function setPose(){
+    const on=mode!=='normal'&&!busy;
+    if(on){clearCurtains();const [a,b]=pose();stage.style.setProperty('--pose-a',a);stage.style.setProperty('--pose-b',b)}
+    if(on||stage.classList.contains('posed'))snap(()=>stage.classList.toggle('posed',on));
+  }
+
+  // See inside's picture, in the box's own pixels: the box drawn small enough that its panel's whole trip (the box and one panel
+  // off each side) fits, in the middle of the stage, or for Top and Bottom at the left with the words to its right. The words sit in
+  // rows above and below the box, each centered on its part where the room allows.
+  function fit(items){
+    items=items.slice().sort((p,q)=>p.cx-q.cx);
+    const xs=[];let end=PAD-GAP;
+    items.forEach(it=>{const x=Math.max(it.cx-it.el.offsetWidth/2,end+GAP);xs.push(x);end=x+it.el.offsetWidth});
+    let lim=stage.clientWidth-PAD;
+    for(let i=items.length-1;i>=0;i--){const w=items[i].el.offsetWidth;if(xs[i]+w>lim)xs[i]=lim-w;lim=xs[i]-GAP}
+    return xs[0]>=PAD?items.map((it,i)=>[it.el,xs[i]]):null;
+  }
+  function layout(){
+    if(mode!=='inside')return;
+    const W=stage.clientWidth,H=stage.clientHeight,v=axis==='v',tips=[c1,c2,c3,cBox];
+    const k=(v?H-2*PAD:W-2*PAD)/((1+2*OFF)*(v?H:W));
+    const wmax=Math.max(...tips.map(t=>t.offsetWidth)),hmax=Math.max(...tips.map(t=>t.offsetHeight));
+    let tx=0;
+    if(v){const left=(W-k*W)/2;tx=Math.max(PAD,Math.min(left,W-PAD-GAP-4-wmax-k*W))-left}
+    stage.style.setProperty('--k',k);stage.style.setProperty('--tx',tx+'px');
+    const o=stage.getBoundingClientRect();
+    const rect=el=>{const r=el.getBoundingClientRect();return{l:r.left-o.left-stage.clientLeft,r:r.right-o.left-stage.clientLeft,t:r.top-o.top-stage.clientTop,b:r.bottom-o.top-stage.clientTop}};
+    const F=rect(scene),A=rect(gA),B=rect(gB),mid=r=>(v?r.t+r.b:r.l+r.r)/2,at=(el,x,y)=>{el.style.left=x+'px';el.style.top=y+'px'};
+    if(v){
+      const x=F.r+GAP+4,hs=cBox.offsetHeight+4+c2.offsetHeight,y=mid(F)-hs/2;
+      at(c1,x,mid(A)-c1.offsetHeight/2);at(c3,x,mid(B)-c3.offsetHeight/2);at(cBox,x,y);at(c2,x,y+cBox.offsetHeight+4);
+      return;
+    }
+    const rows={T0:t=>F.t-6-t.offsetHeight,B0:()=>F.b+6,T1:t=>F.t-6-hmax-4-t.offsetHeight,B1:()=>F.b+6+hmax+4};
+    const up=['T0','B0','T1','B1'],down=['B0','T0','B1','T1'],placed={T0:[],B0:[],T1:[],B1:[]};
+    [[c1,mid(A),up],[c3,mid(B),up],[c2,mid(F),down],[cBox,mid(F),up]].forEach(([el,cx,order])=>{
+      const s=order.find(r=>{const y=rows[r](el);return y>=4&&y+el.offsetHeight<=H-4&&fit(placed[r].concat({el,cx}))})||'T0';
+      placed[s].push({el,cx});
+    });
+    // A row that cannot hold its words (a very narrow stage) keeps each on its own part, inside the stage
+    for(const r in placed){
+      const xs=fit(placed[r])||placed[r].map(it=>[it.el,Math.max(PAD,Math.min(it.cx-it.el.offsetWidth/2,W-PAD-it.el.offsetWidth))]);
+      xs.forEach(([el,x])=>at(el,x,rows[r](el)));
+    }
+  }
+  function refresh(){syncGhosts();words();notes();setPose();layout()}
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;refresh()});
+  new ResizeObserver(layout).observe(stage);
+  document.fonts.ready.then(layout);
 
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
@@ -227,13 +424,16 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('from-seg',d=>{axis=d.axis;dirMode=d.dir;twin=d.twin==='1'});
   choices('speed-seg',d=>{ms=+d.ms});
   choices('pause-seg',d=>{pause=+d.pause});
   choices('color-sw',d=>{vars.setProperty('--curtain-color',d.c)});
+  slowTog.addEventListener('change',refresh);
   clearCurtains();
+  refresh();
 </script>
 </body>
 </html>
