@@ -174,7 +174,7 @@
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
     </div>
     <div class="hb-mode-notes" aria-live="polite">
-      <p data-hb-for="inside" hidden>The marker follows the fill along the top bar, and only its end deletes. Hold the button or press Show me, and let go early: it runs back as long as the lower bar.</p>
+      <p data-hb-for="inside" hidden>The marker follows the fill along the top bar, and only its end deletes. Hold the button and let go early, or press Show me: it runs back, from full in the lower bar's time.</p>
       <p data-hb-for="compare" hidden>Deletes on tap: one slip and the drafts are gone. Hold to confirm: a short press only starts the fill, which drains back, and it deletes once full; press the button or Show me.</p>
     </div>
   </section>
@@ -285,6 +285,8 @@
     else p=Math.max(0,p-dt/drainMs);
     draw();
     raf=holding||(!done&&p>0)?requestAnimationFrame(frame):0;
+    // Show me's run ends as its fill empties (only watch() is still pending then), so the pose comes back at once
+    if(!raf&&p===0&&runTimers.length===1){clearTimeout(runTimers[0]);runTimers=[]}
     if(!raf&&mode==='compare')pose();
   }
   function run(){if(!raf){lastT=null;raf=requestAnimationFrame(frame)}}
@@ -370,7 +372,7 @@
   // it drains and Shakes if let go early, and the marker and the lit part follow the fill exactly as draw() draws it.
   const SPAN=3000,strip=card.querySelector('.strip'),hlit=strip.querySelector('.hlit'),mark=strip.querySelector('.mark');
   const HOLD_WORDS={800:'under a second',1500:'about a second and a half',2500:'two and a half seconds'};
-  const DRAIN_WORDS={400:'in under half a second',1500:'in a second and a half'};
+  const DRAIN_WORDS={400:'in under half a second',1500:'in up to a second and a half'};
   function drawStrip(){
     strip.style.setProperty('--hw',100*holdMs/SPAN+'%');
     strip.style.setProperty('--dw',100*drainMs/SPAN+'%');
