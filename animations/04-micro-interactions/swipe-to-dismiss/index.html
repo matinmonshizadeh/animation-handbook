@@ -248,7 +248,7 @@
     draw(card,reveal,x);
     if(mode==='inside')readGauge(x,card.offsetWidth);
     const t=mode==='compare'&&twins.get(card); // Compare's copy shows the same offset for the same message
-    if(t)draw(t,t.previousElementSibling,x);
+    if(t){t.classList.remove('settling','flung');draw(t,t.previousElementSibling,x);} // its spring's transition would trail the drag
   }
 
   function wire(row){
@@ -367,7 +367,7 @@
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the list stays as it is.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); lift(); poseLater(); });
   // A Tab press from outside the stage sends no hb:input, but a run never moves the focus, so focus arriving in the stage while one runs is the visitor's.
-  stage.addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); });
+  stage.addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); if(e.target===listEl.querySelector('.card'))lift(); }); // a posed message that gets the focus comes back to rest
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -455,8 +455,9 @@
 
   // Compare's rest picture: whole lists, nothing moving, no run pending. Returns whether it stands.
   function pose(){
-    if(mode!=='compare'||holding||running()||listEl.querySelectorAll('.row').length!==DATA.length||listEl.querySelector('.collapsing'))return stage.classList.contains('posed');
+    if(mode!=='compare'||holding||running()||listEl.querySelectorAll('.row').length!==DATA.length||listEl.querySelector('.collapsing')||listEl.querySelector('.card').matches(':focus-visible'))return stage.classList.contains('posed');
     const row=listEl.querySelector('.row'),card=row.querySelector('.card'),w=card.offsetWidth,x0=(threshold+0.15)*w;
+    card.classList.remove('settling','flung'); // a still, dealt at once: a spring's transition would slide the card into the pose
     stage.classList.add('posed');
     row.style.height=Math.round(parseFloat(getComputedStyle(copyRows[0]).height)*(1-POSE_CLOSE))+'px';
     draw(card,row.querySelector('.reveal'),x0+POSE_FLY*(1.25*w-x0));
@@ -468,6 +469,7 @@
   function lift(){
     if(!stage.classList.contains('posed'))return;
     const row=listEl.querySelector('.row'),card=row.querySelector('.card');
+    card.classList.remove('settling','flung'); // back to rest at once, so a press reads the card there
     row.style.height='';card.style.transform='';card.style.opacity='';row.querySelector('.reveal').classList.remove('show','from-left');
     copyRows[0].classList.remove('gone');
     void row.offsetHeight; // the rows' transition is still off: the pose goes at once
