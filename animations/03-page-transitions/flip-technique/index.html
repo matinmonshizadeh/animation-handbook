@@ -220,7 +220,7 @@
   document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(mode==='compare')renderCopy();refresh()});
   addEventListener('resize',()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(refresh)});
   if(!motionOk){
-    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: dashed boxes mark where each card was before the last change, and arrows lead to where it is now.';
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: dashed boxes mark where each card was before a change, and arrows lead to where it is now.';
     document.querySelector('[data-hb-for="compare"]').textContent='Shown still, part way through a change: Jumps has its cards in place already; Glides has them part way along their glide.';
   }
 
@@ -265,7 +265,7 @@
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     grid.style.minHeight='';
-    grid.querySelectorAll('.flip-card').forEach(c=>{c.style.transition='';c.style.transform='';c.style.willChange='';c.getAnimations().forEach(a=>a.cancel())});
+    grid.querySelectorAll('.flip-card').forEach(c=>{c.style.transition='';c.style.transform='';c.getAnimations().forEach(a=>a.cancel())});
     animating=false;
   }
 
@@ -304,10 +304,8 @@
     cards.forEach(c=>{c.style.transition=`transform ${d}ms ${curve}`;c.style.transform=''});
     later(()=>{
       grid.style.minHeight='';
-      cards.forEach(c=>{c.style.transition='';c.style.willChange='auto'});
+      renderCards(); // new cards in the same places, so a card at rest is drawn as a new one is, whatever happened while it glided
       finish();
-      // The cards drop their layer for a moment and take it again, so a card at rest is drawn as a new one is, whatever happened while it glided
-      setTimeout(()=>cards.forEach(c=>{c.style.willChange=''}),50);
     },d+50);
   }
 
@@ -407,7 +405,7 @@
     lift();
     if(mode==='normal')return;
     const mv=moves();
-    if(mode==='compare'&&!animating&&!wayBack){
+    if(mode==='compare'&&!animating&&(!wayBack||!motionOk)){
       const k=1-easeAt(.2);
       mv.forEach(m=>{m.c.style.transition='none';m.c.style.transform=`translate(${(-k*m.dx).toFixed(1)}px,${(-k*m.dy).toFixed(1)}px)`});
       posed=true;
