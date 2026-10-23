@@ -53,7 +53,7 @@
        both are held at the card's biggest moment (its first stop), with those words under them (their row is kept while they are
        hidden, so the cards do not move when they show). */
     .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr auto 1fr;
-      align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:48px clamp(8px,2vw,24px) 40px}
+      align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:48px clamp(8px,2vw,24px) 40px;container-type:size}
     .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
     .stage[data-hb-mode="compare"] :is(.twin,.ghost,.side,.when){display:block}
     .stage[data-hb-mode="compare"] .card{grid-row:2;grid-column:2}
@@ -81,6 +81,14 @@
       .stage[data-hb-mode="inside"] .card-title,.stage[data-hb-mode="compare"] .card-title{font-size:clamp(12px,3.8vw,15px);margin-bottom:0;white-space:nowrap}
     }
     @media(max-width:600px),(max-height:500px){.lbl.dip{display:none}}
+    /* Compare's halves also get the compact card when the box is too small for a full-size one at its biggest moment: a card that
+       size would cross the middle line, or slide under its half's name. (The box's inside, so its padding is taken off.) */
+    @container (max-width:700px),(max-height:275px){
+      .stage[data-hb-mode="compare"] .card{padding:12px 8px}
+      .stage[data-hb-mode="compare"] .card-sub{display:none}
+      .stage[data-hb-mode="compare"] .card-icon{font-size:22px;margin-bottom:6px}
+      .stage[data-hb-mode="compare"] .card-title{font-size:clamp(12px,3.8vw,15px);margin-bottom:0;white-space:nowrap}
+    }
     @media(prefers-reduced-motion:reduce){.card.in{animation:none!important;opacity:1;transform:none}.card.out{animation:none!important;opacity:0}}
   </style>
   <style id="kf-style"></style>
@@ -306,7 +314,7 @@
     for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
     return at(b,e,t);
   }
-  function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
+  function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':t<=4000?'about three seconds':'about five seconds'}
   // The graph, drawn in the box's own pixels: across is time (the landing, then a little more), up is the card's size from where
   // it starts to the largest any setting reaches, and each step between two stops has the browser's ease. Its words keep their
   // size and stay off the line, so the dot passes them: the biggest one over the first hump, "Full size" above the dashed line and
@@ -314,35 +322,46 @@
   function drawGraph(){
     const W=graph.clientWidth,H=graph.clientHeight;
     if(!W)return;
-    const s=stops(strength/100,bounces),lh=lblBig.offsetHeight,x0=R+2,x1=W-R-2,yt=lh+OFF,yb=H-lh-OFF;
-    const X=p=>x0+(x1-x0)*p/(100*(1+TAIL)),Y=v=>yb-(yb-yt)*(v-s[0][1])/(TOP-s[0][1]);
-    G={x0,x1,Y};
-    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-    axis.setAttribute('d',`M${x0} ${yt}V${yb}H${x1}`);
-    level.setAttribute('d',`M${x0} ${Y(1)}H${x1}`);
-    const [a,b,c,e]=EASE,f=n=>n.toFixed(1);
-    let d=`M${f(X(0))} ${f(Y(s[0][1]))}`;
-    for(let i=1;i<s.length;i++){
-      const [p0,v0]=s[i-1],[p1,v1]=s[i],dx=X(p1)-X(p0),dy=Y(v1)-Y(v0);
-      d+=`C${f(X(p0)+dx*a)} ${f(Y(v0)+dy*b)} ${f(X(p0)+dx*c)} ${f(Y(v0)+dy*e)} ${f(X(p1))} ${f(Y(v1))}`;
-    }
-    curve.setAttribute('d',d+`H${x1}`);
+    const s=stops(strength/100,bounces),lh=lblBig.offsetHeight,x0=R+2,x1=W-R-2,yt=lh+OFF;
     const over=s[1][1]-1;
     lblBig.textContent='Goes '+(over<.06?'a little':over>.12?'about a sixth':'about a tenth')+' too big';
     lblStart.textContent=fadeTog.checked?'Starts small and see-through':'Starts small, already solid';
     lblEnd.textContent='Lands in '+words(dur());
     const put=(el,left,top)=>{el.style.left=Math.max(Math.min(left,W-el.offsetWidth),0)+'px';el.style.top=top+'px'};
-    const row=Y(s[2][1])+OFF;
-    put(lblFull,W,Y(1)-lh-8);
     const low=lblStart.offsetWidth+lblEnd.offsetWidth+12<=W;   // both words fit under the axis, else "Lands in" goes under the dip
-    put(lblEnd,W,low?yb+OFF:row);
-    put(lblStart,0,yb+OFF);
-    const peak=Math.max(Y(s[1][1])-OFF-lh,0);
-    put(lblBig,X(s[1][0])-lblBig.offsetWidth/2,peak);
-    // the biggest one gives way to "Full size" when they would touch
-    if(peak+lh>lblFull.offsetTop-2)put(lblBig,Math.min(lblBig.offsetLeft,lblFull.offsetLeft-lblBig.offsetWidth-6),peak);
-    put(lblDip,X(s[2][0])-lblDip.offsetWidth/2,row);
-    lblDip.style.visibility=!low&&lblDip.offsetLeft+lblDip.offsetWidth+8>lblEnd.offsetLeft?'hidden':'';
+    // Does a word touch the line (or the dot riding it)?
+    const onLine=el=>{
+      const l=el.offsetLeft-R-3,r=el.offsetLeft+el.offsetWidth+R+3,t=el.offsetTop-R-3,b=el.offsetTop+el.offsetHeight+R+3,len=curve.getTotalLength();
+      for(let i=0;i<=240;i++){const q=curve.getPointAtLength(len*i/240);if(q.x>l&&q.x<r&&q.y>t&&q.y<b)return true}
+      return false;
+    };
+    // A second row under the axis for "Lands in" is the last resort: only when its words would cross the line under the dip
+    for(const extra of [0,lh+6]){
+      const yb=H-lh-OFF-extra;
+      const X=p=>x0+(x1-x0)*p/(100*(1+TAIL)),Y=v=>yb-(yb-yt)*(v-s[0][1])/(TOP-s[0][1]);
+      G={x0,x1,Y};
+      svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+      axis.setAttribute('d',`M${x0} ${yt}V${yb}H${x1}`);
+      level.setAttribute('d',`M${x0} ${Y(1)}H${x1}`);
+      const [a,b,c,e]=EASE,f=n=>n.toFixed(1);
+      let d=`M${f(X(0))} ${f(Y(s[0][1]))}`;
+      for(let i=1;i<s.length;i++){
+        const [p0,v0]=s[i-1],[p1,v1]=s[i],dx=X(p1)-X(p0),dy=Y(v1)-Y(v0);
+        d+=`C${f(X(p0)+dx*a)} ${f(Y(v0)+dy*b)} ${f(X(p0)+dx*c)} ${f(Y(v0)+dy*e)} ${f(X(p1))} ${f(Y(v1))}`;
+      }
+      curve.setAttribute('d',d+`H${x1}`);
+      const row=Y(s[2][1])+OFF;
+      put(lblFull,W,Y(1)-lh-8);
+      put(lblEnd,W,low?yb+OFF:extra?yb+OFF+lh+6:row);
+      put(lblStart,0,yb+OFF);
+      const peak=Math.max(Y(s[1][1])-OFF-lh,0);
+      put(lblBig,X(s[1][0])-lblBig.offsetWidth/2,peak);
+      // the biggest one gives way to "Full size" when they would touch
+      if(peak+lh>lblFull.offsetTop-2)put(lblBig,Math.min(lblBig.offsetLeft,lblFull.offsetLeft-lblBig.offsetWidth-6),peak);
+      put(lblDip,X(s[2][0])-lblDip.offsetWidth/2,row);
+      lblDip.style.visibility=!low&&!extra&&lblDip.offsetLeft+lblDip.offsetWidth+8>lblEnd.offsetLeft?'hidden':'';
+      if(low||extra||!onLine(lblEnd))break;
+    }
   }
   // The dot: across with the time since the play began, up with the card's real size read from its transform right now. While a
   // play runs the time comes from the card's own animation (the browser starts it a frame or two after the play), so the dot stays
