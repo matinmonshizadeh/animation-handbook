@@ -25,6 +25,17 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;background:#06070c}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words over the picture; the rings, links and arrow are drawn on the canvas itself */
+    .caps,.pull,.side{display:none;position:absolute}
+    .lbl{padding:4px 9px;border-radius:999px;background:rgba(6,7,12,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .caps{left:10px;top:10px;flex-direction:column;align-items:flex-start;gap:6px}
+    .pull{left:10px;bottom:10px}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .caps{display:flex}
+    .stage[data-hb-mode="inside"] .pull:not([hidden]),.stage[data-hb-mode="compare"] .side{display:block}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +58,28 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and the dots gather toward your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <div class="caps" aria-hidden="true">
+        <p class="lbl in" data-hb-caption>Ring: any dot inside it gets a line</p>
+        <p class="lbl in" data-hb-caption>Closer dots, brighter line</p>
+      </div>
+      <p class="lbl pull" aria-hidden="true" data-hb-caption hidden>Pointer: dots inside drift toward it</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Hard lines</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Fading lines</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the ring around one dot shows how far it reaches: any dot inside gets a line, brighter the closer it is. The arrow shows which way that dot drifts.</p>
+      <p data-hb-for="compare" hidden>Hard lines joins close dots at full strength, so lines blink on and off. Fading lines dims each line as its dots part, so the web forms and breaks smoothly.</p>
     </div>
   </section>
 
@@ -160,6 +187,15 @@
   let W=0,H=0,raf=null,lastT=null,paused=false;
   let COUNT=90,LINK=130,SPD=0.6,COL='cyan',MOUSE=true;
   let nodes=[],mx=-999,my=-999;
+  // See inside and Compare. follow: the dot See inside tracks (a reference, dropped when the dots are dealt again).
+  const PULL2=26000; // the pointer pulls the dots within this squared distance
+  const TAU=Math.PI*2,GOLD='#ffce5a',INK='#f4f4f2',DASH=[6,6],SOLID=[];
+  const ARROW=150; // the arrow is as long as the dot drifts in 2.5 seconds (150 sixtieths of a second)
+  const pullCap=document.querySelector('.pull'),cmpNote=document.querySelector('[data-hb-for="compare"]');
+  const MOVING=cmpNote.textContent; // the markup's words: lines blink on and off. Reduced motion, paused, shows the still words.
+  const STILL='Shown still: Hard lines joins every close pair at full strength, a harsh web; Fading lines dims each line as its dots part, so the long links are faint.';
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let mode='normal',follow=null;
 
   function init(){
     const n=phone.matches?Math.min(COUNT,PHONE_DOTS):COUNT;
@@ -168,6 +204,7 @@
       // cvx and cvy are the velocity the dot cruises at and eases back to, so the drift never dies
       return{x:Math.random()*W,y:Math.random()*H,vx,vy,cvx:vx,cvy:vy,r:Math.random()*1.4+1};
     });
+    follow=null;
   }
 
   // k is how many 60 Hz frames this step stands for (1 at 60 Hz, 2 at 30 Hz), or a third of that in slow motion: the drift,
@@ -177,7 +214,7 @@
       p.x+=p.vx*SPD*k;p.y+=p.vy*SPD*k;
       if(MOUSE&&mx>-500){
         const dx=mx-p.x,dy=my-p.y,d2=dx*dx+dy*dy;
-        if(d2<26000&&d2>1){const f=.04/Math.sqrt(d2)*k;p.vx+=dx*f;p.vy+=dy*f;}
+        if(d2<PULL2&&d2>1){const f=.04/Math.sqrt(d2)*k;p.vx+=dx*f;p.vy+=dy*f;}
       }
       p.vx+=(p.cvx-p.vx)*.01*k;p.vy+=(p.cvy-p.vy)*.01*k;
       // a bounce points the velocity and the cruising velocity away from the wall, so a dot pulled against it cannot turn back in
@@ -187,25 +224,87 @@
     }
   }
 
-  // The whole picture for where the dots are; the canvas is cleared first, so no trace of an earlier picture stays.
-  // Every link has the same color and is faded with globalAlpha: a new color string for each link costs several times more.
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    const c=PAL[COL],L2=LINK*LINK;
-    ctx.strokeStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.lineWidth=1;
+  // The links the dots make now. Each fades with distance (hard: all at full strength), drawn at dim of that strength, none for the
+  // dot skip, and only those that reach into the band of the box from lo to hi (Compare's halves). Every link has the same color and
+  // is faded with globalAlpha: a new color string for each link costs several times more.
+  function web(hard,dim,skip,lo,hi){
+    const L2=LINK*LINK;
     for(let i=0;i<nodes.length;i++){
       const a=nodes[i];
       for(let j=i+1;j<nodes.length;j++){
         const b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
-        if(d2<L2){
-          ctx.globalAlpha=(1-Math.sqrt(d2)/LINK)*.55;
+        if(d2<L2&&a!==skip&&b!==skip&&Math.max(a.x,b.x)>=lo&&Math.min(a.x,b.x)<=hi){
+          ctx.globalAlpha=(hard?1:1-Math.sqrt(d2)/LINK)*.55*dim;
           ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
         }
       }
     }
     ctx.globalAlpha=1;
+  }
+  // Compare: one band of the box with its own kind of line
+  function half(x0,w,hard){
+    ctx.save();ctx.beginPath();ctx.rect(x0,0,w,H);ctx.clip();
+    web(hard,1,null,x0-1,x0+w+1);
+    ctx.restore();
+  }
+  // See inside, drawn over the page's picture: the followed dot's reach as a dashed ring, its links in gold at their own strength,
+  // an arrow for its drift, and the pointer's pull as a second ring. All of it comes from the numbers the dots move by.
+  function inside(){
+    const f=follow,L2=LINK*LINK,pull=MOUSE&&mx>-500;
+    ctx.setLineDash(DASH);ctx.lineWidth=1.5;
+    ctx.strokeStyle=GOLD;ctx.beginPath();ctx.arc(f.x,f.y,LINK,0,TAU);ctx.stroke();
+    if(pull){
+      ctx.strokeStyle=INK;ctx.beginPath();ctx.arc(mx,my,Math.sqrt(PULL2),0,TAU);ctx.stroke();
+      ctx.setLineDash(SOLID);ctx.fillStyle=INK;ctx.beginPath();ctx.arc(mx,my,3,0,TAU);ctx.fill();
+    }
+    ctx.setLineDash(SOLID);
+    if(pull===pullCap.hidden)pullCap.hidden=!pull;
+    ctx.strokeStyle=GOLD;ctx.lineWidth=2;
+    for(const b of nodes){
+      const dx=f.x-b.x,dy=f.y-b.y,d2=dx*dx+dy*dy;
+      if(b!==f&&d2<L2){
+        ctx.globalAlpha=(1-Math.sqrt(d2)/LINK)*.55;
+        ctx.beginPath();ctx.moveTo(f.x,f.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle=GOLD;ctx.beginPath();ctx.arc(f.x,f.y,f.r+2.5,0,TAU);ctx.fill();
+    // the arrow starts at the dot's edge and is cut short where it would leave the box
+    const sp=Math.hypot(f.vx,f.vy)*SPD;
+    if(sp>.01){
+      const ux=f.vx*SPD/sp,uy=f.vy*SPD/sp,off=f.r+5;
+      const room=Math.min(ux>0?(W-4-f.x)/ux:ux<0?(4-f.x)/ux:1e9,uy>0?(H-4-f.y)/uy:uy<0?(4-f.y)/uy:1e9);
+      const len=Math.min(off+sp*ARROW,room);
+      if(len>off+4){
+        const tx=f.x+ux*len,ty=f.y+uy*len,a=Math.atan2(uy,ux);
+        ctx.lineWidth=2.5;ctx.lineCap='round';ctx.beginPath();
+        ctx.moveTo(f.x+ux*off,f.y+uy*off);ctx.lineTo(tx,ty);
+        ctx.moveTo(tx-Math.cos(a-.5)*7,ty-Math.sin(a-.5)*7);ctx.lineTo(tx,ty);ctx.lineTo(tx-Math.cos(a+.5)*7,ty-Math.sin(a+.5)*7);
+        ctx.stroke();ctx.lineCap='butt';
+      }
+    }
+  }
+  // The dot nearest the middle of the box
+  function nearestMiddle(){
+    let best=null,bd=Infinity;
+    for(const p of nodes){const d=(p.x-W/2)**2+(p.y-H/2)**2;if(d<bd){bd=d;best=p;}}
+    return best;
+  }
+
+  // The whole picture for where the dots are; the canvas is cleared first, so no trace of an earlier picture stays.
+  // Normal: links, then dots. See inside: the same at a third of the strength, then the marks. Compare: the left half joins every
+  // close pair at full strength, the right half fades, then the dots and the divider.
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const c=PAL[COL];
+    if(mode==='inside'&&!follow)follow=nearestMiddle();
+    ctx.strokeStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.lineWidth=1;
+    if(mode==='compare'){half(0,W/2,true);half(W/2,W/2,false);}
+    else web(false,mode==='inside'?1/3:1,mode==='inside'?follow:null,-1,W+1);
     ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.9)`;
     for(const p of nodes){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
+    if(mode==='compare'){ctx.fillStyle='#2a2b33';ctx.fillRect(W/2-1,0,2,H);}
+    else if(mode==='inside'&&follow)inside();
   }
 
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one picture per
@@ -226,6 +325,16 @@
     paused=e.detail.paused;
     if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+    words();
+  });
+  // The Compare note says the lines blink on and off; reduced motion, paused, shows a still, so it says what the still shows
+  function words(){const t=paused&&reduced.matches?STILL:MOVING;if(cmpNote.textContent!==t)cmpNote.textContent=t;}
+  // The mode switch draws the mode at once, playing or paused, and keeps the dots as they are. See inside follows the dot nearest the
+  // middle when it is entered; Normal draws the whole box with fading lines again.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='inside'&&was!=='inside')follow=null;
+    draw();
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame moves nothing
   document.addEventListener('visibilitychange',()=>{lastT=null;});
@@ -240,8 +349,9 @@
   }
 
   // The pointer's position comes from pointermove and pointerdown, so a finger resting on the stage draws the dots too
-  function aim(e){if(!e.isPrimary)return;const r=stage.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;}
-  function away(e){if(e.isPrimary)mx=my=-999;}
+  // See inside's pull ring follows the pointer, so while paused it is drawn again here
+  function aim(e){if(!e.isPrimary)return;const r=stage.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;if(paused&&mode==='inside')draw();}
+  function away(e){if(e.isPrimary){mx=my=-999;if(paused&&mode==='inside')draw();}}
   stage.addEventListener('pointermove',aim);
   stage.addEventListener('pointerdown',aim);
   stage.addEventListener('pointerleave',away);
@@ -259,9 +369,9 @@
   // moment later, before the next frame). Speed and the pointer switch change no picture: the dots carry on from where they are.
   choices('count-seg',d=>{COUNT=+d.n;init();draw();});
   choices('link-seg',d=>{LINK=+d.px;draw();});
-  choices('speed-seg',d=>{SPD=+d.spd;});
+  choices('speed-seg',d=>{SPD=+d.spd;if(paused&&mode==='inside')draw();}); // the arrow grows with it
   choices('color-sw',d=>{COL=d.col;draw();});
-  document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE=e.target.checked;});
+  document.getElementById('mouse-tog').addEventListener('change',e=>{MOUSE=e.target.checked;if(paused&&mode==='inside')draw();});
 
   resize();
   window.addEventListener('resize',resize);
