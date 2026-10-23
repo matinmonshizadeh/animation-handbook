@@ -82,7 +82,7 @@
     .stage[data-hb-mode="inside"] .glitch::before{translate:0 calc(var(--up,0px)*-1)}
     .stage[data-hb-mode="inside"] .glitch::after{translate:0 var(--dn,0px)}
     /* Compare: the plain word beside (above, on phones) the real one, each half clipping its own scene below its name */
-    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;padding:0}
     .stage[data-hb-mode="compare"] .half{display:flex;position:relative;overflow:hidden;align-items:center;justify-content:center;min-width:0;padding:40px 12px 12px}
     .stage[data-hb-mode="compare"] .real{border-left:1px solid rgba(255,255,255,.14)}
     .stage[data-hb-mode="compare"] .lbl.nm{display:block;position:absolute;top:8px;left:10px}
@@ -278,10 +278,23 @@
   document.addEventListener('hb:pause',e=>{
     clearTimeout(jitterTimer);
     if(e.detail.paused)glitch.style.transform='';
-    else reslice();
+    else{still=null;reslice()}
   });
   // See inside and Compare are drawn from the page's own numbers; a press draws the mode at once and changes nothing else.
-  document.addEventListener('hb:mode',()=>fit());
+  // Under reduced motion a paused loop can rest where neither strip crosses the letters, so a mode press poses the strips at their
+  // arrival frame (both cross the letters) and Normal puts them back where they stood; Play lets go of the saved times.
+  let still=null;
+  document.addEventListener('hb:mode',e=>{
+    fit();
+    const strips=glitch.getAnimations({subtree:true});
+    if(e.detail.mode!=='normal'&&reduceMQ.matches&&stage.classList.contains('hb-paused')){
+      if(!still)still=strips.map(a=>[a,a.currentTime]);
+      strips.forEach(a=>{a.currentTime=a.effect.getTiming().delay});
+    }else if(e.detail.mode==='normal'&&still){
+      still.forEach(([a,t])=>{a.currentTime=t});
+      still=null;
+    }
+  });
 
   // The CSS formula is viewport-based; measure against the room the mode on show gives and shrink further if needed. Normal keeps
   // the page's own sizing. See inside shares the height between three rows and the captions; a Compare half has its own width.
@@ -348,7 +361,7 @@
   // The behavior caption and the notes, in the page's own numbers: how long a slide takes, how often reslice() restarts the strips
   // (about 1.5, 2.5 and 3 a second, a third as often in slow motion) and how far it shakes the word. Written only when they change.
   const notes=[...document.querySelectorAll('[data-hb-for]')],normalNotes=notes.map(n=>n.textContent),reducedNotes=[
-    'Pulled apart here: the red copy sits left of the word and the cyan copy right. Only the bright strips of each show; the faint rest is drawn only to show what stays hidden.',
+    'Pulled apart here: the red copy sits above the word, shifted left, and the cyan copy below, shifted right. Only the bright strips show; the faint rest marks what stays hidden.',
     'Steady is the word on its own, while Glitching shows strips of its red and cyan copies torn off to either side.'];
   function words(){
     const i=intensity<.5?0:intensity<.8?1:2,slide=['slowly','at a steady pace','quickly'][dur>3?0:dur>2?1:2];
@@ -357,7 +370,7 @@
       :`Strips slide ${slide} and jump to a new spot ${jumps}. The word shakes ${['a little','some','a lot'][i]}.`)
       +(hoverTog.checked?' Nothing moves until you point or tap.':'');
     if(act.textContent!==text)act.textContent=text;
-    notes.forEach((n,k)=>{const t=reduceMQ.matches?reducedNotes[k]:normalNotes[k];if(n.textContent!==t)n.textContent=t});
+    notes.forEach((n,k)=>{let t=reduceMQ.matches?reducedNotes[k]:normalNotes[k];if(hoverTog.checked)t=t.replace('and the strips keep jumping.','and they jump while you point or tap.');if(n.textContent!==t)n.textContent=t});
     if(stage.dataset.hbMode==='inside')fit(); // the caption can take more or fewer lines
   }
   slowTog.addEventListener('change',words);
