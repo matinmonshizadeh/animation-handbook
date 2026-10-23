@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#5fd88a;--ui-muted:#8a8a92;--dur:1100ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:#0b0b0d}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:#0b0b0d}
     .card{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:clamp(28px,5vw,48px);text-align:center;max-width:300px;
       opacity:0;transform:scale(0.3) translateY(40px)}
     .card.in{animation:bounce-in var(--dur) ease forwards}
@@ -32,6 +32,55 @@
     .card-icon{font-size:36px;margin-bottom:14px}
     .card-title{font-size:clamp(16px,2.4vw,22px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    /* See inside and Compare. Their labels are plain words on a dark backing. */
+    .twin,.ghost,.graph,.side,.when{display:none}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    /* See inside: the card beside a graph of its size over time (below it on phones). Across is time, up is size, the dashed line is
+       full size; the line is drawn from the same stops as the keyframes and the dot rides it as the card plays. */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:minmax(0,1fr);
+      align-items:center;gap:clamp(12px,3vw,32px);padding:clamp(12px,3vw,32px)}
+    .stage[data-hb-mode="inside"] .card{justify-self:center}
+    .stage[data-hb-mode="inside"] .graph{display:block}
+    .stage[data-hb-mode="inside"]:has(.card.out) .dot{visibility:hidden}
+    .graph{position:relative;width:100%;height:100%;max-width:560px;justify-self:center}
+    .graph svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .graph .axis{fill:none;stroke:rgba(244,244,242,.5);stroke-width:1.5}
+    .graph .level{fill:none;stroke:rgba(244,244,242,.6);stroke-width:1.5;stroke-dasharray:6 5}
+    .graph .curve{fill:none;stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .graph .dot{fill:#f4f4f2}
+    /* Compare: the card twice, each the size it has in Normal, one on each side of a thin line, each inside a dashed outline of full
+       size. On the left a copy that grows to full size on one smooth curve; on the right the card itself, which bounces. Between plays
+       both are held at the card's biggest moment (its first stop), with those words under them (their row is kept while they are
+       hidden, so the cards do not move when they show). */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr auto 1fr;
+      align-items:center;justify-items:center;gap:0 clamp(12px,3vw,32px);padding:48px clamp(8px,2vw,24px) 40px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] :is(.twin,.ghost,.side,.when){display:block}
+    .stage[data-hb-mode="compare"] .card{grid-row:2;grid-column:2}
+    .stage[data-hb-mode="compare"] .card.a{grid-column:1}
+    .card.twin.in{animation:plain-grow var(--dur) ease-out forwards,plain-fade var(--dur) ease forwards}
+    .card.ghost{background:none;border:1px dashed rgba(244,244,242,.6);opacity:1;transform:none;pointer-events:none;position:relative;z-index:2}
+    .ghost>*{visibility:hidden}
+    .side{top:12px}
+    .side.first{left:12px}
+    .side.second{left:calc(50% + 12px)}
+    .when{position:static;grid-area:3/1/4/3;align-self:start;margin-top:14px;max-width:100%;white-space:normal;text-align:center;text-wrap:balance;
+      visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .card:not(.ghost){transform:var(--pose)!important;opacity:1!important}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px}
+      .stage[data-hb-mode="inside"] .graph{max-width:none}
+    }
+    /* Phones and short boxes (a window up to 640px tall): compact cards, narrow enough that a strong bounce stays in its half.
+       Phones, held either way: no "Dips just under" in the graph. */
+    @media(max-width:600px),(max-height:640px){
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:12px 8px}
+      .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
+      .stage[data-hb-mode="inside"] .card-icon,.stage[data-hb-mode="compare"] .card-icon{font-size:22px;margin-bottom:6px}
+      .stage[data-hb-mode="inside"] .card-title,.stage[data-hb-mode="compare"] .card-title{font-size:clamp(12px,3.8vw,15px);margin-bottom:0;white-space:nowrap}
+    }
+    @media(max-width:600px),(max-height:500px){.lbl.dip{display:none}}
     @media(prefers-reduced-motion:reduce){.card.in{animation:none!important;opacity:1;transform:none}.card.out{animation:none!important;opacity:0}}
   </style>
   <style id="kf-style"></style>
@@ -56,17 +105,42 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card" id="card">
         <div class="card-icon">◈</div>
         <div class="card-title">Bounce Landing</div>
         <div class="card-sub">A real bounce goes past its size and back, a little less each time.</div>
       </div>
+      <div class="graph" aria-hidden="true">
+        <span class="lbl full" id="lbl-full" data-hb-caption>Full size</span>
+        <span class="lbl big" id="lbl-big" data-hb-caption>Goes about a tenth too big</span>
+        <span class="lbl dip" id="lbl-dip" data-hb-caption>Dips just under</span>
+        <span class="lbl start" id="lbl-start" data-hb-caption>Starts small and see-through</span>
+        <span class="lbl end" id="lbl-end" data-hb-caption>Lands in about a second</span>
+        <svg viewBox="0 0 300 170">
+          <path class="axis" d="M8 16V140H290"/>
+          <path class="level" d="M8 40H290"/>
+          <path class="curve" d="M8 140"/>
+          <circle class="dot" r="6"/>
+        </svg>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>No bounce</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Bounces</p>
+      <p class="lbl when" id="when" aria-hidden="true" data-hb-caption>At its biggest, about half a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the graph shows the card's size over time: it grows past full size, dips just under, then settles. The dot rides the line as the card plays.</p>
+      <p data-hb-for="compare" hidden>No bounce grows smoothly to full size and stops; Bounces grows past its outline, dips under and settles, like it landed. With Loop off, both rest at its biggest moment.</p>
     </div>
   </section>
 
@@ -155,6 +229,7 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
+  const stage=card.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const fadeTog=document.getElementById('fade-tog');
@@ -162,78 +237,189 @@
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let strength=60,bounces=1,ms=1100,timers=[];
 
+  // The landing as its stops, [share of the time in %, size, lift in px]. The keyframes, the graph and Compare's held moment all
+  // read this table, so they always agree.
+  const PCT={1:[55,80],2:[40,60,75,90],3:[35,52,65,78,88]},AMP=[.15,-.07,.06,-.03,.03],LIFT=[-8,3,-3,1,-1];
+  function stops(t,n){return [[0,.3,40],...PCT[n].map((p,i)=>[p,1+t*AMP[i],LIFT[i]]),[100,1,0]]}
+
   function dur(){return slowTog.checked?ms*3:ms}
+  // bounce-in is the card's own landing. plain-grow and plain-fade are Compare's copy: the same start, one smooth curve to full
+  // size, and solid at the same stop as the card.
   function buildKF(intensity,n){
-    const t=intensity/100;
-    const ov1=1+t*0.15,un1=1-t*0.07,ov2=1+t*0.06,un2=1-t*0.03;
-    const fadeIn=fadeTog.checked;
-    let kf;
-    if(n===1){
-      kf=`@keyframes bounce-in{
-  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
-  55% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
-  80% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
-  100%{opacity:1;transform:scale(1) translateY(0)}
-}`;
-    }else if(n===2){
-      kf=`@keyframes bounce-in{
-  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
-  40% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
-  60% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
-  75% {transform:scale(${ov2.toFixed(3)}) translateY(-3px)}
-  90% {transform:scale(${un2.toFixed(3)}) translateY(1px)}
-  100%{opacity:1;transform:scale(1) translateY(0)}
-}`;
-    }else{
-      kf=`@keyframes bounce-in{
-  0%  {opacity:${fadeIn?0:1};transform:scale(0.3) translateY(40px)}
-  35% {opacity:1;transform:scale(${ov1.toFixed(3)}) translateY(-8px)}
-  52% {transform:scale(${un1.toFixed(3)}) translateY(3px)}
-  65% {transform:scale(${ov2.toFixed(3)}) translateY(-3px)}
-  78% {transform:scale(${un2.toFixed(3)}) translateY(1px)}
-  88% {transform:scale(${(1+t*0.03).toFixed(3)}) translateY(-1px)}
-  100%{opacity:1;transform:scale(1) translateY(0)}
-}`;
-    }
-    kfStyle.textContent=kf;
+    const fadeIn=fadeTog.checked,s=stops(intensity/100,n);
+    const frames=s.map(([p,size,y],i)=>`  ${p}%{${i===0?`opacity:${fadeIn?0:1};`:i===1||i===s.length-1?'opacity:1;':''}transform:scale(${size.toFixed(3)}) translateY(${y}px)}`);
+    kfStyle.textContent=`@keyframes bounce-in{\n${frames.join('\n')}\n}
+@keyframes plain-grow{from{transform:scale(${s[0][1]}) translateY(${s[0][2]}px)}to{transform:none}}
+@keyframes plain-fade{from{opacity:${fadeIn?0:1}}${s[1][0]}%,to{opacity:1}}`;
   }
   function apply(){
     vars.setProperty('--dur',dur()+'ms');
     buildKF(strength,bounces);
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+
+  // See inside and Compare. The browser's own speed curves (ease between stops, ease-out for the copy), the time the graph keeps
+  // after the landing, the dot's radius, how far its words keep off the line (pixels), and the largest size any setting reaches.
+  const EASE=[.25,.1,.25,1],OUT=[0,0,.58,1],TAIL=.2,R=6,OFF=14,TOP=1.15;
+  const graph=stage.querySelector('.graph'),svg=graph.querySelector('svg'),dot=svg.querySelector('.dot');
+  const [axis,level,curve]=['axis','level','curve'].map(c=>svg.querySelector('.'+c));
+  const [lblFull,lblBig,lblDip,lblStart,lblEnd]=['full','big','dip','start','end'].map(k=>document.getElementById('lbl-'+k));
+  const when=document.getElementById('when');
+  // Compare's copy ("No bounce") and the dashed outlines of full size, out of reach of the keyboard and screen readers
+  const dup=cls=>{const c=card.cloneNode(true);c.removeAttribute('id');c.className='card '+cls;c.inert=true;c.setAttribute('aria-hidden','true');return c};
+  const twin=dup('twin a'),ghostL=dup('ghost a'),ghostR=dup('ghost');
+  card.before(twin,ghostL);card.after(ghostR);
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  let mode='normal',runStart=-1e9,runMs=0,dotRaf=0,G={};
+
   function bounceIn(){
-    card.classList.remove('in','out');void card.offsetWidth;
-    card.classList.add('in');
+    for(const c of [card,twin]){c.classList.remove('in','out');void c.offsetWidth;c.classList.add('in')}
   }
+  // Compare's held moment comes back once a play is over, if Compare is still on show
+  function holdLater(){later(()=>{if(mode==='compare')pose(true)},dur()+700)}
   // One play bounces in. While Loop is on it then holds, shrinks out at half the duration, waits
   // and plays again; switching Loop off lets the card finish landed. Slow motion stretches dur(),
   // which the shrink-out is always half of; the 800ms hold and 400ms wait stay fixed.
+  // A play lifts Compare's held moment (not under reduced motion: nothing moves then, so it stays).
   function cycle(){
-    apply();bounceIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();
+    if(motionOk)pose(false);
+    runStart=performance.now();runMs=dur();
+    bounceIn();
+    if(mode==='inside')ride();
+    if(!loopTog.checked||!motionOk){
+      if(mode==='compare'&&motionOk)holdLater();
+      return;
+    }
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');void card.offsetWidth;
-      card.classList.add('out');
+      for(const c of [card,twin]){c.classList.remove('in');void c.offsetWidth;c.classList.add('out')}
       later(cycle,Math.round(dur()*0.5)+400);
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  function words(t){return t<=400?'about a third of a second':t<=700?'about half a second':t<=1200?'about a second':t<=2000?'about two seconds':'about three seconds'}
+  // The graph, drawn in the box's own pixels: across is time (the landing, then a little more), up is the card's size from where
+  // it starts to the largest any setting reaches, and each step between two stops has the browser's ease. Its words keep their
+  // size and stay off the line, so the dot passes them: the biggest one over the first hump, "Full size" above the dashed line and
+  // "Lands in" under it at the right, "Dips just under" beside it where it fits, the start's words under the axis.
+  function drawGraph(){
+    const W=graph.clientWidth,H=graph.clientHeight;
+    if(!W)return;
+    const s=stops(strength/100,bounces),lh=lblBig.offsetHeight,x0=R+2,x1=W-R-2,yt=lh+OFF,yb=H-lh-OFF;
+    const X=p=>x0+(x1-x0)*p/(100*(1+TAIL)),Y=v=>yb-(yb-yt)*(v-s[0][1])/(TOP-s[0][1]);
+    G={x0,x1,Y};
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    axis.setAttribute('d',`M${x0} ${yt}V${yb}H${x1}`);
+    level.setAttribute('d',`M${x0} ${Y(1)}H${x1}`);
+    const [a,b,c,e]=EASE,f=n=>n.toFixed(1);
+    let d=`M${f(X(0))} ${f(Y(s[0][1]))}`;
+    for(let i=1;i<s.length;i++){
+      const [p0,v0]=s[i-1],[p1,v1]=s[i],dx=X(p1)-X(p0),dy=Y(v1)-Y(v0);
+      d+=`C${f(X(p0)+dx*a)} ${f(Y(v0)+dy*b)} ${f(X(p0)+dx*c)} ${f(Y(v0)+dy*e)} ${f(X(p1))} ${f(Y(v1))}`;
+    }
+    curve.setAttribute('d',d+`H${x1}`);
+    const over=s[1][1]-1;
+    lblBig.textContent='Goes '+(over<.06?'a little':over>.12?'about a sixth':'about a tenth')+' too big';
+    lblStart.textContent=fadeTog.checked?'Starts small and see-through':'Starts small, already solid';
+    lblEnd.textContent='Lands in '+words(dur());
+    const put=(el,left,top)=>{el.style.left=Math.max(Math.min(left,W-el.offsetWidth),0)+'px';el.style.top=top+'px'};
+    const row=Y(s[2][1])+OFF;
+    put(lblFull,W,Y(1)-lh-8);
+    const low=lblStart.offsetWidth+lblEnd.offsetWidth+12<=W;   // both words fit under the axis, else "Lands in" goes under the dip
+    put(lblEnd,W,low?yb+OFF:row);
+    put(lblStart,0,yb+OFF);
+    const peak=Math.max(Y(s[1][1])-OFF-lh,0);
+    put(lblBig,X(s[1][0])-lblBig.offsetWidth/2,peak);
+    // the biggest one gives way to "Full size" when they would touch
+    if(peak+lh>lblFull.offsetTop-2)put(lblBig,Math.min(lblBig.offsetLeft,lblFull.offsetLeft-lblBig.offsetWidth-6),peak);
+    put(lblDip,X(s[2][0])-lblDip.offsetWidth/2,row);
+    lblDip.style.visibility=!low&&lblDip.offsetLeft+lblDip.offsetWidth+8>lblEnd.offsetLeft?'hidden':'';
+  }
+  // The dot: across with the time since the play began, up with the card's real size read from its transform right now. While a
+  // play runs the time comes from the card's own animation (the browser starts it a frame or two after the play), so the dot stays
+  // on the line; at rest the dot sits at the line's end.
+  function placeDot(){
+    if(!G.Y)return false;
+    const a=motionOk&&card.classList.contains('in')&&card.getAnimations()[0],total=runMs*(1+TAIL);
+    if(a&&a.playState==='running'&&a.currentTime!==null)runStart=performance.now()-a.currentTime;
+    const t=Math.min(performance.now()-runStart,total),done=!motionOk||t>=total;
+    const m=getComputedStyle(card).transform,size=done||m==='none'?1:new DOMMatrixReadOnly(m).a;
+    dot.style.transform=`translate(${done?G.x1:G.x0+(G.x1-G.x0)*t/total}px,${G.Y(size)}px)`;
+    return !done;
+  }
+  function ride(){
+    cancelAnimationFrame(dotRaf);
+    const step=()=>{dotRaf=placeDot()&&mode==='inside'?requestAnimationFrame(step):0};
+    step();
+  }
+  // Compare's held moment: both cards at the share of the time where the real card is biggest (its first stop). The card is at its
+  // stop's size; the copy is as far along its own smooth curve as the card is along its time.
+  function pose(on){
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    const s=stops(strength/100,bounces),[p,size,lift]=s[1],k=curveAt(OUT,p/100);
+    card.style.setProperty('--pose',`scale(${size.toFixed(3)}) translateY(${lift}px)`);
+    twin.style.setProperty('--pose',`scale(${(s[0][1]+(1-s[0][1])*k).toFixed(3)}) translateY(${(s[0][2]*(1-k)).toFixed(1)}px)`);
+    when.textContent='At its biggest, '+words(dur()*p/100)+' in';
+  }
+  // The notes say what the picture shows now: the number of bounces, and still under reduced motion
+  function note(el,text){if(el.textContent!==text)el.textContent=text}
+  function notes(){
+    const many=bounces>1,times=bounces===2?'two':'three';
+    note(noteIn,motionOk
+      ?`Inside, the graph shows the card's size over time: it ${many?`bounces past full size ${times} times, a little less each time, then settles. The dot rides the line.`:'grows past full size, dips just under, then settles. The dot rides the line as the card plays.'}`
+      :`Shown still: the graph shows the card's size over time, ${many?`bouncing past full size ${times} times, a little less each time, and settling.`:'growing past full size, dipping just under and settling.'}`);
+    note(noteCmp,motionOk
+      ?`No bounce grows smoothly to full size and stops; Bounces ${many?`goes past its outline and back ${times} times, a little less each time.`:'grows past its outline, dips under and settles, like it landed.'} With Loop off, both rest at its biggest moment.`
+      :"Shown still, at the bounce's biggest moment: No bounce is still inside its outline, while Bounces pokes past it.");
+  }
+  function refresh(){
+    notes();
+    if(mode==='inside'){drawGraph();ride()}
+    if(stage.classList.contains('posed'))pose(true);
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    pose(mode==='compare'&&(!motionOk||!loopTog.checked));
+    refresh();
+  });
+
+  // The box changes size with the window, and its words with the site font once it has loaded: the graph is drawn again
+  const redraw=new ResizeObserver(()=>{if(mode==='inside')refresh()});redraw.observe(graph);redraw.observe(lblFull);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  // Loop off: a play still landing or holding ends there (and in Compare is then held again)
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(card.classList.contains('in')&&mode==='compare'&&motionOk)holdLater();
+    refresh();
+  });
+  slowTog.addEventListener('change',refresh);
+  fadeTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('strength-seg',d=>{strength=+d.strength});
   choices('bounces-seg',d=>{bounces=+d.bounces});
   choices('speed-seg',d=>{ms=+d.ms});
   apply();
+  refresh();
 </script>
 </body>
 </html>
