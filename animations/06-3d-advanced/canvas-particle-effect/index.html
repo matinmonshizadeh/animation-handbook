@@ -312,7 +312,7 @@ function arrow(x0,y0,x1,y1){
 // See inside, from the page's own numbers: each followed dot gets a dashed ring as wide as Link distance, its own links brighter and an
 // arrow as long as it drifts in a second; the pointer gets a ring as wide as its reach, eight arrows out (Push) or in (Pull) and a cursor
 function drawMarks(){
-  mctx.clearRect(0,0,W,H);mctx.lineCap='round';
+  dodge();mctx.clearRect(0,0,W,H);mctx.lineCap='round';
   const r=parseInt(COLOR.slice(1,3),16),g=parseInt(COLOR.slice(3,5),16),b=parseInt(COLOR.slice(5,7),16);
   for(let i=phoneQ.matches?1:0,n=phoneQ.matches?2:3;i<n;i++){
     const p=follow[i];if(!p)continue;
@@ -388,9 +388,11 @@ document.addEventListener('hb:pause',e=>{
 // first spot that meets no other caption and none of the pointer's arrows. The pointer's caption shows only while its cursor is parked.
 const cap=k=>stage.querySelector('.cap.'+k),capA=cap('a'),capB=cap('b'),capC=cap('c'),capD=cap('d');
 const put=(el,t)=>{if(el.textContent!==t)el.textContent=t;};
+// want[i]: caption i belongs in this view; gone[i]: a followed dot is near it, so it steps aside; spot[i]: where place() put it
+const caps=[capA,capB,capC,capD],want=[0,0,0,0],gone=[0,0,0,0],spot=[null,null,null,null];
 let roomC=true;
 function place(){
-  capA.hidden=!CONNECTIONS;capD.hidden=phoneQ.matches||!CONNECTIONS;capC.hidden=!FORCE;
+  capA.hidden=!CONNECTIONS;capB.hidden=false;capD.hidden=phoneQ.matches||!CONNECTIONS;capC.hidden=!FORCE;spot.fill(null);
   put(capC,FORCE<0?'Pointer pushes dots away':'Pointer pulls dots in');
   const M=10,R=REACH+8,cx=park.x,cy=park.y,hb=capB.offsetHeight,fixed=[],boxes=[];
   roomC=true;
@@ -398,6 +400,7 @@ function place(){
     for(let i=0;i<8;i++){reach(i,cx,cy);fixed.push([Math.min(ra[0],ra[2])-4,Math.min(ra[1],ra[3])-4,Math.max(ra[0],ra[2])+4,Math.max(ra[1],ra[3])+4]);}
     fixed.push([cx-3,cy-3,cx+14,cy+20]);
   }
+  for(const p of seen()){const [x,y]=tip(p),m=p.r+3+18;fixed.push([Math.min(p.x,x)-m,Math.min(p.y,y)-m,Math.max(p.x,x)+m,Math.max(p.y,y)+m]);}
   const list=[
     [capC,(w,h)=>[[cx-w/2,cy+R],[cx-w/2,cy-R-h],[cx-w/2,cy+26],[cx-w/2,cy-26-h],[cx+R,cy-h/2],[cx-R-w,cy-h/2]]],
     [capA,(w,h)=>[[M,M],[M,H-M-hb-6-h],[W-M-w,M]]],
@@ -410,9 +413,30 @@ function place(){
     const w=el.offsetWidth,h=el.offsetHeight,all=spots(w,h).filter(c=>c[0]>=M&&c[1]>=M&&c[0]+w<=W-M&&c[1]+h<=H-M);
     const c=all.find(c=>!meets(c,w,h,fixed)&&!meets(c,w,h,boxes))||all.find(c=>!meets(c,w,h,boxes));
     if(!c){el.hidden=true;if(el===capC)roomC=false;continue;}
-    el.style.left=c[0]+'px';el.style.top=c[1]+'px';boxes.push([c[0],c[1],c[0]+w,c[1]+h]);
+    el.style.left=c[0]+'px';el.style.top=c[1]+'px';boxes.push(spot[caps.indexOf(el)]=[c[0],c[1],c[0]+w,c[1]+h]);
   }
   capC.hidden=!(FORCE&&parked&&roomC);
+  caps.forEach((el,i)=>{want[i]=!el.hidden;gone[i]=0;});
+  dodge();
+}
+// The followed dots on show, and the end of a dot's drift arrow
+const seen=()=>(phoneQ.matches?follow.slice(1,2):follow).filter(Boolean);
+function tip(p){const v=Math.hypot(p.vx,p.vy)||1,len=Math.max(v*60,p.r+14);return[p.x+p.vx/v*len,p.y+p.vy/v*len];}
+// A caption never covers a followed dot or its arrow: it steps aside while one is near it and comes back once the dot has passed
+// (it leaves 8px out from the dot's edge and returns 18px out, so it does not flicker). Runs with each drawn picture, never a search.
+function dodge(){
+  for(let i=0;i<4;i++){
+    const b=spot[i];if(!b||!want[i])continue;
+    let hit=false;
+    for(const p of seen()){
+      const [x1,y1]=tip(p),m=p.r+3+(gone[i]?18:8);
+      for(let t=0;t<=3&&!hit;t++){
+        const x=p.x+(x1-p.x)*t/3,y=p.y+(y1-p.y)*t/3;
+        hit=Math.hypot(Math.max(b[0]-x,0,x-b[2]),Math.max(b[1]-y,0,y-b[3]))<m;
+      }
+    }
+    if(hit!==!!gone[i]){gone[i]=hit?1:0;caps[i].hidden=hit;}
+  }
 }
 function inside(){if(mode==='inside'){place();drawMarks();}}
 
@@ -423,7 +447,7 @@ function setMouse(){
   if(parked){mouse.x=park.x;mouse.y=park.y;}
   else if(mode==='compare'&&!out){mouse.x=raw.x>HW+1?raw.x-HW-2:raw.x;mouse.y=raw.y-TOP;}
   else{mouse.x=raw.x;mouse.y=raw.y;}
-  const h=!(FORCE&&parked&&roomC);if(mode==='inside'&&capC.hidden!==h)capC.hidden=h; // its caption shows only with the cursor
+  const w=FORCE&&parked&&roomC;if(mode==='inside'&&!!want[2]!==w){want[2]=w?1:0;gone[2]=0;capC.hidden=!w;} // its caption shows only with the cursor
 }
 
 // The notes: the markup holds the default words, written again only when a setting or reduced motion changes them. Shown still
@@ -431,6 +455,7 @@ function setMouse(){
 const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 function notes(){
+  label();
   const s=paused&&reduced.matches,c=CONNECTIONS,v=FORCE<0?['push away','pushes away']:['pull in','pulls in'];
   put(noteIn,(s?'Inside, each arrow shows where a dot would drift'+(c?', and a ringed dot joins every dot in its ring. ':'; Link distance is None, so no dot joins another. ')
     :'Inside, each dot drifts its own way'+(c?' and joins every dot inside its dashed ring with a line. ':'; Link distance is None, so no dot joins another. '))
@@ -438,8 +463,13 @@ function notes(){
   put(noteCmp,c?`Dots only and With links ${s?'show the same dots in the same places':'are the same dots moving the same way'}. Only the lines differ: they join dots that come close, which turns the dots into a network.`
     :'Link distance is None, so Dots only and With links look the same. Pick a distance in Try it to see the lines.');
 }
-const LABEL={normal:cvs.getAttribute('aria-label'),compare:'The same dots twice: drawn alone, and joined by lines where they come close',
-  inside:'Dots drifting, three of them ringed to show how near another dot must be to join it, with arrows for their drift and a ring for the pointer’s reach'};
+const LABEL={normal:cvs.getAttribute('aria-label'),compare:'The same dots twice: drawn alone, and joined by lines where they come close'};
+// The picture's name says what the mode draws: one ringed dot on phones, no rings at Link distance None, no pointer ring at None
+function label(){
+  const one=phoneQ.matches,t=mode==='normal'?LABEL.normal:mode==='compare'?(CONNECTIONS?LABEL.compare:'The same dots twice, drawn alone in both halves because Link distance is None')
+    :'Dots drifting, '+(one?'one':'three')+' of them '+(CONNECTIONS?'ringed to show how near another dot must be to join it, with ':'marked, with ')+(one?'an arrow for its':'arrows for their')+' drift'+(FORCE?' and a ring for the pointer’s reach':'');
+  if(cvs.getAttribute('aria-label')!==t)cvs.setAttribute('aria-label',t);
+}
 // Registered at the top level, before the shared script. Compare keeps Normal's dots and picture and puts them back; See inside works on Normal's own dots.
 document.addEventListener('hb:mode',e=>{
   const was=mode,now=e.detail.mode;mode=now;
@@ -458,7 +488,7 @@ document.addEventListener('hb:mode',e=>{
   }else if(now!==was)redraw();
   setMouse();
   if(now==='inside'){place();drawMarks();}else mctx.clearRect(0,0,W,H);
-  cvs.setAttribute('aria-label',LABEL[now]);notes();
+  notes();
 });
 
 resize();spawn();draw();start();
