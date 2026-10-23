@@ -83,7 +83,7 @@
       </div>
       <div class="key" aria-hidden="true">
         <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M11 3 16.5 13h-11z"/></svg>All beams start from one point</p>
-        <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M1 13h20M3 13C8 13 8.5 3 11 3S14 13 19 13"/></svg>Clear edges, bright middle</p>
+        <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M1 11.2h20M3 11.2C8 11.2 8.5 4.8 11 4.8S14 11.2 19 11.2"/></svg>Clear edges, bright middle</p>
         <p class="tag kr" data-hb-caption><svg viewBox="0 0 22 16"><path d="M3 14C3 8 7 4 13 3"/><circle cx="9" cy="5.6" r="1.8" fill="#fff"/></svg><span>Beams swing every <b id="secs">12 to 22</b> seconds</span></p>
         <p class="tag kr" id="kdust" data-hb-caption><svg viewBox="0 0 22 16"><circle cx="11" cy="8" r="6"/></svg>Dust glints only inside a beam</p>
       </div>
@@ -207,10 +207,11 @@
   // A scene is one box of light: its source, fan direction, reach and fade and glow gradients. Normal draws one; Compare two half-width ones
   const full={},half={},NM=38; // NM: the strip above Compare's halves that holds their names
   const key=document.querySelector('.key'),secs=document.getElementById('secs'),kdust=document.getElementById('kdust');
+  if(!CONIC)key.children[1].querySelector('path').setAttribute('d','M1 11.2h20M3 11.2V4.8h16v6.4'); // flat beams: the key shows the flat-topped bump
   const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
   const MOVING=notes.inside.textContent,reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const STILL='Inside, shown still: each beam is a slice of light from one point just above the box, clear at its edges. Each arc shows how far its beam swings.';
-  const DASH=[7,5],DASH2=[3,4],PROFILE=CONIC?[[0,0],[.2,.3],[.5,1],[.8,.3],[1,0]]:[[0,0],[0,1],[1,1],[1,0]]; // the bump: the beam gradient's own stops
+  const DASH=[7,5],DASH2=[3,4];
   let mode='normal',paused=false,bump=null;
   const clearOfDots=m=>{for(const r of rays)if(Math.hypot(r.dx-m.x,r.dy-m.y)<20)return false;return true;};
 
@@ -312,15 +313,18 @@
     const line=a=>{const c=Math.cos(a),s=Math.sin(a);if(s<=0)return;ctx.moveTo(o.sx-c*o.sy/s,0);ctx.lineTo(o.sx+c*R,o.sy+s*R);}; // a beam that points up never shows
     ctx.save();ctx.lineCap='round';ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.setLineDash(DASH);ctx.lineWidth=1.5;
     for(const r of rays){ctx.globalAlpha=.3+Math.min(.6,2.2*r.al);ctx.beginPath();line(r.now);ctx.stroke();}
-    let bx=-99;
+    let bx=-99,bumpD=()=>99;
     if(b){
-      const hw=CONIC?b.w/2:b.w/4,d=(bump.y-o.sy)/Math.sin(b.now),chord=2*d*Math.sin(hw);bx=o.sx+d*Math.cos(b.now);
+      const hw=CONIC?b.w/2:b.w/4,[px,sn,cs,chord]=bumpPose(b.now,bump.y,hw);bx=px;
       ctx.globalAlpha=.8;ctx.lineWidth=1;ctx.setLineDash(DASH2);ctx.beginPath();line(b.now-hw);line(b.now+hw);ctx.stroke();
       ctx.save();ctx.translate(bx,bump.y);ctx.rotate(b.now+Math.PI/2);ctx.setLineDash([]);
-      const X=i=>(PROFILE[i][0]-.5)*chord,Y=i=>PROFILE[i][1]*bump.hb*(CONIC?1.2:1),n=PROFILE.length-1;
-      ctx.beginPath();ctx.moveTo(X(0),Y(0)); // soft beams: the stops joined smoothly; flat ones: as they are
-      for(let i=1;i<n;i++)if(CONIC)ctx.quadraticCurveTo(X(i),Y(i),(X(i)+X(i+1))/2,(Y(i)+Y(i+1))/2);else ctx.lineTo(X(i),Y(i));
-      ctx.lineTo(X(n),Y(n));ctx.closePath();
+      const h=bumpH(chord),T=bumpTail(chord),e=chord/2,k=chord*.3;
+      bumpD=(qx,qy)=>bumpDist(qx-bx,qy-bump.y,sn,cs,chord);
+      ctx.beginPath(); // a low bell: flat at both edges and at the top, on a baseline a little longer than the beam
+      ctx.moveTo(-T,0);ctx.lineTo(-e,0);
+      if(CONIC){ctx.bezierCurveTo(-e+k,0,-e+k*1.1,h,0,h);ctx.bezierCurveTo(e-k*1.1,h,e-k,0,e,0);} // soft beams: smooth; flat ones: a flat-topped box
+      else{ctx.lineTo(-e,h);ctx.lineTo(e,h);ctx.lineTo(e,0);}
+      ctx.lineTo(T,0);ctx.closePath();
       ctx.globalAlpha=1;ctx.lineWidth=2;ctx.fillStyle='rgba(255,255,255,.22)';ctx.fill();ctx.stroke();ctx.restore();
     }
     ctx.setLineDash([]);ctx.globalAlpha=.65;ctx.lineWidth=1.5;ctx.beginPath();
@@ -332,7 +336,7 @@
     ctx.beginPath();ctx.moveTo(o.sx,2);ctx.lineTo(o.sx-6.5,12.5);ctx.lineTo(o.sx+6.5,12.5);ctx.closePath();ctx.fill();ctx.stroke();
     if(DUST){ // the brightest specks first, none within a ring's width of one already picked
       ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.globalAlpha=.9;ctx.beginPath();
-      for(const m of motes)m.l=m.x<12||m.x>W-12||m.y<12||m.y>H-12||near(m.x,m.y,14)||Math.hypot(m.x-bx,m.y-bump.y)<bump.rad||!clearOfDots(m)?0:lightAt(o,m.x,m.y);
+      for(const m of motes)m.l=m.x<12||m.x>W-12||m.y<12||m.y>H-12||near(m.x,m.y,14)||bumpD(m.x,m.y)<20||!clearOfDots(m)?0:lightAt(o,m.x,m.y);
       for(let k=0;k<(phone.matches?4:6);k++){
         let pick=null;
         for(const m of motes)if(m.l>(pick?pick.l:.04))pick=m;
@@ -344,21 +348,31 @@
     }
     ctx.restore();
   }
-  // Where See inside puts what stays put, once and not every frame: the bump (as high as the key leaves room for, wherever its beam swings) and
+  // Where See inside puts what stays put, once and not every frame: the bump (on a middle beam, where it is wide enough to read, wherever it swings) and
   // each beam's arc: a distance from the source at which the whole swing is inside the box, clear of the key, the bump and every other arc
   let keyR=null;
+  // The bump is a low bell across its beam on a baseline a little longer than the beam, as the key draws it
+  const bumpTail=c=>c/2+Math.max(5,c*.14),bumpH=c=>Math.min(24,c*.4);
+  const bumpPose=(a,y,hw)=>{const sn=Math.sin(a),cs=Math.cos(a),d=(y-full.sy)/sn;return[full.sx+d*cs,sn,cs,2*d*Math.sin(hw)];}; // its center across, the beam's sine and cosine, its width, for a beam at angle a
+  const bumpDist=(dx,dy,sn,cs,c)=>{const lx=cs*dy-sn*dx,ly=-cs*dx-sn*dy;return Math.hypot(Math.max(Math.abs(lx)-bumpTail(c),0),Math.max(-ly,ly-bumpH(c),0));}; // how far a point is from the bump drawn so
+  const bumpCorners=(bx,y,sn,cs,c)=>[-1,1].flatMap(u=>[0,1].map(v=>{const T=u*bumpTail(c),h=v*bumpH(c);return[bx-T*sn-h*cs,y+T*cs-h*sn];})); // the corners of the box the bump is drawn in
   const near=(x,y,m)=>keyR&&x>keyR.x-m&&x<keyR.x+keyR.w+m&&y>keyR.y-m;
+  const room=(x,y)=>x>8&&x<W-8&&y>8&&y<H-8&&!near(x,y,8); // inside the box, clear of the key
   function plan(){
     const o=full,kw=key.offsetWidth,placed=[[o.sx,7]];
     keyR=kw?{x:FROM==='left'?W-10-kw:10,y:H-10-key.offsetHeight,w:kw}:null;
     bump=null;if(!rays.length)return;
-    const bi=rays.reduce((m,r,i)=>Math.abs(r.c)<Math.abs(rays[m].c)?i:m,0),r0=rays[bi],a0=o.base+r0.c,sp0=r0.s+.06,hw=CONIC?r0.w/2:r0.w/4;
-    for(const f of [.45,.37,.29,.21]){
-      const y=H*f,chord=2*(y-o.sy)/Math.sin(a0)*Math.sin(hw),hb=Math.max(20,Math.min(36,chord*.55)),x=a=>o.sx+(y-o.sy)*Math.cos(a)/Math.sin(a);
-      bump={i:bi,y,hb,x0:Math.min(x(a0-sp0),x(a0+sp0)),x1:Math.max(x(a0-sp0),x(a0+sp0)),rad:Math.max(chord/2,hb)+10};
-      if(![bump.x0,bump.x1,x(a0)].some(v=>near(v,y,bump.rad)))break;
+    const mid=rays.map((_,i)=>i).sort((i,j)=>Math.abs(rays[i].c)-Math.abs(rays[j].c)).slice(0,3);
+    let best=null,score=-1e9; // among the three beams nearest the middle and six heights: the place where the bump is nearest 52 wide, whole inside the box and clear of the key at every angle of its swing
+    for(const bi of mid)for(const f of [.58,.5,.42,.34,.26,.2]){
+      const r0=rays[bi],a0=o.base+r0.c,sp0=r0.s+.06,y=H*f,P=Array.from({length:17},(_,k)=>bumpPose(a0+sp0*(k-8)/8,y,CONIC?r0.w/2:r0.w/4));
+      const fits=P.every(([bx,sn,cs,c])=>sn>.3&&bumpCorners(bx,y,sn,cs,c).every(([qx,qy])=>room(qx,qy)));
+      const sc=-Math.abs(P[8][3]-52)-f;
+      if(fits&&sc>score){best={i:bi,y,P};score=sc;}
+      else if(!best&&f===.2&&bi===mid[0])best={i:bi,y,P}; // no place is clear: the highest one on the middle beam
     }
-    const free=(x,y)=>x>8&&x<W-8&&y>8&&y<H-8&&!near(x,y,8)&&Math.hypot(Math.max(bump.x0-x,0,x-bump.x1),bump.y-y)>bump.rad;
+    bump=best;
+    const free=(x,y)=>room(x,y)&&bump.P.every(([bx,sn,cs,c])=>bumpDist(x-bx,y-bump.y,sn,cs,c)>12);
     rays.forEach((r,i)=>{
       const sp=r.s+.06,Q=[],pref=i%2?.7:.3;let dlo=0,dhi=1e9;
       r.lo=o.base+r.c-sp;r.hi=o.base+r.c+sp;r.d=0;
