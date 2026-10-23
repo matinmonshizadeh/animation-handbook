@@ -95,6 +95,7 @@
     /* While it runs, the label of the part on show is lit */
     .stage[data-hb-mode="inside"]:has(.sbtn.busy) .k-spin,.stage[data-hb-mode="inside"]:has(.sbtn:is(.ok,.err)) .k-end{box-shadow:0 0 0 2px var(--ui-accent)}
     .stage[data-hb-mode="inside"] .shaker{position:relative}
+    .stage[data-hb-mode="inside"] .sbtn{border-radius:26px}
     .full{position:absolute;inset:-9px;border:2px dashed rgba(244,244,242,.9);border-radius:35px;pointer-events:none}
     .stage[data-hb-mode="inside"] .full,.stage[data-hb-mode="inside"].circ .cir{display:block}
     .cir{position:absolute;top:-2px;left:calc(50% - 28px);width:56px;height:56px;border:2px dashed #f4f4f2;border-radius:50%;pointer-events:none;filter:drop-shadow(0 0 1px rgba(11,11,13,.8))}
@@ -284,10 +285,11 @@
   // restart a button that is busy (the flag is gone a moment later). The view is drawn at once, with no easing.
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;modePress=true;queueMicrotask(()=>{modePress=false});
-    easing.forEach(el=>{el.style.transition='none'});
+    // Only a change of the pose is drawn without easing: a run in progress keeps easing, so leaving a mode never pops it ahead
+    const snap=state==='rest'&&!running();
+    if(snap)easing.forEach(el=>{el.style.transition='none'});
     refresh();
-    void btn.offsetWidth;
-    easing.forEach(el=>{el.style.transition=''});
+    if(snap){void btn.offsetWidth;easing.forEach(el=>{el.style.transition=''})}
   });
 
   // wait(list, fn, move, hold) runs fn after move*(slow?3:1) + hold ms and keeps its timer in list (seqTimers for the submit itself,
