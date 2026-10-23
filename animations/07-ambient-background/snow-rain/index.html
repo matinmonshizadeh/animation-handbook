@@ -28,6 +28,22 @@
     .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 45% at 50% 100%,rgba(255,170,90,.13),transparent),linear-gradient(#03050b,#0a1020 50%,#18223a);background-origin:border-box}
     .town{position:absolute;left:0;bottom:0;width:100%;height:34%;display:block}
     canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words over the canvas, in dark pills; shown by the stage's mode */
+    .lbl,.sr-up{display:none}
+    .lbl{position:absolute;padding:4px 9px;border-radius:999px;background:rgba(5,6,10,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .sr-key,.stage[data-hb-mode="inside"] .sr-out,.stage[data-hb-mode="inside"] .sr-up,.stage[data-hb-mode="compare"] .side{display:block}
+    .sr-key{left:10px;top:10px;max-width:calc(100% - 44px);padding:4px 12px 4px 6px;border-radius:14px}
+    .sr-key p{display:flex;align-items:center;gap:6px;min-height:26px}
+    .sr-key span{white-space:normal}
+    .sr-key p[hidden]{display:none}
+    .sr-key svg{flex:none;width:44px;height:26px;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .sr-out{right:30px;top:50%;max-width:min(124px,40%);border-radius:14px;white-space:normal;text-align:right}
+    .sr-up{position:absolute;right:12px;top:12px;bottom:12px;width:2px;background:rgba(244,244,242,.75)}
+    .sr-up::after{content:"";position:absolute;left:-4px;top:-6px;border:5px solid transparent;border-top:0;border-bottom:8px solid rgba(244,244,242,.75)}
+    .side{top:10px}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.sr-key{padding:3px 10px 3px 4px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -50,6 +66,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <svg class="town" viewBox="0 0 400 80" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <path fill="#0d1424" d="M0 80V44H24V30H40V40H58V22H80V36H96V46H118V18H123V8H125V18H130V34H150V42H176V26H196V38H214V50H236V24H252V36H276V44H300V20H318V40H340V30H362V42H384V34H400V80Z"/>
@@ -58,10 +79,23 @@
         <path fill="#f3c26a" d="M6 70h3v4h-3zM48 68h3v4h-3zM66 68h3v4h-3zM97 66h3v4h-3zM122 68h3v4h-3zM138 68h3v4h-3zM168 70h3v4h-3zM208 66h3v4h-3zM226 66h3v4h-3zM266 68h3v4h-3zM302 64h3v4h-3zM320 64h3v4h-3zM315 71h3v4h-3zM362 68h3v4h-3zM390 70h3v4h-3z"/>
       </svg>
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <div class="lbl sr-key" aria-hidden="true" data-hb-caption>
+        <p><svg viewBox="0 0 44 26" aria-hidden="true"><path d="M6 2v10"/></svg><span>Far: small, dim, slow</span></p>
+        <p><svg viewBox="0 0 44 26" aria-hidden="true"><path d="M6 2v10"/></svg><span>Middle</span></p>
+        <p><svg viewBox="0 0 44 26" aria-hidden="true"><path d="M6 2v10"/></svg><span>Near: big, bright, fast</span></p>
+      </div>
+      <span class="sr-up" aria-hidden="true"></span>
+      <p class="lbl sr-out" aria-hidden="true" data-hb-caption>Out at the bottom, back in at the top</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Without depth</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>With depth</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the three depth layers are tinted: far ones are small, dim and slow, near ones big, bright and fast. Each arrow shows how fast its layer falls and how the wind pushes it.</p>
+      <p data-hb-for="compare" hidden>Without depth draws every flake or drop the same size and nearly the same speed, so the weather looks flat. With depth mixes far and near ones, so you seem to look through it.</p>
     </div>
   </section>
 
@@ -152,60 +186,107 @@
   const stage=document.querySelector('.stage');
   const slowTog=document.getElementById('slow-tog');
   const phone=matchMedia('(max-width:600px),(max-height:500px)'); // phones and short screens draw fewer particles
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const FRAME=1000/60; // one step is what a 60 Hz frame adds, so a faster screen or a slow frame does not change the speed
   // Far, middle and near layers. Per 60th of a second: fall speed (vy) and sideways speed per unit of wind; snow sways by up
   // to sway pixels, rain is a streak len pixels long. r is a flake's radius or a streak's width, a its opacity, share its part.
   const SNOW=[{r:1.1,vy:.45,wind:.25,sway:4,a:.55,share:.4},{r:1.8,vy:.8,wind:.45,sway:8,a:.8,share:.35},{r:2.8,vy:1.3,wind:.7,sway:13,a:.95,share:.25}];
   const RAIN=[{r:.8,vy:9,wind:1.2,len:11,a:.3,share:.4},{r:1.1,vy:13,wind:1.8,len:16,a:.45,share:.35},{r:1.6,vy:18,wind:2.6,len:22,a:.62,share:.25}];
   const DENSITY={snow:{light:28,medium:62,heavy:125},rain:{light:35,medium:80,heavy:170}}; // per 100,000 square pixels
-  let W=0,H=0,raf=null,lastT=null;
+  let W=0,H=0,raf=null,lastT=null,paused=false;
   let MODE='snow',AMOUNT='medium',WIND=1,DEPTH=true;
-  let groups=[]; // one per layer: its settings (p) and its particles (list)
 
-  // x spans the whole width a particle can wrap around in (the stage and 40 pixels on each side), so the wind, which shifts
+  // See inside and Compare. A region is a part of the canvas with particles of its own: Normal and See inside have one (the
+  // whole stage); Compare has two halves, the first with one layer (flat) and the second as the settings say. Normal's
+  // particles stay in `normal` while Compare shows and are not stepped, so leaving Compare brings the same weather back.
+  let view='normal';
+  const normal={x0:0,w:0,flat:false,groups:[]}; // groups: one per layer, its settings (p) and its particles (list)
+  let halves=[];
+  const regions=()=>view==='compare'?halves:[normal];
+  const TINT=['120,175,255','110,245,190','255,206,90']; // far, middle, near: See inside only
+  const tint=(t,p)=>'rgba('+TINT[t]+','+(.35+p.a*.65)+')';
+  // A picture that stands still (paused, or reduced motion) is dealt from a fixed seed, so it is the same every time
+  let rnd=Math.random;
+  function seeded(){let s=20241023;return()=>(s=(s*1664525+1013904223)>>>0)/4294967296;}
+
+  // x spans the whole width a particle can wrap around in (its region and 40 pixels on each side), so the wind, which shifts
   // every particle the same way, leaves no empty band drifting across the stage
-  function spawn(y){return {x:Math.random()*(W+80)-40,y,ph:Math.random()*6.283,sp:.8+Math.random()*.4};}
-  // The count follows the area the particles share (the stage and its two side bands), so a phone draws about a quarter of a
+  function spawn(w,y){return {x:rnd()*(w+80)-40,y,ph:rnd()*6.283,sp:.8+rnd()*.4};}
+  // The count follows the area the particles share (the region and its two side bands), so a phone draws about a quarter of a
   // laptop's, and phones and short screens draw 80% of that again. A layer that stays the same keeps its particles, so a new
-  // amount only adds or removes some; fresh deals them all again, spread over the stage.
-  function build(fresh){
-    const L=MODE==='snow'?SNOW:RAIN,layers=DEPTH?L:[L[1]];
-    const n=DENSITY[MODE][AMOUNT]*(W+80)*H/1e5*(phone.matches?.8:1);
-    groups=layers.map((p,i)=>{
-      const list=!fresh&&groups[i]&&groups[i].p===p?groups[i].list:[],want=Math.round(n*(DEPTH?p.share:1));
+  // amount only adds or removes some; fresh deals them all again, spread over the region.
+  function build(r,fresh){
+    const L=MODE==='snow'?SNOW:RAIN,deep=DEPTH&&!r.flat,layers=deep?L:[L[1]];
+    const n=DENSITY[MODE][AMOUNT]*(r.w+80)*H/1e5*(phone.matches?.8:1);
+    if(fresh&&(paused||reduce.matches))rnd=seeded();
+    r.groups=layers.map((p,i)=>{
+      const list=!fresh&&r.groups[i]&&r.groups[i].p===p?r.groups[i].list:[],want=Math.round(n*(deep?p.share:1));
       list.length=Math.min(list.length,want);
-      while(list.length<want)list.push(spawn(Math.random()*H));
-      return {p,list};
+      while(list.length<want)list.push(spawn(r.w,rnd()*H));
+      return {p,list,t:L.indexOf(p)};
     });
+    rnd=Math.random;
   }
+  function deal(){ // Compare's halves, each half the stage
+    halves=[{x0:0,w:W/2,flat:true,groups:[]},{x0:W/2,w:W/2,flat:false,groups:[]}];
+    halves.forEach(h=>build(h,true));
+  }
+  function rebuild(fresh){build(normal,fresh);if(view==='compare')halves.forEach(h=>build(h,fresh));}
 
   // k is how many 60 Hz frames this step stands for (a third of that in slow motion). A particle that falls out of the
   // bottom starts again just above the top, and one that the wind carries out of a side comes back in at the other.
   function step(k){
-    for(const {p,list} of groups){
+    for(const r of regions())for(const {p,list} of r.groups){
       const top=MODE==='snow'?p.r:p.len;
       for(const q of list){
         q.y+=p.vy*q.sp*k;q.x+=WIND*p.wind*k;q.ph+=.02*q.sp*k;
-        if(q.y-top>H){Object.assign(q,spawn(-top-Math.random()*(MODE==='snow'?20:H*.3)));}
-        if(q.x>W+40)q.x-=W+80;else if(q.x<-40)q.x+=W+80;
+        if(q.y-top>H){Object.assign(q,spawn(r.w,-top-Math.random()*(MODE==='snow'?20:H*.3)));}
+        if(q.x>r.w+40)q.x-=r.w+80;else if(q.x<-40)q.x+=r.w+80;
       }
     }
   }
-  // Every particle of a layer goes into one path, so each frame is three fills (snow) or three strokes (rain).
+  // Every particle of a layer goes into one path, so each frame is three fills (snow) or three strokes (rain). See inside
+  // tints the layers instead of white; Compare clips each half to itself and draws a divider between them.
   function draw(){
     ctx.clearRect(0,0,W,H);
-    for(const {p,list} of groups){
-      ctx.beginPath();
-      if(MODE==='snow'){
-        for(const q of list){const x=q.x+Math.sin(q.ph)*p.sway;ctx.moveTo(x+p.r,q.y);ctx.arc(x,q.y,p.r,0,6.283);}
-        ctx.fillStyle='rgba(255,255,255,'+p.a+')';ctx.fill();
-      }else{
-        const dx=WIND*p.wind/p.vy*p.len; // the streak leans as far as the drop moves sideways while it falls its length
-        for(const q of list){ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-dx,q.y-p.len);}
-        ctx.strokeStyle='rgba(175,200,235,'+p.a+')';ctx.lineWidth=p.r;ctx.stroke();
+    const split=view==='compare',inside=view==='inside';
+    for(const r of regions()){
+      if(split){ctx.save();ctx.beginPath();ctx.rect(r.x0,0,r.w,H);ctx.clip();ctx.translate(r.x0,0);}
+      for(const {p,list,t} of r.groups){
+        ctx.beginPath();
+        if(MODE==='snow'){
+          for(const q of list){const x=q.x+Math.sin(q.ph)*p.sway;ctx.moveTo(x+p.r,q.y);ctx.arc(x,q.y,p.r,0,6.283);}
+          ctx.fillStyle=inside?tint(t,p):'rgba(255,255,255,'+p.a+')';ctx.fill();
+        }else{
+          const dx=WIND*p.wind/p.vy*p.len; // the streak leans as far as the drop moves sideways while it falls its length
+          for(const q of list){ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-dx,q.y-p.len);}
+          ctx.strokeStyle=inside?tint(t,p):'rgba(175,200,235,'+p.a+')';ctx.lineWidth=p.r;ctx.stroke();
+        }
       }
+      if(split)ctx.restore();
     }
+    if(split){ctx.fillStyle='rgba(244,244,242,.6)';ctx.fillRect(W/2-1,0,2,H);}
   }
+
+  // See inside's key: one arrow per layer along its path, the fall plus the wind (so it leans with Wind), as long as its speed.
+  // The scale makes the near layer's fall 22px long in the key. The key is page text, drawn again for a new weather, wind or depth.
+  const keyRows=[...document.querySelectorAll('.sr-key p')];
+  function paintKey(){
+    const L=MODE==='snow'?SNOW:RAIN,s=22/L[2].vy,f=n=>Math.round(n*10)/10;
+    keyRows.forEach((row,i)=>{
+      row.hidden=!DEPTH&&i!==1;
+      const dx=WIND*L[i].wind*s,dy=L[i].vy*s,a=Math.atan2(dy,dx),h=Math.min(6,Math.hypot(dx,dy)*.7),x=6+dx,y=2+dy;
+      const path=row.querySelector('path');
+      path.setAttribute('d','M6 2L'+f(x)+' '+f(y)+'M'+f(x-h*Math.cos(a-.5))+' '+f(y-h*Math.sin(a-.5))+'L'+f(x)+' '+f(y)+'L'+f(x-h*Math.cos(a+.5))+' '+f(y-h*Math.sin(a+.5)));
+      path.style.stroke='rgb('+TINT[i]+')';
+    });
+    const word=DEPTH?'Middle':'One layer: every particle the same';
+    if(keyRows[1].lastChild.textContent!==word)keyRows[1].lastChild.textContent=word;
+  }
+  // The notes are written in the markup for Depth on; with Depth off they say so
+  const notes=[...document.querySelectorAll('.hb-mode-notes p')],notesOn=notes.map(p=>p.textContent);
+  const notesOff=['Inside, Depth is off, so there is one layer and every flake or drop is the same. Turn Depth on in Try it to see the three layers.','Depth is off, so Without depth and With depth match. Turn Depth on in Try it to see the difference.'];
+  function paintNotes(){notes.forEach((p,i)=>{const t=DEPTH?notesOn[i]:notesOff[i];if(p.textContent!==t)p.textContent=t;});}
 
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. A step is the time since
   // the last frame in 60ths of a second, never more than 50 ms (a background tab does not leap), a third of it in slow motion;
@@ -222,8 +303,16 @@
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the loop on
   // arrival, which this listener must catch. The weather on screen stays as it is while paused.
   document.addEventListener('hb:pause',e=>{
-    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    paused=e.detail.paused;
+    if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+  });
+  // The mode switch draws the mode at once, playing or paused. Compare deals its two halves' particles; Normal's are kept.
+  document.addEventListener('hb:mode',e=>{
+    const was=view;view=e.detail.mode;
+    if(view==='compare'&&was!=='compare')deal();
+    if(view==='inside')paintKey();
+    draw();
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null;});
@@ -233,10 +322,11 @@
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
-    W=w;H=h;
+    W=w;H=h;normal.w=W;
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-    build(true);draw();
+    build(normal,true);if(view==='compare')deal();
+    draw();
   }
 
   function choices(id,pick){
@@ -248,15 +338,15 @@
     }));
   }
   // Every change draws at once, so it shows while paused too. Wind redraws the rain's slant; snow shows it once it moves.
-  choices('mode-seg',d=>{MODE=d.mode;build(true);draw();});
-  choices('amount-seg',d=>{AMOUNT=d.amount;build(false);draw();});
-  choices('wind-seg',d=>{WIND=+d.wind;draw();});
-  document.getElementById('depth-tog').addEventListener('change',e=>{DEPTH=e.target.checked;build(true);draw();});
+  choices('mode-seg',d=>{MODE=d.mode;rebuild(true);paintKey();draw();});
+  choices('amount-seg',d=>{AMOUNT=d.amount;rebuild(false);draw();});
+  choices('wind-seg',d=>{WIND=+d.wind;paintKey();draw();});
+  document.getElementById('depth-tog').addEventListener('change',e=>{DEPTH=e.target.checked;rebuild(true);paintKey();paintNotes();draw();});
 
   resize();
   window.addEventListener('resize',resize);
   // A window that crosses the phone size changes how many particles it draws, even when the stage keeps its size
-  function onPhone(){build(false);draw();}
+  function onPhone(){rebuild(false);draw();}
   if(phone.addEventListener)phone.addEventListener('change',onPhone);
   else if(phone.addListener)phone.addListener(onPhone);
   start();
